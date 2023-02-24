@@ -1,0 +1,102 @@
+
+
+{% if dishes %}
+
+<!-- <h2 class='mb-3'>Basic example</h2> -->
+
+<div class="card">
+
+    <div class="card-header">
+        <h5 class="card-title">Default</h5>
+        <h6 class="card-subtitle text-muted">Highly flexible tool that many advanced features to any HTML table.</h6>
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive dataTables_wrapper ">
+
+            <table id="dish-data-grid" class="table table-bordered" cellspacing="0" width="100%">
+                <thead>
+                    <tr class="text-center">
+
+                        <th>#</th>
+                        <th class="th-sm">NOMBRE
+                        </th>
+                        <th class="th-sm">IMAGE
+                        </th>
+                        <th class="th-sm">PRICE
+                        </th>
+                        <th class="th-sm">QUANTITY
+                        </th>
+                        <th class="th-sm">SUBCATEGORY
+                        </th>
+                        <th class="th-sm">UPDATE
+                        </th>
+                        <th class="th-sm">DELETE
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    {% for dish in dishes %}
+                    <tr class="text-center" >
+                        <!-- <td>{{ dish.id }}</td> -->
+                        <td></td>
+                        <td>{{ dish.name }}</td>
+                        <td>
+                            <!-- {{ dish.image }} -->
+                            <img src="{{ dish.image_thumbnail.url }}" width="100px">
+                        </td>
+                        <td>{{ dish.price }}</td>
+                        <td>{{ dish.quantity }}</td>
+                        <td>{{ dish.subcategory.name }}</td>
+                        <td>
+                            <button onclick="showModalEdition('{% url 'dishes:json_dish_edit' dish.id %}')" class="btn btn-outline-warning">
+                                <i class="fas fa-sync-alt"></i> Click me
+                            </button>
+                        </td>
+                        <td>
+
+                            <button onclick="showModalDelete('{% url 'dishes:json_dish_delete' dish.id %}')" class="btn btn-outline-danger">
+                                <i class="fas fa-sync-alt"></i> Click me
+                            </button>
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+
+                </tbody>
+                <tfoot>
+                    <tr class="text-center">
+                        <th>#</th>
+                        <th>NOMBRE
+                        </th>
+                        <th>IMAGE
+                        </th>
+                        <th>PRICE
+                        </th>
+                        <th>QUANTITY
+                        </th>
+                        <th>SUBCATEGORY
+                        </th>
+                        <th>UPDATE
+                        </th>
+                        <th>DELETE
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- Card -->
+</div>
+
+
+
+{% else %}
+<h1>No existen platos registrados</h1>
+{% endif %}

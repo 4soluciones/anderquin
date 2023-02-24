@@ -1,0 +1,137 @@
+{% if cash_flow_set %}
+
+    <div class="table-responsive mt-3">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Fecha</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Operacion</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Descripcion de
+                    la
+                    operacion
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">ENTRADA</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">SALIDA</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Nro. Operacion
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Cliente</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Placa</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Responsable</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Usuario</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Editar</th>
+            </tr>
+            </thead>
+            <tbody id="cash-grid">
+
+            {% for c in cash_flow_set %}
+                <tr class=" {% if c.type == 'R' %}text-danger  font-weight-light
+                            {% elif c.type == 'D' %}text-info  font-weight-light
+                            {% endif %}" pk="{{ c.id }}">
+
+                    <td class="text-center transaction-date">{{ c.transaction_date|date:"d/m/Y" }}</td>
+                    <td class="text-center">{{ c.get_type_display|upper }}</td>
+                    <td class="text-center description-cash">{{ c.description|upper|default_if_none:"-" }}  </td>
+                    <td class="text-right">{% if c.type == 'D' %}{{ c.total|floatformat:2 }}{% endif %}</td>
+                    <td class="text-right">{% if c.type == 'R' %}{{ c.total|floatformat:2 }}{% endif %}</td>
+                    <td class="text-center">{{ c.operation_code }}</td>
+                    <td class="text-center">{{ c.order.client }}</td>
+                    <td class="text-center">{{ c.order.distribution_mobil.truck.license_plate }}</td>
+                    <td class="text-center">{{ c.order.distribution_mobil.pilot.full_name }}</td>
+                    <td class="text-center">{{ c.user.worker_set.last.employee.full_name | upper |default_if_none:"-" }}</td>
+                    <td class="text-center">
+                        <a  class="btn-sm btn-outline-warning text-dark btn-edit"
+                            data-toggle="modal"
+                            data-target="#exampleModalCenter"
+                            pk="{{ c.id }}">
+                        <i class="fas fa-edit"></i></a></td>
+                </tr>
+
+            {% endfor %}
+            </tbody>
+
+            <tfoot>
+            <tr>
+                <td colspan="3"></td>
+                <td colspan="1" class="font-weight-bold text-right">DEPOSITOS:</td>
+                <td colspan="1" class="font-weight-bold text-right">{{ inputs }}</td>
+                <td colspan="5"></td>
+            </tr>
+            <tr>
+                <td colspan="3"></td>
+                <td colspan="1" class="font-weight-bold text-right">RETIROS:</td>
+                <td colspan="1" class="font-weight-bold text-right">{{ outputs }}</td>
+                <td colspan="5"></td>
+            </tr>
+            <!--<tr>
+                <td colspan="3"></td>
+                <td colspan="1" class="font-weight-bold text-right">TRANSFERENCIAS:</td>
+                <td colspan="1" class="font-weight-bold text-right">{{ transfers|floatformat:2 }}</td>
+                <td colspan="5"></td>
+            </tr>-->
+            <tr>
+                <td colspan="3"></td>
+                <td colspan="1" class="font-weight-bold text-right">SALDO:</td>
+                <td colspan="1" class="font-weight-bold text-right">{{ current_balance }}</td>
+                <td colspan="5"></td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+        <strong>Atencion!</strong> Tu debes ingresar una fecha primero.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+{% endif %}
+
+
+
+<script>
+
+    $(document).on('click', '.btn-edit', function () {
+        let pk = $(this).attr('pk');
+        {#console.log(pk);#}
+        $.ajax({
+            url: '/accounting/get_modal_edit/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            data: {'pk': pk},
+            success: function (response) {
+                $('#modal-edit').html(response['grid']);
+            },
+        });
+
+    });
+
+    function cashDescriptionEditBank() {
+        let new_description = $('#id_description').val()
+        let new_transaction_date = $('#id_date').val()
+        let new_cash_id = $('#id_cash_flow').val()
+
+        {#console.log(new_description, new_cash_id, new_transaction_date)#}
+        $.ajax({
+            url: '/accounting/update_description_and_date_cash_bank/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            data: {
+                'description': new_description,
+                'cash_flow_id': new_cash_id,
+                'date': new_transaction_date
+            },
+            success: function (response) {
+                toastr.success(response['success'], '¡Bien hecho!');
+                $('#exampleModalCenter').modal('hide');
+                $("#search-form").trigger('submit');
+
+                {#$('tr[pk="'+new_cash_id+'"] td.transaction-date').text(new_transaction_date);#}
+                {#$('tr[pk="'+new_cash_id+'"] td.description-cash').text(new_description);#}
+            },
+        });
+    }
+
+
+</script>

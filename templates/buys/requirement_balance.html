@@ -1,0 +1,64 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    GLP | Lista de requerimientos
+{% endblock title %}
+
+{% block body %}
+
+    <!-- Content -->
+    <div class="container-fluid">
+        <div class="card-header text-left mt-2 mb-1 p-0 pl-1 pt-1" style="background: #336abe">
+            <div class="form-inline mt-0 mb-0 p-0 pt-1  text-center">
+                <h6 class="text-white">SALDOS DE REQUERIMIENTOS GLP - PLUSPETROL</h6>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="card col-sm-12">
+            <div class="card-body" id="render-form">
+                {% include "buys/requirement_balance_grid.html" %}
+            </div>
+        </div>
+    </div>
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+        function Difference(Valor1, Valor2) {
+            let S = parseFloat(Valor1 - Valor2);
+            return S;
+        };
+
+        $('.tbl-current-stock-requirement tbody tr').each(function () {
+            let _request = parseFloat($(this).find('td.quantity-request').text());
+            let _sent = parseFloat($(this).find('td.quantity-sent').text());
+            let _remaining = Difference(_request, _sent).toFixed(0);
+            $(this).find('td.quantity-remaining').text(_remaining.toString());
+        });
+
+        $('.tbl-current-stock-requirement tbody tr td').each(function () {
+            let _str = $(this).text();
+            _str = _str.replace(',', '.');
+            $(this).text(_str);
+        });
+        let total_amount = 0;
+        let total_amount_pen = 0;
+        $('.tbl-current-stock-requirement tbody tr').each(function () {
+            if ($(this).find('td.item-uno')) {
+                if (isNaN($(this).find('td.item-uno').text()) || $(this).find('td.item-uno').text() == '') {
+                    $(this).find('td.item-amount-total').text("$ "+total_amount.toFixed(2));
+                } else {
+                    total_amount = total_amount + parseFloat($(this).find('td.item-uno').text())
+                    $(this).find('td.item-amount-total').text(total_amount.toFixed(2));
+                }
+                if (isNaN($(this).find('td.item-dos').text()) || $(this).find('td.item-dos').text() == '') {
+                    $(this).find('td.item-amount-total_pen').text("S/. "+total_amount_pen.toFixed(2));
+                } else {
+                    total_amount_pen = total_amount_pen + parseFloat($(this).find('td.item-dos').text())
+                    $(this).find('td.item-amount-total_pen').text(total_amount_pen.toFixed(2));
+                }
+            }
+        });
+    </script>
+{% endblock extrajs %}

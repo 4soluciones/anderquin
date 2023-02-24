@@ -1,0 +1,144 @@
+<div class="modal-dialog modal-dialog-centered" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h5 class="modal-title">Registro de plato</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form id="dish-create-form" action="{% url 'dishes:json_dish_create' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="modal-body">
+
+                {% for field in form %}
+
+                <div class="form-group row">
+
+                    <label for="{{field.id_for_label}}" class="col-sm-3 col-form-label">
+                        {{field.label}}
+                    </label>
+
+                    <div class="col-md-9 pull-left">
+                        {{ field }}
+
+                        {% if field.help_text %}
+                        <small id="{{field.name}}HelpInline" class="form-text text-muted">
+                            {{ field.help_text }}
+                        </small>
+                        {% endif %}
+
+                        {% for error in field.errors %}
+                        <div class="invalid-feedback">
+                            {{error}}
+                        </div>
+                        {% endfor %}
+
+                    </div>
+
+                    <!-- form-group row -->
+                </div>
+
+                {% endfor %}
+
+                <!-- modal-body -->
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="btn-dish-create-submit" type="submit" class="btn btn-success">Guardar</button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+
+    $("#dish-create-form").submit(function (event) {
+        //stop submit the form, we will post it manually.
+        event.preventDefault();
+        //En la variable formData estamos almacenando un diccionario con los datos ingresados por el usuario en el formulario.
+        // Create an FormData object
+        var data = new FormData($('#dish-create-form').get(0));
+        //So now you have a FormData object, ready to be sent along with the XMLHttpRequest.
+        // var inputValue = form.get("inputTypeName");
+        //console.log(inputValue);
+
+        // If you want to add an extra field for the FormData
+        //data.append("CustomField", "This is some extra data, testing");
+
+        // disabled the submit button
+        $("#btn-dish-create-submit").attr("disabled");
+        //alert("SUBMIT");
+        $.ajax({
+            //Cómo podemos ver, mediante el uso de JQuery, estamos haciendo una solicitud POST a la url
+            url: "/dishes/json_dish_create/",
+            type: "POST",
+            enctype: 'multipart/form-data', //  It is required when you send files via regular forms, but since this will be sent via ajax it’s not needed.
+            data: data,
+            cache: false, //If set to false, it will force requested pages not to be cached by the browser.
+            processData: false, // Important!, it prevent jQuery form transforming the data into a query string
+            contentType: false, //Es imperativo que establezca la opción contentType en false, forzando a jQuery a no agregar un encabezado Content-Type
+            success: function (response, textStatus, xhr) {
+                //Recibe un json serializado
+                console.log(textStatus);
+
+                if(xhr.status==200){
+
+                    var parse = JSON.parse(response);
+
+                    dish_id = parse['dish'].id;
+                    dish_name = parse['dish'].name;
+                    dish_image = parse['dish'].image;
+                    dish_price = parse['dish'].price;
+
+                    console.log("dish_name: " + dish_name);
+                    // $('#alert-status').removeAttr("class").addClass("alert alert-success").text("Guardado con exito.").show(1000).delay(3200).hide(300);
+                    toastr.success('Guardado con exito.','¡Bien hecho!');
+                }
+                //data sended
+                // data = data.entries();
+                // var obj = data.next();
+                // var retrieved = {};
+                // while(undefined !== obj.value) {
+                //   retrieved[obj.value[0]] = obj.value[1];
+                //   obj = data.next();
+                // }
+                // console.log('retrieved: ',retrieved);
+                $("#btn-dish-create-submit").removeAttr("disabled");
+                $('#creation').modal('hide');
+            },
+            error : function(jqXhr, textStatus, xhr) { // provide a bit more info about the error to the console
+
+                if(jqXhr.status==500){
+
+                    error = jqXhr.responseJSON.error;
+
+                    if (typeof jqXhr.responseJSON.form_invalid.name !== undefined || jqXhr.responseJSON.form_invalid.name !== null) {
+                        toastr.error (jqXhr.responseJSON.form_invalid.name, '¡Inconcebible!');
+                    }
+                    // $('#alert-status').removeAttr("class").addClass("alert alert-danger")
+                    //.html(error + " : <br>"+ name_validation +"<br>"+price_validation).show(1000).delay(3200).hide(300);
+                }
+                else{
+                    console.log(" STATUS: " + xhr + " " + textStatus);
+                }
+
+                $("#btn-dish-create-submit").removeAttr("disabled");
+                $('#creation').modal('hide');
+            }
+        });//end ajax
+    }); //end submit
+
+</script>

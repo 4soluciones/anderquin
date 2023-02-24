@@ -1,0 +1,80 @@
+{% if purchases %}
+
+
+    <div class="card border-info m-3">
+
+        <div class="card-header bg-info">
+            <h4 class="card-title text-center text-white">LISTA DE COMPRAS REALIZADAS</h4>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive dataTables_wrapper ">
+                <table id="puchase-data-grid"
+                       class="table table-primary table-striped align-content-center table-bordered response"
+                       cellspacing="0" width="100%">
+                    <thead>
+                    <tr class="text-center bg-info text-white" style="height: 20px">
+                        <th>#</th>
+                        <th class="th-sm">Proveedor</th>
+                        <th class="th-sm">Numero comprobante</th>
+                        <th class="th-sm">Fecha compra</th>
+                        <th class="th-sm">Empleado</th>
+                        <th class="th-sm">Estado</th>
+                        <th class="th-sm">Accion</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% for p in purchases %}
+                        <tr class="text-center ">
+                            <td>{{ p.id }}</td>
+                            <td>{{ p.supplier.name }}</td>
+                            <td>{{ p.bill_number }}</td>
+                            <td>{{ p.purchase_date }}</td>
+                            <td>{{ p.user.worker_set.last.employee.names }}</td>
+                            <td class="{% if p.status == 'S' %}  text-danger {% else %} text-success
+                            {% endif %} bg-white">{{ p.get_status_display }}</td>
+                            <td class="p-1">
+
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-success  dropdown-toggle"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Action
+                                    </button>
+                                    <div class="dropdown-menu bg-secondary text-white font-italic">
+                                        <a class="dropdown-item assignment-store" pk="{{ p.id }}"><i
+                                                class="fas fa-save pr-1"></i>  Asignar almacen </a>
+                                        <a class="dropdown-item btn-update" pk="{{ p.id }}"><i
+                                                class="fas fa-edit pr-1"></i>  Editar </a>
+                                        <a class="dropdown-item btn-annular" pk="{{ p.id }}"><i
+                                                class="fas fa-edit pr-1"></i>  Anular </a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center bg-info text-white" style="height: 20px">
+                        <th>#</th>
+                        <th class="th-sm">Proveedor</th>
+                        <th class="th-sm">Numero comprobante</th>
+                        <th class="th-sm">Fecha compra</th>
+                        <th class="th-sm">Empleado</th>
+                        <th class="th-sm">Estado</th>
+                        <th class="th-sm">Accion</th>
+                    </tr>
+                    </tfoot>
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- Card -->
+    </div>
+
+
+{% else %}
+    <h1>No existen compras registradas</h1>
+{% endif %}

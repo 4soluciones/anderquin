@@ -1,0 +1,611 @@
+{% load static %}
+{% block content %}
+<style>
+    #save-product-return{
+        display: none;
+    }
+</style>
+    <form action="" method="post">
+        {% csrf_token %}
+        <div class="row">
+
+
+            <!-- Small input -->
+
+
+            <div class="col-md-6 col-lg-6">
+
+
+
+                <div class="row">
+
+
+                    <div class="col-md-12 col-lg-12">
+
+                        <!-- Card -->
+                        <div class="card">
+
+                            <!-- Card content -->
+                            <div class="card-body">
+
+                                <!-- Title -->
+                                <h4 class="card-title"><a>Información de la devolución</a></h4>
+                                <!-- Text -->
+                                {#                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>#}
+                                <div class="row">
+
+                                    <div class="col-md-6 col-lg-6">
+
+                                        <div class="form-group">
+                                            <label for="product-name">Nombre de producto / Barcode de lote</label>
+                                            <input type="text" id="product-name" name="product-name" class="form-control form-control-lg" autocomplete="off">
+                                            <input type="hidden" id="product-barcode">
+                                            <input type="hidden" id="product-id">
+                                            <input type="hidden" id="sale-id">
+                                            <input type="hidden" id="purchase-id">
+                                            <input type="hidden" id="current-inventory">
+                                            <input type="hidden" id="product-pass-price">
+                                            <input type="hidden" id="batch-barcode">
+                                            <input type="hidden" id="batch-total-quantity">
+                                            <input type="hidden" id="item-name">
+
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="col-md-6 col-lg-6">
+                                        <div class="form-group">
+                                            <label for="type">Tipo</label>
+                                            <select id="type" name="type" class="custom-select custom-select-lg">
+                                            </select>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="col-md-4 col-lg-4">
+                                        <div class="form-group">
+                                            <label for="quantity-shipped">Cantidad</label>
+                                            <input type="number" id="quantity-shipped" name="quantity-shipped" class="form-control form-control-lg" autocomplete="off">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 col-lg-4">
+                                        <div class="form-group">
+                                            <label class="control-label" for="return-date">Fecha de devolucion</label>
+                                            <input id="return-date" name="return-date" type="date" class="form-control form-control-lg" value="{{ formatted_time|date:"Y-m-d" }}">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 col-lg-4">
+                                        <div class="form-group">
+                                            <label for="employee-code">Codigo de empleado</label>
+                                            <input type="text" id="employee-code" name="employee-code" class="form-control form-control-lg" autocomplete="off" maxlength="3">
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 col-lg-12">
+                                        <div class="form-group">
+                                            <label for="comment">Motivo</label>
+                                            <textarea class="form-control rounded-0" name="comment" id="comment" rows="3"></textarea>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="col-md-12 col-lg-12">
+                                        <!-- Button -->
+                                        <a href="javascript:void(0)" class="btn btn-unique btn-block waves-effect waves-light" id="add-detail"><i class="fa fa-cart-plus fa-lg mr-1"></i> Agregar detalle</a>
+
+                                    </div>
+                                    <div class="col-md-12 col-lg-12">
+                                        <table class="table table-bordered table-sm details">
+
+                    <!--Table head-->
+                    <thead class="blue-grey lighten-5 detail-head-rows">
+
+                    </thead>
+                    <!--Table head-->
+
+                    <!--Table body-->
+                    <tbody class="detail-rows">
+
+
+                    </tbody>
+                    <!--Table body-->
+
+                </table>
+                <button type="button" class="btn btn-indigo btn-block waves-effect waves-light" id="save-product-return">Guardar cambios</button>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <!-- Card -->
+                    </div>
+
+
+
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-6">
+                <div class="row">
+                    <div class="col-md-12 col-lg-12" id="stock-status"></div>
+                    <div class="col-md-12 col-lg-12 acquisitions"></div>
+                </div>
+            </div>
+
+
+        </div>
+
+
+    </form>
+{% endblock %}
+{% block script %}
+    <script type="text/javascript">
+$index = 0;
+        $('document').ready(function () {
+            getType();
+            activeProductAutocomplete();
+        });
+
+        function getType() {
+            $gender = $('#type');
+            $.ajax({
+                url: '/vetstore/product_return_type/',
+                dataType: 'JSON',
+                success: function (data) {
+                    $.each(data, function (key, val) {
+                        $gender.append('<option value="' + val.id + '">' + val.value + '</option>');
+                    })
+                }
+            });
+        }
+        function activeProductAutocomplete() {
+            $("#product-name").autocomplete({
+                minLength: 2,
+                source: function (req, add) {
+                    var search = $("#product-name").val();
+                    $.ajax({
+                        url: '/vetstore/product_return_product_autocomplete_list/',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        data: {'search': search},
+                        success: function (data) {
+                            var array = data.map(function(element) {
+                                return {
+                                    value: element['id'] + ' ' + element['name'],
+                                    id: element['id'],
+                                    name: element['name'],
+                                    barcode: element['barcode'],
+                                    sale_price: element['sale_price'],
+                                    pass_price: element['pass_price'],
+                                    discount_price: element['discount_price'],
+                                    current_inventory: element['current_inventory'],
+                                    batch_barcode: element['batch_barcode'],
+                                    batch_total_quantity: element['batch_total_quantity'],
+                                    sales: element['sales'],
+                                    purchases: element['purchases'],
+                                };
+                            });
+                            add(array);
+                            if (search.length > 9) {
+
+                                codePatron = /^[0-9]{9,20}$/;
+                                if (codePatron.test(search)) {
+                                    console.log('Formato valido.');
+                                    $("ul.ui-menu.ui-autocomplete.ui-front").css('background-color','red').hide();
+                                }
+                                else{
+                                    console.log('Formato invalido.');
+                                    return false;
+                                }
+                                $.ajax({
+                                    url: '/vetstore/product_return_product_autocomplete_list/',
+                                    async: true,
+                                    dataType: 'json',
+                                    type: 'GET',
+                                    data: {'search': search},
+                                    success: function (response) {
+                                        var array = response.map(function(element) {
+                                            $('#product-barcode').val(element['barcode']);
+                                            $('#product-id').val(element['id']);
+                                            $('#current-inventory').val(element['current_inventory']);
+                                            $('#product-pass-price').val(element['pass_price']);
+                                            $('#batch-barcode').val(element['batch_barcode']);
+                                            $('#batch-total-quantity').val(element['batch_total_quantity']);
+                                            $('#item-name').val(element['name']);
+                                            console.log(element['sales']);
+
+                                            showStock(element['sales'], element['purchases']);
+                                            {#                                            renderQuantityAndPrice($('#customer-type').val(), element['sale_price'], element['discount_price'], element['pass_price'],1,1,element['batch_total_quantity']);#}
+                                        });
+
+                                    },
+                                    fail: function (response) {
+                                        $('#alerts').html(response.alert);
+                                    }
+                                });
+                            }
+                        },
+                        fail: function (response) {
+                            $('#alerts').html(response.alert);
+                        }
+                    });
+                },
+                select: function (event, ui) {
+                    $('#product-barcode').val(ui.item.barcode);
+                    $('#product-id').val(ui.item.id);
+                    $('#current-inventory').val(ui.item.current_inventory);
+                    $('#product-pass-price').val(ui.item.pass_price);
+                    $('#batch-barcode').val(ui.item.batch_barcode);
+                    $('#batch-total-quantity').val(ui.item.batch_total_quantity);
+                    $('#item-name').val(ui.item.name);
+                    console.log(ui.item.sales);
+                    console.log(ui.item.purchases);
+                    {#                    showStock(ui.item.name, ui.item.discount_price, ui.item.sale_price, ui.item.current_inventory, ui.item.batch_barcode, ui.item.batch_total_quantity);#}
+                    {#                    renderQuantityAndPrice($('#customer-type').val(), ui.item.sale_price, ui.item.discount_price, ui.item.pass_price,1,1,ui.item.batch_total_quantity);#}
+
+                }
+            });
+        }
+
+
+        function showStock($sales, $purchases) {
+
+            var options_date = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour12: true,
+                hourCycle:'h12',
+{#                timeZoneName: 'short',#}
+                timeZone:'UTC'
+            };
+
+            var options_hour = {
+                hour:'numeric',
+                minute:'numeric',
+                second:'numeric',
+                hour12: true,
+                hourCycle:'h12',
+{#                timeZoneName: 'short',#}
+                timeZone:'America/Lima'
+            };
+
+            $table_sales = '<table class="table table-bordered table-sm table-sales">';
+            $table_sales += '<thead>';
+            $table_sales += '<tr>';
+            $table_sales += '<th>#</th>';
+            $table_sales += '<th>Fecha y hora de venta</th>';
+            $table_sales += '<th>Precio</th>';
+            $table_sales += '<th>Cantidad</th>';
+            $table_sales += '<th>Subtotal</th>';
+            $table_sales += '</tr>';
+            $table_sales += '</thead>';
+            $table_sales += '<tbody>';
+            for (var i in $sales){
+                var mydate = new Date($sales[i][1]);
+                var myhour = new Date($sales[i][5]);
+                $table_sales += '<tr item="'+$sales[i][0]+'">';
+                $table_sales += '<td>' + '<div class="custom-control custom-radio">'+
+                    '<input type="radio" class="custom-control-input" id="sale-option-'+$sales[i][0]+'" name="sale-option" value="'+$sales[i][0]+'">'+
+                    '<label class="custom-control-label" for="sale-option-'+$sales[i][0]+'">'+$sales[i][0]+'</label>'+
+                    '</div>' + '</td>';
+                $table_sales += '<td>' + mydate.toLocaleDateString('es-pe', options_date) + ' ' + myhour.toLocaleTimeString('es-pe', options_hour) + '</td>';
+                $table_sales += '<td class="text-right rate">S/ <span>' + $sales[i][2] + '</span></td>';
+                $table_sales += '<td class="text-center quantity">' + $sales[i][3] + '</td>';
+                $table_sales += '<td class="text-right">S/ ' + $sales[i][4] + '</td>';
+                $table_sales += '</tr>';
+            }
+            $table_sales += '</tbody>';
+            $table_sales += '</table>';
+
+            $table_purchases = $table_sales + '<table class="table table-bordered table-sm table-purchases">';
+            $table_purchases += '<thead>';
+            $table_purchases += '<tr>';
+            $table_purchases += '<th>#</th>';
+            $table_purchases += '<th>Fecha y hora de compra</th>';
+            $table_purchases += '<th>Precio</th>';
+            $table_purchases += '<th>Cantidad</th>';
+            $table_purchases += '<th>Subtotal</th>';
+            $table_purchases += '</tr>';
+            $table_purchases += '</thead>';
+            $table_purchases += '<tbody>';
+            for (var i in $purchases){
+                var mydate = new Date($purchases[i][1]);
+                $table_purchases += '<tr item="'+$purchases[i][0]+'">';
+                $table_purchases += '<td>' + '<div class="custom-control custom-checkbox">'+
+                    '<input type="checkbox" class="custom-control-input" id="purchase-option-'+$purchases[i][0]+'" name="purchase-option" value="'+$purchases[i][0]+'">'+
+                    '<label class="custom-control-label" for="purchase-option-'+$purchases[i][0]+'">'+$purchases[i][0]+'</label>'+
+                    '</div>' + '</td>';
+                $table_purchases += '<td>' + mydate.toLocaleDateString('es-pe', options_date) + '</td>';
+                $table_purchases += '<td class="text-right rate">S/ <span>' + $purchases[i][2] + '</span></td>';
+                $table_purchases += '<td class="text-center quantity">' + $purchases[i][3] + '</td>';
+                $table_purchases += '<td class="text-right">S/ ' + $purchases[i][4] + '</td>';
+                $table_purchases += '</tr>';
+            }
+            $table_purchases += '</tbody>';
+            $table_purchases += '</table>';
+
+            $("#stock-status").html($table_purchases);
+
+            if($('#type').val() == 'V'){
+                $('.table-purchases').hide();
+            }
+            else{
+                if($('#type').val() == 'C'){
+                    $('.table-sales').hide();
+                }
+            }
+        }
+
+        $(document).on('change', '#type', function(e){
+            if($(this).val() == 'V'){
+                $('.table-purchases').hide();
+                $('.table-sales').show();
+            }
+            else{
+                if($(this).val() == 'C'){
+                    $('.table-purchases').show();
+                    $('.table-sales').hide();
+                }
+            }
+            cleanAcquisitionForm();
+            $('.acquisitions').empty();
+
+        });
+
+        $(document).on('change', 'input[name="sale-option"]', function(e){
+            if ($(this).is(':checked')) {
+                var search = $(this).val();
+                $.ajax({
+                    url: '/vetstore/get_sale/',
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'pk': search},
+                    success: function (response) {
+                        $('#alerts').html(response.alert);
+                        if(response.success){
+                            $('#sale-id').val(search);
+                            $('.acquisitions').html(response.formupdate);
+                            $('[data-trigger="spinner"]').spinner();
+                        }
+                    },
+                    fail: function (response) {
+                        $('#alerts').html(response.alert);
+                    }
+                });
+            }
+
+
+    });
+        $(document).on('change', 'input[name="purchase-option"]', function(e){
+            if ($(this).is(':checked')) {
+                var search = $(this).val();
+                $.ajax({
+                    url: '/vetstore/get_purchase/',
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'pk': search},
+                    success: function (response) {
+                        $('#alerts').html(response.alert);
+                        if(response.success){
+                            $('#purchase-id').val(search);
+                            $('.acquisitions').html(response.formupdate);
+                            $('[data-trigger="spinner"]').spinner();
+                        }
+                    },
+                    fail: function (response) {
+                        $('#alerts').html(response.alert);
+                    }
+                });
+            }
+            else{
+                $('.acquisitions').empty();
+            }
+
+    });
+
+    function cleanAcquisitionForm() {
+            $('input[name="purchase-option"]').prop('checked',false);
+            $('input[name="sale-option"]').prop('checked',false);
+        }
+
+        $('#add-detail').on('click', function () {
+            $product_name = $('#item-name').val();
+            $product_id = $('#product-id').val();
+            $quantity_to_return = parseInt($('#quantity-shipped').val());
+            $batch_barcode = $('#batch-barcode').val();
+            $comment = $('#comment').val();
+            $batch_total_quantity = parseInt($('#batch-total-quantity').val());
+            $rate = 0;
+            $amount = 0;
+            $quantity_in_acquisition = 0;
+            $sale_id = 0;
+            $purchase_id = 0;
+            $type = $('#type').val();
+
+            if (!$quantity_to_return) {
+                alert('No hay cantidad especificada');
+                return;
+            }
+
+            if (!$comment) {
+                alert('No hay motivo especificado');
+                return;
+            }
+
+            if($type== 'V'){
+                $sale_id = parseInt($('input:radio[name="sale-option"]:checked').val());
+                if (!$sale_id) {
+                    alert('No hay venta especificada');
+                    return;
+                }
+                $rate = parseFloat($("table.table-sales tr[item='"+$sale_id+"']").find('td.rate span').text());
+                $quantity_in_acquisition = parseInt($("table.table-sales tr[item='"+$sale_id+"']").find('td.quantity').text());
+
+                $quantity_in_devolutions = 0;
+                $table_sales_returns = $(".table-sales-returns tbody tr");
+                if($table_sales_returns.length){
+                    $table_sales_returns.each(function () {
+                        $quantity_in_devolutions += parseInt($(this).find("input.quantity").attr('data-min'));
+                    });
+                    if($quantity_to_return > $quantity_in_acquisition - $quantity_in_devolutions){
+                        alert('No se puede devolver más productos de los adquiridos en la venta.');
+                        return;
+                    }
+                }
+
+            }
+            else{
+                if($type== 'C'){
+                    $purchase_id = parseInt($('input:checkbox[name="purchase-option"]:checked').val());
+                    if (!$purchase_id) {
+                        alert('No hay compra especificada');
+                        return;
+                    }
+                    $rate = parseFloat($("table.table-purchases tr[item='"+$purchase_id+"']").find('td.rate span').text());
+                    $quantity_in_acquisition = parseInt($("table.table-purchases tr[item='"+$purchase_id+"']").find('td.quantity').text());
+
+                    if($quantity_to_return > $batch_total_quantity){
+                        alert('No se puede devolver más productos de los sobrantes en la compra. Stock actual del lote: ' + $batch_total_quantity);
+                        return;
+                    }
+                }
+            }
+
+            if ($quantity_to_return > $quantity_in_acquisition){
+                alert('No se puede devolver más productos de los adquiridos');
+                return;
+            }
+
+            $amount = $rate * $quantity_to_return;
+            var $head =
+                    '<tr>'+
+                    '<th>#</th>'+
+                    '<th>PRODUCTO</th>'+
+                    '<th>PRECIO</th>'+
+                    '<th>CANTIDAD</th>'+
+                    '<th>SUBTOTAL</th>'+
+                    '</tr>';
+
+                $('.detail-head-rows').html($head);
+                var $row = '<tr class="detail" pk="'+$index+'" item="'+$product_id+'">'+
+                    '<th>'+
+                    '<button type="button" class="btn btn-elegant btn-sm remove-detail" pk="'+$index+'">'+
+                    '<i class="fa fa-remove fa-2x" aria-hidden="true"></i>'+
+                    '</button>'+
+                    '</th>'+
+                    '<td>'+
+{#                    '<div class="md-form form-sm">'+#}
+                    $product_name + '<br>' + $batch_barcode +
+                    '<input type="hidden" class="product-id" value="'+$product_id+'">'+
+                    '<input type="hidden" class="batch-barcode" value="'+$batch_barcode+'">'+
+{#                    '</div>'+#}
+
+
+                    '</td>'+
+                    '<td>'+
+
+                    '<div class="input-group spinner" data-trigger="spinner">'+
+                    '<div class="input-group-prepend">'+
+                    '<span class="input-group-text">S/</span>'+
+                    '</div>'+
+                    '<input type="text" class="form-control form-control-sm text-right rate" readonly data-rule="currency" data-min="'+$rate+'" data-max="'+$rate+'">'+
+
+                    '</div>'+
+
+                    '</td>'+
+                    '<td>'+
+
+                    '<div class="input-group spinner" data-trigger="spinner">'+
+                    '<input type="text" class="form-control  form-control-sm text-center quantity" readonly data-rule="quantity" data-min="'+$quantity_to_return+'">'+
+                    '</div>'+
+
+                    '</td>'+
+                    '<td>'+
+
+                    '<div class="input-group spinner" data-trigger="spinner">'+
+                    '<div class="input-group-prepend">'+
+                    '<span class="input-group-text">S/</span>'+
+                    '</div>'+
+                    '<input type="text" class="form-control form-control-sm text-right amount" readonly data-rule="currency" data-min="'+$amount+'">'+
+
+                    '</div>'+
+
+                    '</td>'+
+                    '</tr>';
+
+                $('.detail-rows').prepend($row);
+                $('[data-trigger="spinner"]').spinner();
+                $('#save-product-return').show();
+        });
+
+
+        $('#save-product-return').on('click', function () {
+
+            if (!$('#employee-code').val()) {
+                alert('Ingrese codigo de empleado');
+                return;
+            }
+            var receipt = {
+                "Details": [],
+                "Type": $("#type").val(),
+                "Comment": $("#comment").val(),
+                "SaleId": $("#sale-id").val(),
+                "PurchaseId": $("#purchase-id").val(),
+                "EmployeeCode": $("#employee-code").val(),
+                "ReturnDate": $("#return-date").val()
+            };
+            $("table.details tr.detail").each(function () {
+
+                var detailObj = {
+                    "Product": $(this).find("input.product-id").val(),
+                    "Quantity": $(this).find("input.quantity").val(),
+                    "Rate": $(this).find("input.rate").val(),
+                    "Amount": $(this).find("input.amount").val(),
+                    "BatchBarcode": $(this).find("input.batch-barcode").val()
+                };
+                receipt.Details.push(detailObj);
+            });
+
+                $.ajax({
+                    url: '/vetstore/generate_product_return_receipt/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {'receipt': JSON.stringify(receipt)},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken":'{{ csrf_token }}'},
+                    success: function (response) {
+                        $('.list-products').html(response.list);
+                        $('#employee-code').val('');
+                        $('#quantity-shipped').val('');
+                        $('#comment').val('');
+                        $('#save-product-return').hide();
+                        $('.detail-rows').empty();
+                        $('#stock-status').empty();
+                        $('.detail-head-rows').empty();
+                        $('#alerts').html(response.alert);
+
+
+                    },
+                    fail: function (response) {
+                        $('#alerts').html(response.alert);
+                        console.log(response.message)
+                    }
+                });
+
+            $('#left-modal').modal('hide');
+            // $('#receipt-print').text(JSON.stringify(receipt));
+
+        });
+    </script>
+{% endblock %}

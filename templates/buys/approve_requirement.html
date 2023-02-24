@@ -1,0 +1,177 @@
+{% if requirement %}
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #2b579a">
+                <h6 class="modal-title text-white">APROBAR REQUERIMIENTO</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="" method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <td width="15%" class="align-middle" style="font-size: 12px">Numero requerimiento:</td>
+                            <td width="20%" class="align-middle">
+                                <input type="text" class="form-control form-control-sm" id="id_requirement"
+                                       readonly value="{{ requirement.id }}">
+                            </td>
+                            <td width="15%" class="align-middle" style="font-size: 12px">Numero Scop:</td>
+                            <td width="15%" class="align-middle">
+                                <input type="text" readonly class="form-control form-control-sm" id="id_nscop"
+                                       readonly value="{{ requirement.number_scop }}">
+                            </td>
+                            <td width=35%" class="align-middle text-center p-3" rowspan="2">
+                                <button type="button" id="id-btn-approve"
+                                        class="btn btn-sm btn-success btn-block pb-2 pt-2">Aprobar requerimiento
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-middle" style="font-size: 12px">Numero comprobante:</td>
+                            <td class="align-middle"><input type="text" class="form-control form-control-sm"
+                                                            id="id_invoice" required>
+                            </td>
+                            <td class="align-middle" style="font-size: 12px">
+                                Fecha aprobacion:
+                            </td>
+                            <td class="align-middle">
+                                <input type="date" class="form-control form-control-sm" id="id_date_approve"
+                                       value="{{ date_now }}">
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table id="tbl-detail-requirements"
+                           class="table table-striped align-content-center table-bordered small m-0">
+                        <thead>
+                        <tr class="text-white text-center" style="background: #2b579a; font-size: 13px;">
+                            <th width="2%" class="font-weight-normal">N°</th>
+                            <th width="7%" class="font-weight-normal">Producto</th>
+                            <th width="12%" class="font-weight-normal">Cantidad</th>
+                            <th width="8%" class="font-weight-normal">Unidad</th>
+                            <th width="20%" class="font-weight-normal">Precio</th>
+                            <th width="20%" class="font-weight-normal">Importe</th>
+                            <th width="18%" class="font-weight-normal">Moneda</th>
+                            <th width="13%" class="font-weight-normal">Cambio(S/.)</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody-details" style="font-size: 13px;">
+                        {% for d in requirement.requirements_buys.all %}
+                            <tr product="{{ d.product.id }}" class="text-center align-middle font-weight-bold p-0 m-0">
+                                <td class="item-detail align-middle">{{ d.id }}</td>
+                                <td class="item-name align-middle">{{ d.product.name }}</td>
+                                <td class="item-quantity align-middle">{{ d.quantity|floatformat:2 }}</td>
+                                <td class="item-unit align-middle" pu="{{ d.unit.id }}">{{ d.unit.name }}</td>
+                                <td class="item-price align-middle">{{ d.price|floatformat:10 }}</td>
+                                <td class="item-amount align-middle"><input type="number" class="form-control form-control-sm font-weight-bold total"
+                                           value="{{ d.multiplicate|floatformat:10 }}"></td>
+                                <td class="item-coin align-middle">
+                                    <select id="id_coin_glp" name="coin_glp"
+                                            class="form-control form-control-sm select-coin">
+                                        {% for item in coin_type %}
+                                            <option value="{{ item.0 }}">{{ item.1 }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td class="item-change align-middle">
+                                    <input type="number" class="form-control form-control-sm font-weight-bold input-change"
+                                           value="{{ d.change_coin|floatformat:4 }}">
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div><!-- modal-body -->
+                <div class="modal-footer"> &nbsp;
+                    {#                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>                &nbsp;#}
+                    {#                <button id="save-changes" type="button" class="btn btn-primary">Guardar</button>#}
+                </div>
+            </form>
+        </div>
+    </div>
+{% else %}
+    <h1>No existen compras de requerimientos GLP</h1>
+{% endif %}
+
+
+<script type="text/javascript">
+    $('#tbody-details tr td.item-quantity').each(function () {
+        let _str = $(this).text();
+        _str = _str.replace(',', '.');
+        $(this).text(_str);
+    });
+
+    $('#tbody-details tr td.item-price').each(function () {
+        let _str = $(this).text();
+        _str = _str.replace(',', '.');
+        $(this).text(_str);
+    });
+
+    $('#tbody-details tr td input.total').keyup(function () {
+        let _total = parseFloat($(this).val());
+        if (_total != '') {
+            let _item_quantity = parseFloat($(this).parent('td').parent('tr').find('td.item-quantity').text());
+            let _item_price = _total / _item_quantity;
+            if (isNaN(_item_price)) {
+                $(this).parent('td').parent('tr').find('td.item-price').text((0).toFixed(10));
+            } else {
+                $(this).parent('td').parent('tr').find('td.item-price').text(_item_price.toFixed(10));
+            }
+        }
+    })
+
+    $('#id-btn-approve').click(function () {
+
+        if (($('#id_invoice').val()).toString() != "" && ($('#id_date_approve').val()).toString() != "") {
+            let requirements = {
+                "Details": [],
+                "pk": $('#id_requirement').val(),
+                "invoice": $('#id_invoice').val(),
+                "date_approve": $('#id_date_approve').val(),
+            };
+
+            $("#tbody-details tr").each(function () {
+                if (parseFloat($(this).find("td.item-price").text()) > 0 && (parseInt($(this).find('td.item-coin select.select-coin').val()) > 0 && parseFloat($(this).find('td.item-change input.input-change').val()) > 0)) {
+                    let detailObj = {
+                        "detail_requirement_id": $(this).find("td.item-detail").text(),
+                        "price": $(this).find("td.item-price").text(),
+                        "amount": $(this).find("td.item-amount input.total").val(),
+                        "coin": $(this).find("td.item-coin select.select-coin").val(),
+                        "change_coin": $(this).find("td.item-change input.input-change").val(),
+                    };
+                    requirements.Details.push(detailObj);
+                    $.ajax({
+
+                        url: '/buys/update_details_requirement_store/',
+                        async: true,
+                        dataType: 'json', // for response
+                        type: 'GET',
+                        data: {'requirements': JSON.stringify(requirements)},
+                        contentType: 'application/json;charset=UTF-8',
+                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                        success: function (response, textStatus, xhr) {
+                            if (xhr.status == 200) {
+                                toastr.success(response.message, '¡EXITOSO!');
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 500);
+                            }
+                        },
+                        error: function (jqXhr, textStatus, xhr) {
+                            $('#add-programing-modal').modal('hide');
+                            toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
+                        }
+                    });
+                } else {
+                    alert("Ingrese el importe por favor!")
+                }
+
+            });
+        } else {
+            alert("Ingrese el comprobante y/o fecha de aprobacion!")
+        }
+    })
+
+</script>

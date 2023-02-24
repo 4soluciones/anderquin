@@ -1,0 +1,152 @@
+{% load static %}
+<form id="purchase-form" action="{% url 'buys:save_purchase' %}" method="POST" class="was-validated">
+
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-sm" style="width: 100%">
+                <tr>
+                    <td style="width: 10%">Proveedor:</td>
+                    <td style="width: 10%"><select class="form-control" id="id_proveedor" name="proveedor" required>
+                        <option disabled selected value=""> Seleccione</option>
+                        {% for o in supplier_obj %}
+                            {% if purchase.supplier.id == o.id %}
+                                <option value="{{ o.id }}">{{ o.name }}</option>
+                            {% else %}
+                                <option value="{{ o.id }}">{{ o.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    </td>
+                    <td style="width: 10%">
+                        <button type="button" id="btn-new"
+                                class="btn btn-primary btn-block pb-1">Nuevo
+                        </button>
+                    </td>
+                    <td rowspan="3" class="align-middle text-center" style="width: 70%">
+                        <h2>REGISTRO DE COMPRAS</h2>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Fecha compra:</td>
+                    <td><input type="date" class="form-control" id="id_fechacompra"
+                               name="fechacompra"
+                               placeholder="Fecha compra"
+                               value="{{ employee.birthdate|date:"Y-m-d" }}" required>
+                    </td>
+                    <td>
+                        <button type="submit" id="btn-save"
+                                class="btn btn-primary btn-block pb-1">Guardar
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Tipo de Documento:</td>
+                    <td style="width: 10%">
+                        <select class="form-control" id="id_type_bill" name="type_bill" required>
+                            <option disabled selected value=""> Seleccione</option>
+                            <option value="T">TICKET</option>
+                            <option value="B">BOLETA</option>
+                            <option value="F">FACTURA</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button type="button" id="btn-detail" class="btn btn-primary btn-block pb-1"
+                                data-toggle="modal"
+                                data-target="#modal-updetail">Detalles
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Numero Comprobante:</td>
+                    <td><input type="text" class="form-control" id="id_factura"
+                               name="factura"
+                               placeholder="Numero Comprobante"
+                               value="">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Vehiculo:</td>
+                    <td><select class="form-control" id="id-truck" name="truck">
+                        <option disabled selected value=""> Seleccione</option>
+                        {% for t in truck_set %}
+                            <option value="{{ t.id }}">{{ t.license_plate }}</option>
+                        {% endfor %}
+                    </select>
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</form>
+<div class="modal fade" id="modal-updetail" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">DETALLE DE LA COMPRA</h5>
+                <button type="button" class="close" onclick="limper()" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-detail">
+                <table class="table table-sm">
+                    <tr>
+                        <td>Descricpion del producto:</td>
+                        <td><select class="form-control" id="id_producto" name="producto" required>
+                            <option selected value="0"> Seleccione</option>
+                            {% for p in product_obj %}
+                                {% if employee.occupation.id == p.id %}
+                                    <option value="{{ p.id }}">{{ p.name }}</option>
+                                {% else %}
+                                    <option value="{{ p.id }}">{{ p.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Cantidad:</td>
+                        <td>
+                            <input type="text" class="form-control" id="id_cantidad"
+                                   name="cantidad"
+                                   placeholder="Cantidad" required
+                                   value="{{ employee.person.paternal_last_name }}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Unidad de Medida:
+                        </td>
+                        <td>
+                            <select class="form-control" id="id_unidad" name="unidad" required>
+                                <option value="0"> Seleccione</option>
+                                {% for u in unitmeasurement_obj %}
+                                    {% if employee.occupation.id == u.id %}
+                                        <option selected value="{{ u.id }}">{{ u.description }}</option>
+                                    {% else %}
+                                        <option value="{{ u.id }}">{{ u.description }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Precio Unitario:
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" id="id_preciounitario"
+                                   name="preciounitario"
+                                   placeholder="S/.0.00" required
+                                   value="{{ employee.person.paternal_last_name }}">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="limper()" data-dismiss="modal">Salir</button>
+                <button type="button" id="id_add" class="btn btn-primary">Agregar</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,33 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Datos del remolque
+{% endblock title %}
+
+{% block body %}
+
+    <form action="{% url 'comercial:towing_create' %}" method="POST" class="">
+        {% csrf_token %}
+        <div class="row mr-3 ml-0 mt-2">
+            <div class="col-md-12 mb-3">
+
+                <div class="card">
+                    <div class="card-body">
+
+                        {% include "comercial/towing_form.html" with form=form name="REGISTRO DE REMOLQUE" color="primary" %}
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+{% endblock body %}
+
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        $("#id_towing_model").chained("#id_towing_brand");
+
+    </script>
+{% endblock extrajs %}

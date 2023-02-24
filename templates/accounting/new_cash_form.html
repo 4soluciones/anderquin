@@ -1,0 +1,103 @@
+<form class="needs-validation" id="new-entity-form" method="POST">
+
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label for="id-entity-name">Banco/Caja</label>
+        <input type="hidden" id="id-entity" name="entity">
+        <input type="text" class="form-control text-uppercase" id="id-entity-name" name="entity-name" placeholder="" value="" required>
+        <div class="invalid-feedback">
+            Valid account code is required.
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="id-entity-subsidiary-name">Sucursal</label>
+        <input type="hidden" id="id-entity-subsidiary" name="entity-subsidiary" value="{{ subsidiary_obj.id }}">
+        <input type="text" class="form-control" id="id-entity-subsidiary-name" name="entity-subsidiary-name" placeholder=""
+               value="{{ subsidiary_obj.name }}" readonly>
+        <div class="invalid-feedback">
+            Valid value name is required.
+        </div>
+    </div>
+
+    <hr class="mb-4">
+
+    <div class="row">
+
+
+        <div class="col-md-6 mb-3">
+            <label for="id-entity-account-code">Cuenta</label>
+            <select id="id-entity-account-code" name="entity-account-code" required>
+                <option value="" disabled selected>SELECCIONE...</option>
+                {% for account in account_set %}
+                    {% if account.code|length == 3 %}
+                        <option pk="{{ account.pk }}" value="{{ account.code }}">{{ account.code }} - {{ account.description|upper }}</option>
+
+                    {% else %}
+
+                        {% if account.code|length == 4 %}
+                            <option pk="{{ account.pk }}" value="{{ account.code }}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ account.code }}
+                                - {{ account.description|upper }}</option>
+                        {% else %}
+
+                            {% if account.code|length == 5 %}
+                                <option pk="{{ account.pk }}" value="{{ account.code }}">
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ account.code }}
+                                    - {{ account.description|upper }}</option>
+                            {% else %}
+
+                                {% if account.code|length == 6 %}
+                                    <option pk="{{ account.pk }}" value="{{ account.code }}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ account.code }}
+                                        - {{ account.description|upper }}</option>
+                                {% endif %}
+
+                            {% endif %}
+
+                        {% endif %}
+
+                    {% endif %}
+                {% endfor %}
+            </select>
+            <div class="invalid-feedback">
+                Valid account name is required.
+            </div>
+        </div>
+
+
+        <div class="col-md-6 mb-3">
+            <label for="id-entity-account-number">Numero de cuenta</label>
+            <input type="text"
+                   class="form-control text-uppercase"
+                   id="id-entity-account-number"
+                   maxlength="14"
+                   name="entity-account-number">
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+    </div>
+
+
+    <hr class="mb-4">
+
+    <div class="mb-3">
+        <label for="id-entity-initial">Saldo inicial</label>
+        <input type="text"
+               class="form-control decimal"
+               id="id-entity-initial"
+               name="entity-initial" placeholder="" value=""
+               required="">
+        <div class="invalid-feedback">
+            Valid value name is required.
+        </div>
+    </div>
+
+
+    <hr class="mb-4">
+    <button class="btn btn-primary btn-lg btn-block" type="submit" id="btn-entity-save">Guardar</button>
+    <button class="btn btn-success btn-lg btn-block" type="button" id="btn-entity-update">Actualizar</button>
+</form>
+
+

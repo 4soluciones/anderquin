@@ -1,0 +1,213 @@
+<style>
+    #table-products > thead > tr > th{
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #ad1457;
+        color: #f8f9fa;
+        border-color: #ff4081;
+        border-left: 1px solid #c51162;
+    }
+    #table-products > tbody > tr > td{
+        font-size: 0.65rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #c2185b;
+        color: #f8f9fa;
+        border-color: #ff4081;
+        border-left: 1px solid #c51162;
+    }
+
+    #table-products td.right{
+        text-align: right;
+        background-color: #ec407a;
+    }
+    .minimum-inventory td{
+        background-color: #880e4f!important;
+    }
+    {#    .mdl-cell.mdl-cell--6-col {#}
+    {#        width: fit-content;#}
+    {#        float: left;#}
+    {#        padding: 10px;#}
+    {#    }#}
+    .form-inline{
+        display: block;
+    }
+</style>
+{% load static %}
+{% block content %}
+    {% if products %}
+        <!--Table-->
+        <table class="table table-striped table-sm example-data-table mdl-data-table" style="width:100%" id="table-products">
+
+            <!--Table head-->
+            <thead>
+            <tr>
+
+                <th scope="col">Modificado</th>
+                <th scope="col">Imagen</th>
+                <th scope="col">Producto</th>
+                <th scope="col">Categoria / Marca</th>
+                <th scope="col">Precios</th>
+                <th scope="col">Inventario </th>
+                <th scope="col">Lotes</th>
+                <th scope="col">Estado</th>
+                {% if role == 'ADM' %}<th scope="col"><i class="glyphicon glyphicon-wrench"></i></th>{% endif %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in products %}
+                <tr product="{{ item.pk }}" class="{% if item.current_inventory <= item.minimum_inventory %}minimum-inventory{% endif %}">
+                    {#                    <td>{{ item.update_at|date:'d/m/Y h:i a' }}</td>#}
+                    <td>{{ item.update_at|date:'Y-m-d h:i a' }}</td>
+                    <td>
+
+                        <div class="row">
+                            <div class="col-md-4">
+
+                                {% if item.image %}
+                        <img alt="User Pic"
+                             src="{{ item.image.url }}"
+                             width="120px"
+                             class=""
+                        >
+                                {% endif %}
+
+                            </div>
+                    </td>
+                    <td>
+                        {#                            <div class="col-md-8">#}
+                        {#                                #}
+                        {{ item.name|upper }}<br>
+                        <small>{{ item.label|upper }}</small><br>
+                        <strong>{{ item.barcode }}</strong><br>
+                        <strong>{{ item.factory_barcode }}</strong><br>
+
+                        {#                            </div>#}
+                        {#                        #}
+                        {#                        </div>#}
+
+
+                    </td>
+                    <td>{{ item.category.name|upper }}<br>{{ item.brand.name|upper }}</td>
+
+                    <td>
+                        Venta: S/ <strong class="plan">{{ item.sale_price|floatformat:"f" }}</strong><br>
+                        Pase: S/ <strong class="plan">{{ item.pass_price|floatformat:"f" }}</strong><br>
+                        Rebaja: S/ <strong class="plan">{{ item.discount_price|floatformat:"f" }}</strong>
+                    </td>
+                    <td>
+                        Comprado: {{ item.purchased_inventory }}<br>
+                        Vendido: {{ item.sold_inventory }}<br>
+                        Dev. comprado: {{ item.returned_purchased_inventory }}<br>
+                        Dev. vendido: {{ item.returned_sold_inventory }}<br>
+                        A la mano: {{ item.current_inventory }}<br>
+                        Mínimo: {{ item.minimum_inventory }}
+                    </td>
+                    <td>Total: {{ item.batches.all.count }}<br>
+                        {% for batch in item.batches.all %}
+                            {#                            Id. {{ batch.barcode|slice:"13:" }} - Cant. {{ batch.total_quantity }}/{{ batch.detail_batches.all.0.quantity }}<br>#}
+{#                            {% if batch.total_quantity > 0 %}#}
+                                Id. {{ batch.barcode }}<br>Cant. {{ batch.total_quantity }}/{{ batch.detail_batches.all.first.quantity }} [{{ batch.detail_batches.all.first.acquisition_detail.purchase.branch_office.name }}]<br>
+
+{#                            {% endif %}#}
+                        {% endfor %}
+
+                    </td>
+                    <td>{{ item.get_status_display }}</td>
+                    {% if role == 'ADM' %}
+                        <td >
+                            <!-- Small button group -->
+                            <div class="btn-group dropdown" >
+                                <button class="btn btn-danger btn-sm dropdown-toggle waves-light" type="button"  data-toggle="dropdown">
+                                    Action
+                                </button>
+                                <div class="dropdown-menu">
+
+                                    <a class="dropdown-item edit-product" pk="{{ item.pk }}" data-toggle="modal" data-target="#right-modal">Editar</a>
+                                    <a class="dropdown-item recalculate-product" pk="{{ item.pk }}" >Recalcular</a>
+                                    {#                                <div class="dropdown-divider"></div>#}
+                                    {#                                <a class="dropdown-item" href="#">Separated link</a>#}
+                                </div>
+                            </div>
+
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        No hay registros.
+    {% endif %}
+
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+
+
+
+        $('document').ready(function () {
+
+            $('.example-data-table').DataTable({
+                "language": datatable_language,
+                columnDefs: [
+                    {
+                        targets: [ 0, 1, 2 ],
+                        className: 'mdl-data-table__cell--non-numeric'
+                    }
+                ],
+                "order": [ 0, 'desc' ]
+                {#                "iDisplayLength": 6,#}
+                {#                "paging": false,#}
+                {#                                "ordering": false,#}
+                {#                "info": false,#}
+                {#                "searching": false#}
+            });
+        });
+
+
+        //edit-product
+        $('.edit-product').on('click', function () {
+            var search = $(this).attr('pk');
+            $.ajax({
+                url: '/vetstore/get_product/',
+                {#            async: true,#}
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': search},
+                success: function (response) {
+                    $('#alerts').html(response.alert);
+                    if(response.success){
+                        $('#right-modal .modal-body').html(response.formupdate);
+                    }
+                },
+                fail: function (response) {
+                    $('#alerts').html(response.alert);
+                }
+            });
+        });
+
+//recalculate-product
+        $('.recalculate-product').on('click', function () {
+            var search = $(this).attr('pk');
+            $.ajax({
+                url: '/vetstore/recalculate_product/',
+                {#            async: true,#}
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': search},
+                success: function (response) {
+                    $('#alerts').html(response.alert);
+                },
+                fail: function (response) {
+                    $('#alerts').html(response.alert);
+                }
+            });
+        });
+
+
+
+    </script>
+{% endblock %}

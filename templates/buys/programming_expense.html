@@ -1,0 +1,267 @@
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h5 class="modal-title">Gastos De Programaciones</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form action="" method="POST">
+            {% csrf_token %}
+
+            <div class="modal-body">
+                <table class="table table-sm">
+                    <tr>
+
+                        <td>Numero Scop:</td>
+                        <td><select class="form-control" id="id_nscop" name="nscop" required>
+                            <option value="0"> Seleccione</option>
+                            {% for o in programmign_buy_obj %}
+                                <option selected value="{{ o.id }}">{{ o.number_scop }}</option>
+                            {% endfor %}
+                        </select>
+                        </td>
+                        <td>Placa de Tracto</td>
+                        <td><input type="text" readonly class="form-control" id="id_truck"
+                        >
+                         <td>Tipo:</td>
+                        <td><select class="form-control" id="id_type" name="type" required>
+                            <option value="0"> Seleccione</option>
+                            {% for o in choices_type %}
+                                <option selected value="{{ o.0 }}">{{ o.1 }}</option>
+                            {% endfor %}
+                        </select>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>Numero Documento:</td>
+                        <td><input type="text" class="form-control" id="id_invoice"
+                        >
+                        <td>Fecha De Documento:</td>
+                        <td>
+                            <input type="date" class="form-control" id="id_dateinvoice"
+
+                                   value="{{ requirement_buy_obj.creation_date|date:"Y-m-d" }}">
+                        </td>
+                        <td>Monto Total:</td>
+                        <td><input type="text" class="form-control" id="id_price"
+                        >
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Descripcion:</td>
+                        <td><input type="text"  class="form-control" id="id_noperation"
+                        >
+                        <td>Cantidad:</td>
+                        <td><input type="text" class="form-control" id="id_quantity"
+                        >
+                        <td><input type="hidden" class="form-control" id="id_programing"
+                        >
+                        </td>
+                        <td>
+                            <button type="button" id="id-add"
+                                    class="btn btn-success btn-block pb-1">Agregar
+                            </button>
+                        <td><input type="hidden" class="form-control" id="id_condition_owner"
+                        >
+                        </td>
+                        </td>
+                    </tr>
+
+                </table>
+
+
+                <table id="id_programming_fuel" class="table table-bordered table-sm response">
+
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Documento</th>
+                        <th>Fecha De Documento</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                        <th>Descripcion</th>
+                        <th>Tipo</th>
+                        <th>Borrar</th>
+                    </tr>
+                    </thead>
+                    <tbody id="details">
+                    </tbody>
+                </table>
+
+
+            </div><!-- modal-body -->
+
+
+            <div class="modal-footer">
+                &nbsp;
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="save-changes" type="button" class="btn btn-primary">Guardar</button>
+
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#id_nscop').select2({
+        theme: 'bootstrap4',
+    });
+
+    function limper(request) {
+        $("#id_quantity").val('');
+        $("#id_invoice").val('');
+        $("#id_price").val('');
+        $("#id_noperation").val('');
+        $("#id_programmingbuys").val('');
+    };
+
+    $("#id-add").click(function () {
+
+        let invoice = $('#id_invoice').val();
+        let date_invoice = $('#id_dateinvoice').val();
+        let price = $('#id_price').val();
+        let noperation = $('#id_noperation').val();
+        let quantity = $('#id_quantity').val();
+        let programmingbuys = $('#id_nscop').val();
+        let id_type= $('#id_type').val();
+        let type= $('#id_type option:selected').text();
+        let condition_owner = $('#id_condition_owner').val();
+
+        if (id_invoice.length == 0 || id_quantity.length == 0 || id_noperation.length == 0) {
+            alert('LLENE LOS DATOS NECESARIOS!')
+        } else {
+            /* if ($("#id_detail_programming tr[truck=" + id_truck + "]").length) {
+                 alert('El trackto ya tiene programacion registrada')
+                 return false;
+             }*/
+
+            $('#id_programming_fuel').append(
+                '<tr programmingbuy="' + programmingbuys + '">' +
+                '<td class="text-center align-middle" _status="P">' + '</td>' +
+                '<td class="item-invocie align-middle" _programming=' + programmingbuys + '>' + invoice + '</td>' +
+                '<td class="item-dateinvoice align-middle">' + date_invoice + '</td>' +
+                '<td class="item-quantity align-middle">' + quantity + '</td>' +
+                '<td class="item-price align-middle">' + price + '</td>' +
+                '<td class="item-noperation align-middle" _conditionowner=' + condition_owner + '>' + noperation + '</td>' +
+                '<td class="item-type align-middle" _id_type="' + id_type +'">' + type + '</td>' +
+                '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem(' + programmingbuys + ')" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                '</tr>'
+            );
+
+            limper();
+            counterStrike();
+            toastr.info('FACTURA AGREGADA CON EXITO', '¡MENSAJE!');
+
+        }
+
+    });
+
+    function deleteItem($id) {
+        $('#details').find("tr[programmingbuys=" + $id + "]").remove();
+        counterStrike();
+    }
+
+    // reasigna numero de fila a los detalles
+    function counterStrike() {
+        let l = 1;
+        $('#details tr').each(function () {
+            $(this).attr('i', l);
+            $(this).children('td:first').text(l);
+            l++;
+        });
+
+    }
+
+    //Sacar datos al seleccionar el combo del tracto
+    $('#id_nscop').change(function () {
+        if ($(this).val() == 0) {
+            {#$('#id_nscop').val('');#}
+        } else {
+            let programming = $(this).val();
+            let requirement = $('#id_requirement').val();
+            let process = "invoice"
+            let programming_obj = {
+                "programming": programming,
+                "requirement": requirement,
+                "process": process,
+                {#"process": invoice,#}
+            };
+            $.ajax({
+                url: '/buys/get_scop_truck/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'programming_obj': JSON.stringify(programming_obj)},
+                success: function (response) {
+                    $('#id_truck').val(response['truck']);
+                    $('#id_condition_owner').val(response['condition_owner']);
+
+                    counterStrike();
+                    //tabla cargada
+                },
+                fail: function (response) {
+                    toastr.error("error");
+                }
+            });
+        }
+    })
+
+
+    $('#save-changes').click(function () {
+        let option = confirm("Esta seguro de registrar las facturas de combustible");
+        if (option == true) {
+            let details_invoice = {
+                "Details": [],
+            };
+            // alert($('#id_requirement').val());
+
+            $("#details tr").each(function () {
+                let detailObj = {
+                    "invoice": $(this).find("td.item-invocie").text(),
+                    "date_invoice": $(this).find("td.item-dateinvoice").text(),
+                    "price": $(this).find("td.item-price").text(),
+                    "quantity": $(this).find("td.item-quantity").text(),
+                    "noperation": $(this).find("td.item-noperation").text(),
+                    "status": $(this).find("td:first").attr('_status'),
+                    "programming": $(this).find("td.item-invocie").attr('_programming'),
+                    "condition_owner": $(this).find("td.item-noperation").attr('_conditionowner'),
+                    "type":$(this).find("td.item-type").attr('_id_type'),
+
+                };
+                details_invoice.Details.push(detailObj);
+            });
+            $.ajax({
+
+                url: '/buys/save_programming_fuel/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'details_send': JSON.stringify(details_invoice)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        toastr.success(response.message, '¡EXITOSO!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    $('#add-programing-modal').modal('hide');
+                    toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
+                }
+            });
+         }
+    })
+
+</script>

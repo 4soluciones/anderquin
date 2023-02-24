@@ -1,0 +1,66 @@
+<table id="programming-data-grid" class="table table-bordered table-sm">
+    <thead>
+    <tr class="bg-light text-dark text-center" style="height: 50px;">
+        <th scope="col" class="align-middle">#</th>
+        <th scope="col" class="align-middle">Unidad</th>
+        <th scope="col" class="align-middle">Conductores</th>
+        <th scope="col" class="align-middle">Fechas</th>
+        <th scope="col" class="align-middle">Origen</th>
+        <th scope="col" class="align-middle">Turno</th>
+        {#        <th scope="col" class="align-middle">Sede donde se creo la programacion</th>#}
+        <th scope="col" class="align-middle">Acción</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for p in programmings %}
+        <tr class="{% if p.status == 'C' %}table-danger text-black-50{% elif p.status == 'R' %}table-success text-black-50{% endif %}">
+            <th scope="row" style="height: 20px;">{{ p.id }}</th>
+            <td class="text-right">
+                <strong class="float-left">Tracto: </strong>{{ p.truck.license_plate }} <br>
+                <strong class="float-left">Remolque: </strong> {{ p.towing.license_plate|default:" - " }} </td>
+            <td>
+                {% for se in p.setemployee_set.all %}
+                    {% if se.function == 'P' %}
+                        <strong>Piloto: </strong>{{ se.employee.paternal_last_name }}
+                        {{ se.employee.maternal_last_name|slice:":1" }},
+                        {{ se.employee.names }}
+                    {% else %}
+                        <br>
+                        {% if se.function == 'C' %}
+                            <strong>Copiloto: </strong>{{ se.employee.paternal_last_name }}
+                            {{ se.employee.maternal_last_name|slice:":1" }},
+                            {{ se.employee.names }}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </td>
+            <td>
+                <strong>Fecha Salida: </strong>{{ p.departure_date|date:"SHORT_DATE_FORMAT" }}<br>
+                <strong>Fecha Llegada: </strong>{{ p.arrival_date|date:"SHORT_DATE_FORMAT" }}<br>
+            </td>
+            <td>
+                {% for r in p.route_set.all %}
+                    {% if r.type == 'O' %}
+                        <strong>Origen: </strong> {{ r.subsidiary.name }} <br>
+
+                    {% endif %}
+                {% endfor %}
+                {% for r in p.route_set.all %}
+                    {% if r.type == 'D' %}
+                        <strong>Destino: </strong> {{ r.subsidiary.name }} <br>
+                    {% endif %}
+                {% endfor %}
+
+            </td>
+            <td>{{ p.order }} </td>
+            {#            <td>{{ p.subsidiary.name }} </td>#}
+            <td>
+                <a class="btn btn-success text-white programming-edit" pk="{{ p.id }}">
+                    <i class="fas fa-edit"></i>
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+

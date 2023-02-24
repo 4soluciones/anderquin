@@ -1,0 +1,131 @@
+<form  class="needs-validation" id="new-disbursement-transaction-form" method="POST">
+
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label for="id-disbursement-cash">Caja</label>
+        <select class="custom-select my-1 mr-sm-2"
+                id="id-disbursement-cash" name="disbursement-cash" required>
+            <option value="" disabled selected>SELECCIONE...</option>
+            {% for c in only_cash_set %}
+                <option value="{{ c.pk }}"
+                        current-balance="{{ c.current_balance|floatformat:2|default_if_none:"0" }}">{{ c.name }}</option>
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+
+    <div class="mb-3">
+        <label for="id-disbursement-current-balance">Saldo actual</label>
+        <input type="text"
+               class="form-control decimal"
+               id="id-disbursement-current-balance"
+               name="disbursement-current-balance" readonly>
+        <div class="invalid-feedback">
+            Valid value name is required.
+        </div>
+    </div>
+
+
+    <hr class="mb-4">
+
+    <h4 class="mb-2">Operación:</h4>
+
+
+    <div class="row ">
+        <div class="col-md-1 mb-3">
+            <div class="d-block my-3">
+
+                <div class="custom-control custom-radio">
+                    <input id="cash-input" name="operationMethod" type="radio" class="custom-control-input" value="E"
+                           checked>
+                    <label class="custom-control-label font-weight-bold text-uppercase" for="cash-input">Entrada</label>
+                </div>
+
+                <div class="custom-control custom-radio">
+                    <input id="cash-output" name="operationMethod" type="radio" class="custom-control-input" value="S">
+                    <label class="custom-control-label font-weight-bold text-uppercase" for="cash-output">Salida</label>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-6 mb-3 ml-3">
+            <div class="d-block my-3">
+                <div class="custom-control">
+                </div>
+                <div class="custom-control">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="invoice-input" disabled>
+                        <label class="custom-control-label text-uppercase" for="invoice-input">Factura</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <hr class="mb-4">
+
+
+    <div class="row">
+
+        <div class="col-md-6 mb-3">
+            <label for="id-disbursement-operation-date">Fecha de registro</label>
+            <input type="date" class="form-control"
+                   id="id-disbursement-operation-date"
+                   name="disbursement-operation-date"
+                   value="{{ formatdate }}"
+                   required>
+            <div class="invalid-feedback">
+                Valid date is required.
+            </div>
+        </div>
+
+
+        <div class="col-md-2 mb-3">
+            <label for="id-disbursement-total">Sub-Total</label>
+            <input type="text"
+                   class="form-control decimal"
+                   id="id_subtotal"
+                   value="0.00"
+                   name="subtotal" readonly>
+        </div>
+
+        <div class="col-md-2 mb-3">
+            <label for="id-disbursement-total">IGV</label>
+            <input type="text"
+                   class="form-control decimal"
+                   id="igv"
+                   value="0.00"
+                   name="igv" readonly>
+        </div>
+
+        <div class="col-md-2 mb-3">
+            <label for="id-disbursement-total">Monto</label>
+            <input type="text"
+                   class="form-control decimal"
+                   id="id-disbursement-total"
+                   name="disbursement-total" >
+        </div>
+
+    </div>
+
+
+    <div class="mb-3">
+        <label for="id-disbursement-description">Concepto</label>
+        <input type="text"
+               class="form-control text-uppercase"
+               id="id-disbursement-description"
+               maxlength="100"
+               name="disbursement-description" required>
+        <div class="invalid-feedback">
+            Valid value name is required.
+        </div>
+    </div>
+
+
+    <hr class="mb-4">
+    <button class="btn btn-primary btn-lg btn-block" type="submit" id="btn-disbursement-operation-save">Guardar</button>
+</form>

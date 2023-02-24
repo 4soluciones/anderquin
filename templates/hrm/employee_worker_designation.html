@@ -1,0 +1,871 @@
+<div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h5 class="modal-title">Datos del trabajador</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form id="worker-create-form" action="" method="POST" class="was-validated">
+            {% csrf_token %}
+            <input id="id_employee" name="employee" type="hidden" value="{{ employee.id }}">
+
+            <div class="modal-body">
+
+
+                {% if employee %}
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 border-right">
+                                    <h4 class="mt-3">{{ employee.paternal_last_name }} {{ employee.maternal_last_name|slice:":1" }}, {{ employee.names }}</h4>
+                                </div>
+                                <div class="col-md-6 mt-3">
+
+
+                                    <ul class="list-group" id="employee-list" pk="{{ employee.id }}">
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Numero de documento
+                                            <span class="badge badge-primary badge-pill">{{ employee.document_number }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Nacionalidad
+                                            <span class="badge badge-primary badge-pill">{{ employee.nationality }}</span>
+                                        </li>
+                                    </ul>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                {% endif %}
+
+                <div class="accordion" id="accordionExample">
+
+                    <div class="card">
+
+                        <div class="card-header p-0" id="headingOne">
+                            <h2 class="mb-0">
+                                <button class="btn btn-block btn-info border-0" type="button" data-toggle="collapse"
+                                        data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    Datos laborales
+                                </button>
+                            </h2>
+                        </div>
+                        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
+                             data-parent="#accordionExample">
+                            <div class="card-body p-0">
+
+                                <div class="card-group">
+
+                                    <div class="card col-sm-7 p-0 border-0">
+                                        <div class="card-body p-0">
+
+                                            <!-- first-card -->
+                                            <div class="card m-1">
+                                                <div class="card-body">
+
+
+                                                    <div class="form-group row">
+                                                        <div class="col-sm-3">
+                                                            Periodo Laboral:
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <div class="form-row">
+                                                                <div class="col-md-6">
+                                                                    <label for="id_period_start_date">Fecha de
+                                                                        Inicio<br>(dd/mm/aaaa)</label>
+                                                                    <input type="date" class="form-control form-control-sm" id="id_period_start_date"
+                                                                           name="period_start_date" value="{{ formatdate }}">
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="id_period_end_date">Fecha de Fin<br>(dd/mm/aaaa)</label>
+                                                                    <input type="date" class="form-control form-control-sm" id="id_period_end_date"
+                                                                           name="period_end_date" value="">
+                                                                </div>
+                                                                <div class="col-md-12">
+                                                                    <label for="id_reason_for_withdrawal">{{ form_period.reason_for_withdrawal.label }}</label>
+                                                                    {{ form_period.reason_for_withdrawal }}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div><!-- form-group row -->
+
+                                                </div><!-- card-body -->
+                                            </div><!-- card -->
+
+                                            <!-- second-card -->
+                                            <div class="card m-1">
+                                                <div class="card-body">
+
+                                                    <div class="form-group row">
+                                                        <div class="col-sm-3">
+                                                            Tipo de trabajador:
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <div class="form-row">
+                                                                <div class="col-md-12">
+                                                                    <label for="id_worker_type">{{ form_period.worker_type.label }}</label>
+                                                                    {{ form_period.worker_type }}
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="id_worker_type_start_date">Fecha de
+                                                                        Inicio<br>(dd/mm/aaaa)</label>
+                                                                   <input type="date" class="form-control form-control-sm" id="id_worker_type_start_date"
+                                                                           name="worker_type_start_date" value="{{ formatdate }}">
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="id_worker_type_end_date">Fecha de Fin<br>(dd/mm/aaaa)</label>
+                                                                    <input type="date" class="form-control form-control-sm" id="id_worker_type_end_date"
+                                                                           name="worker_type_end_date" value="">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div><!-- form-group row -->
+
+                                                </div><!-- card-body -->
+                                            </div><!-- card -->
+
+                                            <!-- third-card -->
+                                            <div class="card m-1">
+                                                <div class="card-body">
+
+                                                    <div class="form-group row">
+                                                        <label for="id_labor_regime"
+                                                               class="col-sm-3 col-form-label">{{ form.labor_regime.label }}</label>
+                                                        <div class="col-sm-9">
+                                                            {{ form.labor_regime }}
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <label for="id_occupational_category"
+                                                               class="col-sm-3 col-form-label">{{ form.occupational_category.label }}</label>
+                                                        <div class="col-sm-9">
+                                                            {{ form.occupational_category }}
+                                                        </div>
+                                                    </div>
+
+
+                                                    <div class="form-group row">
+                                                        <label for="id_occupation_private_sector"
+                                                               class="col-sm-3 col-form-label">{{ form.occupation_private_sector.label }}</label>
+                                                        <div class="col-sm-9">
+                                                            {{ form.occupation_private_sector }}
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <label for="id_occupation_public_sector"
+                                                               class="col-sm-3 col-form-label">{{ form.occupation_public_sector.label }}</label>
+                                                        <div class="col-sm-9">
+                                                            {{ form.occupation_public_sector }}
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <label for="id_contract_type"
+                                                               class="col-sm-3 col-form-label">{{ form.contract_type.label }}</label>
+                                                        <div class="col-sm-9">
+                                                            {{ form.contract_type }}
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <label for="id_payment_type"
+                                                               class="col-sm-3 col-form-label">{{ form.payment_type.label }}</label>
+                                                        <div class="col-sm-9">
+                                                            {{ form.payment_type }}
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <label for="id_periodicity"
+                                                               class="col-sm-3 col-form-label">{{ form.periodicity.label }}</label>
+                                                        <div class="col-sm-9">
+                                                            {{ form.periodicity }}
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <label for="id_financial_system_entity" class="col-sm-3 col-form-label">{{ form_payment_account_data.financial_system_entity.label }}</label>
+                                                        <div class="col-sm-5">
+                                                            {{ form_payment_account_data.financial_system_entity }}
+                                                        </div>
+                                                        <div class="col-sm-4">
+                                                            {{ form_payment_account_data.account_number_where_the_remuneration_is_paid }}
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <label for="id_initial_basic_remuneration"
+                                                               class="col-sm-3 col-form-label">{{ form.initial_basic_remuneration.label }}</label>
+                                                        <div class="col-sm-9">
+                                                            {{ form.initial_basic_remuneration }}
+                                                            {{ form.initial_basic_remuneration.helptext }}
+                                                        </div>
+                                                    </div>
+
+                                                </div><!-- card-body -->
+                                            </div><!-- card -->
+
+
+                                        </div><!-- card-body -->
+                                    </div><!-- card -->
+
+
+                                    <div class="card col-sm-5 p-0 border-0">
+                                        <div class="card-body p-0">
+
+
+                                            <!-- first-card -->
+                                            <div class="card mt-1 mb-1 ml-0 mr-1">
+                                                <div class="card-body">
+
+                                                    <div class="form-group row">
+                                                        <div class="col-sm-12">
+                                                            {{ form_establishment.subsidiary.label }}
+                                                        </div>
+                                                        <div class="col-sm-12">
+                                                            <div class="form-row">
+                                                                <div class="col-md-12 mb-3">
+                                                                    {{ form_establishment.subsidiary }}
+                                                                </div>
+                                                                <div class="col-md-4 mb-3">
+                                                                    <label for="id_subsidiary_serial">Cod. Local</label>
+                                                                    <input type="text" class="form-control form-control-sm" id="id_subsidiary_serial" name="subsidiary_serial">
+                                                                </div>
+                                                                <div class="col-md-8 mb-3">
+                                                                    <label for="id_subsidiary_address">Local</label>
+                                                                    <input type="text" class="form-control form-control-sm" id="id_subsidiary_address" name="subsidiary_address">
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+                                                    </div><!-- form-group row -->
+
+                                                </div>
+                                            </div><!-- card -->
+
+                                            <!-- second-card -->
+                                            <div class="card mt-1 mb-1 ml-0 mr-1">
+                                                <div class="card-body">
+
+                                                    <fieldset class="form-group">
+                                                        <div class="row">
+                                                            <legend class="col-form-label col-sm-3 pt-0">Jornada
+                                                                Laboral
+                                                            </legend>
+                                                            <div class="col-sm-9">
+
+                                                                <div class="form-check">
+                                                                    {{ form.subject_to_maximum_working_day }}
+                                                                    <label class="form-check-label"
+                                                                           for="id_subject_to_maximum_working_day">
+                                                                        {{ form.subject_to_maximum_working_day.label }}
+                                                                    </label>
+                                                                </div>
+
+                                                                <div class="form-check">
+                                                                    {{ form.subject_to_atypical_regime }}
+                                                                    <label class="form-check-label"
+                                                                           for="id_subject_to_atypical_regime">
+                                                                        {{ form.subject_to_atypical_regime.label }}
+                                                                    </label>
+                                                                </div>
+
+                                                                <div class="form-check">
+                                                                    {{ form.subject_to_night_time }}
+                                                                    <label class="form-check-label"
+                                                                           for="id_subject_to_night_time">
+                                                                        {{ form.subject_to_night_time.label }}
+                                                                    </label>
+                                                                </div>
+
+                                                            </div>
+                                                        </div>
+                                                    </fieldset>
+
+
+                                                </div>
+                                            </div><!-- card -->
+
+                                            <!-- third-card -->
+                                            <div class="card mt-1 mb-1 ml-0 mr-1">
+                                                <div class="card-body">
+
+                                                    <div class="form-group row">
+                                                        <label for="id_special_situation"
+                                                               class="col-sm-3 col-form-label">{{ form.special_situation.label }}</label>
+                                                        <div class="col-sm-9">
+                                                            {{ form.special_situation }}
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div><!-- card -->
+
+                                            <!-- fourth-card -->
+                                            <div class="card mt-1 mb-1 ml-0 mr-1">
+                                                <div class="card-body">
+
+                                                    <div class="form-group row">
+                                                        <div class="col-sm-3">{{ form.disability.label }}</div>
+                                                        <div class="col-sm-9">
+                                                            <div class="form-check">
+                                                                {{ form.disability }}
+                                                                <label class="form-check-label" for="id_disability">
+                                                                    {{ form.disability.label }}
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div><!-- card -->
+
+                                            <!-- fiveth-card -->
+                                            <div class="card mt-1 mb-1 ml-0 mr-1">
+                                                <div class="card-body">
+
+                                                    <div class="form-group row">
+                                                        <div class="col-sm-3">{{ form.is_unionized.label }}</div>
+                                                        <div class="col-sm-9">
+                                                            <div class="form-check">
+                                                                {{ form.is_unionized }}
+                                                                <label class="form-check-label" for="id_is_unionized">
+                                                                    {{ form.is_unionized.label }}
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div><!-- card -->
+
+                                            <!-- sixth-card -->
+                                            <div class="card mt-1 mb-1 ml-0 mr-1">
+                                                <div class="card-body">
+
+                                                    <div class="form-group row">
+                                                        <label for="id_situation"
+                                                               class="col-sm-3 col-form-label">{{ form.situation.label }}</label>
+                                                        <div class="col-sm-9">
+                                                            {{ form.situation }}
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div><!-- card -->
+
+                                            <!-- seventh-card -->
+                                            <div class="card mt-1 mb-1 ml-0 mr-1">
+                                                <div class="card-body">
+
+                                                    <div class="form-group row">
+                                                        <label for="id_user"
+                                                               class="col-sm-3 col-form-label">{{ form.user.label }}</label>
+                                                        <div class="col-sm-9">
+                                                            {{ form.user }}
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group row">
+                                                        <div class="col-sm-3">&nbsp;</div>
+                                                        <div class="col-sm-9">
+                                                            <div class="form-check">
+                                                                <input type="checkbox" name="create_user" class="form-check-input" id="id_create_user">
+                                                                <label class="form-check-label" for="id_create_user">
+                                                                    Generar usuario
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div><!-- card -->
+
+                                        </div>
+                                    </div><!-- card -->
+
+                                </div><!-- card-group -->
+                            </div><!-- card-body -->
+                        </div><!-- collapseOne -->
+                    </div><!-- card -->
+
+                    <div class="card">
+                        <div class="card-header p-0" id="headingTwo">
+                            <h2 class="mb-0">
+                                <button class="btn btn-block btn-info border-0 collapsed" type="button"
+                                        data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false"
+                                        aria-controls="collapseTwo">
+                                    Datos de seguridad social
+                                </button>
+                            </h2>
+                        </div>
+                        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
+                             data-parent="#accordionExample">
+                            <div class="card-body p-0">
+
+                                <div class="card m-1">
+                                    <div class="card-body">
+
+                                        <div class="form-group row">
+                                            <div class="col-sm-2">
+                                                Regimen de salud:
+                                            </div>
+                                            <div class="col-sm-10">
+                                                <div class="form-row">
+                                                    <div class="col-md-12">
+                                                        <label for="">{{ form_period.health_insurance_regime.label }}</label>
+                                                        {{ form_period.health_insurance_regime }}
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="id_health_insurance_regime_start_date">Fecha de Inicio (dd/mm/aaaa)</label>
+                                                        <input type="date" class="form-control form-control-sm" id="id_health_insurance_regime_start_date"
+                                                               name="health_insurance_regime_start_date" value="{{ formatdate }}">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="id_health_insurance_regime_end_date">Fecha de Fin (dd/mm/aaaa)</label>
+                                                        <input type="date" class="form-control form-control-sm" id="id_health_insurance_regime_end_date"
+                                                               name="health_insurance_regime_end_date">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div><!-- card-body -->
+                                </div><!-- card -->
+
+                                <div class="card m-1">
+                                    <div class="card-body">
+
+                                        <div class="form-group row">
+                                            <div class="col-sm-2">
+                                                Regimen pensionario:
+                                            </div>
+                                            <div class="col-sm-10">
+                                                <div class="form-row">
+                                                    <div class="col-md-12">
+                                                        <label for="">{{ form_period.pensioner_regime.label }}</label>
+                                                        {{ form_period.pensioner_regime }}
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <label for="id_cuspp">{{ form.cuspp.label }}</label>
+                                                        {{ form.cuspp }}
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="id_pensioner_regime_start_date">Fecha de Inicio (dd/mm/aaaa)</label>
+                                                        <input type="date" class="form-control form-control-sm" id="id_pensioner_regime_start_date"
+                                                               name="pensioner_regime_start_date" value="{{ formatdate }}">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="id_pensioner_regime_end_date">Fecha de Fin (dd/mm/aaaa)</label>
+                                                        <input type="date" class="form-control form-control-sm" id="id_pensioner_regime_end_date"
+                                                               name="pensioner_regime_end_date">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div><!-- card-body -->
+                                </div><!-- card -->
+
+                                <div class="card m-1">
+                                    <div class="card-body">
+
+                                        <div class="form-group row">
+                                            <div class="col-sm-2">
+                                                SCTR Salud:
+                                            </div>
+                                            <div class="col-sm-10">
+                                                <div class="form-row">
+                                                    <div class="col-md-12">
+                                                        <label for="id_sctr_pension">{{ form.sctr_pension.label }}</label>
+                                                        {{ form.sctr_pension }}
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="id_sctr_health_start_date">Fecha de Inicio (dd/mm/aaaa)</label>
+                                                        <input type="date"
+                                                               class="form-control form-control-sm"
+                                                               disabled="disabled"
+                                                               id="id_sctr_health_start_date"
+                                                               name="sctr_health_start_date" value="{{ formatdate }}">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="id_sctr_health_end_date">Fecha de Fin (dd/mm/aaaa)</label>
+                                                        <input type="date"
+                                                               class="form-control form-control-sm"
+                                                               disabled="disabled"
+                                                               id="id_sctr_health_end_date"
+                                                               name="sctr_health_end_date">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div><!-- card-body -->
+                                </div><!-- card -->
+
+
+                            </div><!-- card-body -->
+                        </div><!-- collapseTwo -->
+                    </div><!-- card -->
+
+                    <div class="card">
+                        <div class="card-header p-0" id="headingThree">
+                            <h2 class="mb-0">
+                                <button class="btn btn-block btn-info border-0 collapsed" type="button"
+                                        data-toggle="collapse" data-target="#collapseThree" aria-expanded="false"
+                                        aria-controls="collapseThree">
+                                    Datos de la Situación Educativa
+                                </button>
+                            </h2>
+                        </div>
+                        <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                             data-parent="#accordionExample">
+                            <div class="card-body">
+
+                                <div class="form-group row">
+                                    <label for="id_educational_situation"
+                                           class="col-sm-3 col-form-label">{{ form.educational_situation.label }}</label>
+                                    <div class="col-sm-9">
+                                        {{ form.educational_situation }}
+                                    </div>
+                                </div>
+
+                            </div><!-- card-body -->
+                        </div><!-- collapseTwo -->
+                    </div><!-- card -->
+
+                    <div class="card">
+                        <div class="card-header p-0" id="headingfour">
+                            <h2 class="mb-0">
+                                <button class="btn btn-block btn-info border-0 collapsed" type="button"
+                                        data-toggle="collapse" data-target="#collapseFour" aria-expanded="false"
+                                        aria-controls="collapseFour">
+                                    Datos tributarios
+                                </button>
+                            </h2>
+                        </div>
+                        <div id="collapseFour" class="collapse" aria-labelledby="headingThree"
+                             data-parent="#accordionExample">
+                            <div class="card-body">
+
+                                <div class="form-group row">
+                                    <div class="col-sm-3">Percibe rentas de 5ta exoneradas</div>
+                                    <div class="col-sm-9">
+                                        <div class="form-check">
+                                            {{ form.exempted_5th_category_rent }}
+                                            <label class="form-check-label" for="id_exempted_5th_category_rent">
+                                                {{ form.exempted_5th_category_rent.label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <div class="col-sm-3">Aplica convenio para evitar doble imposicion</div>
+                                    <div class="col-sm-9">
+                                        <div class="form-check">
+                                            {{ form.agreement_to_avoid_double_taxation }}
+                                            <label class="form-check-label" for="id_agreement_to_avoid_double_taxation">
+                                                {{ form.agreement_to_avoid_double_taxation.label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div><!-- card-body -->
+                        </div><!-- collapseTwo -->
+                    </div><!-- card -->
+                </div><!-- accordion -->
+
+
+
+
+
+
+            </div><!-- modal-body -->
+
+
+            <div class="modal-footer">&nbsp;
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="btn-worker-create-submit" type="submit" class="btn btn-primary">Guardar</button>
+
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    // $('#tbl-worker tbody tr th').css('width', '20% !important');
+    // $('#tbl-worker tbody tr td').css('width', '80% !important');
+
+
+    var workerTypes =
+    [
+        {% for wt in worker_types %}
+            [
+              '{{ wt.id }}',
+              '{{ wt.description }}',
+              '{{ wt.private_sector }}',
+              '{{ wt.public_sector }}',
+              '{{ wt.other_entities }}'
+            ],
+        {% endfor %}
+    ];
+
+    var pensionerRegimes =
+    [
+        {% for pr in pensioner_regimes %}
+            [
+              '{{ pr.id }}',
+              '{{ pr.description }}',
+              '{{ pr.private_sector }}',
+              '{{ pr.public_sector }}',
+              '{{ pr.other_entities }}'
+            ],
+        {% endfor %}
+    ];
+
+    var occupationalCategories =
+    [
+        {% for oc in occupational_categories %}
+            [
+              '{{ oc.id }}',
+              '{{ oc.description }}',
+              '{{ oc.private_sector }}',
+              '{{ oc.public_sector }}',
+              '{{ oc.other_entities }}'
+            ],
+        {% endfor %}
+    ];
+
+function activeWorkerTypes($ps){
+
+    let _sector = 0;
+    if($ps == '01'){
+        _sector = 2;  // private sector
+    }
+    else{
+        if($ps == '02'){
+            _sector = 3;  // private sector
+        }
+        else{
+            _sector = 4;  // other entities
+        }
+    }
+
+    $('#id_worker_type').empty();
+    $('#id_worker_type').append('<option value="" selected="">---------</option>');
+
+    for (i = 0; i < workerTypes.length; i++) {
+
+        if(workerTypes[i][_sector] == 'A')
+
+        $('#id_worker_type').append(
+            '<option value="' + workerTypes[i][0] + '">' +
+            workerTypes[i][1] +
+            '</option>'
+        );
+    }
+};
+
+function activePensionerRegimes($ps){
+
+    let _sector = 0;
+    if($ps == '01'){
+        _sector = 2;  // private sector
+    }
+    else{
+        if($ps == '02'){
+            _sector = 3;  // private sector
+        }
+        else{
+            _sector = 4;  // other entities
+        }
+    }
+
+    $('#id_pensioner_regime').empty();
+    $('#id_pensioner_regime').append('<option value="" selected="">---------</option>');
+
+    for (i = 0; i < pensionerRegimes.length; i++) {
+
+        if(pensionerRegimes[i][_sector] == 'A')
+
+        $('#id_pensioner_regime').append(
+            '<option value="' + pensionerRegimes[i][0] + '">' +
+            pensionerRegimes[i][1] +
+            '</option>'
+        );
+    }
+};
+function activeOccupationalCategories($ps){
+
+    let _sector = 0;
+    if($ps == '01'){
+        _sector = 2;  // private sector
+    }
+    else{
+        if($ps == '02'){
+            _sector = 3;  // private sector
+        }
+        else{
+            _sector = 4;  // other entities
+        }
+    }
+
+    $('#id_occupational_category').empty();
+    $('#id_occupational_category').append('<option value="" selected="">---------</option>');
+
+    for (i = 0; i < occupationalCategories.length; i++) {
+
+        if(occupationalCategories[i][_sector] == 'A')
+
+        $('#id_occupational_category').append(
+            '<option value="' + occupationalCategories[i][0] + '">' +
+            occupationalCategories[i][1] +
+            '</option>'
+        );
+    }
+};
+
+$('#id_occupation_private_sector').select2({
+    theme: 'bootstrap4',
+});
+
+$('#id_occupation_public_sector').select2({
+    theme: 'bootstrap4',
+});
+
+    $('#id_labor_regime option[value=01]').attr('selected', 'selected');
+    $('#id_situation option[value=1]').attr('selected', 'selected');
+    $('#id_special_situation option[value=0]').attr('selected', 'selected');
+    $('#id_occupation_public_sector').parent('div').parent('div').slideUp();
+    $('#id_financial_system_entity').parent('div').parent('div').slideUp();
+    activeWorkerTypes('01');
+    activePensionerRegimes('01');
+    activeOccupationalCategories('01');
+
+    $("#id_labor_regime").change(function () {
+
+        if ($("#id_labor_regime").val() == '01') {
+            $('#id_occupation_private_sector').parent('div').parent('div').slideDown();
+            $('#id_occupation_public_sector').parent('div').parent('div').slideUp();
+
+            activeWorkerTypes('01');
+            activePensionerRegimes('01');
+            activeOccupationalCategories('01');
+
+        } else {
+            if ($("#id_labor_regime").val() == '02') {
+                $('#id_occupation_private_sector').parent('div').parent('div').slideUp();
+                $('#id_occupation_public_sector').parent('div').parent('div').slideDown();
+                activeWorkerTypes('02');
+                activePensionerRegimes('02');
+                activeOccupationalCategories('02');
+            } else {
+                $('#id_occupation_private_sector').parent('div').parent('div').slideUp();
+                $('#id_occupation_public_sector').parent('div').parent('div').slideUp();
+                activeWorkerTypes('03');
+                activePensionerRegimes('03');
+                activeOccupationalCategories('03');
+            }
+        }
+
+
+    });
+
+    $("#id_payment_type").change(function () {
+
+        if ($("#id_payment_type").val() == '2') {
+            $('#id_financial_system_entity').parent('div').parent('div').slideDown();
+        }
+        else{
+            $('#id_financial_system_entity').parent('div').parent('div').slideUp();
+        }
+    });
+    $("#id_subsidiary").change(function () {
+
+        if ($("#id_subsidiary").val() != '') {
+
+             $.ajax({
+                url: '/hrm/get_establishment_code/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'subsidiary': $("#id_subsidiary").val()},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        $("#id_subsidiary_serial").val(response.serial);
+                        $("#id_subsidiary_address").val(response.address);
+
+                    }
+                },
+                fail: function (response) {
+                    toastr.error("Error. ", '¡Inconcebible!');
+                }
+            });
+        }
+    });
+
+    // WorkerType
+    // PensionerRegime
+    // LaborRegime
+    // OccupationalCategory
+
+    $('#worker-create-form').submit(function (event) {
+        event.preventDefault();
+
+        var data = new FormData($('#worker-create-form').get(0));
+
+        $("#btn-worker-create-submit").attr("disabled");
+
+        $.ajax({
+            url: "/hrm/create_worker/",
+            type: "POST",
+            data: data,
+            cache: false, //If set to false, it will force requested pages not to be cached by the browser.
+            processData: false, // Important!, it prevent jQuery form transforming the data into a query string
+            contentType: false, //Es imperativo que establezca la opción contentType en false, forzando a jQuery a no agregar un encabezado Content-Type
+            success: function (response, textStatus, xhr) {
+                //Recibe un json serializado
+                console.log(response);
+
+                if(xhr.status==200){
+                    toastr.success('Guardado con exito.','¡Bien hecho!');
+                    setTimeout(() => {location.reload();}, 500);
+                }
+
+            },
+            error : function(jqXhr, textStatus, xhr) { // provide a bit more info about the error to the console
+                console.log(jqXhr);
+                if(jqXhr.status==500){
+                    toastr.error (jqXhr.responseJSON.error, '¡Inconcebible!');
+                }
+                else{
+                    console.log(" STATUS: " + xhr + " " + textStatus);
+                }
+
+            }
+        });//end ajax
+                $("#btn-worker-create-submit").removeAttr("disabled");
+                $('#get-worker-designation').modal('hide');
+    });
+</script>

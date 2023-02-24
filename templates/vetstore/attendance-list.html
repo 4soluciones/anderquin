@@ -1,0 +1,117 @@
+<style>
+    #table-attendances > thead > tr > th{
+        font-size: 0.8rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #1565c0;
+        color: #f8f9fa;
+        border-color: #448aff;
+        border-left: 1px solid #304ffe ;
+        text-transform: uppercase;
+{#        font-family: "Open Sans", sans-serif;#}
+        font-family: "continuum_lightregular";
+    }
+    #table-attendances > tbody > tr > td{
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #1976d2;
+        color: #f8f9fa;
+        border-color: #448aff;
+        border-left: 1px solid #304ffe ;
+        font-family: "continuum_lightregular";
+    }
+
+    #table-attendances td.center{
+        text-align: center;
+        background-color: #5c6bc0;
+    }
+    #table-attendances td.early{
+        background-color: #01579b ;
+    }
+    #table-attendances td.on-time{
+        background-color: #006064;
+    }
+    #table-attendances td.late{
+        background-color: #b71c1c ;
+    }
+    #table-attendances .rol{
+        display: none;
+    }
+</style>
+{% load static %}
+{% block content %}
+    {% if attendances %}
+        <!--Table-->
+        <table class="table table-striped table-sm" id="table-attendances">
+
+            <!--Table head-->
+            <thead>
+            <tr>
+                <th>Vendedor</th>
+                <th>Horario</th>
+                <th class="rol">Tol.</th>
+                <th>Fecha</th>
+                <th>Dia</th>
+                <th>Hora<br>entrada</th>
+                <th>Hora<br>salida</th>
+                <th class="rol">Horas<br>trabajadas</th>
+                <th class="rol">Minutos<br>temprano</th>
+                <th class="rol">Minutos<br>tarde</th>
+                <th class="rol">Minutos<br>retraso</th>
+                <th class="rol">Sobre<br>tiempo</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for attendance in attendances.all %}
+                <tr>
+                    <td>{{ attendance.employee.user.get_full_name|upper }}</td>
+                    <td>{{ attendance.employee.schedule.name }}</td>
+                    <td class="rol">{{ attendance.employee.schedule.tolerance }}</td>
+                    <td>{{ attendance.date_assigned|date:'d/m/Y' }}</td>
+                    <td>{{ attendance.weekday }}</td>
+                    <td class="{% if attendance.attendances.all.first.status == 'E' %}early{% else %}{% if attendance.attendances.all.first.status == 'O' %}on-time{% else %}{% if attendance.attendances.all.first.status == 'L' %}late{% endif %}{% endif %}{% endif %}">{{ attendance.entry_time|date:'h:i:s a' }}</td>
+                    <td>{{ attendance.departure_time|date:'h:i:s a' }}</td>
+                    <td class="rol">{{ attendance.hours_worked|date:'h:i:s' }}</td>
+                    <td class="center rol">{{ attendance.minutes_early }}</td>
+                    <td class="center rol">{{ attendance.minutes_late }}</td>
+                    <td class="center rol">{{ attendance.minutes_delay }}</td>
+                    <td class="center rol">{{ attendance.minutes_extra }}</td>
+                </tr>
+            {% endfor %}
+            <tr class="rol">
+                <td colspan="7"></td>
+                <td><strong>{{ hours_worked_sum.hours_worked__sum }}</strong></td>
+                <td class="center"><strong>{{ minutes_early_sum.minutes_early__sum }}</strong></td>
+                <td class="center"><strong>{{ minutes_late_sum.minutes_late__sum }}</strong></td>
+                <td class="center"><strong>{{ minutes_delay_sum.minutes_delay__sum }}</strong></td>
+                <td class="center"><strong>{{ minutes_extra_sum.minutes_extra__sum }}</strong></td>
+            </tr>
+            </tbody>
+        </table>
+    {% else %}
+        No hay registros.
+    {% endif %}
+
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+
+
+
+
+        $('document').ready(function () {
+
+          console.log("role: {{ role }}");
+            if("{{ role }}" == "ADM"){
+                $('#table-attendances .rol').show();
+            }
+            else{
+                $('#table-attendances .rol').remove();
+            }
+        });
+
+
+    </script>
+{% endblock %}

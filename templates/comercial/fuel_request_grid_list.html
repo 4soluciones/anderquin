@@ -1,0 +1,112 @@
+{% if fuel_programming_set %}
+    <div class="card border-info m-3">
+        <div class="card-header bg-info">
+            <h4 class="card-title text-center text-white">LISTA DE ORDENES COMBUSTIBLE</h4>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive dataTables_wrapper ">
+                <table id="table-fuel-programmings"
+                       class="table small table-primary table-striped align-content-center table-bordered response"
+                       cellspacing="0" width="100%">
+                    <thead>
+                    <tr class="text-center bg-info text-white " style="height: 20px">
+                        <th class="th-sm">Placa</th>
+                        <th class="th-sm">Conductor</th>
+                        <th class="th-sm">Proveedor</th>
+                        <th class="th-sm">Fecha</th>
+                        <th class="th-sm">Ruta</th>
+                        <th class="th-sm">Cantidad</th>
+                        <th class="th-sm">Unidad</th>
+                        <th class="th-sm">Precio</th>
+                        <th class="th-sm">Importe</th>
+                        <th class="th-sm">Accion</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% for fp in fuel_programming_set %}
+                        <tr class="text-center ">
+                            <td>{{ fp.programming.truck.license_plate }}</td>
+                            <td>{{ fp.programming.get_pilot.full_name }}</td>
+                            <td>{{ fp.supplier.name }}</td>
+                            <td>{{ fp.date_fuel }}</td>
+                            <td>{{ fp.programming.get_route }}</td>
+                            <td>{{ fp.quantity_fuel }}</td>
+                            <td>{{ fp.unit_fuel.name }}</td>
+                            <td>{{ fp.price_fuel|floatformat:2 }}</td>
+                            <td>{{ fp.amount|floatformat:2 }}</td>
+                             <td class="m-0 p-0 text-center align-middle">
+
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-info dropdown-toggle btn-sm" data-toggle="dropdown"
+                                            aria-haspopup="true" aria-expanded="false">
+                                        Action
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item btn-print" target="print" href="{% url 'comercial:print_ticket' fp.id %}"><i
+                                                class="fas fa-sync-alt"></i> Imprimir </a>
+                                        <a class="dropdown-item btn-annular" pk="{{ fp.id }}"><i
+                                                class="fas fa-sync-alt"></i> Anular </a>
+                                    </div>
+                                </div>
+
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center bg-info text-white" style="height: 20px">
+                        <th class="th-sm">Placa</th>
+                        <th class="th-sm">Conductor</th>
+                        <th class="th-sm">Proveedor</th>
+                        <th class="th-sm">Fecha</th>
+                        <th class="th-sm">Ruta</th>
+                        <th class="th-sm">Cantidad</th>
+                        <th class="th-sm">Unidad</th>
+                        <th class="th-sm">Precio</th>
+                        <th class="th-sm">Importe</th>
+                        <th class="th-sm">Accion</th>
+                    </tr>
+                    </tfoot>
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- Card -->
+    </div>
+
+
+{% else %}
+    <h1>No existen ordenes de combustible</h1>
+{% endif %}
+<script>
+  $('#table-fuel-programmings').DataTable({
+        "language": {
+          "url": "//cdn.datatables.net/plug-ins/1.10.15/i18n/Spanish.json"
+        }
+    });
+  /*
+  $(document).on('click', '.btn-print', function () {
+            let search = $(this).attr('pk');
+            $.ajax({
+                url: '/comercial/get_approve_detail_requirement/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': search},
+                success: function (response) {
+                    console.log(response);
+                    if (response.success) {
+                        $('#add-modal').html(response.form);
+                        $('#add-modal').modal('show');
+                    }
+                },
+                fail: function (response) {
+                    console.log(response);
+                }
+            });
+        });*/
+</script>

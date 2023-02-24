@@ -1,0 +1,106 @@
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h5 class="modal-title">Editar producto: {{ object }}</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form class="was-validated" id="product-update-form" action="{% url 'sales:json_product_edit' object.id %}" method="POST"  enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="modal-body">
+                {% include "sales/product_form.html" %}
+                imagen: {{ object.photo.url }}
+            </div><!-- modal-body -->
+
+
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="btn-product-update-submit" type="submit" class="btn btn-warning">Guardar</button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+<script type="text/javascript">
+
+
+    // $('#blah').attr('src', "{{ object.photo.url }}");
+
+    $("#product-update-form").submit(function (event) {
+        //stop submit the form, we will post it manually.
+        event.preventDefault();
+        // Create an FormData object
+        var data = new FormData($('#product-update-form').get(0));
+        // disabled the submit button
+        $("#btn-product-update-submit").attr("disabled");
+        //alert("SUBMIT");
+        $.ajax({
+            //Cómo podemos ver, mediante el uso de JQuery, estamos haciendo una solicitud POST a la url
+            url: $(this).attr('action'),
+            type: $(this).attr('method'),
+            data: data,
+            cache: false, //If set to false, it will force requested pages not to be cached by the browser.
+            processData: false, // Important!, it prevent jQuery form transforming the data into a query string
+            contentType: false, //Es imperativo que establezca la opción contentType en false, forzando a jQuery a no agregar un encabezado Content-Type
+            success: function (response, textStatus, xhr) {
+                //Recibe un json serializado
+                console.log(textStatus);
+
+                if(xhr.status==200){
+
+                    var parse = JSON.parse(response);
+                    product_name = parse['product'].name;
+                    console.log("product_name: " + product_name);
+                    toastr.success('Actualizado con exito.','¡Bien hecho!');
+
+                    $.ajax({
+                        url: '{% url 'sales:json_product_list' %}',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        // data: {'search': search},
+                        success: function (response) {
+                            $("#product-grid-list").html(response.result);
+                            refreshTable();
+                        },
+                        fail: function (response) {
+                            toastr.error ("Error. ", '¡Inconcebible!');
+                        }
+                    });
+
+
+                }
+
+                $("#btn-product-update-submit").removeAttr("disabled");
+                $('#edition').modal('hide');
+            },
+            error : function(jqXhr, textStatus, xhr) { // provide a bit more info about the error to the console
+
+                if(jqXhr.status==500){
+
+                    error = jqXhr.responseJSON.error;
+
+                    if (typeof jqXhr.responseJSON.form_invalid.name !== undefined || jqXhr.responseJSON.form_invalid.name !== null) {
+                        toastr.error (jqXhr.responseJSON.form_invalid.name, '¡Inconcebible!');
+                    }
+                }
+                else{
+                    console.log(" STATUS: " + xhr + " " + textStatus);
+                }
+
+                $("#btn-product-update-submit").removeAttr("disabled");
+                $('#edition').modal('hide');
+            }
+        });//end ajax
+    }); //end submit
+
+</script>

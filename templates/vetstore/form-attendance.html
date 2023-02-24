@@ -1,0 +1,200 @@
+{% load static %}
+
+{% block content %}
+
+    <div class="col-md-12">
+        <div class="page-header text-center">
+            <h1>{{ title }}</h1>
+            <p class="lead">Todo para que comiences rápidamente</p>
+        </div>
+    </div>
+
+    <div class="col-md-12"><div id="alerts"></div></div>
+
+        <style>
+            #search-attendances{
+                display: none;
+            }
+        </style>
+    <div class="col-md-12" id="search-attendances">
+
+        <div class="row">
+
+            <div class="col-md-6 offset-md-3">
+
+                <div class="col-md-12 col-lg-12" id="div-mode">
+                    <div class="form-group">
+                        <select id="mode-selected" class="form-control">
+                            <option selected="" value="EQUALS">de</option>
+                            <option value="GREATER_THAN">después de</option>
+                            <option value="LESS_THAN">antes de</option>
+                            <option value="BETWEEN">Entre</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-12 col-lg-12" id="div-start-date">
+                    <div class="form-group">
+                        <input id="start-date" name="start-date" type="date" class="form-control input-md"
+                               value="{{ date|date:'Y-m-d' }}">
+                    </div>
+                </div>
+
+
+
+                <div class="col-md-12 col-lg-12"><div class="form-group select-end-date"></div></div>
+
+                <div class="col-md-12 col-lg-12">
+                    <div class="form-group">
+                        {#                        <label for="employee-id">Empleado</label>#}
+                        {#                        <input type="text" id="employee-id" name="employee-id" class="form-control form-control-sm" autocomplete="off">#}
+
+                        <select id="employee-id" name="employee-id" class="custom-select custom-select-sm">
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-12 col-lg-12">
+                    <div class="form-group">
+                        <a class="btn btn-indigo btn-block" name="register" id="register">Buscar</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    {#    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">#}
+    <!-- Material input -->
+    {#        <div class="md-form col-md-10">#}
+    {#            <i class="fa fa-search prefix"></i>#}
+    {#            <input type="text" id="form1" class="form-control">#}
+    {#            <label for="form1" >Buscar producto</label>#}
+    {#        </div>#}
+
+    {#    </div>#}
+    {#        <div class="btn-toolbar mb-2 mb-md-0">#}
+    <button type="button" class="btn-floating btn-lg btn-indigo waves-light" data-toggle="modal" data-target="#left-modal">
+        <i class="fa fa-clock-o fa-3x"></i>
+    </button>
+    {#        </div>#}
+    <!-- Modal -->
+    <div class="modal fade top" id="left-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-top modal-danger" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="heading lead">Registrar asistencia</p>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Full Height Modal Right -->
+
+
+
+
+    <div class="col-md-12 list-products"></div>
+
+{% endblock %}
+
+{% block script %}
+    <script>
+
+        $('document').ready(function () {
+            console.log("role: {{ role }}");
+            if("{{ role }}" == "ADM"){
+                getEmployees();
+                $('#search-attendances').show();
+            }
+            else{
+                $('#search-attendances').remove();
+            }
+        });
+
+
+
+        $('#register').click(function () {
+
+            if (!$('#start-date').val()) {
+                alert('Ingrese fecha de inicio');
+                return;
+            }
+            if ($('#end-date').length && !$('#end-date').val()) {
+                alert('Ingrese fecha final');
+                return;
+            }
+
+            var search = $(this).attr('pk');
+            console.log('start-date: ' + $('#start-date').val())
+            console.log('end-date: ' + $('#end-date').val())
+            $.ajax({
+                url: '/vetstore/get_attendances_list/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'start-date': $('#start-date').val(),
+                    'end-date': $('#end-date').val(),
+                    'mode': $('#mode-selected').val(),
+                    'employee-id': $('#employee-id').val()
+                },
+                success: function (response) {
+                    $('.list-products').html(response.list);
+                    $('#alerts').html(response.alert);
+
+                },
+                fail: function (response) {
+                    $('#alerts').html(response.alert);
+                }
+            });
+
+        });
+        $('#mode-selected').change(function () {
+
+            var mode = $(this).val();
+
+            if(mode == 'BETWEEN'){
+                $('#div-start-date').attr('class','col-md-12 col-lg-12');
+                $('#div-mode').attr('class','col-md-12 col-lg-12');
+                $('.select-end-date').html(
+                    {#                    '<label class="control-label" for="end-date">Hasta</label>'+#}
+                    '<input id="end-date" name="end-date" type="date" class="form-control input-md">'
+                );
+            }
+            else{
+                $('#div-start-date').attr('class','col-md-12 col-lg-12');
+                $('#div-mode').attr('class','col-md-12 col-lg-12');
+                $('.select-end-date').empty();
+            }
+            console.log('mode: '+mode);
+
+
+        });
+
+function getEmployees() {
+{#            console.log('getBrandR register');#}
+            $brand = $('#employee-id');
+            $.ajax({
+                url: '/vetstore/rest/get_employee/',
+                dataType: 'JSON',
+                success: function (data) {
+                    $brand.append('<option value="0" selected>Seleccione un colaborador</option>');
+                    $.each(data, function (key, val) {
+                        $brand.append('<option value="' + val.pk + '">' + val.full_name + '</option>');
+                    });
+                }
+            });
+        };
+    </script>
+{% endblock %}

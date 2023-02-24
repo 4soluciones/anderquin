@@ -1,0 +1,142 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Reporte de Pagos Agrupados por Cliente
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid pt-3">
+        <div class="card">
+
+            <div class="card-header">
+                <label class="col-form-label col-form-label-lg">Reporte de Pagos Agrupados por Clientes</label>
+            </div>
+
+            <div class="card-body">
+
+                <form class="form-inline" id="search-form" method="POST">
+                    {% csrf_token %}
+                    <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>
+                    <input type="date" class="form-control my-1 mr-sm-2"
+                           id="id-start-date"
+                           name="start-date"
+                           value="{{ formatdate }}">
+
+                    <label class="my-1 mr-2" for="id-end-date">Fecha final</label>
+                    <input type="date" class="form-control my-1 mr-sm-2"
+                           id="id-end-date"
+                           name="end-date"
+                           value="{{ formatdate }}">
+
+                    <button type="submit" class="btn btn-blue my-1 ml-2" id="btn-search">
+                        <i class="fas fa-search-dollar"></i> Buscar
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body table-responsive" id="tbl-pays"></div>
+        </div>
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p>Cargando...</p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#search-form').get(0));
+
+            $('#btn-search').attr("disabled", "true");
+            $('#tbl-pays').empty();
+            $('#tbl-pays').html(loader);
+
+            $.ajax({
+                url: '/sales/report_payments_by_client/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response['message'], '¡Bien hecho!');
+                        $('#tbl-pays').html(response.grid);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-search').removeAttr("disabled", "false");
+        });
+        $(document).on('click', '#tbl-pays tbody tr td', function () {
+
+            //let tr = $(this).parent('tr');
+            let pk = $(this).attr('data-order');
+
+            $(`#tbl-pays tbody td[data-order]`).removeClass('bg-warning');
+
+            $(`#tbl-pays tbody td[data-order="${pk}"]`).addClass('bg-warning');
+
+        });
+
+        $(document).on('click', '.check-payment', function () {
+            let lps = $(this).val();
+
+            if ($(this).prop('checked')) {
+                checkedPay(lps, true)
+
+            } else {
+                checkedPay(lps, false)
+            }
+        });
+
+        function checkedPay(lps, operation) {
+
+            $.ajax({
+                url: '/sales/check_loan_payment/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'lps': lps,
+                    'operation': operation,
+                },
+                success: function (response) {
+                    console.log(response.message)
+                },
+                fail: function (response) {
+                    console.log("error");
+                }
+            });
+        }
+
+
+    </script>
+
+
+
+
+{% endblock extrajs %}

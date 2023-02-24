@@ -1,0 +1,605 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Control de caja
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+<div class="row">
+    <div class="col-sm-6">
+        <form class="form-inline" id="search-form" method="POST">
+            {% csrf_token %}
+            <label class="my-1 mr-2" for="id-cash">CAJA :</label>
+            <select class="custom-select my-1 mr-sm-2" id="id-cash" name="cash" required>
+                <option value="" disabled selected>SELECCIONE...</option>
+
+                {% for c in only_cash_set %}
+                    <option value="{{ c.pk }}">{{ c.name }}</option>
+                {% endfor %}
+
+            </select>
+
+            <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>
+            <input type="date" class="form-control my-1 mr-sm-2" id="id-start-date" name="start-date"
+                   value="{{ formatdate }}">
+
+            <label class="my-1 mr-2" for="id-end-date">Fecha final</label>
+            <input type="date" class="form-control my-1 mr-sm-2" id="id-end-date" name="end-date" readonly
+                   value="{{ formatdate }}">
+
+            <button type="submit" class="btn btn-primary my-1">
+                <i class="fas fa-search-dollar" id="btn-search"></i> Buscar
+            </button>
+
+        </form>
+    </div>
+    <div class="col-sm-6">
+
+            <button type="button" class="btn btn-outline-success m-1" data-toggle="modal" data-target="#modal-account">
+                <i class="fas fa-box-open"></i> Aperturar
+            </button>
+
+            <button type="button" class="btn btn-outline-success m-1" data-toggle="modal"
+                    data-target="#modal-disbursement" id="in-out">
+                <i class="fas fa-closed-captioning"></i> Ingresos / Salidas
+            </button>
+
+            <button type="button" class="btn btn-outline-danger m-1" data-toggle="modal"
+                    data-target="#modal-transfers" id="open-transfer-cash">
+                <i class="fas fa-external-link-square-alt"></i> Traslados
+            </button>
+
+            <button type="button" class="btn btn-outline-danger m-1 confirm-transfer-cash-to-cash">
+                <i class="fas fa-clipboard-check"></i> Confirmar traslado
+            </button>
+
+            <button type="button" class="btn btn-outline-dark m-1 cash-to-bank" data-toggle="modal"
+                    data-target="#modal-cash-to-bank" id="open-cash-to-bank">
+                <i class="fas fa-external-link-square-alt"></i> Deposito a Cuenta Bancaria
+            </button>
+
+    </div>
+</div>
+
+
+
+
+        <div id="account-grid-list">{% include "accounting/cash_grid_list.html" %}</div>
+
+    </div>
+
+
+    <div class="modal" id="modal-account" tabindex="-1" role="dialog">
+
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header pb-2 pt-2">
+                    <h4 class="modal-title mb-3 mt-3">Abrir Caja</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% include "accounting/cash_form.html" with formatdate=formatdate %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="modal" id="modal-disbursement" tabindex="-1" role="dialog">
+
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header pb-2 pt-2">
+                    <h4 class="modal-title mb-3 mt-3">Movimientos caja</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% include "accounting/new_cash_disbursements.html" with formatdate=formatdate %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal-transfers" tabindex="-1" role="dialog">
+
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header pb-2 pt-2">
+                    <h4 class="modal-title mb-3 mt-3 text-uppercase">Transferencias de Cajas</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% include "accounting/new_cash_transfers.html" with formatdate=formatdate %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modal-confirm-transfers" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle"
+         aria-hidden="true"></div>
+
+    <div class="modal" id="modal-cash-to-bank" tabindex="-1" role="dialog">
+
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header pb-2 pt-2">
+                    <h4 class="modal-title mb-3 mt-3 text-uppercase">Deposito de Caja a Cuenta Bancaria</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% include "accounting/new_cash_to_bank.html" with formatdate=formatdate %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        $('#cash-output').change(function () {
+            $('#invoice-input').removeAttr('disabled');
+            $("#id-disbursement-total").val('');
+            $("#id_subtotal").val('0.00');
+            $("#igv").val('0.00');
+        });
+
+        $('#cash-input').change(function () {
+            $('#invoice-input').attr('disabled', 'disabled');
+            $('#invoice-input').prop("checked", false);
+            $("#id-disbursement-total").val('');
+            $("#id_subtotal").val('0.00');
+            $("#igv").val('0.00');
+        });
+
+        $('#id-disbursement-total').keyup(function () {
+
+            let subtotal;
+            let igv;
+            let total = $(this).val();
+            if ($("#invoice-input").is(':checked')) {
+                subtotal = total / 1.18;
+                igv = total - subtotal
+                $("#id_subtotal").val(subtotal.toFixed(2));
+                $("#igv").val(igv.toFixed(2));
+            }
+        });
+
+        $('#open-transfer-cash').click(function () {
+            $('#id-cash-origin').val('0');
+            $('#id-subsidiary-origin').val('');
+            $('#id-current-balance').val('');
+            $('#id-cash-destiny').val('0');
+            $('#id-subsidiary-destiny').val('');
+            $('#id-transfer-description').val('');
+        });
+
+        $('#open-cash-to-bank').click(function () {
+            $('#id-cash-origin-deposit').val('0');
+            $('#id-bank-account').val('0');
+            $('#id-current-balance-deposit').val('');
+            $('#id-transfer-subsidiary-destiny').val('')
+            $('#id-deposit-amount').val('');
+            $('#id-description-deposit').val('');
+            $('#id-code-operation-deposit').val('');
+        });
+
+        $('#in-out').click(function () {
+            $('#id-disbursement-cash').val('0');
+            $('#id-disbursement-current-balance').val('');
+            $('#id-disbursement-operation-date').val('');
+            $('#id_subtotal').val('0.00')
+            $('#igv').val('0.00');
+            $('#id-disbursement-total').val('');
+            $('#id-disbursement-description ').val('');
+            $('#cash-input').prop("checked", true);
+            $('#invoice-input').prop("checked", false);
+            $('#invoice-input').attr('disabled', 'disabled');
+        });
+
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+
+            let _data = new FormData($('#search-form').get(0));
+
+            $("#btn-search").attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/get_cash_control_list/',
+                type: "POST",
+                data: _data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        $('#account-grid-list').html(response.grid);
+                        toastr.info(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                        $('#account-grid-list').html('<div class="alert alert-info alert-dismissible fade show mt-3" role="alert">\n' +
+                            '        <strong>Atencion!</strong> Tu debes ingresar una fecha primero.\n' +
+                            '        <button type="button" class="close" data-dismiss="alert" aria-label="Close">\n' +
+                            '            <span aria-hidden="true">×</span>\n' +
+                            '        </button>\n' +
+                            '    </div>');
+                    }
+                }
+            });
+            $("#btn-search").removeAttr("disabled", "false");
+            $('#search-form').modal('hide');
+
+        });
+
+
+        $('#cash-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#cash-form').get(0));
+
+            let _id_date = $('#cash-date').val();
+            let _id_amount = $('#cash-amount').val();
+
+            if (_id_date.length === 0) {
+                toastr.warning('¡Favor seleccionar una fecha!', 'Error de Datos');
+                return false;
+            }
+
+
+            $('#btn-save').attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/open_cash/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        // $('#product-detail-grid').html(response.grid);
+                        $('#modal-account').modal('hide');
+                        toastr.success(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-save').removeAttr("disabled", "false");
+
+        });
+
+        $(document).on('click', '.cash-update', function () {
+
+
+            let _pk = $(this).attr('pk');
+            let _date = $(this).attr('date');
+            let _status = $(this).attr('status');
+
+
+            $.ajax({
+                url: '/accounting/close_cash/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'pk': _pk, 'date': _date, 'status': _status},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        // $('#product-detail-grid').html(response.grid);
+
+                        $('#modal-account').modal('hide');
+                        toastr.success(response['message'], '¡Bien hecho!');
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1000);
+
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+
+
+        });
+
+
+        $("#id-select-cash").change(function () {
+
+            if ($("#id-select-cash").val() != '') {
+
+                $.ajax({
+                    url: '/accounting/get_initial_balance/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {'cash': $("#id-select-cash").val()},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡Bien hecho!');
+                            $("#cash-amount").val(parseFloat(response.initial_balance).toFixed(2));
+
+                        }
+                    },
+                    fail: function (response) {
+                        toastr.error("Error. ", '¡Inconcebible!');
+                    }
+                });
+            }
+        });
+
+        $('#id-start-date').change(function () {
+            $('#id-end-date').val($(this).val());
+        });
+
+
+        $('#id-disbursement-cash').change(function () {
+            $('#id-disbursement-current-balance').val($(this).find('option:selected').attr('current-balance'));
+        });
+
+
+        $('#new-disbursement-transaction-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#new-disbursement-transaction-form').get(0));
+
+            $('#btn-disbursement-operation-save').attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/new_cash_disbursement/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        // $('#product-detail-grid').html(response.grid);
+                        $('#modal-disbursement').modal('hide');
+                        toastr.success(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-disbursement-operation-save').removeAttr("disabled", "false");
+        });
+
+        $('#new-transfers-transaction-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#new-transfers-transaction-form').get(0));
+
+            $('#btn-disbursement-operation-save').attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/new_cash_disbursement/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        // $('#product-detail-grid').html(response.grid);
+                        $('#modal-transfers').modal('hide');
+                        toastr.success(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-disbursement-operation-save').removeAttr("disabled", "false");
+        });
+
+        $("#id-cash-origin").change(function () {
+
+            if ($("#id-cash-origin").val() != '') {
+
+                $.ajax({
+                    url: '/accounting/get_cash_by_subsidiary/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {'cash_id': $("#id-cash-origin").val()},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡Bien hecho!');
+                            $("#id-subsidiary-origin").val(response.cash_subsidiary);
+
+                        }
+                    },
+                    fail: function (response) {
+                        toastr.error("Error. ", '¡Inconcebible!');
+                    }
+                });
+            }
+        });
+        $("#id-cash-destiny").change(function () {
+
+            if ($("#id-cash-destiny").val() != '') {
+
+                $.ajax({
+                    url: '/accounting/get_cash_by_subsidiary/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {'cash_id': $("#id-cash-destiny").val()},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡Bien hecho!');
+                            $("#id-subsidiary-destiny").val(response.cash_subsidiary);
+
+                        }
+                    },
+                    fail: function (response) {
+                        toastr.error("Error. ", '¡Inconcebible!');
+                    }
+                });
+            }
+        });
+
+        $("#id-cash-origin").change(function () {
+
+            if ($("#id-cash-origin").val() != '') {
+
+                $.ajax({
+                    url: '/accounting/get_initial_balance/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {'cash': $("#id-cash-origin").val()},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡Bien hecho!');
+                            $("#id-current-balance").val(parseFloat(response.initial_balance).toFixed(2));
+
+                        }
+                    },
+                    fail: function (response) {
+                        toastr.error("Error. ", '¡Inconcebible!');
+                    }
+                });
+            }
+        });
+
+        $('#new-transfer-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#new-transfer-form').get(0));
+
+            $('#btn-transfer-cash-save').attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/new_cash_transfer_to_cash/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        // $('#product-detail-grid').html(response.grid);
+                        $('#modal-transfers').modal('hide');
+                        toastr.success(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-transfer-cash-save').removeAttr("disabled", "false");
+        });
+
+        $(document).on('click', '.confirm-transfer-cash-to-cash', function () {
+
+            $.ajax({
+                url: '/accounting/get_confirm_cash_to_cash_transfer/',
+                dataType: 'json',
+                type: 'GET',
+
+                success: function (response) {
+                    console.log(response);
+                    if (response.success) {
+                        $('#modal-confirm-transfers').html(response.grid);
+                        $('#modal-confirm-transfers').modal('show');
+                    }
+                },
+                fail: function (response) {
+                    console.log(response);
+                }
+            });
+        });
+
+        $("#id-cash-origin-deposit").change(function () {
+
+            if ($("#id-cash-origin-deposit").val() != '') {
+
+                $.ajax({
+                    url: '/accounting/get_initial_balance/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {'cash': $("#id-cash-origin-deposit").val()},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡Bien hecho!');
+                            $("#id-current-balance-deposit").val(parseFloat(response.initial_balance).toFixed(2));
+
+                        }
+                    },
+                    fail: function (response) {
+                        toastr.error("Error. ", '¡Inconcebible!');
+                    }
+                });
+            }
+        });
+
+        $('#new-cash-to-bank-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#new-cash-to-bank-form').get(0));
+
+            $('#btn-deposit-cash-to-bank-sav').attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/new_cash_to_bank/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        // $('#product-detail-grid').html(response.grid);
+                        $('#modal-cash-to-bank').modal('hide');
+                        toastr.success(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-deposit-cash-to-bank-sav').removeAttr("disabled", "false");
+        });
+
+
+    </script>
+{% endblock extrajs %}

@@ -1,0 +1,263 @@
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h5 class="modal-title">Receta de fabricacion</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form action="" method="POST">
+            {% csrf_token %}
+
+            <div class="modal-body">
+
+
+                {% if product %}
+
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 border-right">
+                                    <h4 class="mt-3">{{ product.name }}</h4>
+                                </div>
+                                <div class="col-md-6 mt-3">
+
+
+                                    <ul class="list-group" id="product-list" pk="{{ product.id }}">
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Stock Minimo
+                                            <span class="badge badge-primary badge-pill">{{ product.stock_min }}</span>
+                                        </li>
+
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Stock Maximo
+                                            <span class="badge badge-primary badge-pill">{{ product.stock_max }}</span>
+                                        </li>
+                                    </ul>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                {% endif %}
+
+                {% if subsidiaries %}
+
+                    <table class="table table-bordered table-sm">
+                        <thead class="thead-light">
+
+                        <tr>
+                            <th scope="col" class="table-light text-center text-black-50 h6 border-0"
+                                style="text-transform: uppercase;">Serie
+                            </th>
+                            <th scope="col" class="table-light text-center text-black-50 h6 border-0"
+                                style="text-transform: uppercase;">Sede
+                            </th>
+                            <th scope="col" class="table-light text-center text-black-50 h6 border-0"
+                                style="text-transform: uppercase;">Almacenes
+                            </th>
+                        </tr>
+
+                        </thead>
+                        <tbody>
+
+                        {% for subsidiary in subsidiaries %}
+
+                            <tr subsidiary="
+                                    {% if own_subsidiary.id == subsidiary.id %}{{ own_subsidiary.id }}{% else %}no-subsidiary{% endif %}">
+                                <th class="align-middle" scope="row">{{ subsidiary.serial }}</th>
+                                <td class="align-middle">{{ subsidiary.name }}</td>
+                                <td class="p-0">
+
+                                    {% for subsidiary_store in subsidiary.subsidiarystore_set.all %}
+
+                                        <table class="table table-borderless mb-0 table-sm product-store">
+                                            <thead>
+                                            <tr class="border-0">
+                                                <th class="table-light text-center text-black-50 small border-0"
+                                                    style="text-transform: uppercase; width: 10%;">#
+                                                </th>
+                                                <th class="table-light text-center text-black-50 small border-0"
+                                                    style="text-transform: uppercase; width: 45%;">Almacen
+                                                </th>
+                                                <th class="table-light text-center text-black-50 small border-0"
+                                                    style="text-transform: uppercase; width: 15%;">Cantidad
+                                                </th>
+                                                <th class="table-light text-center text-black-50 small border-0"
+                                                    style="text-transform: uppercase; width: 15%;">Precio Venta
+                                                </th>
+                                                <th class="table-light text-center text-black-50 small border-0"
+                                                    style="text-transform: uppercase; width: 15%;">Unidad
+                                                </th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+
+                                            <tr class="border-0 detail">
+                                                <td class="align-middle text-center border-top border-right subsidiary-store"
+                                                    pk="{{ subsidiary_store.id }}">{{ subsidiary_store.id }}</td>
+                                                <td class="align-middle text-center border-top border-right">{{ subsidiary_store.name }}
+                                                    <p class="text-primary">({{ subsidiary_store.get_category_display }})</p>
+                                                </td>
+
+
+                                                <!-- <td class="exist" colspan="2">there are product stores, including this product {{ product.name }}.</td> -->
+
+                                                <td class="align-middle border-top stock exist" op="update"
+                                                    pk="{{ product_store.id }}">
+                                                    <input class="form-control form-control-sm" type="text"
+                                                           value="{{ product_store.stock|floatformat:2 }}">
+                                                </td>
+                                                <td class="align-middle border-top price exist" condition="update"
+                                                    key="{{ product_store.kardex_set.first.id }}">
+                                                    <input class="form-control form-control-sm" type="text"
+                                                           value="{{ product_store.kardex_set.first.remaining_price|floatformat:4 }}">
+                                                </td>
+
+
+                                                <td class="align-middle border-top unit">
+                                                    <select id="id_unit" name="unit"
+                                                            class="form-control form-control-sm">
+                                                        <option selected value="0">Seleccione</option>
+                                                        {% for u in units %}
+                                                            <option {% if unit_min.id == u.id %}selected{% endif %}
+                                                                    value="{{ u.id }}">{{ u.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+
+                                            </tr>
+
+                                            </tbody>
+                                        </table>
+
+
+                                    {% empty %}
+                                        Lo sentimos, no hay almacenes en esta sede.
+                                    {% endfor %}
+
+                                </td>
+                            </tr>
+
+                        {% endfor %}
+
+                        </tbody>
+                    </table>
+
+                {% else %}
+                    <h1>No existen sedes registradas</h1>
+                {% endif %}
+
+
+            </div><!-- modal-body -->
+
+
+            <div class="modal-footer">
+                <button id="try" type="button" class="btn btn-success">Try</button>
+                &nbsp;
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="save-changes" type="button" class="btn btn-primary">Guardar</button>
+
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    $("table tbody tr[subsidiary='no-subsidiary']").find(':input').attr('readonly', 'readonly');
+    $("table tbody tr[subsidiary='no-subsidiary']").find('select').empty();
+
+
+    // $('#try').on('click', function () {
+    //     var size = $("table.product-store tbody tr.detail td.exist").length;
+    //     console.log('size: ' + size);
+    //     var exist = 0;
+    //     var notexist = 0;
+    //     var count = 0;
+    $("table.product-store tbody tr.detail").each(function () {
+
+        if ($(this).children('td').hasClass('exist') && $(this).children('td').hasClass('notexist')) {
+            // count++;
+            $(this).children('td.notexist').remove();
+        } else {
+
+            if ($(this).children('td').hasClass('notexist')) {
+                // count++;
+                // $(this).children('td.notexist:not(:nth-child(1),:nth-child(2))').remove();
+                $(this).children('td.notexist:not(:first,:last)').remove();
+                // $(this).children('td.notexist:not(:last)').remove();
+            }
+        }
+
+    });
+    $('table.product-store tbody tr td input').each(function () {
+        let _str = $(this).val();
+        _str = _str.replace(',', '.');
+        $(this).val(_str).attr('type', 'number');
+    });
+    //     console.log('count: ' + count);
+    // });
+
+
+    $('#save-changes').on('click', function () {
+
+        var stores = {
+            "Details": [],
+            "Product": $("#product-list").attr('pk')
+        };
+
+        $("table.product-store tr.detail").each(function () {
+
+            var detailObj = {
+                "SubsidiaryStore": $(this).find("td.subsidiary-store").attr('pk'),
+                // Campos relacionados con el almacen del producto
+                "Operation": $(this).find("td.stock").attr('op'),
+                "ProductStore": $(this).find("td.stock").attr('pk'),
+                "Quantity": $(this).find("td.stock input").val(),
+                // Campos relacionados con el kardex del almacen del producto
+                "Condition": $(this).find("td.price").attr('condition'),
+                "Kardex": $(this).find("td.price input").attr('key'),
+                "Price": $(this).find("td.price input").val(),
+                "Unit": $(this).find("td.unit select").val()
+            };
+            stores.Details.push(detailObj);
+        });
+
+        console.log(JSON.stringify(stores));
+
+        $.ajax({
+            url: '/sales/new_quantity_on_hand/',
+            async: true,
+            dataType: 'json', // for response
+            type: 'GET',
+            data: {'stores': JSON.stringify(stores)},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response) {
+                if (response.success) {
+                    toastr.success('Inventario inicial registrado con exito.', '¡Bien hecho!');
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
+            }
+        });
+
+
+        $('#set-quantity-on-hand').modal('hide');
+
+    });
+</script>

@@ -1,0 +1,217 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Reporte de Compras Totales
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid pt-3">
+        <div class="card">
+
+            <div class="card-header">
+                <label class="col-form-label col-form-label-lg">Reporte de Compras Totales</label>
+            </div>
+
+            <div class="card-body">
+
+                <form class="form-inline" id="search-form" method="POST">
+                    {% csrf_token %}
+                    <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>
+                    <input type="date" class="form-control my-1 mr-sm-2"
+                           id="id-start-date"
+                           name="start-date"
+                           value="{{ formatdate }}">
+
+                    <label class="my-1 mr-2" for="id-end-date">Fecha final</label>
+                    <input type="date" class="form-control my-1 mr-sm-2"
+                           id="id-end-date"
+                           name="end-date"
+                           value="{{ formatdate }}">
+
+
+                    <label for="id_type_document" class="my-1 ml-2 mr-2">Tipo de Documento:</label>
+                    <select id="id_type_document" name="type-document"
+                            class="form-control">
+                        <option selected value="F">FACTURAS</option>
+                        <option value="T">TODO</option>
+                    </select>
+                    <button type="submit" class="btn btn-blue my-1 ml-2" id="btn-search">
+                        <i class="fas fa-search-dollar"></i> Buscar
+                    </button>
+                    <button type="button" class="btn my-1 ml-2 text-white" id="printReportExcel"
+                            style="background: #00960f">
+                        <i class="far fa-file-excel"></i> Exportar a Excel
+                    </button>
+                    {#                    <label for="id_truck_plate" class="my-1 ml-2 mr-2">Placa:</label>#}
+                    {#                    <select id="id_truck_plate" name="truck-plate"#}
+                    {#                            class="form-control">#}
+                    {#                        <option selected value="0">Seleccione Placa..</option>#}
+                    {#                        {% for t in truck_set2 %}#}
+                    {#                            <option value="{{ t.truck__id }}">{{ t.truck__license_plate }}</option>#}
+                    {#                        {% endfor %}#}
+                    {#                    </select>#}
+                    {#                    <button type="button" class="btn btn-blue my-1 ml-2" id="btn-filter">#}
+                    {#                        <i class="fas fa-filter"></i> Filtrar#}
+                    {#                    </button>#}
+                </form>
+
+            </div>
+        </div>
+
+        <div class="card">
+
+            <div class="card-body table-responsive" id="tbl-purchases">
+            </div>
+
+        </div>
+    </div>
+
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        /*function ready() {
+            const tablePurchases = document.getElementById('report-payments');
+            const tfootPurchases = tablePurchases.getElementsByTagName('tfoot')[0];
+            const trTfootPurchases = tfootPurchases.getElementsByTagName('tr')[0];
+            trTfootPurchases.className = 'd-none'
+        }*/
+        function filter() {
+            const selectTruck = document.getElementById('truck');
+            const tablePurchases = document.getElementById('report-payments');
+            const tbodyPurchases = tablePurchases.getElementsByTagName('tbody')[0];
+            const tfootPurchases = tablePurchases.getElementsByTagName('tfoot')[0];
+            const trTfootPurchases = document.getElementById('sum');
+
+            selectTruck.addEventListener('change', (e) => {
+                let selectTruckValue = selectTruck.options[selectTruck.selectedIndex].text
+                let cellTotal = 0
+                let cells = trTfootPurchases.getElementsByTagName('td');
+                e.preventDefault();
+
+                if (selectTruckValue === 'PLACA') {
+                    for (let i = 0; i < tbodyPurchases.rows.length; i++) {
+                        let cell0 = tbodyPurchases.rows[i].cells[0];
+                        cell0.parentNode.className = '';  // hide
+                        cells[1].innerText = '-';
+                    }
+                } else {
+                    for (let i = 0; i < tbodyPurchases.rows.length; i++) {
+                        let cell0 = tbodyPurchases.rows[i].cells[0];
+                        cell0.parentNode.className = 'd-none';  // hide
+                    }
+                    for (let i = 0; i < tbodyPurchases.rows.length; i++) {
+                        let cell6 = tbodyPurchases.rows[i].cells[6];
+                        let cell9 = tbodyPurchases.rows[i].cells[9];
+                        let cell0 = tbodyPurchases.rows[i].cells[0];
+
+                        if (cell6) {
+                            if (cell6.innerText === selectTruckValue) {
+                                cell6.parentNode.className = '';  // show
+                                if (cell9) {
+                                    cellTotal += parseFloat(cell9.innerText)
+                                }
+
+                                cells[1].innerText = cellTotal;
+                            }
+                        } else if (selectTruckValue === cell0.parentNode.getAttribute('code')) {
+                            cell0.parentNode.className = ''
+                        }
+                    }
+                }
+
+
+            });
+        }
+
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#search-form').get(0));
+
+            $('#btn-search').attr("disabled", "true");
+
+            $.ajax({
+                url: '/buys/report_purchases_all/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response['message'], '¡Bien hecho!');
+                        $('#tbl-purchases').html(response.grid);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-search').removeAttr("disabled", "false");
+        });
+
+        $(function () {
+
+            $('#printReportExcel').click(function () {
+                $("#report-payments").table2excel({filename: "Compras_totales.xls"});
+            });
+
+        });
+
+        /*$("#btn-filter").click(function (event) {
+            let _truck_id = $('#id_truck_plate').val();
+            event.preventDefault();
+            console.log(_truck_id)
+
+            $.ajax({
+                url: '/buys/get_purchases_by_license_plate/',
+                type: 'GET',
+                async: true,
+                dataType: 'json',
+                data: {
+                    'truck_id': _truck_id,
+                    'start_date': $('#id-start-date'),
+                    'end_date': $('#id-end-date'),
+                },
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response['message'], '¡Bien hecho!');
+                        $('#tbl-purchases').html(response.grid);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+
+            });
+
+        });*/
+
+
+        /*function humanizeNumber(n) {
+            n = n.toString()
+            while (true) {
+                let n2 = n.replace(/(\d)(\d{3})($|,|\.)/g, '$1,$2$3')
+                if (n === n2) break
+                n = n2
+            }
+            return n
+        }
+
+        console.log(humanizeNumber(3659.66))*/
+
+
+    </script>
+
+{% endblock extrajs %}

@@ -1,0 +1,609 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <!-- <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>{% block title %}BIENVENIDO A V&J GAS {% endblock title %}</title>
+
+    <link rel="icon" href="{% static 'assets/icons/images_mYC_1.ico' %}" type="image/ico"/>
+
+    <!-- Normalize V8.0.1 -->
+    <!-- <link rel="stylesheet" href="{% static 'css/normalize.css' %}"> -->
+
+    <!-- Bootstrap V4.3 -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+{#<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">#}
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
+
+
+    <!-- Simple javascript toast notifications -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet">
+    <!-- Bootstrap Material Design V4.0 -->
+    <!-- <link rel="stylesheet" href="{% static 'css/bootstrap-material-design.min.css' %}"> -->
+
+    <!-- Font Awesome V5.9.0 -->
+    <link rel="stylesheet" href="{% static 'css/all.css' %}">
+
+    <!-- Sweet Alerts V8.13.0 CSS file -->
+    <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}">
+
+    <!-- Sweet Alert V8.13.0 JS file-->
+    <script src="{% static 'js/sweetalert2.min.js' %}"></script>
+
+    <!-- jQuery Custom Content Scroller V3.1.5 -->
+    <link rel="stylesheet" href="{% static 'css/jquery.mCustomScrollbar.css' %}">
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="{% static 'assets/datatables/datatables.min.css' %}">
+<link href="//cdn.datatables.net/buttons/1.6.5/css/buttons.dataTables.min.css" rel="stylesheet">
+    <!-- General Styles -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- Mega Menu Styles -->
+    <link rel="stylesheet" href="{% static 'css/megamenu2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/loader.css' %}">
+
+    <!-- Select2 - customizable select box -->
+    <link rel="stylesheet" href="{% static 'css/select2.min.css' %}">
+    <!-- select2-bootstrap4-theme -->
+    <link rel="stylesheet" href="{% static 'css/select2-bootstrap4.css' %}">
+    <!-- DataTables Select CSS <link href="css/addons/datatables-select2.min.css" rel="stylesheet">-->
+
+    <link rel="stylesheet" href="{% static 'css/sweetalert.css' %}">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Aldrich">
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans">
+    <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo&display=swap" rel="stylesheet">
+
+    <style>
+
+
+    </style>
+
+
+</head>
+<body>
+
+<!-- Main container -->
+<main class="full-box main-container">
+
+
+    <!-- Nav lateral -->
+    <section class="full-box nav-lateral active">
+        <div class="full-box nav-lateral-bg show-nav-lateral"></div>
+        <div class="full-box nav-lateral-content">
+            <figure class="full-box nav-lateral-avatar">
+                <i class="far fa-times-circle show-nav-lateral"></i>
+                <img src="{% static 'assets/avatar/Avatar.png' %}" class="img-fluid" alt="Avatar">
+                <figcaption class="text-center">
+                    {{ user.username | lower }} <br>
+                    <h4 class="font-weight-normal display-4 text-uppercase"
+                        style="font-size: medium;">{{ user.worker_set.last.establishment_set.last.subsidiary.name }}</h4>
+                </figcaption>
+            </figure>
+            <!-- Barra Lateral -->
+            <div class="full-box nav-lateral-bar"></div>
+
+            <nav class="full-box nav-lateral-menu">
+                <ul>
+
+                    <li class="sidebar-header">
+                        <h6>INFORME DE PROCESOS</h6>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-btn-submenu"><i class="fas fa-calendar-check fa-1x"></i>
+                            <strong>Compras</strong>
+                            <i class="fas fa-chevron-right"></i></a>
+                        <ul>
+                            <li><a href="{% url 'buys:get_requirements_buys_list_approved' %}"> Compras GLP</a></li>
+                            <li><a href="{% url 'sales:stock_glp' %}"> Stock GLP</a></li>
+                            <li><a href="{% url 'buys:get_requirement_balance' %}"> Saldos Pluspetrol</a></li>
+                            <li><a href="{% url 'buys:get_report_kardex_glp' %}"> Movimientos de GLP</a></li>
+                            <li><a href="{% url 'accounting:get_purchases_list' %}"> Compras Mercaderia</a></li>
+                        </ul>
+                    </li>
+
+                    {#                    <li class="sidebar-header">#}
+                    {#                        Main nav-btn-submenu active#}
+                    {#                    </li>#}
+
+                    <li>
+                        <a href="#" class="nav-btn-submenu"><i class="fas fa-cart-plus fa-1x"></i>
+                            <strong>Ventas</strong> <i
+                                    class="fas fa-chevron-right"></i></a>
+                        <ul>
+                            <li><a href="{% url 'sales:get_sales_all_subsidiaries' %}"> Ventas General</a></li>
+                            <li><a href="{% url 'sales:get_sales_by_subsidiary_store' %}"> Ventas Sucursal</a></li>
+                            <li><a href="{% url 'sales:purchases_of_clients' %}"> Ventas Cliente</a></li>
+                        </ul>
+                    </li>
+
+                    <li>
+                        <a href="#" class="nav-btn-submenu"><i class="fas fa-comment-dollar fa-1x"></i>
+                            <strong>Finanzas</strong>
+                            <i class="fas fa-chevron-right"></i></a>
+                        <ul>
+                            <li><a href="{% url 'accounting:get_bank_control_list' %}"> Cuentas Bancarias</a></li>
+                            <li><a href="{% url 'accounting:get_cash_report' %}"> Efectivo Cajas</a></li>
+                            <li><a href="{% url 'sales:order_list' %}"> Cuentas por Cobrar</a></li>
+                            <li><a href="{% url 'accounting:get_purchases_list' %}"> Ceuntas por Pagar</a></li>
+                        </ul>
+                    </li>
+
+                    <li>
+                        <a href="#" class="nav-btn-submenu"><i class="fas fa-truck-moving fa-1x"></i>
+                            <strong>Vehiculos</strong>
+                            <i class="fas fa-chevron-right"></i></a>
+                        <ul>
+                            <li><a href="{% url 'buys:get_programming_by_truck_and_dates' %}"> Entradas GLP</a></li>
+                            <li><a href="{% url 'comercial:report_guide_by_plate' %}"> Salida Guias</a></li>
+                            <li><a href="{% url 'comercial:get_distribution_query' %}"> Ventas Reparto</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-btn-submenu"><i class="fas fa-box-open fa-1x"></i> <strong>Stock</strong>
+                            <i class="fas fa-chevron-right"></i></a>
+                        <ul>
+                            <li><a href="{% url 'sales:get_supplies_view' %}">Stock Insumos</a></li>
+                            <li><a href="{% url 'sales:stock_product_all' %}"> Stock General</a></li>
+                            <li><a href="{% url 'sales:stock_product' %}"> Stock Balones en Sede</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-btn-submenu"><i class="fas fa-calendar-check fa-1x"></i>
+                            <strong>Reportes graficos</strong>
+                            <i class="fas fa-chevron-right"></i></a>
+                        <ul>
+                            <li><a href="{% url 'sales:get_report_sales_subsidiary' %}"> Graficos</a></li>
+                            <li><a href="{% url 'buys:get_report_graphic_glp' %}"> Compras GLP</a></li>
+                        </ul>
+                    </li>
+
+                </ul>
+            </nav>
+        </div>
+    </section>
+
+    <!-- Page content -->
+    <section class="full-box page-content active" style="height: 100%; overflow-y: scroll;">
+
+        <nav class="full-box navbar-info text-white bg-dark">
+            <label class="text-white">BIENVENIDO: </label>
+            <form class="form-inline d-none d-sm-inline-block">
+                {{ user.worker_set.last.employee.full_name | upper }}
+            </form>
+            <a href="#" class="float-left show-nav-lateral"><i class="hamburger fas fa-align-justify fa-lg"></i></a>
+            <form class="form-inline d-none d-sm-inline-block">
+                <input class="form-control form-control-lite" type="text" placeholder="Buscar...">
+            </form>
+            <a href="#" data-toggle="modal" data-target="#ModalHelp"><i class="far fa-question-circle fa-lg"></i></a>
+            <a href="#"><i class="fas fa-user-cog fa-lg"></i></a>
+            <a href="{% url 'logout' %}"><i class="fas fa-power-off fa-lg"></i></a>
+        </nav>
+
+        {% include "megamenu.html" %}
+
+
+        <!-- Content here-->
+
+        {% block body %}
+        <section class="statistic statistic2">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="statistic__item statistic__item--green text-white">
+                            <h2 class="number">{{ sicuani_order_set.0.total__sum|default:0.00 }}</h2>
+                            <span class="desc text-dark">VENTAS - SICUANI</span>
+                            <div class="icon">
+                                <i class="zmdi zmdi-account-o"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="statistic__item statistic__item--orange">
+                            <h2 class="number">{{ cusco_order_set.0.total__sum|default:0.00 }}</h2>
+                            <span class="desc text-dark">VENTAS - CUSCO</span>
+                            <div class="icon">
+                                <i class="zmdi zmdi-shopping-cart"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="statistic__item statistic__item--blue">
+                            <h2 class="number">{{ vilcanota_order_set.0.total__sum|default:0.00 }}</h2>
+                            <span class="desc text-dark">VENTAS - VILCANOTA</span>
+                            <div class="icon">
+                                <i class="zmdi zmdi-calendar-note"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="statistic__item statistic__item--red">
+                            <h2 class="number">{{ puerto_order_set.0.total__sum|default:0.00 }}</h2>
+                            <span class="desc text-dark">VENTAS - PTO MALD.</span>
+                            <div class="icon">
+                                <i class="zmdi zmdi-money"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+            <!-- Grid row -->
+            <div class="row">
+
+                <div class="col-lg-12 col-md-12">
+
+                    <div class="card card-cascade wider">
+
+                        <div class="card-body card-body-cascade">
+                            <h5 class="card-title text-uppercase">Resumen</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-12 col-md-12">
+
+                    <div id="chartContainer" style="height: 500px; width: 100%;"></div>
+         
+                    <div id="chartdiv" class="w-100 h-100"></div>
+                </div><!-- Grid column -->
+
+            </div><!-- Grid row -->
+
+
+        {% endblock body %}
+
+    </section>
+
+
+    <!-- Help Modal -->
+
+    <div class="modal fade" id="ModalHelp" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-center" id="exampleModalLongTitle">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Suscipit sunt perferendis magni expedita
+                    possimus quidem, ex, culpa totam, sapiente, laboriosam iste fugit accusamus odio! Impedit beatae
+                    eveniet asperiores distinctio sunt?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+                    &nbsp;
+                    <button type="button" class="btn btn-light">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</main>
+
+
+<!--=============================================
+=            Include JavaScript files           =
+==============================================-->
+<!-- jQuery V3.4.1 -->
+<script src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
+
+<!-- popper -->
+<script src="{% static 'js/popper.min.js' %}"></script>
+
+<!-- Bootstrap V4.3 -->
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+
+{#<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>#}
+
+<script src="https://cdn.jsdelivr.net/npm/tableexport.jquery.plugin@1.10.21/tableExport.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tableexport.jquery.plugin@1.10.21/libs/jsPDF/jspdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tableexport.jquery.plugin@1.10.21/libs/jsPDF-AutoTable/jspdf.plugin.autotable.js"></script>
+
+<script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.18.3/dist/extensions/print/bootstrap-table-print.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.18.3/dist/extensions/export/bootstrap-table-export.min.js"></script>
+
+<!-- jQuery Custom Content Scroller V3.1.5 -->
+<script src="{% static 'js/jquery.mCustomScrollbar.concat.min.js' %}"></script>
+
+<!-- Bootstrap Material Design V4.0 -->
+<!-- <script src="{% static 'js/bootstrap-material-design.min.js' %}" ></script> -->
+<!-- <script>$(document).ready(function() { $('body').bootstrapMaterialDesign(); });</script> -->
+
+<!-- Simple javascript toast notifications -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+<script src="{% static 'js/main.js' %}"></script>
+
+<!-- DataTables JS -->
+<script src="{% static 'assets/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'assets/datatables/datatables.language.js' %}"></script>
+<!-- DataTables Select JS <script src="js/addons/datatables-select2.min.js" type="text/javascript"></script>-->
+<script src="//cdn.datatables.net/buttons/1.6.5/js/dataTables.buttons.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="//cdn.datatables.net/buttons/1.6.5/js/buttons.html5.min.js"></script>
+<script src="//cdn.datatables.net/buttons/1.6.5/js/buttons.print.min.js"></script>
+
+<!-- Select2 - customizable select box -->
+<script src="{% static 'js/select2.min.js' %}"></script>
+
+<!-- Chained - select depend -->
+<script src="{% static 'js/jquery.chained.min.js' %}"></script>
+
+<!-- ISOTOPE CDN -->
+{#<script src="https://unpkg.com/isotope-layout@3/dist/isotope.pkgd.min.js"></script>#}
+
+<script src="{% static 'js/isotope.pkgd.min.js' %}"></script>
+<!-- TABLE2EXCEL CDN -->
+
+<script src="{% static 'js/jquery.table2excel.min.js' %}"></script>
+
+<!-- GRIDVIEW SCROLL - Freeze column and fixed header in Table or GridView -->
+<script src="{% static 'js/gridviewscroll.js' %}"></script>
+
+<script src="{% static 'js/sweetalert-dev.js' %}"></script>
+<!-- Graphs -->
+<script src="{% static 'js/canvasjs.min.js' %}"></script>
+
+<script src="https://cdnjs.com/libraries/Chart.js"></script>
+
+{% block extrajs %}
+
+
+    <script>
+
+
+
+
+
+
+
+
+        $(document).ready(function () {
+            // jQuery code
+
+            //////////////////////// Prevent closing from click inside dropdown
+            $(document).on('click', '.dropdown-menu', function (e) {
+                e.stopPropagation();
+            });
+
+            // make it as accordion for smaller screens
+            if ($(window).width() < 992) {
+                $('.dropdown-menu a').click(function (e) {
+                    e.preventDefault();
+                    if ($(this).next('.submenu').length) {
+                        $(this).next('.submenu').toggle();
+                    }
+                    $('.dropdown').on('hide.bs.dropdown', function () {
+                        $(this).find('.submenu').hide();
+                    })
+                });
+            }
+
+        }); // jquery end
+
+        window.onload = function () {
+
+            let _10Points = [
+                {% for dist_10bg in dist_10bg_set %}
+                    {
+                        x: new Date(
+                            {{dist_10bg.distribution_mobil__date_distribution|date:"Y"}},
+                            {{dist_10bg.distribution_mobil__date_distribution|date:"n"}} -1,
+                            {{dist_10bg.distribution_mobil__date_distribution|date:"d"}}
+                        ),
+                        y: {{dist_10bg.quantity__sum|floatformat:0}}
+                    },
+                {% endfor %}
+
+            ];
+
+            let _5Points = [
+                {% for dist_5bg in dist_5bg_set %}
+                    {
+                        x: new Date(
+                            {{dist_5bg.distribution_mobil__date_distribution|date:"Y"}},
+                            {{dist_5bg.distribution_mobil__date_distribution|date:"n"}} -1,
+                            {{dist_5bg.distribution_mobil__date_distribution|date:"d"}}
+                        ),
+                        y: {{dist_5bg.quantity__sum|floatformat:0}}
+                    },
+                {% endfor %}
+
+            ];
+
+            let _15Points = [
+                {% for dist_15bg in dist_15bg_set %}
+                    {
+                        x: new Date(
+                            {{dist_15bg.distribution_mobil__date_distribution|date:"Y"}},
+                            {{dist_15bg.distribution_mobil__date_distribution|date:"n"}} -1,
+                            {{dist_15bg.distribution_mobil__date_distribution|date:"d"}}
+                        ),
+                        y: {{dist_15bg.quantity__sum|floatformat:0}}
+                    },
+                {% endfor %}
+
+            ];
+
+            let _45Points = [
+                {% for dist_45bg in dist_45bg_set %}
+                    {
+                        x: new Date(
+                            {{dist_45bg.distribution_mobil__date_distribution|date:"Y"}},
+                            {{dist_45bg.distribution_mobil__date_distribution|date:"n"}} -1,
+                            {{dist_45bg.distribution_mobil__date_distribution|date:"d"}}
+                        ),
+                        y: {{dist_45bg.quantity__sum|floatformat:0}}
+                    },
+                {% endfor %}
+
+            ];
+
+            var chart = new CanvasJS.Chart("chartContainer", {
+                animationEnabled: true,
+                zoomEnabled: true,
+                theme: "light1", //"light1", "light2", "dark1", "dark2"
+                title: {
+                    text: "Distribución de balones"
+                },
+                axisX: {
+                    title: "Año actual",
+                    valueFormatString: "DD/MM",
+                    interval: 1,
+
+                    crosshair: {
+                        enabled: true,
+                        snapToDataPoint: true
+                    }
+                },
+                axisY: {
+                    logarithmic: true, //change it to false
+                    title: "SALIDAS DE REPARTO",
+                    titleFontColor: "#6D78AD",
+                    lineColor: "#6D78AD",
+                    gridThickness: 1,
+                    lineThickness: 1,
+                    includeZero: false,
+                    labelFormatter: addSymbols,
+                    crosshair: {
+                        enabled: true,
+                        snapToDataPoint: true,
+                        labelFormatter: function(e) {
+                            return "Cantidad: " + CanvasJS.formatNumber(e.value, "##");
+                        }
+                    }
+                },
+                /*toolTip: {
+                    shared: true,
+                    contentFormatter: function (e) {
+                        let a = "";
+                        for (let b of e.chart.options.data) {
+                            for (let c of b.dataPoints) {
+                                a += b.name + ">" + c.x + ":" + c.y + "<br/>";
+                            }
+                        }
+                        return a;
+                    }
+                },*/
+                /*axisY2:{
+                    title: "SALIDAS (BALON DE 5KG)",
+                    titleFontColor: "#51CDA0",
+                    logarithmic: false, //change it to false
+                    lineColor: "#51CDA0",
+                    gridThickness: 0,
+                    lineThickness: 1,
+                    labelFormatter: addSymbols
+                },*/
+                legend: {
+                    verticalAlign: "bottom",
+                    fontSize: 12,
+                    dockInsidePlotArea: true
+                },
+                data: [
+                    {
+                        type: "line",
+                        xValueFormatString: "MMM, YYYY",
+                        showInLegend: true,
+                        name: "Balon de 10KG",
+                        indexLabel: "{y}",
+                        indexLabelPlacement: "outside",
+                        indexLabelOrientation: "horizontal",
+                        markerType: "square",
+                        color: "#F08080",
+                        indexLabelFontSize: 12,
+                        indexLabelFontColor: "#F08080",
+                        //axisYType: "secondary",
+                        dataPoints: _10Points
+                    },
+                    {
+                        type: "line", /*line, spline, area, stepLine, stepArea*/
+                        xValueFormatString: "MMM, YYYY",
+                        axisYType: "secondary",
+                        showInLegend: true,
+                        name: "Balon de 15KG",
+                        indexLabel: "{y}",
+                        color: "#ff9800",
+                        //indexLabelPlacement: "outside",
+                        indexLabelOrientation: "horizontal",
+                        indexLabelFontSize: 12,
+                        indexLabelPlacement: "inside",
+                        indexLabelFontColor: "#ff9800",
+                        indexLabelFontWeight: 400,
+                        indexLabelFontFamily: "Verdana",
+                        lineDashType: "dash",
+                        dataPoints: _15Points
+                    },
+                    {
+                        type: "line", /*line, spline, area, stepLine, stepArea*/
+                        xValueFormatString: "MMM, YYYY",
+                        axisYType: "secondary",
+                        showInLegend: true,
+                        name: "Balon de 45KG",
+                        indexLabel: "{y}",
+                        color: "#3f51b5",
+                        //indexLabelPlacement: "outside",
+                        indexLabelOrientation: "horizontal",
+                        indexLabelFontSize: 12,
+                        indexLabelPlacement: "inside",
+                        indexLabelFontColor: "#3f51b5",
+                        indexLabelFontWeight: 400,
+                        indexLabelFontFamily: "Verdana",
+                        lineDashType: "dash",
+                        dataPoints: _45Points
+                    },
+                    {
+                        type: "line", /*line, spline, area, stepLine, stepArea*/
+                        xValueFormatString: "MMM, YYYY",
+                        axisYType: "secondary",
+                        showInLegend: true,
+                        name: "Balon de 5KG",
+                        indexLabel: "{y}",
+                        color: "#009688",
+                        //indexLabelPlacement: "outside",
+                        indexLabelOrientation: "horizontal",
+                        indexLabelFontSize: 12,
+                        indexLabelPlacement: "inside",
+                        indexLabelFontColor: "#009688",
+                        indexLabelFontWeight: 400,
+                        indexLabelFontFamily: "Verdana",
+                        lineDashType: "dash",
+                        dataPoints: _5Points
+                    },
+                ]
+            });
+            chart.render();
+
+        }
+
+        function addSymbols(e) {
+            var suffixes = ["", "K", "M", "B"];
+
+            var order = Math.max(Math.floor(Math.log(e.value) / Math.log(1000)), 0);
+            if (order > suffixes.length - 1)
+                order = suffixes.length - 1;
+
+            var suffix = suffixes[order];
+            return CanvasJS.formatNumber(e.value / Math.pow(1000, order)) + suffix;
+        }
+
+
+    </script>
+
+{% endblock extrajs %}
+
+</body>
+</html>

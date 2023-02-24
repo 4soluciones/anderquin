@@ -1,0 +1,160 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Resumen de clientes deudores
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid my-3">
+
+        <div class="row montserrat">
+            <div class="col-sm-2">
+
+                <form id="search-form" method="POST">
+                    {% csrf_token %}
+
+
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="mb-3 font-weight-light">Consulta de deudas</h5>
+
+                            <div class="form-group">
+                                <label for="staticEmail">Sede</label>
+
+                                <select class="form-control" id="id-subsidiary" name="subsidiary" required>
+                                    <option value="" disabled selected>SELECCIONE...</option>
+
+                                    {% for subsidiary in subsidiary_set %}
+                                        <option value="{{ subsidiary.pk }}">{{ subsidiary.name }}</option>
+                                    {% endfor %}
+                                    <option value="1000">TODAS</option>
+
+                                </select>
+
+                            </div>
+
+                            <hr class="mb-4">
+
+                            <div class="form-group">
+                                <label for="staticEmail">Fecha Inicial</label>
+
+                                <input type="date" class="form-control" id="id-start-date" name="start-date"
+                                       value="{{ formatdate }}">
+
+                            </div>
+
+                            <div class="form-group">
+                                <label for="staticEmail">Fecha final</label>
+
+                                <input type="date" class="form-control my-1 mr-sm-2" id="id-end-date" name="end-date"
+                                       value="{{ formatdate }}">
+
+                            </div>
+
+                            <hr class="mb-4">
+
+                            <button type="submit" class="btn btn-green float-right my-1">
+                                <i class="fas fa-search-dollar" id="btn-search"></i> Buscar
+                            </button>
+
+                            <a onclick="excelTickets();" class="btn btn-light m-1">
+                                <span class="fa fa-file-excel"></span> Exportar
+                            </a>
+
+                        </div>
+                    </div>
+
+
+                </form>
+
+            </div>
+            <div class="col-sm-10 pl-0">
+                <div class="card h-100">
+                    <div class="card-body table-responsive" id="summary-grid-list"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="modal fade"
+         id="modalLegacyProgramming"
+         tabindex="-1"
+         aria-hidden="true">
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        function excelTickets() {
+
+            $("#summary-data-grid").table2excel({
+                // exclude CSS class
+                exclude: ".noExl",
+                name: "Worksheet vouchers",
+                filename: "boletos",//do not include extension
+                fileext: ".xlsx", // file extension
+                preserveColors: true
+
+            });
+        }
+
+        function refreshTable() {
+            $('#ticket-data-grid').DataTable({
+                "order": [[1, "asc"]],
+                "language": {
+                  "url": "//cdn.datatables.net/plug-ins/1.10.15/i18n/Spanish.json"
+                },
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: 'Save current page',
+                        exportOptions: {
+                            modifier: {
+                                page: 'current'
+                            }
+                        }
+                    }
+                ]
+            }).draw();
+        }
+
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+
+            let _data = new FormData($('#search-form').get(0));
+
+            $("#btn-search").attr("disabled", "true");
+            $('#summary-grid-list').empty();
+            $.ajax({
+                url: '/sales/get_summary_debtors/',
+                type: "POST",
+                data: _data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        $('#summary-grid-list').html(response.grid);
+                        refreshTable();
+                        toastr.info(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $("#btn-search").removeAttr("disabled", "false");
+            $('#search-form').modal('hide');
+
+        });
+    </script>
+{% endblock extrajs %}

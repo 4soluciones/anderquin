@@ -1,0 +1,92 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Listado de Guías
+{% endblock title %}
+
+{% block body %}
+
+    <div class="row mr-3 ml-0 mt-2">
+        <div class="col-sm-12 p-0">
+            <div class="card">
+                <div class="card-body text-center font-weight-bolder pb-1">
+                    <h2>LISTADO DE GUIAS</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card mr-3">
+        <div class="card-body " id="programmings">
+            {% include "comercial/guide_detail_programming_list.html" %}
+        </div>
+    </div>
+
+    <div class="card mr-3">
+        <div class="card-body " id="guides">
+            {% include "comercial/guide_detail_list.html" %}
+        </div>
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+        $(document).on('click', '#guide-data-grid tbody tr', function () {
+
+            $('#guide-data-grid tbody tr').each(function () {
+                $(this).css({'background-color': 'inherit'});
+            });
+            $(this).css({'background-color': '#9e9e9e57'});
+
+            $.ajax({
+                url: '/comercial/guide_by_programming/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'programming': $(this).attr("pk")},
+                success: function (response, textStatus, xhr) {
+                    console.log(response);
+                    if (xhr.status === 200) {
+                        $('#guides').html(response.grid);
+                        {#toastr.success('Guía Obtenida ', '¡Bien hecho!');#}
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡ERROR!');
+                    }
+                }
+            });
+        });
+
+        $(document).on('click', '#btn-search', function () {
+            event.preventDefault();
+            $.ajax({
+                url: '/comercial/programmings_by_date/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'start_date': $("#start_date").val(),
+                    'end_date': $("#end_date").val(),
+                },
+                success: function (response, textStatus, xhr) {
+                    console.log(response);
+                    if (xhr.status === 200) {
+                        $('#programmings').html(response.grid);
+                        toastr.success('Programaciones Recuperadas');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡ERROR!');
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock extrajs %}
+
+
+
+
+

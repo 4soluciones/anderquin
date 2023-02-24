@@ -1,0 +1,166 @@
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h5 class="modal-title">Recepcionar mercaderia - {{ guide.id }}</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form id="receive-merchandise-form" action="" method="POST">
+            {% csrf_token %}
+            <input type="hidden" id="id_guide" value="{{ guide.id }}">
+            <div class="modal-body">
+
+<table class="table table-sm border text-uppercase font-weight-bold">
+    <tr><td class="text-dark">Codigo:</td><td colspan="3" class="text-primary">{{ guide.get_serial }} - {{ guide.code }}</td></tr>
+    <tr><td class="text-dark" style="width: 25%">Almacen:</td><td class="text-primary" style="width: 25%">{{ guide.get_origin.name }}</td><td class="text-primary" style="width: 25%"><i class="fas fa-arrow-right"></i></td><td class="text-primary" style="width: 25%">{{ guide.get_destiny.name }}</td></tr>
+    <tr><td class="text-dark">Fecha de creación:</td><td colspan="3" class="text-primary">{{ guide.created_at|date:"Y-m-d" }}</td></tr>
+    <tr><td class="text-dark">Responsable:</td><td colspan="3" class="text-primary">{{ guide.the_one_that_requests.user.worker_set.last.employee.full_name }}</td></tr>
+</table>
+
+
+
+                <table id="receive-merchandise-details"
+                       class="table table-sm table-bordered text-uppercase text-black-50 m-0">
+                    <thead>
+                    <tr class="text-center bg-light font-weight-bold" style="height: 50px;">
+                        <th scope="col" class="align-middle p-0" style="width: 30%;">Producto</th>
+                        <th scope="col" class="align-middle p-0" style="width: 10%;">Unidad</th>
+                        <th scope="col" class="align-middle" style="width: 15%;">Cantidad Enviada</th>
+                        <th scope="col" class="align-middle" style="width: 15%;">Cantidad Recibida</th>
+                        <!--<th scope="col" class="align-middle" style="width: 15%;">Costo</th>
+                        <th scope="col" class="align-middle" style="width: 15%;">Importe</th>-->
+                    </tr>
+                    </thead>
+                    <tbody id="merchandise-details">
+                    {% for gd in guide.guidedetail_set.all %}
+                        <tr product="{{ gd.product.id }}" unit="{{ gd.unit_measure.id }}" detail="{{ gd.id }}">
+                            <td class="align-middle text-black-50 font-weight-bold">{{ gd.product.name }}</td>
+                            <td class="align-middle text-black-50 font-weight-bold">{{ gd.unit_measure.name }}</td>
+                            <td><input type="text" class="form-control" readonly value="{{ gd.quantity_sent }}"></td>
+                            <td><input type="text" class="form-control required quantity-received decimal"
+                                       value="{{ gd.quantity }}"></td>
+                            <!--<td><input type="text" class="form-control price" readonly
+                                       value="{{ gd.product.calculate_minimum_price_sale }}"></td>
+                            <td><input type="text" class="form-control multiply" readonly value="{{ gd.multiply }}">
+                            </td>-->
+                        </tr>
+
+                    {% endfor %}
+                    </tbody>
+                    <!--<tfoot>
+
+                    <tr>
+
+
+                        <th colspan="3" class="align-middle"><label class="h6 m-0">TOTAL : S/</label></th>
+                        <th colspan="1" id="sum-total" class="text-right h6 font-weight-bolder align-middle">
+                            {{ guide.minimal_cost }}
+                        </th>
+
+                    </tr>
+
+                    </tfoot>-->
+                </table>
+
+
+                <div class="form-group">
+                    <label for="id_observation">Observaciones:</label>
+                    <textarea class="form-control"
+                              name="observation"
+                              id="id_observation"
+                              rows="3">{{ guide.observation }}</textarea>
+                </div>
+
+            </div><!-- modal-body -->
+
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+
+                <button type="button" id="btn-register-details" class="btn btn-primary">
+                    Registrar
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    $(document).on('keyup', '.decimal', function () {
+
+        let val = $(this).val();
+        let _product = $(this).parent('td').parent('tr').attr('product');
+        if (isNaN(val)) {
+            val = val.replace(/[^0-9\.]/g, '');
+            if (val.split('.').length > 2)
+                val = val.replace(/\.+$/, "");
+        }
+        $(this).val(val);
+        multiply(_product);
+    });
+
+    function multiply($product) {
+        let _parent = $('#merchandise-details tr[product="' + $product + '"]');
+        let _quantity = parseFloat(_parent.find('input.quantity-received').val());
+        let _price = parseFloat(_parent.find('input.price').val());
+        let _multiply = _quantity * _price;
+        _parent.find('input.multiply').val(_multiply.toFixed(2));
+    }
+
+    $('#btn-register-details').on('click', function () {
+
+        let transfer = {
+            "Details": [],
+            "Guide": $("#id_guide").val(),
+            "Observation": $("#id_observation").val(),
+            // "Total": $("#sum-total").text()
+        };
+
+        $("#merchandise-details tr").each(function () {
+
+            let detailObj = {
+                "Detail": $(this).attr('detail'),
+                "Product": $(this).attr('product'),
+                "Unit": $(this).attr('unit'),
+                "Quantity": $(this).find("td input.quantity-received").val(),
+                // "Price": $(this).find("td input.price").val(),
+            };
+            transfer.Details.push(detailObj);
+        });
+        $.ajax({
+            url: '/comercial/new_input_from_output/',
+            async: true,
+            dataType: 'json', // for response
+            type: 'GET',
+            data: {'transfer': JSON.stringify(transfer)},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (xhr.status == 200) {
+                    toastr.success(response.message, '¡Bien hecho!');
+                    // Simulate a mouse click:
+                    window.location.href = "/comercial/get_input_note/"+response.guide_id+"/";
+                    setTimeout(() => {
+                        // location.reload();
+                        // Simulate an HTTP redirect:
+                        window.location.replace("/comercial/input_workflow/");
+                    }, 500);
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
+            }
+        });
+
+        $('#register-quantity-received').modal('hide');
+
+    });
+
+</script>

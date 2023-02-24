@@ -1,0 +1,240 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Cuadro de cuentas
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+
+        <a class="btn btn-outline-info mb-3 mt-3" data-toggle="modal" data-target="#modal-account">
+            <i class="fas fa-adjust"></i> &nbsp;NUEVA CUENTA
+        </a>
+
+        <a class="btn btn-outline-info mb-3 mt-3 new-entity" data-toggle="modal" data-target="#modal-entity">
+            <i class="fas fa-compress"></i> &nbsp;NUEVA ENTIDAD
+        </a>
+
+        <div class="table-responsive" id="account-grid-list">{% include "accounting/account_grid_list.html" %}</div>
+
+    </div>
+
+
+    <div class="modal" id="modal-account" tabindex="-1" role="dialog">
+
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header pb-2 pt-2">
+                    <h4 class="modal-title mb-3 mt-3">Nueva Cuenta</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% include "accounting/new_account_form.html" with formatdate=formatdate %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal" id="modal-entity" tabindex="-1" role="dialog">
+
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header pb-2 pt-2">
+                    <h4 class="modal-title mb-3 mt-3">Nueva Entidad</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% include "accounting/new_cash_form.html" with formatdate=formatdate %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+        $('#table-account-grid tr.subsidiary').each(function (){
+            if ($(this).attr('pk') == '{{ subsidiary_obj.id }}'){
+                $(this).addClass('text-success font-weight-bold');
+            }
+            else{
+                $(this).remove();
+            }
+
+        });
+
+
+
+        $('#id-account-parent-code').select2({
+            theme: 'bootstrap4',
+        });
+
+        $('#id-entity-account-code').select2({
+            theme: 'bootstrap4',
+        });
+
+        $('#id-account-parent-code').on('select2:select', function (e) {
+            let data = e.params.data;
+            $('#id-new-account-code').val(data['id']);
+        });
+
+        $('#table-account-grid').dataTable();
+
+        $('#btn-entity-update').fadeOut();
+
+        function refreshTable() {
+            $('#table-account-grid').DataTable().draw();
+        }
+
+        $('#new-account-form').submit(function (event) {
+            event.preventDefault();
+
+            let _data = new FormData($('#new-account-form').get(0));
+
+            $("#btn-new-account").attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/new_account/',
+                type: "POST",
+                data: _data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        $('#account-grid-list').html(response.grid);
+                        refreshTable();
+                        toastr.success(response['message'], '¡Bien hecho!');
+                        setTimeout(function(){ location.reload();}, 1000);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $("#btn-new-account").removeAttr("disabled", "false");
+            $('#modal-account').modal('hide');
+
+        });
+
+        $('#new-entity-form').submit(function (event) {
+            event.preventDefault();
+
+            let _data = new FormData($('#new-entity-form').get(0));
+
+            $("#btn-entity-save").attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/new_entity/',
+                type: "POST",
+                data: _data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        $('#account-grid-list').html(response.grid);
+                        refreshTable();
+                        toastr.success(response['message'], '¡Bien hecho!');
+                        setTimeout(function(){ location.reload();}, 1000);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $("#btn-entity-save").removeAttr("disabled", "false");
+            $('#modal-entity').modal('hide');
+
+        });
+
+        $(document).on('keyup', '.decimal', function () {
+
+            let val = $(this).val();
+            if (isNaN(val)) {
+                val = val.replace(/[^0-9\.]/g, '');
+                if (val.split('.').length > 2)
+                    val = val.replace(/\.+$/, "");
+            }
+            $(this).val(val);
+        });
+
+        $(document).on('click', '.new-entity', function () {
+            $('#btn-entity-save').fadeIn();
+            $('#btn-entity-update').fadeOut();
+            $('#modal-entity .modal-title').text('Nueva Entidad');
+
+        });
+
+        $(document).on('click', '.entity-edit', function () {
+            $('#btn-entity-save').fadeOut();
+            $('#btn-entity-update').fadeIn();
+            $('#modal-entity .modal-title').text('Editar Entidad');
+            let search = $(this).attr('pk');
+            $.ajax({
+                url: '/accounting/get_entity/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': search},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        let myObj = JSON.parse(response.obj);
+                        $('#id-entity').val(myObj[0]['pk']);
+                        $('#id-entity-name').val(myObj[0]['fields']['name']);
+                        $('#id-entity-account-number').val(myObj[0]['fields']['account_number']);
+                        $('#id-entity-account-code option[pk]').removeAttr('selected');
+                        $('#id-entity-account-code option[pk="' + myObj[0]['fields']['accounting_account'] + '"]').attr('selected', 'selected').trigger('change');
+                        $('#id-entity-initial').val(myObj[0]['fields']['initial']);
+                    }
+                },
+                fail: function (response) {
+                    console.log(response);
+                }
+            });
+        });
+
+
+        $('#btn-entity-update').on('click', function () {
+            let _data = new FormData($('#new-entity-form').get(0));
+            $("#btn-entity-update").attr("disabled", "true");
+            $.ajax({
+                url: '/accounting/update_entity/',
+                type: "POST",
+                data: _data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        $('#account-grid-list').html(response.grid);
+                        refreshTable();
+                        toastr.success(response['message'], '¡Bien hecho!');
+                        setTimeout(function(){ location.reload();}, 1000);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $("#btn-entity-update").removeAttr("disabled", "false");
+            $('#btn-entity-save').fadeIn();
+            $('#btn-entity-update').fadeOut();
+
+        });
+
+
+    </script>
+{% endblock extrajs %}

@@ -1,0 +1,78 @@
+{% if purchases_store %}
+
+
+    <div class="card border-info m-3">
+        <div class="card-header bg-info">
+            <h4 class="card-title text-center text-white">LISTA DE COMPRAS EN ALMACEN</h4>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive dataTables_wrapper ">
+                <table id="purchase-store-data-grid"
+                       class="table table-primary table-striped align-content-center table-bordered response"
+                       cellspacing="0" width="100%">
+                    <thead>
+                    <tr class="text-center bg-info text-white" style="height: 20px">
+                        <th>#</th>
+                        <th class="th-sm">Proveedor</th>
+                        <th class="th-sm">Numero comprobante</th>
+                        <th class="th-sm">Fecha compra</th>
+                        <th class="th-sm">Empleado</th>
+                        <th class="th-sm">Placa</th>
+                        <th class="th-sm">Estado</th>
+                        <th class="th-sm">Detalle</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% for p in purchases_store %}
+                        <tr class="text-center ">
+                            <td>{{ p.id }}</td>
+                            <td>{{ p.supplier.name }}</td>
+                            <td>{{ p.bill_number }}</td>
+                            <td>{{ p.purchase_date }}</td>
+                            <td>{{ p.user.worker_set.last.employee.names }}</td>
+                            <td>{% if p.truck %}
+                                {{ p.truck.license_plate }}
+                                {% else %}
+                                {{ "-" }}
+                                {% endif %}
+                            </td>
+                            <td class=" text-success bg-white">{{ p.get_status_display }}</td>
+                            <td class="p-1">
+                                <button type="button"  class="btn btn-success btn-show-detail" pk="{{ p.id }}"><i class="fa fa-bars"></i></button>
+                            </td>
+                        </tr>
+                         <tr style="display: none">
+                            <td colspan="7" class="table-details-purchase bg-white"></td>
+                         </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center bg-info text-white" style="height: 20px">
+                        <th>#</th>
+                        <th class="th-sm">Proveedor</th>
+                        <th class="th-sm">Numero comprobante</th>
+                        <th class="th-sm">Fecha compra</th>
+                        <th class="th-sm">Empleado</th>
+                        <th class="th-sm">Placa</th>
+                        <th class="th-sm">Estado</th>
+                        <th class="th-sm">Detalle</th>
+                    </tr>
+                    </tfoot>
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- Card -->
+    </div>
+
+
+{% else %}
+    <h1>No existen compras en almacen</h1>
+{% endif %}
+<script>
+
+</script>

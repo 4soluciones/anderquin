@@ -1,0 +1,72 @@
+
+{% extends 'dashboard.html' %}
+
+{% block title %}
+coronasoft.dev | Listado de Platos
+{% endblock title %}
+
+{% block body %}
+
+
+<!-- Content -->
+<div class="container-fluid">
+
+    <!-- Provides extra visual weight and identifies the primary action in a set of buttons -->
+    <button type="button" onclick="showModalCreation('{% url 'dishes:json_dish_create' %}')" class="btn btn-outline-success"><i class="fas fa-user-plus"></i> &nbsp; NEW IMAGE</button>
+
+    <div id="dish-grid-list" >{% include "dishes/dish_grid_list.html" %}</div>
+
+</div>
+
+
+<div class="modal fade" id="creation" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
+<div class="modal fade" id="edition" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
+<div class="modal fade" id="delete" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
+
+
+
+{% endblock body %}
+
+
+{% block extrajs %}
+<script type="text/javascript">
+
+    var $ = jQuery.noConflict();
+
+    $('#dish-data-grid').dataTable({
+        columnDefs: [{
+            orderable: false,
+            className: 'select-checkbox',
+            targets: 0
+        }],
+        select: {
+            style: 'os',
+            selector: 'td:first-child'
+        }
+    });
+
+    function refreshTable() {
+        $('#dish-data-grid').DataTable().draw();
+    }
+
+    function showModalDelete(url) {
+        $('#delete').load(url, function () {
+            $(this).modal('show');
+        });
+    };
+
+    function showModalEdition(url) {
+        $('#edition').load(url, function () {
+            $(this).modal('show');
+        });
+    };
+
+    function showModalCreation(url) {
+        $('#creation').load(url, function () {
+            $(this).modal('show');
+        });
+    };
+
+
+</script>
+{% endblock extrajs %}

@@ -1,0 +1,415 @@
+{% load static %}
+{% block content %}
+<style>
+    #table-sales > thead > tr > th{
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #c62828;
+        color: #f8f9fa;
+        border-color: #ff5252;
+        border-left: 1px solid #d50000;
+    }
+    #table-sales > tbody > tr > td{
+        font-size: 0.65rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #d32f2f;
+        color: #f8f9fa;
+        border-color: #ff5252;
+        border-left: 1px solid #d50000;
+    }
+
+    #table-sales > tbody > tr > td > table, #table-sales > tbody > tr > td > table > tbody > tr > td > table{
+        margin-bottom: 0;
+    }
+
+    #table-sales > tbody > tr > td > table > thead > tr > th{
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #e53935;
+        border-color: #ff5252;
+        border-left: 1px solid #d50000;
+    }
+    #table-sales > tbody > tr > td > table > tbody > tr > td{
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #f44336;
+        border-left: 1px solid #d50000;
+        border-top: 1px solid #f44336;
+    }
+    #table-sales > tbody > tr > td > table > tbody > tr > td > table > thead > tr > th{
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #CC0000;
+        border-color: #ff5252;
+        border-left: 1px solid #ff5252;
+    }
+    #table-sales > tbody > tr > td > table > tbody > tr > td > table > tbody > tr > td{
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #ff4444;
+        border-left: 1px solid #ff5252;
+    }
+    #table-sales td.right{
+        text-align: right;
+        background-color: #ef5350;
+        width: 6em;
+    }
+</style>
+    {% if sales %}
+        <blockquote class="blockquote bq-danger">
+            <p class="bq-title">Ventas</p>
+        </blockquote>
+        <table class="table table-striped table-sm"  id="table-sales">
+            <thead>
+            <tr>
+                <th>Fecha<br>venta</th>
+                <th>Detalle de venta</th>
+                <th>Vendedor</th>
+                <th>Cliente</th>
+                <th>Forma<br>pago</th>
+                <th>Cobrado</th>
+                <th>Recibido</th>
+                <th>Vuelto</th>
+                <th>Ganancia<br>Estimada</th>
+                <th>Ganancia<br>Obtenida</th>
+                <th>Dscto<br>Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for sale in sales.all %}
+
+                    <tr>
+                        <td>
+{#                            {{ sale.sale_date|date:'d/m/Y h:i a' }}#}
+                            {{ sale.sale_date|date:'d/m/Y' }}
+                        </td>
+                        <td>
+                            <table class="table table-striped table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>#</th>
+                                        <th>P. V.</th>
+                                        <th>Cant.</th>
+                                        <th>Subtotal</th>
+                                        <th>Ganancia</th>
+                                        <th>Dscto.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for detail in sale.detail_sales.all %}
+                                    {% if detail.product_return == None %}
+                                        <tr>
+                                            <td rowspan="3">
+                                                {{ detail.product.name|upper }}<br>
+                                                <small>{{ detail.product.category.name|upper }}</small><br>
+                                                <strong>{{ detail.product.barcode }}</strong>
+                                            </td>
+                                            <td>R</td>
+                                            <td class="right">S/&nbsp;{{ detail.rate|floatformat }}</td>
+
+                                            <td rowspan="2">{{ detail.quantity_ordered }}</td>
+
+                                            <td class="right">S/ <strong>{{ detail.amount|floatformat }}</strong></td>
+                                            <td class="right">S/ <strong>{{ detail.profit_per_product_in_sales_obtained|floatformat }}</strong></td>
+                                            <td rowspan="2" class="right">S/ <strong>{{ detail.discount_per_product_in_sales|floatformat }}</strong></td>
+
+                                        </tr>
+
+                                        <tr>
+
+                                            <td>E</td>
+                                            <td class="right">S/&nbsp;{{ detail.product.sale_price|floatformat }}</td>
+
+                                            <td class="right">S/ <strong>{{ detail.amount_estimated|floatformat }}</strong></td>
+                                            <td class="right">S/ <strong>{{ detail.profit_per_product_in_sales_estimated|floatformat }}</strong></td>
+
+                                        </tr>
+
+                                     <tr>
+
+                                            <td colspan="6">
+
+
+                                                <table class="table table-striped table-sm">
+                                                    <thead>
+                                                    <tr>
+                                                        <th>Id</th>
+                                                        <th>Cant.</th>
+                                                        <th>P. C.</th>
+                                                        <th>Ganancia</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    {% for batch_detail in detail.acquisitions.all %}
+                                                        <tr>
+{#                                                            <td>{{ batch_detail.batch.barcode|slice:"13:" }}</td>#}
+                                                            <td>{{ batch_detail.batch.barcode }}</td>
+
+                                                            <td>{{ batch_detail.quantity }}</td>
+
+                                                            <td class="right">S/ <strong>{{ batch_detail.batch.detail_batches.all.0.acquisition_detail.rate|floatformat }}</strong></td>
+
+                                                            <td class="right">S/ <strong>{{ batch_detail.profit_estimated|floatformat }}</strong></td>
+
+                                                        </tr>
+
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
+
+                                            </td>
+
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                        </td>
+                        <td>{{ sale.employee.user.get_full_name|upper }}</td>
+                        <td>{{ sale.customer.user.get_full_name|upper }}</td>
+                        <td>{{ sale.get_way_pay_display|upper }}</td>
+
+
+                        <td class="right">S/ <strong>{{ sale.charged|floatformat }}</strong></td>
+                        <td class="right">S/ <strong>{{ sale.received|floatformat }}</strong></td>
+                        <td class="right">S/ <strong>{{ sale.turned|floatformat }}</strong></td>
+                        <td class="right">S/ <strong>{{ sale.total_gain_estimated|floatformat }}</strong></td>
+                        <td class="right">S/ <strong>{{ sale.total_gain_obtained|floatformat }}</strong></td>
+                        <td class="right">S/ <strong>{{ sale.total_discount|floatformat }}</strong></td>
+
+                    </tr>
+            {% endfor %}
+
+            <tr>
+                <td colspan="5"></td>
+                <td class="right">S/ <strong>{{ sales_charged_sum.charged__sum|floatformat }}</strong></td>
+                <td class="right">S/ <strong>{{ sales_received_sum.received__sum|floatformat }}</strong></td>
+                <td class="right">S/ <strong>{{ sales_turned_sum.turned__sum|floatformat }}</strong></td>
+                <td class="right">S/ <strong>{{ sales_gain_obtained_sum|floatformat }}</strong></td>
+                <td class="right">S/ <strong>{{ sales_gain_estimated_sum|floatformat }}</strong></td>
+                <td class="right">S/ <strong>{{ sales_total_discount_turned_sum|floatformat }}</strong></td>
+            </tr>
+
+            </tbody>
+        </table>
+
+    {% endif %}
+<style>
+    #table-purchases > thead > tr > th{
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #6a1b9a;
+        color: #f8f9fa;
+        border-color: #e040fb;
+        border-left: 1px solid #aa00ff;
+    }
+    #table-purchases > tbody > tr > td{
+        font-size: 0.65rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #7b1fa2;
+        color: #f8f9fa;
+        border-color: #e040fb;
+        border-left: 1px solid #aa00ff;
+    }
+
+    #table-purchases > tbody > tr > td > table{
+        margin-bottom: 0;
+    }
+
+    #table-purchases > tbody > tr > td > table > thead > tr > th{
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #8e24aa;
+        border-color: #e040fb;
+        border-left: 1px solid #aa00ff;
+    }
+    #table-purchases > tbody > tr > td > table > tbody > tr > td{
+        font-size: 0.65rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #9c27b0;
+        border-left: 1px solid #aa00ff;
+    }
+    #table-purchases td.right{
+        text-align: right;
+        background-color: #ab47bc;
+    }
+</style>
+    {% if purchases %}
+        <blockquote class="blockquote  bq-danger">
+            <p class="bq-title">Compras</p>
+        </blockquote>
+        <table class="table table-striped table-sm" id="table-purchases">
+            <thead>
+                <tr>
+                    <th>Creado</th>
+                    <th>Detalle compra</th>
+                    <th>Distribuidor /<br>Comprobante</th>
+                    <th>Fecha<br>compra</th>
+                    <th>Subtotal</th>
+                    <th>Igv</th>
+                    <th>Total</th>
+                    <th>Ganancia</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for purchase in purchases %}
+                <tr>
+                    <td>{{ purchase.created_at|date:'d/m/Y h:i a' }}</td>
+                    <td>
+
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Precio<br>Venta</th>
+                                    <th>Precio<br>Compra</th>
+                                    <th>Cant.</th>
+                                    <th>Subtotal</th>
+                                    <th>Ganancia por<br>producto</th>
+                                    <th>Margen<br>ganancia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            {% for detail in purchase.detail_purchases.all %}
+                                {% if detail.product_return == None %}
+                                <tr>
+                                    <td>
+                                        {{ detail.product.name|upper }}<br>
+                                        <small>{{ detail.product.category.name|upper }}</small><br>
+                                        <strong>{{ detail.product.barcode }}</strong>
+                                    </td>
+                                    <td class="right">S/ <strong>{{ detail.product.sale_price|floatformat }}</strong></td>
+                                    <td class="right">S/&nbsp;{{ detail.rate|floatformat }}</td>
+                                    <td>{{ detail.quantity_ordered }}</td>
+                                    <td class="right">S/ <strong>{{ detail.amount|floatformat }}</strong></td>
+                                    <td class="right">S/ <strong>{{ detail.profit_per_product|floatformat }}</strong></td>
+                                    <td class="right">S/ <strong>{{ detail.gain|floatformat }}</strong></td>
+
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                            </tbody>
+                        </table>
+
+                    </td>
+                    <td>{{ purchase.supplier.name|upper }}<br>{{ purchase.operation_number|upper }}</td>
+
+                    <td>{{ purchase.request_date|date:'d/m/Y' }}</td>
+
+                    <td class="right">S/ <strong>{{ purchase.subtotal|floatformat }}</strong></td>
+                    <td class="right">S/ <strong>{{ purchase.igv|floatformat }}</strong></td>
+                    <td class="right">S/ <strong>{{ purchase.total|floatformat }}</strong></td>
+                    <td class="right">S/ <strong>{{ purchase.total_gain|floatformat }}</strong></td>
+
+
+                </tr>
+            {% endfor %}
+
+            <tr>
+                <td colspan="4"></td>
+                <td class="right">S/ <strong>{{ purchases_subtotal_sum.subtotal__sum|floatformat }}</strong></td>
+                <td class="right">S/ <strong>{{ purchases_igv_sum.igv__sum|floatformat }}</strong></td>
+                <td class="right">S/ <strong>{{ purchases_total_sum.total__sum|floatformat }}</strong></td>
+                <td class="right">S/ <strong>{{ purchases_gain_sum|floatformat }}</strong></td>
+            </tr>
+
+            </tbody>
+        </table>
+
+    {% endif %}
+
+<style>
+    #table-expenses > thead > tr > th{
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #ad1457;
+        color: #f8f9fa;
+        border-color: #ff4081;
+        border-left: 1px solid #c51162;
+    }
+    #table-expenses > tbody > tr > td{
+        font-size: 0.65rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #c2185b;
+        color: #f8f9fa;
+        border-color: #ff4081;
+        border-left: 1px solid #c51162;
+    }
+
+    #table-expenses td.right{
+        text-align: right;
+        background-color: #ec407a;
+    }
+</style>
+    {% if expenses %}
+        <blockquote class="blockquote bq-danger">
+            <p class="bq-title">Egresos</p>
+        </blockquote>
+        <table class="table table-striped table-sm" id="table-expenses">
+            <thead>
+            <tr>
+                <th>Creado</th>
+                <th>Descripción</th>
+                <th>Vendedor</th>
+                <th>Fecha de gasto</th>
+
+                <th>Monto</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for expense in expenses.all %}
+                <tr>
+                    <td>{{ expense.created_at|date:'d/m/Y h:i a' }}</td>
+                    <td>{{ expense.description|upper }}</td>
+                    <td>{{ expense.employee.user.get_full_name|upper }}</td>
+                    <td>{{ expense.expense_date|date:'d/m/Y' }}</td>
+                    <td class="right">S/ <strong>{{ expense.rode|floatformat }}</strong></td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="4"></td>
+                <td class="right">S/ <strong>{{ expenses_rode_sum.rode__sum|floatformat }}</strong></td>
+            </tr>
+
+            </tbody>
+        </table>
+
+    {% endif %}
+
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+        $('document').ready(function () {
+            {#        if ( $.fn.dataTable.isDataTable( '.affiliations-data-table' ) ) {#}
+            {#            $(".affiliations-data-table").DataTable().clear().destroy();#}
+            {#        }else{#}
+            {#            $('.affiliations-data-table').DataTable({#}
+            {#                "language": datatable_language#}
+            {#            });#}
+            {#        }#}
+            {#        if ( $.fn.dataTable.isDataTable( '.monthly-data-table' ) ) {#}
+            {#            $(".monthly-data-table").DataTable().clear().destroy();#}
+            {#        }#}
+            {#            $('.monthly-data-table').DataTable({#}
+            {#                "language": datatable_language#}
+            {#            });#}
+
+        });
+    </script>
+{% endblock %}

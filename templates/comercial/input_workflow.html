@@ -1,0 +1,214 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Lista de entradas
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid">
+
+    <form method="POST" action="{% url 'comercial:input_workflow' %}">
+        {% csrf_token %}
+        <table class="table m-0">
+            <tr>
+                <td class="align-middle font-weight-bolder pl-0">Fecha inicial</td>
+                <td class="align-middle">
+                    <input type="date"
+                           class="form-control"
+                           name="date_initial"
+                           id="id_date_initial"
+                           value="{{ date_now }}" required>
+                </td>
+                <td class="align-middle font-weight-bolder">Fecha final</td>
+                <td class="align-middle">
+                    <input type="date"
+                           class="form-control"
+                           name="date_final"
+                           id="id_date_final"
+                           value="{{ date_now }}" required>
+                </td>
+                <td class="align-middle text-left">
+                    <button type="submit" id="id_btn_show" class="btn btn-info">
+                        <i class="fas fa-search"></i> &nbsp; CONSULTAR
+                    </button>
+                </td>
+                <td class="align-middle text-right pr-0">
+                    <a href="{% url 'comercial:input_guide' %}" class="btn btn-info">
+                        <i class="fas fa-folder-plus"></i> &nbsp; NUEVA NOTA DE ENTRADA
+                    </a>
+                </td>
+
+            </tr>
+        </table>
+    </form>
+        <div class="card">
+            <div class="card-header text-center align-middle">
+                <h5 class="card-title mb-0 text-success">LISTA DE ENTRADAS</h5>
+            </div>
+            <div class="card-group">
+                <div class="col-sm-12 pt-3">
+                    <table id="manufacture-data-grid" class="table table-bordered table-sm border-1">
+                        <thead>
+                        <tr class="bg-light text-dark text-center" style="height: 50px;">
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">
+                                ID
+                            </th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">
+                                Creado
+                            </th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">
+                                Numero de Guia
+                            </th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">
+                                Motivo
+                            </th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">
+                                Observaciones
+                            </th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">
+                                Detalle de Guia
+                            </th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">
+                                Destino
+                            </th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">
+                                Valorización
+                            </th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Responsable</th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Estado</th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Acción</th>
+                        </tr>
+                        </thead>
+                        <tbody id="details">
+                        {% for g in guides %}
+                            <tr pk="{{ g.id }}">
+                                <td class="align-middle
+                                border-top-0
+                                border-left-0
+                                border-bottom
+                                border-right
+                                text-dark
+                                font-weight-bold
+                                text-center">{{ g.id }}
+                                </td>
+                                <td class="align-middle
+                                border-top-0
+                                border-left-0
+                                border-bottom
+                                border-right
+                                text-dark
+                                font-weight-bold
+                                text-center">{{ g.created_at|date:"m-d" }}
+                                </td>
+                                <td class="align-middle
+                                           border-top-0
+                                           border-left-0
+                                           border-bottom
+                                           border-right
+                                           text-center
+                                           font-weight-bold
+                                           text-primary" style="width: 5%">
+                                    {{ g.get_serial }} - {{ g.code }}
+                                </td>
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right text-center">
+                                    <span class="font-weight-bolder">{{ g.guide_motive.get_type_display }}</span><br>
+                                    {{ g.guide_motive.description }}
+                                </td>
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right">
+                                    {{ g.observation }}
+                                </td>
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right text-center p-0">
+                                    <table class="table m-0">
+                                        <tr>
+                                            <td class="border-top-0" style="width: 35%;">Producto</td>
+                                            <td class="border-top-0" style="width: 15%;">Unidades</td>
+                                            <td class="border-top-0" style="width: 15%;">Cantidad Requerida</td>
+                                            <td class="border-top-0" style="width: 15%;">Cantidad enviada</td>
+                                            <td class="border-top-0" style="width: 15%;">Cantidad recibida</td>
+                                        </tr>
+                                        {% for gd in g.guidedetail_set.all %}
+                                            <tr>
+                                                <td>{{ gd.product.name }}</td>
+                                                <td>{{ gd.unit_measure.name }}</td>
+                                                <td>{{ gd.quantity_request }}</td>
+                                                <td>{{ gd.quantity_sent }}</td>
+                                                <td>{{ gd.quantity }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </table>
+                                </td>
+
+                                <td class="align-middle
+                                           border-top-0
+                                           border-left-0
+                                           border-bottom
+                                           border-right
+                                           text-center
+                                           font-weight-bold
+                                           text-success">
+                                   {{ g.get_destiny.name|truncatechars:8 }}
+                                </td>
+
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right text-right text-black-50">
+                                    {{ g.minimal_cost }}
+                                </td>
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right text-center">
+                                    {{ g.the_one_that_approves.user.worker_set.last.employee.full_name }}
+                                </td>
+                                <td class="align-middle
+                                border-top-0
+                                border-left-0
+                                border-bottom
+                                border-right
+                                text-center"> <!-- "1": Generada, "2": Aprobada, "3": Entregada, "4": Anulada -->
+                                    {% if g.status == "2" and g.guide_motive.id != 15 %}
+                                        <span class="text-primary text-uppercase font-weight-bolder">
+                                        {{ g.get_status_display }}</span><br>
+                                        {{ g.the_one_that_approves.created_at|date:"Y-m-d h:i:s A" }}
+                                    {% elif g.status == "2" and g.guide_motive.id == 15 %}
+                                        <span class="text-warning text-uppercase font-weight-bolder">
+                                        {{ g.get_status_display }}</span><br>
+                                        {{ g.the_one_that_approves.created_at|date:"Y-m-d h:i:s A" }}
+
+                                    {% endif %}
+                                </td>
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right btn1 text-center">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-success dropdown-toggle"
+                                                data-toggle="dropdown"
+                                                aria-haspopup="true" aria-expanded="false">
+                                            Action
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <!-- Generada -->
+
+                                            <a href="{% url 'comercial:get_input_note' g.id %}" target="print"
+                                               class="dropdown-item"><span class="fa fa-print"></span> Imprimir</a>
+
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock body %}
+
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        $('#manufacture-data-grid').dataTable();
+
+    </script>
+
+
+{% endblock extrajs %}

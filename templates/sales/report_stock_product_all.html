@@ -1,0 +1,175 @@
+{% extends 'home.html' %}
+{% load static %}
+{% load operations %}
+{% block title %}
+    Stock | Product
+{% endblock title %}
+
+{% block body %}
+    <div class="card small m-1" style="border-color: #0270e5;">
+        <div class="card-header text-center p-0 pt-1" style="background: #0270e5">
+            <label class="text-white text-center"><strong>STOCK DE PRODUCTOS POR ALMACENES</strong></label>
+        </div>
+        <div class="card-body m-0 p-0">
+            <table id="product-data-grid" class="table table-sm table-bordered" cellspacing="0"
+                   style="width: 100%;">
+                <thead>
+                <tr class="text-center text-white" style="background: #5f5e5e">
+                    {#                    <th class="th-sm p-2 font-weight-normal" style="width: 5%;">N°</th>#}
+                    <th class="th-sm p-2 font-weight-normal" style="width: 40%;">PRODUCTO</th>
+                    <th class="th-sm p-2 font-weight-normal" style="width: 55%;">CANTIDAD DE PRODUCTO EN ALMACEN</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for sst in dictionary_total %}
+                    <tr class="align-middle text-center">
+                        {#                        <td class="align-middle">{{ sst.id }}</td>#}
+                        <td class="align-middle"><span
+                                class="badge badge-pill bg-success text-white pt-2 pb-2 font-weight-normal"
+                                style="font-size: 14px; width: 50%;">{{ sst.product_name }}</span></td>
+                        <td class="align-middle">
+                            <table class="table-product table-sm text-uppercase small table-hover" id="id-table-product"
+                                   style="width: 100%; font-size: 11px">
+                                <thead class="text-white" style="background: #787879">
+                                <th class="font-weight-normal" style="width: 60%;">Alamcen</th>
+                                <th class="font-weight-normal" style="width: 40%;">Stock</th>
+                                </thead>
+                                <tbody id="id-body-product">
+                                {% if sst.stock_v != 0 %}
+                                    <tr class="align-middle">
+                                        <td class="text-left">Ventas</td>
+                                        <td class="text-right">{{ sst.stock_v|floatformat:0 }}</td>
+                                    </tr>
+                                {% endif %}
+                                {% if sst.stock_i != 0 %}
+                                    <tr class="align-middle">
+                                        <td class="text-left">Insumo</td>
+                                        <td class="text-right">{{ sst.stock_i|floatformat:0 }}</td>
+                                    </tr>
+                                {% endif %}
+                                {% if sst.stock_m != 0 %}
+                                    <tr class="align-middle">
+                                        <td class="text-left">Mercaderia</td>
+                                        <td class="text-right">{{ sst.stock_m|floatformat:0 }}</td>
+                                    </tr>
+                                {% endif %}
+                                {% if sst.stock_r != 0 %}
+                                    <tr class="align-middle">
+                                        <td class="text-left">Mantenimiento</td>
+                                        <td class="text-right">{{ sst.stock_r|floatformat:0 }}</td>
+                                    </tr>
+                                {% endif %}
+
+                                {% if sst.stock_o != 0 %}
+                                    <tr class="align-middle">
+                                        <td class="text-left">Osinergmin</td>
+                                        <td class="text-right">{{ sst.stock_o|floatformat:0 }}</td>
+                                    </tr>
+                                {% endif %}
+
+                                {% if sst.stock_g != 0 %}
+                                    <tr class="align-middle">
+                                        <td class="text-left">GLP</td>
+                                        <td class="text-right">{{ sst.stock_g|floatformat:0 }}</td>
+                                    </tr>
+                                {% endif %}
+
+                                {% if sst.total_b != 0 %}
+                                    <tr class="align-middle">
+                                        <td class="text-left">Balon Prestados</td>
+                                        <td class="text-right">{{ sst.total_b|floatformat:0 }}</td>
+                                    </tr>
+                                {% endif %}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <table id="product-data-grid" class="table table-sm table-bordered" cellspacing="0"
+                   style="width: 100%;">
+                <thead>
+                <tr class="text-center text-white font-weight-normal" style="background: #787879">
+                    <th class="th-sm p-2 font-weight-normal" style="width: 5%;">N°</th>
+                    <th class="th-sm p-2 font-weight-normal" style="width: 15%;">PLACA VEHICULO</th>
+                    <th class="th-sm p-2 font-weight-normal" style="width: 25%;">CONDUCTOR</th>
+                    <th class="th-sm p-2 font-weight-normal" style="width: 55%;">DETALLES DEL PRODUCTO</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for d in dictionary %}
+{#                    {% if d.distribution.count > 0 %}#}
+                        <tr class="align-middle text-center">
+                            <td class="align-middle">{{ d.id_m }}</td>
+                            <td class="align-middle"><span
+                                    class="badge badge-pill bg-success text-white pt-2 pb-2 font-weight-normal"
+                                    style="font-size: 13px; width: 80%;">{{ d.truck }}</span></td>
+                            <td class="align-middle"><span
+                                    class="badge badge-pill bg-success text-white pt-2 pb-2 font-weight-normal"
+                                    style="font-size: 13px; width: 80%;">{{ d.pilot }}</span></td>
+                            <td class="align-middle">
+                                <table class="table-product table-sm text-uppercase small table-hover"
+                                       id="id-table-product"
+                                       style="width: 100%; font-size: 11px">
+                                    <thead class="text-white" style="background: #787879">
+                                    <th class="font-weight-normal" style="width: 10%;">N°</th>
+                                    <th class="font-weight-normal" style="width: 50%;">Producto</th>
+                                    <th class="font-weight-normal" style="width: 20%;">Unidad</th>
+                                    <th class="font-weight-normal" style="width: 20%;">Stock</th>
+                                    </thead>
+                                    <tbody id="id-body-product">
+                                    {% for dm in d.distribution %}
+
+                                        <tr class="align-middle">
+                                            <td class="text-center">{{ dm.id_d }}</td>
+                                            <td class="text-left">{{ dm.product }}</td>
+                                            <td class="text-center">{{ dm.unit }}</td>
+                                            <td class="text-right item-stock">
+                                                        <span
+                                                                class="badge badge-primary badge-pill stock-final font-weight-normal"
+                                                                style="font-size: 13px; width: 70%;">{{ dm.quantity }}</span>
+                                            </td>
+                                        </tr>
+
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+{#                    {% endif %}#}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer small text-white p-1 pb-2" style="background: #0270e5;font-size: 13px;" id="id-footer">
+            <div class="row text-center">
+                <div class="col-sm-3 item-total-iron">TOTAL FIERROS 5 KG =
+                    {{ tid.B5|add:dic_stock.2|add:dic_stock.6|floatformat:0 }} </div>
+                <div class="col-sm-3 item-total-iron">TOTAL FIERROS 10 KG =
+                    {{ tid.B10|add:dic_stock.1|add:dic_stock.5|floatformat:0 }} </div>
+                <div class="col-sm-3 item-total-iron">TOTAL FIERROS 15 KG = {{ tid.B15|floatformat:0 }} </div>
+                <div class="col-sm-3 item-total-iron">TOTAL FIERROS 45 KG =
+                    {{ tid.B45|add:dic_stock.3|add:dic_stock.7|floatformat:0 }} </div>
+            </div>
+            <div class="row text-center">
+                <div class="col-sm-3 item-total-iron">TOTAL BALONES 5 KG =
+                    {{ tid.B5|add:dic_stock.2|floatformat:0 }} </div>
+                <div class="col-sm-3 item-total-iron">TOTAL BALONES 10 KG =
+                    {{ tid.B10|add:dic_stock.1|floatformat:0 }} </div>
+                <div class="col-sm-3 item-total-iron">TOTAL BALONES 15 KG = {{ tid.B15|floatformat:0 }}</div>
+                <div class="col-sm-3 item-total-iron">TOTAL BALONES 45 KG =
+                    {{ tid.B45|add:dic_stock.3|floatformat:0 }} </div>
+            </div>
+        </div>
+    </div>
+{% endblock body %}
+{% block extrajs %}
+    <script type="text/javascript">
+        $('#id-table-product tbody#id-body-product tr td.item-stock span.stock-final').each(function () {
+            let _str = $(this).text();
+            _str = _str.replace(',', '.');
+            $(this).text(_str);
+        });
+    </script>
+{% endblock extrajs %}

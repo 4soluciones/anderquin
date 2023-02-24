@@ -1,0 +1,107 @@
+<style>
+    .mdl-cell.mdl-cell--6-col {
+        width: fit-content;
+        float: left;
+        padding: 10px;
+    }
+    .th-md-30{
+        width: 30% !important;
+    }
+    .th-md-35{
+        width: 35% !important;
+    }
+    .form-inline{
+        display: block;
+    }
+</style>
+{% load static %}
+{% block content %}
+    {% if suppliers %}
+        <!--Table-->
+        <table class="table table-striped table-bordered table-sm example-data-table mdl-data-table">
+
+            <!--Table head-->
+            <thead class="border border-secondary secondary-color">
+            <tr class="text-white">
+                <th class="th-md-30" style="text-align: center;font-style: normal;font-weight: 300;">Nombre de distribuidor</th>
+                <th class="th-md-30" style="text-align: center;font-style: normal;font-weight: 300;">Celular</th>
+                <th class="th-md-30" style="text-align: center;font-style: normal;font-weight: 300;">Contacto</th>
+                <th class="th-md-30" style="text-align: center;font-style: normal;"><i class="glyphicon glyphicon-wrench"></i></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in suppliers %}
+                <tr product="{{ item.pk }}">
+
+                    <td style="text-align: center;vertical-align: middle;">{% if item.name %}{{ item.name|upper }}{% else %}-{% endif %}</td>
+                    <td style="text-align: center;vertical-align: middle;">{% if item.cellphone %}{{ item.cellphone }}{% else %}-{% endif %}</td>
+                    <td style="text-align: center;vertical-align: middle;">{% if item.contact %}{{ item.contact|upper }}{% else %}-{% endif %}</td>
+                    <td >
+                        <!-- Small button group -->
+                        <div class="btn-group dropdown" >
+                            <button class="btn btn-danger btn-sm dropdown-toggle waves-light" type="button"  data-toggle="dropdown">
+                                Accion
+                            </button>
+                            <div class="dropdown-menu">
+
+                                <a class="dropdown-item edit-supplier" pk="{{ item.pk }}" data-toggle="modal" data-target="#right-modal">Editar</a>
+{#                                <div class="dropdown-divider"></div>#}
+{#                                <a class="dropdown-item" href="#">Separated link</a>#}
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        No hay registros.
+    {% endif %}
+
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+
+
+
+        $('document').ready(function () {
+
+            $('.example-data-table').DataTable({
+                "language": datatable_language,
+                columnDefs: [
+                    {
+                        targets: [ 0, 1, 2 ],
+                        className: 'mdl-data-table__cell--non-numeric'
+                    }
+                ],
+            });
+        });
+
+
+//edit-supplier
+    $('.edit-supplier').on('click', function () {
+        var search = $(this).attr('pk');
+        $.ajax({
+            url: '/vetstore/get_supplier/',
+{#            async: true,#}
+            dataType: 'json',
+            type: 'GET',
+            data: {'pk': search},
+            success: function (response) {
+                $('#alerts').html(response.alert);
+                if(response.success){
+                    $('#right-modal .modal-body').html(response.formupdate);
+                }
+            },
+            fail: function (response) {
+                $('#alerts').html(response.alert);
+            }
+        });
+    });
+
+
+
+    </script>
+{% endblock %}

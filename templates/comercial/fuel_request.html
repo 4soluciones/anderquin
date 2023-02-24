@@ -1,0 +1,266 @@
+{% load static %}
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header  bg-info">
+            <h5 class="modal-title  text-white">Solicitud de combustible</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form id="form-fuel-request" action="{% url 'comercial:save_fuel_programming' %}" method="POST">
+            {% csrf_token %}
+
+            <div class="modal-body">
+                <table class="table table-sm" style="width: 100%">
+                    <tr>
+
+                        <td class="align-middle">Proveedor</td>
+                        <td colspan="3">
+                            <select class="form-control " id="id_supplier" name="supplier" required>
+                                <option disabled selected value=""> Seleccione</option>
+                                {% for s in supplier_set %}
+                                    <option value="{{ s.id }}">
+                                        {{ s.business_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td class="align-middle">Placa</td>
+                        <td class="align-middle">
+                            <select class="form-control   text-uppercase" id="id_license_plate" name="license_plate"
+                                    required>
+                                <option disabled selected value="">Seleccione</option>
+                                {% for p in programming_set %}
+                                    <option value="{{ p.id }}">
+                                        {{ p.truck.license_plate }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+
+                        <td>
+                            <button id="btn_save" type="submit" class="btn btn-info">Registrar</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="align-middle">Producto</td>
+                        <td colspan="3">
+                            <select class="form-control   text-uppercase" id="id_product" name="product" required>
+                                <option disabled selected value="">Seleccione</option>
+                                {% for p in product_set %}
+                                    <option value="{{ p.id }}">
+                                        {{ p.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td class="align-middle">Fecha</td>
+                        <td class="align-middle">
+                            <input type="date" class="form-control" id="id-date-fuel"
+                                   name="date-fuel"
+                                   value="{{ date_now }}" required>
+
+                        </td>
+                        <td>
+                            <button id="btn_print" type="button" class="btn btn-info">Imprimir</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="align-middle">Cantidad</td>
+                        <td class="align-middle" style="width: 100px">
+                            <input type="text" type="number"
+                                   class="form-control price money" name="quantity" id="id_quantity"
+                                   placeholder="Cantidad" required>
+                        </td>
+                        <td class="align-middle">Unidad</td>
+                        <td class="align-middle">
+                            <select class="form-control   text-uppercase" id="id_unit" name="unit" required>
+                                <option disabled selected value="">Seleccione</option>
+                                {% for u in unidad_set %}
+                                    <option value="{{ u.id }}">
+                                        {{ u.description }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td class="align-middle">Precio</td>
+                        <td class="align-middle">
+                            <input type="text" type="number"
+                                   class="form-control" readonly name="price" id="id_price" required>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-secondary pr-4 pl-3" data-dismiss="modal"> Cerrar
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div><!-- modal-body -->
+            <div class="modal-footer">
+                <table style="width: 100%">
+                    <tr>
+                        <td class="align-middle" style="width: 10%">Conductor</td>
+                        <td class="align-middle" style="width: 48%">
+                            <input type="text" class="form-control" readonly name="pilot" id="id_pilot"
+                                   placeholder="Nombre conductor">
+                        </td>
+                        <td class="align-middle pl-2 pr-2" style="width: 10%">Documento</td>
+                        <td class="align-middle" style="width: 19%">
+                            <input type="text" class="form-control" readonly name="document" id="id_document"
+                                   placeholder="Documento">
+                        </td>
+                        <td style="width: 13%"></td>
+                    </tr>
+                </table>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    $('#id_supplier').change(function () {
+        let _search = $(this).val();
+
+        //vacia el combo-borra opciones
+        $('#id_product').empty();
+
+        $.ajax({
+            url: '/comercial/get_products_by_supplier/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            //mando  id del invoice del combo
+            data: {'ip': _search},
+            // si va bien retorna la data
+            success: function (response) {
+
+                {#$('#id_daterequirement').val(response['creation_date']);#}
+                $('#id_price').val(response['price']);
+                {#$('#id_dateinvoice').val(response['approval_date']);#}
+
+                //le da formato array
+                let new_product = JSON.parse(response['products']);
+                {#$('#id_producto').append('<option value="0">' + Seleccione + '</option>')#}
+                new_product.forEach(
+                    element =>
+                        $('#id_product').append(
+                            '<option value="' + element['pk'] + '">' + element['fields']['name'] + '</option>')
+                );
+                {#$('#current-stock').html(response.grid).parent('tr').slideDown();#}
+                $("#id_product").trigger("change");
+                {#$('#id_quantity').removeAttr("readonly");#}
+            },
+
+        });
+
+    });
+    $('#id_product').change(function () {
+        //recupera el id_dela opcion seleccionada
+        let _search = $(this).val();
+
+        //vacia el combo-borra opciones
+        $('#id_unit').empty();
+
+        $.ajax({
+            url: '/buys/get_units_by_product/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            //mando  id del producto del combo
+            data: {'ip': _search},
+            // si va bien retorna la data
+            success: function (response) {
+                //le da formato array
+                let units = JSON.parse(response['units']);
+                units.forEach(
+                    element =>
+                        $('#id_unit').append(
+                            '<option value="' + element['pk'] + '">' + element['fields']['name'] + '</option>')
+                )
+            },
+
+        });
+
+    })
+    $('#id_license_plate').change(function () {
+        //recupera el id_dela opcion seleccionada
+        let _search = $(this).val();
+
+        //vacia el combo-borra opciones
+        $('#id_pilot').val('');
+        $('#id_document').val('');
+
+        $.ajax({
+            url: '/comercial/get_programming_by_license_plate/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            //mando  id del producto del combo
+            data: {'ip': _search},
+            // si va bien retorna la data
+            success: function (response) {
+                //le da formato array
+                $('#id_pilot').val(response['employee_name']);
+                $('#id_document').val(response['employee_document']);
+
+            },
+
+        });
+
+    })
+
+    $('#id_supplier').select2({
+        theme: 'bootstrap4',
+    });
+    $('#id_product').select2({
+        theme: 'bootstrap4',
+    });
+    $('#id_license_plate').select2({
+        theme: 'bootstrap4',
+    });
+
+    function limper(request) {
+        $("#id_quantity").val('');
+        $("#id_product").val(0);
+        $("#id_unit").empty();
+
+    };
+
+    $('#form-fuel-request').submit(function (event) {
+        event.preventDefault();
+
+        let data = new FormData($('#form-fuel-request').get(0));
+
+        $.ajax({
+            url: $(this).attr('action'),
+            type: $(this).attr('method'),
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response)
+            {   if (response.success){
+                toastr.success(response.success, '¡SOLICITUD DE COMBUSTIBLE REGISTRADA!');
+                // Simulate a mouse click:
+                window.location.href = "/comercial/print_ticket/"+response.id+"/";
+
+                setTimeout(() => {
+                        location.reload();
+                    }, 500);
+            }
+            },
+            error: function (response) {
+                toastr.error('¡ERROR AL REGISTRAR LA SOLICITUD!', 'MESAJE ERROR');
+            }
+        });
+    });
+
+
+</script>

@@ -1,0 +1,97 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Listado de compras
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="card-header text-left mt-2 mb-1 p-1 bg-secondary">
+            <div class="form-inline mt-1 mb-1 p-0">
+                <table>
+                    <tr>
+                        <td class="pl-2 pr-2 text-white">Fecha inicial</td>
+                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_initial"
+
+                                                     value="{{ date_now }}" required>
+                        </td>
+                        <td class="pl-2 pr-2 text-white">Fecha final</td>
+                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_final"
+
+                                                     value="{{ date_now }}" required>
+                        </td>
+                        <td class="pl-2 pr-2">
+                            <button type="button" id="id_btn_show"
+                                    class="btn btn-success btn-block"> MOSTRAR
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="table-responsive" id="table-list-purchase-store"></div>
+    </div>
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        {#$('#puchase-data-grid').dataTable();#}
+
+        $("#id_btn_show").click(function () {
+            if ($("#id_date_initial").val() != '' && $("#id_date_final").val() != '') {
+                let pk = 1;
+                let dates = {
+                    "date_initial": $('#id_date_initial').val(),
+                    "date_final": $('#id_date_final').val(),
+                };
+                $.ajax({
+                    url: '/buys/get_purchase_store_list/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'pk': pk, 'dates': JSON.stringify(dates),},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status == 200) {
+                            $('#table-list-purchase-store').html(response.form);
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        $('#table-list-purchase-store').html(jqXhr.form);
+                        toastr.error(jqXhr.responseJSON.detalle, '¡MENSAJE!');
+                    }
+                });
+
+            }
+        });
+        /*boton ver tabla detalle*/
+        $(document).on('click', '.btn-show-detail', function () {
+            let search = $(this).attr('pk');
+            let _table = $(this).parent('td').parent('tr').next('tr').children('td.table-details-purchase');
+            $('#purchase-store-data-grid tbody tr td.table-details-purchase').parent('tr').slideUp(800);
+            $('#purchase-store-data-grid tbody tr td.table-details-purchase').empty();
+
+            $.ajax({
+                url: '/buys/get_details_by_purchase/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                //mando  id de la compra
+                data: {'ip': search},
+                // si va bien retorna la data
+                success: function (response) {
+
+                    _table.html(response.grid);
+                    _table.parent('tr').slideDown(1500);
+                },
+
+            });
+
+        });
+        {#$('.table-details-purchase').parent('tr').slideUp();#}
+
+    </script>
+{% endblock extrajs %}

@@ -1,0 +1,91 @@
+{% if cash_flow_set %}
+
+    <div class="table-responsive mt-3">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">Estado</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">Fecha</th>
+
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">TOTAL ENTRADAS</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">TOTAL SALIDAS</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">SALDO ACTUAL</th>
+
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">Operacion</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">Descripcion de la
+                    operacion
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">Cliente</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">Tipo de doc</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">
+                    Serie {{ cash_set.count }}</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">Numero</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">subtotal</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">Igv</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">total</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">Placa</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">Responsable</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">Usuario</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            {% for c in cash_flow_set %}
+                <tr class=" {% if c.type == 'S' %}text-danger font-weight-bold
+                            {% elif c.type == 'E' %}text-primary font-weight-bold
+                            {% elif c.type == 'A' %}text-warning font-weight-bold
+                            {% elif c.type == 'C' %}text-info font-weight-bold
+                            {% endif %}">
+                    {% if forloop.first %}
+
+                        <td class="align-middle" rowspan="{{ cash_flow_set.count }}">
+                            <button status="{% if c.return_status %}A{% else %}C{% endif %}"
+                                    date="{{ c.transaction_date|date:"Y-m-d" }}"
+                                    pk="{{ c.pk }}" type="button"
+                                    class="btn {% if c.return_status %}btn-danger{% else %}btn-success{% endif %} cash-update">
+                                 {% if c.return_status %}<i class="fas fa-door-closed"></i> Cerrado {% else %}<i class="fas fa-door-open"></i> Abierto {% endif %}
+                            </button>
+                        </td>
+                        <td class="align-middle text-success font-weight-bold"
+                            rowspan="{{ cash_flow_set.count }}">{{ c.transaction_date|date:"d/m/Y" }}</td>
+                        <td class="align-middle text-success font-weight-bold"
+                            rowspan="{{ cash_flow_set.count }}">{{ c.return_inputs|floatformat:2 }}</td>
+                        <td class="align-middle text-success font-weight-bold"
+                            rowspan="{{ cash_flow_set.count }}">{{ c.return_outputs|floatformat:2 }}</td>
+                        <td class="align-middle text-success font-weight-bold"
+                            rowspan="{{ cash_flow_set.count }}">{{ c.return_balance|floatformat:2 }}</td>
+
+
+                    {% endif %}
+
+
+
+                    <td>{{ c.get_type_display|upper }}</td>
+                    <td>{{ c.description|upper }}</td>
+                    <td>{{ c.order.client.names|upper|default_if_none:"-" }}</td>
+                    <td>{{ c.get_document_type_attached_display|upper }}</td>
+                    <td>{{ c.serial|default_if_none:"-" }}</td>
+                    <td>{{ c.n_receipt|default_if_none:"-" }}</td>
+                    <td class="text-right">{{ c.subtotal|floatformat:2 }}</td>
+                    <td class="text-right">{{ c.igv|floatformat:2 }}</td>
+                    <td class="text-right">{{ c.total|floatformat:2 }}</td>
+                    <td>{{ c.order.distribution_mobil.truck.license_plate }}</td>
+                    <td>{{ c.order.distribution_mobil.pilot.full_name }}</td>
+                    <td>{{ c.user.worker_set.last.employee.full_name | upper |default_if_none:"-" }}</td>
+                </tr>
+
+
+
+
+            {% endfor %}
+
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+        <strong>Atencion!</strong> Tu debes ingresar una fecha primero.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+{% endif %}

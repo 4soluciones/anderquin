@@ -1,0 +1,359 @@
+<form id="loan-massive-payment-form" action="" method="POST">
+    {% csrf_token %}
+
+    <input type="hidden" id="id_order_indexes" name="order_indexes" value="{{ order_indexes }}">
+    <input type="hidden" id="id_client_orders" name="client_orders" value="{{ client_orders }}">
+    <div class="card">
+        <div class="card-body">
+            <div class="form-group row">
+                <label for="id_loan_payment" class="col-sm-2 col-form-label">MONTO A PAGAR</label>
+                <div class="col-sm-10">
+
+                    <input type="text"
+                           id="id_loan_payment"
+                           name="loan_payment"
+                           autocomplete="off"
+                           value="{{ massive_payment }}"
+                           readonly
+                           class="form-control form-control-sm">
+                </div>
+
+            </div>
+
+            <div class="form-group row">
+                <label for="id_transaction_payment_type" class="col-sm-2 col-form-label">T.P</label>
+                <div class="col-sm-10">
+
+                    <select id="id_transaction_payment_type"
+                            name="transaction_payment_type"
+                            class="form-control form-control-sm">
+                        <option value="0">Seleccione</option>
+                        {% for item in choices_payments %}
+                            <option value="{{ item.0 }}">{{ item.1 }}</option>
+                        {% endfor %}
+                    </select>
+
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id_date_return_loan0" class="col-sm-2 col-form-label">FECHA OPERACION</label>
+                <div class="col-sm-10">
+
+                    <input type="date"
+                           id="id_date_return_loan0"
+                           name="date_return_loan0"
+                           class="form-control form-control-sm"
+                           value="{{ date }}">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <hr class="mb-4">
+
+    <div class="card bg-light d-none" id="cash">
+        <div class="card-header">EFECTIVO</div>
+
+        <div class="card-body">
+
+            <div class="form-group row">
+                <label for="id_cash" class="col-sm-2 col-form-label">CAJA DESTINO</label>
+                <div class="col-sm-10">
+
+                    <select id="id_cash"
+                            name="id_cash_efectivo"
+                            class="form-control form-control-sm text-uppercase"
+                            aria-selected="Text input with radio button">
+                        {% for c in choices_account %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+                    </select>
+
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id_date" class="col-sm-2 col-form-label">ULTIMA FECHA DE CAJA</label>
+                <div class="col-sm-10">
+
+                    <input type="date"
+                           id="id_date"
+                           name="id_date"
+                           readonly
+                           class="form-control form-control-sm">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id_cash" class="col-sm-2 col-form-label">DESCRIPCION</label>
+                <div class="col-sm-10">
+
+                    <input type="text"
+                           id="id_description"
+                           name="id_description"
+                           autocomplete="off"
+                           value="PAGO DE LAS ORDENES Nro: {{ order_indexes }} - MONTO MASIVO: {{ massive_payment }}"
+                           class="form-control form-control-sm text-uppercase">
+
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+
+    <div class="card bg-light d-none" id="deposit">
+        <div class="card-header">DEPOSITO</div>
+
+        <div class="card-body">
+
+            <div class="form-group row">
+                <label for="id_cash_deposit" class="col-sm-2 col-form-label">DEPOSITO A CUENTA</label>
+                <div class="col-sm-10">
+
+
+                    <select id="id_cash_deposit" name="id_cash_deposit"
+                            class="form-control form-control-sm text-uppercase"
+                            aria-selected="Text input with radio button">
+                        {% for c in choices_account_bank %}
+                            <option value="{{ c.id }}"
+                            >{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+
+
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id_date_deposit" class="col-sm-2 col-form-label">FECHA DEL DEPOSITO</label>
+                <div class="col-sm-10">
+
+
+                    <input type="date"
+                           id="id_date_deposit"
+                           name="id_date_deposit"
+                           value="{{ date }}"
+                           class="form-control form-control-sm">
+
+
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id_description_deposit" class="col-sm-2 col-form-label">DESCRIPCION DEL DEPOSITO</label>
+                <div class="col-sm-10">
+
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           id="id_description_deposit"
+                           name="description_deposit"
+                           value="DEPOSITO DE LAS ORDENES Nro: {{ order_indexes }} - MONTO MASIVO: {{ massive_payment }}">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id_code_operation" class="col-sm-2 col-form-label">COD-OP</label>
+                <div class="col-sm-10">
+
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           id="id_code_operation"
+                           name="code_operation">
+
+
+                </div>
+            </div>
+
+
+        </div>
+
+    </div>
+
+    <div class="card bg-light d-none" id="fises">
+        <div class="card-header">FISES</div>
+
+        <div class="card-body">
+
+            <div class="form-group row">
+                <label for="id_code_operation" class="col-sm-2 col-form-label">DEPOSITO A CUENTA</label>
+                <div class="col-sm-10">
+
+                    <select id="id_cash_deposit_fise" name="id_cash_deposit_fise"
+                            class="form-control form-control-sm text-uppercase"
+                            aria-selected="Text input with radio button">
+                        {% for c in choices_account_bank %}
+                            <option value="{{ c.id }}"
+                            >{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+
+
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id_date_desposit_fise" class="col-sm-2 col-form-label">FECHA DEL DEPOSITO</label>
+                <div class="col-sm-10">
+
+                    <input type="date"
+                           id="id_date_desposit_fise"
+                           name="id_date_desposit_fise"
+                           value="{{ date }}"
+                           class="form-control form-control-sm">
+
+
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id_description_deposit_fise" class="col-sm-2 col-form-label">DESCRIPCION DEL
+                    DEPOSITO</label>
+                <div class="col-sm-10">
+
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           id="id_description_deposit_fise"
+                           name="id_description_deposit_fise"
+                           value="PAGO DE LAS ORDENES POR FISES Nro: {{ order_indexes }} - MONTO MASIVO: {{ massive_payment }}">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id_price_of_vouchers" class="col-sm-2 col-form-label">PRECIO FISE</label>
+                <div class="col-sm-10">
+
+                    <input type="text"
+                           id="id_price_of_vouchers"
+                           name="price_of_vouchers"
+                           value="16.00"
+                           readonly
+                           class="form-control form-control-sm">
+
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id_number_of_vouchers" class="col-sm-2 col-form-label">CANTIDAD VALES FISE</label>
+                <div class="col-sm-10">
+
+                    <input type="text"
+                           id="id_number_of_vouchers"
+                           name="number_of_vouchers"
+                           class="form-control form-control-sm">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <hr class="mb-4">
+
+    <button type="submit" id="btn-save-massive-payment" class="btn btn-primary"> Guardar</button>
+
+</form>
+
+<script type="text/javascript">
+    $('#id_transaction_payment_type').change(function () {
+        let type = $('#id_transaction_payment_type').val();
+        if (type === 'E') {
+            $('#cash').removeClass('d-none');
+            $('#deposit').addClass('d-none');
+            $('#id_cash').trigger('change');
+            $('#fises').addClass('d-none');
+        } else if (type === 'D') {
+            $('#deposit').removeClass('d-none');
+            $('#cash').addClass('d-none');
+            $('#fises').addClass('d-none');
+        } else if (type === 'F') {
+            $('#fises').removeClass('d-none');
+            $('#cash').addClass('d-none');
+            $('#deposit').addClass('d-none');
+            calFises();
+        } else if (type === 'V' || type === 'C') {
+            $('#cash').addClass('d-none');
+            $('#deposit').addClass('d-none');
+            $('#fises').addClass('d-none');
+        }
+    });
+
+    function calFises() {
+        let val = $('#id_loan_payment').val();
+        let _price_of_vouchers = parseFloat($('#id_price_of_vouchers').val());
+        let _number_of_vouchers = $('#id_number_of_vouchers');
+        let _quantity = 0;
+        if (isNaN(val) || val === '') {
+            val = 0;
+            _number_of_vouchers.val(0);
+            $('#id_loan_payment').val(val);
+        } else {
+            _quantity = parseFloat(val) / _price_of_vouchers;
+            _number_of_vouchers.val(_quantity.toFixed(2));
+        }
+    }
+
+    $("#id_cash").change(function () {
+
+        $("#id_date").val('');
+
+        if ($("#id_cash").val() !== '') {
+
+            $.ajax({
+                url: '/accounting/get_cash_date/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'cash_id': $("#id_cash").val()},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        $("#id_date").val(response.cash_date);
+                    }
+                },
+                fail: function (response) {
+                    toastr.error("Error. ", '¡Inconcebible!');
+                }
+            });
+        }
+    });
+
+    $('#loan-massive-payment-form').submit(function (event) {
+        event.preventDefault();
+        let data = new FormData($('#loan-massive-payment-form').get(0));
+        $('#btn-save-massive-payment').attr("disabled", "true");
+        $('#lending').html(loader);
+        $.ajax({
+            url: '/sales/new_massiel_payment/',
+            type: "POST",
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (response, textStatus, xhr) {
+                if (xhr.status == 200) {
+                    // $('#product-detail-grid').html(response.grid);
+                    $('#modal-payment').modal('hide');
+                    $('#table-order').html(response['grid']);
+                    array_glp_indexes = [];
+                    $('#massive-payment span.badge').text((0).toFixed(2));
+                    $('#massive-return span.badge').text((0).toFixed(2));
+                    _total_glp = 0;
+                    _total_ball = 0;
+                    _quantity_ball = 0;
+                    _total_glp_gbc = 0;
+                    toastr.success(response['message'], '¡Bien hecho!');
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                if (jqXhr.status === 500) {
+                    toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                }
+            }
+        });
+        $('#btn-save-massive-payment').removeAttr("disabled", "false");
+    });
+</script>

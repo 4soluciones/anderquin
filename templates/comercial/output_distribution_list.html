@@ -1,0 +1,67 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Listado de salidas reparto
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div id="purchase-grid-list">{% include "comercial/output_distribution_grid_list.html" %}</div>
+    </div>
+
+    <div class="modal fade" id="modal-distribution" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle"
+         aria-hidden="true"></div>
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        /*boton ver tabla detalle*/
+        $(document).on('click', '.btn-show-detail', function () {
+            let search = $(this).attr('pk');
+            let _table = $(this).parent('div').parent('div').parent('td').parent('tr').next('tr').children('td.table-details-distribution');
+            $('#table-distribution-programmings tbody tr td.table-details-distribution').parent('tr').slideUp(800);
+            $('#table-distribution-programmings tbody tr td.table-details-distribution').empty();
+
+            $.ajax({
+                url: '/comercial/get_details_by_distributions_mobil/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                //mando  id de la compra
+                data: {'ip': search},
+                // si va bien retorna la data
+                success: function (response) {
+                    _table.html(response.grid);
+                    _table.parent('tr').slideDown(800);
+                },
+            });
+        });
+        {#$('.table-details-purchase').parent('tr').slideUp();#}
+        $(document).on('click', '.btn-update', function () {
+            let search = $(this).attr('pk');
+            $.ajax({
+                url: '/comercial/get_distribution_mobil_return/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': search},
+                success: function (response) {
+                    console.log(response);
+                    if (response.success) {
+                        $('#modal-distribution').html(response.form);
+                        $('#modal-distribution').modal('show');
+
+                    }
+                },
+                fail: function (response) {
+                    console.log(response);
+                }
+
+            });
+        });
+
+
+    </script>
+{% endblock extrajs %}

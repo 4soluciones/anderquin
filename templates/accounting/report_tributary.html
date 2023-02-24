@@ -1,0 +1,91 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Reporte de Cuadro de Compras y Ventas Comparativo
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid pt-3">
+        <div class="card">
+
+            <div class="card-header text-center">
+                <label class="col-form-label col-form-label-lg text-uppercase font-weight-bold"><h2>Reporte
+                    Tributario</h2></label>
+            </div>
+            <div class="card-body">
+                <form class="form-inline" id="search-form" method="POST">
+                    {% csrf_token %}
+
+                    <form class="form-inline">
+                        <label class="my-1 mr-2" for="id-year">Seleccione año:</label>
+                        <select class="form-control" id="id_year" name="year">
+                            <option value="0">Seleccione</option>
+                            <option value="2021">2021</option>
+                            <option value="2022">2022</option>
+                            <option value="2022">2023</option>
+                            <option value="2022">2024</option>
+                        </select>
+                        <button type="submit" class="btn btn-blue my-1 ml-2" id="btn-search">
+                            <i class="fas fa-search-dollar"></i> Buscar
+                        </button>
+
+                    </form>
+
+                </form>
+
+            </div>
+
+            {#            <button type="button" class="btn btn-success my-1 ml-2" id="printReportExcel">#}
+            {#                <i class="fas fa-file-csv"></i> Excel#}
+            {#            </button>#}
+
+        </div>
+        <div class="card">
+            <div class="card-body table-responsive" id="tbl-buys">
+            </div>
+        </div>
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+
+
+    <script type="text/javascript">
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#search-form').get(0));
+
+            $('#btn-search').attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/report_tributary/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        {#toastr.success(response['message'], '¡Bien hecho!');#}
+                        $('#tbl-buys').html(response.grid);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-search').removeAttr("disabled", "false");
+        });
+
+
+
+
+    </script>
+
+
+{% endblock extrajs %}

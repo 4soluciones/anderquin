@@ -1,0 +1,111 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Reporte de Cuadro de Compras y Ventas Comparativo
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid pt-3">
+        <div class="card">
+
+            <div class="card-header text-center">
+                <label class="col-form-label col-form-label-lg text-uppercase font-weight-bold"><h2>Reporte de Cuadro de
+                    Compras y Ventas Comparativo</h2></label>
+            </div>
+
+            {#            <div class="card-body">#}
+            {##}
+            {#                <form class="form-inline" id="search-form" method="POST">#}
+            {#                    {% csrf_token %}#}
+            {#                    <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>#}
+            {#                    <input type="date" class="form-control my-1 mr-sm-2"#}
+            {#                           id="id-start-date"#}
+            {#                           name="start-date"#}
+            {#                           value="{{ formatdate }}">#}
+            {##}
+            {#                    <label class="my-1 mr-2" for="id-end-date">Fecha final</label>#}
+            {#                    <input type="date" class="form-control my-1 mr-sm-2"#}
+            {#                           id="id-end-date"#}
+            {#                           name="end-date"#}
+            {#                           value="{{ formatdate }}">#}
+            {##}
+            {#                    <button type="submit" class="btn btn-blue my-1 ml-2" id="btn-search">#}
+            {#                        <i class="fas fa-search-dollar"></i> Buscar#}
+            {#                    </button>#}
+            {##}
+            {#                </form>#}
+            {##}
+            {#            </div>#}
+            {#        </div>#}
+
+            <div class="card">
+                <div class="card-body table-responsive" id="tbl-comparative">
+                    {{ grid }}
+                </div>
+            </div>
+            <button type="button" class="btn btn-success my-1 ml-2" id="printReportExcel">
+                <i class="fas fa-file-csv"></i> Excel
+            </button>
+
+        </div>
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+
+
+    <script type="text/javascript">
+
+        $('#printReportExcel').click(function () {
+            $("#tbl-comparative").table2excel({filename: "Comparative.xls"});
+        });
+
+        {#loader = '<div class="container">' +#}
+        {#    '<div class="row">' +#}
+        {#    '<div class="col-md-12">' +#}
+        {#    '<div class="loader">' +#}
+        {#    '<p>Cargando...</p>' +#}
+        {#    '<div class="loader-inner"></div>' +#}
+        {#    '<div class="loader-inner"></div>' +#}
+        {#    '<div class="loader-inner"></div>' +#}
+        {#    '</div>' +#}
+        {#    '</div>' +#}
+        {#    '</div>' +#}
+        {#    '</div>';#}
+        {##}
+        {#$('#search-form').submit(function (event) {#}
+        {#    event.preventDefault();#}
+        {#    let data = new FormData($('#search-form').get(0));#}
+        {##}
+        {#    $('#btn-search').attr("disabled", "true");#}
+        {#    $('#tbl-pays').empty();#}
+        {#    $('#tbl-pays').html(loader);#}
+        {##}
+        {#    $.ajax({#}
+        {#        url: '/sales/comparative_sales_and_purchases_report/',#}
+        {#        type: "POST",#}
+        {#        data: data,#}
+        {#        cache: false,#}
+        {#        processData: false,#}
+        {#        contentType: false,#}
+        {#        success: function (response, textStatus, xhr) {#}
+        {#            if (xhr.status === 200) {#}
+        {#                toastr.success(response['message'], '¡Bien hecho!');#}
+        {#                $('#tbl-comparative').html(response.grid);#}
+        {#            }#}
+        {#        },#}
+        {#        error: function (jqXhr, textStatus, xhr) {#}
+        {#            if (jqXhr.status === 500) {#}
+        {#                toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');#}
+        {#            }#}
+        {#        }#}
+        {#    });#}
+        {#    $('#btn-search').removeAttr("disabled", "false");#}
+        {# });#}
+
+    </script>
+
+
+{% endblock extrajs %}

@@ -1,0 +1,214 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Percepciones
+{% endblock title %}
+
+{% block body %}
+
+    <div class="card col-sm-6 p-0">
+
+
+        <div class="card-header">
+            REGISTRO DE PERCEPCIONES
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="card-group">
+
+                <div class="card p-0 border-0" style="flex-grow: 4">
+                    <div class="card-body pl-3 pt-3 pb-3 pr-0">
+
+                        <div class="card col-sm-12 pr-0 pl-0">
+                            <div class="card-body pb-3">
+
+                                <div class="form-row border-top-5"
+                                     style="border-top-style: ridge; border-bottom-style: ridge; ">
+                                    <div class="form-group col-md-8 text-uppercase small mt-2 mb-1">
+                                        <div class="card col-sm-12 pr-0 pl-0 border-right border-top-0 border-left-0 border-bottom-0">
+                                            <div class="card header mb-2 border-0 text-center font-weight-bold">
+                                                Metodo de Busqueda
+                                            </div>
+                                            <div class="card-body p-0">
+                                                <table class="table table-sm text-uppercase small align-right">
+                                                    <tr class="align-right">
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="border-top-0 align-middle text-right"
+                                                            style="width: 20%">
+                                                            Nombre / Razón
+                                                            Social:
+                                                        </th>
+                                                        <td class="border-top-0">
+                                                            <select id="id_client_name" name="id_client_name"
+                                                                    class="form-control form-control-sm"
+                                                                    aria-selected="Text input with radio button">
+                                                                <option selected value="0">Seleccione...</option>
+                                                                {% for client in clients %}
+                                                                    <option value="{{ client.id }}">{{ client.names }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group col-md-4 text-uppercase small mt-2 mb-1">
+                                        <label for="hour">Hora y Fecha</label>
+                                        <input type="text" class="form-control form-control-sm" id="date"
+                                               value="{{ date }}"
+                                               placeholder="Fecha" readonly="true">
+                                    </div>
+                                </div>
+
+                                <div class="form-row border-top-5">
+                                    <div class="form-group col-md-8 text-uppercase small mt-1 mb-1">
+                                        <label for="client-name">Razon Social</label>
+                                        <input type="text" class="form-control form-control-sm" id="client-name"
+                                               placeholder="" readonly>
+                                    </div>
+
+                                    <div class="form-group col-md-4 text-uppercase small mt-1 mb-1">
+                                        <label for="client-name">RUC</label>
+                                        <input type="text" class="form-control form-control-sm" id="client-ruc"
+                                               placeholder="" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group text-uppercase small mt-1 mb-1">
+                                    <label for="client-name">Dirección</label>
+                                    <input type="text" class="form-control form-control-sm" id="client-address"
+                                           placeholder="" readonly>
+                                </div>
+
+
+                            </div>
+                        </div>
+
+                        <div class="card col-sm-12 pr-0 pl-0 mt-2">
+                            <table class="table table-sm text-uppercase small mt-1 mb-2">
+                                <tr>
+                                    <td class="border-top-0 mt-2 pl-3 align-middle" colspan="2" style="width: 80%">
+                                        Facturas del Cliente seleccionado:
+                                    </td>
+
+                                    <td class="border-top-0 mt-2 align-middle text-center" colspan="2"
+                                        style="width: 10%">
+                                        Acción:
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td class="border-top-0 pb-2 pl-1" colspan="2">
+                                        <select id="id_bill" name="id_bill" class="form-control form-control-sm">
+                                            <option disabled selected value="">Seleccione...</option>
+                                        </select>
+                                    </td>
+
+                                    <td class="border-top-0" colspan="2">
+                                        <button class="btn btn-success btn-sm btn-block" id="add-product">
+                                            Agregar
+                                        </button>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div> <!-- card-body -->
+                </div>     <!-- card -->
+                <div class="card pl-0 pr-0" style="flex-grow: 1">
+                    <div class="card-body text-center display-4 py-0" style="display: flex;flex-direction: column;">
+                        <!-- <table class="table table-bordered m-0" style="height: 100%;">
+                            <tr>
+                                <td class="p-0"> -->
+                        <!-- </td>
+                    </tr>
+                    <tr>
+                        <td class="p-0"> -->
+
+                        <button type="button" class="btn btn-success btn-sm text-uppercase text-left mt-1">Nuevo
+                        </button>
+                        <!-- </td>
+                    </tr>
+                    <tr>
+                        <td class="p-0"> -->
+                        <button type="button" id="save-order"
+                                class="btn btn-success btn-sm text-uppercase text-left mt-1">Guardar
+                        </button>
+                        <!-- </td>
+                    </tr>
+                    <tr>
+                        <td class="p-0"> -->
+
+                        <!-- </td>
+                    </tr>
+                </table> -->
+
+                    </div>
+                </div>
+
+            </div><!-- card-group -->
+
+
+            {% include "sales/new_perceptron_detail.html" %}
+
+        </div><!-- card-body-->
+    </div><!-- card-->
+
+
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        $('#id_client').select2({
+            theme: 'bootstrap4',
+        });
+        $('#id_client_name').select2({
+            theme: 'bootstrap4',
+        });
+        $('#id_client, #id_client_name').on('select2:select', function (e) {
+
+            $('#client-address').val('');
+
+            let data = e.params.data;
+            let search = data['id'];
+
+            $.ajax({
+                url: '/sales/get_client/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': search},
+                success: function (response) {
+                    let _client_address = JSON.parse(response['client_serialized_data_address']);
+                    let _client_type = JSON.parse(response['client_serialized_data_type']);
+                    let _client_bill = JSON.parse(response['client_bill']);
+
+                    if (response['client_serialized_data_address'] !== '[]') {
+                        $('#client-address').val(_client_address[0]['fields']['address']);
+                    }
+                    $('#client-name').val(response['client_names']);
+                    $('#client-ruc').val(_client_type[0]['fields']['document_number']);
+                    for (let i = 0; i < _client_bill.length; i++) {
+                        let obj = _client_bill[i];
+                        let mydate = new Date(obj.fields.created_at).toLocaleString();
+                        console.log('obj', obj)
+                        $('#id_bill').append(
+                            '<option ' +
+                            'value="' + obj.pk + '">' +
+                            obj.fields.serial + '-' + obj.fields.n_receipt + '&nbsp' + '|' + '&nbsp' +
+                            mydate +
+                            '</option>'
+                        )
+                    }
+                },
+                fail: function (response) {
+                    console.log("error");
+                }
+            });
+        });
+    </script>
+{% endblock extrajs %}

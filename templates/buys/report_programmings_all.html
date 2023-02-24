@@ -1,0 +1,109 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Lista de Programaciones por Tracto
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid">
+        <div class="card-header text-left mt-2 mb-1 p-1">
+            <form id="search-form" method="POST">
+                {% csrf_token %}
+                <div class="form-inline mt-0 mb-0 p-0">
+                    <table>
+                        <tr>
+                            <td class="pl-2 pr-2">Fecha inicial</td>
+                            <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_initial" name="date_initial"
+
+                                                         value="{{ formatdate }}" required>
+                            </td>
+                            <td class="pl-2 pr-2">Fecha final</td>
+                            <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_final" name="date_final"
+
+                                                         value="{{ formatdate }}" required>
+                            </td>
+                            <td class="pl-2 pr-2">
+                                <button type="submit" id="id_btn_show" class="button text-white"><i
+                                        class="fas fa-database"></i> <span>  Mostrar programaciones</span></button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </form>
+        </div>
+        <div class="table-responsive" id="table-programmings"></div>
+    </div>
+    <style>
+        .button {
+            border-radius: 4px;
+            background-color: #3863de;
+            border: none;
+            text-align: center;
+            font-size: 14px;
+            padding: 8px;
+            width: 240px;
+            transition: all 0.5s;
+            cursor: pointer;
+            margin: 0px;
+        }
+
+        .button span {
+            cursor: pointer;
+            display: inline-block;
+            position: relative;
+            transition: 0.5s;
+        }
+
+        .button span:after {
+            content: '\00bb';
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            right: -30px;
+            transition: 0.5s;
+        }
+
+        .button:hover span {
+            padding-right: 20px;
+        }
+
+        .button:hover span:after {
+            opacity: 1;
+            right: 0;
+        }
+    </style>
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+            let _data = new FormData($('#search-form').get(0));
+            $.ajax({
+                url: '/buys/get_programmings_by_dates/',
+                type: "POST",
+                data: _data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        $('#table-programmings').html(response.grid);
+                        toastr.info(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+        });
+
+    </script>
+
+{% endblock extrajs %}

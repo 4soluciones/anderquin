@@ -1,0 +1,29 @@
+{#INICIO TABLA DETALLE GUIAS#}
+<div class="card-group">
+    <div class="col-sm-12 p-0">
+        <table id="guide-data-grid" class="table table-bordered table-sm border-0 m-0">
+            <thead>
+            <tr class="bg-light text-dark text-center" style="height: 50px;">
+                <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Producto</th>
+                <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Cantidad</th>
+                <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Unidad de Medida</th>
+                <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Tipo</th>
+            </tr>
+            </thead>
+            <tbody id="details">
+            {% for d in details %}
+                <tr ip="{{ d.product.id }}" id_detail="{{ d.id }}"  >
+                    <td class="align-middle border-top-0 border-left-0 border-bottom border-right text-center">{{ d.product.name }}</td>
+                    <td class="align-middle border-top-0 border-left-0 border-bottom border-right text-center quantity">
+                    {{ d.quantity }}</td>
+                    <td class="align-middle border-top-0 border-left-0 border-bottom border-right text-center unit">{{ d.unit_measure.description }}</td>
+                    <td class="align-middle border-top-0 border-left-0 border-bottom border-right text-center type" _type='{{ d.type }}'>{{ d.get_type_display }}</td>
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{#FIN TABLA DETALLE GUIA#}
+

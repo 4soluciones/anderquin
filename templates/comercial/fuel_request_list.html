@@ -1,0 +1,105 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    VJ GAS | Combustible
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid mb-2 mt-2">
+        <div class="card-header border-info">
+            <table style="width: 100%">
+                <tr>
+                    <td style="width: 24%">
+                        <button type="button" onclick="showModalView('fuel_request')"
+                                class="btn btn-outline-success"><i class="fas fa-database"></i> ORDEN DE COMBUSTIBLES
+                        </button>
+                    </td>
+                    <td style="width: 3%">Placa</td>
+                    <td style="width: 16%">
+                        <select class="form-control   text-uppercase" id="id_placa" name="placa">
+                                <option disabled selected value="">Seleccione</option>
+                                {% for t in truck_set %}
+                                    <option value="{{ t.id }}">
+                                        {{ t.license_plate }}
+                                    </option>
+                                {% endfor %}
+                        </select>
+                    </td>
+                    <td class="pl-2 pr-2" style="width: 3%">Fecha</td>
+                    <td class="pl-2 pr-2" style="width: 10%">
+                        <input type="month" class="form-control" id="id_month" value="{{ date_now }}">
+                    </td>
+                    <td style="width: 10%"><button type="button" id="btn-start"
+                                class="btn btn-outline-info ml-2"><i class="fas fa-database"></i> Mostrar
+                        </button></td>
+                    <td style="width: 34%"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <!-- Content -->
+        <div class="container-fluid">
+            <div class="table-responsive" id="table-fuel_list"></div>
+        </div>
+      <div class="modal fade" id="modal-fuel" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle"
+         aria-hidden="true"></div>
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+        $('#id_placa').select2({
+        theme: 'bootstrap4',
+        });
+        function showModalView(route) {
+            $.ajax({
+                url: '/comercial/' + route + '/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': 1},
+                success: function (response) {
+                    $('#modal-fuel').html(response.form);
+                    $('#modal-fuel').modal('show');
+                },
+                fail: function (response) {
+                    console.log(response);
+                }
+            });
+
+        };
+
+        $(document).on('click', '#btn-start', function () {
+            let _month = $('#id_month').val();
+            let _license_plate = $('#id_placa').val();
+
+            $('#table-fuel_list').empty();
+            $.ajax({
+                url: '/comercial/get_fuel_request_list/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'month_': _month,'license_plate_': _license_plate},
+                success: function (response) {
+                    $('#table-fuel_list').html(response['grid']);
+                },
+            });
+        });
+
+        $('#id_date_fuel').change(function () {
+            let _search = $(this).val();
+            $('#table-fuel_list').empty();
+            $.ajax({
+                url: '/comercial/get_distribution_list/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'_date': _search},
+                success: function (response) {
+                    $('#table-fuel_list').html(response['grid']);
+                },
+            });
+        });
+
+    </script>
+{% endblock extrajs %}

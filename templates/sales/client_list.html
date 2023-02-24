@@ -1,0 +1,382 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Clientes
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+
+        <a class="btn btn-outline-info mb-3 mt-3" data-toggle="modal"
+           data-target="#modal-option">
+            <i class="fas fa-user-plus"></i> &nbsp;NUEVO CLIENTE
+        </a>
+
+        <div id="client-grid-list">{% include "sales/client_grid_list.html" %}</div>
+
+    </div>
+
+
+    <div class="modal" id="modal-option" tabindex="-1" role="dialog">
+
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header pb-2 pt-2">
+                    <h5 class="modal-title">Elija una Opcion:</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                {% include "sales/client_option.html" with document_types=document_types districts=districts %}
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="modal" id="modal_client" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cliente</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <form id="new-client-form" action="{% url 'sales:new_client' %}" method="POST">
+
+                    <div class="modal-body">
+                        {% include "sales/client_form.html" with document_types=document_types districts=districts %}
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Salir</button>
+                        <button type="submit" id="btn-save" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal_client_associate" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cliente asociado</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <form id="new-client-associate-form" >
+                   {% csrf_token %}
+                    <div class="modal-body">
+                        {% include "sales/client_associate_form.html" with subsidiaries=subsidiaries %}
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Salir</button>
+                        <button type="button" id="btn-save-associate" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        $('#client-data-grid').dataTable();
+
+        $('#id_district').select2({
+            theme: 'bootstrap4',
+        });
+
+        $(".btn-option").hover(function () {
+            $(this).css("background-color", "#007bff");
+        }, function () {
+            $(this).css("background-color", "#6c757d");
+        });
+
+        $("#new-client-form").submit(function (event) {
+
+            let _document_number = $('#document_number').val();
+            let _names = $('#names').val();
+            let _address = $('#address').val();
+
+            if (sessionStorage.getItem('document') === '01') {
+
+                if (_document_number.length !== 8) {
+                    toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
+                    return false;
+                }
+                if (_names.length === 0) {
+                    toastr.warning('¡Favor de completar los Nombres', 'Error de Datos!');
+                    return false;
+                }
+            } else {
+                if (sessionStorage.getItem('document') === '06') {
+                    if (_document_number.length !== 11) {
+                        toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
+                        return false;
+                    }
+                    if (_names.length === 0) {
+                        toastr.warning('¡Favor de completar la Razon Social', 'Error de Datos!');
+                        return false;
+                    }
+                    if (_address.length === 0) {
+                        toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
+                        return false;
+                    }
+                }
+                if (sessionStorage.getItem('document') === '00') {
+                    if (_document_number.length === 0) {
+                        toastr.warning('¡Favor de seleccionar un tipo!', 'Error de Datos');
+                        return false;
+                    }
+                    if (_names.length === 0) {
+                        toastr.warning('¡Favor de completar la Nombre o Razon Social', 'Error de Datos!');
+                        return false;
+                    }
+                    if (_address.length === 0) {
+                        toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
+                        return false;
+                    }
+                }
+            }
+
+            event.preventDefault();
+
+            let data = new FormData($('#new-client-form').get(0));
+
+
+            $("#btn-save").attr("disabled");
+
+
+            $.ajax({
+
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+
+                    if (response.success) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    }
+
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    console.log(jqXhr);
+                    toastr.error('Error', '¡Ocurrio un error!');
+                }
+
+            });//end ajax
+
+            $("#btn-save").removeAttr("disabled");
+            $('#modal_client').modal('hide');
+
+        }); //end submit
+
+        $("#btn-save-associate").click(function (event) {
+
+            let _names = $('#cl_names').val();
+            let _client_id = $('#cl_client_id').val();
+            let _associates = $('#id_associate').val();
+            event.preventDefault();
+            console.log(_client_id);
+            console.log(_associates);
+            $("#btn-save-associate").attr("disabled");
+
+            $.ajax({
+
+                url: '/sales/new_client_associate/',
+                type: 'GET',
+                async: true,
+                dataType: 'json', // for response
+                data: {'client_id': _client_id, 'names': _names, 'associates': JSON.stringify(_associates), },
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+
+                    if (response.success) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    }
+
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    console.log(jqXhr);
+                    toastr.error(jqXhr.responseJSON.error, '¡Ocurrio un error!');
+                }
+            });//end ajax
+            $("#btn-save-associate").removeAttr("disabled");
+            $('#modal_client_associate').modal('hide');
+        }); //end submit
+
+        $(document).on('change', '#document_type', function () {
+            let _val = $(this).val();
+            if (_val === '01'){
+                $("#document_number").attr('maxlength', 8);
+                $("#document_number").attr('size', 8);
+                sessionStorage.setItem('document', '01')
+            }
+            else{
+                if (_val === '06'){
+                    $("#document_number").attr('maxlength', 11);
+                    $("#document_number").attr('size', 11);
+                    sessionStorage.setItem('document', '06')
+                }
+                else{
+                    $("#document_number").attr('maxlength', 15);
+                    $("#document_number").attr('size', 15);
+                    sessionStorage.setItem('document', '00')
+                }
+            }
+        });
+
+        $(document).on('click', '.client-edit', function () {
+
+            $('#names').empty();
+            $('#phone').empty();
+            $('#email').empty();
+            $('#address').empty();
+            $('#reference').empty();
+            $('#document_number').empty();
+            $("#document_type").removeAttr("disabled");
+
+            let search = $(this).attr('pk');
+            $.ajax({
+                url: '/sales/get_client/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': search},
+                success: function (response) {
+                    if (response.success) {
+
+                        $('#operation').val('U');
+
+                        let _client = JSON.parse(response['client_serialized']);
+                        let _client_address = JSON.parse(response['client_serialized_data_address']);
+                        let _client_type = JSON.parse(response['client_serialized_data_type']);
+                        console.log(_client)
+
+                        if (response['client_serialized'] !== '[]') {
+                            $('#names').val(_client[0]['fields']['names']);
+                            $('#phone').val(_client[0]['fields']['phone']);
+                            $('#email').val(_client[0]['fields']['email']);
+                            $('#client_id').val(_client[0]['pk']);
+                        }
+
+                        if (response['client_serialized_data_address'] !== '[]') {
+                            $('#address').val(_client_address[0]['fields']['address']);
+                            $('#reference').val(_client_address[0]['fields']['reference']);
+                            $('#id_district option[value]').removeAttr('selected');
+                            $('#id_district option[value="' + _client_address[0]['fields']['district'] + '"]').attr('selected', 'selected').trigger('change');
+                        }
+                        if (response['client_serialized_data_type'] !== '[]') {
+                            let _document = _client_type[0]['fields']['document_type']
+                            $('#document_number').val(_client_type[0]['fields']['document_number']);
+                            $('#document_type option[value="' + _document + '"]').attr('selected', 'selected');
+                            sessionStorage.setItem('document', _document);
+                            if (_document === '01'){
+                                $("#document_number").attr('maxlength', 8);
+                                $("#document_number").attr('size', 8);
+                            }
+                            else{
+                                if (_document === '06'){
+                                    $("#document_number").attr('maxlength', 11);
+                                    $("#document_number").attr('size', 11);
+                                }
+                            }
+
+                        }
+
+
+
+                        $('#modal_client').modal('show');
+                    }
+                },
+                fail: function (response) {
+                    console.log(response);
+                }
+            });
+        });
+
+$(document).on('click', '.client-new-associate', function () {
+
+            $('#cl_names').empty();
+
+            let search = $(this).attr('pk');
+
+            $.ajax({
+                url: '/sales/get_client/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': search},
+                success: function (response) {
+                    if (response.success) {
+
+                        let _client = JSON.parse(response['client_serialized']);
+
+                        if (response['client_serialized'] !== '[]') {
+                            $('#cl_names').val(_client[0]['fields']['names']);
+                            $('#cl_client_id').val(_client[0]['pk']);
+                        }
+
+                        $('#modal_client_associate').modal('show');
+                    }
+                },
+                fail: function (response) {
+                    console.log(response);
+                }
+            });
+        });
+
+
+
+        function OpenNaturalModal(document) {
+            $('#modal_client').modal('show');
+            $("#document_type").val(document);
+            $("#document_number").attr('maxlength', 8);
+            $("#document_number").attr('size', 8);
+            $("#document_type").attr("readonly", "readonly");
+            sessionStorage.setItem('document', document)
+        }
+
+        function OpenJuridicoModal(document) {
+            $('#modal_client').modal('show');
+            $("#document_type").val(document);
+            $("#document_number").attr('maxlength', 11);
+            $("#document_number").attr('size', 11);
+            $("#document_type").attr("readonly", "readonly");
+            sessionStorage.setItem('document', document)
+        }
+
+        function OpenOtherModal() {
+            $('#modal_client').modal('show');
+            sessionStorage.setItem('document', '00')
+        }
+
+
+    $('#id_associate').select2();
+
+    </script>
+{% endblock extrajs %}

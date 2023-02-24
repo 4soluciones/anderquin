@@ -1,0 +1,130 @@
+<form class="needs-validation" id="new-transfer-form" method="POST">
+
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label for="id-transfer-date">Fecha Traslado</label>
+        <input type="date" class="form-control"
+               id="id-transfer-date"
+               name="transfer-date"
+               value="{{ formatdate }}"
+               required>
+        <div class="invalid-feedback">
+            Valid date is required.
+        </div>
+    </div>
+
+    <hr class="mb-4">
+
+    <div class="row">
+
+        <div class="col-md-4 mb-3">
+            <label for="id-transfer-subsidiary-origin-name">Caja Origen</label>
+            <select class="custom-select my-1 mr-sm-2"
+                    id="id-cash-origin"
+                    name="cash-origin" required>
+             <option value="0">Seleccione</option>
+                {% for s in only_cash_set %}
+                    <option value="{{ s.pk }}">{{ s.name }}</option>
+                {% endfor %}
+
+            </select>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label for="id-transfer-subsidiary-origin-name">Sucursal Origen</label>
+            <input type="text" class="form-control" id="id-subsidiary-origin"
+                   name="subsidiary-origin"
+                   placeholder="" readonly>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+
+        <div class="col-md-4 mb-3">
+            <label for="id-transfer-bank-balance">Saldo actual</label>
+            <input type="text" class="form-control" id="id-current-balance" name="current-balance" readonly>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+    </div>
+
+    <hr class="mb-4">
+
+    <div class="row">
+
+        <div class="col-md-4 mb-3">
+            <label for="id-transfer-subsidiary-destiny">Caja Destino</label>
+            <select class="custom-select my-1 mr-sm-2"
+                    id="id-cash-destiny"
+                    name="cash-destiny" required>
+             <option value="0">Seleccione</option>
+                {% for s in cash_all_set %}
+                    <option value="{{ s.pk }}">{{ s.name }}</option>
+                {% endfor %}
+
+            </select>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label for="id-transfer-subsidiary-origin-name">Sucursal Destino</label>
+            <input type="text" class="form-control" id="id-subsidiary-destiny"
+                   name="subsidiary-destiny"
+                   placeholder=""
+                   value="" readonly>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label for="id-transfer-total">Monto</label>
+            <input type="text"
+                   class="form-control decimal"
+                   id="id-transfer-total-amount"
+                   name="transfer-total-amount" required>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+
+    </div>
+
+    <hr class="mb-4">
+
+    <div class="row">
+
+
+    </div>
+
+    <div class="mb-3">
+
+        <label for="id-transfer-description">Concepto / Motivo</label>
+        <input type="text"
+               class="form-control text-uppercase"
+               id="id-transfer-description"
+               maxlength="100"
+               name="transfer-description" required>
+        <div class="invalid-feedback">
+            Valid value name is required.
+        </div>
+    </div>
+
+
+    <hr class="mb-4">
+    <button class="btn btn-primary btn-lg btn-block" type="submit" id="btn-transfer-cash-save">Guardar</button>
+</form>
+
+
+
+

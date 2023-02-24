@@ -1,0 +1,180 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    SICUANI | kardex GLP
+{% endblock title %}
+
+{% block body %}
+
+    <!-- Content -->
+    <div class="container-fluid">
+        <div class="card-header text-left mt-2 mb-1 p-1">
+            <div class="form-inline mt-0 mb-0 p-0">
+                <table>
+                    <tr>
+
+                        <td class="pl-2 pr-2">Fecha inicial</td>
+                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_initial"
+
+                                                     value="{{ date_now }}" required>
+                        </td>
+                        <td class="pl-2 pr-2">Fecha final</td>
+                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_final"
+
+                                                     value="{{ date_now }}" required>
+                        </td>
+                        <td class="pl-2 pr-2">
+                            <button type="button" id="id_btn_show"
+                                    class="btn btn-success btn-block pb-1"> MOSTRAR KARDEX GLP
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+
+        <div class="table-responsive" id="table-kardex"></div>
+        <div class="container text-center pt-5" id="loading" style="display: none">
+            <div class="row m-5">
+                <div class="col-md-12 m-5">
+                    <div class="loader">
+                        <div class="loader-inner">
+                            <div class="loading one"></div>
+                        </div>
+                        <div class="loader-inner">
+                            <div class="loading two"></div>
+                        </div>
+                        <div class="loader-inner">
+                            <div class="loading three"></div>
+                        </div>
+                        <div class="loader-inner">
+                            <div class="loading four"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="modal fade modal-payment-programming" id="modal-payment-programming" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header text-center" style="background: #0262d6">
+                    <h6 class="modal-title text-white" id="exampleModalLabel">PAGO DE GASTOS</h6>
+                    <button type="button" class="close ml-0" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="pay-programming">
+                    ...
+                </div>
+                <div class="modal-footer">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade modal-payment-programming-view" id="modal-payment-programming-view" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header text-center" style="background: #0262d6">
+                    <h6 class="modal-title text-white" id="exampleModalLabel">DETALLE DE PAGOS REGISTRADOS</h6>
+                    <button type="button" class="close ml-0" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="pay-programming-view">
+                    ...
+                </div>
+                <div class="modal-footer">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        $('#id_btn_show').click(function () {
+
+            if ($('#id_date_initial').val() == '') {
+                toastr.warning("Seleccione fecha inicial. ", '¡Mensaje!');
+                return false;
+            }
+            if ($('#id_date_final').val() == '') {
+                toastr.warning("Seleccione fecha final. ", '¡Mensaje!');
+                return false;
+            }
+            $('#loading').show();
+
+
+            $('#table-kardex').empty();
+            $.ajax({
+                url: '/buys/get_report_kardex_glp/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'option': 1,
+                    'date_initial': $('#id_date_initial').val(),
+                    'date_final': $('#id_date_final').val(),
+                },
+                success: function (response) {
+
+                    $('#table-kardex').html(response['grid']);
+                    $('#loading').hide();
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.error, '¡Error!');
+                    $('#loading').hide();
+                }
+            });
+        });
+        $(document).on('click', '.btn-show-payments-programming', function () {
+            let _programming_id = $(this).attr('pk');
+            $.ajax({
+                url: '/buys/get_programming_pay/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'programming_id': _programming_id,
+                    'start-date': $('#id_date_initial').val(),
+                    'end-date': $('#id_date_final').val()
+                },
+                success: function (response) {
+                    $('#pay-programming').html(response.grid);
+                },
+                fail: function (response) {
+                    console.log("error");
+                }
+            });
+        });
+         {#$(document).on('click', '.btn-show-payments-programming-view', function () {#}
+        {#function show_payment_details($id){#}
+            {#let _programming_id = $(this).attr('pk');#}
+        {#    let _programming_id = $id;#}
+        {#    $.ajax({#}
+        {#        url: '/buys/get_programming_payment_table/',#}
+        {#        async: true,#}
+        {#        dataType: 'json',#}
+        {#        type: 'GET',#}
+        {#        data: {'programming_id': _programming_id},#}
+        {#        success: function (response) {#}
+        {#            $('#item-payment--programming-table-details').html(response.grid);#}
+        {#        },#}
+        {#        fail: function (response) {#}
+        {#            console.log("error");#}
+        {#        }#}
+        {#    });#}
+        {# };#}
+    </script>
+{% endblock extrajs %}

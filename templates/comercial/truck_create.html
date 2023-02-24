@@ -1,0 +1,36 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Datos del Tracto
+{% endblock title %}
+
+{% block body %}
+
+    <form action="{% url 'comercial:truck_create' %}" method="POST" class="">
+        {% csrf_token %}
+
+
+        <div class="row mr-3 ml-0 mt-2">
+            <div class="col-md-12 mb-3">
+
+                <div class="card">
+                    <div class="card-body">
+
+                        {% include "comercial/truck_form.html" with form=form name="REGISTRO DE TRACTO" color="primary" %}
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </form>
+{% endblock body %}
+
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        $("#id_truck_model").chained("#id_truck_brand");
+
+    </script>
+{% endblock extrajs %}

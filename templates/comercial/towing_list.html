@@ -1,0 +1,78 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Datos del Tracto
+{% endblock title %}
+
+{% block body %}
+
+
+    <div class="container-fluid">
+
+        <a class="btn btn-outline-info mb-3 mt-3" href="{% url 'comercial:towing_create' %}">
+            <i class="fas fa-user-plus"></i> &nbsp;NUEVO REMOLQUE
+        </a>
+        {% if towings %}
+
+            <div class="card">
+
+                <div class="card-header">
+                    <h5 class="card-title">Lista de remolques</h5>
+                    <h6 class="card-subtitle text-muted">Highly flexible tool that many advanced features to any HTML
+                        table.</h6>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="table-responsive dataTables_wrapper ">
+                        <table id="towing-data-grid" class="table table-bordered" cellspacing="0" width="100%">
+                            <thead>
+                            <tr class="text-center">
+                                <th>#</th>
+                                <th class="th-sm">Placa</th>
+                                <th class="th-sm">Modelo</th>
+                                <th class="th-sm">Tipo</th>
+                                <th class="th-sm">Editar</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for towing in towings %}
+                                <tr class="text-center">
+                                    <td>{{ towing.id }}</td>
+                                    <td>{{ towing.license_plate }}</td>
+                                    <td>{{ towing.towing_model }}</td>
+                                    <td>{{ towing.towing_type }}</td>
+                                    <td>
+                                        <a href="{% url 'comercial:towing_update' towing.id %}"
+                                           class="btn btn-outline-info">Editar</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                            <tfoot>
+                            <tr class="text-center">
+                                <th>#</th>
+                                <th class="th-sm">Placa</th>
+                                <th class="th-sm">Modelo</th>
+                                <th class="th-sm">Telefono de Contactos</th>
+                                <th class="th-sm">Editar</th>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <h1>No existen furgones registrados</h1>
+        {% endif %}
+    </div>
+
+
+{% endblock body %}
+
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        $('#towing-data-grid').dataTable();
+    </script>
+{% endblock extrajs %}

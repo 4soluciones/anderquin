@@ -1,0 +1,91 @@
+<div class="modal-dialog modal-dialog-centered" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h5 class="modal-title">Confirmación de eliminación</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form id="dish-delete-form" action="{% url 'dishes:json_dish_delete' object.id %}" method="POST">
+            {% csrf_token %}
+
+            <div class="modal-body">
+
+                <div class="text-center mt-4 mb-4">
+                    <p><strong>¿Desea eliminar el registro {{ object }}?</strong></p>
+                </div>
+
+                <!-- modal-body -->
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button  id="btn-dish-delete-submit" type="submit" class="btn btn-danger">Eliminar</button>
+
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $("#dish-delete-form").submit(function (event) {
+        //stop submit the form, we will post it manually.
+        event.preventDefault();
+        // Create an FormData object
+        var data = new FormData($('#dish-delete-form').get(0));
+        // disabled the submit button
+        $("#btn-dish-delete-submit").attr("disabled");
+        $.ajax({
+            //Cómo podemos ver, mediante el uso de JQuery, estamos haciendo una solicitud POST a la url
+            url: $(this).attr('action'),
+            type: $(this).attr('method'),
+            data: data,
+            cache: false, //If set to false, it will force requested pages not to be cached by the browser.
+            processData: false, // Important!, it prevent jQuery form transforming the data into a query string
+            contentType: false, //Es imperativo que establezca la opción contentType en false, forzando a jQuery a no agregar un encabezado Content-Type
+            success: function (response, textStatus, xhr) {
+                //Recibe un json serializado
+                console.log(textStatus);
+                if(xhr.status==200){
+
+                    toastr.success(response.message,'¡Bien hecho!');
+
+                    $.ajax({
+                        url: '{% url 'dishes:json_dish_list' %}',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        // data: {'search': search},
+                        success: function (response) {
+                            toastr.success('Contenido cargado con exito.','¡Bien hecho!');
+                            $("#dish-grid-list").html(response.result);
+                            refreshTable();
+                        },
+                        fail: function (response) {
+                            toastr.error ("Error. ", '¡Inconcebible!');
+                        }
+                    });
+                }
+                $("#btn-dish-delete-submit").removeAttr("disabled");
+                $('#delete').modal('hide');
+            },
+            error : function(jqXhr, textStatus, xhr) { // provide a bit more info about the error to the console
+                if(jqXhr.status==500){
+                    toastr.error (jqXhr.responseJSON.message, '¡Inconcebible!');
+                }
+                else{
+                    console.log(" STATUS: " + xhr + " " + textStatus);
+                }
+                $("#btn-dish-delete-submit").removeAttr("disabled");
+                $('#delete').modal('hide');
+            }
+        });//end ajax
+    }); //end submit
+</script>

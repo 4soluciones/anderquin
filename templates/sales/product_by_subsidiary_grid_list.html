@@ -1,0 +1,89 @@
+{% if subsidiary_stores %}
+
+    <div class="card">
+
+        <div class="card-header">
+            <h5 class="card-title">Lista de almacenes</h5>
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive dataTables_wrapper ">
+                <table id="ss-data-grid" class="table table-bordered" cellspacing="0" width="100%">
+                    <thead>
+                    <tr class="text-center">
+                        <th style="width: 5%">#</th>
+                        <th style="width: 10%" scope="col">Nombre</th>
+                        <th style="width: 10%" scope="col">Categoria</th>
+                        <th style="width: 60%" scope="col">Productos</th>
+                        <th style="width: 5%" scope="col">#P</th>
+                        <th style="width: 10%" scope="col">Sede</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for ss in subsidiary_stores %}
+                        <tr>
+
+                            <th scope="row">{{ ss.id }}</th>
+                            <td class="align-middle">{{ ss.name }}</td>
+                            <td class="align-middle">
+                                {{ ss.get_category_display }}
+                                {% if ss.category == 'M' %}
+                                    <p class="font-weight-bolder text-success">[Destinado para el envio de guias]</p>
+                                {% elif ss.category == 'V' %}
+                                    <p class="font-weight-bolder text-primary">[Exclusivo para las ventas]</p>
+                                {% elif ss.category == 'I' %}
+                                    <p class="font-weight-bolder text-danger">[Destinado para la fabricación]</p>
+                                {% endif %}
+                            </td>
+                            <td class="p-0">
+                                <table class="table table-sm m-0 text-uppercase">
+                                        <tr>
+                                            <td class="font-weight-bolder align-middle" style="width: 25%">producto</td>
+                                            <td class="font-weight-bolder align-middle" style="width: 25%">presentaciones</td>
+                                            <td class="font-weight-bolder align-middle" style="width: 15%">stock min</td>
+                                            <td class="font-weight-bolder align-middle" style="width: 15%">stock max</td>
+                                            <td class="font-weight-bolder align-middle" style="width: 10%">habilitado</td>
+                                            <td class="font-weight-bolder align-middle" style="width: 10%">stock actual</td>
+                                        </tr>
+                                    {% for ps in ss.stores.all %}
+                                        <tr>
+                                            <td>{{ ps.product.name }}</td>
+                                            <td>
+                                                {% for d in ps.product.productdetail_set.all %}
+                                                    {{ d.unit.name }} [{{ d.price_sale|floatformat:2 }}]
+                                                {% endfor %}
+                                            </td>
+                                            <td>{{ ps.product.stock_min }}</td>
+                                            <td>{{ ps.product.stock_max }}</td>
+                                            <td><input type="checkbox" {% if ps.product.is_enabled %}checked{% endif %}></td>
+                                            <td class="{% if ps.stock <= ps.product.stock_min %}text-danger{% else %}text-success{% endif %}">{{ ps.stock|floatformat:2 }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </table>
+
+                            </td>
+                            <td class="align-middle">{{ ss.stores.all.count }}</td>
+                            <td class="align-middle">{{ ss.subsidiary.name }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center">
+                        <th>#</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Categoria</th>
+                        <th scope="col">Productos</th>
+                        <th scope="col">#P</th>
+                        <th scope="col">Sede</th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <h1>Lo sentimos, no hay registros.</h1>
+{% endif %}
+
+

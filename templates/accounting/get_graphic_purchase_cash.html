@@ -1,0 +1,65 @@
+{% extends 'home.html' %}
+{% block title %}
+    Grafico
+{% endblock title %}
+{% block body %}
+    <div class="container-fluid">
+        <form class="form-inline" id="search-form" method="POST">
+            {% csrf_token %}
+            <div class="card-header text-left mt-2 mb-1 p-1" style="background: #3267b8">
+                <div class="form-inline mt-1 mb-1 p-0">
+                    <table>
+                        <tr>
+                            <td class="pl-2 pr-2 text-white">Fecha inicial</td>
+                            <td class="pl-2 pr-2"><input type="date" class="form-control form-control-sm"
+                                                         id="id_date_initial"
+                                                         name="date_initial"
+                                                         value="{{ formatdate }}" required>
+                            </td>
+                            <td class="pl-2 pr-2 text-white">Fecha final</td>
+                            <td class="pl-2 pr-2"><input type="date" class="form-control form-control-sm"
+                                                         id="id_date_final"
+                                                         name="date_final"
+                                                         value="{{ formatdate }}" required>
+                            </td>
+                            <td class="pl-2 pr-2">
+                                <button type="submit" id="id_btn_show"
+                                        class="btn btn-sm btn-success btn-block"> MOSTRAR REPORTE
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </form>
+        <div id="container-graphic-purchase-cash"></div>
+    </div>
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+        $("#search-form").submit(function (event) {
+            event.preventDefault();
+            let _data = new FormData($('#search-form').get(0));
+            {#$('#container-graphic-sales').empty();#}
+            {#$('#container-graphic').empty();#}
+            $.ajax({
+                url: '/accounting/get_graphic_cash_set_vs_purchase/',
+                type: "POST",
+                data: _data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    console.log(response);
+                    if (xhr.status === 200) {
+                        $('#container-graphic-purchase-cash').html(response.form);
+                    }
+                },
+                error: function (response) {
+                    toastr.error("PROBLEMAS AL MOSTRAR EL REPORTE", '¡MENSAJE!');
+                }
+            });
+        });
+    </script>
+{% endblock extrajs %}

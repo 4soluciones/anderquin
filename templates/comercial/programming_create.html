@@ -1,0 +1,168 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Datos del Tracto
+{% endblock title %}
+
+{% block body %}
+
+    <form id="new-programming-form" action="{% url 'comercial:new_programming' %}" method="POST">
+        {% csrf_token %}
+        <div class="row mr-3 ml-0 mt-2">
+            <div class="col-sm-12 p-0">
+
+                <div class="card">
+                    <div class="card-body text-center font-weight-bolder pb-1">
+                        <h2>PROGRAMACIÓN DE VIAJES</h2>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="card-group mr-3 ml-0 mt-2">
+            <div class="card col-sm-5 pr-0 pt-3 pb-2">
+                <div id="programming-form" class="card-body p-0">
+                    {% include "comercial/programming_form.html" %}
+                </div>
+            </div>
+
+            <div class="card col-sm-7 p-0">
+                <div class="card-body " id="programmings">
+                    {% include "comercial/programming_list.html" %}
+                </div>
+            </div>
+        </div>
+
+    </form>
+{% endblock body %}
+
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        $('#programming-data-grid').DataTable();
+
+        function refreshTable() {
+            $('#programming-data-grid').DataTable().draw();
+        }
+
+        $('#id_pilot').select2({
+            theme: 'bootstrap4',
+        });
+
+        $('#id_copilot').select2({
+            theme: 'bootstrap4',
+        });
+        $('.select2').css('width', '100%');
+
+        $("#new-programming-form").submit(function (event) {
+
+            event.preventDefault();
+
+            let data = new FormData($('#new-programming-form').get(0));
+
+            $("#btn-save").attr("disabled");
+
+            $.ajax({
+
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+
+                    if (response.success) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        $('#programmings').html(response.grid);
+                        refreshTable();
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡ERROR DE GUARDADO!');
+                    }
+                }
+            });//end ajax
+
+            $("#btn-save").removeAttr("disabled");
+
+        }); //end submit
+
+
+        {#$(".programming-edit").click(function () {#}
+        $(document).on('click', '.programming-edit', function () {
+            let _programming_id = $(this).attr('pk');
+
+            $('#programming-data-grid tbody').find('tr').removeClass('table-primary');
+
+            $(this).parent('td').parent('tr').removeClass('table-success').addClass('table-primary');
+
+            // Cargamos el modal tarifas del producto
+            $.ajax({
+                url: '/comercial/get_programming/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'programming': _programming_id},
+                success: function (response) {
+                    $('#programming-form').html(response.grid);
+                    $('.programming-update').show();
+                    $('.programming-cancel').show();
+                    $('.programming-save').hide();
+                    $('.programming-new').hide();
+                },
+                fail: function (response) {
+                    console.log("error");
+                }
+            });
+        });
+
+
+        $(document).on('click', '.programming-update', function () {
+
+            let data = new FormData($('#new-programming-form').get(0));
+            $.ajax({
+
+                url: '/comercial/update_programming/',
+                type: 'POST',
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+
+                    if (response.success) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        $('#programmings').html(response.grid);
+                        refreshTable();
+                        $('.programming-update').hide();
+                        $('.programming-cancel').hide();
+                        $('.programming-save').show();
+                        $('.programming-new').show();
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡ERROR DE GUARDADO!');
+                    }
+                }
+            });//end ajax
+        });
+
+
+        $(document).on('click', '.programming-cancel', function () {
+            $('.programming-update').hide();
+            $('.programming-cancel').hide();
+            $('.programming-save').show();
+            $('.programming-new').show();
+        });
+
+
+        $(document).on('click', '.programming-new', function () {
+            $('#id_weight').val('');
+
+        });
+
+    </script>
+{% endblock extrajs %}

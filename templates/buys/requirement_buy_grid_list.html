@@ -1,0 +1,103 @@
+{% if requiriments_buys %}
+    <div class="card" style="border-color: #2b579a">
+        <div class="card-header text-center pb-1" style="background: #2b579a">
+            <h6 class="card-title text-white">LISTA DE REQUERIMIENTOS PARA LA COMPRA DE GLP</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive dataTables_wrapper ">
+                <table id="requirement-data-grid" class="table table-sm table-primary  table-bordered" cellspacing="0"
+                       width="100%">
+                    <thead>
+                    <tr class="text-center text-white" style="background: #2b579a">
+                        <th class="p-1 align-middle font-weight-normal" style="width: 3%">N</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 55%">Detalle del
+                            requerimiento
+                        </th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 9%">Fecha</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 7%">Scop</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 7%">Estado</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 11%">Trabajador</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 8%">Accion</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for requirement in requiriments_buys %}
+                        <tr class="text-center">
+                            <td class="align-middle">{{ requirement.id }}</td>
+                            <td class="p-0 m-0 align-middle text-center" style="background: white">
+                                <table class="table table-sm  align-content-center table-bordered small m-0 p-0" id="id-table-details-requirement">
+                                    <thead>
+                                        <tr class="text-white" style="background: #2b579a">
+                                            <td class="p-0 font-weight-normal" style="width: 5%">N</td>
+                                            <td class="p-0 font-weight-normal" style="width: 25%">Producto</td>
+                                            <td class="p-0 font-weight-normal" style="width: 15%">Cantidad</td>
+                                            <td class="p-0 font-weight-normal" style="width: 15%">Unidad</td>
+                                            <td class="p-0 font-weight-normal" style="width: 15%">Precio</td>
+                                            <td class="p-0 font-weight-normal" style="width: 25%">Importe</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for dr in requirement.requirements_buys.all %}
+                                        <tr class="m-0 p-0">
+                                            <td class="p-1">{{ dr.id }}</td>
+                                            <td class="p-1">{{ dr.product.name }}</td>
+                                            <td class="p-1">{{ dr.quantity }}</td>
+                                            <td class="p-1">{{ dr.unit.name }}</td>
+                                            <td class="p-1">{{ dr.price|floatformat:2 }}</td>
+                                            <td class="p-1">{{ dr.multiplicate|floatformat:2 }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </td>
+                            <td class="align-middle">{{ requirement.creation_date|date:"Y-m-d" }}</td>
+                            <td class="align-middle">{{ requirement.number_scop }}</td>
+                            <td class="align-middle text-white">
+                                {% if requirement.status == '1' %}
+                                    <span class="badge badge-danger badge-pill p-2"><b>{{ requirement.get_status_display }}</b></span>
+                                {% elif requirement.status == '2' %}
+                                    <span class="badge badge-success badge-pill p-2"><b>{{ requirement.get_status_display }}</b></span>
+                                {% else %}
+                                    <span class="badge badge-primary badge-pill p-2"><b>{{ requirement.get_status_display }}</b></span>
+                                {% endif %}
+                            </td>
+                            <td class="align-middle">{{ requirement.user.worker_set.last.employee.full_name }}</td>
+                            <td class="align-middle">
+                                <div class="btn-group btn-sm m-0">
+                                    <button type="button" class="btn btn-sm btn-success dropdown-toggle"
+                                            data-toggle="dropdown"
+                                            aria-haspopup="true" aria-expanded="false">
+                                        Acción
+                                    </button>
+                                    <div class="dropdown-menu bg-primary text-light">
+                                        <a class="dropdown-item valid-requirement" pk="{{ requirement.id }}"><i
+                                                class="fas fa-ad"></i> Aprobar requerimiento </a>
+                                        <a class="dropdown-item btn-cancel" pk="{{ requirement.id }}"><i
+                                                class="fas fa-american-sign-language-interpreting"></i> Anular requerimiento </a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center text-white" style="background: #2b579a">
+                        <th class="p-1 align-middle font-weight-normal" style="width: 3%">N</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 55%">Detalle del
+                            requerimiento
+                        </th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 9%">Fecha</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 7%">Scop</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 7%">Estado</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 11%">Trabajador</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 8%">Accion</th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <!-- Card -->
+    </div>
+{% else %}
+    <h1>No existen requerimientos pendientes GLP</h1>
+{% endif %}

@@ -1,0 +1,130 @@
+<form class="needs-validation" id="new-btc-form" method="POST">
+
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label for="id-btc-date">Fecha Traslado</label>
+        <input type="date" class="form-control"
+               id="id-btc-date"
+               name="btc-date"
+               value="{{ formatdate }}"
+               required>
+        <div class="invalid-feedback">
+            Valid date is required.
+        </div>
+    </div>
+
+    <hr class="mb-4">
+
+    <div class="row">
+
+        <div class="col-md-4 mb-3">
+            <label for="id-btc-bank-origin-name">Banco Origen</label>
+            <select class="custom-select my-1 mr-sm-2"
+                    id="id-btc-bank-origin"
+                    name="btc-bank-origin" required>
+             <option value="0">Seleccione</option>
+                {% for s in only_bank_set %}
+                    <option value="{{ s.pk }}">{{ s.name }}</option>
+                {% endfor %}
+
+            </select>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label for="id-btc-subsidiary-origin-name">Sucursal Origen</label>
+            <input type="text" class="form-control" id="id-btc-subsidiary-origin-name"
+                   name="btc-subsidiary-origin-name"
+                   placeholder="" readonly>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+
+        <div class="col-md-4 mb-3">
+            <label for="id-btc-current-balance">Saldo actual</label>
+            <input type="text" class="form-control" id="id-btc-current-balance" name="btc-current-balance" readonly>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+    </div>
+
+    <hr class="mb-4">
+
+    <div class="row">
+
+        <div class="col-md-4 mb-3">
+            <label for="id-btc-cash-destiny">Caja Destino</label>
+            <select class="custom-select my-1 mr-sm-2"
+                    id="id-btc-cash-destiny"
+                    name="btc-cash-destiny" required>
+             <option value="0">Seleccione</option>
+                {% for s in ours_cash_set %}
+                    <option value="{{ s.pk }}">{{ s.name }}</option>
+                {% endfor %}
+
+            </select>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label for="id-btc-subsidiary-destiny-name">Sucursal Destino</label>
+            <input type="text" class="form-control" id="id-btc-subsidiary-destiny-name"
+                   name="btc-subsidiary-destiny-name"
+                   placeholder=""
+                   value="" readonly>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label for="id-btc-total">Monto</label>
+            <input type="text"
+                   class="form-control decimal"
+                   id="id-btc-total"
+                   name="btc-total" required>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+
+    </div>
+
+    <hr class="mb-4">
+
+    <div class="row">
+
+
+    </div>
+
+    <div class="mb-3">
+
+        <label for="id-btc-description">Concepto / Motivo</label>
+        <input type="text"
+               class="form-control text-uppercase"
+               id="id-btc-description"
+               maxlength="100"
+               name="btc-description" required>
+        <div class="invalid-feedback">
+            Valid value name is required.
+        </div>
+    </div>
+
+
+    <hr class="mb-4">
+    <button class="btn btn-primary btn-lg btn-block" type="submit" id="btn-btc-cash-save">Guardar</button>
+</form>
+
+
+
+

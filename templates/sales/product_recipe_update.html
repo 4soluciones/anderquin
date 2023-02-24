@@ -1,0 +1,334 @@
+<div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    <div class="modal-content">
+        <div class="modal-header" style="background-color: rgb(153,45,48); font-size: 15px;">
+            <h5 class="modal-title  text-white" style="font-size: 15px;">Formulario de receta</h5>
+            <button type="button" class="close btn-closed" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <form id="form-product " class="embed-responsive p-1" action="{% url 'sales:create_recipe' %}" method="POST"  style="font-size: 14px;">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="card border-danger">
+                    <div class="card-header" style="background-color: rgb(156,52,55);">
+                        <h6 class="card-title text-center text-white mb-0">{{ product_obj.name }}</h6>
+                         <input class="form-control form-control" id="id_product_final" type="hidden" value="{{ product_obj.id }}">
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm table-striped align-content-center table-bordered response  table-recipe" style="width: 100%">
+                            <thead>
+                                <tr class="text-center  text-white" style="background-color: rgb(17,110,193); font-size: 14px;">
+                                    <th class="th-sm font-weight-normal" style="width: 4%">N°</th>
+                                    <th class="th-sm font-weight-normal" style="width: 41%">Producto</th>
+                                    <th class="th-sm font-weight-normal" style="width: 11%">Cantidad</th>
+                                    <th class="th-sm font-weight-normal" style="width: 12%">Unidad</th>
+                                    <th class="th-sm font-weight-normal" style="width: 12%">Precio</th>
+                                    <th class="th-sm font-weight-normal" style="width: 10%">Eliminar</th>
+                                    <th class="th-sm font-weight-normal" style="width: 10%">Guardar</th>
+                                </tr>
+                            </thead>
+                           <tbody class="details">
+                            {% for pr in product_recipe_set %}
+                                <tr recipe_id="{{ pr.id }}" class="align-middle">
+                                   <td class="item-id text-center">{{ pr.id }}</td>
+                                   <td class="item-product">
+                                        <select id="id_products" name="products"
+                                                class="form-control form-control-sm valor_product">
+                                            <option disabled selected value="0"> Seleccione</option>
+                                            {% for pi in products_supplies_set %}
+                                                {% if pr.product_input.id == pi.id %}
+                                                    <option selected
+                                                            value="{{ pi.id }}">{{ pi.name }}</option>
+                                                {% else %}
+                                                    <option value="{{ pi.id }}">{{ pi.name }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                   </td>
+                                   <td class="align-middle border-top item-quantity">
+                                       <input class="form-control form-control-sm decimal  valor_quantity" id="id_quantity" type="text"
+                                              value="{{ pr.quantity|floatformat:2 }}">
+                                   </td>
+                                   <td class="align-middle text-center item-unit">
+                                        <select id="id_unit" name="unit"
+                                                class="form-control form-control-sm valor_unit">
+                                            <option disabled selected value="0"> Seleccione</option>
+                                            {% for u in unit_set %}
+                                                {% if pr.unit.id == u.id %}
+                                                    <option selected
+                                                            value="{{ u.id }}">{{ u.description }}</option>
+                                                {% else %}
+                                                    <option value="{{ u.id }}">{{ u.description }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                   </td>
+                                   <td class="align-middle border-top item-price">
+                                         <input class="form-control form-control-sm decimal valor_price" id="id_price" type="text"
+                                              value="{{ pr.price|floatformat:2 }}">
+                                   </td>
+                                   <td class="align-middle text-center item-button-delete">
+{#                                       <button type="button" class="btn text-white" style="background-color: rgb(167,63,63);"#}
+{#                                               aria-haspopup="true" aria-expanded="false" pk="{{ pr.id }}">#}
+{#                                        Eliminar#}
+{#                                       </button>#}
+{#                                        <a class="edit-product-detail" pk="{{ obj.id }}"><i class="fa fa-pencil-alt"></i></a>#}
+{#                                        <a class="delete-product-detail" pk="{{ pr.id }}"><i class="fa fa-trash"></i></a>#}
+                                        <button type="button" onclick="DeleteRow('{{ pr.id }}')" class="btn btn-sm btn-danger delete-row"><i class="fa fa-trash"></i></button>
+
+                                   </td>
+                                   <td class="align-middle text-center item-button-save">
+{#                                        <button type="button" class="btn text-white" style="background-color: rgb(54,156,35);"#}
+{#                                               aria-haspopup="true" aria-expanded="false" pk="{{ pr.id }}">#}
+{#                                        Guardar#}
+{#                                       </button>#}
+                                         <button type="button" value="{{ pr.id }}" onclick="SaveRow(this)" class="btn btn-sm btn-success save-row"><i class="fa fa-save"></i></button>
+{#                                       <button type="button" onclick='SaveRow(0)' class="btn btn-success save-row"><i class="fa fa-save"></i></button>#}
+                                   </td>
+                                </tr>
+                            {% endfor %}
+                           </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-secondary btn-closed" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="btn_new" type="button" class="btn btn-sm btn-primary">Nuevo</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+<script type="text/javascript">
+    $('table.table-recipe tbody.details tr td input.decimal').each(function () {
+        let _str = $(this).val();
+        _str = _str.replace(',', '.');
+        $(this).val(_str);
+    });
+ /*   $('#id_products').select2({
+            theme: 'bootstrap4',
+    });
+    $('#id_unit').select2({
+            theme: 'bootstrap4',
+    });*/
+    function DeleteRow($id) {
+        if($id=='0'){
+            $('.details').find("tr[recipe_id=" + $id + "]").remove();
+            return false;
+        }
+        let message_delete = confirm("¿Esta seguro de eliminar el registro?");
+        if (message_delete) {
+           $.ajax({
+            url: '/sales/delete_recipe/',
+            dataType: 'json',
+            type: 'GET',
+            data: {'pk': $id},
+            success: function (response) {
+                if(response.success){
+                     $('.details').find("tr[recipe_id=" + $id + "]").remove();
+                     toastr.success('Registro eliminado correctamente!', 'Mensaje');
+                }
+            },
+            fail: function (response) {
+                toastr.error('¡Problemas al eliminar!', 'Mensaje');
+            }
+           });
+        }
+    }
+   function SaveRow(id){
+
+       let _tr = $('table.table-recipe tbody.details').find('tr[recipe_id="'+id.value+'"]');
+       /*
+       let id_ = id.value;
+       let product_ = _tr.find('td select.valor_product').val();
+       let quantity_ = parseFloat(_tr.find('td input.valor_quantity').val());
+       let unit_ = _tr.find('td select.valor_unit').val();
+       let price_ = parseFloat(_tr.find('td input.valor_price').val());
+        */
+       let id_ = parseInt(_tr.attr('recipe_id'));
+       let product_ = parseInt(_tr.find('td select.valor_product').val());
+       if (product_==0 || product_==''){
+           toastr.warning("Seleccione un producto de insumo", 'Mensaje');
+           return false;
+       }
+       let quantity_ = parseFloat(_tr.find('td input.valor_quantity').val());
+       if (quantity_=='' || quantity_==0){
+           toastr.warning("Ingrese la cantidad del producto", 'Mensaje');
+           return false;
+       }
+       let unit_ = parseInt(_tr.find('td select.valor_unit').val());
+       if (unit_==0 || unit_==''){
+           toastr.warning("Seleccione la unidad de medida", 'Mensaje');
+           return false;
+       }
+       let price_ = parseFloat(_tr.find('td input.valor_price').val());
+       if (price_=='' || price_==0){
+           toastr.warning("Ingrese el precio unitario", 'Mensaje');
+           return false;
+       }
+       let _product_finality = $('#id_product_final').val();
+       if (_product_finality=='' || price_==0){
+           toastr.warning("Problemas con el producto de manufactura", 'Mensaje');
+           return false;
+       }
+
+        let message = confirm("¿Esta seguro de guardar el registro?");
+        if (message) {
+
+                        let detail = {
+                            "_id": id_,
+                            "_product": product_,
+                            "_quantity": quantity_,
+                            "_unit": unit_,
+                            "_price": price_,
+                            "_product_finality": _product_finality,
+                        };
+
+                    $.ajax({
+
+                        url: '/sales/save_update_recipe/',
+                        async: true,
+                        dataType: 'json', // for response
+                        type: 'GET',
+                        data: {'_details': JSON.stringify(detail)},
+                        contentType: 'application/json;charset=UTF-8',
+                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                        success: function (response) {
+                            if (response) {
+                                _tr.attr('recipe_id', response['key']);
+                                _tr.children('td:first').text(response['key']);
+                                _tr.find('td.item-button-save button.save-row').attr('value', response['key']);
+                                _tr.find('td.item-button-delete button.delete-row').attr('onclick', 'DeleteRow('+response['key']+')');
+                                toastr.success(response.message, '¡Mensaje!');
+                            }
+                        },
+                        error: function (response) {
+                            toastr.error("Proceso inconcebible", '¡Mensaje!');
+                        }
+                    });
+        }
+    }
+   /* $('.save-row').on('click', function() {
+       let _tr = $(this).parent('td').parent('tr');
+       let id_ = parseInt(_tr.attr('recipe_id'));
+       let product_ = parseInt(_tr.find('td select.valor_product').val());
+       if (product_==0 || product_==''){
+           toastr.warning("Seleccione un producto de insumo", 'Mensaje');
+           return false;
+       }
+       let quantity_ = parseFloat(_tr.find('td input.valor_quantity').val());
+       if (quantity_=='' || quantity_==0){
+           toastr.warning("Ingrese la cantidad del producto", 'Mensaje');
+           return false;
+       }
+       let unit_ = parseInt(_tr.find('td select.valor_unit').val());
+       if (unit_==0 || unit_==''){
+           toastr.warning("Seleccione la unidad de medida", 'Mensaje');
+           return false;
+       }
+       let price_ = parseFloat(_tr.find('td input.valor_price').val());
+       if (price_=='' || price_==0){
+           toastr.warning("Ingrese el precio unitario", 'Mensaje');
+           return false;
+       }
+       let _product_finality = $('#id_product_final').val();
+       if (_product_finality=='' || price_==0){
+           toastr.warning("Problemas con el producto de manufactura", 'Mensaje');
+           return false;
+       }
+
+        let message = confirm("¿Esta seguro de guardar el registro?");
+        if (message) {
+
+                        let detail = {
+                            "_id": id_,
+                            "_product": product_,
+                            "_quantity": quantity_,
+                            "_unit": unit_,
+                            "_price": price_,
+                            "_product_finality": _product_finality,
+                        };
+
+                    $.ajax({
+
+                        url: '/sales/save_update_recipe/',
+                        async: true,
+                        dataType: 'json', // for response
+                        type: 'GET',
+                        data: {'_details': JSON.stringify(detail)},
+                        contentType: 'application/json;charset=UTF-8',
+                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                        success: function (response) {
+                            if (response) {
+                                _tr.attr('recipe_id', response['key']);
+                                {#$(this).parent('td').parent('tr').children('td:first').text(response['key']);#}
+                                toastr.success(response.message, '¡Mensaje!');
+                            }
+                        },
+                        error: function (response) {
+                            toastr.error("Proceso inconcebible", '¡Mensaje!');
+                        }
+                    });
+        }
+    });*/
+
+    /*$('td').click(function(){
+        var $this = $(this);
+        var col = $this.index();
+        var row = $this.closest('tr').index();
+
+        alert([col,row].join(','));
+   });*/
+   productList =
+      [
+            {% for p in products_supplies_set %}
+                [
+                    {{ p.id }},
+                    '{{ p.name }}'
+                ],
+            {% endfor %}
+      ];
+   unitList =
+      [
+            {% for u in unit_set %}
+                [
+                    {{ u.id }},
+                    '{{ u.name }}'
+                ],
+            {% endfor %}
+      ];
+    $("#btn_new").click(function () {
+        if ($('.details tr[recipe_id="' + 0 + '"]').length > 0) {
+           toastr.warning('Antes de agregar guarde todos los registros', '¡Mensaje!');
+           return false;
+        }
+        let options_product = '<option value="0">seleccione</option>';
+        let options_unit = '<option value="0">seleccione</option>';
+        for (let i = 0; i < productList.length; i++) {
+            options_product = options_product + '<option value="' + productList[i][0] + '">' + productList[i][1] + '</option>'
+        }
+        for (let i = 0; i < unitList.length; i++) {
+            options_unit = options_unit + '<option value="' + unitList[i][0] + '">' + unitList[i][1] + '</option>'
+        }
+        $('.details').append(
+            '<tr recipe_id="0" class="align-middle">' +
+                '<td class="item-id text-center">' + '</td>' +
+                '<td class="item-product"><select id="id_products" name="products"\n' +
+            '        class="form-control form-control-sm valor_product">' + options_product + '</td>' +
+                '<td class="align-middle border-top item-quantity"><input class="form-control form-control-sm decimal  valor_quantity" id="id_quantity" type="text"></td>' +
+                '<td class="align-middle text-center item-unit"><select id="id_unit" name="unit"\n' +
+            '        class="form-control form-control-sm valor_unit">' + options_unit + '</td>' +
+                '<td class="align-middle border-top item-price"><input  class="form-control form-control-sm decimal valor_price" id="id_price" type="text"></td>' +
+                '<td class="align-middle text-center item-button-delete"> ' + "<button type='button' onclick='DeleteRow(0)' " +
+                    "class='btn btn-sm btn-danger delete-row'><i class='fa fa-trash'></i></button>" + "</td>" +
+                '<td class="align-middle text-center item-button-save"> ' + "<button type='button' value='0' onclick='SaveRow(this)' " +
+                    "class='btn btn-sm btn-success save-row'><i class='fa fa-save'></i></button>" + "</td>" +
+            '</tr>'
+        );
+    });
+    $('.btn-closed').on('click', function() {
+            location.reload();
+    });
+</script>

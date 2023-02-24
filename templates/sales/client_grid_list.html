@@ -1,0 +1,76 @@
+{% if clients %}
+
+    <div class="card">
+
+        <div class="card-header">
+            <h5 class="card-title">Listado de Clientes</h5>
+        </div>
+        <div class="card-body">
+
+            <div class="table-responsive dataTables_wrapper ">
+                <table id="client-data-grid" class="table table-bordered" cellspacing="0" width="100%">
+                    <thead>
+                    <tr class="text-center">
+                        <th>#</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Telefono</th>
+                        <th scope="col">Tipo de Documento</th>
+                        <th scope="col">Nmero de Documento</th>
+                        <th scope="col">Direccion</th>
+                        <th scope="col">Distrito</th>
+                        <th scope="col">Asociados</th>
+                        <th scope="col">Referencia</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Acción</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for client in clients %}
+                        <tr class="text-center">
+                            <th scope="row">{{ client.id }}</th>
+                            <td>{{ client.names }}</td>
+                            <td>{{ client.phone|default:"-" }}</td>
+                            <td>{{ client.clienttype_set.first.document_type }}</td>
+                            <td>{{ client.clienttype_set.first.document_number }}</td>
+                            <td>{{ client.clientaddress_set.first.address|default_if_none:"-"|default:"-"}}</td>
+                            <td>{{ client.clientaddress_set.first.district|default_if_none:"-"|default:"-" }}</td>
+                            <td>
+                                {% for associate in client.clientassociate_set.all %}
+                                    <button class="btn btn-sm btn-block btn-outline-primary">{{ associate.subsidiary.name }}</button>
+                                {% endfor %}
+
+
+                            </td>
+                            <td>{{ client.clientaddress_set.first.reference|default:"-" }}</td>
+                            <td>{{ client.email|default:"-" }}</td>
+                            <td>
+                                <button type="button" class="btn btn-block btn-secondary client-edit" pk="{{ client.id }}">Editar</button>
+                                <button type="button" class="btn btn-block btn-primary client-new-associate" pk="{{ client.id }}">Asociar</button>
+                            </td>
+
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center">
+                        <th>#</th>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Telefono</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Tipo de Documento</th>
+                        <th scope="col">Nmero de Documento</th>
+                        <th scope="col">Direccion</th>
+                        <th scope="col">Distrito</th>
+                        <th scope="col">Referencia</th>
+                        <th scope="col">Acción</th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <h1>Lo sentimos, no hay registros.</h1>
+{% endif %}
+
+

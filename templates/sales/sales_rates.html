@@ -1,0 +1,213 @@
+<div class="card-group">
+    <div class="card">
+        <div class="card-body">
+
+            <div class="card">
+                <div class="card-body text-center font-weight-bold">
+                    <label for="inputEmail4">Producto Seleccionado:
+
+                    </label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control text-center font-weight-bolder"
+                               value="{{ product_obj.name }}"
+                               placeholder="Producto"
+                               aria-label="Recipient's username" aria-describedby="button-addon2" readonly="true">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-0">
+                <div class="card-body p-0">
+                    <table class="table table-bordered mb-0 text-uppercase small font-weight-bolder">
+                        <thead class="table-light text-center">
+                        <tr class="">
+                            <th style="width: 20%">Unidad</th>
+                            <th style="width: 30%">Precio</th>
+                            <th style="width: 10%">Cantidad</th>
+                            <th style="width: 10%">Acción</th>
+                            <th rowspan="1" style="width: 10%">Condicion</th>
+                        </tr>
+                        </thead>
+                        <tbody id="product-rates">
+
+                        {% for item in product_details %}
+
+{#                            {% if item.unit.name != 'B' %}#}
+                                <tr product_detail_id="{{ item.id }}"
+                                    product_id="{{ item.product.id }}"
+                                    product_name="{{ item.product.name }}"
+                                    unit_id="{{ item.unit.id }}" _unit_name="{{ item.unit.name }}">
+                                    <td class="unit-name align-middle">{{ item.unit }}
+                                        ({{ item.get_quantity_minimum_with_dot }})
+                                    </td>
+                                    <td>
+                                        <div class="dollar">
+                                            <input type="text"
+                                                   class="form-control form-control-sm price text-center money"
+                                                   value="{{ item.price_sale|floatformat }}">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm quantity">
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-primary text-white card-add-product btn-sm btn-block text-center"
+                                                disabled data-dismiss="modal">+
+                                        </button>
+                                    </td>
+                                    <td>
+                                        {% if item.unit.name == 'G' %}
+                                            Canjeado
+                                        {% elif item.unit.name == 'BG' %}
+                                            Prestado
+                                        {% elif item.unit.name == 'GBC' %}
+                                            Balon cliente
+                                        {% endif %}
+
+                                    </td>
+                                </tr>
+{#                            {% endif %}#}
+                        {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {#            <div class="card p-0 mt-4">#}
+            {##}
+            {#                <div class="card-body p-0">#}
+            {##}
+            {#                    <table class="table table-bordered small mb-0">#}
+            {#                        <thead class="table-light">#}
+            {#                        <tr>#}
+            {#                            <th scope="col">ID</th>#}
+            {#                            <th scope="col">CANTIDAD</th>#}
+            {#                            <th scope="col">TIPO</th>#}
+            {#                        </tr>#}
+            {#                        </thead>#}
+            {#                        <tbody id="distribution-detail">#}
+            {#                        {% for detail in distribution_obj.distributiondetail_set.all %}#}
+            {#                            {% if detail.status == 'D' %}#}
+            {#                                <tr class="" ps="">#}
+            {#                                    <th scope="row">{{ detail.id }} </th>#}
+            {#                                    <td>{{ detail.quantity }} </td>#}
+            {#                                    <td class="">{{ detail.get_type_display }}</td>#}
+            {#                                </tr>#}
+            {#                            {% endif %}#}
+            {##}
+            {#                        {% endfor %}#}
+            {#                        </tbody>#}
+            {#                    </table>#}
+            {##}
+            {#                </div>#}
+            {#            </div>#}
+            <div class="card">
+
+                <div class="card-body p-0">
+
+                    <table class="table table-bordered text-uppercase small mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th scope="col">Sucursal</th>
+                            <th scope="col">Almacen</th>
+                            <th scope="col">Stock</th>
+                        </tr>
+                        </thead>
+                        <tbody id="store-rates">
+                        {% for alm in product_stores %}
+                            <tr class="
+				{% if store.id == alm.subsidiary_store.id %}table-primary selected-item
+				{% else %}{% endif %}" ps="{{ alm.id }}">
+                                <td class="text-primary font-weight-bolder">{{ alm.subsidiary_store.subsidiary.name }} </td>
+                                <td>{{ alm.subsidiary_store.name }} </td>
+                                <td class="current-stock">{{ alm.get_stock_with_dot }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {#    <div class="card">#}
+    {##}
+    {#        <div class="card-body p-0">#}
+    {##}
+    {#            <table class="table table-bordered text-uppercase small mb-0">#}
+    {#                <thead class="table-light">#}
+    {#                <tr>#}
+    {#                    <th scope="col">Sucursal</th>#}
+    {#                    <th scope="col">Almacen</th>#}
+    {#                    <th scope="col">Stock</th>#}
+    {#                </tr>#}
+    {#                </thead>#}
+    {#                <tbody id="store-rates">#}
+    {#                {% for alm in product_stores %}#}
+    {#                    <tr class="#}
+    {#				{% if store.id == alm.subsidiary_store.id %}table-primary selected-item#}
+    {#				{% else %}{% endif %}" ps="{{ alm.id }}">#}
+    {#                        <td class="text-primary font-weight-bolder">{{ alm.subsidiary_store.subsidiary.name }} </td>#}
+    {#                        <td>{{ alm.subsidiary_store.name }} </td>#}
+    {#                        <td class="current-stock">{{ alm.get_stock_with_dot }}</td>#}
+    {#                    </tr>#}
+    {#                {% endfor %}#}
+    {#                </tbody>#}
+    {#            </table>#}
+    {##}
+    {#        </div>#}
+    {#    </div>#}
+
+</div>
+
+
+<script type="text/javascript">
+
+    round2Fixed();
+
+    $("input.quantity").keyup(function (e) {
+
+        let val = $(this).val();
+
+
+        if (isNaN(val)) {
+            $(this).val('');
+
+        } else {
+            let qt = parseInt($(this).val());
+            let _product_detail_id = $(this).parent('td').parent('tr').attr('product_detail_id');
+            let _unit_id = $(this).parent('td').parent('tr').attr('unit_id');
+
+            if (qt > 0) {
+                $('tr[product_detail_id=' + _product_detail_id + '] button.card-add-product').removeAttr('disabled');
+            } else {
+                $('tr[product_detail_id=' + _product_detail_id + '] button.card-add-product').attr('disabled', 'disabled');
+            }
+        }
+
+    });
+
+    $("button.card-add-product").click(function () {
+        $("#add-all-details").trigger('click');
+    });
+
+    function round2Fixed() {
+        $('.money').each(function () {
+            $(this).val(parseFloat($(this).val()).toFixed(2));
+            $(this).addClass('text-right font-weight-normal');
+        });
+    }
+
+    $("input.money").keyup(function (e) {
+        let val = $(this).val();
+
+
+        if (isNaN(val)) {
+            $(this).val('');
+
+        }
+    });
+
+</script>

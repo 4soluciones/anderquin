@@ -1,0 +1,45 @@
+<table id="id_detail_data_grid" class="table table-secondary table-striped align-content-center table-bordered response">
+    <thead>
+    <tr class="text-center text-white bg-primary" style="height: 40px">
+        <th scope="col" class="align-middle">#</th>
+        <th scope="col" class="align-middle">Item</th>
+        <th scope="col" class="align-middle">Descripcion</th>
+        <th scope="col" class="align-middle">Cantidad</th>
+        <th scope="col" class="align-middle">Unidad Medida</th>
+        <th scope="col" class="align-middle">Precio Unitario</th>
+        <th scope="col" class="align-middle">Importe</th>
+        <th scope="col" class="align-middle">Eliminar</th>
+    </tr>
+    </thead>
+    <tbody id="details">
+    {% for l in list_detail_purchase %}
+        <tr>
+            <th scope="row" style="height: 20px;">{{l.id}}</th>
+            <td class="text-center">
+
+            </td>
+            <td>
+              {{ l.description }}
+            </td>
+            <td class="text-right">
+               {{ l.quantity }}
+            </td>
+            <td class="text-center">
+               {{ l.unit.name }}
+            </td>
+            <td class="text-right">
+               {{ l.price_unit|floatformat:4 }}
+            </td>
+            <td class="text-right">
+               {{ l.price_unit }}*{{ l.quantity }}
+            </td>
+            <td class="text-center">
+                <a class="btn btn-success text-white detail_purchase-edit" pk="{{ l.id }}">
+                    <i class="fas fa-deploydog"></i>
+                </a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+

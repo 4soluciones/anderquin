@@ -1,0 +1,31 @@
+<table class="table table-success table-striped align-content-center table-bordered  table-details">
+    <thead>
+        <tr  class="text-center bg-success text-white" style="height: 5px">
+            <td class="text-center">Producto</td>
+            <td class="text-center">Cantidad</td>
+            <td class="text-center">Unidad</td>
+            <td class="text-center">Precio</td>
+            <td class="text-center">Total</td>
+        </tr>
+    </thead>
+    <tbody>
+    {% for dt in details %}
+        <tr class="table-primary">
+            <td>{{ dt.product.name }}</td>
+            <td class="text-right"> {{ dt.quantity|floatformat:2 }}</td>
+            <td class="text-center">{{ dt.unit.name }}</td>
+            <td class="text-right">{{ dt.price_unit|floatformat:2 }}</td>
+            <td class="text-right">{{ dt.multiplicate|floatformat:2 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<script>
+
+    $('.table-details tbody tr td').each(function () {
+        let _str = $(this).text();
+        _str = _str.replace(',', '.');
+        $(this).text(_str);
+    });
+
+</script>

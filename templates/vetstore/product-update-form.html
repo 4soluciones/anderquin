@@ -1,0 +1,529 @@
+<style>
+    {% if wholesales.count == 0 %}
+        #edit-table-wholesale, #edit-add-wholesale, #edit-remove-wholesale {
+            display: none;
+        }
+    {% endif %}
+
+    #edit-info-wholesale{
+        color: #dc3545;
+        font-family: "continuum_lightregular";
+        font-weight: 800;
+        font-size: 0.9rem;
+        background-color: #f8f9fa;
+    }
+
+</style>
+{% load static %}
+{% block content %}
+
+    {% if product %}
+        <form action="{% url 'vetstore:product_update' %}" method="post" id="product-update-form"
+              enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- Form start -->
+            <div class="row">
+                <!-- Small input -->
+
+
+                <div class="col-md-12 col-lg-12">
+                    <label for="name">Nombre</label>
+                    <input type="text" id="name" name="name" class="form-control form-control-sm" autocomplete="off"
+                           value="{{ product.name }}" placeholder="Nombre">
+                    <input type="hidden" id="product-id" name="product-id" value="{{ product.pk }}">
+
+                </div>
+
+                <div class="col-md-12 col-lg-12">
+                    <label for="factory-barcode">Código de barra de fábrica</label>
+                    <input type="text" id="factory-barcode" name="factory-barcode" class="form-control form-control-sm"
+                           autocomplete="off" value="{{ product.factory_barcode }}">
+
+                </div>
+
+                <div class="col-md-12 col-lg-12">
+                    <label for="label">Etiqueta</label>
+                    <input type="text" id="label" name="label" class="form-control form-control-sm" autocomplete="off"
+                           value="{{ product.label }}">
+
+                </div>
+
+                <div class="col-md-12 col-lg-12">
+
+                    <!--Basic textarea-->
+                    <label for="comment">Descripción</label>
+                    <textarea type="text" id="comment" name="comment" class="form-control md-textarea" maxlength="2000"
+                              rows="3">{{ product.comment }}</textarea>
+
+                </div>
+
+                <div class="col-md-12 col-lg-12">
+                    <label class="my-1 mr-2" for="brand">Marca</label>
+                    <select id="brand" name="brand" class="custom-select custom-select-sm">
+                    </select>
+                    <input type="hidden" id="brand-id" name="brand-id" value="{{ product.brand.pk }}">
+                </div>
+
+
+                <div class="col-md-12 col-lg-12">
+                    <label for="category-name">Categoría</label>
+                    <input type="text" id="category-name" name="category-name" class="form-control form-control-sm"
+                           autocomplete="off" value="{{ product.category.name }}">
+
+                    <input id="category-id" name="category-id" type="hidden" value="{{ product.category.pk }}">
+
+                </div>
+
+                <div class="col-md-12 col-lg-12">
+                    <label for="sale-price">Precio de venta</label>
+                    <input type="number" id="sale-price" name="sale-price" class="form-control form-control-sm"
+                           autocomplete="off" value="{{ product.sale_price|floatformat }}">
+
+                </div>
+
+                <div class="col-md-12 col-lg-12">
+                    <label for="discount-price">Precio de rebaja</label>
+                    <input type="number" id="discount-price" name="discount-price" class="form-control form-control-sm"
+                           autocomplete="off" value="{{ product.discount_price|floatformat }}">
+
+                </div>
+
+                <div class="col-md-12 col-lg-12">
+                    <label for="pass-price">Precio de pase</label>
+                    <input type="number" id="pass-price" name="pass-price" class="form-control form-control-sm"
+                           autocomplete="off" value="{{ product.pass_price|floatformat }}">
+
+                </div>
+
+                <div class="col-md-12 col-lg-12">
+                    <label for="minimum-inventory">Stock minimo</label>
+                    <input type="number" id="minimum-inventory" name="minimum-inventory"
+                           class="form-control form-control-sm" autocomplete="off"
+                           value="{{ product.minimum_inventory }}">
+
+                </div>
+
+
+                <div class="col-md-12 col-lg-12">
+
+                    <fieldset class="switch" id="edit-switch-has-wholesale">
+                        <legend class="font-weight-bold">¿Venta al por mayor?</legend>
+                        <label>
+                            No
+                            <input id="edit-has-wholesale" name="edit-has-wholesale" type="checkbox">
+                            <span class="lever"></span>
+                            Si
+                        </label>
+                    </fieldset>
+
+                    <table id="edit-table-wholesale" class="table table-bordered">
+
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Precio</th>
+                            <th>Cantidad</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        {% for item in wholesales %}
+                            <tr class="edit" pk="{{ item.id }}">
+                                <td>
+                                    <input type="hidden" name="wholesale-id-{{ item.id }}" value="{{ item.id }}"/>
+                                    <input type="hidden" name="wholesale-is-register" value="S"/>
+                                    <label class="custom-control-label">{{ item.id }}</label>
+                                </td>
+                                <td>
+                                    <input type="number" name="wholesale-price-{{ item.id }}" class="form-control form-control-sm edit" autocomplete="off" pk="{{ item.id }}" value="{{ item.price|floatformat:"f" }}">
+                                </td>
+                                <td>
+                                    <input type="number" name="wholesale-quantity-{{ item.id }}" class="form-control form-control-sm edit" autocomplete="off" pk="{{ item.id }}" value="{{ item.quantity }}">
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+
+                    </table>
+<p id="edit-info-wholesale"></p>
+                    <button type="button" class="btn btn-indigo btn-sm m-0" id="edit-add-wholesale"><i
+                            class="fa fa-plus mr-2 indigo-text"
+                            aria-hidden="true"></i> Agregar
+                    </button>
+
+                    <button type="button" class="btn btn-indigo btn-sm m-0" id="edit-remove-wholesale"><i
+                            class="fa fa-minus mr-2 indigo-text"
+                            aria-hidden="true"></i> Quitar
+                    </button>
+
+                </div>
+
+
+                <div class="col-md-12 col-lg-12">
+                    {% if product.image %}
+                        <img alt="User Pic"
+                             src="{{ product.image.url }}"
+                             class="img-thumbnail" id="output_image_update">
+
+                    {% else %}
+
+                        <img alt="User Pic" id="output_image_update" src="{% static 'images/none/product.png' %}"
+                             class="img-fluid z-depth-1">
+                    {% endif %}
+                </div>
+
+
+                <div class="col-md-12 col-lg-12">
+
+                    <div class="md-form">
+                        <div class="file-field">
+                            <div class="btn btn-primary btn-sm float-left">
+                                <span>Foto</span>
+                                <input id="image" name="image" type="file" accept=".jpg,.png,.gif,.jpeg"
+                                       onchange="preview_image_update(event)">
+                            </div>
+                            <div class="file-path-wrapper">
+                                <input class="file-path validate" type="text" placeholder="Seleccione">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                {#                <!-- Text input-->#}
+                {#                <div class="col-md-12 col-lg-12">#}
+                {#                    <label class="control-label">Activo: </label>#}
+                {#                    <div class="radio">#}
+                {#                        <input type="radio" name="status" id="status-a" value="A" {% if product.status == 'A' %} checked="checked" {% endif %}>#}
+                {#                        <label for="status-a"> SI</label>#}
+                {#                    </div>#}
+                {#                    <div class="radio">#}
+                {#                        <input type="radio" name="status" id="status-i" value="I" {% if product.status == 'I' %} checked="checked" {% endif %}>#}
+                {#                        <label for="status-i"> NO</label>#}
+                {#                    </div>#}
+                {#                    <div class="radio">#}
+                {#                        <input type="radio" name="status" id="status-s" value="S" {% if product.status == 'S' %} checked="checked" {% endif %}>#}
+                {#                        <label for="status-s"> SIN STOCK</label>#}
+                {#                    </div>#}
+                {#                </div><!-- Text input-->#}
+
+                <div class="col-md-12 col-lg-12">
+                    <div class="form-group">
+                        <input class="btn btn-danger btn-block" value="Guardar cambios" name="register" type="submit">
+                    </div>
+                </div>
+
+
+            </div>
+
+        </form>
+        <!-- form end -->
+    {% else %}
+        <div class="alert alert-danger">'No existe formulario'</div>
+    {% endif %}
+{% endblock %}
+{% block script %}
+    <script type="text/javascript">
+        var $index_edit_wholesale = 1;
+        var old_wholesale = new Array();
+
+        $("#product-update-form").submit(function (event) {
+            event.preventDefault();
+            if (!$('#product-update-form #brand').val()) {
+                alert('Ingrese marca');
+                return;
+            }
+
+            var edit_wholesales = {
+                "OldRows": old_wholesale,
+                "Rows": []
+            };
+
+            $("#edit-table-wholesale tbody tr").each(function () {
+                if (parseFloat($(this).find(':input[name^="wholesale-price"]').val()) > 0 &&
+                    parseInt($(this).find(':input[name^="wholesale-quantity"]').val()) > 0 ){
+                    var editRowObj = {
+                        "Id": $(this).find(':input[name^="wholesale-id"]').val(),
+                        "Status": $(this).find(':input[name^="wholesale-is-register"]').val(),
+                        "Price": $(this).find(':input[name^="wholesale-price"]').val(),
+                        "Quantity": $(this).find(':input[name^="wholesale-quantity"]').val()
+                    };
+                    edit_wholesales.Rows.push(editRowObj);
+                }
+
+            });
+
+            var data = new FormData($('#product-update-form').get(0));
+            data.append('wholesales', JSON.stringify(edit_wholesales));
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    $('#alerts').html(response.alert);
+                    $('.list-products').html(response.list);
+                    $('#right-modal').modal('hide');
+                },
+                error: function (response) {
+                    $('#alerts').html(response.alert);
+                }
+            });
+
+        });
+
+        $('#edit-table-wholesale tbody tr td :input[name^="wholesale-price"].edit').on('change', function () {
+
+            var edit = parseFloat($(this).val());
+            var pk = parseInt($(this).attr('pk'));
+
+            $.each(old_wholesale, function (i, item) {
+                var a = item.Id;
+                var b = item.Price;
+                if (a == pk && b != null) {
+                    old_wholesale[i].Price = edit.toFixed(2).toString();
+                    old_wholesale[i].Status = "U";
+                }
+            });
+
+        });
+
+        $('#edit-table-wholesale tbody tr td :input[name^="wholesale-quantity"].edit').on('change', function () {
+
+            var edit = parseInt($(this).val());
+            var pk = parseInt($(this).attr('pk'));
+
+            $.each(old_wholesale, function (i, item) {
+                var a = item.Id;
+                var b = item.Price;
+                if (a == pk && b != null) {
+                    old_wholesale[i].Quantity = edit.toString();
+                    old_wholesale[i].Status = "U";
+                }
+            });
+
+        });
+
+        $('#edit-table-wholesale tbody').on('focusout','tr td :input[name^="wholesale-price"]', function(){
+            if(!$(this).val()){
+                $(this).css("background-color", "red");
+                $(this).focus();
+            }
+            else{
+                $(this).css("background-color", "white");
+                $('#edit-info-wholesale').text("");
+                $(this).parent('td').parent('tr').find('td :input[name^="wholesale-quantity"]').focus();
+            }
+
+        });
+
+        $('#edit-table-wholesale tbody').on('focusout','tr td :input[name^="wholesale-quantity"]', function(){
+            if(!$(this).val()){
+                $(this).css("background-color", "red");
+                $(this).focus();
+            }
+            else{
+                $(this).css("background-color", "white");
+                $('#edit-info-wholesale').text("");
+{#                $('tr td :input[name^="wholesale-price"]').focus();#}
+            }
+
+        });
+
+        $('#edit-table-wholesale tbody').on('change','tr td :input[name^="wholesale-price"]', function () {
+
+            var $curr = parseFloat($(this).val());
+
+            if($(this).parent('td').parent('tr').prev().length){
+                var $prev = parseFloat($(this).parent('td').parent('tr').prev().find(':input[name^="wholesale-price"]').val());
+                if($prev <= $curr){
+                    $(this).val("").focus();
+                    $('#edit-info-wholesale').text("Debe ingresar un monto menor que el de arriba.");
+                }
+            }
+
+            if($(this).parent('td').parent('tr').next().length){
+                var $next = parseFloat($(this).parent('td').parent('tr').next().find(':input[name^="wholesale-price"]').val());
+                if($curr <= $next){
+                    $(this).val("").focus();
+                    $('#edit-info-wholesale').text("Debe ingresar un monto mayor que el de abajo.");
+                }
+            }
+
+        });
+
+        $('#edit-table-wholesale tbody').on('change','tr td :input[name^="wholesale-quantity"]', function () {
+
+            var $curr = parseInt($(this).val());
+
+            if($(this).parent('td').parent('tr').prev().length){
+                var $prev = parseInt($(this).parent('td').parent('tr').prev().find(':input[name^="wholesale-quantity"]').val());
+                if($prev >= $curr){
+                    $(this).val("").focus();
+                    $('#edit-info-wholesale').text("Debe ingresar una cantidad mayor que el de arriba.");
+                }
+            }
+
+            if($(this).parent('td').parent('tr').next().length){
+                var $next = parseInt($(this).parent('td').parent('tr').next().find(':input[name^="wholesale-quantity"]').val());
+                if($curr >= $next){
+                    $(this).val("").focus();
+                    $('#edit-info-wholesale').text("Debe ingresar una cantidad menor que el de abajo.");
+                }
+            }
+
+        });
+
+        function getBrandU() {
+            console.log('getBrandU update');
+            $brand = $('#product-update-form #brand');
+            {#            $('#brand').remove();#}
+            return $.ajax({
+                url: '/vetstore/rest/get_brand/',
+                dataType: 'JSON',
+                success: function (data) {
+                    $brand.append('<option value="0" disabled>Seleccione una marca</option>');
+                    $.each(data, function (key, val) {
+                        $brand.append('<option value="' + val.id + '">' + val.name + '</option>');
+                    });
+                    $("#product-update-form #brand option[value='" + {{ product.brand.id }} +"']").prop('selected', true);
+
+                }
+            });
+        }
+        ;
+
+        function activeAutocompleteU() {
+            $("#product-update-form #category-name").autocomplete({
+                minLength: 2,
+                source: function (req, add) {
+                    var search = $("#product-update-form #category-name").val();
+                    $.ajax({
+                        url: '/vetstore/category_list/',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        data: {'search': search},
+                        success: function (data) {
+                            var array = data.map(function (element) {
+                                return {value: element['id'] + ' ' + element['name'], id: element['id']};
+                            });
+                            add(array);
+                        },
+                        fail: function (response) {
+                            $('#alerts').html(response.alert);
+                        }
+                    });
+                },
+                select: function (event, ui) {
+                    console.log('key: ' + ui.item.value);
+                    console.log('Id: ' + ui.item.id);
+                    $('#product-update-form #category-id').val(ui.item.id);
+                }
+            });
+        }
+        ;
+
+        $("#product-update-form #sale-price").change(function () {
+            $('#product-update-form #discount-price').val($(this).val());
+            $('#product-update-form #pass-price').val($(this).val());
+        });
+
+        $("#product-update-form #brand").change(function () {
+            $('#product-update-form #brand-id').val($(this).val());
+        });
+
+        function preview_image_update(event) {
+            var reader = new FileReader();
+            reader.onload = function () {
+                var output = document.getElementById('output_image_update');
+                output.src = reader.result;
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        $('document').ready(function () {
+
+            getBrandU();
+            activeAutocompleteU();
+
+            {% if wholesales.count > 0 %}
+                $('#edit-has-wholesale').attr('checked',true);
+
+                {% for item in wholesales %}
+                    var wp = {};
+                    wp.Id = "{{ item.id }}";
+                    wp.Status = "S";
+                    wp.Price = "{{ item.price|floatformat:"f" }}";
+                    wp.Quantity = "{{ item.quantity }}";
+
+                    old_wholesale.push(wp);
+                    $index_edit_wholesale = {{ item.id }} + 1;
+                {% endfor %}
+                console.log(JSON.stringify(old_wholesale));
+
+            {% endif %}
+        });
+
+        $('#edit-has-wholesale').on('change', function () {
+            if ($(this).is(':checked')) {
+                $('#edit-table-wholesale').show();
+                $('#edit-add-wholesale').show();
+                $('#edit-remove-wholesale').show();
+            } else {
+                $('#edit-table-wholesale').hide();
+                $('#edit-add-wholesale').hide();
+                $('#edit-remove-wholesale').hide();
+            }
+
+        });
+        $('#edit-add-wholesale').on('click', function () {
+
+            $('#edit-table-wholesale tbody').append(
+                '<tr>' +
+                '<td>' +
+                '<input type="hidden" name="wholesale-id-' + $index_edit_wholesale + '" value="' + $index_edit_wholesale + '"/>' +
+                '<input type="hidden" name="wholesale-is-register" value="N"/>' +
+                '<label class="custom-control-label">' + $index_edit_wholesale + '</label>' +
+                '</td>' +
+                '<td>' +
+                '<input type="number" name="wholesale-price-' + $index_edit_wholesale + '" class="form-control form-control-sm" autocomplete="off" step="0.1">' +
+                '</td>' +
+                '<td>' +
+                '<input type="number" name="wholesale-quantity-' + $index_edit_wholesale + '" class="form-control form-control-sm " autocomplete="off">' +
+                '</td>' +
+                '</tr>'
+            );
+            $index_edit_wholesale++;
+
+        });
+
+        $('#edit-remove-wholesale').on('click', function () {
+            if($('#edit-table-wholesale tbody tr:last-child').hasClass('edit')){
+
+                var pk = parseInt($('#edit-table-wholesale tbody tr:last-child').attr('pk'));
+
+                $.each(old_wholesale, function (i, item) {
+                    var a = item.Id;
+                    if (a == pk) {
+                        old_wholesale[i].Status = "R";
+                    }
+                });
+                console.log(old_wholesale);
+            }
+            else{
+                if ($index_edit_wholesale > 1) {
+                    $index_edit_wholesale--;
+                }
+            }
+
+            $('#edit-table-wholesale tbody tr:last-child').remove();
+
+
+
+        });
+    </script>
+{% endblock %}

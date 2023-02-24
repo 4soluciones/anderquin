@@ -1,0 +1,167 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Orden de Produccion
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header text-center align-middle">
+                <h5 class="card-title mb-0 text-success">LISTA DE ORDENES DE PRODUCCIÓN</h5>
+            </div>
+            <div class="card-group">
+                <div class="col-sm-12 pt-3">
+                    <table id="manufacture-data-grid" class="table table-bordered table-sm border-1">
+                        <thead>
+                        <tr class="bg-light text-dark text-center" style="height: 50px;">
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Numero de
+                                Orden
+                            </th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Detalle de
+                                Orden de
+                                Producción
+                            </th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Total</th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Fechas</th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Estado</th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Trabajador
+                            </th>
+                            <th class="align-middle border-top-0 border-left-0 border-bottom border-right">Acción</th>
+                        </tr>
+                        </thead>
+                        <tbody id="details">
+                        {% for m in manufactures %}
+                            <tr pk="{{ m.id }}">
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right text-center quantity">{{ m.code }}</td>
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right text-center quantity">
+                                    <table class="table">
+                                        <tr>
+                                            <td>#</td>
+                                            <td>Producto</td>
+                                            <td>Cantidad</td>
+                                            <td>precio</td>
+                                        </tr>
+                                        {% for md in m.manufacturedetail_set.all %}
+                                            <tr>
+                                                <td>{{ md.product_manufacture.id }}</td>
+                                                <td>{{ md.product_manufacture.name }}</td>
+                                                <td>{{ md.quantity }}</td>
+                                                <td>{{ md.price }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </table>
+                                </td>
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right align-middle text-center">{{ m.total }}</td>
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right">
+                                    {% for ma in m.manufactureaction_set.all %}
+                                        {% if ma.status == "1" %}
+                                            <b> Fecha de Creación: </b>{{ ma.date|date:"Y-m-d h:i:s A" }} <br>
+                                        {% elif ma.status == "2" %}
+                                            <b> Fecha de Aprobación: </b>{{ ma.date|date:"Y-m-d h:i:s A" }} <br>
+                                        {% elif ma.status == "3" %}
+                                            <b> Fecha de Producción: </b>{{ ma.date|date:"Y-m-d h:i:s A" }} <br>
+                                        {% elif ma.status == "4" %}
+                                            <b> Fecha de Finalización: </b>{{ ma.date|date:"Y-m-d h:i:s A" }} <br>
+                                        {% elif ma.status == "5" %}
+                                            <b> Fecha de Anulación: </b>{{ ma.date|date:"Y-m-d h:i:s A" }} <br>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right text-center {% if m.manufactureaction_set.last.status == "1" %} table-active {% elif m.manufactureaction_set.last.status == "2" %} table-success {% elif m.manufactureaction_set.last.status == "3" %} table-primary {% elif m.manufactureaction_set.last.status == "4" %} table-dark {% elif m.manufactureaction_set.last.status == "5" %} table-danger {% endif %}">{{ m.manufactureaction_set.last.get_status_display }}</td>
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right text-center">{{ m.manufactureaction_set.last.user.worker_set.last.employee.full_name }}</td>
+                                <td class="align-middle border-top-0 border-left-0 border-bottom border-right btn1 text-center">
+                                    <div class="btn-group dropdown">
+                                        <button type="button" class="btn btn-success dropdown-toggle"
+                                                data-toggle="dropdown"
+                                                aria-haspopup="true" aria-expanded="false">
+                                            Action
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <!-- PENDIENTE -->
+                                            {% if m.manufactureaction_set.last.status == '1' %}
+                                                {% for item in status %}
+                                                    {% if item.0 != '1' and item.0 != '3' and item.0 != '4' %}
+                                                        <a class="dropdown-item valid-requirement status"
+                                                           val="{{ item.0 }}"><i
+                                                                class="fas fa-sync-alt"></i>
+                                                            {{ item.1 }} </a>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <!-- APROBADO -->
+                                            {% elif m.manufactureaction_set.last.status == '2' %}
+                                                {% for item in status %}
+                                                    {% if item.0 != '1' and item.0 != '2' and item.0 != '4' and item.0 != '5' %}
+                                                        <a class="dropdown-item valid-requirement status"
+                                                           val="{{ item.0 }}"><i
+                                                                class="fas fa-sync-alt"></i>
+                                                            {{ item.1 }} </a>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <!-- EN PRODUCCION -->
+                                            {% elif m.manufactureaction_set.last.status == '3' %}
+                                                {% for item in status %}
+                                                    {% if item.0 != '1' and item.0 != '2' and item.0 != '5' and item.0 != '3' %}
+                                                        <a class="dropdown-item valid-requirement status"
+                                                           val="{{ item.0 }}"><i
+                                                                class="fas fa-sync-alt"></i>
+                                                            {{ item.1 }} </a>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <!-- FINALIZADO -->
+                                                <!-- ANULADO -->
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock body %}
+
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        $('#manufacture-data-grid').dataTable();
+
+
+        $(document).on('click', '.status', function () {
+
+            let _status_id = 0;
+            let manufacture_id = 0;
+            manufacture_id = $(this).parent('div.dropdown-menu').parent('div.btn-group').parent('td.btn1').parent('tr').attr('pk');
+            let _dropdown = $(this).parent('div.dropdown-menu').parent('div.dropdown');
+            _status_id = $(this).attr('val');
+            {#_dropdown.dropdown('hide');#}
+            _dropdown.remove();
+            $.ajax({
+                url: '/sales/update_manufacture_by_id/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': manufacture_id, 'status': _status_id},
+                success: function (response) {
+                    location.reload();
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    console.log(jqXhr);
+                    toastr.error(jqXhr.responseJSON.error, '¡ERROR DE ESTADO!');
+                }
+            });
+
+        });
+
+
+    </script>
+
+
+{% endblock extrajs %}

@@ -1,0 +1,299 @@
+{% load static %}
+{% load operations %}
+<div class="modal-dialog  modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header" style="background: #0b55a4">
+            <h6 class="modal-title  text-white">ADELANTOS DE CLIENTE</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form action="" method="POST" id="form-client-advancement">
+            {% csrf_token %}
+            {% if distribution_mobil %}
+                <div class="card mt-2 ml-2 mr-2" style="border-color: #ac1f06">
+                    <div class="card-header" style="background: #b33604">
+                        <div class="row ml-4 mr-4">
+                            <div class="col-sm-2 pr-4 pl-4">
+                                <label class="text-white font-weight-normal">Numero</label>
+                                <input type="number" readonly class="form-control form-control-sm text-center"
+                                       id="id_distribution_mobil"
+                                       value="{{ distribution_mobil.id }}">
+                            </div>
+                            <div class="col-sm-3 pr-4 pl-4">
+                                <label class="text-white font-weight-normal">Placa vehiculo</label>
+                                <input type="text" readonly class="form-control form-control-sm text-center"
+                                       id="id_truck"
+                                       value="{{ distribution_mobil.truck.license_plate }}"></div>
+                            <div class="col-sm-7 pr-4 pl-4">
+                                <label class="text-white font-weight-normal">Nombre del conductor</label>
+                                <input type="text" readonly class="form-control form-control-sm text-center"
+                                       id="id_pilot"
+                                       value="{{ distribution_mobil.pilot.full_name }}">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            {% endif %}
+            <div class="modal-body mod">
+                <table class="table table-sm" style="width: 100%">
+                    <tr>
+                        <td class="align-middle" style="width: 40%">
+                            <label>Cliente</label>
+                            <select class="form-control form-control-sm" id="id-client"
+                                    name="client" required>
+                                <option disabled selected value=""> Seleccione</option>
+                                {% for c in client_set %}
+                                    <option value="{{ c.id }}">{{ c.names }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td class="align-middle" style="width: 20%">
+                            <label>Fecha</label>
+                            <input type="date" class="form-control form-control-sm" id="id-date-advancement"
+                                   name="date-advancement" value="{{ format }}"
+                                   required>
+                        </td>
+                        <td class="align-middle" style="width: 40%" rowspan="2">
+                            <label>Observacion</label>
+                            <textarea class="form-control form-control-sm" rows="3" cols="10"
+                                      id="id-observation" placeholder="Ingrese su observación aquí"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="align-middle text-center">
+                            <button id="add-detail" type="button" class="btn btn-primary btn-sm">Agregar producto
+                            </button>
+                        </td>
+                        <td></td>
+                    </tr>
+
+                </table>
+
+                <table id="id_advancement"
+                       class="table table-sm  table-striped align-content-center table-bordered response"
+                       cellspacing="0" width="100%">
+
+                    <thead>
+                    <tr class="text-center text-white" style="height: 14px; background: #b33604;">
+                        <th class="font-weight-normal">N°</th>
+                        <th class="font-weight-normal">Producto</th>
+                        <th class="font-weight-normal">Cantidad</th>
+                        <th class="font-weight-normal">Unidad</th>
+                        <th class="font-weight-normal">Borrar</th>
+                    </tr>
+                    </thead>
+                    <tbody id="details">
+                    </tbody>
+                </table>
+            </div><!-- modal-body -->
+
+
+            <div class="modal-footer">
+                &nbsp;
+                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="save-advancement" type="submit" class="btn btn-sm btn-primary">Registrar</button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    $('#id-client').select2({
+        theme: 'bootstrap4',
+    });
+
+    productList =
+        [
+            {% for p in product_set %}
+                [
+                    {{ p.id }},
+                    '{{ p.name }}'
+                ],
+            {% endfor %}
+        ];
+    function AddRow_Details() {
+         let options = '<option value="0">Seleccione...</option>';
+
+        for (let i = 0; i < productList.length; i++) {
+            options = options + '<option value="' + productList[i][0] + '">' + productList[i][1] + '</option>'
+        }
+
+
+        $('#details').append(
+            '<tr product="0">' +
+            '<td class="text-center align-middle item-number">' + '</td>' +
+            // '<td class="align-middle item-product">' + _product + '</td>' +
+            '<td class="align-middle item-product"><select class="form-control form-control-sm">' + options + '</td>' +
+            '<td class="align-middle item-quantity"><input type="number" class="form-control form-control-sm"></td>' +
+            '<td class="align-middle text-center item-unit" unit="0"></td>' +
+            '<td class="align-middle text-center item-delete"> ' + "<button type='button' onclick='deleteItem(0)' " +
+            "class='btn btn-sm btn-danger delete-detail'><i class='fa fa-trash'></i></button>" + "</td>" +
+            '</tr>'
+            {#' + _id_product + ', #}
+        );
+
+        // $('#details tr[product_num="'+_id_product+'"]').find('td.item-product select option[value="'+_id_product+'"]').attr('selected','selected');
+
+        {#$index=$index +1;#}
+        counterStrike();
+    }
+    $("#add-detail").click(function () {
+        AddRow_Details();
+    });
+
+    function deleteItem($p) {
+        $('#details').find('tr[product="' + $p + '"]').remove();
+        counterStrike();
+    }
+
+    function counterStrike() {
+        let l = 1;
+        $('#details tr').each(function () {
+            $(this).attr('f', l);
+            $(this).children('td:first').text(l);
+            l++;
+        });
+    }
+
+    function limper(request) {
+        $("#id-client").val('');
+        $("#id-observation").val('');
+        $("table#id_advancement tbody#details").empty();
+
+    };
+
+    $(document).on('change', '#details tr td.item-product select', function () {
+        //recupera el id_dela opcion seleccionada
+        let value = $(this).val();
+        let _tr = $(this).parent('td').parent('tr');
+        let _select_product = $(this);
+        let _td_unit = _tr.find('td.item-unit');
+        let _td_delete = _tr.find('td.item-delete button');
+
+        _tr.attr('product', 0);
+        _td_delete.attr('onclick', 'deleteItem(0)');
+        _td_unit.text('');
+        _td_unit.attr('unit', 0);
+
+        if ($('#details tr[product="' + value + '"]').length > 0) {
+            $(this).find('option[value=0]').attr('selected', 'selected');
+            $('#details tr[product="0"] td.item-product select option[value]').removeAttr('selected');
+            $('#details tr[product="0"] td.item-product select option[value="0"]').attr('selected', 'selected');
+            toastr.warning('SELECCIONE OTRO PRODUCTO', '¡MENSAJE!');
+            return false;
+        }
+
+        if (value != '0') {
+            $.ajax({
+                url: '/buys/get_units_by_product/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                //mando  id del producto del combo
+                data: {'ip': value},
+                // si va bien retorna la data
+                success: function (response) {
+                    //le da formato array
+                    let units = JSON.parse(response['units']);
+                    for (let i = 0; i < units.length; i++) {
+                        if (units[i].fields.name === 'B') {  // GAL
+                            _td_unit.text(units[i].fields.description);
+                            _td_unit.attr('unit', units[i].pk);
+                            _tr.attr('product', value);
+                            _td_delete.attr('onclick', 'deleteItem(' + value + ')');
+                            _tr.find('td.item-product select option[value="' + value + '"]').attr('selected', 'selected');
+                            _tr.find('td.item-quantity input').val('');
+                        }
+
+                    }
+                    if (_td_unit.text() === '') {
+                        toastr.warning('NO TIENE UNIDAD MEDIDA', '¡MENSAJE!');
+                        $('#details tr[product="0"] td.item-product select option[value]').removeAttr('selected');
+                        $('#details tr[product="0"] td.item-product select option[value="0"]').attr('selected', 'selected');
+                    }
+                },
+
+            });
+
+
+        }
+
+    })
+    $('#form-client-advancement').submit(function (event) {
+        event.preventDefault();
+        let _p = true;
+        if ($('#details tr').length == 0) {
+            toastr.warning("POR FAVOR,AGREGUE UN PRODUCTO", "MENSAJE");
+            return false
+        }
+        if($('#id-client').val()>0 && $('#id-date-advancement').val()!='')
+        {   _p = true;
+            let details_ = {
+            "Details": [],
+            "_distribution_mobil": $('#id_distribution_mobil').val(),
+            "_client": $('#id-client').val(),
+            "_date_advancement": $('#id-date-advancement').val(),
+            "_observation": $('#id-observation').val(),
+        };
+
+        $("#details  tr").each(function () {
+
+            if ($(this).attr('product') != "0" && $(this).find("td.item-quantity input").val() != '' && $(this).find("td.item-unit").attr('unit') != "0") {
+                let _product = $(this).attr('product');
+                let _quantity = parseFloat($(this).find("td.item-quantity input").val());
+                let _unit = $(this).find("td.item-unit").attr('unit');
+
+                let detailObj = {
+                    "Product": _product,
+                    "Quantity": _quantity,
+                    "Unit": _unit,
+                };
+                details_.Details.push(detailObj);
+            }
+            else
+            {
+                 _p = false;
+                return false;
+            }
+        });
+        if(_p==false){
+            toastr.warning("COMPLETE TODOS LOS CAMPOS", '¡MENSAJE!')
+            return false;
+        }
+        let mensaje = confirm("¿Esta seguro de registrar el adelanto de balones");
+        if (mensaje) {
+            $.ajax({
+                url: '/comercial/save_advancement_client/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'advancement': JSON.stringify(details_)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        toastr.success(response.message, '¡MENSAJE!');
+                        limper()
+                    }
+                },
+                fail: function (response) {
+                    toastr.error("NO SE LOGRO REGISTRAR EL ADELANTO DE BALONES. ", '¡MENSAJE!');
+                }
+            });
+        }
+        }
+
+
+    });
+
+</script>

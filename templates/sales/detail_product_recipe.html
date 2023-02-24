@@ -1,0 +1,147 @@
+<table class="table table-sm  table-bordered text-uppercase text-black-50 small font-weight-bold m-0 border-0">
+    <thead>
+    <tr class="text-center text-white bg-secondary" style="height: 50px;">
+        <th class="border-top-1 align-middle text-center p-0" style="width: 20%">
+            <label class="text-uppercase m-0">Producto a fabricar</label>
+        </th>
+        <th class="border-top-1 align-middle text-center p-0" style="width: 10%">
+            <label class="text-uppercase m-0">ID</label>
+        </th>
+        <th class="border-top-1 align-middle text-center p-0" style="width: 20%">
+            <label class="text-uppercase m-0">Insumo</label>
+        </th>
+        <th class="border-top-1 align-middle text-center p-0" style="width: 20%">
+            <label class="text-uppercase m-0">Cantidad según Receta</label>
+        </th>
+        <th class="border-top-1 align-middle text-center p-0" style="width: 15%">
+            <label class="text-uppercase m-0">Unidades</label>
+        </th>
+        <th class="border-top-1 align-middle text-center p-0" style="width: 15%">
+            <label class="text-uppercase m-0">Cantidad Pedida</label>
+        </th>
+    </tr>
+    </thead>
+
+    <tbody product="{{ product_create.id }}">
+    <tr>
+        <td rowspan="{{ rowspan }}" class="align-middle text-center font-weight-bold">
+            {{ product_create.name }}
+        </td>
+    </tr>
+    {% for i in product_details %}
+        <tr>
+            <td class="font-weight-bold text-dark">{{ i.id }}</td>
+            <td>{{ i.name }}</td>
+            <td class="round2Fixed">{{ i.quantity_supply }}</td>
+            <td class="align-middle text-center">{{ i.unit.name }}</td>
+            <td class="text-success table-success round2Fixed">{{ i.total_quantity_request }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+<script type="text/javascript">
+
+    suppliesToDiscount =
+        [
+            {% for i in product_details %}
+                [
+                    {{ i.id }},
+                    '{{ i.name }}',
+                    '{{ i.quantity_supply }}'.replace(',', '.'),
+                    '{{ i.total_quantity_request }}'.replace(',', '.'),
+                    '{{ i.quantity_remaining_in_stock }}'.replace(',', '.'),
+                    {{ product_create.id }}
+                ],
+            {% endfor %}
+        ];
+
+    function discountStock() {
+        for (let i = 0; i < suppliesToDiscount.length; i++) {
+            let _supply_id = suppliesToDiscount[i][0];
+            let _product_create_id = (suppliesToDiscount[i][5]).toString();
+            let _supply_quantity_request = suppliesToDiscount[i][3];
+            let _tr = $('.store-inputs tr[product="' + _supply_id + '"]');
+            let _td_stock = _tr.find('td.stock');
+            let _td_request = _tr.find('td.request');
+            let _td_quantities = _tr.find('td.quantities');
+            let _request_array = _td_request.text().trim().split(",");
+            let _result = 0;
+
+            if (_request_array.find(e => e === _product_create_id) !== _product_create_id) {
+                _result = parseFloat(_td_stock.text().trim()) - parseFloat(_supply_quantity_request);
+                if (_result < 0){
+                    _tr.addClass('table-danger');
+                    $("#order-details tr[pk=" + _product_create_id + "]").addClass('table-danger');
+                    toastr.warning("Falta insumos para algunos productos, favor de revisar.", '¡Inconcebible!');
+                }
+                _td_stock.text(_result.toFixed(2));
+                _td_request.append(',' + _product_create_id);
+                _td_quantities.append(',' + _supply_quantity_request);
+            }
+
+
+        }
+    }
+
+    function addStock($id) {
+
+        let _product_create_id = $id.toString();
+
+        $('.store-inputs tr').each(function () {
+            let _td_stock = $(this).find('td.stock');
+            let _td_request = $(this).find('td.request');
+            let _td_quantities = $(this).find('td.quantities');
+            let _request_array = _td_request.text().trim().split(",");
+            let _quantities_array = _td_quantities.text().trim().split(",");
+
+            let _result = 0;
+            let _index = 0;
+
+            if (_request_array.find(e => e === _product_create_id) === _product_create_id) {
+                _index = _request_array.findIndex(e => e === _product_create_id);
+                _result = parseFloat(_td_stock.text().trim()) + parseFloat(_quantities_array[_index]);
+                if (_result >= 0){
+                    $(this).removeClass('table-danger');
+                }
+                removeItemOnce(_quantities_array, _quantities_array[_index]);
+                removeItemOnce(_request_array, _product_create_id);
+
+                _td_stock.text(_result.toFixed(2));
+                _td_request.text(_request_array.toString());
+                _td_quantities.text(_quantities_array.toString());
+
+            }
+
+        });
+
+    }
+
+
+    function removeItemOnce(arr, value) {
+        let index = arr.indexOf(value);
+        if (index > -1) {
+            arr.splice(index, 1);
+        }
+        return arr;
+    }
+
+    function removeItemAll(arr, value) {
+        let i = 0;
+        while (i < arr.length) {
+            if (arr[i] === value) {
+                arr.splice(i, 1);
+            } else {
+                ++i;
+            }
+        }
+        return arr;
+    }
+
+
+    round2Fixed();
+    discountStock();
+
+
+</script>

@@ -1,0 +1,91 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Lista de todas las ventas
+{% endblock title %}
+
+{% block body %}
+    <!-- Content -->
+
+
+
+    <div class="container-fluid">
+
+
+        <form class="form-inline" id="search-form" method="POST">
+            {% csrf_token %}
+
+            <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>
+            <input type="date" class="form-control my-1 mr-sm-2" id="id-start-date" name="start-date"
+                   value="{{ formatdate }}">
+
+            <label class="my-1 mr-2" for="id-end-date">Fecha final</label>
+            <input type="date" class="form-control my-1 mr-sm-2" id="id-end-date" name="end-date"
+                   value="{{ formatdate }}">
+
+            <button type="submit" class="btn btn-danger my-1 mr-2">
+                <i class="fas fa-search-dollar" id="btn-search"></i> Buscar
+            </button>
+
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="by-units" id="id-by-units"
+                       value="UNIT">
+                <label class="form-check-label" for="id-by-units"> Por Unidades </label>
+            </div>
+
+        </form>
+
+            <div id="sales-grid-list">{% include "sales/order_sales_grid_list.html" %}</div>
+
+
+
+    </div>
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+    loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p>Cargando...</p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#search-form').get(0));
+
+            $('#btn-search').attr("disabled", "true");
+            $('#sales-grid-list').empty();
+            $('#sales-grid-list').html(loader);
+
+            $.ajax({
+                url: '/sales/get_sales_all_subsidiaries/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        toastr.success(response['message'], '¡Bien hecho!');
+                        $('#sales-grid-list').html(response.grid);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-search').removeAttr("disabled", "false");
+
+        });
+    </script>
+{% endblock extrajs %}

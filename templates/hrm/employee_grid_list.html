@@ -1,0 +1,135 @@
+
+
+{% if employees %}
+
+    <!-- <h2 class='mb-3'>Basic example</h2> -->
+
+    <div class="card">
+
+        <div class="card-header">
+            <h5 class="card-title">Lista de trabajadores</h5>
+            <h6 class="card-subtitle text-muted">Highly flexible tool that many advanced features to any HTML
+                table.</h6>
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive dataTables_wrapper ">
+
+                <table id="employee-data-grid" class="table table-bordered" cellspacing="0" width="100%">
+                    <thead>
+                    <tr class="text-center">
+                        <th>#</th>
+                        <th class="th-sm">Empleado (TD)</th>
+                        <th class="th-sm">Sede</th>
+                        <th class="th-sm">Usuario</th>
+                        <th class="th-sm">Vinculo con la empresa</th>
+                        <th class="th-sm">Creado</th>
+                        <th class="th-sm">Accion</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% for employee in employees %}
+                        <tr class="text-center">
+                            <td></td>
+                            <td>
+                                <address class="text-left">
+                                    <strong>{{ employee.paternal_last_name }} {{ employee.maternal_last_name|slice:":1" }}, {{ employee.names }}</strong><br>
+                                    Nacionalidad, <i>{{ employee.document_issuing_country }}</i><br>
+                                    Tipo de documento, {{ employee.document_type|lower|capfirst }}<br>
+                                    Numero de documento, {{ employee.document_number }}<br>
+                                </address>
+                            </td>
+                            <td class="align-middle">{{ employee.worker_set.last.establishment_set.last.subsidiary.name|default:"-" }}</td>
+                            <td class="align-middle">{{ employee.worker_set.last.user.username|default:"-" }}</td>
+                            <td class="align-middle">
+                                {% if employee.worker_set.count > 0 %}
+                                    <address class="text-left">
+                                    <strong>Trabajador</strong><br>
+                                    Ocupación, <i>{{ employee.worker_set.last.occupation_private_sector.name }}</i><br>
+                                    Tipo de trabajador, <i>{{ employee.worker_set.last.get_worker_type.description }}</i><br>
+                                    Régimen de Aseguramiento de Salud, <i>{{ employee.worker_set.last.get_health_insurance_regime.description }}</i><br>
+                                    Régimen pensionario, <i>{{ employee.worker_set.last.get_pensioner_regime.description }}</i><br>
+                                    </address>
+                                {% else %}-{% endif %}</td>
+                            <td class="align-middle">{{ employee.created_at|date:"SHORT_DATE_FORMAT" }} {{ employee.created_at|time:"H:i" }}</td>
+
+                            <td>
+
+                                <!-- Example single danger button -->
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown"
+                                            aria-haspopup="true" aria-expanded="false">
+                                        Action
+                                    </button>
+
+                                    <div class="dropdown-menu bg-info text-white">
+
+                                        <a class="dropdown-item" style="cursor: pointer;"
+                                           onclick="showModalEdition('{% url 'hrm:json_employee_edit' employee.id %}')">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
+                                        {% if employee.worker_set.count == 0 %}
+                                            <a class="dropdown-item worker-designation" style="cursor: pointer;" pk="{{ employee.id }}">
+                                                <i class="fas fa-sync-alt"></i> Datos del trabajador
+                                            </a>
+                                        {% else %}
+                                            <a class="dropdown-item worker-change-designation" style="cursor: pointer;"
+                                               pk="{{ employee.worker_set.last.id }}">
+                                                <i class="fas fa-sync-alt"></i> Modificar datos del trabajador
+                                            </a>
+                                            <a class="dropdown-item worker-change-establishment" style="cursor: pointer;"
+                                               pk="{{ employee.worker_set.last.id }}">
+                                                <i class="fas fa-sync-alt"></i> Modificar de sede
+                                            </a>
+                                            <a class="dropdown-item worker-change-user" style="cursor: pointer;"
+                                               pk="{{ employee.worker_set.last.id }}">
+                                                <i class="fas fa-sync-alt"></i> Modificar de usuario
+                                            </a>
+                                        {% endif %}
+                                        <a class="dropdown-item staff-in-training-designation" style="cursor: pointer;" pk="{{ employee.id }}">
+                                            <i class="fas fa-sync-alt"></i> Modalidad Personal en formación
+                                        </a>
+
+                                        <a class="dropdown-item third-party-personnel-designation" style="cursor: pointer;"
+                                           pk="{{ employee.id }}">
+                                            <i class="fas fa-sync-alt"></i> Modalidad Personal de tercero
+                                        </a>
+
+                                    </div>
+                                </div>
+
+
+                            </td>
+
+                        </tr>
+                    {% endfor %}
+
+
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center">
+                        <th>#</th>
+                        <th class="th-sm">Empleado (TD)</th>
+                        <th class="th-sm">Sede</th>
+                        <th class="th-sm">Usuario</th>
+                        <th class="th-sm">Vinculo con la empresa</th>
+                        <th class="th-sm">Creado</th>
+                        <th class="th-sm">Accion</th>
+                    </tr>
+                    </tfoot>
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- Card -->
+    </div>
+
+
+
+{% else %}
+    <h1>No existen trabajadores registrados</h1>
+{% endif %}

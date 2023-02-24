@@ -1,0 +1,121 @@
+<table class="table table-sm text-uppercase small mt-0 mb-0">
+    <tr>
+        <td style="width: 25%;" class="border-top-0">&nbsp;</td>
+        <td style="width: 25%;" class="border-top-0">&nbsp;</td>
+        <td style="width: 25%;" class="border-top-0">&nbsp;</td>
+        <td style="width: 25%;" class="border-top-0">&nbsp;</td>
+    </tr>
+
+    <tr>
+        <td class="border-top-0" colspan="2">Tipo documento:</td>
+        <td class="border-top-0" colspan="2">Documento:</td>
+    </tr>
+
+    <tr>
+
+        <td class="border-top-0" colspan="2">
+            <select class="form-control form-control-sm text-uppercase"
+                    id="id_document_type_attached"
+                    name="document_type_attached" required>
+                <option disabled value="">Seleccione...</option>
+                {% for item in choices_document_type_attached %}
+                    <option {% if item.0 == 'T' %}selected{% endif %} value="{{ item.0 }}">{{ item.1 }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td class="border-top-0" colspan="2">
+            <input type="text" class="form-control form-control-sm text-uppercase"
+                   id="id_document"
+                   name="document">
+        </td>
+    </tr>
+
+    <tr>
+
+        <td class="border-top-0" colspan="4">Motivo:</td>
+
+    </tr>
+    <tr>
+
+
+        <td class="border-top-0" colspan="4">
+            <select class="form-control form-control-sm text-uppercase"
+                    id="id_motive"
+                    name="motive" required>
+                <option selected disabled value="">Seleccione...</option>
+                {% for motive in motives %}
+                    {% if motive.id == 2 or motive.id == 5 or motive.id == 8 or motive.id == 9 or motive.id == 10 or motive.id == 11 %}
+                        <option class="text-muted" value="{{ motive.id }}" disabled>{{ motive.description }}</option>
+                    {% else %}
+                        <option class="text-primary" value="{{ motive.id }}">{{ motive.description }}</option>
+                    {% endif %}
+
+                {% endfor %}
+            </select>
+        </td>
+    </tr>
+
+    <tr>
+
+        <td class="border-top-0" colspan="2">Almacen origen:</td>
+        <td class="border-top-0" colspan="2">Almacen destino:</td>
+
+    </tr>
+    <tr>
+
+        <td class="border-top-0" colspan="2">
+            <select class="form-control form-control-sm font-weight-bold text-uppercase"
+                    id="id_origin"
+                    name="origin" required>
+                <option selected disabled value="">Seleccione...</option>
+                {% for ss in subsidiary_origin.subsidiarystore_set.all %}
+                    <option value="{{ ss.id }}">{{ ss.name }} - {{ ss.get_category_display }}</option>
+                {% endfor %}
+            </select>
+            <input type="hidden" id="id_guide" name="guide" value="{{ guide_obj.id }}">
+        </td>
+
+        <td class="border-top-0" colspan="2">
+            <select class="form-control form-control-sm text-uppercase"
+                    id="id_destiny"
+                    name="destiny" required>
+                <option selected disabled value="">Seleccione...</option>
+                {% for ss in subsidiary_origin.subsidiarystore_set.all %}
+                    <option value="{{ ss.id }}">{{ ss.name }} - {{ ss.get_category_display }}</option>
+                {% endfor %}
+            </select>
+        </td>
+
+    </tr>
+
+
+    <tr>
+        <td class="border-top-0 pt-5" colspan="3">Observaciones:</td>
+        <td class="border-top-0 pt-5" colspan="1"></td>
+    </tr>
+
+    <tr>
+        <td class="border-top-0" colspan="3">
+                <textarea class="form-control form-control-sm font-weight-bold text-uppercase"
+                          name="observation"
+                          id="id_observation" rows="5" cols="100"></textarea>
+        </td>
+        <td class="border-top-0 text-right" colspan="1">
+            <button type="button" id="btn-save"
+                    class="btn btn-sm btn-success btn-block pb-1 mb-1 guide-save text-center">Guardar
+            </button>
+            <button type="button" id="btn-new"
+                    class="btn btn-sm btn-success btn-block pb-1 guide-new text-center">Nuevo
+            </button>
+            <br>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" checked value="1" id="is-table">
+                <label class="form-check-label" for="is-table">
+                    Ver almacenes modo tabla
+                </label>
+            </div>
+        </td>
+
+    </tr>
+
+</table>

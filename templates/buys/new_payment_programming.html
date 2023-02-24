@@ -1,0 +1,340 @@
+<form id="programming-payment-form" action="" method="POST">
+    {% csrf_token %}
+
+    <input type="hidden" id="id_requirement_programming" name="requirement_programming" value="{{ requirement_programming.id }}">
+    <input type="hidden" id="id_purchase" name="purchase" value="{{ programming_invoice.id }}">
+    <input type="hidden" id="id_price_unit" name="price_unit" value="{{ detail.price_unit }}">
+    <input type="hidden" id="id_quantity" name="quantity" value="{{ detail_purchase.count }}">
+    <input type="hidden" id="date-ini" name="date-ini" value="{{ start_date }}">
+    <input type="hidden" id="date-fin" name="date-fin" value="{{ end_date }}">
+
+    <table class="table table-sm pay-options">
+        <tbody>
+        <tr>
+            <td class="border-top-0 border-bottom  align-middle"
+                style="width: 20%">
+                <label class="font-weight-bold">VEHICULO</label>
+                <div class="text-uppercase text-center">
+                    <input type="text"
+                           class="form-control form-control-sm text-center" value="{{ requirement_programming.truck.license_plate }}"
+                           id="id_suplier_name" name="suplier_name" readonly>
+                </div>
+
+            </td>
+
+            <td class="border-top-0 border-bottom  align-middle pay-loan" style="width: 20%">
+                <label class="font-weight-bold">NUMERO SCOP</label>
+                <div class="text-uppercase text-center">
+                    <input type="text"
+                           class="form-control form-control-sm text-center font-weight-bold text-danger"
+                           value="{{ requirement_programming.number_scop }}"
+                           id="id_requirement_programming_scop" name="requirement_programming_scop" readonly>
+                </div>
+
+            </td>
+
+            <td class="border-top-0 border-bottom  align-middle" style="width: 20%">
+                <label class="font-weight-bold">MONTO A PAGAR</label>
+                <input type="text"
+                       id="id_purchase_pay"
+                       name="purchase_pay"
+                       autocomplete="off"
+                       class="form-control form-control-sm">
+            </td>
+
+            <td class="border-top-0 border-bottom  align-middle" style="width: 40%">
+                <label class="font-weight-bold">TIPO DE PAGO</label>
+                <select id="id_transaction_payment_type"
+                        name="transaction_payment_type"
+                        class="form-control form-control-sm">
+                    <option value="0">Seleccione</option>
+                    {% for item in choices_payments %}
+                        {% if item.0 != 'F' %}
+                            <option value="{{ item.0 }}">{{ item.1 }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        </tbody>
+        {#            CUANDO ES EFECTIVO EN LOS PAGOS SIMPLES#}
+        <table class="table table-sm" id="cash" style="display: none">
+            <thead>
+            <tr class="text-uppercase font-weight-lighter">
+                <th class="border-bottom-0 border-right align-middle">CAJA SELECCIONADA</th>
+                <th class="border-bottom-0 border-right align-middle code">FECHA DE CAJA</th>
+                <th class="border-bottom-0 border-right align-middle voucher">DESCRIPCION DEL PAGO</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr>
+                <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
+                    style="width: 20%">
+                    <select id="id_cash" name="cash_efectivo"
+                            class="form-control form-control-sm text-uppercase"
+                            aria-selected="Text input with radio button">
+                        {% for c in choices_account %}
+                            <option value="{{ c.id }}"
+                            >{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
+                    style="width: 10%">
+                    <input type="date"
+                           id="id_date"
+                           name="id_date"
+                           class="form-control form-control-sm">
+                </td>
+
+                <td class="border-top-0 border-bottom border-right align-middle" style="width: 70%">
+                    <input type="text"
+                           id="id_description"
+                           name="description_cash"
+                           autocomplete="off"
+                           value=""
+                           class="form-control form-control-sm text-uppercase">
+                </td>
+
+            </tr>
+
+            </tbody>
+        </table>
+        {#            CUANDO ES DEPOSITO EN LOS PAGOS SIMPLE#}
+        <table class="table table-sm" id="deposit" style="display: none">
+            <thead>
+            <tr class="text-uppercase font-weight-lighter">
+                <th class="border-bottom-0 border-right align-middle">CUENTA BANCARIA:</th>
+                <th class="border-bottom-0 border-right align-middle code">FECHA DEL PAGO</th>
+                <th class="border-bottom-0 border-right align-middle code">DESCRIPCION DEL PAGO</th>
+                <th class="border-bottom-0 border-right align-middle code">COD-OP</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
+                    style="width: 30%">
+                    <select id="id_cash_deposit" name="id_cash_deposit"
+                            class="form-control form-control-sm text-uppercase"
+                            aria-selected="Text input with radio button">
+                        {% for c in choices_account_bank %}
+                            <option value="{{ c.id }}"
+                            >{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
+                    style="width: 10%">
+                    <input type="date"
+                           id="id_date_deposit"
+                           name="id_date_deposit"
+                           value="{{ date }}"
+                           class="form-control form-control-sm">
+                </td>
+                <td class="border-top-0 border-bottom border-right align-middle" style="width: 40%">
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           id="id_description_deposit"
+                           name="description_deposit"
+                           value="">
+                </td>
+                <td class="border-top-0 border-bottom border-right align-middle" style="width: 20%">
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           id="id_code_operation"
+                           name="code_operation">
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <tfoot>
+        <tr class="border-0">
+            <td colspan="{% if detail.unit.name == 'G' %}6{% else %}7{% endif %}" class="border-0 pr-0 text-right">
+                <button type="submit" id="btn-save" class="btn btn-primary"> Guardar</button>
+            </td>
+        </tr>
+        </tfoot>
+    </table>
+
+</form>
+
+<script type="text/javascript">
+
+    {#let date1 = $('#id_date_initial').val();#}
+    {#$('#date-ini').val(date1);#}
+    {#let date2 = $('#id_date_final').val();#}
+    {#$('#date-fin').val(date2);#}
+    {#console.log(date1, date2)#}
+
+    $('#id_transaction_payment_type').change(function () {
+
+        let type = $('#id_transaction_payment_type').val();
+        if (type === 'E') {
+            $('#cash').css('display', 'table');
+            $('#deposit').css('display', 'none');
+            $('#id_cash').trigger('change');
+            $('#fises').css('display', 'none');
+        } else if (type === 'D') {
+            $('#deposit').css('display', 'table');
+            $('#cash').css('display', 'none');
+            $('#fises').css('display', 'none');
+        } else if (type === 'F') {
+            $('#fises').css('display', 'table');
+            $('#cash').css('display', 'none');
+            $('#deposit').css('display', 'none');
+        } else if (type === 'V' || type === 'C') {
+            $('#cash').css('display', 'none');
+            $('#deposit').css('display', 'none');
+            $('#fises').css('display', 'none');
+        }
+
+    });
+
+
+    $("#radio1,#radio2,#radio3").click(function () {
+        let _tr = $(this).parent('div').parent('td').parent('tr');
+        let _tbody = _tr.parent('tbody');
+        _tbody.find('tr').removeClass('bg-light');
+        _tr.addClass('bg-light');
+
+        if ($("#radio2").is(':checked')) {
+
+            $("#id_loan_quantity").removeAttr('disabled', 'disabled').css('color', '#e9ecef')
+            $("#id_loan_quantity2").attr('disabled', 'disabled').css('color', '#e9ecef')
+            $("#id_loan_payment2").attr('disabled', 'disabled').css('color', '#e9ecef')
+            $("#id_transaction_payment_type2").attr('disabled', 'disabled').css('color', '#e9ecef')
+            $('#cash2').css('display', 'none');
+            $('#deposit2').css('display', 'none');
+
+        } else if ($("#radio3").is(':checked')) {
+
+            $("#id_loan_quantity").attr('disabled', 'disabled').css('color', '#e9ecef')
+            $("#id_loan_quantity2").removeAttr('disabled').css('color', '#495057');
+            $("#id_loan_payment2").removeAttr('disabled').css('color', '#495057');
+            $("#id_transaction_payment_type2").removeAttr('disabled').css('color', '#495057');
+            $('#id_cash_efectivo2').trigger('change');
+        }
+
+    });
+
+    $('#id_loan_payment').keyup(function () {
+        let val = $(this).val();
+        let _price_of_vouchers = parseFloat($('#id_price_of_vouchers').val());
+        let _number_of_vouchers = $('#id_number_of_vouchers');
+        let _quantity = 0;
+        if (isNaN(val) || val === '') {
+            val = 0;
+            _number_of_vouchers.val(0);
+            $(this).val(val);
+        } else {
+            _quantity = parseFloat(val) / _price_of_vouchers;
+            _number_of_vouchers.val(_quantity.toFixed(2));
+        }
+
+    });
+
+    $('#id_loan_quantity').keyup(function () {
+        let val = $(this).val();
+        if (isNaN(val) || val === '') {
+            val = 0;
+            $(this).val(val);
+        }
+    });
+
+    $('#id_transaction_payment_type').change(function () {
+        if ($(this).val() == 'D' || $(this).val() == 'V') {
+            $('#id_code_operation').removeAttr('disabled').css('color', '#495057');
+        } else {
+            if ($(this).val() == 'F') {
+                $('#id_number_of_vouchers').removeAttr('disabled').css('color', '#495057');
+                $('#id_price_of_vouchers').removeAttr('disabled').css('color', '#495057');
+            } else {
+
+                $('#id_number_of_vouchers').attr('disabled', 'disabled').css('color', '#e9ecef');
+                $('#id_price_of_vouchers').attr('disabled', 'disabled').css('color', '#e9ecef');
+            }
+            $('#id_code_operation').attr('disabled', 'disabled').css('color', '#e9ecef');
+
+        }
+    });
+
+    $('#id_transaction_payment_type2').change(function () {
+        if ($(this).val() == 'D' || $(this).val() == 'V') {
+            $('#id_code_operation2').removeAttr('disabled').css('color', '#495057');
+        } else {
+            $('#id_code_operation2').attr('disabled', 'disabled').css('color', '#e9ecef');
+        }
+    });
+
+    $('#programming-payment-form').submit(function (event) {
+
+        event.preventDefault();
+        let data = new FormData($('#programming-payment-form').get(0));
+
+
+        $('#btn-save').attr("disabled", "true");
+
+        $.ajax({
+            url: '/buys/new_payment_programming_glp/',
+            type: "POST",
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (response, textStatus, xhr) {
+                if (xhr.status == 200) {
+                    $('#modal-payment-programming').modal('hide');
+                    {#$('#table-list-purchase').html(response['grid']);#}
+                    toastr.success(response['message'], '¡Mensaje!');
+                    $('#id_btn_show').trigger("click");
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                if (jqXhr.status == 500) {
+                    toastr.error(jqXhr.responseJSON.error, '¡Mensaje!');
+                }
+            }
+        });
+        $('#btn-save').removeAttr("disabled", "false");
+
+    });
+
+
+    function number_test(n) {
+        let result = (n - Math.floor(n)) !== 0;
+        return result;
+    }
+
+    $("#id_cash").change(function () {
+
+        $("#id_date").val('');
+
+        if ($("#id_cash").val() != '') {
+
+            $.ajax({
+                url: '/accounting/get_cash_date/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'cash_id': $("#id_cash").val()},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        $("#id_date").val(response.cash_date);
+
+                    }
+                },
+                fail: function (response) {
+                    toastr.error("Error. ", '¡Inconcebible!');
+                }
+            });
+        }
+    });
+
+
+</script>
+

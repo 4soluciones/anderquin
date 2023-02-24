@@ -1,0 +1,23 @@
+<table class="table table-bordered" id="report-payments">
+    <thead>
+    <tr class="text-white bg-dark text-uppercase">
+        <td class="col-form-label col-form-label-lg w-25">NOMBRE PROVEEDOR</td>
+        <td class="col-form-label col-form-label-lg w-25">NOMBRE COMERCIAL</td>
+        <td class="col-form-label col-form-label-lg text-center w-50">TOTAL</td>
+    </tr>
+    </thead>
+    <tbody>
+    {% for p in purchase_dict %}
+        <tr class="tbl-row" pk="{{ p.supplier_id }}">
+        <td class="col-form-label col-form-label-lg align-middle text-left">{{ p.supplier_name }}</td>
+        <td class="col-form-label col-form-label-lg align-middle text-left">{{ p.business_name }}</td>
+        <td class="col-form-label col-form-label-lg align-middle text-center">S/ {{ p.total }}</td>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+    <tr class="bg-success">
+        <td class="col-form-label col-form-label-lg align-middle text-right" colspan="2">Monto total:</td>
+        <td class="col-form-label col-form-label-lg align-middle text-center">S/ {{ sum_total }}</td>
+    </tr>
+    </tfoot>
+</table>

@@ -1,0 +1,40 @@
+{% load static %}
+{% load operations %}
+<div class="card" style="border-color: #0b62a4">
+    <div class="card-header text-center p-1" style="background: #0b62a4">
+        <label class="text-white">Reparto</label>
+    </div>
+    <div class="card-body p-1">
+        <table class="table table-sm m-0 small text-uppercase table-bordered" id="tbl-sales-distribution-grid" style="width: 100%">
+            <thead>
+            <tr class="text-white  text-sm-center" style="background: #0b62a4">
+                <td>Placa</td>
+                <td>Conductor</td>
+                <td>Producto</td>
+                <td>Cantidad</td>
+                <td>Unidad</td>
+                <td>Cant. Vendida</td>
+                <td>Cant. Faltante</td>
+            </tr>
+            </thead>
+            <tbody class="sales-distribution-detail">
+            {% for dt in list_distribution.distributiondetail_set.all %}
+                {% if dt.status == 'E' and dt.type == 'L' %}
+                    <tr class="table-warning text-center" pk="{{ dt.id }}" product="{{ dt.product.id }}">
+                        <td>{{ list_distribution.truck.license_plate }}</td>
+                        <td>{{ list_distribution.pilot.full_name }}</td>
+                        <td>{{ dt.product.name }}</td>
+                        <td>{{ dt.quantity|default:"0.00" }}</td>
+                        <td>{{ dt.unit.description }}</td>
+                        <td>{{ dt.calculate_total_quantity_sold_by_product_glp|floatformat:2 }}</td>
+                        <td class="quantity-surplus">{{ dt.quantity|differences:dt.calculate_total_quantity_sold_by_product_glp|floatformat:2 }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+
+</script>

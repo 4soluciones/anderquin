@@ -1,0 +1,166 @@
+{% extends 'dashboard.html' %}
+
+{% block title %}
+coronasoft.dev | Listado de Categorias
+{% endblock title %}
+
+{% block body %}
+
+
+
+
+
+<!-- Content -->
+<div class="container-fluid">
+
+  <!-- Provides extra visual weight and identifies the primary action in a set of buttons -->
+<button type="button" onclick="showModalCreation('{% url 'dishes:category_create' %}')" class="btn btn-outline-success"><i class="fas fa-user-plus"></i> &nbsp; NEW CATEGORY</button>
+
+
+{% if categories %}
+
+
+
+
+  <!-- <h2 class='mb-3'>Basic example</h2> -->
+
+  <div class="card">
+
+    <div class="card-header">
+      <h5 class="card-title">Default</h5>
+      <h6 class="card-subtitle text-muted">Highly flexible tool that many advanced features to any HTML table.</h6>
+    </div>
+
+    <div class="card-body">
+
+
+
+      <div class="table-responsive dataTables_wrapper ">
+
+        <table id="dt-basic-checkbox" class="table table-bordered" cellspacing="0" width="100%">
+          <thead>
+            <tr class="text-center">
+
+              <th>#</th>
+              <th class="th-sm">NOMBRE
+              </th>
+              <th class="th-sm">DESCRIPTION
+              </th>
+              <th class="th-sm">SUBSIDIARY
+              </th>
+              <th class="th-sm">UPDATE
+              </th>
+              <th class="th-sm">DELETE
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+
+
+            {% for category in categories %}
+            <tr class="text-center" >
+              <!-- <td>{{ category.id }}</td> -->
+              <td></td>
+              <td>{{ category.name }}</td>
+              <td>{{ category.description }}</td>
+              <td>{{ category.subsidiary.name }}</td>
+              <td>
+                <button onclick="showModalEdition('{% url 'dishes:category_edit' category.id %}')" class="btn btn-outline-warning">
+                  <i class="fas fa-sync-alt"></i> Click me
+                </button>
+              </td>
+              <td>
+
+                <button onclick="showModalDelete('{% url 'dishes:category_delete' category.id %}')" class="btn btn-outline-danger">
+                  <i class="fas fa-sync-alt"></i> Click me
+                </button>
+
+              </td>
+            </tr>
+            {% endfor %}
+
+
+          </tbody>
+          <tfoot>
+            <tr class="text-center">
+              <th>#</th>
+              <th>NOMBRE
+              </th>
+              <th>DESCRIPTION
+              </th>
+              <th>SUBSIDIARY
+              </th>
+              <th>UPDATE
+              </th>
+              <th>DELETE
+              </th>
+            </tr>
+          </tfoot>
+        </table>
+
+      </div>
+
+    </div>
+
+    <!-- Card -->
+  </div>
+
+
+
+  {% else %}
+  <h1>No existen autores registrados</h1>
+  {% endif %}
+
+</div>
+
+
+<div class="modal fade" id="creation" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
+<div class="modal fade" id="edition" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
+<div class="modal fade" id="delete" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
+
+
+
+{% endblock body %}
+
+
+{% block extrajs %}
+<script type="text/javascript">
+  var $ = jQuery.noConflict();
+
+  $(document).ready(function () {
+    $('#dt-basic-checkbox').dataTable({
+
+      columnDefs: [{
+        orderable: false,
+        className: 'select-checkbox',
+        targets: 0
+      }],
+      select: {
+        style: 'os',
+        selector: 'td:first-child'
+      }
+    });
+  });
+
+
+  function showModalDelete(url) {
+    $('#delete').load(url, function () {
+      $(this).modal('show');
+    });
+  };
+
+  function showModalEdition(url) {
+    $('#edition').load(url, function () {
+      $(this).modal('show');
+    });
+  };
+
+  function showModalCreation(url) {
+    $('#creation').load(url, function () {
+      $(this).modal('show');
+    });
+  };
+
+
+</script>
+{% endblock extrajs %}

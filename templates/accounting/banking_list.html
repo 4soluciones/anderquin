@@ -1,0 +1,276 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Control de caja
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <form class="form-inline" id="search-form" method="POST">
+                    {% csrf_token %}
+                    <label class="my-1 mr-2" for="id-cash">Banco</label>
+                    <select class="custom-select my-1 mr-sm-2" id="id-cash" name="cash" required>
+                        <option value="" disabled selected>SELECCIONE...</option>
+
+                        {% for c in only_bank_set %}
+                            <option value="{{ c.pk }}">{{ c.name }}</option>
+                        {% endfor %}
+
+                    </select>
+
+                    <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>
+                    <input type="date" class="form-control my-1 mr-sm-2" id="id-start-date" name="start-date"
+                           value="{{ formatdate }}">
+
+                    <label class="my-1 mr-2" for="id-end-date">Fecha final</label>
+                    <input type="date" class="form-control my-1 mr-sm-2" id="id-end-date" name="end-date"
+                           value="{{ formatdate }}">
+
+                    <button type="submit" class="btn btn-primary my-1">
+                        <i class="fas fa-search-dollar" id="btn-search"></i> Buscar
+                    </button>
+
+                </form>
+
+            </div>
+            <div class="col-sm-6">
+                <button type="button" class="btn btn-danger m-1" data-toggle="modal" data-target="#modal-transaction">
+                    <i class="fas fa-comments-dollar"></i> Movimientos
+                </button>
+
+                <button type="button" class="btn btn-success m-1" data-toggle="modal" data-target="#modal-transfer">
+                    <i class="fas fa-exchange-alt"></i> Transferencias
+                </button>
+
+                <button type="button" class="btn btn-success m-1" data-toggle="modal"
+                        data-target="#modal-transfer-to-cash" disabled>
+                    <i class="fas fa-random"></i> Transferencias a caja
+                </button>
+
+            </div>
+        </div>
+
+
+        <div id="account-grid-list"></div>
+
+    </div>
+
+    <div class="modal" id="modal-transaction" tabindex="-1" role="dialog">
+
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header pb-2 pt-2">
+                    <h4 class="modal-title mb-3 mt-3">Movimientos bancarios</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% include "accounting/new_banking_transactions.html" with formatdate=formatdate %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal-transfer" tabindex="-1" role="dialog">
+
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header pb-2 pt-2">
+                    <h4 class="modal-title mb-3 mt-3">Transferencias bancarias</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% include "accounting/new_banking_transfers.html" with formatdate=formatdate %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal-transfer-to-cash" tabindex="-1" role="dialog">
+
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header pb-2 pt-2">
+                    <h4 class="modal-title mb-3 mt-3">Transferencias a cajas</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% include "accounting/new_bank_to_cash.html" with formatdate=formatdate %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="exampleModalCenter" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered  modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">Editar elemento seleccionado:</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modal-edit"> </div>
+
+            </div>
+        </div>
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        $("#id-transfer-bank-destiny").chained("#id-transfer-subsidiary-destiny");
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+
+            let _data = new FormData($('#search-form').get(0));
+
+            $("#btn-search").attr("disabled", "true");
+
+
+            $.ajax({
+                url: '/accounting/get_bank_control_list/',
+                type: "POST",
+                data: _data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        $('#account-grid-list').html(response.grid);
+                        toastr.info(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                        $('#account-grid-list').html('<div class="alert alert-info alert-dismissible fade show mt-3" role="alert">\n' +
+                            '        <strong>Atencion!</strong> Tu debes ingresar una fecha primero.\n' +
+                            '        <button type="button" class="close" data-dismiss="alert" aria-label="Close">\n' +
+                            '            <span aria-hidden="true">×</span>\n' +
+                            '        </button>\n' +
+                            '    </div>');
+                    }
+                }
+            });
+            $("#btn-search").removeAttr("disabled", "false");
+            $('#search-form').modal('hide');
+
+        });
+
+        $('#id-start-date').change(function () {
+            $('#id-end-date').val($(this).val());
+        });
+
+        $('#id-bank-cash').change(function () {
+            $('#id-bank-account').val($(this).find('option:selected').attr('account-number'));
+            $('#id-bank-current-balance').val($(this).find('option:selected').attr('current-balance'));
+        });
+
+
+        $('#new-bank-transaction-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#new-bank-transaction-form').get(0));
+
+            $('#btn-bank-operation-save').attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/new_bank_transaction/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        // $('#product-detail-grid').html(response.grid);
+                        $('#modal-transaction').modal('hide');
+                        toastr.success(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-bank-operation-save').removeAttr("disabled", "false");
+        });
+
+
+        $('#new-transfer-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#new-transfer-form').get(0));
+
+            $('#btn-transfer-save').attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/new_transfer_bank/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        // $('#product-detail-grid').html(response.grid);
+                        $('#modal-transfer').modal('hide');
+                        toastr.success(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-transfer-save').removeAttr("disabled", "false");
+        });
+
+        $('#id-transfer-bank-origin').change(function () {
+            $('#id-transfer-bank-balance').val($(this).find('option:selected').attr('current-balance'));
+        });
+
+
+        $('#new-btc-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#new-btc-form').get(0));
+
+            $('#btn-btc-cash-save').attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/new_bank_to_cash_transfer/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        // $('#product-detail-grid').html(response.grid);
+                        $('#modal-transfer-to-cash').modal('hide');
+                        toastr.success(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status == 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-btc-cash-save').removeAttr("disabled", "false");
+        });
+
+
+    </script>
+{% endblock extrajs %}

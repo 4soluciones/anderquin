@@ -1,0 +1,64 @@
+
+
+  <div class="modal-dialog modal-dialog-centered" role="document">
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Registro de sucursal</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <form action="{% url 'dishes:subsidiary_create' %}" method="POST">
+        {% csrf_token %}
+
+        <div class="modal-body">
+
+          {% for field in form %}
+
+              <div class="form-group row">
+
+                  <label for="{{field.id_for_label}}" class="col-sm-3 col-form-label">
+                    {{field.label}}
+                  </label>
+
+                 <div class="col-md-9 pull-left">
+                   {{ field }}
+
+                   {% if field.help_text %}
+                     <small id="{{field.name}}HelpInline" class="form-text text-muted">
+                       {{ field.help_text }}
+                     </small>
+                  {% endif %}
+
+                  {% for error in field.errors %}
+                   <div class="invalid-feedback">
+                       {{error}}
+                   </div>
+                  {% endfor %}
+
+                 </div>
+
+              <!-- form-group row -->
+              </div>
+
+            {% endfor %}
+
+        <!-- modal-body -->
+        </div>
+
+
+        <div class="modal-footer">
+
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+          &nbsp;
+          <button type="submit" class="btn btn-success">Guardar</button>
+
+        </div>
+
+      </form>
+
+    </div>
+  </div>

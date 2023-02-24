@@ -1,0 +1,28 @@
+<table id="id-table-distribution-last" class="table table-sm table-striped align-content-center m-0"
+       style="width: 100%;">
+    <thead>
+    <tr class="text-white" style="background: #288128">
+        <th style="width: 8%;">#</th>
+        <th style="width: 42%;">Producto</th>
+        <th style="width: 20%;">Cantidad</th>
+        <th style="width: 30%;">Unidad</th>
+    </tr>
+    </thead>
+    <tbody id="details-distribution-last">
+    {% for list in  details.all %}
+        <tr style="font-size: 11px;" product_id="{{ list.product.id }}" unit_id="{{ list.unit.id }}">
+            <td>{{ list.id }}</td>
+            <td>{{ list.product.name }}</td>
+            <td class="item-quantity-last">{{ list.quantity|floatformat:2 }}</td>
+            <td>{{ list.unit.description }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<script>
+    $('#id-table-distribution-last tbody#details-distribution-last tr td').each(function () {
+        let _str = $(this).text();
+        _str = _str.replace(',', '.');
+        $(this).text(_str);
+    });
+</script>

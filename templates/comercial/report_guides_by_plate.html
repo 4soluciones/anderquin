@@ -1,0 +1,101 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Reporte de Guías - Placa
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid">
+        <div class="card montserrat" style="background: #3f51b526;">
+            <div class="card-body pb-0 ">
+                <form id="search-form" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group row">
+                        <label for="id_date_initial" class="col-sm-1 col-form-label">Fecha inicial</label>
+
+                        <div class="col-sm-2">
+                            <input type="date"
+                                   class="form-control"
+                                   name="start-date"
+                                   id="id_date_initial"
+                                   value="{{ date_now }}" required>
+
+                        </div>
+                        <label for="id_date_final" class="col-sm-1 col-form-label">Fecha final</label>
+                        <div class="col-sm-2">
+                            <input type="date"
+                                   class="form-control"
+                                   name="end-date"
+                                   id="id_date_final"
+                                   value="{{ date_now }}" required>
+                        </div>
+
+                        <div class="col-sm-2 text-right pt-2">
+
+                            <label for="inputEmail3">Seleccionar Placa:</label>
+                        </div>
+                        <div class="col-sm-1">
+                            <select class="form-control roboto-condensed-light"
+                                    id="id-plate"
+                                    name="plate"
+                                    required>
+                                {% for t in trucks %}
+                                    <option value="{{ t.id }}">{{ t.license_plate }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-sm-2">
+                            <button type="submit" id="id_btn_show" class="btn btn-outline-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card-group mt-3">
+            <div class="card" style="flex-grow: 1">
+                <div class="card-body mt-1">
+
+                    <div class="table-responsive pt-1" id="report-grid-list-by-plate"></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+            let _data = new FormData($('#search-form').get(0));
+            $.ajax({
+                url: '/comercial/report_guides_by_plate_grid/',
+                type: "POST",
+                data: _data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        $('#report-grid-list-by-plate').html(response.grid);
+                        toastr.info(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+        });
+
+    </script>
+
+{% endblock extrajs %}

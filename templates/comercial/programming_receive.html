@@ -1,0 +1,209 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Guides
+{% endblock title %}
+
+{% block body %}
+    {% csrf_token %}
+    <div class="row mr-3 ml-0 mt-2">
+        <div class="col-sm-12 p-0">
+            <div class="card">
+                <div class="card-body text-center font-weight-bolder pb-1">
+                    <h2>PROGRAMACIONES EN RUTA</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card mr-3">
+        <div class="card-body " id="programmings">
+            <div class="card col-sm-12 p-0 table-responsive tableFixHead" id="guide-grid" style="height: 300px">
+                <table id="data-grid-programming"
+                       class="table table-bordered text-uppercase text-black-50 small font-weight-bold m-0 border-0">
+                    <thead>
+                    <tr class="text-center text-white bg-dark" style="height: 50px;">
+                        <th scope="col" class="align-middle border-0">#</th>
+                        {#                        <th scope="col" class="align-middle border-0">Tu sede CTM</th>#}
+                        <th scope="col" class="align-middle border-0">Sede de envio</th>
+                        <th scope="col" class="align-middle border-0">Fecha de Salida</th>
+                        <th scope="col" class="align-middle border-0">Fecha de Llegada</th>
+                        <th scope="col" class="align-middle border-0">Piloto</th>
+                        <th scope="col" class="align-middle border-0">Serie - Codigo</th>
+                        <th scope="col" class="align-middle border-0">Cliente</th>
+                        <th scope="col" class="align-middle border-0">Estado Actual</th>
+                        <th scope="col" class="align-middle border-0">Aceptar Guia</th>
+
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for p in programmings %}
+                        <tr pk="{{ p.id }}">
+                            <td scope="row" style="height: 20px;">{{ p.id }}</td>
+                            {#                            <td>{{ p.route_set.last.subsidiary.name }} - D</td>#}
+                            <td>{{ p.route_set.first.subsidiary.name }}</td>
+                            <td>{{ p.departure_date|date:"SHORT_DATE_FORMAT" }}</td>
+                            <td>{{ p.arrival_date|date:"SHORT_DATE_FORMAT" }}</td>
+                            <td>
+                                {% for s in p.setemployee_set.all %}
+                                    {% if s.function == 'P' %}
+                                        {{ s.employee.paternal_last_name }}
+                                        {{ s.employee.maternal_last_name|slice:":1" }},
+                                        {{ s.employee.names }}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td class="{% if p.guide_set.count == 0 %}text-danger{% else %}text-success {% endif %}">
+                                {{ p.guide_set.first.serial|default:"GUIAS SIN ASIGNAR" }}
+                                - {{ p.guide_set.first.code }}
+                            </td>
+                            <td>{{ p.guide_set.first.client|default_if_none:"-" }} {{ choices_status_count }}</td>
+                            <td>{{ p.get_status_display }}</td>
+                            <td class="align-middle text-center">
+                                <button type="button" name="stock_up" id="stock_up" class="btn btn-info">Aceptar Guia
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mr-3">
+        <div class="card-body ">
+            <div class="card-group">
+                <div class="card">
+                    <div class="card-header text-uppercase text-center text-white bg-dark"
+                    >Detalle de guia
+                    </div>
+                    <div class="card-body p-0 " id="programming-receive">
+                        {% include "comercial/programming_receive_detail.html" %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .tableFixHead {
+            overflow-y: auto;
+            height: 100px;
+        }
+        .tableFixHead thead th {
+            position: sticky;
+            top: 0;
+        }
+        .tableFixHead table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .tableFixHead th, td {
+            padding: 8px 16px;
+        }
+        .tableFixHead th {
+            background: #343a40;
+        }
+    </style>
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+
+        $(document).on('click', '#data-grid-programming tbody tr', function () {
+            cleanbg();
+            $(this).addClass("bg-primary");
+            $.ajax({
+                url: '/comercial/programming_receive_by_sucursal_detail_guide/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'programming': $(this).attr("pk")},
+                success: function (response, textStatus, xhr) {
+                    console.log(response);
+                    if (xhr.status === 200) {
+                        $('#programming-receive').html(response.grid);
+                        {#toastr.success('guias recogidas' + response.details, '¡Bien hecho!');#}
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡ERROR!');
+                    }
+                }
+            });
+        });
+
+        function cleanbg() {
+            $("#data-grid-programming tbody tr").removeClass("bg-primary");
+            {#$("#data-grid-programming tbody tr").css({'background-color': 'inherit'});#}
+        }
+
+        function validateDetails() {
+            let response = true;
+            $("#details tr").each(function () {
+                let value = $(this).find("td select.get-stock").val();
+                if (value === '0') {
+                    response = false;
+                }
+            });
+            return response;
+        }
+
+        $(document).on('click', '#stock_up', function () {
+
+            let r = confirm("¿Desea Actualizar los almacenes?");
+            if (r === true) {
+
+                if (validateDetails()) {
+                    let programming = {
+                        "Details": [],
+                        "id_programming": $('#data-grid-programming tbody tr[class="bg-primary"]').attr('pk'),
+                    };
+                    $("#details tr").each(function () {
+                        var detailObj = {
+                            "detail_id": $(this).attr('id_detail'),
+                            "Product": $(this).attr('ip'),
+                            "Quantity": $(this).find("td.quantity").text(),
+                            "Unit": $(this).find("td.unit").text(),
+                            "Type": $(this).find('td.type').attr('_type'),
+                            "Store": $(this).find("td select.get-stock").val()
+
+                        };
+                        programming.Details.push(detailObj);
+
+                    });
+
+                    $.ajax({
+                        url: '/comercial/update_stock_from_programming/',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        data: {'programming': JSON.stringify(programming)},
+                        contentType: 'application/json;charset=UTF-8',
+                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                        success: function (response) {
+                            if (response.message) {
+                                {#let parse = JSON.parse(response);#}
+                                toastr.success(response.message, '¡Bien hecho!');
+                                {#$('#tab-two').html(response.grid);#}
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 500);
+                            }
+                        },
+                        error: function (response) {
+                            toastr.error("Error. ", '¡errorcito!');
+                        }
+                    });
+                } else {
+
+                    alert('seleccione los productos a actualizar.')
+                    return false;
+                }
+
+            }
+        });
+    </script>
+{% endblock extrajs %}

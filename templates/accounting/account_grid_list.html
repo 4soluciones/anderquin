@@ -1,0 +1,61 @@
+{% if account_set %}
+    <table id="table-account-grid" class="table table-bordered">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>CODIGO</th>
+            <th>CUENTA</th>
+            <th>CATEGORIA</th>
+            <th>ENTIDADES</th>
+            <th>ACCION</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for a in account_set %}
+
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td class="text-black-50">{{ a.code }}</td>
+                <td class="text-primary font-weight-bold">{{ a.description|upper }}</td>
+                <td>{{ a.parent_code|default_if_none:"-" }}</td>
+                <td class="p-0">
+
+                    {% if a.cash_set.count > 0 %}
+                        <table class="table m-0">
+                            <tr>
+                                <td class="border-top-0 text-uppercase font-weight-bold">Nombre</td>
+                                <td class="border-top-0 text-uppercase font-weight-bold">Sede</td>
+                                <td class="border-top-0 text-uppercase font-weight-bold">Saldo inicial</td>
+                                <td class="border-top-0 text-uppercase font-weight-bold">Operaciones</td>
+                            </tr>
+                            {% for c in a.cash_set.all %}
+
+                                <tr class="subsidiary" pk="{{ c.subsidiary.id }}">
+                                    <td>{{ c.name }}</td>
+                                    <td>{{ c.subsidiary.name }}</td>
+                                    <td>{{ c.initial|floatformat:2 }}</td>
+                                    <td>
+                                        <button pk="{{ c.id }}"
+                                                type="button"
+                                                data-toggle="modal" data-target="#modal-entity"
+                                                class="btn btn-success entity-edit"> Editar</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% else %} -
+                    {% endif %}
+
+
+                </td>
+                <td>
+                    <a class="edit-account" pk="{{ a.id }}"><i class="fa fa-pencil-alt"></i></a>
+                </td>
+
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    Lo sentimos, no hay cuentas registradas</h1>
+{% endif %}

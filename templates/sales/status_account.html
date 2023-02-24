@@ -1,0 +1,137 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    4 Soluciones | Reporte de balones llenos
+{% endblock title %}
+
+{% block body %}
+
+
+    <div class="container mt-3">
+        <div class="card mb-3">
+            <div class="card-header">
+                <label class="col-form-label col-form-label-lg">Balones Llenos en Carros de Reparto</label>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered" id="content-balls">
+                    <thead>
+                    <tr class="text-white text-uppercase  text-center">
+                        <td class="bg-secondary">Nro</td>
+                        <td class="bg-secondary">Conductor</td>
+                        <td class="bg-secondary">Placa</td>
+                        <td class="bg-secondary">BALON DE 5KG</td>
+                        <td class="bg-secondary">BALON DE 10KG</td>
+                        <td class="bg-secondary">BALON DE 15KG</td>
+                        <td class="bg-secondary">BALON DE 45KG</td>
+                        {#                <td class="bg-dark">balones llenos</td>#}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for key, value in pilot_dict.items %}
+                        <tr>
+                            <td class="align-middle text-center">{{ value.pilot_id }}</td>
+                            <td class="align-middle text-center">{{ value.pilot_names }}</td>
+                            <td class="align-middle text-center">{{ value.license_plate }}</td>
+                            <td class="align-middle text-center">{{ value.sum_ball_5|safe|floatformat:0 }}</td>
+                           <td class="align-middle text-center">{{ value.sum_ball_10|safe|floatformat:0 }}</td>
+                            <td class="align-middle text-center">{{ value.sum_ball_15|safe|floatformat:0 }}</td>
+                            <td class="align-middle text-center">{{ value.sum_ball_45|safe|floatformat:0 }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="">
+                        <td class="align-middle text-center bg-info text-white" colspan="3" rowspan="2">SUMA TOTAL</td>
+                        <td class="align-middle text-center bg-info text-white">{{ acm_sum_5|safe|floatformat:0 }}</td>
+                        <td class="align-middle text-center bg-info text-white">{{ acm_sum_10|safe|floatformat:0 }}</td>
+                        <td class="align-middle text-center bg-info text-white">{{ acm_sum_15|safe|floatformat:0 }}</td>
+                        <td class="align-middle text-center bg-info text-white">{{ acm_sum_45|safe|floatformat:0 }}</td>
+                    </tr>
+                    <tr class="">
+                        <td class="align-middle text-center bg-info text-white"
+                            colspan="4">{{ sum_total|safe|floatformat:0 }}</td>
+                    </tr>
+                    </tfoot>
+
+                </table>
+
+            </div>
+        </div>
+
+        {#<div id="elementH"></div>#}
+        <div class="card">
+            <div class="card-header">
+                <label class="col-form-label col-form-label-lg">Estado de cuentas de clientes</label>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered" id="status-clients">
+                    <thead>
+                    <tr class="text-center text-uppercase">
+                        <td class="bg-secondary text-white">Nro</td>
+                        <td class="bg-secondary text-white">Cliente</td>
+                        <td class="bg-warning text-dark">PAGO FALTANTE (EFECTIVO)</td>
+                        <td class="bg-dark text-white">CANTIDAD FALTANTE (FIERROS)</td>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for key, value in client_dict.items %}
+                        <tr>
+                            <td class="align-middle text-center">{{ value.client_id }}</td>
+                            <td class="align-middle text-center">{{ value.client_names }}</td>
+                            <td class="align-middle text-center bg-warning text-dark">{{ value.sum_total_remaining_repay_loan|safe|floatformat:2 }}</td>
+                            <td class="align-middle text-center bg-dark text-white">{{ value.sum_total_remaining_return_loan|floatformat:0 }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="">
+                        <td class="align-middle text-center" colspan="2">SUMA TOTAL</td>
+                        <td class="align-middle text-center bg-warning text-dark">{{ summary_sum_total_remaining_repay_loan }}</td>
+                        <td class="align-middle text-center bg-dark text-white">{{ summary_sum_total_remaining_return_loan|safe|floatformat:0 }}</td>
+                    </tr>
+                    </tfoot>
+
+                </table>
+
+            </div>
+        </div>
+
+
+    </div>
+{% endblock body %}
+
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        function refreshTable() {
+            $('#content-balls, #status-clients').DataTable({
+                "order": [[0, "asc"]],
+                "language": language,
+                {#"pageLength": 100,#}
+                "searching": false,
+                paging: false,
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'excel',
+                    /*{
+                        extend: 'pdfHtml5',
+                        {#orientation: 'landscape',#}
+                        pageSize: 'A4',
+                        download: 'open'
+                    },*/
+                    {
+                        text: 'PDF',
+                        action: function (e, dt, node, config) {
+                            window.open("{% url 'sales:pdf_get_orders_for_status_account' %}", '_blank');
+                        }
+                    }
+                ]
+            }).draw();
+        }
+
+        refreshTable();
+
+
+    </script>
+{% endblock extrajs %}

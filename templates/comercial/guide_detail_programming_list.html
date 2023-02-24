@@ -1,0 +1,91 @@
+<div class="card-group">
+    <div class="card col-sm-2 p-0">
+        <div class="card-body">
+
+
+                <div class="col-sm-12 pr-1 pl-2">
+                    <p class="card-text text-center">Fecha de Inicio:</p>
+                    <input type="date" class="form-control" id="start_date" name="start_date"
+                           value="{{ date }}" required>
+                </div>
+                <br>
+                <div class="col-sm-12 pr-1 pl-2">
+                    <p class="card-text text-center">Fecha de Fin</p>
+                    <input type="date" class="form-control" id="end_date" name="end_date"
+                           value="{{ date }}" required>
+                </div>
+                <div class="col-sm-12">
+                    <p class="card-text">&nbsp;</p>
+                    <button type="submit" id="btn-search" class="btn btn-primary btn-block">Buscar
+                    </button>
+                </div>
+
+        </div>
+    </div>
+    <div class="card col-sm-10 p-0 table-responsive" id="guide-grid" style="height: 300px">
+        <table id="guide-data-grid" class="table table-bordered table-sm">
+            <thead>
+            <tr class="bg-light text-dark text-center" style="height: 50px;">
+                <th scope="col" class="align-middle">#</th>
+                <th scope="col" class="align-middle">Unidad</th>
+                <th scope="col" class="align-middle">Conductores</th>
+                <th scope="col" class="align-middle">Fechas</th>
+                <th scope="col" class="align-middle">Origen</th>
+                <th scope="col" class="align-middle">Turno</th>
+                <th scope="col" class="align-middle">Guías</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for p in programmings %}
+                <tr pk="{{ p.id }}">
+                    <th scope="row" style="height: 20px;">{{ p.id }}</th>
+                    <td>
+                        <strong>Tracto: </strong>{{ p.truck.license_plate }} <br>
+                        <strong>Remolque: </strong> {{ p.towing.license_plate }} </td>
+                    <td>
+                        {% for se in p.setemployee_set.all %}
+                            {% if se.function == 'P' %}
+                                <strong>Piloto: </strong>{{ se.employee.paternal_last_name }}
+                                {{ se.employee.maternal_last_name|slice:":1" }},
+                                {{ se.employee.names }}
+                            {% else %}
+                                <br>
+                                {% if se.function == 'C' %}
+                                    <strong>Copiloto: </strong>{{ se.employee.paternal_last_name }}
+                                    {{ se.employee.maternal_last_name|slice:":1" }},
+                                    {{ se.employee.names }}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <strong>Fecha Salida: </strong>{{ p.departure_date|date:"SHORT_DATE_FORMAT" }}<br>
+                        <strong>Fecha Llegada: </strong>{{ p.arrival_date|date:"SHORT_DATE_FORMAT" }}<br>
+                    </td>
+                    <td>
+                        {% for r in p.route_set.all %}
+                            {% if r.type == 'O' %}
+                                <strong>Origen: </strong> {{ r.subsidiary.name }}
+                            {% else %}
+                                <br>
+                                {% if r.type == 'D' %}
+                                    <strong>Destino: </strong> {{ r.subsidiary.name }}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>{{ p.order }} </td>
+                    <td>
+                        <strong>Serie: </strong> {{ p.guide_set.all.first.serial }}<br>
+                        <strong>Código: </strong> {{ p.guide_set.all.first.code }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+</script>

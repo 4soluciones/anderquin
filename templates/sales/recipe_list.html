@@ -1,0 +1,403 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Orden de Produccion
+{% endblock title %}
+
+{% block body %}
+
+    <div class="row ml-0 mt-2 mb-2">
+        <div class="col-sm-12 p-0">
+            <div class="card">
+                <div class="card-body text-center font-weight-bolder pb-1">
+                    <h2>ORDEN DE PRODUCCIÓN</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-group">
+        <div class="card" style="flex-grow: 3">
+            <div class="card-header text-center font-weight-bold">
+                REGISTRAR NUEVA ORDEN DE PRODUCCIÓN
+            </div>
+            <div class="card-body pb-1">
+
+                {% if context.flag %}
+
+                    <table class="table table-sm text-uppercase small">
+                        <tr>
+                            <th class="border-top-0 align-middle text-center" style="width: 5%">Orden:</th>
+                            <td class="border-top-0" style="width: 10%">
+                                <input type="text" class="form-control form-control-sm"
+                                       id="id_nro" name="id_nro">
+                            </td>
+                            <th class="border-top-0 align-middle text-center p-0" style="width: 5%">
+                                <label class="text-uppercase m-0 p-0">Fecha:</label>
+                            </th>
+                            <td class="border-top-0 align-middle text-center" style="width: 20%">
+                                <input type="text" class="form-control form-control-sm" id="hour" value="{{ date }}"
+                                       placeholder="Fecha" readonly="true">
+                            </td>
+                            <th class="border-top-0 align-middle text-center p-0" style="width: 10%">
+                                <label class="text-uppercase m-0">Responsable:</label>
+                            </th>
+                            <td class="border-top-0 align-middle text-center" style="width: 30%">
+                                <input type="text" class="form-control form-control-sm text-center"
+                                       id="id_user" name="id_user" value="{{ user.worker_set.last.employee.full_name }}"
+                                       readonly>
+                            </td>
+                            <td class="border-top-0" style="width: 10%">
+                                <button class="btn btn-success btn-sm btn-block" id="undone-recipe">
+                                    Deshacer
+                                </button>
+                            </td>
+                            <td class="border-top-0" style="width: 10%">
+                                <button class="btn btn-success btn-sm btn-block" id="save-order-production">
+                                    Guardar
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table class="table table-sm text-uppercase small mt-3">
+                        <tr>
+                            <td class="border-top-0 mt-2 align-middle" colspan="2" style="width: 80%">Producto:</td>
+                            <td class="border-top-0 mt-2 align-middle text-center" colspan="2" style="width: 10%">
+                                Cantidad a
+                                Fabricar:
+                            </td>
+                            <td class="border-top-0 mt-2 align-middle text-center" colspan="2" style="width: 10%">
+                                Acción:
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="border-top-0 pb-2" colspan="2">
+                                <select id="id_product" name="id_product" class="form-control form-control-sm">
+                                    <option selected value="0">Seleccione...</option>
+                                    {% for p in products_insume %}
+                                        <option value="{{ p.id }}">{{ p.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td class="border-top-0 pb-2" colspan="2">
+                                <input type="text" class="form-control form-control-sm"
+                                       id="id_quantity"
+                                       name="id_quantity">
+                            </td>
+                            <td class="border-top-0" colspan="2">
+                                <button class="btn btn-success btn-sm btn-block" id="add-product">
+                                    Agregar
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table id="data-grid-recipe"
+                           class="table table-bordered text-uppercase text-black-50 small font-weight-bold m-0 border-0">
+                        <thead>
+                        <tr class="text-center text-white bg-secondary" style="height: 50px;">
+                            <th scope="col" class="align-middle border-0">#</th>
+                            <th scope="col" class="align-middle border-0">Producto</th>
+                            <th scope="col" class="align-middle border-0">Cantidad</th>
+                            <th scope="col" class="align-middle border-0">Precio Unitario</th>
+                            <th scope="col" class="align-middle border-0">Total</th>
+                            <th scope="col" class="align-middle border-0">Eliminar</th>
+                        </tr>
+                        </thead>
+                        <tbody id="order-details"></tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="6" class="border-0 pr-3">
+                                <label for="sum-total">TOTAL : S/</label>
+                                <input type="text" class="form-control form-control-sm" id="sum-total"
+                                       name="sum-total"
+                                       placeholder="">
+                            </th>
+                        </tr>
+                        </tfoot>
+                    </table>
+
+
+
+                {% else %}
+
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header text-center">
+                                <h5 class="modal-title">Advertencia de Orden de Producción:</h5>
+                            </div>
+                            <div class="modal-body text-center">
+                                <p class="font-weight-bold">Existe una orden pendiente Nro: </p>
+                                <h3>{{ context.code }}</h3>
+                            </div>
+                            <div class="modal-footer" style="justify-content: center;">
+                                <a href="{% url 'sales:orders_manufacture' %}" class="btn btn-danger">Ver Orden</a>
+                            </div>
+                        </div>
+                    </div>
+
+                {% endif %}
+            </div>
+
+
+        </div>
+
+        <div class="card" style="flex-grow: 2">
+
+            <div class="card-header text-center font-weight-bold">
+                DETALLE DE PRODUCCIÓN
+            </div>
+
+            <div class="card-body " id="details"></div>
+
+        </div>
+
+        <div class="card" style="flex-grow: 1">
+
+            <div class="card-header text-center font-weight-bold">
+                STOCK DE INSUMOS
+            </div>
+
+            <div class="card-body pb-1">
+
+
+                <table class="table table-sm text-uppercase small table-bordered table-insumes">
+                    <thead>
+                    <tr class="text-center text-white bg-secondary" style="height: 50px;">
+                        <th class="border-top-1 align-middle text-center p-0">
+                            <label class="text-uppercase m-0">ID</label>
+                        </th>
+                        <th class="border-top-1 align-middle text-center p-0">
+                            <label class="text-uppercase m-0">Insumos</label>
+                        </th>
+                        <th class="border-top-1 align-middle text-center p-0">
+                            <label class="text-uppercase m-0">Stock en Almacen</label>
+                        </th>
+                        <th class="border-top-1 align-middle text-center p-0">
+                            <label class="text-uppercase m-0">Stock restante</label>
+                        </th>
+                        <th class="border-top-1 align-middle text-center p-0" style="display: none">
+                            <label class="text-uppercase m-0">id del producto creado</label>
+                        </th>
+                        <th class="border-top-1 align-middle text-center p-0" style="display: none">
+                            <label class="text-uppercase m-0">cantidades del producto creado</label>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody class="store-inputs">
+                    {% for i in inputs %}
+                        <tr product="{{ i.id }}">
+                            <td class="font-weight-bold text-dark">{{ i.id }}</td>
+                            <td>{{ i.name }}</td>
+                            <td class="stock-static text-success round2Fixed">{% for ps in i.productstore_set.all %}
+                                {% if my_subsidiary_store.id == ps.subsidiary_store.id %}{{ ps.stock }}
+                                {% endif %}{% endfor %}</td>
+                            <td class="stock text-danger text-right font-weight-bold ">
+                                {% for ps in i.productstore_set.all %}
+                                    {% if my_subsidiary_store.id == ps.subsidiary_store.id %}<span class="round2Fixed">{{ ps.stock }}</span><br>{% if i.id == 9 %}({{ps.conversion_mml_g_stock|floatformat:2}} gl){% else %}{% endif %}
+                                {% endif %}{% endfor %}
+                            </td>
+                            <td class="request text-primary font-weight-bold" style="display: none">0</td>
+                            <td class="quantities text-primary font-weight-bold" style="display: none">0</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+
+                </table>
+
+            </div>
+        </div>
+
+    </div>
+
+
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+        let _product_id = 0;
+        round2Fixed();
+
+        $('#id_product').select2({
+            theme: 'bootstrap4',
+        });
+        $('#id_product').on('select2:select', function (e) {
+            let data = e.params.data
+            _product_id = data['id']
+        });
+
+        // eliminar un detalle segun id producto
+        function deleteItem($id) {
+
+            addStock($id); /*FUNCION PARA AGREGAR LOS STOCK*/
+            $('#order-details').find('tr[pk="' + $id + '"]').remove();
+            calculateTotal();
+        }
+
+        $("#undone-recipe").click(function () {
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        });
+
+
+        $("#add-product").click(function () {
+
+            let _product_id = $('#id_product option:selected').val();
+            let _quantity = $('#id_quantity').val();
+            let _product_name = $('#id_product option:selected').text();
+            if ($("#order-details tr[pk=" + _product_id + "]").length) {
+                toastr.warning("Producto ya seleccionado, seleccione otro. ", '¡Inconcebible!');
+                return false;
+            }
+            $.ajax({
+                url: '/sales/get_price_and_total_by_product_recipe/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': _product_id, 'quantity': _quantity},
+                success: function (response) {
+
+                    $('#id_quantity').val('');
+                    let _price = JSON.parse(response['price_unit']);
+                    let _total = JSON.parse(response['total']);
+                    $('#order-details').append(
+                        '<tr pk="' + _product_id + '">' +
+                        '<td class="align-middle text-center p-0 item_product text-primary font-weight-bold">' + _product_id + '</td>' +
+                        '<td class="align-middle text-center p-0">' + _product_name + '</td>' +
+                        '<td class="align-middle text-center p-0 item_quantity font-weight-bold table-success text-success">' + _quantity + '</td>' +
+                        '<td class="align-middle text-center p-0 item-price">' + _price.toFixed(2) + '</td>' +
+                        '<td class="align-middle text-center p-0 item_total">' + _total.toFixed(2) + '</td>' +
+                        '<td class="text-center p-0">' +
+                        '<button type =button onclick="showItems(' + _product_id + ', ' + _quantity + ')" class="btn btn-secondary"><i class="fa fa-eye"></i></button>' +
+                        '<button type =button onclick="deleteItem(' + _product_id + ')" class="btn btn-danger"><i class="fa fa-trash"></i></button>' + '</td>' +
+                        '</tr>'
+                    );
+                    showItems(_product_id, _quantity);
+                    calculateTotal();
+                }
+            });
+
+        });
+
+
+        function showItems($id, $q) {
+            $.ajax({
+                url: '/sales/get_stock_insume_by_product_recipe/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': $id, 'quantity': $q},
+                success: function (response) {
+                    $('#details').html(response.grid)
+                }
+            });
+        }
+
+
+        function calculateTotal() {
+            let sum = 0;
+            $('#order-details tr td.item_total').each(function () {
+                sum = sum + parseFloat($(this).text());
+            });
+
+            $('#sum-total').val(sum.toFixed(2));
+        }
+
+
+        function hasRowDetails() {
+            let _response = false;
+            if ($("#order-details tr").length > 0) {
+                _response = true;
+            }
+            return _response;
+        }
+
+
+        $('#save-order-production').click(function () {
+
+            //comprobar si hay rojos en las filas
+            if ($('#order-details tr').hasClass('table-danger')) {
+                toastr.warning("Falta insumos para algunos productos, favor de revisar. ", '¡Inconcebible!');
+                return false;
+
+            }  //comprobar si insertaron numero de comprobante
+            if ($('#id_nro').val() == '') {
+                toastr.warning("Favor de ingresar un numero de orden. ", '¡Inconcebible!');
+                $('#id_nro').focus();
+                return false;
+            }
+
+            //comprobar si hay un producto seleccionado
+            if ($('#id_product option:selected').val() == 0) {
+                toastr.warning("Elija un Producto a Crear porfavor!", '¡Inconcebible!');
+                $('#create_product').focus();
+                return false;
+            }
+            //comprar si hay filas en los detalles
+            if (hasRowDetails() == false) {
+                toastr.warning("Elija los insumos necesarios porfavor!", '¡Inconcebible!');
+                return false;
+            }
+
+            let production = {
+                "Details": [],
+                "Code": $('#id_nro').val(),
+                "Total": $('#sum-total').val(),
+            };
+            //recorre cada detalle de producto a fabricar
+
+            $("#order-details tr").each(function () {
+                let detailObj = {
+                    "Product": $(this).attr('pk'),
+                    "Quantity": $(this).find("td.item_quantity").text(),
+                    "Price": $(this).find("td.item-price").text(),
+                };
+                production.Details.push(detailObj);
+
+            });
+            console.log(JSON.stringify(production));
+
+            $.ajax({
+                url: '/sales/create_order_manufacture/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'production': JSON.stringify(production)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    console.log(response);
+                    if (xhr.status == 200) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error("Error. ", '¡Inconcebible!');
+                }
+            });
+
+        });
+
+
+        function round2Fixed() {
+            $('.round2Fixed').each(function () {
+                $(this).text(parseFloat($(this).text()).toFixed(2));
+                $(this).addClass('text-right font-weight-bold');
+            });
+
+        }
+
+
+
+    </script>
+
+
+{% endblock extrajs %}

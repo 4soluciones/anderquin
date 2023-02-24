@@ -1,0 +1,164 @@
+<div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    <div class="modal-content">
+        <div class="modal-header  bg-info">
+            <h5 class="modal-title  text-white">Ventas reparto</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="card-group">
+                <div class="card col-sm-9" style="flex-grow: 2">
+                    <div class="card-header">C1</div>
+                    <div class="card-body">
+                        <div class="card-group">
+                            <div class="card">
+                                <div class="card-header">C11</div>
+                                <div class="card-body">
+                                     <table class="table table-sm text-uppercase small align-right">
+                                        <tr class="align-right">
+                                            <td class="border-top-0 align-middle text-right p-0"
+                                                style="width: 10%">
+                                                <input type="radio"
+                                                       aria-label="Radio button for following text input" id="radio1"
+                                                       name="radio">
+                                            </td>
+                                            <td class="border-top-0 align-middle text-right p-0"
+                                                style="width: 15%">Nº DOC:
+                                            </td>
+                                            <td class="border-top-0 custom-control-inline" for="customCheck1"
+                                                style="width: 75%">
+                                                <select id="id_client" name="id_client"
+                                                        class="form-control form-control-sm"
+                                                        aria-selected="Text input with radio button">
+                                                    <option selected value="0">Seleccione...</option>
+                                                    {% for client in client_set %}
+                                                        <option value="{{ client.id }}">{{ client.clienttype_set.first.document_number }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="border-top-0 align-middle text-right p-0"
+                                                style="width: 10%">
+                                                <input type="radio"
+                                                       aria-label="Radio button for following text input" id="radio2"
+                                                       name="radio"
+                                                       checked="checked">
+                                            </td>
+                                            <td class="border-top-0 align-middle text-right" style="width: 20%">Nombre /
+                                                Razón
+                                                Social:
+                                            </td>
+                                            <td class="border-top-0">
+                                                <select id="id_client_name" name="id_client_name"
+                                                        class="form-control form-control-sm"
+                                                        aria-selected="Text input with radio button">
+                                                    <option selected value="0">Seleccione...</option>
+                                                    {% for client in client_set %}
+                                                        <option value="{{ client.id }}">{{ client.names }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">
+                                                <label for="transaction_payment_type">PAGO</label>
+                                                <div class>
+                                                    <select id="transaction_payment_type"
+                                                            class="form-control form-control-sm">
+                                                        {% for item in choices_payments %}
+
+                                                            <option value="{{ item.0 }}">{{ item.1 }}</option>
+
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <label for="code-operation">MONTO</label>
+                                                <input type="text" class="form-control form-control-sm"
+                                                       id="code-operation"
+                                                       placeholder=""></td>
+
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-header">C12</div>
+                                <div class="card-body">
+                                    <table class="table">
+                                        <tr>
+                                            <td>Producto</td>
+                                            <td>
+                                                <select id="id-product" class="form-control form-control-sm">
+                                                    {% for p in product_set %}
+                                                        <option value="{{ p.id }}">{{ p.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Cantidad</td>
+                                            <td>
+                                                <input type="text" class="form-control form-control-sm" id="id-quantity"
+                                                       placeholder="Cantidad">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Precio</td>
+                                            <td>
+                                                <input type="text" class="form-control form-control-sm" id="id-price"
+                                                       placeholder="Precio">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">
+                                                <button type="button" class="btn btn-info">
+                                                    Agregar venta
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">C13</div>
+                            <div class="card-body"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card col-sm-3" style="flex-grow: 1">
+                    <div class="card-header">C2</div>
+                    <div class="card-body"></div>
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-header">C3</div>
+                <div class="card-body">
+                    <div class="card-group">
+                        <div class="card" style="flex-grow: 1">
+                            <div class="card-header">C31</div>
+                            <div class="card-body"></div>
+                        </div>
+                        <div class="card" style="flex-grow: 1">
+                            <div class="card-header">C32</div>
+                            <div class="card-body"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer"> &nbsp;
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button> &nbsp;
+            <button id="save-return" type="button" class="btn btn-primary">Registrar</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+</script>

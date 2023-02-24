@@ -1,0 +1,68 @@
+{% extends 'home.html' %}
+{% block title %}
+    Report | Compra GLP
+{% endblock title %}
+{% block body %}
+    <div class="container-fluid">
+        <div class="card-header text-left mt-2 mb-1 p-1" style="background: #3267b8">
+            <div class="form-inline mt-1 mb-1 p-0">
+                <table>
+                    <tr>
+                        <td class="pl-2 pr-2 text-white">Fecha inicial</td>
+                        <td class="pl-2 pr-2"><input type="date" class="form-control form-control-sm"
+                                                     id="id_date_initial"
+
+                                                     value="{{ date_now }}" required>
+                        </td>
+                        <td class="pl-2 pr-2 text-white">Fecha final</td>
+                        <td class="pl-2 pr-2"><input type="date" class="form-control form-control-sm" id="id_date_final"
+
+                                                     value="{{ date_now }}" required>
+                        </td>
+                        <td class="pl-2 pr-2">
+                            <button type="button" id="id_btn_show"
+                                    class="btn btn-sm btn-danger btn-block"> MOSTRAR REPORTE
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div id="container-graphic-purchase-glp"></div>
+        <div id="container-graphic-purchase-glp1"></div>
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+        $("#id_btn_show").click(function () {
+            if ($("#id_date_initial").val() != '' && $("#id_date_final").val() != '') {
+                $('#container-graphic-purchase-glp').empty();
+                $('#container-graphic-purchase-glp1').empty();
+                let pk = 1;
+                let dates = {
+                    "date_initial": $('#id_date_initial').val(),
+                    "date_final": $('#id_date_final').val(),
+                };
+                $.ajax({
+                    url: '/buys/get_report_graphic_glp/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'pk': pk, 'dates': JSON.stringify(dates),},
+                    contentType: 'application/json;charset=UTF-8',
+                    {#headers: {"X-CSRFToken": '{{ csrf_token }}'},#}
+                    success: function (response) {
+                        $('#container-graphic-purchase-glp').html(response.form);
+                        $('#container-graphic-purchase-glp1').html(response.forms);
+                    },
+                    error: function (response) {
+                        toastr.error("PROBLEMAS AL MOSTRAR EL REPORTE", '¡MENSAJE!');
+                    }
+                });
+
+            }
+        });
+    </script>
+{% endblock extrajs %}

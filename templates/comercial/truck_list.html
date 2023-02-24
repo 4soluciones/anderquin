@@ -1,0 +1,73 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Datos del Tracto
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid">
+
+        <a class="btn btn-outline-info mb-3 mt-3" href="{% url 'comercial:truck_create' %}">
+            <i class="fas fa-user-plus"></i> &nbsp;NUEVO TRACTO
+        </a>
+        {% if trucks %}
+
+            <div class="card">
+
+                <div class="card-header">
+                    <h5 class="card-title">Lista de tractos</h5>
+                    <h6 class="card-subtitle text-muted">Highly flexible tool that many advanced features to any HTML
+                        table.</h6>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="table-responsive dataTables_wrapper ">
+                        <table id="truck-data-grid" class="table table-bordered" cellspacing="0" width="100%">
+                            <thead>
+                            <tr class="text-center">
+                                <th>#</th>
+                                <th class="th-sm">Placa</th>
+                                <th class="th-sm">Modelo</th>
+                                <th class="th-sm">Telefono de Contactos</th>
+                                <th class="th-sm">Editar</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for truck in trucks %}
+                                <tr class="text-center">
+                                    <td>{{ truck.id }}</td>
+                                    <td>{{ truck.license_plate }}</td>
+                                    <td>{{ truck.truck_model }}</td>
+                                    <td>{{ truck.contact_phone }}</td>
+                                    <td>
+                                        <a href="{% url 'comercial:truck_update' truck.id %}" class="btn btn-outline-info">Editar</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                            <tfoot>
+                            <tr class="text-center">
+                                <th>#</th>
+                                <th class="th-sm">Placa</th>
+                                <th class="th-sm">Modelo</th>
+                                <th class="th-sm">Telefono de Contactos</th>
+                                <th class="th-sm">Editar</th>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <h1>No existen tractos registrados</h1>
+        {% endif %}
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+        $('#truck-data-grid').dataTable();
+    </script>
+{% endblock extrajs %}

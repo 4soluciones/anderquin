@@ -1,0 +1,73 @@
+{% load static %}
+{% load operations %}
+<table class="table table-sm align-content-center table-bordered tbl-current-stock-requirement">
+    <thead class="">
+        <tr class="text-white" style="background: #3a73c8; font-size: 13px;">
+            <td class="text-center ">N</td>
+            <td class="text-center">NUMERO FACTURA</td>
+            <td class="text-center">FECHA APROBACION</td>
+{#            <td class="text-center">TOTAL MES</td>#}
+            <td class="text-center">CANTIDAD SOLICITADA</td>
+            <td class="text-center">CANTIDAD RETIRADA</td>
+            <td class="text-center">CANTIDAD RESTANTE</td>
+            <td class="text-center">PRECIO($)</td>
+            <td class="text-center">IMPORTE($)</td>
+            <td class="text-center">CAMBIO(PEN)</td>
+            <td class="text-center">PRECIO(S/)</td>
+            <td class="text-center">IMPORTE(S/)</td>
+        </tr>
+    </thead>
+    <tbody>
+    {% for r in requirements %}
+        <tr>
+              <td class="text-center">{{ r.id }}</td>
+              <td class="text-center">{{ r.invoice }}</td>
+              <td class="text-center">{{ r.approval_date|date:'d-M-Y' }}</td>
+
+{#              <td class="text-center" rowspan="{{ r.approval_date|get_count_mount:r.subsidiary.id }}">{{ r.approval_date|date:'d-M-Y' }}</td>#}
+              <td class="quantity-request text-right">{{ r.requirements_buys.first.quantity|floatformat:0|default:"0" }}</td>
+              <td class="quantity-sent text-right">{{ r.programminginvoice_set.first.calculate_total_quantity|floatformat:0|default:"0" }}</td>
+              <td class="quantity-remaining text-right"></td>
+              <td class="price-unit text-right">{{ r.requirements_buys.first.price|floatformat:2 }}</td>
+
+              <td class="text-right item-uno">{% if r.programminginvoice_set.first %}{{ r.requirements_buys.first.quantity|differences:r.programminginvoice_set.first.calculate_total_quantity|multiplication:r.requirements_buys.first.price|floatformat:2 }}{% else %} {{ r.requirements_buys.first.quantity|multiplication:r.requirements_buys.first.price|floatformat:2|default:"0.00" }} {% endif %}</td>
+
+              <td class="item-coin text-right">{{ r.requirements_buys.first.change_coin|floatformat:2 }}</td>
+              <td class="text-right">{{ r.requirements_buys.first.price_pen|floatformat:2 }}</td>
+
+              <td class="text-right item-dos">{% if r.programminginvoice_set.first %}{{ r.requirements_buys.first.quantity|differences:r.programminginvoice_set.first.calculate_total_quantity|multiplication:r.requirements_buys.first.price_pen|floatformat:2 }}{% else %} {{ r.requirements_buys.first.quantity|multiplication:r.requirements_buys.first.price_pen|floatformat:2|default:"0.00" }} {% endif %}</td>
+        </tr>
+
+    {% endfor %}
+    <tr class="total-row text-white text-right" style="background: #3a73c8; font-size: 13px;">
+        <td>TOTAL</td>
+        <td colspan="3" class="total-quantity">{{ requirements_total|floatformat:0 }} KG</td>
+        <td class="total-quantity-sent">{{ programming_invoice_total|floatformat:0 }} KG</td>
+        <td class="total-quantity-remaining">{{ total_difference|floatformat:0 }} KG</td>
+        <td class="">$ {{ total_price|floatformat:2 }}</td>
+        <td class="item-amount-total"></td>
+        <td class=""></td>
+        <td class="">S/. {{ total_price_pen|floatformat:2 }}</td>
+        <td class="item-amount-total_pen"></td>
+    </tr>
+    </tbody>
+</table>
+
+{#<table class="table table-sm align-content-center table-bordered tbl-current-stock-requirement-total">#}
+{#    <thead class="">#}
+{#        <tr class="text-white" style="background: #3a73c8; font-size: 13px;">#}
+{#            <td class="text-center ">N</td>#}
+{#            <td class="text-center">MES</td>#}
+{#            <td class="text-center">TOTAL</td>#}
+{#        </tr>#}
+{#    </thead>#}
+{#    <tbody>#}
+{#    {% for r in requirements %}#}
+{#        <tr>#}
+{#              <td class="text-center">{{ r.id }}</td>#}
+{#              <td class="text-center">{{ r.invoice }}</td>#}
+{#              <td class="text-center">{{ r.approval_date|date:'d-M-Y' }}</td>#}
+{#        </tr>#}
+{#    {% endfor %}#}
+{#    </tbody>#}
+{#</table>#}

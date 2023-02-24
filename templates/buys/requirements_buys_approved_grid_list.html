@@ -1,0 +1,178 @@
+{% load static %}
+{% load operations %}
+{% if requirements %}
+    <div class="card" style="border-color: #3768b1">
+        <div class="card-header text-center pb-1" style="background: #3a6cb8">
+            <h6 class="card-title text-white">LISTA DE REQUERIMIENTOS APROBADOS</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive dataTables_wrapper ">
+                <table id="requirement-data-grid" class="table table-sm table-primary  table-bordered" cellspacing="0"
+                       width="100%">
+                    <thead>
+                    <tr class="text-center text-white" style="background: #386ebf">
+                        <th class="p-1 align-middle font-weight-normal" style="width: 3%">N</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 64%">Detalle del
+                            requerimiento
+                        </th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 8%">Estado de pago</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 7%">Datos requerimiento</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 7%">Estado</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal" style="width: 11%">Empleado</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for requirement in requirements %}
+                        <tr class="text-center border-danger">
+                            <td class="align-middle">{{ requirement.id }}</td>
+                            <td class="p-0">
+                                <table class="table table-sm  align-content-center table-bordered small m-0 p-0"
+                                       id="id-table-details-requirement">
+                                    <thead>
+                                    <tr class="text-white" style="background: #3a70c3">
+                                        <td class="p-0 font-weight-normal" style="width: 4%">N</td>
+                                        <td class="p-0 font-weight-normal" style="width: 6%">Producto</td>
+                                        <td class="p-0 font-weight-normal" style="width: 9%">Factura</td>
+                                        <td class="p-0 font-weight-normal" style="width: 11%">Cantidad</td>
+                                        <td class="p-0 font-weight-normal" style="width: 8%">Unidad</td>
+                                        <td class="p-0 font-weight-normal" style="width: 10%">Precio($)</td>
+                                        <td class="p-0 font-weight-normal" style="width: 10%">Importe($)</td>
+                                        <td class="p-0 font-weight-normal" style="width: 8%">Moneda</td>
+                                        <td class="p-0 font-weight-normal" style="width: 10%">Cambio(PEN)</td>
+                                        <td class="p-0 font-weight-normal" style="width: 10%">Precio(S/)</td>
+                                        <td class="p-0 font-weight-normal" style="width: 10%">Importe(S/)</td>
+                                        <td class="p-0 font-weight-normal" style="width: 4%">Acción</td>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for dr in requirement.requirements_buys.all %}
+                                        <tr>
+                                            <td class="p-1">{{ dr.id }}</td>
+                                            <td class="p-1">{{ dr.product.name }}</td>
+                                            <td class="p-1 bg-warning">{{ requirement.invoice }}</td>
+                                            <td class="p-1">{{ dr.quantity|floatformat:0 }}</td>
+                                            <td class="p-1">{{ dr.unit.name }}</td>
+                                            <td class="p-1">{{ dr.price|floatformat:2 }}</td>
+                                            <td class="p-1">{{ dr.amount|floatformat:2 }}</td>
+                                            <td class="p-1">{{ dr.get_coin_display }}</td>
+                                            <td class="p-1 bg-warning">{{ dr.change_coin|floatformat:2 }}</td>
+                                            <td class="p-1">{{ dr.price_pen|floatformat:2 }}</td>
+                                            <td class="p-1">{{ dr.amount_pen|floatformat:2 }}</td>
+                                            <td class="p-1"><a type="button"
+                                                               class="btn btn-secondary btn-sm btn-block btn-payment text-white"
+                                                               data-toggle="modal"
+                                                               data-target="#modal-payment" pk="{{ dr.id }}">
+                                                Pagar</a></td>
+                                        </tr>
+
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+
+                                <div class="collapse loan-payment-{{ requirement.id }}">
+                                    <div class="card card-body p-0 m-0">
+                                        <table class="table table-sm m-0 p-0 table-bordered small">
+                                            <tr class="text-dark font-weight-bolder" style="background: #efbaa3;">
+                                                <td class="p-0">#</td>
+                                                <td class="p-0">Cantidad</td>
+                                                <td class="p-0">Producto</td>
+                                                <td class="p-0">Fecha de Pago</td>
+                                                <td class="p-0">Nombre Caja / Entidad</td>
+                                                <td class="p-0">Empleado</td>
+                                                <td class="p-0">Pago($)</td>
+                                            </tr>
+                                            {% for lp in requirement.requirements_buys.first.loanpayment_set.all %}
+                                                <tr class="text-dark" style="background: #ced4e5">
+                                                    <td>{{ lp.id }}</td>
+                                                    <td>{{ lp.quantity|floatformat:0 }}</td>
+                                                    <td>{{ lp.product.name }}</td>
+                                                    <td>{{ lp.operation_date|date:"d-m-y" }}</td>
+                                                    <td>{{ lp.get_cash_flow.cash.name }}</td>
+                                                    <td>{{ lp.get_cash_flow.user.worker_set.last.employee.full_name }}</td>
+                                                    {% if lp.get_cash_flow.cash.currency_type == 'D' %}
+                                                        <td class="font-weight-bolder">{{ lp.price|floatformat:2 }}</td>
+                                                    {% else %}
+                                                        <td class="font-weight-bolder"></td>
+                                                    {% endif %}
+                                                </tr>
+                                            {% endfor %}
+                                            <tfoot>
+                                            <tr class="text-center text-dark" style="background: #efbaa3">
+                                                <th colspan="5"
+                                                    class="th-sm align-middle p-1 font-weight-bolder text-right text-uppercase">
+                                                    Total Pagado:
+                                                </th>
+                                                <th class="th-sm align-middle p-1 font-weight-bolder">{{ requirement.sum_loan_payment_pen|floatformat:2 }}</th>
+                                                <th class="th-sm align-middle p-1 font-weight-bolder">{{ requirement.sum_loan_payment_dollar|floatformat:2 }}</th>
+                                            </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+
+                            </td>
+
+                            <td class="align-middle" style="font-size: 14px;">
+                                <span class="badge badge-success badge-pill p-2 ">
+                                    <a class="text-dark" data-toggle="collapse"
+                                       href=".loan-payment-{{ requirement.id }}"
+                                       role="button" aria-expanded="false"
+                                       aria-controls="loan-payment-{{ requirement.id }}">
+                                        VER
+                                    </a>
+                                </span>
+                                {% if requirement.status_pay == '2' %}
+                                    <span class="badge badge-success text-dark badge-pill p-2"><b>{{ requirement.get_status_pay_display }}</b></span>
+                                {% else %}
+                                    <span class="badge badge-warning badge-pill p-2"><b>{{ requirement.get_status_pay_display }}</b></span>
+                                {% endif %}
+                            </td>
+
+                            <td class="align-middle" style="font-size: 12px;">N° scop: {{ requirement.number_scop }}<br>
+                                Fecha: {{ requirement.approval_date|date:"d-m-Y" }}
+                            </td>
+                            <td class="text-success align-middle">
+                                <span class="badge badge-success badge-pill p-2"><b>{{ requirement.get_status_display }}</b></span>
+                            </td>
+                            <td class="align-middle">{{ requirement.user.worker_set.last.employee.full_name }}</td>
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center text-white" style="background: #386bb8">
+                        <th class="p-1 align-middle font-weight-normal">N</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal">Cantidad
+                            total={{ total_quantity|floatformat:2 }} Importe total =
+                            ($) {{ total_amount|floatformat:2 }} Importe total =
+                            (S/.) {{ total_amount_pen|floatformat:2 }}
+                        </th>
+                        <th class="th-sm align-middle p-1 font-weight-normal">Estado de pago</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal">Datos requerimiento</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal">Estado</th>
+                        <th class="th-sm align-middle p-1 font-weight-normal">Empleado</th>
+                    </tr>
+                    </tfoot>
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- Card -->
+    </div>
+
+
+{% else %}
+    <h1>No existen compras de GLP</h1>
+{% endif %}
+<script>
+    $('#requirement-data-grid').dataTable(
+        {
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.15/i18n/Spanish.json"
+            },
+
+        }
+    );
+</script>

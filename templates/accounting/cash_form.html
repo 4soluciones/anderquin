@@ -1,0 +1,48 @@
+<form class="needs-validation" id="cash-form" method="POST">
+
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label for="id-select-cash">Caja</label>
+
+        <select class="custom-select my-1 mr-sm-2" id="id-select-cash" name="select-cash" required>
+            <option value="" disabled selected>SELECCIONE...</option>
+
+            {% for c in only_cash_set %}
+                <option value="{{ c.pk }}">{{ c.name }}</option>
+            {% endfor %}
+
+        </select>
+
+
+        <div class="invalid-feedback">
+            Valid account name is required.
+        </div>
+    </div>
+
+
+    <div class="mb-3">
+        <label for="account-value">Saldo inicial/día anterior</label>
+        <input type="text" class="form-control" id="cash-amount" name="cash-amount" readonly>
+        <div class="invalid-feedback">
+            Valid value name is required.
+        </div>
+    </div>
+
+    <hr class="mb-4">
+
+    <div class="mb-3">
+        <label for="account-created">Fecha de registro</label>
+        <input type="date" class="form-control" id="cash-date" name="cash-date" placeholder="" value="{{ formatdate }}"
+               required="">
+        <div class="invalid-feedback">
+            Valid date is required.
+        </div>
+    </div>
+
+
+    <hr class="mb-4">
+    <button class="btn btn-primary btn-lg btn-block" type="submit" id="btn-save">Aperturar</button>
+</form>
+
+

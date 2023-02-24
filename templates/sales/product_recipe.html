@@ -1,0 +1,386 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Orden de Produccion
+{% endblock title %}
+
+{% block body %}
+    <div class="row mr-3 ml-0 mt-2">
+        <div class="col-sm-12 p-0">
+            <div class="card">
+                <div class="card-body text-center font-weight-bolder pb-1">
+                    <h2>CREACIÓN DE PRODUCTO</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-group">
+        <div class="card col-sm-6">
+            <div class="card-body ">
+                <table class="table table-sm table-bordered small font-weight-bolder text-uppercase">
+                    <tbody>
+                    <tr>
+                        <th class="align-middle text-center p-0" scope="row" style="width: 20%">
+                            <label class="m-0" for="surnames" class="text-uppercase">Producto a Crear :</label>
+                        </th>
+                        <td style="width: 50%">
+                            <select id="create_product" name="create_product"
+                                    class="form-control form-control-sm text-uppercase font-weight-bolder">
+                                <option selected value="0">Seleccione...</option>
+                                {% for p in products %}
+                                    <option value="{{ p.id }}">{{ p.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td style="width: 15%">
+                            <button class="btn btn-success float-right btn-sm btn-block" id="save-recipe">
+                                Guardar
+                            </button>
+                        </td>
+                        <td style="width: 15%">
+                            <button class="btn btn-success float-right btn-sm btn-block" id="undone-recipe">
+                                Deshacer
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="card col-sm-12 activate" style="display: none;">
+                    <div class="card-body p-0">
+                        <table class="table table-sm text-uppercase small">
+                            <thead>
+                            <tr>
+                                <td class="border-top-0 align-middle" colspan="2" style="width: 50%">Producto:</td>
+                                <td class="border-top-0 align-middle text-center" colspan="2" style="width: 10%">Cantidad:</td>
+                                <td class="border-top-0 align-middle text-center" colspan="2" style="width: 10%">Precio:</td>
+                                <td class="border-top-0 align-middle text-center" colspan="2" style="width: 15%">Unidad de medida:</td>
+                                <td class="border-top-0 align-middle text-center" colspan="2" style="width: 15%">Agregar:</td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td class="border-top-0" colspan="2">
+                                    <select id="id_product" name="id_product" class="form-control form-control-sm">
+                                        <option selected value="0">Seleccione...</option>
+                                        {% for p in products_insume %}
+                                            <option value="{{ p.id }}">{{ p.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td class="border-top-0" colspan="2">
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="id_quantity"
+                                           name="id_quantity">
+                                </td>
+                                <td class="border-top-0" colspan="2">
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="price_unit"
+                                           name="price_unit"
+                                           placeholder="Precio">
+                                </td>
+                                <td class="border-top-0" colspan="2">
+                                    <select id="id_unit" name="id_unit" class="form-control form-control-sm">
+                                        <option selected value="0">Seleccione...</option>
+                                    </select>
+                                </td>
+                                <td class="border-top-0" colspan="2">
+                                    <button class="btn btn-primary btn-block btn-sm add-product-recipe">
+                                        +
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="card col-sm-6">
+        <div class="card-body " id="">
+            <div class="card-header table-bordered  font-weight-bolder text-center">
+                INSUMOS NECESARIOS
+            </div>
+            <div class="card col-sm-12 p-0" id="guide-grid" style="height: 300px">
+                <table id="data-grid-programming"
+                       class="table table-bordered text-uppercase text-black-50 small font-weight-bold m-0 border-0">
+                    <thead>
+                    <tr class="text-center text-white bg-secondary" style="height: 50px;">
+                        <th scope="col" class="align-middle border-0">#</th>
+                        <th scope="col" class="align-middle border-0">Insumo</th>
+                        <th scope="col" class="align-middle border-0">Cantidad</th>
+                        <th scope="col" class="align-middle border-0">Unidad</th>
+                        <th scope="col" class="align-middle border-0">Price</th>
+                        <th scope="col" class="align-middle border-0">Total</th>
+                        <th scope="col" class="align-middle border-0">Accion</th>
+                    </tr>
+                    </thead>
+                    <tbody id="recipe-details">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card col-sm-6 p-0 ">
+        <div class="card-body pt-2 pb-3">
+            <table class="table table-sm text-uppercase small float-right mx-auto m-0" style="width: 200px">
+                <tbody>
+                <tr>
+                    <td class="border-0 pr-3">
+                        <label for="sum-total">TOTAL : S/</label>
+                        <input type="text" class="form-control form-control-sm" id="sum-total"
+                               name="sum-total"
+                               placeholder="">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <style>
+    span.select2-container{
+        {#width:100% !important;#}
+        {#text-align: center;#}
+    }
+    .select2-hidden-accessible { position: fixed !important; }
+    .page-content{
+        overflow-y: hidden !important;
+    }
+    </style>
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+
+        let _product_id = 0;
+        let _product_create_id = 0;
+
+        {#capturamos el producto creado#}
+        $('#create_product').select2({
+            theme: 'bootstrap4',
+        });
+
+        {#$('span.select2-container').css('width', '100% !important');#}
+
+        $('#create_product').on('select2:select', function (e) {
+            let data = e.params.data
+            _product_create_id = data['id']
+
+            if (_product_create_id != '0') {
+                $('.activate').slideDown();
+                $('#create_product').prop('disabled', true);
+            } else {
+                $('.activate').slideUp();
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        });
+
+        $("#undone-recipe").click(function () {
+            setTimeout(() => { location.reload(); }, 1000);
+        });
+
+        {#capturamos el producto insumo    #}
+
+        $('#id_product').select2({
+            theme: 'bootstrap4',
+        });
+
+        $('#id_product').on('select2:select', function (e) {
+            let data = e.params.data
+            _product_id = data['id']
+
+            $.ajax({
+                url: '/sales/get_unit_by_product/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': _product_id},
+                success: function (response) {
+                    console.log(response);
+                    $('#id_unit').empty();
+                    $('#id_quantity').val('');
+                    let units = JSON.parse(response['units_serial']);
+                    units.forEach(
+                        element =>
+                            $('#id_unit').append(
+                                '<option value="' + element['pk'] + '">' +
+                                element['fields']['name'] +
+                                '</option>')
+                    )
+                },
+                fail: function (response) {
+                    console.log("error");
+                }
+            });
+        });
+
+        // eliminar un detalle segun id producto
+        function deleteItem($id) {
+            $('#recipe-details').find('tr[pi="' + $id + '"]').remove();
+            calculateTotal();
+            {#counterStrike();#}
+        }
+
+        $("button.add-product-recipe").click(function () {
+
+
+            let _quantity = $('#id_quantity').val();
+            let _product_name = $('#id_product option:selected').text();
+            let _unit = $('#id_unit option:selected').text();
+            let _price = $('#price_unit').val();
+            let _total = parseInt(_quantity) * parseFloat(_price);
+            let _pu = $('#id_unit option:selected').val();
+
+            let _ip = $('#id_product option:selected').val();
+            console.log(_ip);
+
+            if (_quantity == ''){
+                alert("Ingrese cantidad Porfavor.")
+                return false;
+            }
+            else{
+                if (_ip =='0'){
+                    alert("Seleccione un Insumo Porfavor.")
+                    return false;
+                }
+            }
+
+            if ($('#recipe-details tr[pi="' + _product_id + '"]').length) {
+                alert('Producto ya seleccionado, seleccione otro.')
+                return false;
+            }
+
+            $('#recipe-details').append(
+                '<tr pk="' + _product_create_id + '" pi="' + _product_id + '">' +
+                '<td class="align-middle text-center p-0 item_insume">' + _product_id + '</td>' +
+                '<td class="align-middle text-center p-0">' + _product_name + '</td>' +
+                '<td class="align-middle text-center p-0 item_quantity">' + _quantity + '</td>' +
+                '<td class="align-middle text-center p-0 item-unit" pu="' + _pu + '">' + _unit + '</td>' +
+                '<td class="align-middle text-center p-0 item-price">' + _price + '</td>' +
+                '<td class="align-middle text-center p-0 item_total">' + _total.toFixed(2) + '</td>' +
+                '<td class="text-center p-0">' +
+                '<button type =button onclick="deleteItem(' + _product_id + ')" class="btn">' +
+                '<i class="fa fa-trash"></i>' +
+                '</button>' +
+                '</td>' +
+                '</tr>'
+            );
+            console.log(_product_id);
+            calculateTotal();
+        });
+
+        $(document).on('change', '#id_product', function () {
+            let _price_id = $(this).val();
+            if (_price_id != 0) {
+                $.ajax({
+                    url: '/sales/get_price_by_product/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'pk': $('#id_product').val()},
+                    success: function (response) {
+                        console.log(response);
+                        $('#price_unit').val(response.price_unit);
+                    },
+                    fail: function (response) {
+                        console.log("error");
+                    }
+                });
+            }
+        });
+
+        function calculateTotal() {
+
+            let sum = 0;
+            $('#recipe-details tr td.item_total').each(function () {
+                sum = sum + parseFloat($(this).text());
+            });
+            console.log(sum);
+
+            $('#sum-total').val(sum.toFixed(2));
+            {#console.log(sum_total);#}
+        }
+
+        function hasRowDetails() {
+            var _response = false;
+            if ($("#recipe-details tr").length > 0) {
+                _response = true;
+            }
+            return _response;
+        }
+
+        {#GUARDAR RECETA#}
+
+        $('#save-recipe').click(function () {
+
+            // Comprobar si hay un producto seleccionado
+            if ($('#create_product option:selected').val() == 0 && $('#id_product option:selected').val() == 0) {
+
+                alert("Elija un Producto a Crear porfavor!");
+                $('#create_product').focus();
+                return false;
+            }
+
+            // Comprobar si hay filas en los detalles
+            if (hasRowDetails() == false) {
+                alert("Elija los insumos necesarios porfavor!");
+                return false;
+            }
+
+            let recipe = {
+                "Details": [],
+                {#"Total": $('#sum-total').val(),                #}
+            };
+            {#recorre el detalle#}
+
+            $("#recipe-details tr").each(function () {
+                let recipeObj = {
+                    "ProductCreate": $(this).attr('pk'),
+                    "ProductoInsume": $(this).find("td.item_insume").text(),
+                    "Quantity": $(this).find("td.item_quantity").text(),
+                    "Unit": $(this).find("td.item-unit").attr('pu'),
+                    "Price": $(this).find("td.item-price").text(),
+                };
+                recipe.Details.push(recipeObj);
+
+            });
+
+            console.log(JSON.stringify(recipe));
+
+            $.ajax({
+                url: '/sales/create_recipe/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'recipe_dic': JSON.stringify(recipe)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    console.log(response);
+                    if (xhr.status == 200) {
+                        {#let parse = JSON.parse(response);#}
+                        toastr.success(response.message, '¡Bien hecho!');
+                        $('#tab-two').html(response.grid);
+                        setTimeout(() => { location.reload(); }, 1000);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error("Error. ", '¡Inconcebible!');
+                }
+            });
+        });
+
+
+    </script>
+
+{% endblock extrajs %}

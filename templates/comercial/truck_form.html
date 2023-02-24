@@ -1,0 +1,84 @@
+<table class="table table-sm text-uppercase small mt-3 mb-0">
+
+    <tr>
+        <td class="border-top-0 align-middle" colspan="5" rowspan="2">
+            <h4>{{ name }}</h4>
+        </td>
+        <td class="border-top-0" colspan="1">{{ form.license_plate.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.license_plate }}</td>
+        <td class="border-top-0" colspan="1">{{ form.year.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.year }}</td>
+
+    </tr>
+
+    <tr>
+        <td class="border-top-0" colspan="1">Marca</td>
+        <td class="border-top-0" colspan="1">
+
+            <select class="form-control" name="truck_brand" id="id_truck_brand">
+                <option value="">--</option>
+                {% for brand in brands %}
+                <option {% if object.truck_model.truck_brand.id == brand.id %}selected{% endif %} value="{{ brand.id }}">{{ brand.name }}</option>
+                {% empty %}
+                Lo sentimos, no hay marcas registradas.
+                {% endfor %}
+            </select>
+        </td>
+        <td class="border-top-0" colspan="1">Modelo</td>
+        <td class="border-top-0" colspan="1">
+
+            <select class="form-control" name="truck_model" id="id_truck_model">
+                <option value="">--</option>
+                {% for model in models %}
+                <option {% if object.truck_model.id == model.id %}selected{% endif %} value="{{ model.id }}"
+                data-chained="{{ model.truck_brand.id }}">{{ model.name }}</option>
+                {% empty %}
+                Lo sentimos, no hay modelos registrados.
+                {% endfor %}
+            </select>
+        </td>
+
+    </tr>
+
+    <tr>
+        <td class="border-top-0" colspan="1">{{ form.num_axle.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.num_axle }}</td>
+        <td class="border-top-0" colspan="1"></td>
+        <td class="border-top-0" colspan="1">{{ form.drive_type.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.drive_type }}</td>
+        <td class="border-top-0" colspan="1">{{ form.fuel_type.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.fuel_type }}</td>
+        <td class="border-top-0" colspan="1">{{ form.owner.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.owner }}</td>
+    </tr>
+    <tr>
+        <td class="border-top-0" colspan="1">{{ form.condition_owner.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.condition_owner }}</td>
+        <td class="border-top-0" colspan="1"></td>
+        <td class="border-top-0" colspan="1">{{ form.color.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.color }}</td>
+        <td class="border-top-0" colspan="1">{{ form.weight.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.weight }}</td>
+        <td class="border-top-0" colspan="1">{{ form.contact_phone.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.contact_phone }}</td>
+    </tr>
+    <tr>
+        <td class="border-top-0" colspan="1">{{ form.certificate.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.certificate }}</td>
+        <td class="border-top-0" colspan="1"></td>
+        <td class="border-top-0" colspan="1">{{ form.serial.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.serial }}</td>
+        <td class="border-top-0" colspan="1">{{ form.engine.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.engine }}</td>
+        <td class="border-top-0" colspan="1">{{ form.chassis.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.chassis }}</td>
+    </tr>
+    <tr>
+        <td class="border-top-0" colspan="1">{{ form.subsidiary.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.subsidiary }}</td>
+        <td class="border-top-0" colspan="6">
+            <button class="btn btn-{{ color }}" type="submit">Guardar Tracto</button>
+        </td>
+    </tr>
+
+</table>

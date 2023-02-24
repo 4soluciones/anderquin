@@ -1,0 +1,99 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    GLP |  LISTADO DE REQUERIMIENTOS
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid mb-2 mt-2 text-center">
+        <!-- Provides extra visual weight and identifies the primary action in a set of buttons -->
+        <button type="button" onclick="showModalView('create_requirement_view')" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-database"></i> &nbsp; NUEVO REQUERIMIENTO
+        </button>
+        <button type="button" onclick="showModalView('get_requirement_programming')"
+                class="btn btn-sm btn-outline-primary"><i class="fas fa-database"></i> &nbsp; REGISTRAR PROGRAMACION
+        </button>
+        <button type="button" onclick="showModalView('get_programming_invoice')" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-database"></i> &nbsp; ASIGNAR ALMACEN
+        </button>
+        <button type="button" onclick="showModalView('get_expense_programming')"
+                class="btn btn-sm btn-outline-primary"><i class="fas fa-database"></i> &nbsp; REGISTRAR FACTURAS DE
+            VIAJES
+        </button>
+    </div>
+    <!-- Content -->
+    <div class="container-fluid">
+        <!-- Provides extra visual weight and identifies the primary action in a set of buttons -->
+        <div id="requirement-grid-list">{% include "buys/requirement_buy_grid_list.html" %}</div>
+    </div>
+
+    <div class="modal fade bd-example-modal-lg" id="add-modal" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
+{% endblock body %}
+{% block extrajs %}
+    <script type="text/javascript">
+        function showModalView(ruta) {
+            $.ajax({
+                url: '/buys/' + ruta + '/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': 1},
+                success: function (response) {
+                    $('#add-modal').html(response.form);
+                    $('#add-modal').modal('show');
+                },
+                fail: function (response) {
+                    console.log(response);
+                }
+            });
+
+        };
+
+        $('#requirement-data-grid').dataTable(
+            {
+                language: {
+                    "decimal": ",",
+                    "thousands": ".",
+                    render: $.fn.dataTable.render.number(',', '.', 2),
+                    "emptyTable": "No hay información",
+                    "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
+                    "infoEmpty": "Mostrando 0 to 0 of 0 Entradas",
+                    "infoFiltered": "(Filtrado de _MAX_ total entradas)",
+                    "infoPostFix": "",
+                    "lengthMenu": "Mostrar _MENU_ Requerimientos",
+                    "loadingRecords": "Cargando...",
+                    "processing": "Procesando...",
+                    "search": "Buscar requerimiento:",
+                    "zeroRecords": "Sin resultados encontrados",
+                    "paginate": {
+                        "first": "Primero",
+                        "last": "Ultimo",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    }
+            },
+        }
+        );
+
+        $(document).on('click', '.valid-requirement', function () {
+            let search = $(this).attr('pk');
+            $.ajax({
+                url: '/buys/get_approve_detail_requirement/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': search},
+                success: function (response) {
+                    console.log(response);
+                    if (response.success) {
+                        $('#add-modal').html(response.form);
+                        $('#add-modal').modal('show');
+                    }
+                },
+                fail: function (response) {
+                    console.log(response);
+                }
+            });
+        });
+    </script>
+{% endblock extrajs %}

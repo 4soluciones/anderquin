@@ -1,0 +1,86 @@
+{% block content %}
+
+    {% if success_old %}
+        <div class="alert alert-success">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                ×
+            </button>
+            <span class="glyphicon glyphicon-ok"></span>
+            <strong>
+                {% if title %}{{ title }}{% else %}Success Message{% endif %}
+            </strong>
+            <hr class="message-inner-separator">
+            <p>{% if message %}{{ message }}{% else %}You successfully read this important alert message.{% endif %}</p>
+        </div>
+    {% else %}
+        {% if info_old %}
+            <div class="alert alert-info">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                    ×
+                </button>
+                <span class="glyphicon glyphicon-info-sign"></span>
+                <strong>
+                    {% if title %}{{ title }}{% else %}Info Message{% endif %}
+                </strong>
+                <hr class="message-inner-separator">
+                <p>{% if message %}{{ message }}{% else %}This alert needs your attention, but it's not super
+                    important.{% endif %}</p>
+            </div>
+        {% else %}
+            {% if warning_old %}
+                <div class="alert alert-warning">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                        ×
+                    </button>
+                    <span class="glyphicon glyphicon-record"></span>
+                    <strong>
+                        {% if title %}{{ title }}{% else %}Warning Message{% endif %}
+                    </strong>
+                    <hr class="message-inner-separator">
+                    <p>{% if message %}{{ message }}{% else %}Best check yo self, you're not looking too good.{% endif %}</p>
+                </div>
+            {% else %}
+                {% if danger_old %}
+                    <div class="alert alert-danger">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                            ×
+                        </button>
+                        <span class="glyphicon glyphicon-hand-right"></span>
+                        <strong>
+                            {% if title %}{{ title }}{% else %}Danger Message{% endif %}
+                        </strong>
+                        <hr class="message-inner-separator">
+                        <p>{% if message %}{{ message }}{% else %}Change a few things up and try submitting
+                            again.{% endif %}</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    {% endif %}
+{% endblock %}
+{% block script %}
+    <script type="text/javascript">
+
+{#        $(".alert").fadeTo(2000, 500).slideUp(500, function () {#}
+{#            $(".alert").slideUp(500);#}
+{#        });#}
+
+
+
+            {% if success %}
+                toastr.success('{% if message %}{{ message }}{% else %}You successfully read this important alert message.{% endif %}', '{% if title %}{{ title }}{% else %}Success Message{% endif %}');
+            {% else %}
+                {% if danger %}
+                    toastr.error('{% if message %}{{ message }}{% else %}Change a few things up and try submitting again.{% endif %}', '{% if title %}{{ title }}{% else %}Danger Message{% endif %}');
+                {% else %}
+                    {% if warning %}
+                        toastr.warning("{% if message %}{{ message }}{% else %}Best check yo self, you're not looking toogood.{% endif %}", '{% if title %}{{ title }}{% else %}Warning Message{% endif %}');
+                    {% else %}
+                        toastr.info('{% if message %}{{ message }}{% else %}This alert needs your attention, but it´s not super important.{% endif %}', '{% if title %}{{ title }}{% else %}Info Message{% endif %}');
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+{#            setTimeout(function() {}, 1300);#}
+
+    </script>
+{% endblock %}

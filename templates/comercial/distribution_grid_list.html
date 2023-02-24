@@ -1,0 +1,112 @@
+{% if distribution_mobil %}
+    <div class="card mt-3">
+        <div class="card-header pb-0 bg-secondary">
+            <h6 class="card-title text-center text-white">LISTA DE SALIDAS REPARTO</h6>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="table-distribution-programmings"
+                       class="table table-bordered">
+                    <thead>
+                    <tr class="text-center bg-light text-dark">
+
+                        <th class="th-sm font-weight-normal">#</th>
+                        <th class="th-sm font-weight-normal">Placa</th>
+                        <th class="th-sm font-weight-normal">Conductor</th>
+                        <th class="th-sm font-weight-normal">Numero guia</th>
+                        <th class="th-sm font-weight-normal">Fecha</th>
+                        <th class="th-sm font-weight-normal">Estado</th>
+                        <th class="th-sm font-weight-normal">Usuario</th>
+                        <th class="th-sm font-weight-normal">Detalle</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% for dm in distribution_mobil %}
+                        <tr class="text-center ">
+                            <td class="align-middle col-form-label col-form-label-lg">{{ dm.id }}</td>
+                            <td>
+                                <h3><span class="badge badge-secondary  badge-pill p-2 font-weight-normal">{{ dm.truck.license_plate }}</span></h3>
+                            </td>
+                            <td class="align-middle col-form-label col-form-label-lg">{{ dm.pilot.full_name }}</td>
+                            <td class="align-middle col-form-label col-form-label-lg">{{ dm.guide_number|default:"-" }}</td>
+                            <td class="align-middle col-form-label col-form-label-lg">{{ dm.date_distribution|date:"d/m/Y" }}</td>
+                            <td class="align-middle">
+                                <h4>
+                                {% if dm.status == 'F' %}
+                                    <span class="badge badge-primary badge-pill p-2 font-weight-normal">{{ dm.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge badge-success badge-pill p-2 font-weight-normal">{{ dm.get_status_display }}</span>
+                                {% endif %}
+                                </h4>
+                            </td>
+                            <td>{{ dm.user.worker_set.last.employee.full_name }}</td>
+                            <td class="align-middle">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-block btn-primary  dropdown-toggle"
+                                            pk="{{ dm.id }}"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Action
+                                    </button>
+                                    <div class="dropdown-menu bg-primary text-white font-italic">
+                                        <a class="dropdown-item btn-show-detail" pk="{{ dm.id }}"><i
+                                                class="fas fa-save pr-1"></i> Detalle salida</a>
+                                        {% if dm.status != 'F' %}
+                                            <a class="dropdown-item btn-purchase text-white"
+                                               href="{% url 'sales:sales_list' dm.id %}"><i
+                                                    class="fas fa-edit pr-1"></i> Realizar ventas</a>
+                                        {% endif %}
+                                        {% if dm.status != 'F' %}
+                                            <a class="dropdown-item btn-distribution-recovered" pk="{{ dm.id }}"><i
+                                                    class="fas fa-edit pr-1"></i> Ingresar prestados</a>
+                                        {% endif %}
+                                        {% if dm.status != 'F' %}
+                                            <a class="dropdown-item btn-client-advancement" pk="{{ dm.id }}"><i
+                                                    class="fas fa-save pr-1"></i> Adelanto balones</a>
+                                            {#                                        <a class="dropdown-item btn-annular" pk="{{ dm.id }}"><i#}
+                                            {#                                                class="fas fa-edit pr-1"></i> Anular salida</a>#}
+                                        {% endif %}
+                                        {% if dm.status != 'F' %}
+                                            <a class="dropdown-item btn-update" pk="{{ dm.id }}"><i
+                                                    class="fas fa-edit pr-1"></i> Retornar balones </a>
+                                        {% endif %}
+
+                                    </div>
+                                </div>
+                            </td>
+
+                        </tr>
+                        <tr style="display: none">
+                            <td colspan="8" class="table-details-distribution bg-white p-0"></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center bg-light text-dark">
+                        <th class="th-sm font-weight-normal">#</th>
+                        <th class="th-sm font-weight-normal">Placa</th>
+                        <th class="th-sm font-weight-normal">Conductor</th>
+                        <th class="th-sm font-weight-normal">Numero guia</th>
+                        <th class="th-sm font-weight-normal">Fecha</th>
+                        <th class="th-sm font-weight-normal">Estado</th>
+                        <th class="th-sm font-weight-normal">Usuario</th>
+                        <th class="th-sm font-weight-normal">Detalle</th>
+                    </tr>
+                    </tfoot>
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- Card -->
+    </div>
+
+
+{% else %}
+    <h1>No existen salidas programadas</h1>
+{% endif %}
+<script>
+
+</script>

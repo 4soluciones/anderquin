@@ -1,0 +1,138 @@
+<table class="table table-bordered" id="report-salary">
+    <thead>
+    <tr class="text-white bg-dark text-uppercase text-center">
+        <td class="col-form-label col-form-label-lg">ID</td>
+        <td class="col-form-label col-form-label-lg">EMPLEADO</td>
+        <td class="col-form-label col-form-label-lg">REMUNERACION INICIAL</td>
+        <td class="col-form-label col-form-label-lg">PAGAR</td>
+        <td class="col-form-label col-form-label-lg">FECHA</td>
+        <td class="col-form-label col-form-label-lg">REMUNERACION <br>PAGADA</td>
+        <td class="col-form-label col-form-label-lg">ENTIDAD DE PAGO</td>
+        <td class="col-form-label col-form-label-lg">CODIGO OPERACIÓN</td>
+        {% if month == 7 or month == 12 %}
+            <td class="col-form-label col-form-label-lg">PAGAR <br>GRATIFACIÓN</td>
+            <td class="col-form-label col-form-label-lg">FECHA</td>
+            <td class="col-form-label col-form-label-lg">GRATIFACIÓN <br>PAGADA</td>
+            <td class="col-form-label col-form-label-lg">ENTIDAD DE PAGO</td>
+            <td class="col-form-label col-form-label-lg">CODIGO OPERACIÓN</td>
+        {% endif %}
+    </tr>
+    </thead>
+    <tbody id="tbl-items">
+    {% for w in salary_dict %}
+        <tr pk="{{ w.id }}" class="text-center salary">
+            <td class="col-form-label col-form-label-lg align-middle text-center">{{ w.id }} </td>
+            <td class="col-form-label col-form-label-lg align-middle text-center">{{ w.names }}</td>
+            <td class="col-form-label col-form-label-lg align-middle text-center">
+                S/ {{ w.salary_initial|safe }}</td>
+            <td class="col-form-label col-form-label-lg align-middle text-center button-pay" type="S">
+                <button type="button"
+                        class="btn btn-outline-danger btn-show-payments btn-block"
+                        data-toggle="modal"
+                        data-target="#modal-payment-salary"
+                        pk="{{ w.id }}"><i
+                        class="fas fa-dollar-sign"></i> PAGAR
+                </button>
+            </td>
+            {% for s in w.salary_set %}
+                {% for c in s.cash_flow_set %}
+                    {% if s.type == 'S' %}
+                        <td class="col-form-label col-form-label-lg align-middle text-center">{{ c.date_pay|date:"d-m-y" }}</td>
+                        <td class="col-form-label col-form-label-lg align-middle text-center pay-row">
+                            S/ {{ c.salary_pay|safe }}</td>
+                        <td class="col-form-label col-form-label-lg align-middle text-center">{{ c.cash }}</td>
+                        <td class="col-form-label col-form-label-lg align-middle text-center">{{ c.cod }}</td>
+                    {% endif %}
+                {% empty %}
+                    <td class="col-form-label col-form-label-lg align-middle text-center"></td>
+                    <td class="col-form-label col-form-label-lg align-middle text-center"></td>
+                    <td class="col-form-label col-form-label-lg align-middle text-center"></td>
+                    <td class="col-form-label col-form-label-lg align-middle text-center"></td>
+                {% endfor %}
+            {% endfor %}
+            {% if month == 7 or month == 12 %}
+                <td class="col-form-label col-form-label-lg align-middle text-center button-pay-reward" type="G">
+                    <button type="button"
+                            class="btn btn-outline-danger btn-show-payments btn-block"
+                            data-toggle="modal"
+                            data-target="#modal-payment-salary"
+                            pk="{{ w.id }}"><i
+                            class="fas fa-dollar-sign"></i> PAGAR <br>GRATIFICACIÓN
+                    </button>
+                </td>
+                {% for s in w.salary_reward_set %}
+                    {% for c in s.cash_flow_set %}
+                        {% if s.type == 'G' %}
+                            <td class="col-form-label col-form-label-lg align-middle text-center">{{ c.date_pay|date:"d-m-y" }}</td>
+                            <td class="col-form-label col-form-label-lg align-middle text-center pay-row-reward">
+                                S/ {{ c.salary_pay|safe }}</td>
+                            <td class="col-form-label col-form-label-lg align-middle text-center">{{ c.cash }}</td>
+                            <td class="col-form-label col-form-label-lg align-middle text-center">{{ c.cod }}</td>
+                        {% endif %}
+                    {% empty %}
+                        <td class="col-form-label col-form-label-lg align-middle text-center"></td>
+                        <td class="col-form-label col-form-label-lg align-middle text-center"></td>
+                        <td class="col-form-label col-form-label-lg align-middle text-center"></td>
+                        <td class="col-form-label col-form-label-lg align-middle text-center"></td>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+    <tfoot>
+    <tr class="text-white bg-dark text-uppercase text-center">
+        <td class="col-form-label col-form-label-lg" colspan="5">total remuneraciones</td>
+        <td class="col-form-label col-form-label-lg" colspan="1">S/ {{ total_salary }}</td>
+        {#            <td class="text-center" colspan="2"></td>#}
+    </tr>
+    </tfoot>
+</table>
+
+<script type="text/javascript">
+
+    $(document).on('click', '.btn-show-payments', function () {
+        let _worker_id = $(this).attr('pk');
+        let _type = $(this).parent('td').attr("type")
+
+        $.ajax({
+            url: '/accounting/get_salary_pay/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            data: {
+                'worker_id': _worker_id,
+                'type': _type,
+                'month': $('#id_month').val(),
+                'year': $('#id_year').val(),
+            },
+            success: function (response) {
+                $('#pay-salary').html(response.grid);
+            },
+            fail: function (response) {
+                console.log("error");
+            }
+        });
+    });
+
+    $('#report-salary tr.salary td.pay-row').each(function () {
+        let row_pay = $(this).text();
+        if (row_pay !== '') {
+            {#$(this).parent('tr').find('td.button-pay button').hide();#}
+            $(this).parent('tr').find('td.button-pay').text('PAGADO').css({'background-color': '#28a745'});
+            {#$(this).parent('tr').find('td.button-pay').css({'background-color': '#beec96'});#}
+            {#$(this).parent('tr').find('td.pay-row').css({'background-color': '#28a745'});#}
+            {#$(this).parent('tr').css({'background-color': '#aaa'});#}
+        }
+    });
+    $('#report-salary tr.salary td.pay-row-reward').each(function () {
+        let row_pay_reward = $(this).text();
+        if (row_pay_reward !== ''){
+            $(this).parent('tr').find('td.button-pay-reward').text('PAGADO').css({'background-color': '#28a745'});
+        }
+    });
+
+
+</script>

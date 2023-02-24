@@ -1,0 +1,93 @@
+{% if dictionary %}
+    <table class="table table-sm table-bordered table-striped montserrat table-info">
+        <thead>
+        <tr class="text-white text-center" style="background: #0b55a4">
+            <th class="align-middle">
+                ID
+            </th>
+            <th class="align-middle">
+                Unidad
+            </th>
+            <th class="align-middle">
+                Conductores
+            </th>
+            <th class="align-middle">
+                Fecha Salida
+            </th>
+            <th class="align-middle">
+                Fecha Llegada
+            </th>
+            <th class="align-middle">
+                Ruta
+            </th>
+            <th class="align-middle">
+                Guia - Serie
+            </th>
+            <th class="align-middle">
+                Guia - Codigo
+            </th>
+            <th class="align-middle">
+                id Detalle
+            </th>
+            <th class="align-middle">
+                PRODUCTO
+            </th>
+            <th class="align-middle">
+                TIPO
+            </th>
+            <th class="align-middle">
+                CANTIDAD
+            </th>
+        </tr>
+        </thead>
+        <tbody id="manifest-grid-list-body">
+        {% for p in dictionary %}
+            <tr>
+                <td class="align-middle text-center font-weight-bold"
+                    rowspan="{{ p.rowspan }}">{{ forloop.counter }}</td>
+                <td class="align-middle text-center font-weight-bold" rowspan="{{ p.rowspan }}">{{ p.truck }}</td>
+                <td class="align-middle text-center font-weight-bold" rowspan="{{ p.rowspan }}">{{ p.pilot }}</td>
+                <td class="align-middle text-center font-weight-bold"
+                    rowspan="{{ p.rowspan }}">{{ p.departure_date|date:"SHORT_DATE_FORMAT" }}</td>
+                <td class="align-middle text-center font-weight-bold"
+                    rowspan="{{ p.rowspan }}">{{ p.arrival_date|date:"SHORT_DATE_FORMAT" }}</td>
+                <td class="align-middle text-center font-weight-bold" rowspan="{{ p.rowspan }}">{{ p.origin }}
+                    - {{ p.destiny }}</td>
+                {% for g in p.guide_items %}
+                    <td class="align-middle text-center font-weight-bold"
+                        rowspan="{{ p.rowspan }}">{{ g.serial }}</td>
+                    <td class="align-middle text-center font-weight-bold"
+                        rowspan="{{ p.rowspan }}">{{ g.code }}</td>
+                    {% for gd in g.detail_guide %}
+                        {% if forloop.first %}
+                            <td class="align-middle text-center font-weight-bold">{{ gd.id }}</td>
+                            <td class="align-middle text-center font-weight-bold">{{ gd.product.name }}</td>
+                            <td class="align-middle text-center font-weight-bold">{{ gd.type }}</td>
+                            <td class="align-middle text-center font-weight-bold">{{ gd.quantity }}</td>
+                            </tr>
+                        {% else %}
+                            <td class="align-middle text-center font-weight-bold">{{ gd.id }}</td>
+                            <td class="align-middle text-center font-weight-bold">{{ gd.product.name }}</td>
+                            <td class="align-middle text-center font-weight-bold">{{ gd.type }}</td>
+                            <td class="align-middle text-center font-weight-bold">{{ gd.quantity }}</td>
+                        {% endif %}
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+        {% endfor %}
+        </tbody>
+        <tfoot>
+        <tr class="">
+            <td colspan="" class="colcount"></td>
+            <td class="align-middle font-weight-bold text-white bg-primary">TOTAL DE VIAJES:  {{ count }}</td>
+        </tr>
+        </tfoot>
+    </table>
+{% else %}
+    <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+        <strong>Atencion!</strong> No se encontraron registros, favor de buscar en un rango de fechas diferentes
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+{% endif %}

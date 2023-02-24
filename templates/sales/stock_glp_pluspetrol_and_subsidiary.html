@@ -1,0 +1,40 @@
+{% extends 'home.html' %}
+{% block title %}
+    Stock | GLP
+{% endblock title %}
+{% block body %}
+    <div class="card m-4" style="border-color: #0463b5">
+        <div class="card-header text-centermas" style="background: #0463b5">
+            <h6 class="text-white">Stock de GLP</h6>
+        </div>
+        <div class="card-body p-4">
+            <table class="table table-bordered table-sm" id="id-table-glp">
+                <thead class="text-white" style="background: #0463b5">
+{#                <td class="text-center align-middle">SEDE</td>#}
+                <td class="text-center align-middle">ALMACEN</td>
+                <td class="text-center align-middle">CANTIDAD DE GLP</td>
+                </thead>
+                <tbody>
+                {% for product in product %}
+                    {% if product.productstore_set.all.count > 0 %}
+                        {% for product_store in product.productstore_set.all %}
+                            {% if product_store.subsidiary_store.subsidiary.id == subsidiary_obj.id %}
+                                 <tr class="">
+{#                                <td class="text-center align-middle">{{ product_store.subsidiary_store.subsidiary.name }}</td>#}
+                                <td class="text-center align-middle">{{ product_store.subsidiary_store.name }}</td>
+                                <td class="text-right align-middle">{{ product_store.get_stock_with_dot }}</td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+
+        </div>
+    </div>
+{% endblock body %}
+{% block extrajs %}
+{% endblock extrajs %}

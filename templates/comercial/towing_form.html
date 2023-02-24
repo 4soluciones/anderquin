@@ -1,0 +1,74 @@
+<table class="table table-sm text-uppercase small mt-3 mb-0">
+
+    <tr>
+        <td class="border-top-0 align-middle" colspan="5" rowspan="2">
+            <h2>{{ name }}</h2>
+        </td>
+
+
+        <td class="border-top-0" colspan="1">{{ form.license_plate.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.license_plate }}</td>
+        <td class="border-top-0" colspan="1">{{ form.year.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.year }}</td>
+
+    </tr>
+
+    <tr>
+        <td class="border-top-0" colspan="1">Marca</td>
+        <td class="border-top-0" colspan="1">
+
+            <select class="form-control" name="towing_brand" id="id_towing_brand">
+                <option value="">--</option>
+                {% for brand in brands %}
+                <option {% if object.towing_model.towing_brand.id == brand.id %}selected{% endif %} value="{{ brand.id }}">{{ brand.name }}</option>
+                {% empty %}
+                Lo sentimos, no hay marcas registradas.
+                {% endfor %}
+            </select>
+        </td>
+        <td class="border-top-0" colspan="1">Modelo</td>
+        <td class="border-top-0" colspan="1">
+
+            <select class="form-control" name="towing_model" id="id_towing_model">
+                <option value="">--</option>
+                {% for model in models %}
+                <option {% if object.towing_model.id == model.id %}selected{% endif %} value="{{ model.id }}"
+                data-chained="{{ model.towing_brand.id }}">{{ model.name }}</option>
+                {% empty %}
+                Lo sentimos, no hay modelos registrados.
+                {% endfor %}
+            </select>
+        </td>
+
+    </tr>
+
+    <tr>
+        <td class="border-top-0" colspan="1">{{ form.num_axle.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.num_axle }}</td>
+        <td class="border-top-0" colspan="1"></td>
+        <td class="border-top-0" colspan="1">{{ form.color.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.color }}</td>
+        <td class="border-top-0" colspan="1">{{ form.weight_towing.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.weight_towing }}</td>
+        <td class="border-top-0" colspan="1">{{ form.denomination.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.denomination }}</td>
+
+    </tr>
+    <tr>
+        <td class="border-top-0" colspan="1">{{ form.owner.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.owner }}</td>
+        <td class="border-top-0" colspan="1"></td>
+        <td class="border-top-0" colspan="1">{{ form.condition_owner.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.condition_owner }}</td>
+        <td class="border-top-0" colspan="1">{{ form.towing_type.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.towing_type }}</td>
+        <td class="border-top-0" colspan="1">{{ form.trailer_type.label }}</td>
+        <td class="border-top-0" colspan="1">{{ form.trailer_type }}</td>
+    </tr>
+    <tr>
+        <td class="border-top-0" colspan="8">
+            <button class="btn btn-{{ color }}" type="submit">Guardar Remolque</button>
+        </td>
+    </tr>
+
+</table>

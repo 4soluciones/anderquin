@@ -1,0 +1,167 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    GLP | Requerimientos
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="card-header text-left mt-2 mb-1 p-1" style="background: #3267b8">
+            <div class="form-inline mt-1 mb-1 p-0">
+                <table>
+                    <tr>
+                        <td class="pl-2 pr-2 text-white">Fecha inicial</td>
+                        <td class="pl-2 pr-2"><input type="date" class="form-control form-control-sm"
+                                                     id="id_date_initial"
+
+                                                     value="{{ date_now }}" required>
+                        </td>
+                        <td class="pl-2 pr-2 text-white">Fecha final</td>
+                        <td class="pl-2 pr-2"><input type="date" class="form-control form-control-sm" id="id_date_final"
+
+                                                     value="{{ date_now }}" required>
+                        </td>
+                        <td class="pl-2 pr-2">
+                            <button type="button" id="id_btn_show"
+                                    class="btn btn-sm btn-success btn-block"> MOSTRAR
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="table-responsive" id="table-list-requirement-store"></div>
+    </div>
+
+    <div class="modal fade" id="modal-payment" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title" id="exampleModalLabel1">Pagar elemento seleccionado</h5>
+                    <button type="button" class="close ml-0" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="lending">
+                    ...
+                </div>
+                <div class="modal-footer">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+{% endblock body %}
+
+{% block extrajs %}
+    {#<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">#}
+    {#<script src="http://code.jquery.com/jquery-1.9.1.js"></script>#}
+    {#<script src="http://code.jquery.com/ui/1.11.0/jquery-ui.js"></script>#}
+    <script type="text/javascript">
+        /* $(document).ready(function () {
+             $('#id_date_initial').datepicker(
+                 {
+{#changeMonth: true,#}
+                    {#changeYear: true,#}
+                    dateFormat: 'dd/mm/yy', //Se especifica como deseamos representarla
+                    {#firstDay: 1#}
+                }
+            );
+            $('#id_date_final').datepicker(
+                {
+                    {#changeMonth: true,#}
+                    {#changeYear: true,#}
+                    dateFormat: 'dd/mm/yy', //Se especifica como deseamos representarla
+                    firstDay: 1
+                }
+            );
+
+        });
+        */
+        {#$('#id_date_initial').datepicker();#}
+        {#$('#requirement-data-grid').dataTable();#}
+
+        $("#id_btn_show").click(function () {
+            if ($("#id_date_initial").val() != '' && $("#id_date_final").val() != '') {
+                let pk = 1;
+                let dates = {
+                    "date_initial": $('#id_date_initial').val(),
+                    "date_final": $('#id_date_final').val(),
+                };
+                $.ajax({
+                    url: '/buys/get_requirements_buys_list_approved/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'pk': pk, 'dates': JSON.stringify(dates),},
+                    contentType: 'application/json;charset=UTF-8',
+                    {#headers: {"X-CSRFToken": '{{ csrf_token }}'},#}
+                    success: function (response) {
+                        $('#table-list-requirement-store').html(response.form);
+                    },
+                    error: function (response) {
+                        toastr.error("PROBLEMAS AL MOSTRAR LA LISTA", '¡MENSAJE!');
+                    }
+                });
+
+            }
+        });
+        /*boton ver tabla detalle*/
+        $(document).on('click', '.btn-show-detail', function () {
+            let search = $(this).attr('pk');
+            let _table = $(this).parent('td').parent('tr').next('tr').children('td.table-details-purchase');
+            $('#purchase-store-data-grid tbody tr td.table-details-purchase').parent('tr').slideUp(800);
+            $('#purchase-store-data-grid tbody tr td.table-details-purchase').empty();
+
+            $.ajax({
+                url: '/buys/get_details_by_purchase/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                //mando  id de la compra
+                data: {'ip': search},
+                // si va bien retorna la data
+                success: function (response) {
+
+                    _table.html(response.grid);
+                    _table.parent('tr').slideDown(1500);
+                },
+
+            });
+
+        });
+        {#$('.table-details-purchase').parent('tr').slideUp();#}
+        $(document).on('click', '.btn-payment', function () {
+
+            let requirement_id = $(this).attr("pk");
+
+            $('#lending').empty();
+            $.ajax({
+                url: '/buys/get_modal_payment_buys_approved/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'requirement_id': requirement_id },
+                success: function (response) {
+                    $('#lending').html(response.grid);
+                },
+                fail: function (response) {
+                    console.log("error");
+                }
+            });
+        });
+
+    </script>
+{% endblock extrajs %}

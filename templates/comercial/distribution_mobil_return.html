@@ -1,0 +1,438 @@
+{% load static %}
+{% load operations %}
+<div class="modal-dialog  modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header" style="background: #0b55a4">
+            <h6 class="modal-title  text-white">RETORNO DE BALONES Y GLP DE LAS MOVILES</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form action="" method="POST" id="form-distribution_return">
+            {% csrf_token %}
+            <div class="card mt-2 ml-2 mr-2" style="border-color: #ac1f06">
+                <div class="card-header" style="background: #b33604">
+                    <div class="row ml-4 mr-4">
+                        <div class="col-sm-4 pr-4 pl-4">
+                            <label class="text-white font-weight-normal">Placa vehiculo</label>
+                            <input type="text" readonly class="form-control form-control-sm text-center" id="id_truck"
+                                   required
+                                   value="{{ distribution_mobil.truck.license_plate }}"></div>
+                        <div class="col-sm-8 pr-4 pl-4">
+                            <label class="text-white font-weight-normal">Nombre del conductor</label>
+                            <input type="text" readonly class="form-control form-control-sm text-center" id="id_truck"
+                                   required
+                                   value="{{ distribution_mobil.pilot.full_name }}"></div>
+                    </div>
+
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm  table-striped align-content-center table-bordered response"
+                           cellspacing="0" width="100%" id="table-sales-distribution-total">
+                        <tr class="text-md-center align-middle" style="background: #676767">
+                            <th style="font-size: 10px;" class="text-white align-middle text-center font-weight-normal">
+                                N°
+                            </th>
+                            <th style="font-size: 10px;" class="text-white align-middle text-center font-weight-normal">
+                                PRODUCTO
+                            </th>
+                            <th style="font-size: 10px;" class="text-white font-weight-normal">CANTIDAD SALIENTE DE
+                                <span
+                                        class="badge badge-primary badge-pill p-2" style="font-size: 14px;">BG</span>
+                            </th>
+                            {#                              <th style="font-size: 10px;">CANTIDAD GLP VENDIDO</th>#}
+                            {#                              <th style="font-size: 10px;">CANTIDAD GLP FALTANTE</th>#}
+                            <th style="font-size: 10px;" class="text-white font-weight-normal">CANTIDAD RETORNAR <span
+                                    class="badge badge-primary badge-pill p-2" style="font-size: 14px;">BG</span></th>
+                            <th style="font-size: 10px;" class="text-white font-weight-normal">CANTIDAD RETORNAR <span
+                                    class="badge badge-primary badge-pill p-2" style="font-size: 14px;">B</span></th>
+                            <th style="font-size: 10px;" class="text-white font-weight-normal">CANTIDAD PRESTADA <span
+                                    class="badge badge-primary badge-pill p-2" style="font-size: 14px;">B</span></th>
+                        </tr>
+                        <tbody class="detail-sales-distribution-tbody">
+
+                        {% for key, value in distribution_mobil.new_detail_distribution.items %}
+                                    <tr pk="{{ key }}" class="text-center align-middle" product="{{ key }}">
+                                        <td>{{ value.pk }}</td>
+                                        <td>{{ value.name }}</td>
+                                        <td class="item-quantity-full">{{ value.i_expenses|floatformat:0 }}</td>
+                                        <td class="item-quantity-return-full">
+                                            {{ value.i_returned|floatformat:0 }}</td>
+                                        <td class="item-quantity-return-empty">
+                                            {{ value.i_ball|floatformat:0 }}</td>
+                                        <td class="item-quantity-borrowed">
+                                            {{ value.i_sold_bg|floatformat:0 }}</td>
+                                    </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-body mod">
+                <table class="table table-sm" style="width: 100%">
+                    <tr>
+                        <td class="align-middle" style="width: 10%">Producto:</td>
+                        <td style="width: 25%"><select class="form-control form-control-sm" id="id_product"
+                                                       name="product" required>
+                            <option disabled selected value=""> Seleccione</option>
+                            {% for p in product %}
+                                {% if product.id == p.id %}
+                                    <option value="{{ p.id }}">{{ p.name }}</option>
+                                {% else %}
+                                    <option value="{{ p.id }}">{{ p.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                        </td>
+                        <td class="align-middle" style="width: 10%">Unidad:</td>
+                        <td style="width: 25%">
+                            <select class="form-control form-control-sm" disabled id="id_unit" name="unit" required>
+                                <option disabled selected value=""> Seleccione</option>
+                            </select>
+                        </td>
+                        <td rowspan="2" class="text-center align-middle" style="width: 30%">
+                            <input type="hidden" class="form-control form-control-sm" id="id_distribution"
+                                   value="{{ distribution_mobil.id }}">
+                            <button id="add-return" type="submit" class="btn btn-sm btn-primary">Agregar registro
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="align-middle">Cantidad:</td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm" id="id_quantity" required
+                                   placeholder="Cantidad">
+                        </td>
+                        <td class="align-middle">Tipo:</td>
+                        <td>
+                            <select class="form-control form-control-sm" id="id_type" name="type" required>
+                                <option selected disabled value=""> Seleccione</option>
+                                {% for t in type %}
+                                    <option {% if t.type == t.0 %} selected {% endif %} value="{{ t.0 }}">
+                                        {{ t.1 }}
+                                    </option>
+                                {% endfor %}
+
+                            </select>
+                        </td>
+
+                    </tr>
+
+                </table>
+
+                <table id="id_distribution_return"
+                       class="table table-sm  table-striped align-content-center table-bordered response"
+                       cellspacing="0" width="100%">
+
+                    <thead>
+                        <tr class="text-center text-white" style="height: 14px; background: #b33604;">
+                            <th class="font-weight-normal">N°</th>
+                            <th class="font-weight-normal">Producto</th>
+                            <th class="font-weight-normal">Cantidad</th>
+                            <th class="font-weight-normal">Unidad</th>
+                            <th class="font-weight-normal">Tipo</th>
+                            <th class="font-weight-normal">Borrar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="details">
+                    </tbody>
+                </table>
+            </div><!-- modal-body -->
+
+
+            <div class="modal-footer">
+                &nbsp;
+                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="save-return" type="button" class="btn btn-sm btn-primary">Registrar</button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    /*
+        $('table#table-sales-distribution-total tbody.detail-sales-distribution-tbody tr td').each(function () {
+            let _str = $(this).text();
+            _str = _str.replace(',', '.');
+            $(this).text(_str);
+        });*/
+
+    function operation_quantity() {
+        let _bool = 0;
+        let _product = $('#id_product').val();
+        $('table#table-sales-distribution-total tbody.detail-sales-distribution-tbody tr').each(function () {
+            if ($(this).attr('product') == _product) {
+                let _quantity = parseInt($('#id_quantity').val());
+                let _type = $('#id_type').val();
+
+                if (_type === 'L' || _type === 'M') {
+                    let _quantity_return_last = parseInt($(this).find('td.item-quantity-return-full').text());
+                    let _value_full = _quantity_return_last - _quantity;
+                    if (_value_full >= 0) {
+                        $(this).find('td.item-quantity-return-full').text(_value_full);
+                        _bool = 1;
+                        return false;
+                    } else {
+                        _bool = 0;
+                        return false;
+                    }
+                } else {
+                    if (_type === 'V' || _typesiE === 'VM') {
+                        let _quantity_return_empty_last = parseInt($(this).find('td.item-quantity-return-empty').text());
+                        let _value_empty = _quantity_return_empty_last - _quantity;
+                        if (_value_empty >= 0) {
+                            $(this).find('td.item-quantity-return-empty').text(_value_empty);
+                            _bool = 1;
+                            return false;
+                        } else {
+                            {#$(this).find('td.item-quantity-return-empty').text(0);#}
+                            _bool = 0;
+                            return false;
+                        }
+                    }
+                }
+            } else {
+
+            }
+        })
+        return _bool;
+    }
+
+    function operation_add_quantity(_del_product, _del_type, _del_quantity) {
+        $('table#table-sales-distribution-total tbody.detail-sales-distribution-tbody tr').each(function () {
+            if ($(this).attr('product') === _del_product) {
+                if (_del_type === 'L' || _del_type === 'M') {
+                    let _quantity_return_last = parseInt($(this).find('td.item-quantity-return-full').text());
+                    $(this).find('td.item-quantity-return-full').text(parseInt(_quantity_return_last) + parseInt(_del_quantity));
+                } else {
+                    if (_del_type === 'V' || _del_type === 'VM') {
+                        let _quantity_return_empty_last = parseInt($(this).find('td.item-quantity-return-empty').text());
+                        $(this).find('td.item-quantity-return-empty').text(parseInt(_quantity_return_empty_last) + parseInt(_del_quantity));
+                    }
+                }
+            }
+        })
+    }
+
+    function save_return_in_distribution() {
+
+        let details = []
+        $("table#table-sales-distribution-total tbody.detail-sales-distribution-tbody tr").each(function () {
+            let c_detail_obj;
+            if (parseFloat($(this).find("td.item-quantity-return-full").text()) > 0) {
+                c_detail_obj = {
+                    "c_product_id": $(this).attr('product'),
+                    "c_quantity": $(this).find("td.item-quantity-return-full").text(),
+                    "c_unit": 'BG',
+                    "c_type_id": 'L',
+                };
+                console.log(c_detail_obj);
+                details.push(c_detail_obj);
+            }
+
+            if (parseFloat($(this).find("td.item-quantity-return-empty").text()) > 0) {
+                c_detail_obj = {
+                    "c_product_id": $(this).attr('product'),
+                    "c_quantity": $(this).find("td.item-quantity-return-empty").text(),
+                    "c_unit": 'B',
+                    "c_type_id": 'V',
+                };
+                console.log(c_detail_obj);
+                details.push(c_detail_obj);
+
+            }
+
+        });
+
+        let c_distribution_mobil = {
+            "c_detail": details,
+            "c_distribution_id": $('#id_distribution').val(),
+        };
+
+        console.log(JSON.stringify(c_distribution_mobil));
+
+        $.ajax({
+            url: '/comercial/c_return_distribution_mobil_detail/',
+            async: true,
+            dataType: 'json', // for response
+            type: 'GET',
+            data: {'c_distribution_mobil': JSON.stringify(c_distribution_mobil)},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (xhr.status == 200) {
+                    toastr.success(response.message, '¡Mensaje!');
+                    $('#modal-distribution').modal('hide');
+                    /*setTimeout(() => {
+                        location.reload();
+                    }, 500);*/
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                $('#modal-distribution').modal('hide');
+                toastr.error(jqXhr.responseJSON.error, '¡Mensaje!');
+            }
+        });
+    }
+
+    $("#form-distribution_return").submit(function (event) {
+        event.preventDefault();
+
+        let _id_producto = $('#id_product').val();
+        let _producto = $('#id_product option:selected').text();
+        let _id_unidad = $('#id_unit').val();
+        let _unidad = $('#id_unit option:selected').text();
+        let _id_tipo = $('#id_type').val();
+        let _tipo = $('#id_type option:selected').text();
+        let _cantidad = $('#id_quantity').val();
+
+        if ($("#details tr[product_num=" + _id_producto + "][type_num=" + _id_tipo + "]").length) {
+            toastr.warning('El producto con este tipo ya se encuentra en el registro', '¡MENSAJE!');
+            limper();
+            return false;
+        }
+        if (Boolean(operation_quantity()) == false) {
+            toastr.warning('No puede retornar mas de lo que se tiene', 'Mensaje');
+            limper();
+            return false;
+        }
+        $('#details').append(
+            '<tr product_num="' + _id_producto + '" type_num="' + _id_tipo + '"class="text-center" >' +
+            '<td class="align-middle item-number">' + '</td>' +
+            '<td class="align-middle item-product" product_id="' + _id_producto + '">' + _producto + '</td>' +
+            '<td class="align-middle item-quantity" >' + _cantidad + '</td>' +
+            '<td class="align-middle item-unit" unit_id="' + _id_unidad + '">' + _unidad + '</td>' +
+            '<td class="align-middle item-type" type_id="' + _id_tipo + '">' + _tipo + '</td>' +
+            '<td class="align-middle"> ' + "<button type='button' onclick='deleteItem(" + _id_producto + "," + '"' + _id_tipo + '"' + "," + '"' + _cantidad + '"' + ")' " +
+            "class='btn btn-sm btn-danger delete-detail'><i class='fa fa-trash'></i></button>" + "</td>" +
+            '</tr>'
+        );
+        limper();
+        counterStrike();
+        toastr.info('Registro agregado correctamente', '¡Mensaje!');
+    });
+
+    function deleteItem($p, $t, $quantity) {
+        $('#details').find('tr[product_num="' + $p + '"][type_num="' + $t + '"]').remove();
+        {#$('#details').find("tr[product_num=" + $p + "]").remove();#}
+        counterStrike();
+        operation_add_quantity($p, $t, $quantity)
+    }
+
+    function counterStrike() {
+        let l = 1;
+        $('#details tr').each(function () {
+            $(this).attr('f', l);
+            $(this).children('td:first').text(l);
+            l++;
+        });
+    }
+
+    function limper(request) {
+        $("#id_quantity").val('');
+    };
+
+    //Seleccionar factura para llenar combo productos
+    $('#id_product').change(function () {
+        //recupera el id_dela opcion seleccionada
+        let _search = $(this).val();
+        //vacia el combo-borra opciones
+        $('#id_unit').empty();
+        $.ajax({
+            url: '/comercial/get_units_by_products_distribution_mobil/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            //mando  id del invoice del combo
+            data: {'ip': _search},
+            // si va bien retorna la data
+            success: function (response) {
+                //le da formato array
+                let new_units = JSON.parse(response['units']);
+                {#$('#id_producto').append('<option value="0">' + Seleccione + '</option>')#}
+                new_units.forEach(
+                    element =>
+                        $('#id_unit').append(
+                            '<option value="' + element['pk'] + '">' + element['fields']['description'] + '</option>')
+                );
+                $("#id_type").trigger("change");
+            },
+        });
+    })
+
+    /*ASIGNAR A KARDEX EL DETALLE*/
+    $('#save-return').click(function () {
+        let mensaje = confirm("¿Esta seguro de retornar los productos al almacen");
+        if (mensaje) {
+            if ($('#id_distribution').val() != '') {
+                let details_distribution_mobil = {
+                    "Details": [],
+                    "distribution_id_": $('#id_distribution').val(),
+                };
+                $("#details  tr").each(function () {
+                    let detail_obj = {
+                        "product_id_": $(this).find("td.item-product").attr('product_id'),
+                        "quantity_": $(this).find("td.item-quantity").text(),
+                        "unit_id_": $(this).find("td.item-unit").attr('unit_id'),
+                        "type_id_": $(this).find("td.item-type").attr('type_id'),
+                    };
+                    details_distribution_mobil.Details.push(detail_obj);
+                });
+                $.ajax({
+                    url: '/comercial/return_detail_distribution_mobil_store/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {'details_distribution_mobil': JSON.stringify(details_distribution_mobil)},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (response.message) {
+                            save_return_in_distribution();
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        $('#modal-distribution').modal('hide');
+                        toastr.error(jqXhr.responseJSON.error, '¡Mensaje!');
+                    }
+                });
+            } else {
+                toastr.warning("No se identifico el numero(id) de destribucion ", '¡advertencia!');
+                return false;
+            }
+        }
+    })
+    $('#id_type').change(function () {
+
+        let _search = $(this).val();
+
+
+        if (_search === 'V') {
+            {#$('#id_unit').find('option').text('BALON').attr('selected', 'selected');#}
+            // $('#id_unit').select().val(4)
+            // $("#id_unit option:contains('BALON')").attr('selected', 'selected');
+
+            setSelectedOptionByText('BALON');
+        } else {
+            setSelectedOptionByText('BALON + GLP');
+            {#$('#id_unit').find('option').text('BALON + GLP').attr('selected', 'selected');#}
+            // $("#id_unit option:contains('BALON + GLP')").attr('selected', 'selected');
+            // $('#id_unit').select().val(9)
+        }
+    });
+
+    function setSelectedOptionByText(text) {
+        let matchingOption = $("select#id_unit option").filter(function () {
+            return $(this).text() == text;
+        });
+        matchingOption.prop('selected', true);
+    }
+
+</script>

@@ -1,0 +1,104 @@
+{#{% extends 'base.html' %}#}
+{% load static %}
+
+{% block content %}
+
+    <div class="col-md-12">
+        <div class="page-header text-center">
+            <h1>{{ title }}</h1>
+            <p class="lead">Todo para que comiences rápidamente</p>
+        </div>
+    </div>
+
+    <div class="col-md-10 col-md-offset-1"><div id="alerts"></div></div>
+
+        <table class="table table-striped table-bordered table-sm">
+
+            <!--Table head-->
+            <thead class="border border-secondary secondary-color">
+            <tr class="text-white">
+                <th>#</th>
+                <th>Nombres</th>
+                <th>Apellidos</th>
+                <th>Sucursal</th>
+                <th>Código</th>
+            </tr>
+            </thead>
+            <!--Table head-->
+
+            <!--Table body-->
+            <tbody>
+                {% for employee in employees %}
+                <tr>
+                    <td>{{ employee.user.id }}</td>
+                    <td>{{ employee.user.first_name }}</td>
+                    <td>{{ employee.user.last_name }}</td>
+                    <td>{{ employee.branch_office }}</td>
+                    <td><input type="number" class="user-id" value="{{ employee.code }}" old-user-id="{{ employee.code }}" pk="{{ employee.user.id }}"/></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <!--Table body-->
+
+        </table>
+
+
+{% endblock %}
+
+{% block script %}
+    <script>
+
+
+$('input.user-id').on('change paste', function () {
+    var $code = parseInt($(this).val());
+    var $pk = parseInt($(this).attr('pk'));
+    var $old_code = parseInt($(this).attr('old-user-id'));
+    if($code < 100){
+        alert("El codigo no puede ser menor a 100.");
+        $(this).val($old_code);
+        return;
+    }
+    if($code > 9999){
+        alert("El codigo no puede ser mayor a 9999.");
+        $(this).val($old_code);
+        return;
+    }
+    var $repeat = false;
+
+    $('input.user-id').not($(this)).each(function() {
+        if($code == parseInt($(this).val())){
+            $repeat = true;
+        }
+    });
+
+    if(!$repeat){
+        console.log('user-id: ' + $code);
+        $.ajax({
+                url: '/vetstore/update_employee/',
+                type: 'GET',
+                data: {
+                    'pk': $pk,
+                    'code': $code
+                },
+                cache: false,
+                dataType: 'json', // for response
+                contentType: 'application/json;charset=UTF-8',
+
+                success: function (response) {
+                    $('#alerts').html(response.alert);
+                },
+                fail: function (response) {
+                    $('#alerts').html(response.alert);
+                }
+            });
+    }
+    else{
+        alert("El codigo no puede ser repetido.");
+        $(this).val($old_code);
+    }
+
+
+});
+
+    </script>
+{% endblock %}

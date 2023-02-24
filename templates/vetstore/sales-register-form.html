@@ -1,0 +1,1138 @@
+<style>
+    #list-waypay, #note{
+        display: none;
+    }
+    .details {
+
+    }
+
+    .details th {
+        font-family: continuum_lightregular;
+        font-weight: 600 !important;
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #ad1457;
+        color: #f8f9fa;
+        border-color: #ff4081;
+        border-left: 1px solid #c51162;
+
+        width: 20%;
+    }
+
+    .details th:first-child {
+        width: 10%;
+    }
+
+    .details th:nth-child(2) {
+        width: 30%;
+    }
+
+    .details td {
+        font-size: 0.65rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #c2185b;
+        color: #f8f9fa;
+        border-color: #ff4081;
+        border-left: 1px solid #c51162;
+    }
+
+    .details input[type="number"] {
+    {#        border: 1px solid #e0e0e0 !important;#} border-color: #ffffff !important;
+        font-weight: 100;
+        font-size: xx-large;
+        margin-left: 18px;
+        width: 48%;
+    }
+
+    .details .spinner input {
+        background-color: #c2185b;
+        color: #ffffff;
+        border: 1px solid #c2185b;
+        font-size: large;
+        padding-top: 0;
+        padding-bottom: 0;
+        box-shadow: none;
+    }
+
+    .details .md-form {
+        margin-top: 0;
+    }
+
+    .ui-autocomplete-input {
+        text-transform: uppercase;
+    }
+
+    .details td .input-group-text {
+        background-color: #c2185b;
+        color: #f8f9fa;
+        border: 1px solid #c2185b;
+    }
+
+    .details .spinner input[type=text]:focus:not([readonly]) {
+        border: 0;
+        box-shadow: none;
+    }
+
+    ul.batches li.list-group-item {
+        background-color: #EC407A;
+        padding: 0px 8px;
+    }
+
+    ul.batches li.list-group-item .badge-primary {
+        background-color: #AD1457 !important;
+    }
+</style>
+
+{% load static %}
+{% block content %}
+
+
+    <form action="" method="post" id="purchase-registration-form">
+        {% csrf_token %}
+        <div class="row">
+
+
+            <!-- Small input -->
+
+
+            <div class="col-md-4 col-lg-4">
+
+
+                <div class="row">
+
+
+                    <div class="col-md-12 col-lg-12">
+
+                        <!-- Card -->
+                        <div class="card">
+
+                            <!-- Card content -->
+                            <div class="card-body">
+
+                                <!-- Title -->
+                                <h4 class="card-title"><a>Artículos de venta</a></h4>
+                                <!-- Text -->
+                                {#                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>#}
+                                <div class="row">
+
+                                    <div class="col-md-12 col-lg-12">
+
+                                        <div class="form-group">
+                                            <label for="product-name">Nombre de producto / Barcode de lote (generado por la compra)</label>
+                                            <input type="text" id="product-name" name="product-name"
+                                                   class="form-control form-control-lg" autocomplete="off">
+                                            <input type="hidden" id="product-barcode">
+                                            <input type="hidden" id="product-id">
+                                            <input type="hidden" id="current-inventory">
+                                            <input type="hidden" id="product-pass-price">
+                                            <input type="hidden" id="batch-barcode">
+                                            <input type="hidden" id="batch-total-quantity">
+                                            <input type="hidden" id="item-name">
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 col-lg-6" id="render-quantity"></div>
+
+                                    <div class="col-md-6 col-lg-6" id="render-rate"></div>
+
+                                    <div class="col-md-12 col-lg-12">
+                                        <!-- Button -->
+                                        <a href="javascript:void(0)"
+                                           class="btn btn-unique btn-block waves-effect waves-light" id="add-detail"><i
+                                                class="fa fa-cart-plus fa-lg mr-1"></i> Agregar detalle</a>
+
+                                    </div>
+                                    <div class="col-md-12 col-lg-12" id="stock-status"></div>
+                                    <div class="col-md-12 col-lg-12" id="wholesale-status"></div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <!-- Card -->
+
+
+                    </div>
+
+                    <div class="col-md-12 col-lg-12">
+                        <!-- Card -->
+                        <div class="card">
+
+                            <!-- Card content -->
+                            <div class="card-body">
+
+                                <!-- Title -->
+                                <h4 class="card-title"><a>Información de la venta</a></h4>
+                                <!-- Text -->
+                                {#                                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>#}
+                                <div class="row">
+
+                                    <div class="col-md-12 col-lg-12">
+                                        <div class="form-group">
+                                            <label for="customer-name">Cliente</label>
+                                            <input type="text" id="customer-name" name="customer-name"
+                                                   class="form-control form-control-lg" autocomplete="off"
+                                                   value="{{ customer.user.username }}">
+                                            <input type="hidden" id="customer-id" value="{{ customer.pk }}">
+                                            <input type="hidden" id="customer-type" value="{{ customer.type }}">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 col-lg-6">
+                                        <div class="form-group">
+                                            <label for="employee-code">Codigo de empleado</label>
+                                            <input type="text" id="employee-code" name="employee-code"
+                                                   class="form-control form-control-lg" autocomplete="off"
+                                                   maxlength="3">
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 col-lg-6">
+                                        <div class="form-group">
+                                            <label for="branch-office-id-reg">Sucursal</label>
+                                            <select disabled id="branch-office-id-reg" name="branch-office-id-reg"
+                                                    class="custom-select custom-select-lg"></select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 col-lg-6">
+                                        <div class="form-group">
+                                            <label for="way-pay">Forma de pago</label>
+                                            <select id="way-pay" name="way-pay" class="custom-select custom-select-lg">
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 col-lg-6">
+                                        <div class="form-group">
+                                            <label class="control-label" for="request-date">Fecha de solicitud</label>
+                                            <input id="request-date" name="request-date" type="date"
+                                                   class="form-control form-control-lg"
+                                                   value="{{ formatted_time|date:"Y-m-d" }}">
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <!-- Card -->
+                    </div>
+
+
+                </div>
+            </div>
+
+            <div class="col-md-8 col-lg-8">
+
+                <table class="table table-bordered table-sm details">
+
+                    <!--Table head-->
+                    <thead class="blue-grey lighten-5 detail-head-rows">
+
+                    </thead>
+                    <!--Table head-->
+
+                    <!--Table body-->
+                    <tbody class="detail-rows">
+
+
+                    </tbody>
+                    <!--Table body-->
+
+                </table>
+
+                <div id="list-waypay">
+                    <div class="row">
+                        <div class="col-md-3 col-lg-3">
+                            <div class="form-group">
+                                    <select id="waypay" name="waypay" class="form-control">
+                                        {% for way in waypays %}
+                                            <option value="{{ way.pk }}">{{ way.name|upper }}</option>
+                                        {% endfor %}
+                                    </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-lg-3">
+                            <div class="form-group">
+
+                                <input id="rode" name="rode" type="text" value="" placeholder="Monto"
+                                       class="form-control input-md number">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 col-lg-3" id="note">
+                            <div class="form-group">
+                                <input type="text" name="product-return-id" id="product-return-id" class="form-control" placeholder="Cod. devolución">
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 col-lg-3">
+                            <div class="form-group">
+                                <a href="javascript:void(0)" id="accumulate" class="btn btn-default btn-sm">
+                                    Agregar <span class="glyphicon glyphicon-chevron-right"></span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12 col-lg-12">
+                            <div class="table-responsive">
+                                <table class="table table-condensed table-responsive">
+                                    <tbody id="table-payment-way"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <button type="button" class="btn btn-indigo btn-block btn-sm waves-effect waves-light"
+                        id="save-purchase">Guardar cambios
+                </button>
+
+            </div>
+        </div>
+
+    </form>
+
+
+{% endblock %}
+{% block script %}
+    <script type="text/javascript">
+        $index = 0;
+
+        $('document').ready(function () {
+
+            getWayPay();
+            getBranchOfficeR();
+            activeProductAutocomplete();
+            activeCustomerAutocomplete();
+
+        });
+
+        function activeProductAutocomplete() {
+            $("#product-name").autocomplete({
+                minLength: 2,
+                source: function (req, add) {
+                    var search = $("#product-name").val();
+                    $.ajax({
+                        url: '/vetstore/sale_product_autocomplete_list/',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        data: {'search': search},
+                        success: function (data) {
+                            var array = data.map(function (element) {
+                                return {
+                                    value: element['id'] + ' ' + element['name'],
+                                    id: element['id'],
+                                    name: element['name'],
+                                    barcode: element['barcode'],
+                                    sale_price: element['sale_price'],
+                                    pass_price: element['pass_price'],
+                                    discount_price: element['discount_price'],
+                                    current_inventory: element['current_inventory'],
+                                    batch_barcode: element['batch_barcode'],
+                                    batch_total_quantity: element['batch_total_quantity'],
+                                    wholesales: element['wholesales']
+                                };
+                            });
+                            add(array);
+                            if (search.length > 9) {
+
+                                codePatron = /^[0-9]{9,20}$/;
+                                if (codePatron.test(search)) {
+                                    $("ul.ui-menu.ui-autocomplete.ui-front").css('background-color', 'red').hide();
+                                }
+                                else {
+                                    return false;
+                                }
+                                $.ajax({
+                                    url: '/vetstore/sale_product_autocomplete_list/',
+                                    async: true,
+                                    dataType: 'json',
+                                    type: 'GET',
+                                    data: {'search': search},
+                                    success: function (response) {
+                                        var array = response.map(function (element) {
+                                            $('#product-barcode').val(element['barcode']);
+                                            $('#product-id').val(element['id']);
+                                            $('#current-inventory').val(element['current_inventory']);
+                                            $('#product-pass-price').val(element['pass_price']);
+                                            $('#batch-barcode').val(element['batch_barcode']);
+                                            $('#batch-total-quantity').val(element['batch_total_quantity']);
+                                            $('#item-name').val(element['name']);
+
+                                            var wholesales = [];
+                                            wholesales.push(element['wholesales']);
+                                            if (wholesales.length > 0 && $('#customer-type').val() == 'M') {
+                                                call_me(wholesales[0]);
+                                            }
+                                            else{
+                                                renderQuantityAndPrice($('#customer-type').val(), element['sale_price'], element['discount_price'], element['pass_price'], 1, 1, element['batch_total_quantity']);
+                                            }
+
+                                            showStock(element['name'], element['discount_price'], element['sale_price'], element['current_inventory'], element['batch_barcode'], element['batch_total_quantity']);
+
+                                        });
+
+                                    },
+                                    fail: function (response) {
+                                        $('#alerts').html(response.alert);
+                                    }
+                                });
+                            }
+                        },
+                        fail: function (response) {
+                            $('#alerts').html(response.alert);
+                        }
+                    });
+                },
+                select: function (event, ui) {
+                    $('#product-barcode').val(ui.item.barcode);
+                    $('#product-id').val(ui.item.id);
+                    $('#current-inventory').val(ui.item.current_inventory);
+                    $('#product-pass-price').val(ui.item.pass_price);
+                    $('#batch-barcode').val(ui.item.batch_barcode);
+                    $('#batch-total-quantity').val(ui.item.batch_total_quantity);
+                    $('#item-name').val(ui.item.name);
+
+                    var wholesales = [];
+                    wholesales.push(ui.item.wholesales);
+                    if (wholesales.length > 0 && $('#customer-type').val() == 'M') {
+                        call_me(wholesales[0]);
+                    }
+                    else{
+                       renderQuantityAndPrice($('#customer-type').val(), ui.item.sale_price, ui.item.discount_price, ui.item.pass_price, 1, 1, ui.item.batch_total_quantity);
+                     }
+                    showStock(ui.item.name, ui.item.discount_price, ui.item.sale_price, ui.item.current_inventory, ui.item.batch_barcode, ui.item.batch_total_quantity);
+
+                }
+            });
+        }
+
+        function call_me(array) {
+
+            var $quantity_stock_batch_max = parseInt($('#batch-total-quantity').val());
+            var $quantity_min = 0;
+
+            if ($('#customer-type').val() == 'M'){
+
+                var $wtext = '';
+                for (i = 0; i < array.length; i++) {
+                    $quantity_min = parseInt(array[i]['quantity']);
+                    var $status = '';
+                    if($quantity_min > $quantity_stock_batch_max){
+                        $status = 'disabled="disabled"';
+                    }
+                    $wtext += '<div class="custom-control custom-radio">' +
+                        '<input name="wholesale-option" id="wholesale-option-' + array[i]['id'] + '" type="radio" value="' + array[i]['id'] + '" class="custom-control-input" quantity="' + array[i]['quantity'] + '" price="' + array[i]['price'] + '" ' + $status + '>' +
+                        '<label for="wholesale-option-' + array[i]['id'] + '" class="criteria-label">' + 'S/ ' + array[i]['price'] + ' Cant. ' + array[i]['quantity'] + '</label>' +
+                        '</div>';
+
+                }
+                var $wtop = '<ul class="list-group"><li class="list-group-item d-flex justify-content-between align-items-center">' +
+                                'Venta al por mayor ' + $wtext +
+                            '</li></ul>';
+
+                $("#wholesale-status").html($wtop);
+            }
+        }
+
+        $('#wholesale-status').on('change','ul li :input[name^="wholesale-option"]' , function () {
+            if ($(this).is(':checked')) {
+
+                var $rate = $(this).attr('price');
+                var $min_quantity = $(this).attr('quantity');
+                var $max_quantity = $(this).parent('div.custom-radio').next().find(':input[name="wholesale-option"]').attr('quantity');
+
+                renderQuantityAndPrice($('#customer-type').val(), $rate, $rate, $rate, $min_quantity, $min_quantity, $max_quantity);
+
+            } else {
+
+            }
+
+        });
+
+        function renderQuantityAndPrice($customer_type, $sale_price, $discount_price, $pass_price, $q_value, $q_min, $q_max) {
+{#            $('#quantity-ordered').attr('disabled', 'false');#}
+{#            $('#rate').attr('disabled', 'false');#}
+            var $rate_data_min = 0;
+            var $rate_data_max = 0;
+            var $rate_value = 0;
+            var $quantity_data_min = $q_min;
+            var $quantity_data_max = $q_max;
+            var $text_quantity_data_max = 'data-max="' + $quantity_data_max + '"';
+            var $quantity_value = $q_value;
+
+            if ($customer_type == 'N') {
+                $rate_data_min = $discount_price;
+                $rate_data_max = $sale_price;
+                $rate_value = $sale_price;
+            }
+            else {
+                if ($customer_type == 'P') {
+                    $rate_data_min = $pass_price;
+                    $rate_data_max = $pass_price;
+                    $rate_value = $pass_price;
+                }
+                else{
+                    if ($customer_type == 'M') {
+                        $rate_data_min = $pass_price;
+                        $rate_data_max = $pass_price;
+                        $quantity_stock_batch_max = parseInt($('#batch-total-quantity').val());
+                        $rate_value = $pass_price;
+
+                        if($quantity_data_max === undefined || $quantity_data_max === null){
+                            $text_quantity_data_max = 'data-max="' + $quantity_stock_batch_max.toString() + '"';;
+                        }
+                        else{
+                            var $q = parseInt($quantity_data_max);
+                            $q--;
+                            if($q>$quantity_stock_batch_max){
+                                $text_quantity_data_max = 'data-max="' + $quantity_stock_batch_max.toString() + '"';
+                            }
+                            else{
+                                $text_quantity_data_max = 'data-max="' + $q.toString() + '"';
+                            }
+                        }
+                    }
+                }
+            }
+
+
+
+            var $render_quantity =
+                '<div class="form-group">' +
+                '<label for="quantity-ordered">Cantidad</label>' +
+                '<div class="input-group spinner" data-trigger="spinner">' +
+                '<input type="text" id="quantity-ordered" name="quantity-ordered" class="form-control form-control-sm text-center" autocomplete="off" value="' + $quantity_value + '" data-rule="quantity" ' + $text_quantity_data_max + ' data-min="' + $quantity_data_min + '" data-step="1">' +
+                '<div class="input-group-append">' +
+                '<div class="input-group-text">' +
+                '<a href="javascript:;" class="spin-up" data-spin="up"><i class="fa fa-caret-up"></i></a>' +
+                '<a href="javascript:;" class="spin-down" data-spin="down"><i class="fa fa-caret-down"></i></a>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+            var $render_rate =
+                '<div class="form-group">' +
+                '<label for="rate">Precio</label>' +
+                '<div class="input-group spinner" data-trigger="spinner">' +
+                '<input type="text" id="rate" name="rate" class="form-control  form-control-sm text-center" autocomplete="off" value="' + $rate_value + '" data-rule="currency" data-max="' + $rate_data_max + '" data-min="' + $rate_data_min + '" data-step="0.1" data-precision="2">' +
+                '<div class="input-group-append">' +
+                '<div class="input-group-text">' +
+                '<a href="javascript:;" class="spin-up" data-spin="up"><i class="fa fa-caret-up"></i></a>' +
+                '<a href="javascript:;" class="spin-down" data-spin="down"><i class="fa fa-caret-down"></i></a>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+
+            $('#render-quantity').html($render_quantity);
+            $('#render-rate').html($render_rate);
+
+            $('[data-trigger="spinner"]').spinner();
+        }
+
+
+        function activeCustomerAutocomplete() {
+            $("#customer-name").autocomplete({
+                minLength: 2,
+                source: function (req, add) {
+                    var search = $("#customer-name").val();
+                    search = search.trim();
+                    $.ajax({
+                        url: '/vetstore/customer_list/',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        data: {'search': search},
+                        success: function (data) {
+                            var array = data.map(function (element) {
+                                return {value: element['name'], id: element['id'], type: element['type'],};
+                            });
+                            add(array);
+                        },
+                        fail: function (response) {
+                            $('#alerts').html(response.alert);
+                        }
+                    });
+                },
+                select: function (event, ui) {
+                    $('#customer-id').val(ui.item.id);
+                    $('#customer-type').val(ui.item.type);
+                    cleanSaleForm();
+{#                    renderQuantityAndPrice();#}
+                    $('#quantity-ordered').attr('disabled', 'true');
+                    $('#rate').attr('disabled', 'true');
+                }
+            });
+        }
+
+        $(document).on('change', '#rate', function (e) {
+            console.log('change rate: ' + $(this).attr('data-max'));
+        });
+
+
+        $('#add-detail').on('click', function () {
+
+            $product_name = $('#item-name').val();
+            $product_id = $('#product-id').val();
+            $quantity = $('#quantity-ordered').val();
+            $batch_barcode = $('#batch-barcode').val();
+            $batch_total_quantity = $('#batch-total-quantity').val();
+            $price = 0;
+            $rode = 0;
+
+            if (!$('#product-name').val()) {
+                alert('No hay producto');
+                return;
+            }
+
+            if (!$('#quantity-ordered').val()) {
+                alert('No hay cantidad especificada');
+                return;
+            }
+            $('#list-waypay').show();
+            $("#table-payment-way").empty();
+
+            $price = parseFloat($("#rate").val());
+            $quantity = parseInt($('#quantity-ordered').val());
+            current = parseInt($('#current-inventory').val());
+
+            //buscar si existe producto, y validar cantidad ha ser vendida, a nivel de producto
+            $search_product = $("table.details").find("tr.detail[item='" + $product_id + "']");
+            if ($search_product.length > 0) {
+                $quantity_in_detail = parseInt($("tbody.detail-rows tr.detail[item='" + $product_id + "']").find('input.quantity').val());
+                if ($quantity_in_detail + $quantity > current) {
+                    alert('No hay suficiente stock del producto');
+                    cleanSaleForm();
+                    return;
+                }
+
+
+                /*buscar si existe el lote, y validar cantidad ha ser vendida, a nivel de lote*/
+                $search_batch = $("table.details tr.detail[item='" + $product_id + "'] ul.batches li.list-group-item[batch='" + $batch_barcode + "']");
+
+                if ($search_batch.length > 0) {
+                    $batch_quantity = parseInt($('#batch-total-quantity').val());
+                    $batch_current_quantity = parseInt($search_batch.find("span.badge").text());
+                    /*La cantidad no debe sobrepasar las existencias del lote*/
+                    if ($batch_current_quantity + $quantity > $batch_quantity) {
+                        alert('No hay suficiente stock en el lote ' + $batch_barcode);
+                        cleanSaleForm();
+                        return;
+                    }
+                }
+
+                //Agregar lote
+                addDetailBatch($product_id, $batch_barcode, $quantity);
+            }
+            else {
+
+                if ($quantity > current || $quantity > $batch_total_quantity) {
+                    alert('No hay suficiente stock');
+                    cleanSaleForm();
+                    return;
+                }
+
+                $rode = $quantity * $price;
+
+                var $head =
+                    '<tr>' +
+                    '<th>#</th>' +
+                    '<th>PRODUCTO</th>' +
+                    '<th>PRECIO</th>' +
+                    '<th>CANTIDAD</th>' +
+                    '<th>SUBTOTAL</th>' +
+                    '</tr>';
+
+                $('.detail-head-rows').html($head);
+
+                var $row = '<tr class="detail" pk="' + $index + '" item="' + $product_id + '">' +
+                    '<th>' +
+                    '<button type="button" class="btn btn-elegant btn-sm remove-detail" pk="' + $index + '">' +
+                    '<i class="fa fa-remove fa-2x" aria-hidden="true"></i>' +
+                    '</button>' +
+                    '</th>' +
+                    '<td>' +
+                    {#                    '<div class="md-form form-sm">'+#}
+                    $product_name +
+                    '<input type="hidden" class="product-id" value="' + $product_id + '">' +
+                    {#                    '</div>'+#}
+
+                    '<ul class="list-group batches">' +
+                    '<li class="list-group-item d-flex justify-content-between align-items-center" batch="' + $batch_barcode + '">' + $batch_barcode +
+                    '<span class="badge badge-primary badge-pill">' + $quantity + '</span>' +
+                    '</li>' +
+                    '</ul>' +
+
+                    '</td>' +
+                    '<td>' +
+
+                    '<div class="input-group spinner" data-trigger="spinner">' +
+                    '<div class="input-group-prepend">' +
+                    '<span class="input-group-text">S/</span>' +
+                    '</div>' +
+                    '<input type="text" class="form-control form-control-sm text-right price" readonly data-rule="currency" data-min="' + $price + '" data-max="' + $price + '">' +
+                    '<div class="input-group-append">' +
+                    '<div class="input-group-text">' +
+                    '<a href="javascript:;" class="spin-up" data-spin="up"><i class="fa fa-caret-up"></i></a>' +
+                    '<a href="javascript:;" class="spin-down" data-spin="down"><i class="fa fa-caret-down"></i></a>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+
+                    '</td>' +
+                    '<td>' +
+
+                    '<div class="input-group spinner" data-trigger="spinner">' +
+                    '<input type="text" class="form-control  form-control-sm text-center quantity" readonly data-rule="quantity" data-min="' + $quantity + '">' +
+                    '</div>' +
+
+                    '</td>' +
+                    '<td>' +
+
+                    '<div class="input-group spinner" data-trigger="spinner">' +
+                    '<div class="input-group-prepend">' +
+                    '<span class="input-group-text">S/</span>' +
+                    '</div>' +
+                    '<input type="text" class="form-control form-control-sm text-right rode" readonly data-rule="currency" data-min="' + $rode + '">' +
+                    '<div class="input-group-append">' +
+                    '<div class="input-group-text">' +
+                    '<a href="javascript:;" class="spin-up" data-spin="up"><i class="fa fa-caret-up"></i></a>' +
+                    '<a href="javascript:;" class="spin-down" data-spin="down"><i class="fa fa-caret-down"></i></a>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+
+                    '</td>' +
+                    '</tr>';
+
+                $('.detail-rows').prepend($row);
+
+                $('#rode').val($rode);
+                $('#accumulate').trigger("click");
+
+                //activeRemove();
+
+            }
+
+            updateTotal();
+
+            cleanSaleForm();
+
+            $('[data-trigger="spinner"]').spinner();
+        });
+
+        function cleanSaleForm() {
+            $('#product-name').val("");
+            $('#quantity-ordered').val("");
+            $('#rate').val("");
+            $("#stock-status").empty();
+            $("#wholesale-status").empty();
+        }
+
+        function updateTotal() {
+
+            var $charged = 0;
+            var $rode = 0;
+
+            $("tbody.detail-rows tr.detail").each(function () {
+                $rode = parseFloat($(this).find('input.price').attr("data-min")) * parseFloat($(this).find('input.quantity').attr("data-min"));
+                $charged += $rode;
+                $(this).find('input.rode').attr("data-min", $rode).val($rode.toFixed(2));
+            });
+
+            $('.detail-rows tr.charged').remove();
+            $('.detail-rows tr.received').remove();
+            $('.detail-rows tr.turned').remove();
+
+            var $received = 0;
+            var $turned = 0;
+
+            if ($charged > 0) {
+                var $row2 =
+                    '<tr class="charged">' +
+                    '<th scope="row" colspan="3"></th>' +
+                    '<td>COBRADO</td>' +
+                    '<td>' +
+
+                    '<div class="input-group spinner" data-trigger="spinner">' +
+                    '<div class="input-group-prepend">' +
+                    '<span class="input-group-text">S/</span>' +
+                    '</div>' +
+                    '<input type="text" class="form-control form-control-sm text-right" readonly data-rule="currency" data-min="' + $charged + '">' +
+                    '<div class="input-group-append">' +
+                    '<div class="input-group-text">' +
+                    '<a href="javascript:;" class="spin-up" data-spin="up"><i class="fa fa-caret-up"></i></a>' +
+                    '<a href="javascript:;" class="spin-down" data-spin="down"><i class="fa fa-caret-down"></i></a>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+
+
+                    '</td>' +
+                    '</tr>' +
+                    '<tr class="received">' +
+                    '<th scope="row" colspan="3"></th>' +
+                    '<td>RECIBIDO</td>' +
+                    '<td>' +
+
+                    '<div class="input-group spinner" data-trigger="spinner">' +
+                    '<div class="input-group-prepend">' +
+                    '<span class="input-group-text">S/</span>' +
+                    '</div>' +
+                    '<input type="text" class="form-control form-control-sm text-right" data-rule="currency" data-min="' + $charged + '">' +
+                    '<div class="input-group-append">' +
+                    '<div class="input-group-text">' +
+                    '<a href="javascript:;" class="spin-up" data-spin="up"><i class="fa fa-caret-up"></i></a>' +
+                    '<a href="javascript:;" class="spin-down" data-spin="down"><i class="fa fa-caret-down"></i></a>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+
+
+                    '</td>' +
+                    '</tr>' +
+                    '<tr class="turned">' +
+                    '<th scope="row" colspan="3"></th>' +
+                    '<td>VUELTO</td>' +
+                    '<td>' +
+
+
+                    '<div class="input-group spinner" data-trigger="spinner">' +
+                    '<div class="input-group-prepend">' +
+                    '<span class="input-group-text">S/</span>' +
+                    '</div>' +
+                    '<input type="text" class="form-control form-control-sm text-right" readonly data-rule="currency" data-min="' + $turned + '">' +
+                    '<div class="input-group-append">' +
+                    '<div class="input-group-text">' +
+                    '<a href="javascript:;" class="spin-up" data-spin="up"><i class="fa fa-caret-up"></i></a>' +
+                    '<a href="javascript:;" class="spin-down" data-spin="down"><i class="fa fa-caret-down"></i></a>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+
+
+                    '</td>' +
+                    '</tr>';
+                $(".detail-rows").append($row2);
+                //getTurned();
+            }
+
+        }
+
+        $(document).on('click', '.remove-detail', function (e) {
+            $("tr.detail[pk='" + $(this).attr('pk') + "']").remove();
+            updateTotal();
+        });
+
+
+        {#        function updateTotal() {#}
+        {#            var $charged=0;#}
+        {#            $("tr.detail input.rode").each(function () {#}
+        {#                $charged+=parseFloat($(this).val());#}
+        {#            });#}
+        {#            $("tr.charged").find(":input[type='number']").val($charged);#}
+        {#        }#}
+
+        $('#save-purchase').on('click', function () {
+
+            if (!$('#employee-code').val()) {
+                alert('Ingrese codigo de empleado');
+                return;
+            }
+            if (!$('.received input[type="text"]').val()) {
+                alert('Ingrese monto a recibir');
+                return;
+            }
+
+            var waypay = new Array();
+
+            $('table tbody#table-payment-way tr td .remove').each(function () {
+                var wp = {};
+                wp.Way = $(this).attr('way');
+                wp.Rode = $(this).attr('price');
+                if ($(this).attr('product-return-id') != null){
+                    wp.ProductReturnId = $(this).attr('product-return-id');
+                }
+                else{
+                    wp.ProductReturnId = '0';
+                }
+
+                waypay.push(wp);
+
+            });
+            console.log(JSON.stringify(waypay));
+
+            var receipt = {
+                "Details": [],
+                "CustomerId": $("#customer-id").val(),
+                "WayPay": waypay,
+                "BranchOffice": $("#branch-office-id-reg").val(),
+                "RequestDate": $("#request-date").val(),
+                "EmployeeCode": $("#employee-code").val(),
+                "Charged": parseFloat($("tr.charged").find(":input[type='text']").val()),
+                "Received": parseFloat($("tr.received").find(":input[type='text']").val()),
+                "Turned": parseFloat($("tr.turned").find(":input[type='text']").val())
+            };
+
+            $("tr.detail").each(function () {
+
+                var detailObj = {
+                    "Product": $(this).find("input.product-id").val(),
+                    "Quantity": $(this).find("input.quantity").val(),
+                    "Price": $(this).find("input.price").val(),
+                    "Rode": $(this).find("input.rode").val(),
+                    "Batches": []
+                };
+                $(this).find("ul.batches li").each(function () {
+                    var batchObj = {
+                        "BatchBarcode": $(this).attr("batch"),
+                        "BatchQuantity": $(this).find("span.badge").text()
+                    };
+                    detailObj.Batches.push(batchObj);
+                });
+                receipt.Details.push(detailObj);
+            });
+
+
+{#            $('#save-purchase').off("click");#}
+            $('#save-purchase').hide();
+            $('#list-waypay').hide();
+            $.ajax({
+                url: '/vetstore/generate_sales_receipt/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'receipt': JSON.stringify(receipt)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response) {
+                    $('.list-products').html(response.list);
+                    $('#left-modal').modal('hide');
+                    $('#employee-code').val('');
+                    $('.detail-rows').empty();
+                    $('.detail-head-rows').empty();
+                    $('#alerts').html(response.alert);
+                    $('#save-purchase').show();
+
+                },
+                fail: function (response) {
+                    $('#alerts').html(response.alert);
+                    console.log(response.message)
+                }
+            });
+
+            $('#fullHeightModalRight').modal('hide');
+            // $('#receipt-print').text(JSON.stringify(receipt));
+
+        });
+
+        function getWayPay() {
+            $gender = $('#way-pay');
+            $.ajax({
+                url: '/vetstore/way_pay/',
+                dataType: 'JSON',
+                success: function (data) {
+                    $.each(data, function (key, val) {
+                        $gender.append('<option value="' + val.id + '">' + val.value + '</option>');
+                    })
+                },
+            });
+        }
+
+        function showStock($name, $min, $max, $stock, $batch_barcode, $batch_quantity) {
+            $text =
+                '<ul class="list-group">' +
+                '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+                'Nombre de producto' +
+                '<span class="badge badge-primary badge-pill">' + $name + '</span>' +
+                '</li>' +
+                '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+                'Precio de venta' +
+                '<span class="badge badge-primary badge-pill">S/ ' + $min + ' - ' + $max + '</span>' +
+                '</li>' +
+                '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+                'Stock lote [' + $batch_barcode + ']' +
+                '<span class="badge badge-primary badge-pill">' + $batch_quantity + '</span>' +
+                '</li>' +
+                '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+                'Stock total disponible' +
+                '<span class="badge badge-primary badge-pill">' + $stock + '</span>' +
+                '</li>' +
+                '</ul>';
+            $("#stock-status").html($text);
+        }
+
+
+        $(document).on('change', 'tr.received', function (e) {
+            calculateTurned();
+        });
+
+        function calculateTurned() {
+            var $result = parseFloat($("tr.charged").find(":input[type='text']").val()) - parseFloat($("tr.received").find(":input[type='text']").val());
+            $("tr.turned").find(":input[type='text']").val($result.toFixed(2).toString());
+        }
+
+
+        function addDetailBatch($id, $barcode, $stock) {
+            $search_batch = $("table.details tr.detail[item='" + $id + "'] ul.batches li.list-group-item[batch='" + $barcode + "']");
+
+            if ($search_batch.length > 0) {
+                var stock = parseFloat($search_batch.find("span.badge").text());
+                stock = stock + $stock;
+                $search_batch.find("span.badge").text(stock);
+
+            } else {
+                $text2 =
+                    '<li class="list-group-item d-flex justify-content-between align-items-center" batch="' + $barcode + '">' + $barcode +
+                    '<span class="badge badge-primary badge-pill">' + $stock + '</span>' +
+                    '</li>';
+                $("table.details tr.detail[item='" + $id + "'] ul.batches").append($text2);
+            }
+
+            var $quantity = parseFloat($("table.details tr.detail[item='" + $id + "']").find("input.quantity").val());
+            $quantity = $quantity + $stock;
+            $("table.details tr.detail[item='" + $id + "']").find("input.quantity").attr("data-min", $quantity).val($quantity);
+        }
+
+        function getBranchOfficeR() {
+            $branch_office_reg = $('#branch-office-id-reg');
+            $.ajax({
+                url: '/vetstore/rest/get_branch_office/',
+                dataType: 'JSON',
+                success: function (data) {
+                    {#                    $branch_office.append('<option value="0" disabled>Seleccione</option>');#}
+                    $.each(data, function (key, val) {
+                        $branch_office_reg.append('<option value="' + val.id + '">' + val.name + '</option>');
+                    });
+                    $("#purchase-registration-form #branch-office-id-reg option[value='" + {{ branch_office_id }} +"']").prop('selected', true);
+                }
+            });
+        }
+        ;
+
+
+        $('#accumulate').click(function () {
+
+            var received = 0;
+            var rode = 0;
+            var accumulate = 0;
+            var product_return_text = '';
+            rode = Number($('#rode').val());
+
+            if ($("#product-return-id").val()) {
+                product_return_text = " product-return-id='" + $("#product-return-id").val() + "' " + " product-return-rode='" + rode + "' ";
+
+
+                $("#product-return-id").val("");
+            }
+
+            if (rode > 0) {
+
+
+                $("#table-payment-way").append(
+                    "<tr>" +
+                    "<td><a href='javascript:void(0)' " +
+                    "class='btn btn-default btn-xs remove' price='"+rode+"' way='"+$("select[name='waypay'] option:selected").val()+"' "+product_return_text+ " ><i class='fa fa-remove' " +
+                    "aria-hidden='true'></i></a>&nbsp;&nbsp;" + $("select[name='waypay'] option:selected").text() + ": " +
+                    rode.toLocaleString('en-IN', {
+                        style: 'currency',
+                        currency: 'PEN'
+                    }).replace("PEN", "S/") +
+                    "</td>" +
+                    "</tr>"
+                );
+
+                accumulate = parseFloat($('tr.received input[type="text"]').val());
+                received = accumulate + rode;
+
+                $('tr.received input[type="text"]').val(received.toFixed(2).toString());
+                calculateTurned();
+                $('#rode').val('');
+                $("select[name='waypay'] option:eq(0)").prop("selected","selected");
+                $("select[name='waypay']").trigger("change");
+
+            }
+        });
+
+        $('tbody#table-payment-way').on('click', 'tr td .remove', function (e) {
+            accumulate = parseFloat($('tr.received input[type="text"]').val());
+            rode = parseFloat($(this).attr('price'));
+            received = accumulate - rode;
+            $('tr.received input[type="text"]').val(received.toFixed(2).toString());
+            $(this).parent('td').parent('tr').remove();
+            calculateTurned();
+        });
+
+        function callAutocompleteCreditNote() {
+            $("#product-return-id").autocomplete({
+                minLength: 2,
+                source: function (req, add) {
+                    var search = $("#product-return-id").val();
+                    $.ajax({
+                        url: '/vetstore/list_approved_credit_note/',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        data: {'search': search,},
+                        success: function (data) {
+                            var array = data.map(function (element) {
+                                return {
+                                    id: element['id'],
+                                    value: element['id']
+                                };
+                            });
+
+                            add(array);
+
+                        },
+                        fail: function (response) {
+                            $('#alerts').html(response.alert);
+                        }
+                    });
+                },
+                select: function (event, ui) {
+                    {# console.log('key: ' + ui.item.value);#}
+                    $.ajax({
+                        url: '/vetstore/find_note_credit/',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        data: {'product-return-id': ui.item.value},
+                        success: function (response) {
+                            console.log('find_note_credit: ' + response.rode);
+                            $('#rode').val(response.rode);
+                        },
+                        fail: function (response) {
+                            $('#alerts').html(response.alert);
+                        }
+                    });
+                }
+            });
+        }
+
+        $('#waypay').change(function () {
+            if (parseInt($(this).val()) == 2) {
+                $("#note").show();
+                $('#rode').attr('readonly', true);
+                callAutocompleteCreditNote();
+            }
+            else {
+                $('#rode').attr('readonly', false);
+                $("#note").hide();
+            }
+        });
+
+    </script>
+{% endblock %}

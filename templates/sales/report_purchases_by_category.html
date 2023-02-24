@@ -1,0 +1,132 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Reporte
+{% endblock title %}
+
+{% block body %}
+
+
+    <div class="container-fluid pt-3">
+        <div class="card">
+
+            <div class="card-header">
+                <label class="col-form-label col-form-label-lg">Reporte por Rubro</label>
+            </div>
+
+            <div class="card-body">
+
+                <form class="form-inline" id="search-form" method="POST">
+                    {% csrf_token %}
+
+                    <label class="my-1 ml-2 mr-2" for="id_year">Año: </label>
+                    <select id="id_year" name="year"
+                            class="form-control">
+                        <option value="2021">2021</option>
+                        <option selected value="2022">2022</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                    </select>
+
+                    <button type="submit" class="btn btn-blue my-1 ml-2" id="btn-search">
+                        <i class="fas fa-search-dollar"></i> Buscar
+                    </button>
+
+                    <button type="button" class="btn my-1 ml-2 text-white" id="printReportExcel"
+                            style="background: #00960f">
+                        <i class="far fa-file-excel"></i> Exportar a Excel
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+
+        <div class="card">
+
+            <div class="card-body table-responsive" id="tbl-purchases">
+
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p>Cargando...</p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#search-form').get(0));
+
+            $('#btn-search').attr("disabled", "true");
+            $('#tbl-purchases').empty();
+            $('#tbl-purchases').html(loader);
+
+            $.ajax({
+                url: '/sales/purchase_report_by_category/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response['message'], '¡Bien hecho!');
+                        $('#tbl-purchases').html(response.grid);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Error!');
+                    }
+                }
+            });
+            $('#btn-search').removeAttr("disabled", "false");
+
+        });
+
+
+       {#$('#btn-search').click(function () {#}
+       {##}
+       {#     $('#tbl-purchases').empty();#}
+       {#     $.ajax({#}
+       {#         url: '/sales/sold_ball_request/',#}
+       {#         async: true,#}
+       {#         dataType: 'json',#}
+       {#         type: 'GET',#}
+       {#         data: {#}
+       {#             'year': $('#id_year').val(),#}
+       {#         },#}
+       {#         success: function (response) {#}
+       {#             $('#tbl-purchases').html(response['grid']);#}
+       {##}
+       {#         },#}
+       {#     });#}
+       {# });#}
+
+
+    </script>
+
+{% endblock extrajs %}

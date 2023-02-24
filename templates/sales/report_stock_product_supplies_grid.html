@@ -1,0 +1,51 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    Productos | Insumos
+{% endblock title %}
+
+{% block body %}
+    <div class="card m-2" style="border-color: #a46d43">
+        <div class="card-header text-center" style="background: #a46d43">
+            <label class="text-white text-center">LISTADO DE INSUMOS</label>
+        </div>
+        <div class="card-body">
+            <table id="product-data-grid" class="table table-sm table-bordered" cellspacing="0"
+                   width="100%">
+                <thead>
+                <tr class="text-center text-white" style="background: #a46d43">
+                    <th class="p-2">#</th>
+                    <th class="th-sm p-2">Producto</th>
+                    <th class="th-sm p-2">Stock min</th>
+                    <th class="th-sm p-2">Stock max</th>
+                    <th class="th-sm p-2">Stock</th>
+                    <th class="th-sm p-2">Unidad medida</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for pi in products_supplies_set %}
+                    <tr class="text-center">
+                        <td class="align-middle">{{ pi.id }}</td>
+                        <td class="align-middle">{{ pi.name }}</td>
+                        {% if pi.product_family.name == 'PINTURA' %}
+                            <td class="align-middle">{% widthratio pi.stock_min 3790 1 %}</td>
+                            <td class="align-middle">{% widthratio pi.stock_max 3790 1 %}</td>
+                            <td class="align-middle">{% widthratio pi.productstore_set.first.stock 3790 1 %}</td>
+                            <td class="align-middle">GALON(ES)</td>
+                        {% else %}
+                            <td class="align-middle">{{ pi.stock_min }}</td>
+                            <td class="align-middle">{{ pi.stock_max }}</td>
+                            <td class="align-middle">{{ pi.productstore_set.first.stock }}</td>
+                            <td class="align-middle">{{ pi.productdetail_set.first.unit.description }}</td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock body %}
+{% block extrajs %}
+    <script type="text/javascript">
+    </script>
+{% endblock extrajs %}

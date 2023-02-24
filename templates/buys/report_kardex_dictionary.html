@@ -1,0 +1,241 @@
+<div class="table-responsive">
+    <table class="table table-sm table-striped table-hover table-bordered small" id="table-dictionary">
+        {% if not is_pdf %}
+            <thead>{% endif %}
+        <tr class="bg-primary text-white small">
+            <td>Id</td>
+            <td>FECHA</td>
+            <td>PAGOS</td>
+            <td class="text-center">DETALLE</td>
+            <td>COMPRA</td>
+            <td>COMPRA GLP</td>
+            <td>FACTURA</td>
+            {#        <td class="text-success">FECHA DE COMPRA</td>#}
+            <td>TIPO</td>
+            <td>CARGUIO SICUANI</td>
+            <td>TOTAL ACUMULADO DEL MES</td>
+            <td>PROPIETARIO</td>
+            <td>PLACA</td>
+            <td>DESTINO</td>
+            <td>CANTIDAD</td>
+            <td>FACTURAS</td>
+            <td>SCOP</td>
+            {#            <td>FECHA GASTO</td>#}
+            {#            <td>FACTURAS</td>#}
+            {#            <td>TIPO</td>#}
+            {#            <td>PRECIO</td>#}
+            {#            <td>SUMMARY</td>#}
+            <td>ACUMULADO GLOBAL</td>
+            <td>PLUSPETROL</td>
+        </tr>
+        {% if not is_pdf %}</thead>{% endif %}
+        {% if not is_pdf %}
+            <tbody>{% endif %}
+
+
+        {% for d in dictionary %}
+            <tr>
+                <td class="align-middle text-center">{{ d.id }}</td>
+                <td class="align-middle text-center">
+                    {% if d.outputs.0.type %}
+                        <span class="text-primary">{{ d.outputs.0.date_programming|date:"d-m-y" }}</span>
+                    {% elif d.inputs.0.type %}
+                        <span class="text-success">{{ d.inputs.0.date|date:"d-m-y" }}</span>
+                    {% endif %}
+                </td>
+                {% if d.inputs.0.quantity|floatformat:0 == '0' %}
+                    <td class="align-middle text-center text-success">
+                        <button type="button" data-toggle="modal" data-target=".modal-payment-programming"
+                                pk="{{ d.outputs.0.id_programing }}"
+                                class="btn btn-sm btn-outline-success btn-show-payments-programming"><i
+                                class="fa fa-dollar-sign"></i> Pagar
+                        </button>
+                    </td>
+
+                    {% if d.outputs.0.cash_flow %}
+                        <td class="align-middle text-center item-payments-programming p-0 text-primary">
+                            {#                        <button type="button" data-toggle="modal" data-target=".modal-payment-programming-view" pk="{{ d.outputs.0.id_programing }}" class="btn btn-sm btn-outline-success btn-show-payments-programming-view"> <i class="fa fa-home"></i> Ver</button>#}
+                            <table class="table table-sm m-0 p-0" style="width: 100%;">
+                                <tr class="text-primary">
+                                    <th class="align-middle text-center font-weight-normal">Fecha</th>
+                                    <th class="align-middle text-center font-weight-normal">Monto</th>
+                                    <th class="align-middle text-center font-weight-normal">operacion</th>
+                                    <th class="align-middle text-center font-weight-normal">Descripcion</th>
+                                </tr>
+                                <tbody>
+                                {% for c in d.outputs.0.cash_flow %}
+                                    <tr pk_cash="{{ c.id }}" class="text-primary">
+                                        <td class="align-middle text-center">{{ c.date_transaction|date:"d-m-y" }}</td>
+                                        <td class="align-middle text-center">{{ c.mount|floatformat:2 }}</td>
+                                        <td class="align-middle text-center">{{ c.code_operation|default:'-' }}</td>
+                                        <td class="align-middle text-center">{{ c.description|default:'-' }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </td>
+                    {% else %}
+                        <td class="align-middle text-center text-danger">-</td>
+                    {% endif %}
+                {% else %}
+                    <td class="align-middle text-center text-danger">-</td>
+                    <td class="align-middle text-center text-danger">-</td>
+                {% endif %}
+
+                <td class="align-middle text-center text-danger">
+                    {#                    {{ d.inputs.0.type }} <br>#}
+                    {{ d.inputs.0.date|date:"d-m-y" }}</td>
+                <td class="align-middle text-right">{{ d.inputs.0.quantity|floatformat:0 }}</td>
+                <td class="align-middle text-center">{{ d.inputs.0.invoice }}</td>
+                {#        <td class="text-success">{{ d.inputs.0.date|date:"Y-m-d" }}</td>#}
+                <td class="align-middle text-center text-success">{{ d.outputs.0.type }}</td>
+                <td class="align-middle text-right">{{ d.outputs.0.my_charge|floatformat:0 }}</td>
+                <td class="align-middle text-right">{{ d.outputs.0.total_charge|floatformat:0 }}</td>
+                <td class="align-middle text-center">{{ d.outputs.0.owner }}</td>
+                <td class="align-middle text-center">{{ d.outputs.0.license_plate }}</td>
+                <td class="align-middle text-center">{{ d.outputs.0.subsidiary }}</td>
+                <td class="align-middle text-right">{{ d.outputs.0.quantity|floatformat:0 }}</td>
+                <td class="align-middle text-center">
+                    {% for i in d.outputs.0.invoices %}
+                        {#                {{ i.id }} / {{ i.invoice }}/{{ i.quantity_invoice }}<br>#}
+                        {#   Factura y cantidad                     {{ i.invoice }}/{{ i.quantity_invoice }}<br>#}
+                        {{ i.invoice }},
+                    {% endfor %}
+                </td>
+                <td class="align-middle text-center">{{ d.outputs.0.number_scop }}</td>
+                {#                <td class="align-middle text-center">#}
+                {#                    {% for e in d.outputs.0.expenses %}#}
+                {#                        {{ e.date|date:"Y-m-d" }}<br>#}
+                {#                    {% endfor %}#}
+                {#                </td>#}
+                {#                <td class="align-middle text-center">#}
+                {#                    {% for e in d.outputs.0.expenses %}#}
+                {#                        {{ e.invoice }}<br>#}
+                {#                    {% endfor %}#}
+                {#                </td>#}
+                {#                <td class="align-middle text-center">#}
+                {##}
+                {#                    {{ d.outputs.0.expenses.0.type }}#}
+                {##}
+                {#                </td>#}
+                {#                <td class="align-middle text-center decimal">#}
+                {#                    {% for e in d.outputs.0.expenses %}#}
+                {#                        {{ e.price|floatformat:2 }}<br>#}
+                {#                    {% endfor %}#}
+                {#                </td>#}
+                {#                <td class="align-middle text-right font-weight-bold text-black table-danger">{{ d.date|date:"Y-m-d" }}</td>#}
+                <td class="align-middle text-right font-weight-bold text-black table-primary">
+                    {{ d.outputs.0.my_remaining_quantity|floatformat:0 }}</td>
+                <td class="align-middle text-right font-weight-bold text-black table-success">
+                    {{ d.remaining_quantity|floatformat:0 }}</td>
+            </tr>
+
+        {% endfor %}
+        <tr class="text-white" style="Background-color: #626262">
+            <td>TOTAL</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="text-right">TOTAL COMPRA DE GLP = {{ total_input|floatformat:0 }}</td>
+            <td></td>
+            <td></td>
+            <td>TOTAL ENTRADA = {{ total_sum_charge|floatformat:0 }}</td>
+            <td></td>
+            <td></td>
+            <td class="text-right">NRO. ENTRADAS = {{ total_travel|floatformat:0 }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            {#                <td></td>#}
+            {#                <td></td>#}
+            {#                <td>TOTAL GASTO</td>#}
+            {#                <td class="text-right">{{ total_expenses|floatformat:2 }}</td>#}
+            <td></td>
+            <td>TOTAL PLUSPETROL = {{ total_plus_petrol|floatformat:0 }}</td>
+        </tr>
+
+        {% if not is_pdf %}</tbody>{% endif %}
+    </table>
+
+</div>
+{#<div class="mt-2 mb-2">#}
+{#    {% if is_pdf %}#}
+{#        <link rel="stylesheet"#}
+{#              href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"#}
+{#              integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"#}
+{#              crossorigin="anonymous">#}
+{##}
+{#        <h4>Reporte de kardex GLP</h4>#}
+{##}
+{#    {% else %}#}
+        {#        <button id="get-pdf" type="button" class="btn btn-outline-dark"><span class="fa fa-print"></span> Pdf</button>#}
+{#        <a href="{% url 'buys:kardex_glp_pdf' start_date end_date %}" target="print"#}
+{#           class="btn btn-outline-dark"><span class="fa fa-print"></span> Pdf</a>#}
+{##}
+{#        <a target="print" id="table-to-excel" class="btn btn-outline-dark"><span class="fa fa-file-excel"></span>#}
+{#            Excel</a>#}
+{#    {% endif %}#}
+{##}
+{#</div>#}
+
+<script type="text/javascript">
+    {#$('#table-dictionary').DataTable();#}
+
+    {% if not is_pdf %}
+
+        $('#table-dictionary').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.15/i18n/Spanish.json"
+            },
+            "pageLength": 100
+        });
+
+    {% endif %}
+
+    $("#table-to-excel").click(function () {
+        $("#table-dictionary").table2excel({
+            // exclude CSS class
+            exclude: ".noExl",
+            name: "Worksheet GLP",
+            filename: "kardex_glp",//do not include extension
+            fileext: ".xlsx", // file extension
+            preserveColors: true
+
+        });
+    });
+    /*  $('table tr td.decimal').each(function () {
+      let _str = $(this).text();
+      _str = _str.replace(',', '.');
+      $(this).text(_str);
+  });*/
+
+
+    $("#get-pdf").on("click", function () {
+
+
+        $.ajax({
+            url: '/buys/kardex_glp_pdf/',
+            type: 'GET',
+            data: {
+                'pk': {{ other_subsidiary_store.id }},
+                'date_initial': '{{ start_date }}',
+                'date_final': '{{ end_date }}',
+            },
+            success: function (response, textStatus, xhr) {
+                if (xhr.status == 200) {
+                    toastr.success(response['message'], '¡Mensaje!');
+                }
+
+            },
+            fail: function (response) {
+                console.log("error");
+            }
+        });
+
+    });
+
+
+</script>
+

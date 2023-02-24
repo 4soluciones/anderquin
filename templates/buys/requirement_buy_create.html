@@ -1,0 +1,339 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Guides
+{% endblock title %}
+
+{% block body %}
+
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="card bg-info">
+                <div class="card-body text-center font-weight-bolder">
+                    <h2 class="text-white">REQUERIMIENTO DE GLP</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-group">
+        <div class="card col-sm-5 mt-2">
+            <div class="card-body" id="render-form">
+                <form id="new-requirement" action="{% url 'buys:requirement_buy_create' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="row col-sm-12 align-middle m-0 p-1">
+                        <table style="width: 100%" class="mb-3">
+                            <tr>
+                                <td class="align-middle text-center" style="width: 20%">
+                                    <button type="submit" id="btn-save" class="btn btn-success btn-block pb-1 ">Guardar
+                                    </button>
+                                </td>
+                                <td class="align-middle text-center" style="width: 60%"><h4>PANEL DE REGISTRO</h4></td>
+                                <td class="align-middle text-center" style="width: 20%">
+                                    <button type="button" id="btn-new"
+                                            class="btn btn-danger btn-block pb-1">Nuevo
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table class="table table-sm">
+                                <tr>
+                                    <td>Fecha Solicitado:</td>
+                                    <td><input type="date" class="form-control" id="id_date_raquirement"
+                                               name="date_raquirement"
+                                               required>
+                                    </td>
+                                    <td>
+                                        {#                                        <button type="button" id="btn-new"#}
+                                        {#                                                class="btn btn-danger btn-block pb-1">Nuevo#}
+                                        {#                                        </button>#}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>N° Scop:</td>
+                                    <td><input type="text" class="form-control" id="id_number_scop"
+                                               name="numer_scop"
+                                               placeholder="Numero de scop" required
+                                               value="{{ employee.person.paternal_last_name }}">
+                                    </td>
+                                    <td>
+                                        <button type="button" id="btn-detail" class="btn btn-primary btn-block pb-1"
+                                                data-toggle="modal"
+                                                data-target="#modal-updetail">Detalle
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+
+                                    </td>
+                                    <td>
+
+                                    </td>
+                                    <td>
+
+                                    </td>
+                                </tr>
+
+                            </table>
+
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card col-sm-9 mt-2 ml-2 border-left">
+            <div class="card-body ">
+                <div class="table-responsive" id="render-table">
+
+                    <table id="id_detail_data_grid"
+                           class="table table-info table-striped align-content-center table-bordered response"
+                           cellspacing="0" width="50%">
+                        <thead>
+                        <tr class="text-center bg-info text-white" style="height: 15px;">
+                            <th scope="col" class="align-middle">#</th>
+                            <th scope="col" class="align-middle">Item</th>
+                            <th scope="col" class="align-middle">Descripcion</th>
+                            <th scope="col" class="align-middle">Cantidad</th>
+                            <th scope="col" class="align-middle">Unidad Medida</th>
+                            <th scope="col" class="align-middle">Editar</th>
+                        </tr>
+                        </thead>
+                        <tbody id="body-table-detail">
+
+                        </tbody>
+                    </table>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade response" id="modal-updetail" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalLongTitle"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title text-white" id="exampleModalLongTitle">DETALLE REQUERIMIENTO</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body align-content-center" id="modal-detail">
+                    <table class="table table-sm align-content-center table-responsive">
+                        <tr>
+                            <td>Descripcion del producto:</td>
+                            <td>
+                                <select class="form-control" id="id_producto" name="producto" required>
+                                    <option value="0"> Seleccione</option>
+                                    {% for p in product_obj %}
+                                        {% if employee.occupation.id == p.id %}
+                                            <option selected value="{{ p.id }}">{{ p.name }}</option>
+                                        {% else %}
+                                            <option value="{{ p.id }}">{{ p.name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Cantidad:</td>
+                            <td>
+                                <input type="number" class="form-control"
+                                       id="id_cantidad"
+                                       name="cantidad"
+                                       placeholder="Cantidad" required>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Unidad de Medida:
+                            </td>
+                            <td>
+                                <select class="form-control" id="id_unidad" name="unidad" required>
+                                    <option value="0"> Seleccione</option>
+                                    {% for u in unitmeasurement_obj %}
+                                        {% if employee.occupation.id == u.id %}
+                                            <option selected value="{{ u.id }}">{{ u.description }}</option>
+                                        {% else %}
+                                            <option value="{{ u.id }}">{{ u.description }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="modal-footer bg-info">
+                    <button type="button" class="btn btn-secondary p-2" data-dismiss="modal">Salir</button>
+                    <button type="button" id="id_add" class="btn btn-secondary p-2">Agregar Detalle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock body %}
+
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        $('#id_producto').select2({
+            theme: 'bootstrap4',
+        });
+        $(document).on('click', '#btn-new', function () {
+            $('#id_date_raquirement').val('');
+            $('#id_number_scop').val('');
+            $('#body-table-detail').empty();
+            $('#id_cantidad').val('');
+            $("#id_producto").val(0);
+            $("#id_unidad").empty().append('<option>Seleccione</option>');
+        });
+
+        function limper(request) {
+            $('#id_cantidad').val('');
+
+            {#$("#id_unidad").empty().append('<option>Seleccione</option>');#}
+
+            $('#id_producto option[value=0]').attr('selected', 'selected');
+            $('#id_producto').val(0);
+            {#$('#id_unidad option[value=0]').attr('selected','selected');#}
+        };
+
+
+        $("#id_add").click(function () {
+            if ($('#id_cantidad').val() > 0 && $('#id_producto').val() > 0 && $('#id_unidad').val() > 0) {
+                let id_product = $('#id_producto').val();
+                let name_product = $('#id_producto option:selected').text();
+                let quantity = parseFloat($('#id_cantidad').val());
+                let id_unit = $('#id_unidad').val();
+                let name_unit = $('#id_unidad option:selected').text();
+                let price_unit = parseFloat($('#id_preciounitario').val());
+
+
+                if ($("#id_detail_data_grid tr[product=" + id_product + "]").length) {
+                    toastr.warning("PRODUCTO SELECCIONADO, SELECCIONE UN PRODUCTO DISTINTO")
+                    return false;
+                }
+
+                $('#id_detail_data_grid').append(
+                    '<tr product="' + id_product + '">' +
+                    '<td>' + '</td>' +
+                    '<td class="text-center">' + '</td>' +
+                    '<td>' + name_product + '</td>' +
+                    '<td class="item-quantity  text-right">' + quantity.toFixed(2) + '</td>' +
+                    '<td class="item-unit text-center" pu="' + id_unit + '">' + name_unit + '</td>' +
+                    '<td>' + '<button type="button" onclick="deleteItem(' + id_product + ')" class="btn btn-success text-white delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                    '</tr>'
+                );
+                limper();
+                counterStrike()
+                toastr.info('PRODUCTO AGREGADO CON CORRECTAMENTE.', '¡MENSAJE!');
+
+            } else {
+                toastr.warning('POR FAVOR, INGRESE TODOS LOS CAMPOS')
+            }
+        });
+
+        $('#new-requirement').submit(function (event) {
+            event.preventDefault();
+            let mensaje = confirm("¿ESTA SEGURO DE REGISTRAR EL REQUERIMIENTO?");
+            if (mensaje) {
+                let requirement_buy = {
+                    "Details": [],
+                    "id_date_raquirement": $('#id_date_raquirement').val(),
+                    "id_number_scop": $('#id_number_scop').val(),
+                };
+
+                // Recorre cada detalle de producto (son 2 arrays) each -> recorre
+
+                $("#id_detail_data_grid tbody tr").each(function () {
+                    var detailObj = {
+
+                        "Product": $(this).attr('product'),
+                        "Quantity": $(this).find("td.item-quantity").text(),
+                        "Unit": $(this).find("td.item-unit").attr('pu'),
+                        "Price": $(this).find("td.item-unit").attr('pu'),
+                    };
+                    requirement_buy.Details.push(detailObj);
+
+                });
+
+                console.log(JSON.stringify(requirement_buy));
+
+
+                $.ajax({
+                    url: '/buys/requirement_buy_save/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {'requirement_buy': JSON.stringify(requirement_buy)},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status == 200) {
+                            toastr.success(response.message, '¡Bien hecho!');
+                            window.location.href = "/buys/print_requirement/"+response.requirement_buy+"/";
+                            setTimeout(() => {
+                                location.reload();
+                            }, 2000);
+                        }
+                    },
+                    fail: function (response) {
+                        toastr.error("Error. ", '¡Inconcebible!');
+                    }
+                });
+
+            }
+        });
+        $('#id_producto').change(function () {
+            //recupera el id_dela opcion seleccionada
+            let _search = $(this).val();
+            //vacia el combo-borra opciones
+            $('#id_unidad').empty();
+
+            $.ajax({
+                url: '/buys/get_units_by_product/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                //mando  id del producto del combo
+                data: {'ip': _search},
+                // si va bien retorna la data
+                success: function (response) {
+                    //le da formato array
+                    let units = JSON.parse(response['units']);
+                    units.forEach(
+                        element =>
+                            $('#id_unidad').append(
+                                '<option value="' + element['pk'] + '">' + element['fields']['name'] + '</option>')
+                    )
+                },
+
+            });
+
+        })
+
+        //Bonton eliminar fila
+        function deleteItem($id) {
+            $('#body-table-detail').find("tr[product=" + $id + "]").remove();
+            counterStrike();
+        }
+
+        // reasigna numero de fila a los detalles
+        function counterStrike() {
+            let l = 1;
+            $('#body-table-detail tr').each(function () {
+                $(this).attr('i', l);
+                $(this).children('td:nth-child(2)').text(l);
+                l++;
+            });
+
+        }
+    </script>
+{% endblock extrajs %}

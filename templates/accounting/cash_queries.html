@@ -1,0 +1,188 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Reporte de Cajas
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid">
+
+        <form class="form-inline">
+
+            <label class="my-1 mr-2">CAJA :</label>
+            <select class="custom-select my-1 mr-sm-2" id="cash_id" name="cash" required>
+                <option value="0" disabled selected>SELECCIONE...</option>
+
+                {% for c in only_cash_set %}
+                    <option value="{{ c.pk }}">{{ c.name }}</option>
+                {% endfor %}
+
+            </select>
+
+            <label class="my-1 mr-2">Fecha Inicial</label>
+            <input type="date" class="form-control my-1 mr-sm-2" id="id-start-date" name="start-date"
+                   value="{{ formatdate }}">
+
+            <label class="my-1 mr-2">Fecha final</label>
+            <input type="date" class="form-control my-1 mr-sm-2" id="id-end-date" name="end-date"
+                   value="{{ formatdate }}">
+
+            <button type="button" class="btn btn-primary my-1" id="btn-search">
+                <i class="fas fa-search-dollar"></i> Buscar
+            </button>
+
+        </form>
+
+
+        <div id="table-cash"></div>
+
+    </div>
+
+
+    <div class="modal fade" id="modal-cash" tabindex="-1" aria-labelledby="cashModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cashModalLabel">Reasignar fecha</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <form id="update-transaction-date-form" action="" method="POST">
+                    {% csrf_token %}
+
+                    <div class="modal-body">
+
+                        <input type="hidden" id="id-cash-flow" name="cash-flow" value="">
+                        <input type="hidden" id="id-query-start-date" name="query-start-date" value="">
+                        <input type="hidden" id="id-query-end-date" name="query-end-date" value="">
+
+                        <div class="form-group row">
+                            <label for="id-cash-flow-current-date" class="col-sm-3 col-form-label">Fecha Actual</label>
+                            <div class="col-sm-9">
+                                <input type="date"
+                                       class="form-control"
+                                       readonly
+                                       id="id-cash-flow-current-date"
+                                       name="cash-flow-current-date">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id-cash-flow-new-date" class="col-sm-3 col-form-label">Nueva Fecha</label>
+                            <div class="col-sm-9">
+                                <input type="date"
+                                       class="form-control"
+                                       id="id-cash-flow-new-date"
+                                       name="cash-flow-new-date">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="id-reason-text" class="col-sm-3 col-form-label">Motivo</label>
+                            <div class="col-sm-9">
+                                <textarea class="form-control"
+                                          id="id-reason-text"
+                                          name="reason-text"
+                                          required
+                                          rows="3"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary" id="btn-save-form">Guardar</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p>Cargando...</p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        $('#btn-search').click(function () {
+            let _cash = $('#cash_id').val();
+            let _start_date = $('#id-start-date').val();
+            let _end_date = $('#id-end-date').val();
+            console.log($('#cash_id').val())
+            if ($('#cash_id').val() === null){
+                toastr.warning('Favor de seleccionar una caja primero', '¡MENSAJE!');
+                return false;
+            }
+            $('#table-cash').html(loader);
+            $.ajax({
+                url: '/accounting/get_cash_by_dates/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'cash_id': _cash, 'start-date': _start_date, 'end-date': _end_date},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        $('#table-cash').html(response.grid);
+                        $('#id-query-start-date').val(_start_date);
+                        $('#id-query-end-date').val(_end_date);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    $('#table-list-purchase').html(jqXhr.form);
+                    toastr.error(jqXhr.responseJSON, '¡MENSAJE!');
+                }
+            });
+
+
+        });
+
+        {#$("#table-dictionary tr.woody").each(function () {#}
+
+        $('#update-transaction-date-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#update-transaction-date-form').get(0));
+            $('#btn-save-form').attr("disabled", "true");
+            $('#modal-cash').modal('hide');
+            $('#table-cash').html(loader);
+            $.ajax({
+                url: '/accounting/update_transaction_date_in_cash_flow/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        // $('#product-detail-grid').html(response.grid);
+                        $('#table-cash').html(response['grid']);
+                        toastr.success(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-save-form').removeAttr("disabled", "false");
+        });
+    </script>
+{% endblock extrajs %}

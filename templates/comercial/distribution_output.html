@@ -1,0 +1,392 @@
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content small">
+
+        <div class="modal-header" style="background: #045ebf">
+            <h6 class="modal-title  text-white">Registro de salidas reparto</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form action="" method="POST" id="form-distribution_output">
+            {% csrf_token %}
+
+            <div class="modal-body">
+                <table class="table-sm" style="width: 100%" id="id-table-form">
+                    <tr>
+                        <td class="align-middle" style="width: 6%">Conductor</td>
+                        <td colspan="3" class="align-middle" style="width: 34%">
+                            <select class="form-control form-control-sm  text-uppercase" id="id_pilot" name="pilot"
+                                    required>
+                                <option disabled selected value="">Seleccione</option>
+                                {% for employee in employees %}
+                                    <option value="{{ employee.id }}">
+                                        {{ employee.full_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td rowspan="3" class="align-top text-center" id="item-details-distribution-last"
+                            style="width: 60%">
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="align-middle" style="width: 6%">Fecha</td>
+                        <td style="width: 8%" class="align-middle text-center">
+                            <input type="date" class="form-control form-control-sm" id="id-date-output"
+                                   name="date-output"
+                                   required>
+                        </td>
+                        <td class="align-middle" style="width: 6%">Placa</td>
+                        <td style="width: 20%" class="align-middle">
+                            <select class="form-control form-control-sm" id="id_truck" name="truck" required>
+                                <option disabled selected value=""> Seleccione</option>
+                                {% for t in truck_set %}
+                                    <option value="{{ t.id }}">
+                                        {{ t.license_plate }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="align-middle"></td>
+                        <td class="align-middle text-center" colspan="1">
+                            <button id="add-detail" type="button" class="btn btn-success btn-sm p-2">Agregar productos
+                            </button>
+                        </td>
+                        <td class="align-middle">Numero Guia</td>
+                        <td class="align-middle text-center">
+                            <input type="text" class="form-control form-control-sm" id="id-guide"
+                                   name="guide" placeholder="G001-0003">
+                        </td>
+                    </tr>
+                </table>
+                <div class="card" style="border-color: #fffffe; background: #fffff6">
+                    <table id="id_distribution_output"
+                           class="table table-sm table-striped align-content-center table-bordered response"
+                           cellspacing="0" style="width: 100%">
+
+                        <thead>
+                        <tr class="text-center text-white align-middle" style="height: 28px; background: #0273ec">
+                            <th style="width: 4%" class="font-weight-normal">#</th>
+                            <th style="width: 35%" class="font-weight-normal">Producto</th>
+                            <th style="width: 15%" class="font-weight-normal">Cantidad</th>
+                            <th style="width: 10%" class="font-weight-normal">Carro</th>
+                            <th style="width: 16%" class="font-weight-normal">Unidad</th>
+                            <th style="width: 10%" class="font-weight-normal">Stock</th>
+                            <th style="width: 10%" class="font-weight-normal">Borrar</th>
+                        </tr>
+                        </thead>
+                        <tbody id="details">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div><!-- modal-body -->
+
+
+            <div class="modal-footer">
+                &nbsp;
+                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="save-distribution" type="submit" class="btn btn-sm btn-primary">Registrar</button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    $('#id_truck').select2({
+        theme: 'bootstrap4',
+    });
+    $('#id_pilot').select2({
+        theme: 'bootstrap4',
+    });
+    $(document).on('keyup', '#details tr td.item-quantity input', function () {
+        let _total = parseFloat($(this).val());
+        let _item_stock = parseFloat($(this).parent('td').parent('tr').find('td.item-stock').text());
+        if (_total > _item_stock) {
+            toastr.warning("EL STOCK ES INSUFICIENTE", "STOCK");
+            $(this).parent('td').parent('tr').find('td.item-quantity input').val(0);
+        }
+    })
+
+    productList =
+        [
+            {% for p in product_set %}
+                [
+                    {{ p.id }},
+                    '{{ p.name }}'
+                ],
+            {% endfor %}
+        ];
+    function AddRow_Details() {
+        console.log('AddRow_Details');
+         let options = '<option value="0">seleccione...</option>';
+
+
+        for (let i = 0; i < productList.length; i++) {
+            options = options + '<option value="' + productList[i][0] + '">' + productList[i][1] + '</option>'
+        }
+
+
+        $('#details').append(
+            '<tr product="0" type="L" status="E">' +
+            '<td class="text-center align-middle item-number">' + '</td>' +
+            // '<td class="align-middle item-product">' + _product + '</td>' +
+            '<td class="align-middle item-product"><select class="form-control form-control-sm">' + options + '</td>' +
+            '<td class="align-middle item-quantity"><input type="number" class="form-control form-control-sm"></td>' +
+            '<td class="align-middle text-center item-quantity-last">0</td>' +
+            '<td class="align-middle text-center item-unit" unit="0"></td>' +
+            '<td class="align-middle text-center item-stock"></td>' +
+            '<td class="align-middle text-center item-delete"> ' + "<button type='button' onclick='deleteItem(0)' " +
+            "class='btn btn-sm btn-danger delete-detail'><i class='fa fa-trash'></i></button>" + "</td>" +
+            '</tr>'
+            {#' + _id_product + ', #}
+        );
+
+        // $('#details tr[product_num="'+_id_product+'"]').find('td.item-product select option[value="'+_id_product+'"]').attr('selected','selected');
+
+
+        limper();
+        {#$index=$index +1;#}
+        counterStrike();
+    }
+    $("#add-detail").click(function () {
+        AddRow_Details();
+    });
+
+    function deleteItem($p) {
+        $('#details').find('tr[product="' + $p + '"]').remove();
+        counterStrike();
+    }
+
+    function counterStrike() {
+        let l = 1;
+        $('#details tr').each(function () {
+            $(this).attr('f', l);
+            $(this).children('td:first').text(l);
+            l++;
+        });
+    }
+
+    function limper(request) {
+        $("#id_quantity").val('');
+        $("#id_product").val(0);
+        $("#id_unit").empty();
+
+    };
+
+    $(document).on('change', '#details tr td.item-product select', function () {
+        //recupera el id_dela opcion seleccionada
+        let value = $(this).val();
+        console.log("value :", value)
+        let _tr = $(this).parent('td').parent('tr');
+        let _select_product = $(this);
+        let _td_unit = _tr.find('td.item-unit');
+        let _td_delete = _tr.find('td.item-delete button');
+        let _stock_total = _tr.find('td.item-stock');
+
+        _tr.attr('product', 0);
+        _td_delete.attr('onclick', 'deleteItem(0)');
+        _td_unit.text('');
+        _td_unit.attr('unit', 0);
+        _stock_total.text('');
+
+// console.log('length: ' + $('#details').find('tr product="' + value + '"').length);
+
+// console.log($('#details tr[product="' + value + '"]').length);
+
+        if ($('#details tr[product="' + value + '"][type="L"]').length) {
+            $(this).find('option[value=0]').attr('selected', 'selected');
+            toastr.warning('SELECCIONE OTRO PRODUCTO', '¡MENSAJE!');
+            return false;
+        }
+
+        if (value !== '0') {
+            $.ajax({
+                url: '/buys/get_units_product/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                //mando  id del producto del combo
+                data: {'ip': value},
+                // si va bien retorna la data
+                success: function (response) {
+                    //le da formato array
+                    let _stock = response['stock'];
+                    let units = JSON.parse(response['units']);
+
+                    for (let i = 0; i < units.length; i++) {
+                        if (units[i].fields.name === 'BG') {  // GAL
+                            _td_unit.text(units[i].fields.description);
+                            _td_unit.attr('unit', units[i].pk);
+                            _tr.attr('product', value);
+                            _td_delete.attr('onclick', 'deleteItem(' + value + ')');
+                            _tr.find('td.item-product select option[value="' + value + '"]').attr('selected', 'selected');
+                            _stock_total.text(_stock);
+                            _tr.find('td.item-quantity input').val(0);
+                        }
+
+                    }
+                    if (_td_unit.text() === '') {
+                        toastr.warning('NO TIENE UNIDAD MEDIDA', '¡MENSAJE!');
+
+                        //$('#details tr[product="0"] td.item-product select option[value="0"]').attr('selected', 'selected');
+                        $('#details tr[product="0"] td.item-product select option[value]').removeAttr('selected');
+                        $('#details tr[product="0"] td.item-product select option[value="0"]').attr('selected', 'selected');
+                    }
+                },
+
+            });
+
+
+        }
+
+    })
+    $('#form-distribution_output').submit(function (event) {
+        event.preventDefault();
+        if ($('#details tr').length === 0) {
+            toastr.warning("POR FAVOR,AGREGUE UN PRODUCTO", "ADVERTENCIA");
+            return false
+        }
+        let distribution = {
+            "Details": [],
+            "date_distribution": $('#id-date-output').val(),
+            "id_truck": $('#id_truck').val(),
+            "id_pilot": $('#id_pilot').val(),
+            "number_guide": $('#id-guide').val(),
+        };
+
+        $("#details  tr").each(function () {
+
+            if ($(this).attr('product') !== '' && $(this).find("td.item-quantity input").val() !== '' && $(this).find("td.item-unit").attr('unit') !== '' && $(this).attr('type') !== 'V') {
+                let _product = $(this).attr('product');
+                let _type = $(this).attr('type');
+                let _quantity = parseFloat($(this).find("td.item-quantity input").val());
+                let _unit = $(this).find("td.item-unit").attr('unit');
+                let _quantity_last = parseFloat($(this).find("td.item-quantity-last").text());
+                /*
+               if ($('table#id-table-form tr td#item-details-distribution-last').html() != '') {
+                   $('table#id-table-distribution-last tbody#details-distribution-last tr').each(function () {
+                       if ($(this).attr('product_id') == _product && $(this).attr('unit_id') == _unit) {
+                           _quantity_total = parseFloat(_quantity) + parseFloat($(this).find('td.item-quantity-last').text());
+                           return false;
+                       } else {
+                           _quantity_total = _quantity
+                       }
+                   })
+               } else {
+                   _quantity_total = _quantity
+               }
+                 */
+                let detailObj = {
+                    "Product": _product,
+                    "Quantity": _quantity,
+                    "Unit": _unit,
+                    "Type": _type,
+                    "Status": 'E',
+                    "Quantity_total": _quantity + _quantity_last,
+                };
+                distribution.Details.push(detailObj);
+            }
+            if ($(this).attr('type') === 'V') {
+                let _product = $(this).attr('product');
+                let _type = $(this).attr('type');
+                let _quantity = 0;
+                let _unit = '4';
+                let _quantity_last = parseFloat($(this).find("td.item-quantity-last").text());
+
+                let detailObj = {
+                    "Product": _product,
+                    "Quantity": _quantity,
+                    "Unit": _unit,
+                    "Type": _type,
+                    "Status": 'E',
+                    "Quantity_total": _quantity + _quantity_last,
+                };
+                distribution.Details.push(detailObj);
+            }
+        });
+        console.log(JSON.stringify(distribution))
+        let mensaje = confirm("¿Esta seguro de registrar la salida");
+        if (mensaje) {
+            $.ajax({
+                url: '/comercial/distribution_mobil_save/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'distribution': JSON.stringify(distribution)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        toastr.success(response.message, '¡PROGRAMACION REGISTRADA CORECTAMENTE!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 800);
+                    }
+                },
+                fail: function (response) {
+                    toastr.error("PROBLEMAS AL REALIZAR LA PROGRAMACION. ", '¡MENSAJE!');
+                }
+            });
+        }
+
+    });
+    $('#id_pilot').change(function () {
+        $('table#id_distribution_output tbody#details').empty();
+        let _search = $(this).val();
+        $('table#id-table-form tr td#item-details-distribution-last').text('')
+        $('#id_truck').val('').trigger('change');
+        $.ajax({
+            url: '/comercial/get_quantity_last_distribution/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            data: {'ip': _search},
+            success: function (response) {
+                if (response.message === true) {
+                    $('#item-details-distribution-last').html(response.grid).parent('tr').slideDown();
+                    $('#id_truck').val(response['truck']).trigger('change');
+                    let _list = JSON.parse(response['list']);
+                    console.log(_list)
+                    for (let i = 0; i < _list.length; i++) {
+                        if (parseFloat(_list[i].fields.quantity)>0){
+                            AddRow_Details();
+                            let _tr = $('#details tr[f='+(i+1)+']');
+                            let _select = _tr.find('td.item-product select');
+
+
+                            _select.find('option[value='+_list[i].fields.product+']').attr('selected', 'selected');
+                            _select.trigger('change');
+                            _tr.attr('product', _list[i].fields.product);
+                            _tr.attr('type', _list[i].fields.type);
+                            _tr.attr('status', _list[i].fields.status);
+                            _select.find('option[value!='+_list[i].fields.product+']').remove();
+                            _tr.find('td.item-quantity-last').text(parseFloat(_list[i].fields.quantity));
+                            _tr.find('td.item-delete button').prop('disabled',true);
+
+
+                            if (_tr.attr('type') === 'V'){
+                                _tr.addClass('d-none');
+                            }
+                        }
+                    }
+                } else {
+                    if (response.truck !== '') {
+                        $('#id_truck').val(response['truck']).trigger('change');
+                    }
+                }
+            },
+        });
+    })
+</script>

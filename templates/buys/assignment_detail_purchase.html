@@ -1,0 +1,167 @@
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header text-center">
+            <h5 class="modal-title  font-weight-bold">DESTINAR - ALMACEN</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form action="" method="POST">
+            {% csrf_token %}
+
+            <div class="modal-body">
+                <table class="table" style="width: 100%">
+                    <tr>
+                        <td style="width: 0%">
+                            <input type="hidden" id="id_compra" value="{{ purchase.id }}">
+                        </td>
+                        <td style="width: 15%" class="align-middle">Fecha compra</td>
+                        <td style="width: 25%">
+                            <input type="date" class="form-control" id="fecha-compra" name="fechacompra"
+                                   readonly
+                                   value="{{ purchase.purchase_date|date:"Y-m-d" }}" required>
+                        </td>
+                        <td style="width: 20%" class="align-middle">Almacen destino</td>
+                        <td style="width: 40%">
+                            <select class="form-control" id="id_almacen" name="almacen" required>
+                                <option disabled selected value=""> Seleccione</option>
+                                {% for a in subsidiary_stores.all %}
+                                    {% if subsidiary_stores.id == a.id %}
+                                        <option value="{{ a.id }}">{{ a.name }}</option>
+                                    {% else %}
+                                        <option value="{{ a.id }}">{{ a.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+                <table class="table table-primary table-bordered table-striped align-content-center  response">
+
+                    <thead>
+                    <tr class="text-white bg-info">
+                        <th>#</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Unidad</th>
+                        <th>Precio unitario</th>
+                        <th>Importe</th>
+                        <!--<th>Almacen</th>-->
+                    </tr>
+                    </thead>
+                    <tbody id="details">
+                    {% for d in detail_purchase %}
+
+                        <tr product="{{ d.product.id }}" purchase_detail="{{ d.id }}">
+                            <td>{{ d.product.id }}</td>
+                            <td>{{ d.product.name }}</td>
+                            <td class="item-quantity">{{ d.quantity|floatformat:2 }}</td>
+                            <td class="item-unit" pu="{{ d.unit.id }}">{{ d.unit.name }}</td>
+                            <td class="item-price">{{ d.price_unit|floatformat:4 }}</td>
+                            <td>{{ d.multiplicate|floatformat:2 }}</td>
+                            <!--<td class="item-store">
+                                <select  class="form-control form-control-sm">
+                                    <option selected value="0">seleccione</option>
+                                    {% for a in subsidiary_stores %}
+                                        <option value="{{ a.id }}">{{ a.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>-->
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div><!-- modal-body -->
+
+
+            <div class="modal-footer">
+                &nbsp;
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="assignment-changes" type="button" class="btn btn-primary">Asignar almacen</button>
+
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    /*function comprobateSelect(){
+        let _flag = true;
+        $("#details tr").each(function () {
+            let _value= $(this).find('select').val();
+            if (_value === '0'){
+                _flag = false;
+
+            }
+        })
+        return _flag;
+    }*/
+
+    $('#assignment-changes').click(function () {
+        let mensaje = confirm("¿Esta seguro de asignar al almacen seleccionado?");
+        if (mensaje) {
+            if ($('#id_compra').val() != '') {
+                if ($('#id_almacen').val() > 0) {
+                    let details_purchase = {
+                        "Details": [],
+                        "Purchase": $('#id_compra').val(),
+                        "id_almacen": $('#id_almacen').val(),
+                    };
+                    $("#details  tr").each(function () {
+                        var detailObj = {
+                            "PurchaseDetail": $(this).attr('purchase_detail'),
+                            "Product": $(this).attr('product'),
+                            "Quantity": $(this).find("td.item-quantity").text(),
+                            "Unit": $(this).find("td.item-unit").attr('pu'),
+                            "Price": $(this).find("td.item-price").text(),
+                            //"Store": $(this).find("td.item-store select").val(),
+                        };
+                        details_purchase.Details.push(detailObj);
+
+                    });
+                    {#console.log(JSON.stringify(details_purchase));#}
+                    {#alert('llego la hora de guardar.');#}
+
+                    $.ajax({
+
+                        url: '/buys/save_detail_purchase_store/',
+                        async: true,
+                        dataType: 'json', // for response
+                        type: 'GET',
+                        data: {'details_purchase': JSON.stringify(details_purchase)},
+                        contentType: 'application/json;charset=UTF-8',
+                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                        success: function (response, textStatus, xhr) {
+                            if (xhr.status == 200) {
+                                toastr.success(response.message, '¡EXITOSO!');
+                                $('#assignment').modal('hide');
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 800);
+                            }
+                        },
+                        error: function (jqXhr, textStatus, xhr) {
+                            $('#assignment').modal('hide');
+                            toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
+                        }
+                    });
+
+                } else {
+                    toastr.warning("SELECCIONE EL ALMACEN DE DESTINO. ", '¡ADVERTENCIA!');
+                    return false;
+                }
+            } else {
+                toastr.warning("NO SE LOGRO SELECCIONAR LA COMPRA ", '¡ADVERTENCIA!');
+                return false;
+            }
+        }
+    })
+
+</script>

@@ -1,0 +1,308 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Guia de entrada
+{% endblock title %}
+
+{% block body %}
+
+    <form id="input-guide-form" action="" method="GET">
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="col-sm-12">
+
+                <div class="card">
+                    <div class="card-body text-center font-weight-bolder">
+                        <h2 class="text-uppercase">Guia de entrada</h2>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-group">
+
+
+            <div class="card border-left border-top-0 border-right-0 border-bottom">
+
+
+                <div id="io-guide-form" class="card-body">
+                    {% include "comercial/input_guide_form.html" %}
+
+
+
+
+
+                </div>
+
+            </div>
+
+            <div class="card border-left border-top-0 border-right border-bottom">
+
+
+                <div class="card-body " id="input-guide-list">
+
+
+                    <table class="table table-sm text-uppercase small mt-3">
+                        <tr>
+                            <td class="border-top-0 mt-2 align-middle" colspan="2" style="width: 50%">
+                                Producto:
+                            </td>
+                            <td class="border-top-0 mt-2 align-middle text-center" colspan="2"
+                                style="width: 25%">Cantidad a
+                                Enviar:
+                            </td>
+                            <td class="border-top-0 mt-2 align-middle text-center" colspan="2"
+                                style="width: 25%">Acción:
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="border-top-0 pb-2" colspan="2">
+
+                                <select id="id_product" name="id_product" class="form-control form-control-sm">
+                                    <option disabled selected value="">Seleccione...</option>
+                                    {% for p in product_set %}
+                                        <option value="{{ p.id }}" sp="0"
+                                                stock="0"
+                                                price="{{ p.calculate_minimum_unit }}"
+                                                unit="{{ p.calculate_minimum_unit_id }}">{{ p.name }}</option>
+                                    {% endfor %}
+
+                                </select>
+
+                            </td>
+                            <td class="border-top-0 pb-2" colspan="2">
+                                <input type="text" class="form-control form-control-sm decimal"
+                                       maxlength="10"
+                                       id="id_quantity"
+                                       name="id_quantity">
+                            </td>
+                            <td class="border-top-0" colspan="2">
+                                <button class="btn btn-success btn-sm btn-block" id="add-product">
+                                    Agregar
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table id="data-guide-details"
+                           class="table text-uppercase small text-black-50 m-0 border-0">
+                        <thead>
+                        <tr class="text-center bg-light font-weight-bold" style="height: 50px;">
+                            <th scope="col" class="align-middle border-0">#</th>
+                            <th scope="col" class="align-middle border-0">Producto</th>
+                            <th scope="col" class="align-middle border-0">Cantidad</th>
+                            <th scope="col" class="align-middle text-right border-0">Precio Unitario</th>
+                            <th scope="col" class="align-middle text-right border-0">Total</th>
+                            <th scope="col" class="align-middle border-0">Eliminar</th>
+                        </tr>
+                        </thead>
+                        <tbody id="guide-details">
+
+                        </tbody>
+                        <tfoot>
+
+
+                        <tr>
+
+                            <th colspan="2"></th>
+                            <th colspan="2" class="align-middle"><label class="h6 m-0">TOTAL : S/</label></th>
+                            <th colspan="1" id="sum-total" class="text-right h6 font-weight-bolder align-middle">
+                                0.00
+                            </th>
+                            <th colspan="1"></th>
+
+                        </tr>
+
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card border-left-0 border-top-0 border-right border-bottom">
+                <div class="card-header text-center font-weight-lighter bg-white" id="destiny-store-name">
+                    DESTINO
+                </div>
+                <div class="card-body " id="destiny-store-list" style="height: 35rem;"></div>
+            </div>
+
+        </div>
+
+    </form>
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        {#loader = '<div class="container text-center pt-5 css-loading">' +#}
+        {#    '<div class="row mt-5">' +#}
+        {#    '<div class="col-md-12">' +#}
+        {#    '<div class="loader" style="border: 1px solid #28a745;" >' +#}
+        {#    '<div class="loader-inner"><div class="loading one" style="background-color: #28a745;"></div></div>' +#}
+        {#    '<div class="loader-inner"><div class="loading two" style="background-color: #28a745;"></div></div>' +#}
+        {#    '<div class="loader-inner"><div class="loading three" style="background-color: #28a745;"></div></div>' +#}
+        {#    '<div class="loader-inner"><div class="loading four" style="background-color: #28a745;"></div></div>' +#}
+        {#    '</div>' +#}
+        {#    '</div>' +#}
+        {#    '</div>' +#}
+        {#    '</div>';#}
+
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p>Cargando...</p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+
+        $(document).on('change', '#id_destiny', function () {
+
+            if ($(this).val()) {
+
+                $('#id_origin option[value="' + $(this).val() + '"]').hide();
+
+                let _destiny_id = $(this).val();
+
+                $('#destiny-store-list').mCustomScrollbar("destroy");
+
+                $.ajax({
+                    url: '/comercial/get_products_by_subsidiary_store/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'pk': _destiny_id, 'is_table': ($('#is-table').is(':checked')) ? 1 : 0},
+                    success: function (response) {
+                        $('#destiny-store-list').html(response.grid);
+                        $('#destiny-store-name').text(response.subsidiary_store);
+
+                        $("ul").parent('#destiny-store-list').mCustomScrollbar();
+
+                    },
+                    fail: function (response) {
+                        console.log("error");
+                    }
+                });
+            }
+        });
+
+
+        $("#add-product").click(function (event) {
+            event.preventDefault();
+
+            let _product_id = $('#id_product option:selected').val();
+            let _quantity = $('#id_quantity').val();
+            let _product_name = $('#id_product option:selected').text();
+            let _sp = $('#id_product option[value=' + _product_id + ']').attr('sp');
+            let _stock = $('#id_product option[value=' + _product_id + ']').attr('stock');
+            let _price = $('#id_product option[value=' + _product_id + ']').attr('price');
+            let _unit = $('#id_product option[value=' + _product_id + ']').attr('unit');
+            let _total = parseFloat(_quantity) * parseFloat(_price);
+
+            if ($("#guide-details tr[pk=" + _product_id + "]").length) {
+                toastr.warning("Producto ya seleccionado, seleccione otro. ", '¡Inconcebible!');
+                return false;
+            }
+
+
+            $('#guide-details').append(
+                '<tr pk="' + _product_id + '" sp="' + _sp + '" unit="' + _unit + '">' +
+                '<td class="align-middle text-center item_product">' + _product_id + '</td>' +
+                '<td class="align-middle text-center">' + _product_name + '</td>' +
+                '<td class="align-middle text-center item_quantity">' + _quantity + '</td>' +
+                '<td class="align-middle text-right item-price">' + parseFloat(_price).toFixed(2) + '</td>' +
+                '<td class="align-middle text-right item_total">' + parseFloat(_total).toFixed(2) + '</td>' +
+                '<td class="text-center">' + '<button type =button onclick="deleteItem(' + _product_id + ')" class="btn"><i class="fa fa-trash"></i></button>' + '</td>' +
+                '</tr>'
+            );
+            calculateTotal();
+        });
+
+        function deleteItem($id) {
+            $('#guide-details').find('tr[pk="' + $id + '"]').remove();
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let sum = 0;
+            $('#guide-details tr td.item_total').each(function () {
+                sum = sum + parseFloat($(this).text());
+            });
+
+            $('#sum-total').text(sum.toFixed(2));
+        }
+
+        function hasRowDetails() {
+            let _response = false;
+            if ($("#guide-details tr").length > 0) {
+                _response = true;
+            }
+            return _response;
+        }
+
+        $('#btn-save').click(function () {
+
+            if (hasRowDetails() == false) {
+                toastr.warning("Elija los productos necesarios porfavor. ", '¡Inconcebible!');
+                return false;
+            }
+
+            let dictionary = {
+                "Details": [],
+                "Document": $('#id_document').val(),
+                "DocumentTypeAttached": $('#id_document_type_attached').val(),
+                "Motive": $('#id_motive').val(),
+                "Destiny": $('#id_destiny').val(),
+                "Observation": $('#id_observation').val(),
+                "Total": $('#sum-total').text(),
+            };
+
+            $("#guide-details tr").each(function () {
+                let detailObj = {
+                    "Product": $(this).attr('pk'),
+                    "Unit": $(this).attr('unit'),
+                    "Quantity": $(this).find("td.item_quantity").text(),
+                    "Price": $(this).find("td.item-price").text(),
+                };
+                dictionary.Details.push(detailObj);
+
+            });
+            $('#io-guide-form').html(loader);
+            $.ajax({
+                url: '/comercial/create_input_transfer/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'transfer': JSON.stringify(dictionary)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+
+                    if (xhr.status === 200) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        // Simulate a mouse click:
+                        window.location.href = "/comercial/get_input_note/"+response.guide_id+"/";
+                        setTimeout(() => {
+                            // location.reload();
+                            // Simulate an HTTP redirect:
+                            window.location.replace("/comercial/input_workflow/");
+                        }, 500);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                }
+            });
+
+
+        });
+
+    </script>
+{% endblock extrajs %}

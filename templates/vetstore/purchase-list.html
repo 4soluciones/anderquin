@@ -1,0 +1,133 @@
+
+{% load static %}
+{% block content %}
+    <style>
+    #table-purchases > thead > tr > th{
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #6a1b9a;
+        color: #f8f9fa;
+        border-color: #e040fb;
+        border-left: 1px solid #aa00ff;
+    }
+    #table-purchases > tbody > tr > td{
+        font-size: 0.65rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #7b1fa2;
+        color: #f8f9fa;
+        border-color: #e040fb;
+        border-left: 1px solid #aa00ff;
+    }
+
+    #table-purchases > tbody > tr > td > table{
+        margin-bottom: 0;
+    }
+
+    #table-purchases > tbody > tr > td > table > thead > tr > th{
+        font-size: 0.7rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #8e24aa;
+        border-color: #e040fb;
+        border-left: 1px solid #aa00ff;
+    }
+    #table-purchases > tbody > tr > td > table > tbody > tr > td{
+        font-size: 0.65rem !important;
+        text-align: center;
+        vertical-align: middle;
+        background-color: #9c27b0;
+        border-left: 1px solid #aa00ff;
+    }
+    #table-purchases td.right{
+        text-align: right;
+        background-color: #ab47bc;
+    }
+</style>
+    {% if purchases %}
+        <table class="table table-striped table-sm" id="table-purchases">
+            <thead>
+                <tr>
+                    <th>Creado</th>
+                    <th>Detalle compra</th>
+                    <th>Distribuidor /<br>Comprobante</th>
+                    <th>Fecha<br>compra</th>
+                    <th>Subtotal</th>
+                    <th>Igv</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for purchase in purchases %}
+                <tr>
+                    <td>{{ purchase.created_at|date:'d/m/Y h:i a' }}</td>
+                    <td>
+
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Precio<br>Venta</th>
+                                    <th>Precio<br>Compra</th>
+                                    <th>Cant.</th>
+                                    <th>Subtotal</th>
+                                    <th>Ganancia por<br>producto</th>
+                                    <th>Margen<br>ganancia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            {% for detail in purchase.detail_purchases.all %}
+                                {% if detail.product_return == None %}
+                                    <tr>
+                                        <td>
+                                            {{ detail.product.name|upper }}<br>
+                                            <small>{{ detail.product.category.name|upper }}</small><br>
+                                            <strong>{{ detail.product.barcode }}</strong>
+                                        </td>
+                                        <td class="right">S/ <strong>{{ detail.product.sale_price|floatformat }}</strong></td>
+                                        <td class="right">S/&nbsp;{{ detail.rate|floatformat }}</td>
+                                        <td>{{ detail.quantity_ordered }}</td>
+                                        <td class="right">S/ <strong>{{ detail.amount|floatformat }}</strong></td>
+                                        <td class="right">S/ <strong>{{ detail.profit_per_product|floatformat }}</strong></td>
+                                        <td class="right">S/ <strong>{{ detail.gain|floatformat }}</strong></td>
+
+                                    </tr>
+                                {% endif %}
+
+
+                            {% endfor %}
+                            </tbody>
+                        </table>
+
+                    </td>
+                    <td>{{ purchase.supplier.name|upper }}<br>{{ purchase.operation_number|upper }}</td>
+
+                    <td>{{ purchase.request_date|date:'d/m/Y' }}</td>
+
+                    <td class="right">S/ <strong>{{ purchase.subtotal|floatformat }}</strong></td>
+                    <td class="right">S/ <strong>{{ purchase.igv|floatformat }}</strong></td>
+                    <td class="right">S/ <strong>{{ purchase.total|floatformat }}</strong></td>
+
+
+                </tr>
+            {% endfor %}
+
+
+            </tbody>
+        </table>
+
+    {% else %}
+        No hay registros.
+    {% endif %}
+
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+
+
+
+    </script>
+{% endblock %}

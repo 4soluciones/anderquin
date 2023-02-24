@@ -1,0 +1,141 @@
+<div class="card col-sm-12 p-0">
+
+    <div class="card-header text-center pb-3 bg-secondary">
+        {% if distribution %}
+            <h6 class="mb-0  text-white">VENTAS POR REPARTO</h6>
+        {% else %}
+            {% if electronic_invoice %}
+                <h6 class="mb-0  text-white">VENTAS ELECTRÓNICAS</h6>
+            {% else %}
+                <h6 class="mb-0  text-white">ORDEN DE VENTAS</h6>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="card-body p-0">
+
+        <div class="card-group">
+
+            <div class="card p-0 border-0" style="flex-grow: 4">
+                <div class="card-body pl-3 pt-3 pb-1 pr-0">
+                    <div class="form-row">
+                        <div class="form-group col-md-8 text-uppercase small mt-2 mb-0">
+                            <div class="card col-sm-12 pr-0 pl-0 border-right border-top-0 border-left-0 border-bottom-0">
+                                <div class="card header mb-1 border-0 text-center font-weight-bold">
+                                    Metodo de Busqueda
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-sm text-uppercase small align-right" style="width: 100%">
+                                        <tr class="align-right">
+                                            <th class="border-top-0 align-middle text-left p-0"
+                                                style="width: 10%">
+                                                <input type="radio"
+                                                       aria-label="Radio button for following text input"
+                                                       id="radio1" name="radio">
+                                            </th>
+                                            <th class="border-top-0 align-middle text-left p-0"
+                                                style="width: 10%">Numero Documento:
+                                            </th>
+                                            <th class="border-top-0 custom-control-inline text-left" for="customCheck1"
+                                                style="width: 60%">
+                                                <select id="id_client" name="id_client"
+                                                        class="form-control form-control-sm"
+                                                        aria-selected="Text input with radio button">
+                                                    <option selected value="0">Seleccione...</option>
+                                                    {% for k, c in client_dict.items %}
+                                                        <option value="{{ c.client_id }}"
+                                                                document-number="{{ c.client_document_number }}">{{ c.client_document_number }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th class="border-top-0 align-middle text-left p-0">
+                                                <input type="radio"
+                                                       aria-label="Radio button for following text input"
+                                                       id="radio2" name="radio" checked="checked">
+                                            </th>
+                                            <th class="border-top-0 align-middle text-left p-0">
+                                                Nombres/Razón Social:
+                                            </th>
+                                            <td class="border-top-0 text-left">
+                                                <select id="id_client_name" name="id_client_name"
+                                                        class="form-control form-control-sm"
+                                                        aria-selected="Text input with radio button">
+                                                    <option selected value="0">Seleccione...</option>
+                                                    {% for k, c in client_dict.items %}
+                                                        <option value="{{ c.client_id }}"
+                                                                document-number="{{ c.client_document_number }}">{{ c.client_names }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="form-group col-md-4 text-uppercase small mt-2 mb-0 pl-1 pr-3 text-center">
+                            <label for="hour"><strong>Fecha y Hora</strong> </label>
+                            <input type="date" class="form-control form-control-sm" style="width:100%" id="date"
+                                   value="{{ date }}"
+                                   placeholder="Fecha">
+
+                            <div class="form-row mt-2 m-0 p-1">
+                                <div class="input-group input-group-sm mb-2 series" style="width:100%">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="inputGroup-sizing-sm">Serie :</span>
+                                    </div>
+                                    <select id="id_serie" name="id_serie"
+                                            class="form-control form-control-sm"
+                                            aria-selected="Text input with radio button">
+                                        <option selected value="0">Seleccione...</option>
+                                        {% for serie in series %}
+                                            {% if serie.serial %}
+                                                <option value="{{ serie.id }}">{{ serie.license_plate }}
+                                                    | {{ serie.serial }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row pl-1 pr-3">
+                        <div class="form-group col-md-6 text-uppercase small">
+                            <label for="client-name">Cliente</label>
+                            <input type="text" class="form-control form-control-sm" id="client-name"
+                                   placeholder="Cliente" readonly>
+                        </div>
+                        <div class="form-group col-md-2 text-uppercase small">
+                            <label for="status">Estado</label>
+                            <input type="text" class="form-control form-control-sm" id="status"
+                                   value="PENDIENTE" readonly="true">
+                        </div>
+                        <div class="form-group col-md-2 text-uppercase small">
+                            <label for="transaction_payment_type">PAGO</label>
+                            <select id="transaction_payment_type" class="form-control form-control-sm">
+                                {% for item in choices_payments %}
+                                    <option value="{{ item.0 }}">{{ item.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group col-md-2 text-uppercase small">
+                            <label for="code-operation">COD-OPERACIÓN</label>
+                            <input type="text" class="form-control form-control-sm" id="code-operation"
+                                   placeholder="">
+                        </div>
+                    </div>
+
+
+                </div> <!-- card-body -->
+            </div>     <!-- card -->
+
+
+        </div><!-- card-group -->
+
+
+        {% include "sales/sales_detail.html" %}
+
+    </div><!-- card-body-->
+</div><!-- card-->

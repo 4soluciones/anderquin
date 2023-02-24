@@ -1,0 +1,35 @@
+<table class="table table-sm" id="payment-list-programming">
+    <thead>
+    <tr class="text-uppercase font-weight-lighter text-white" style="background: #0f478a">
+        <th class="align-middle text-center">#</th>
+        <th class="align-middle text-center">Fecha</th>
+        <th class="align-middle text-center">Monto</th>
+        <th class="align-middle text-center">numero operacion</th>
+        <th class="align-middle text-center">Descripcion</th>
+    </tr>
+    </thead>
+    <tbody>
+     {% for item in cash_flow_set %}
+      <tr>
+        <td class="align-middle text-center">
+             {{ item.id }}
+        </td>
+
+        <td class="align-middle text-center">
+             {{ item.transaction_date|date:"d-m-y" }}
+        </td>
+
+        <td class="text-center align-middle">
+             {{ item.total|floatformat:2 }}
+        </td>
+
+        <td class="align-middle text-center">
+            {{ item.operation_code|default:'' }}
+        </td>
+        <td class="align-middle text-center">
+            {{ item.description }}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+</table>

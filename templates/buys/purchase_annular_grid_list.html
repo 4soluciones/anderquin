@@ -1,0 +1,60 @@
+{% if purchases_annular %}
+
+
+    <div class="card border-info m-3">
+
+        <div class="card-header bg-info">
+            <h4 class="card-title text-center text-white">LISTA DE COMPRAS ANULADAS</h4>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive dataTables_wrapper ">
+                <table id="purchase-annular-data-grid"
+                       class="table table-primary table-striped align-content-center table-bordered response"
+                       cellspacing="0" width="100%">
+                    <thead>
+                    <tr class="text-center bg-info text-white" style="height: 20px">
+                        <th>#</th>
+                        <th class="th-sm">Proveedor</th>
+                        <th class="th-sm">Numero comprobante</th>
+                        <th class="th-sm">Fecha compra</th>
+                        <th class="th-sm">Empleado</th>
+                        <th class="th-sm">Estado</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% for pa in purchases_annular %}
+                        <tr class="text-center ">
+                            <td>{{ pa.id }}</td>
+                            <td>{{ pa.supplier.name }}</td>
+                            <td>{{ pa.bill_number }}</td>
+                            <td>{{ pa.purchase_date }}</td>
+                            <td>{{ pa.user.worker_set.last.employee.names }}</td>
+                            <td class="text-danger bg-white">{{ pa.get_status_display }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center bg-info text-white" style="height: 20px">
+                        <th>#</th>
+                        <th class="th-sm">Proveedor</th>
+                        <th class="th-sm">Numero comprobante</th>
+                        <th class="th-sm">Fecha compra</th>
+                        <th class="th-sm">Empleado</th>
+                        <th class="th-sm">Estado</th>
+                    </tr>
+                    </tfoot>
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- Card -->
+    </div>
+
+
+{% else %}
+    <h1>No existen compras anuladas</h1>
+{% endif %}

@@ -1,0 +1,92 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Clientes
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+
+        <a class="btn btn-outline-info mb-3 mt-3" href="" data-toggle="modal"
+           data-target="#modal-subsidiary-store">
+            <i class="fas fa-user-plus"></i> &nbsp;NUEVO ALMACEN
+        </a>
+
+
+        <div id="ss-grid-list">{% include "sales/product_by_subsidiary_grid_list.html" %}</div>
+
+
+    </div>
+
+    <div class="modal" id="modal-subsidiary-store" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cliente</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <form id="new-subsidiary-store-form" action="{% url 'sales:new_subsidiary_store' %}" method="POST">
+
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <table class="table table-borderless">
+                            <tr><td>nombre:</td><td>{{ form.name }}</td></tr>
+                            <tr><td>categoria:</td><td>{{ form.category }}</td></tr>
+                        </table>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Salir</button>
+                        <button type="submit" id="btn-save" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        $('#ss-data-grid').dataTable();
+
+        $("#new-subsidiary-store-form").submit(function (event) {
+
+            event.preventDefault();
+
+            var data = new FormData($('#new-subsidiary-store-form').get(0));
+
+
+            $("#btn-save").attr("disabled");
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (response.success) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        location.reload();
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.error, '¡Ocurrio un error!');
+                }
+
+            });//end ajax
+            $("#btn-save").removeAttr("disabled");
+            $('#modal-subsidiary-store').modal('hide');
+
+        }); //end submit
+    </script>
+{% endblock extrajs %}

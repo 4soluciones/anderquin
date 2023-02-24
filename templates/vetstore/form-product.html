@@ -1,0 +1,412 @@
+<style>
+    .criteria-label {
+        position: absolute;
+        top: 0.12rem;
+        font-size: .8rem !important;
+    }
+</style>
+
+
+{% load static %}
+
+{% block content %}
+
+    <div class="col-md-12">
+        <div class="page-header text-center">
+            <h1>{{ title }}</h1>
+            <p class="lead">Todo para que comiences rápidamente</p>
+        </div>
+    </div>
+
+    <div class="col-md-12">
+        <div id="alerts"></div>
+    </div>
+
+    {#    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">#}
+    <!-- Material input -->
+    {#        <div class="md-form col-md-10">#}
+    {#            <i class="fa fa-search prefix"></i>#}
+    {#            <input type="text" id="form1" class="form-control">#}
+    {#            <label for="form1" >Buscar producto</label>#}
+    {#        </div>#}
+
+    {#    </div>#}
+    {#        <div class="btn-toolbar mb-2 mb-md-0">#}
+    {% if role == 'ADM' %}
+        <button id="add-item" type="button" class="btn-floating btn-lg purple-gradient waves-light ADM"
+                data-toggle="modal" data-target="#left-modal">
+            <i class="fa fa-cart-plus fa-3x"></i>
+        </button>
+    {% endif %}
+    {#        </div>#}
+    <!-- Modal -->
+    <div class="modal fade left" id="left-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-full-height modal-left modal-danger" role="document">
+            <div class="modal-content">
+                <div class="modal-header secondary-color">
+                    <h5 class="modal-title white-text" id="exampleModalLabel">Nuevo producto</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Full Height Modal Right -->
+
+
+
+
+    <div class="modal fade right" id="right-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-full-height modal-right" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title w-100" id="myModalLabel">Editar producto</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+    <form action="{% url 'vetstore:get_criteria_product' %}" method="post" id="criteria-product-form"
+          class="form-horizontal">
+
+
+        <div class="card-group">
+            <!--Panel-->
+            <div class="card">
+                <div class="card-body">
+
+                    <div class="form-group">
+                        <div class="row">
+
+                            <div class="col-md-3">
+                                <label for="product-name" class="control-label criteria-label">Nombre</label>
+                            </div>
+
+                            <div class="col-md-4">
+                                <select class="custom-select custom-select-sm" name="mode-product-name-selected">
+                                    <option selected="" value="CONTAINS">contiene</option>
+                                    <option value="DOES_NOT_CONTAIN">no contiene</option>
+                                    <option value="EQUALS">es</option>
+                                    <option value="NOT_EQUALS">no es</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <input type="text" value="" class="form-control form-control-sm"
+                                       name="criteria-product-name"
+                                       placeholder="Nombre">
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                </div>
+            </div>
+            <!--/.Panel-->
+
+            <!--Panel-->
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <div class="row">
+
+                            <div class="col-md-3">
+                                <label for="product-barcode" class="control-label criteria-label">Barcode</label>
+                            </div>
+
+                            <div class="col-md-4">
+                                <select class="custom-select custom-select-sm" name="mode-product-barcode-selected">
+                                    <option selected="" value="CONTAINS">contiene</option>
+                                    <option value="DOES_NOT_CONTAIN">no contiene</option>
+                                    <option value="EQUALS">es</option>
+                                    <option value="NOT_EQUALS">no es</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <input type="text" value="" class="form-control form-control-sm"
+                                       name="criteria-product-barcode" placeholder="Nombre">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!--/.Panel-->
+        </div>
+
+        <div class="card-group">
+            <!--Panel-->
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <div class="row">
+
+                            <div class="col-md-3">
+                                <label for="batch-barcode" class="control-label criteria-label">Barcode de Lote</label>
+                            </div>
+
+                            <div class="col-md-4">
+                                <select class="custom-select custom-select-sm" name="mode-batch-barcode-selected">
+                                    <option selected="" value="CONTAINS">contiene</option>
+                                    <option value="DOES_NOT_CONTAIN">no contiene</option>
+                                    <option value="EQUALS">es</option>
+                                    <option value="NOT_EQUALS">no es</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <input type="text" value="" class="form-control form-control-sm"
+                                       name="criteria-batch-barcode" placeholder="Nombre">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!--Panel-->
+            <div class="card">
+                <div class="card-body">
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="criteria-branch-office-id"
+                                       class="control-label criteria-label">Sucursal</label>
+                            </div>
+
+                            <div class="col-md-4">
+                                <select class="custom-select custom-select-sm"
+                                        name="mode-branch-office-id-selected">
+                                    <option selected="" value="EQUALS">es</option>
+                                    <option value="NOT_EQUALS">no es</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-5">
+                                <select id="criteria-branch-office-id" name="criteria-branch-office-id"
+                                        class="custom-select custom-select-sm"></select>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+            <!--/.Panel-->
+        </div>
+
+
+        <div class="card-group">
+            <!--Panel-->
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="criteria-brand-id" class="control-label criteria-label">Marca</label>
+                            </div>
+
+                            <div class="col-md-4">
+                                <select class="custom-select custom-select-sm" name="mode-brand-id-selected">
+                                    <option selected="" value="EQUALS">es</option>
+                                    <option value="NOT_EQUALS">no es</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-5">
+                                <select id="criteria-brand-id" name="criteria-brand-id"
+                                        class="custom-select custom-select-sm"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!--/.Panel-->
+            <!--Panel-->
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="criteria-category-id" class="control-label criteria-label">Categoría</label>
+                            </div>
+
+                            <div class="col-md-4">
+                                <select class="custom-select custom-select-sm" name="mode-category-id-selected">
+                                    <option selected="" value="EQUALS">es</option>
+                                    <option value="NOT_EQUALS">no es</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-5">
+                                <select id="criteria-category-id" name="criteria-category-id"
+                                        class="custom-select custom-select-sm"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!--/.Panel-->
+        </div>
+        <div class="card-group">
+            <!--Panel-->
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <div class="row">
+
+                            <div class="col-md-3">
+                                <label class="control-label criteria-label">Tiene Stock</label>
+
+
+                            </div>
+
+
+                            <div class="col-md-9">
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input name="has-stock" id="has-stock-a" type="radio" value="A"
+                                           class="custom-control-input"/>
+                                    <label for="has-stock-a" class="criteria-label">Todos</label>
+                                </div>
+
+
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input name="has-stock" id="has-stock-y" type="radio" value="S"
+                                           class="custom-control-input"/>
+                                    <label for="has-stock-y" class="criteria-label">Si</label>
+                                </div>
+
+
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input name="has-stock" id="has-stock-n" type="radio" value="N"
+                                           class="custom-control-input"/>
+                                    <label for="has-stock-n" class="criteria-label">No</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-sm-12">
+                <input class="btn btn-info my-4 btn-block" value="Buscar" name="search" type="submit">
+            </div>
+        </div>
+
+    </form>
+
+
+
+
+
+
+
+    <div class="row" id="list-result"></div>
+    <div class="col-md-12 list-products"></div>
+
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript">
+
+
+        $('#criteria-product-form').submit(function (event) {
+
+            event.preventDefault();
+
+            var data = new FormData($('#criteria-product-form').get(0));
+            $.ajax({
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    $('#alerts').html(response.alert);
+                    $('.list-products').html(response.list);
+                }
+            });
+
+        });
+
+
+        function getBrandS() {
+            $brand_search = $('#criteria-brand-id');
+            $.ajax({
+                url: '/vetstore/rest/get_brand/',
+                dataType: 'JSON',
+                success: function (data) {
+                    $brand_search.append('<option value="0" disabled selected>Seleccione una marca</option>');
+                    $.each(data, function (key, val) {
+                        $brand_search.append('<option value="' + val.id + '">' + val.name + '</option>');
+                    });
+                }
+            });
+        }
+        ;
+
+        function getCategoryS() {
+            $category_search = $('#criteria-category-id');
+            $.ajax({
+                url: '/vetstore/rest/get_category/',
+                dataType: 'JSON',
+                success: function (data) {
+                    $category_search.append('<option value="0" disabled selected>Seleccione una categoria</option>');
+                    $.each(data, function (key, val) {
+                        $category_search.append('<option value="' + val.id + '">' + val.name + '</option>');
+                    });
+                }
+            });
+        }
+        ;
+
+        function getBranchOfficeS() {
+            $branch_office_search = $('#criteria-branch-office-id');
+            $.ajax({
+                url: '/vetstore/rest/get_branch_office/',
+                dataType: 'JSON',
+                success: function (data) {
+                    $branch_office_search.append('<option value="0" disabled selected>Seleccione una sucursal</option>');
+                    $.each(data, function (key, val) {
+                        $branch_office_search.append('<option value="' + val.id + '">' + val.name + '</option>');
+                    });
+                }
+            });
+        }
+        ;
+
+        $('document').ready(function () {
+
+
+            getBrandS();
+            getCategoryS();
+            getBranchOfficeS();
+
+
+        });
+    </script>
+{% endblock %}

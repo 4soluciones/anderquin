@@ -1,0 +1,76 @@
+{% load static %}
+{% block content %}
+
+
+    <form action="{% url 'vetstore:supplier_registration' %}" method="post" id="supplier-registration-form" >
+        {% csrf_token %}
+        <div class="row">
+
+
+            <!-- Small input -->
+
+
+            <div class="col-md-12 col-lg-12">
+                <div class="md-form form-sm">
+                    <input type="text" id="name" name="name" class="form-control form-control-sm" autocomplete="off">
+                    <label for="name">Nombre</label>
+                </div>
+            </div>
+
+
+
+            <div class="col-md-12 col-lg-12">
+                <div class="md-form form-sm">
+                    <input type="text" id="cellphone" name="cellphone" class="form-control form-control-sm" autocomplete="off">
+                    <label for="cellphone">Teléfono Móvil</label>
+                </div>
+            </div>
+
+            <div class="col-md-12 col-lg-12">
+                <div class="md-form form-sm">
+                    <input type="text" id="contact" name="contact" class="form-control form-control-sm" autocomplete="off">
+                    <label for="contact">Contacto</label>
+                </div>
+            </div>
+
+            <div class="col-md-12 col-lg-12">
+                <div class="form-group">
+                    <input class="btn btn-danger btn-block" value="Registrar" name="register" type="submit">
+                </div>
+            </div>
+
+        </div>
+
+    </form>
+
+
+{% endblock %}
+{% block script %}
+    <script type="text/javascript">
+
+        $("#supplier-registration-form").submit(function (event) {
+            event.preventDefault();
+
+            var data = new FormData($('#supplier-registration-form').get(0));
+            $.ajax({
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    $('#alerts').html(response.alert);
+                    $('.list-products').html(response.list);
+                    {#                    if($("#show-accounts").length > 0){#}
+                    {#                        $('#show-accounts').trigger('click');#}
+                    {##}
+                    {#                    }#}
+                    $('#left-modal').modal('hide');
+                }
+            });
+        });
+
+
+    </script>
+{% endblock %}

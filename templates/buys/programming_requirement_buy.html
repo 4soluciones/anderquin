@@ -1,0 +1,227 @@
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h5 class="modal-title">Programacion de GLP</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form action="" method="POST">
+            {% csrf_token %}
+
+            <div class="modal-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td>Placa de Tracto</td>
+                        <td><select class="form-control" id="id_truck" name="truck" required>
+                            <option value="0"> Seleccione</option>
+                            {% for truck in truck_obj %}
+                                {% if truck.id == truck.id %}#}
+                                    <option selected value="{{ truck.id }}">{{ truck.license_plate }}</option>
+                                    {% else %}#}
+                                    <option value="{{ truck.id }}">{{ truck.name }}</option>#}
+                                {% endif %}#}
+                            {% endfor %}
+                        </select>
+                        </td>
+                        <td>Numero Scop:</td>
+                        <td>
+                            <input type="text" class="form-control" id="nscop">
+                        </td>
+
+                        <td>
+                            <button type="button" id="id-add"
+                                    class="btn btn-success btn-block pb-1">Agregar
+                            </button>
+                        </td>
+
+                    </tr>
+
+                </table>
+
+
+                <table id="id_detail_programming" class="table table-bordered table-sm response">
+
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Placa</th>
+                        <th>Numero scop</th>
+                        <th>Editar</th>
+                    </tr>
+                    </thead>
+                    <tbody id="details">
+                    {% for p in programmings %}
+                        <tr nscop="{{ p.number_scop }}">
+                            <td class="text-center">{{ forloop.counter }}</td>
+                            <td class="item-truck"_truck= {{ p.truck.id }}>
+                                {{ p.truck.license_plate }}
+                            </td>
+                            <td class="item-number_scop" _status="+  {{ p.status }} +">
+                                {{ p.number_scop }}
+                            </td>
+                            <td class="text-center" programming_id="{{ p.id }}">
+                                <button class="btn btn-success text-white delete-detail"
+                                        pk="{{ p.id }}" onclick="deleteItem({{ p.truck.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+
+            </div><!-- modal-body -->
+
+
+            <div class="modal-footer">
+                &nbsp;
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="save-changes" type="button" class="btn btn-primary">Guardar</button>
+
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+
+    function limper(request) {
+        $('#nscop').val('');
+        $("#id_truck").val(0);
+    };
+
+    $('#id_truck').select2({
+        theme: 'bootstrap4',
+    });
+
+    $("#id-add").click(function () {
+
+        let id_truck = $('#id_truck').val();
+        let lisence_plate = $('#id_truck option:selected').text();
+        let n_scop = $('#nscop').val();
+
+        if (id_truck == 0 || n_scop.length == 0) {
+            alert('LLENE LOS DATOS NECESARIOS!')
+        } else {
+    
+            if ($("#id_detail_programming tr[nscop=" + n_scop + "]").length) {
+                alert('El numero de scop ya fue registrado')
+                return false;
+            }
+
+            $('#id_detail_programming').append(
+                '<tr nscop="' + n_scop + '">' +
+                '<td class="text-center">' + '</td>' +
+                '<td class="item-truck" _truck=' + id_truck + '>' + lisence_plate + '</td>' +
+                '<td  class="item-number_scop" _status="R">' + n_scop + '</td>' +
+                '<td class="text-center" programming_id="0">' + '<button type="button" onclick="deleteItem(' + id_truck + ')" class="btn btn-success text-white delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                '</tr>'
+            );
+
+            limper();
+            counterStrike();
+            toastr.success('PROGRAMACION AGREGADO CON EXITO', '¡MENSAJE!');
+
+        }
+
+    });
+
+    function deleteItem($id) {
+        $('#details').find("tr[truck=" + $id + "]").remove();
+        counterStrike();
+        let details_requirement = {
+            "Details": [],
+        };
+        // alert($('#id_requirement').val());
+        $.ajax({
+
+            url: '/buys/delete_programming_fuel/',
+            async: true,
+            dataType: 'json', // for response
+            type: 'GET',
+            data: {'details_send': JSON.stringify(details_requirement)},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (xhr.status == 200) {
+                    toastr.success(response.message, '¡EXITOSO!');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                }
+            },
+            fail: function (response) {
+                toastr.error("Error. ", '¡ERROR!');
+            }
+        });
+
+
+    }
+
+    // reasigna numero de fila a los detalles
+    function counterStrike() {
+        let l = 1;
+        $('#details tr').each(function () {
+            $(this).attr('i', l);
+            $(this).children('td:first').text(l);
+            l++;
+        });
+
+    }
+
+
+    $('#save-changes').click(function () {
+        let details_requirement = {
+            "Details": [],
+        };
+        // alert($('#id_requirement').val());
+
+        $("#details  tr").each(function () {
+            // if (programming_id !== 0 ) {
+            //alert(programming_id) AQUI ITALO
+            var detailObj = {
+                "Truck": $(this).find("td.item-truck").attr('_truck'),
+                "Number_scop": $(this).find("td.item-number_scop").text(),
+                "status": $(this).find("td.item-number_scop").attr('_status'),
+            };
+            details_requirement.Details.push(detailObj);
+
+            //}
+        });
+        $.ajax({
+
+            url: '/buys/save_programming_buys/',
+            async: true,
+            dataType: 'json', // for response
+            type: 'GET',
+            data: {'details_send': JSON.stringify(details_requirement)},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (xhr.status == 200) {
+                    toastr.success(response.message, '¡EXITOSO!');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                $('#add-programing-modal').modal('hide');
+                toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
+            }
+        });
+
+    })
+
+</script>

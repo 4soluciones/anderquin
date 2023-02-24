@@ -1,0 +1,416 @@
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header bg-info">
+            <h5 class="modal-title text-white">TRASLADO DE GLP (PLUSPETROL)</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <form action="" method="POST" id="form-programming-store" class="was-validated">
+            {% csrf_token %}
+
+            <div class="modal-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td style="width: 8%">Numero Factura:</td>
+                        <td style="width: 16%"><select class="form-control " id="id_invoice" name="invoice" required>
+                            <option disabled selected value=""> Seleccione</option>
+                            {% for o in requirement_buys %}
+                                {#                                <option selected value="{{ o.id }}">{{ o.invoice }} [{{ o.requirements_buys.count }}]</option>#}
+                                <option value="{{ o.id }}">{{ o.invoice }}</option>
+                            {% endfor %}
+                        </select></td>
+
+                        <td style="width: 8%">
+                            Fecha solicitud:
+                        </td>
+                        <td style="width: 16%">
+                            <input type="date" readonly class="form-control" id="id_daterequirement"
+
+                                   value="{{ requirement_buy_obj.creation_date|date:"Y-m-d" }}" required>
+                        </td>
+                        <td style="width: 8%">Scop referencial:</td>
+                        <td style="width: 44%"><input type="text" readonly class="form-control" id="id_scop"
+                                                      value="{{ requirement_buy_obj.number_scop }}" required>
+                        </td>
+
+                    </tr>
+
+                    <tr>
+
+                        <td>Fecha Factura:</td>
+                        <td>
+                            <input type="date" readonly class="form-control" id="id_dateinvoice"
+
+                                   value="{{ requirement_buy_obj.creation_date|date:"Y-m-d" }}" required>
+                        </td>
+                        <td>Producto:</td>
+                        <td><select class="form-control " id="id_producto" name="producto">
+                            <option selected value=""> Seleccione</option>
+                            {#                            {% for o in subsidiary_store_obj %}#}
+                            {#                                <option selected value="{{ o.id }}">{{ o.subsidiary.name }} - {{ o.name }}</option>#}
+                            {#                            {% endfor %}#}
+                        </select></td>
+                        <td>Unidad</td>
+                        <td>
+                            <select class="form-control" id="id_unidad" name="unidad" required>
+                                <option value="0"> Seleccione</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" id="current-stock"></td>
+                    </tr>
+
+                    <tr>
+                        <td>Numero Scop:</td>
+                        <td><select class="form-control" id="id_nscop" name="nscop" required>
+                            <option disabled selected value=""> Seleccione</option>
+
+                            {% for o in programmign_buy_obj %}
+                                <option value="{{ o.id }}">{{ o.number_scop }}</option>
+                            {% endfor %}
+                        </select>
+                        <td>Fecha Llegada:</td>
+                        <td>
+                            <input type="date" class="form-control" id="id_datearrive"
+
+                                   value="{{ today }}" required>
+                        </td>
+                        <td>Placa Tracto</td>
+                        <td><input type="text" readonly class="form-control" id="id_truck" required
+                        ></td>
+                    </tr>
+                    <tr>
+                        <td>Almacen Destino:</td>
+                        <td><select class="form-control" id="id_store" name="store" required>
+                            <option disabled selected value=""> Seleccione</option>
+                            {% for o in subsidiary_store_obj %}
+                                <option value="{{ o.id }}">{{ o.subsidiary.name }} - {{ o.name }}</option>
+                            {% endfor %}
+                        </select></td>
+
+                        <td>Guia Proveedor:</td>
+                        <td><input type="text" class="form-control" id="id_guide" required
+                        >
+                        </td>
+                        <td>Cantidad GLP:</td>
+                        <td><input type="number" readonly class="form-control" id="id_quiantity" required
+                        ></td>
+                    </tr>
+                    <tr>
+                        <td><input type="hidden" class="form-control" id="id_programing"
+                        >
+                        <td>
+                            <button type="submit" id="id-add"
+                                    class="btn btn-success btn-block pb-1">Agregar
+                            </button>
+                        </td>
+                    </tr>
+
+                </table>
+
+                <table id="id_programming_invoice"
+                       class="table table-primary table-striped align-content-center table-bordered  m-0">
+
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Factura</th>
+                        <th>N Scop</th>
+                        <th>Tracto</th>
+                        <th>Guia</th>
+                        <th>Cantidad GLP</th>
+                        <th>Fecha Llegada</th>
+                        <th>Destino</th>
+                        <th>Borrar</th>
+                    </tr>
+                    </thead>
+                    <tbody id="details">
+                    </tbody>
+                </table>
+
+
+            </div><!-- modal-body -->
+
+
+            <div class="modal-footer">
+                &nbsp;
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="save-changes" type="button" class="btn btn-primary">Trasladar almacen</button>
+
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    /*$('.tbl-current-stock tbody tr').each(function () {
+       let _request = parseFloat($(this).find('td.quantity-request').text());
+       let _sent = parseFloat($(this).find('td.quantity-sent').text());
+       let _remaining = Difference(_request, _sent).toFixed(2);
+       $(this).find('td.quantity-remaining').text(_remaining.toString());
+   });*/
+    $('#id_quiantity').keyup(function () {
+        let _quantity = parseFloat($(this).val());
+        let _tbl_quantity = parseFloat($('.tbl-current-stock tbody tr td.quantity-remaining').text());
+        let _total_quantity = _tbl_quantity.toFixed(2) - _quantity.toFixed(2);
+        if (_total_quantity < 0) {
+            alert("La cantidad ingresada no puede ser superior a la cantidad de compra : " + _tbl_quantity.toString());
+            $(this).val(0);
+        }
+
+    })
+    $('#current-stock').parent('tr').slideUp();
+
+    function limper(request) {
+        $("#id_quiantity").val('');
+        {#$("#id_invoice").val('');#}
+        {#$("#id_guide").val('');#}
+        {#$("#id_programmingbuys").val('');#}
+    };
+    $('#id_nscop').select2({
+        theme: 'bootstrap4',
+    });
+
+    $('#id_invoice').select2({
+        theme: 'bootstrap4',
+    });
+
+    $("#form-programming-store").submit(function (event) {
+        event.preventDefault();
+        {#$('#id-add').click(function () {#}
+        let id_invoice = $('#id_invoice').val();
+        let invoice = $('#id_invoice option:selected').text();
+        let nscop = $('#id_nscop option:selected').text();
+        let id_nscop = $('#id_nscop').val();
+        let guide = $('#id_guide').val();
+        let truck = $('#id_truck').val();
+        let quantity = $('#id_quiantity').val();
+        let id_store = $('#id_store').val();
+        let subsidiary = $('#id_store option:selected').text();
+        let id_unit = $('#id_unidad option:selected').val();
+        let date_arrive = $('#id_datearrive').val();
+        if (id_invoice.length == 0 || id_quiantity.length == 0) {
+            alert('LLENE LOS DATOS NECESARIOS!')
+        } else {
+            /* if ($("#id_detail_programming tr[truck=" + id_truck + "]").length) {
+                 alert('El trackto ya tiene programacion registrada')
+                 return false;
+             }*/
+            if ($("#details tr[product=" + id_invoice + "]").length) {
+                alert('La factura ya se encuentra, seleccione otra.')
+                return false;
+            }
+            $('#id_programming_invoice').append(
+                '<tr id_product="' + $('#id_producto').val() + '" product="' + id_invoice + '" unit="' + id_unit + '">' +
+                '<td class="text-center align-middle" _status="P">' + '</td>' +
+                '<td class="item-invoice align-middle" _requirement=' + id_invoice + '>' + invoice + '</td>' +
+                '<td class="item-nscop align-middle" _programming=' + id_nscop + '>' + nscop + '</td>' +
+                '<td class="item-truck align-middle">' + truck + '</td>' +
+                '<td class="item-guide align-middle">' + guide + '</td>' +
+                '<td class="item-quantity align-middle">' + quantity + '</td>' +
+                '<td class="item-datearrive align-middle">' + date_arrive + '</td>' +
+                '<td class="item-store align-middle" _store=' + id_store + '>' + subsidiary + '</td>' +
+                '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem(' + id_invoice + ')" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                '</tr>'
+            );
+
+            limper();
+            counterStrike();
+            toastr.success('FACTURA AGREGADO CON EXITO', '¡MENSAJE!');
+
+        }
+
+    });
+
+    function deleteItem($id) {
+        $('#details').find("tr[product=" + $id + "]").remove();
+        counterStrike();
+    }
+
+    // reasigna numero de fila a los detalles
+    function counterStrike() {
+        let l = 1;
+        $('#details tr').each(function () {
+            $(this).attr('i', l);
+            $(this).children('td:first').text(l);
+            l++;
+        });
+
+    }
+
+    //Sacar datos al seleccionar el combo del tracto
+    $('#id_nscop').change(function () {
+        if ($(this).val() == 0) {
+            {#$('#id_nscop').val('');#}
+        } else {
+            let programming = $(this).val();
+            let requirement = $('#id_requirement').val();
+            let process = "invoice"
+            let programming_obj = {
+                "programming": programming,
+                "requirement": requirement,
+                "process": process,
+                {#"process": invoice,#}
+            };
+            $.ajax({
+                url: '/buys/get_scop_truck/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'programming_obj': JSON.stringify(programming_obj)},
+                success: function (response) {
+                    $('#id_truck').val(response['truck']);
+
+                    {#$('#id_programing').val(response['programming']);#}
+                    //cargar tabla con su detalle
+                    {#$('#details').empty();#}
+                    {#let Detalle = JSON.parse(response['detail_serialized']);#}
+                    {#Detalle.forEach(#}
+                    {#    element =>#}
+                    {#        $('#details').append(#}
+                    {#            '<tr programmingbuy="' + element['pk'] + '">' +#}
+                    {#            '<td class="text-center align-middle" _status="' + element['fields']['status'] + '" >' + '</td>' +#}
+                    {#            '<td class="item-invocie align-middle">' + element['fields']['invoice'] + '</td>' +#}
+                    {#            '<td class="item-dateinvoice align-middle">' + element['fields']['date_invoice'] + '</td>' +#}
+                    {#            '<td class="item-guide align-middle">' + element['fields']['guide'] + '</td>' +#}
+                    {#            '<td class="item-quantity align-middle">' + element['fields']['quantity'] + '</td>' +#}
+                    {#            '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem(' + element['pk'] + ')" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +#}
+                    {#            '</tr>'#}
+                    {#        )#}
+                    {#)#}
+                    counterStrike();
+                    //tabla cargada
+                },
+                fail: function (response) {
+                    console.log("error");
+                }
+            });
+        }
+    })
+    //Seleccionar factura para llenar combo productos
+    $('#id_invoice').change(function () {
+        //recupera el id_dela opcion seleccionada
+        let _search = $(this).val();
+        //vacia el combo-borra opciones
+        $('#id_producto').empty();
+
+        $.ajax({
+            url: '/buys/get_products_by_requirement/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            //mando  id del invoice del combo
+            data: {'ip': _search},
+            // si va bien retorna la data
+            success: function (response) {
+
+                $('#id_daterequirement').val(response['creation_date']);
+                $('#id_scop').val(response['scop']);
+                $('#id_dateinvoice').val(response['approval_date']);
+
+                //le da formato array
+                let new_product = JSON.parse(response['products']);
+                {#$('#id_producto').append('<option value="0">' + Seleccione + '</option>')#}
+                new_product.forEach(
+                    element =>
+                        $('#id_producto').append(
+                            '<option value="' + element['pk'] + '">' + element['fields']['name'] + '</option>')
+                );
+                $('#current-stock').html(response.grid).parent('tr').slideDown();
+                $("#id_producto").trigger("change");
+                $('#id_quiantity').removeAttr("readonly");
+            },
+
+        });
+
+    })
+
+    $('#id_producto').change(function () {
+        //recupera el id_dela opcion seleccionada
+        let _search = $(this).val();
+        //vacia el combo-borra opciones
+        $('#id_unidad').empty();
+
+        $.ajax({
+            url: '/buys/get_units_by_product/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            //mando  id del producto del combo
+            data: {'ip': _search},
+            // si va bien retorna la data
+            success: function (response) {
+                //le da formato array
+                let units = JSON.parse(response['units']);
+                units.forEach(
+                    element =>
+                        $('#id_unidad').append(
+                            '<option value="' + element['pk'] + '">' + element['fields']['name'] + '</option>')
+                )
+            },
+
+        });
+
+    })
+
+    $('#save-changes').click(function () {
+        let option = confirm("Esta seguro de realizar el traslado al almacen de destino");
+        if (option == true) {
+            let details_invoice = {
+                "Details": [],
+            };
+            // alert($('#id_requirement').val());
+
+            $("#details tr").each(function () {
+                let detailObj = {
+                    "guide": $(this).find("td.item-guide").text(),
+                    "date_arrive": $(this).find("td.item-datearrive").text(),
+                    "quantity": $(this).find("td.item-quantity").text(),
+                    "status": $(this).find("td:first").attr('_status'),
+                    "store": $(this).find("td.item-store").attr('_store'),
+                    "programming": $(this).find("td.item-nscop").attr('_programming'),
+                    "requirement": $(this).find("td.item-invoice").attr('_requirement'),
+                    "product_id": $(this).attr('id_product'),
+                    "unit_id": $(this).attr('unit'),
+
+                };
+                details_invoice.Details.push(detailObj);
+
+            });
+            $.ajax({
+
+                url: '/buys/save_programming_invoice/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'details_send': JSON.stringify(details_invoice)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        toastr.success(response.message, '¡EXITOSO!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    $('#add-programing-modal').modal('hide');
+                    toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
+                }
+            });
+
+        }
+    })
+
+</script>

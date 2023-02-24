@@ -1,0 +1,243 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Guides
+{% endblock title %}
+
+{% block body %}
+
+    <div class="row">
+        <div class="col-sm-12">
+
+            <div class="card">
+                <div class="card-body text-center font-weight-bolder">
+                    <h2>PRECIO POR RUTAS</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-group">
+        <div class="card col-sm-5 mt-2">
+            <div class="card-body" id="render-form">
+                <form id="new-rateroutes" action="{% url 'buys:get_rateroutes_programming' %}" method="POST">
+                    {% csrf_token %}
+
+                    <div class="row">
+
+                        <div class="col-sm-12 text-center m-2"><h4>PANEL DE REGISTRO</h4></div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table class="table table-sm">
+                                <tr>
+                                    <td>Placa de Trackto:</td>
+                                    <td><select class="form-control" id="id_truck" name="truck" required>
+                                        <option selected value="0"> Seleccione</option>
+                                        {% for truck in truck_obj %}
+                                            {% if truck.id == truck.id %}#}
+                                                <option
+                                                        value="{{ truck.id }}">{{ truck.license_plate }}</option>
+                                                {% else %}#}
+                                                <option value="{{ truck.id }}">{{ truck.name }}</option>#}
+                                            {% endif %}#}
+                                        {% endfor %}
+                                    </select>
+                                    </td>
+
+                                    <td>
+                                        <button type="button" id="btn-new"
+                                                class="btn btn-danger btn-block pb-1">Nuevo
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Precio:</td>
+                                    <td><input type="text" class="form-control" id="id_price"
+                                               name="price"
+                                               placeholder="precio" required
+                                               value="{{ employee.person.paternal_last_name }}">
+                                    </td>
+
+                                    <td>
+                                        <button type="submit" id="btn-save"
+                                                class="btn btn-primary btn-block pb-1 ">Guardar
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Destino:</td>
+                                    <td><select class="form-control" id="id_subsidiary" name="subsidiary" required>
+                                        <option selected value="0"> Seleccione</option>
+                                        {% for subsidiary in subsidiary_obj %}
+                                            {% if subsidiary.id == subsidiary.id %}#}
+                                                <option
+                                                        value="{{ subsidiary.id }}">{{ subsidiary.name }}</option>
+                                                {% else %}#}
+                                                <option value="{{ subsidiary.id }}">{{ subsidiary.name }}</option>#}
+                                            {% endif %}#}
+                                        {% endfor %}
+                                    </select>
+                                    </td>
+
+                                    <td>
+                                        <button type="submit" id="id-add"
+                                                class="btn btn-success btn-block pb-1">Agregar
+                                        </button>
+                                    </td>
+                                </tr>
+
+                            </table>
+
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card col-sm-9 mt-2 ml-2 border-left">
+            <div class="card-body ">
+                <div class="table-responsive" id="render-table">
+
+                    <table id="id_detail_data_grid"
+                           class="table table-primary table-striped align-content-center table-bordered response"
+                           cellspacing="0" width="50%">
+                        <thead>
+                        <tr class="text-center" style="height: 15px;">
+                            <th scope="col" class="align-middle">#</th>
+                            <th scope="col" class="align-middle">Placa</th>
+                            <th scope="col" class="align-middle">Precio</th>
+                            <th scope="col" class="align-middle">Destino</th>
+                            <th scope="col" class="align-middle">Editar</th>
+                        </tr>
+                        </thead>
+                        <tbody id="body-table-detail">
+
+                        </tbody>
+                    </table>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+
+{% endblock body %}
+
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+        $("#new-rateroutes").submit(function (event) {
+            event.preventDefault();
+            {#$('#id-add').click(function () {#}
+            let id_truck = $('#id_truck').val();
+            let truck = $('#id_truck option:selected').text();
+            let subsidiary = $('#id_subsidiary option:selected').text();
+            let id_subsidiary = $('#id_subsidiary').val();
+            let price = $('#id_price').val();
+
+            if (id_truck.length == 0 || price.length == 0) {
+                alert('LLENE LOS DATOS NECESARIOS!')
+            } else {
+                if ($("#body-table-detail tr[subsidiary=" + id_subsidiary + "]").length) {
+                    alert('El Destino Ya Tiene Precio')
+                    return false;
+                }
+                /*   if ($("#details tr[product=" + id_subsidiary + "]").length) {
+                       alert('La factura ya se encuentra, seleccione otra.')
+                       return false;
+                   }*/
+                $('#id_detail_data_grid').append(
+                    '<tr subsidiary=' + id_subsidiary + '>' +
+                    '<td class="text-center align-middle">' + '</td>' +
+                    '<td class="item-truck align-middle" _truck=' + id_truck + '>' + truck + '</td>' +
+                    '<td class="item-price align-middle" >' + price + '</td>' +
+                    '<td class="item-subsidiary align-middle" _subsidiary=' + id_subsidiary + '>' + subsidiary + '</td>' +
+                    '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem(' + id_subsidiary + ')" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                    '</tr>'
+                );
+
+                limper();
+                counterStrike();
+                toastr.success('FACTURA AGREGADO CON EXITO', '¡MENSAJE!');
+
+            }
+
+        });
+
+        function limper(request) {
+            $("#id_price").val('');
+            {#$("#id_invoice").val('');#}
+            {#$("#id_guide").val('');#}
+            {#$("#id_programmingbuys").val('');#}
+        };
+
+        function deleteItem($id) {
+            $('#id_detail_data_grid').find("tr[subsidiary=" + $id + "]").remove();
+            counterStrike();
+        }
+
+        // reasigna numero de fila a los detalles
+        function counterStrike() {
+            let l = 1;
+            $('#body-table-detail tr').each(function () {
+                $(this).attr('i', l);
+                $(this).children('td:first').text(l);
+                l++;
+            });
+
+        }
+
+        $('#id_nscop').change(function () {
+            if ($(this).val() == 0) {
+                {#$('#id_nscop').val('');#}
+            } else {
+                let programming = $(this).val();
+                let requirement = $('#id_requirement').val();
+                let process = "invoice"
+                let programming_obj = {
+                    "programming": programming,
+                    "requirement": requirement,
+                    "process": process,
+                    {#"process": invoice,#}
+                };
+                $.ajax({
+                    url: '/buys/get_scop_truck/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'programming_obj': JSON.stringify(programming_obj)},
+                    success: function (response) {
+                        $('#id_truck').val(response['truck']);
+
+                        {#$('#id_programing').val(response['programming']);#}
+                        //cargar tabla con su detalle
+                        {#$('#details').empty();#}
+                        {#let Detalle = JSON.parse(response['detail_serialized']);#}
+                        {#Detalle.forEach(#}
+                        {#    element =>#}
+                        {#        $('#details').append(#}
+                        {#            '<tr programmingbuy="' + element['pk'] + '">' +#}
+                        {#            '<td class="text-center align-middle" _status="' + element['fields']['status'] + '" >' + '</td>' +#}
+                        {#            '<td class="item-invocie align-middle">' + element['fields']['invoice'] + '</td>' +#}
+                        {#            '<td class="item-dateinvoice align-middle">' + element['fields']['date_invoice'] + '</td>' +#}
+                        {#            '<td class="item-guide align-middle">' + element['fields']['guide'] + '</td>' +#}
+                        {#            '<td class="item-quantity align-middle">' + element['fields']['quantity'] + '</td>' +#}
+                        {#            '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem(' + element['pk'] + ')" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +#}
+                        {#            '</tr>'#}
+                        {#        )#}
+                        {#)#}
+                        counterStrike();
+                        //tabla cargada
+                    },
+                    fail: function (response) {
+                        console.log("error");
+                    }
+                });
+            }
+        })
+
+
+    </script>
+{% endblock extrajs %}

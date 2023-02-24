@@ -1,0 +1,48 @@
+<table class="table table-sm  table-striped table-bordered table-details m-0">
+    <thead>
+        <tr  class="text-center bg-dark text-white m-0 p-0 text-uppercase">
+            <td class="text-center">Producto</td>
+            <td class="text-center">Cantidad</td>
+            <td class="text-center">Unidad</td>
+            <td class="text-center">Tipo</td>
+            <td class="text-center">Operacion</td>
+        </tr>
+    </thead>
+    <tbody>
+    {% for dt in details %}
+        <tr class="col-form-label bg-secondary text-white">
+            <td class="text-center">{{ dt.product.name }}</td>
+            <td class="text-center item-quantity"> {{ dt.quantity|floatformat:2 }}</td>
+            <td class="text-center">{{ dt.unit.description }}</td>
+            <td class="text-center">{{ dt.get_type_display }}</td>
+            <td class="text-center">{{ dt.get_status_display }}</td>
+        </tr>
+    {% endfor %}
+    <tr class="text-white text-uppercase bg-dark">
+        <td class="text-center">Total Balones</td>
+        <td class="text-right">{{ details.last.calculate_total_b_quantity|default:"0.00" }}</td>
+        <td class="text-center" colspan="3">Responsable:  {{ details.last.distribution_mobil.pilot.full_name }}</td>
+    </tr>
+    </tbody>
+</table>
+<script>
+
+    $('.table-details tbody tr td').each(function () {
+        let _str = $(this).text();
+        _str = _str.replace(',', '.');
+        $(this).text(_str);
+    });
+    /*
+    let _total=0
+    $('.table-details tbody tr td.item-quantity').each(function () {
+        let iterator = parseFloat($(this).text());
+        _total = _total + iterator;
+        if ()
+        {
+
+        }
+    });
+
+ */
+
+</script>

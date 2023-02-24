@@ -1,0 +1,269 @@
+{% if is_pdf %}
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+          crossorigin="anonymous">
+
+    <h4>Reporte de kardex GLP</h4>
+
+{% else %}
+    <a href="{% url 'sales:kardex_glp_pdf' other_subsidiary_store.id %}" target="print"
+       class="btn btn-outline-dark"><span class="fa fa-print"></span> PDF</a>
+    <a target="print" id="table-to-excel" class="btn btn-outline-danger"><span class="fa fa-file-excel"></span>
+        EXCEL</a>
+{% endif %}
+
+{% if kardex_set %}
+    <table class="table table-bordered table-sm" style="width: 2000px" id="data-table-report-kardex">
+{#        <thead>#}
+        <tr>
+            <td scope="col" style="text-transform: uppercase;" colspan="11"
+                class="bg-primary text-center text-white-50 h6 align-middle">Descripcion del requerimiento
+            </td>
+            <td scope="col" style="text-transform: uppercase;" colspan="6"
+                class="bg-danger text-center text-white-50 h6 align-middle">Gastos combustible
+            </td>
+            <td scope="col" style="text-transform: uppercase;" colspan="4"
+                class="bg-info text-white-50 text-center h6 align-middle">Entrada y salida - sedes
+            </td>
+            <td scope="col" style="text-transform: uppercase;" colspan="5"
+                class="bg-success text-center text-white-50 h6 align-middle">Pluspetrol
+            </td>
+        </tr>
+        <tr>
+            <td scope="col" style="text-transform: uppercase;"
+                class="align-middle text-center table-primary text-black-50 small">Id
+            </td>
+            <td scope="col" style="text-transform: uppercase;"
+                class="align-middle text-center table-primary text-black-50 small">Fecha
+            </td>
+            <td scope="col" style="text-transform: uppercase;" colspan="4"
+                class="align-middle text-center table-primary text-black-50 small">Detalle Requerimiento
+            </td>
+
+            <td scope="col" style="text-transform: uppercase;" colspan="5"
+                class="align-middle text-center table-primary text-black-50 small">Programaciones
+            </td>
+            <td scope="col" style="text-transform: uppercase;" colspan="6"
+                class="align-middle text-center table-danger text-black-50 small">Combustible
+            </td>
+            <td scope="col" style="text-transform: uppercase;" colspan="2"
+                class="align-middle text-center table-danger text-black-50 small">{{ my_subsidiary_store_insume.subsidiary.name }}
+            </td>
+            <td scope="col" style="text-transform: uppercase;" colspan="2"
+                class="align-middle text-center table-danger text-black-50 small">{{ other_subsidiary_store.subsidiary.name }}
+            </td>
+            <td scope="col" style="text-transform: uppercase;"
+                class="align-middle text-center table-secondary text-black-50 small">Tipo
+            </td>
+            <td scope="col" style="text-transform: uppercase;" colspan="2"
+                class="align-middle text-center table-success text-black-50 small">Entrada
+            </td>
+
+            <td scope="col" style="text-transform: uppercase;"
+                class="align-middle text-center table-primary text-black-50 small">Salida
+            </td>
+            <td scope="col" style="text-transform: uppercase;"
+                class="align-middle text-center table-danger text-black-50 small">Pluspetrol
+            </td>
+
+        </tr>
+        <tr class="text-black-50 small text-uppercase font-weight-normal">
+            <td style="width: 4%">Id</td>
+            <td style="width: 4%">Fecha</td>
+            <td style="width: 4%">Scop</td>
+            <td style="width: 4%">Factura</td>
+            <td style="width: 4%">Cantidad</td>
+            <td style="width: 4%">Total</td>
+            <td style="width: 4%">Propietario</td>
+            <td style="width: 4%">Placa</td>
+            <td style="width: 4%">Guia</td>
+            <td style="width: 4%">Scop</td>
+            <td style="width: 4%">Cantidad</td>
+            <td style="width: 4%">Fecha</td>
+            <td style="width: 4%">Tipo</td>
+            <td style="width: 4%">Operacion</td>
+            <td style="width: 4%">Factura</td>
+            <td style="width: 4%">Cantidad</td>
+            <td style="width: 4%">Precio</td>
+            <td style="width: 4%">Entrada</td>
+            <td style="width: 4%">Saldo</td>
+            <td style="width: 4%">Entrada</td>
+            <td style="width: 4%">Saldo</td>
+            <td style="width: 4%">Tipo</td>
+            <td style="width: 4%">Cantidad</td>
+            <td style="width: 4%">Precio</td>
+            <td style="width: 4%">Cantidad</td>
+            <td style="width: 4%">Saldo</td>
+        </tr>
+{#        </thead>#}
+{#        <tbody id="details" class="text-black-50 small text-uppercase">#}
+        <tr class="detail">
+            {% for kardex in kardex_set %}
+                <tr class="detail">
+
+                    <td class="align-middle text-primary">{{ kardex.id }}</td>
+                    <td class="align-middle text-primary">{{ kardex.create_at|date:"d/m/Y" }}</td>
+                    <td class="align-middle text-primary  p-0" colspan="9">
+                        {% if kardex.requirement_detail.id %}
+                            <table class="table-primary m-0 " style="width: 100%">
+                                <tr>
+                                    <td
+                                            style="width: 10%" rowspan="50"
+                                            class="align-middle">{{ kardex.requirement_detail.requirement_buys.number_scop }}</td>
+                                    <td
+                                            style="width: 15%" rowspan="50"
+                                            class="align-middle">{{ kardex.requirement_detail.requirement_buys.invoice }}</td>
+                                    <td
+                                            style="width: 15%" rowspan="50"
+                                            class="align-middle decimal">{{ kardex.requirement_detail.quantity|floatformat:2 }}</td>
+                                    <td
+                                            style="width: 15%" rowspan="50"
+                                            class="align-middle decimal">{{ kardex.requirement_detail.multiplicate|floatformat:4 }}</td>
+                                </tr>
+                                {% for pi in kardex.requirement_detail.requirement_buys.programminginvoice_set.all %}
+                                    <tr>
+                                        <td>{{ pi.requirementBuysProgramming.truck.owner.name }}</td>
+                                        <td>{{ pi.requirementBuysProgramming.truck.license_plate }}</td>
+                                        <td>{{ pi.guide }}</td>
+                                        <td>{{ pi.requirementBuysProgramming.number_scop }}</td>
+                                        <td class="decimal">{{ pi.quantity }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <td colspan="5"></td>
+
+
+                                {% endfor %}
+                            </table>
+                        {% endif %}
+
+                    </td>
+                    <td colspan="6" class="p-0">
+                        {#  combustible#}
+                        <table class="table m-0 border-0 p-0" style="width: 100%">
+
+                            {% for pi in kardex.requirement_detail.requirement_buys.programminginvoice_set.all %}
+
+                                {% for e in pi.requirementBuysProgramming.programmingexpense_set.all %}
+                                    <tr>
+                                        <td>{{ e.date_invoice|date:'d/m/Y' }}</td>
+                                        <td>{{ e.type }}</td>
+                                        <td>{{ e.noperation }}</td>
+                                        <td>{{ e.invoice }}</td>
+                                        <td class="decimal">{{ e.quantity|floatformat:2 }}</td>
+                                        <td class="decimal">{{ e.price|floatformat:2 }}</td>
+                                    </tr>
+                                {% endfor %}
+
+                            {% endfor %}
+
+                        </table>
+                    </td>
+                    <td class="align-middle text-danger text-center  p-0" colspan="2"><!-- SICUANI -->
+                        <table class="table m-0 border-0" style="width: 100%">
+                            <tr> {% for k in kardex.programming_invoice.kardex_set.all %}
+                                {% if my_subsidiary_store_insume.id == k.product_store.subsidiary_store.id %}
+                                    <td style="width: 50%" class="text-success decimal">{{ k.quantity }}</td>
+                                    <td style="width: 50%" class="text-danger decimal">{{ k.remaining_quantity }}</td>
+                                {% endif %}
+
+                            {% endfor %}
+                            </tr>
+                        </table>
+                    </td>
+
+                    <td class="align-middle text-danger text-center p-0" colspan="2"><!-- AQP -->
+                        <table class="table m-0 border-0" style="width: 100%">
+                            <tr>
+                                {% for k in kardex.programming_invoice.kardex_set.all %}
+                                    {% if other_subsidiary_store.id == k.product_store.subsidiary_store.id %}
+                                        <td style="width: 50%" class="text-success decimal">
+                                            {{ k.quantity }}
+                                        </td>
+                                        <td style="width: 50%" class="text-danger decimal">
+                                            {{ k.remaining_quantity }}
+                                        </td>
+                                    {% endif %}
+
+                                {% endfor %}
+                            </tr>
+                        </table>
+                    </td>
+                    <td class="align-middle text-primary">{{ kardex.get_operation_display }}</td>
+
+                    <td class="align-middle text-secondary text-center decimal">
+                        {% if kardex.operation == 'E' %}{{ kardex.quantity }}{% else %}0{% endif %}</td>
+
+                    <td class="align-middle text-secondary text-right decimal">
+                        {% if kardex.operation == 'E' %}{{ kardex.price_total|floatformat:2 }}{% else %}
+                            0{% endif %}</td>
+
+                    <td class="align-middle text-success text-center decimal">
+                        {% if kardex.operation == 'S' %}{{ kardex.quantity }}{% else %}0{% endif %}</td>
+
+                    <td class="align-middle text-danger text-center decimal">{{ kardex.remaining_quantity }}</td>
+
+                </tr>
+            {% endfor %}
+
+{#        </tbody>#}
+{#        <tfoot class=".noExl">#}
+{#        <tr class="text-black-50 small text-uppercase font-weight-normal">#}
+{#            <th>Id</td>#}
+{#            <th>Fecha</td>#}
+{#            <th>Scop</td>#}
+{#            <th>Factura</td>#}
+{#            <th>Cantidad</td>#}
+{#            <th>Total</td>#}
+{#            <th>Propietario</td>#}
+{#            <th>Placa</td>#}
+{#            <th>Guia</td>#}
+{#            <th>Scop</td>#}
+{#            <th>Cantidad</td>#}
+{#            <th>Fecha</td>#}
+{#            <th>Tipo</td>#}
+{#            <th>Operacion</td>#}
+{#            <th>Factura</td>#}
+{#            <th>Cantidad</td>#}
+{#            <th>Precio</td>#}
+{#            <th>Entrada</td>#}
+{#            <th>Saldo</td>#}
+{#            <th>Entrada</td>#}
+{#            <th>Saldo</td>#}
+{#            <th>Tipo</td>#}
+{#            <th>Cantidad</td>#}
+{#            <th>Precio</td>#}
+{#            <th>Cantidad</td>#}
+{#            <th>Saldo</td>#}
+{#        </tr>#}
+{#        </tfoot>#}
+
+    </table>
+{% else %}
+    Lo sentimos, no hay kardex registradas.
+{% endif %}
+
+
+<script>
+    $('table tr td.decimal').each(function () {
+        let _str = $(this).text();
+        _str = _str.replace(',', '.');
+        $(this).text(_str);
+    });
+
+    $("#table-to-excel").click(function () {
+
+        $("#data-table-report-kardex").table2excel({
+            // exclude CSS class
+            exclude: ".noExl",
+            name: "Worksheet GLP",
+            filename: "kardex_glp",//do not include extension
+            fileext: ".xlsx", // file extension
+            preserveColors: true
+
+        });
+    });
+
+    {#$('#data-table-kardex').DataTable();#}
+
+</script>

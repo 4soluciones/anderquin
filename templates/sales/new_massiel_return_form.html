@@ -1,0 +1,75 @@
+<form id="loan-massive-return-form" action="" method="POST">
+    {% csrf_token %}
+
+    <input type="hidden" id="id_order_indexes" name="order_indexes" value="{{ order_indexes }}">
+    <input type="hidden" id="id_client_orders" name="client_orders" value="{{ client_orders }}">
+    <div class="card">
+        <div class="card-body">
+            <div class="form-group row">
+                <label for="id_loan_quantity" class="col-sm-2 col-form-label">CANTIDAD A RETORNAR</label>
+                <div class="col-sm-10">
+
+                    <input type="text"
+                           id="id_loan_quantity"
+                           name="loan_quantity"
+                           autocomplete="off"
+                           value="{{ massive_return }}"
+                           readonly
+                           class="form-control form-control-sm">
+                </div>
+
+            </div>
+
+            <div class="form-group row">
+                <label for="id_date_return_loan0" class="col-sm-2 col-form-label">FECHA OPERACION</label>
+                <div class="col-sm-10">
+
+                    <input type="date"
+                           id="id_date_return_loan0"
+                           name="date_return_loan0"
+                           class="form-control form-control-sm"
+                           value="{{ date }}">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <hr class="mb-4">
+
+    <button type="submit" id="btn-save-massive-return" class="btn btn-primary"> Guardar</button>
+
+</form>
+
+<script type="text/javascript">
+    $('#loan-massive-return-form').submit(function (event) {
+        event.preventDefault();
+        let data = new FormData($('#loan-massive-return-form').get(0));
+        $('#btn-save-massive-return').attr("disabled", "true");
+        $.ajax({
+            url: '/sales/new_massiel_return/',
+            type: "POST",
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (response, textStatus, xhr) {
+                if (xhr.status == 200) {
+                    // $('#product-detail-grid').html(response.grid);
+                    $('#modal-payment').modal('hide');
+                    $('#table-order').html(response['grid']);
+                    array_glp_indexes = [];
+                    $('#massive-payment span.badge').text((0).toFixed(2));
+                    $('#massive-return span.badge').text((0).toFixed(2));
+                    toastr.success(response['message'], '¡Bien hecho!');
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                if (jqXhr.status === 500) {
+                    toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                }
+            }
+        });
+        $('#btn-save-massive-return').removeAttr("disabled", "false");
+    });
+</script>

@@ -1,0 +1,120 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Planilla
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid pt-3">
+        <div class="card">
+
+            <div class="card-header">
+                <label class="col-form-label col-form-label-lg">Planilla de Pagos</label>
+            </div>
+
+            <div class="card-body">
+
+                <form class="form-inline" id="search-form" method="POST">
+                    {% csrf_token %}
+
+                    <label for="id_month" class="my-1 ml-2 mr-2">Mes: </label>
+                    <select id="id_month" name="month"
+                            class="form-control">
+                        <option selected value="0">Seleccione...</option>
+                        {% for k in array_month %}
+                            <option value="{{ k.0 }}">{{ k.1 }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label class="my-1 ml-2 mr-2" for="id_year">Año: </label>
+                    <select id="id_year" name="year"
+                            class="form-control">
+                        <option  value="2021">2021</option>
+                        <option selected value="2022">2022</option>
+                        <option  value="2023">2023</option>
+                        <option  value="2024">2024</option>
+                    </select>
+
+                    <button type="submit" class="btn btn-blue my-1 ml-2" id="btn-search">
+                        <i class="fas fa-search-dollar"></i> Buscar
+                    </button>
+
+                    <button type="button" class="btn my-1 ml-2 text-white" id="printReportExcel"
+                            style="background: #00960f">
+                        <i class="far fa-file-excel"></i> Exportar a Excel
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+
+        <div class="card">
+
+            <div class="card-body table-responsive" id="tbl-salaries">
+            </div>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-payment-salary" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title" id="exampleModalLabel">PAGO REMUNERACION SALARIAL SELECCIONADA</h5>
+                    <button type="button" class="close ml-0" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="pay-salary">
+                    ...
+                </div>
+                <div class="modal-footer">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#search-form').get(0));
+
+            $('#btn-search').attr("disabled", "true");
+
+            $.ajax({
+                url: '/accounting/get_report_employees_salary/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        {#toastr.success(response['message'], '¡Bien hecho!');#}
+                        $('#tbl-salaries').html(response.grid);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+            $('#btn-search').removeAttr("disabled", "false");
+        });
+
+
+    </script>
+
+{% endblock extrajs %}

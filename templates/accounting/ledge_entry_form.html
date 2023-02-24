@@ -1,0 +1,129 @@
+<div class="card-group">
+    <div class="card">
+
+        <div class="card-body">
+
+
+            <form class="needs-validation" novalidate="">
+
+                <div class="mb-3">
+                    <label for="account-name">Cuenta</label>
+                    <!--<input type="text" class="form-control" id="account-name" placeholder="" value="" required="">-->
+                    <select id="account-name" name="account-name">
+                        <option value="0">seleccione</option>
+                        {% for account in account_set %}
+                            <option value="{{ account.code }}">{{ account.code }} - {{ account.description|upper }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="invalid-feedback">
+                        Valid account name is required.
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label for="account-code">Código</label>
+                        <input type="text" class="form-control" id="account-code" readonly placeholder="" value="" required="">
+                        <div class="invalid-feedback">
+                            Valid account code is required.
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="account-value">Valor</label>
+                        <input type="text" class="form-control" id="account-value" placeholder="" value="" required="">
+                        <div class="invalid-feedback">
+                            Valid value name is required.
+                        </div>
+                    </div>
+
+                </div>
+
+                <hr class="mb-4">
+
+                <div class="mb-3">
+                    <label for="account-created">Fecha de registro</label>
+                    <input type="date" class="form-control" id="account-created" placeholder="" value="{{ formatdate }}" required="">
+                    <div class="invalid-feedback">
+                        Valid date is required.
+                    </div>
+                </div>
+
+                <hr class="mb-4">
+
+                <h4 class="mb-3">Operación</h4>
+
+                <div class="d-block my-3">
+
+                    <div class="custom-control custom-radio">
+                        <input id="debit" name="operationMethod" type="radio" class="custom-control-input" value="D" checked>
+                        <label class="custom-control-label" for="debit">Débito</label>
+                    </div>
+
+                    <div class="custom-control custom-radio">
+                        <input id="credit" name="operationMethod" type="radio" class="custom-control-input" value="C">
+                        <label class="custom-control-label" for="credit">Crédito</label>
+                    </div>
+                </div>
+
+                <hr class="mb-4">
+                <button onclick="addDetail();" class="btn btn-primary btn-lg btn-block" type="button">Registrar</button>
+            </form>
+
+
+        </div>
+    </div>
+    <div class="card">
+
+        <div class="card-body">
+
+
+        <table class="table table-borderless mb-0 table-sm">
+            <thead>
+            <tr class="border-0">
+                <th class="table-light text-center text-black-50 small border-0"
+                    style="text-transform: uppercase; width: 10%;">CODIGO
+                </th>
+                <th class="table-light text-center text-black-50 small border-0"
+                    style="text-transform: uppercase; width: 45%;">CUENTA
+                </th>
+                <th class="table-light text-center text-black-50 small border-0"
+                    style="text-transform: uppercase; width: 15%;">DEBITOS
+                </th>
+                <th class="table-light text-center text-black-50 small border-0"
+                    style="text-transform: uppercase; width: 15%;">CREDITOS
+                </th>
+                <th class="table-light text-center text-black-50 small border-0"
+                    style="text-transform: uppercase; width: 15%;">ACCION
+                </th>
+            </tr>
+            </thead>
+            <tbody id="account-store">
+
+            </tbody>
+            <tfoot id="total-account-store">
+            <tr>
+                <td colspan="2" class="align-middle border-top border-right border-left">Sumas Iguales</td>
+                <td class="align-middle border-top border-right border-left sum-debit text-right">0</td>
+                <td class="align-middle border-top border-right border-left sum-credit text-right">0</td>
+                <td class="align-middle border-top border-right border-left"></td>
+            </tr>
+            <tr>
+                <td colspan="2" class="align-middle border-top border-right border-left">Diferencia</td>
+                <td class="align-middle border-top border-right border-left"></td>
+                <td class="align-middle border-top border-right border-left"></td>
+                <td class="align-middle border-top border-right border-left difference text-right">0</td>
+            </tr>
+            </tfoot>
+        </table>
+
+
+            <button id="save-changes" class="btn btn-block btn-secondary mt-3">Guardar</button>
+
+        </div>
+    </div>
+
+</div>
+
+

@@ -1,0 +1,282 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<!-- <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"> -->
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<title>{% block title %}Bienvenido a coronasoft.dev {% endblock title %}</title>
+
+	<link  rel="icon"   href="{% static 'assets/icons/images_mYC_1.ico' %}" type="image/ico" />
+
+	<!-- Normalize V8.0.1 -->
+	<!-- <link rel="stylesheet" href="{% static 'css/normalize.css' %}"> -->
+
+	<!-- Bootstrap V4.3 -->
+	<link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+
+	<!-- Simple javascript toast notifications -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet">
+	<!-- Bootstrap Material Design V4.0 -->
+	<!-- <link rel="stylesheet" href="{% static 'css/bootstrap-material-design.min.css' %}"> -->
+
+	<!-- Font Awesome V5.9.0 -->
+	<link rel="stylesheet" href="{% static 'css/all.css' %}">
+
+	<!-- Sweet Alerts V8.13.0 CSS file -->
+	<link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}">
+
+	<!-- Sweet Alert V8.13.0 JS file-->
+	<script src="{% static 'js/sweetalert2.min.js' %}" ></script>
+
+	<!-- jQuery Custom Content Scroller V3.1.5 -->
+	<link rel="stylesheet" href="{% static 'css/jquery.mCustomScrollbar.css' %}">
+
+	<!-- DataTables CSS -->
+	<link rel="stylesheet" href="{% static 'assets/datatables/datatables.min.css' %}">
+
+	<!-- General Styles -->
+	<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+
+	<!-- DataTables Select CSS <link href="css/addons/datatables-select2.min.css" rel="stylesheet">-->
+
+
+</head>
+<body>
+
+	<!-- Main container -->
+	<main class="full-box main-container">
+
+
+
+
+
+
+
+		<!-- Nav lateral -->
+		<section class="full-box nav-lateral">
+			<div class="full-box nav-lateral-bg show-nav-lateral"></div>
+			<div class="full-box nav-lateral-content">
+				<figure class="full-box nav-lateral-avatar">
+					<i class="far fa-times-circle show-nav-lateral"></i>
+					<img src="{% static 'assets/avatar/Avatar.png' %}" class="img-fluid" alt="Avatar">
+					<figcaption class="text-center">
+						{{ user.username | upper }} <br><small class="">Web Developer</small>
+					</figcaption>
+				</figure>
+				<!-- Barra Lateral -->
+				<div class="full-box nav-lateral-bar"></div>
+
+				<nav class="full-box nav-lateral-menu">
+					<ul>
+
+						<li class="sidebar-header">
+							Main nav-btn-submenu active
+						</li>
+
+						<li>
+							<a href="{% url 'dashboard' %}" class="nav-btn-submenu active"><i class="fab fa-dashcube fa-fw"></i> &nbsp; Dashboard  <i class="fas fa-chevron-right"></i></a>
+						</li>
+
+						<li>
+							<a href="#" class="nav-btn-submenu"><i class="fas fa-user-tie fa-fw"></i> &nbsp; Administrator <i class="fas fa-chevron-right"></i></a>
+							<ul>
+								<li><a href="admin.html"> &nbsp; New admin</a></li>
+								<li><a href="listadmin.html"> &nbsp; List admin</a></li>
+							</ul>
+						</li>
+
+						<li class="sidebar-header">
+							Main nav-btn-submenu active
+						</li>
+
+						<li>
+							<a href="#" class="nav-btn-submenu"><i class="fas fa-box-open fa-fw"></i> &nbsp; Configuraciones <i class="fas fa-chevron-right"></i></a>
+							<ul>
+								<li><a href="{% url 'dishes:subsidiary_list' %}"> &nbsp; Listado de Sucursales</a></li>
+								<li><a href="{% url 'dishes:category_list' %}"> &nbsp; Listado de Categorias</a></li>
+								<li><a href="{% url 'dishes:subcategory_list' %}"> &nbsp; Listado de Subcategorias</a></li>
+								<li><a href="{% url 'dishes:dish_list' %}"> &nbsp; Listado de Platos</a></li>
+							</ul>
+						</li>
+
+						<li>
+							<a href="#" class="nav-btn-submenu"><i class="fas fa-box-open fa-fw"></i> &nbsp; Subcategorias <i class="fas fa-chevron-right"></i></a>
+							<ul>
+								<li><a href="#"><i class="fas fa-box fa-fw"></i> &nbsp; Nueva subcategoria</a></li>
+								<li><a href="#"><i class="fas fa-boxes fa-fw"></i> &nbsp; Listado de categorias</a></li>
+							</ul>
+						</li>
+
+						<li>
+							<a href="base.html"><i class="fas fa-columns fa-fw"></i> &nbsp; Base template</a>
+						</li>
+
+					</ul>
+				</nav>
+			</div>
+		</section>
+
+		<!-- Page content -->
+		<section class="full-box page-content">
+			<nav class="full-box navbar-info">
+				<a href="#" class="float-left show-nav-lateral"><i class="hamburger fas fa-align-justify fa-lg"></i></a>
+				<form class="form-inline d-none d-sm-inline-block">
+					<input class="form-control form-control-lite" type="text" placeholder="Search projects...">
+				</form>
+				<a href="#" data-toggle="modal" data-target="#ModalHelp"><i class="far fa-question-circle fa-lg"></i></a>
+				<a href="#"><i class="fas fa-user-cog fa-lg"></i></a>
+				<a href="{% url 'logout' %}" ><i class="fas fa-power-off fa-lg"></i></a>
+			</nav>
+
+			<!-- Page header -->
+
+			<main class="content">
+
+
+				<div class="container-fluid">
+
+
+
+					<div class="header">
+						<h1 class="header-title">
+							DataTables
+						</h1>
+						<nav aria-label="breadcrumb">
+							<ol class="breadcrumb">
+								<li class="breadcrumb-item"><a href="dashboard-default.html">Dashboard</a></li>
+								<li class="breadcrumb-item"><a href="#">Tables</a></li>
+								<li class="breadcrumb-item active" aria-current="page">DataTables</li>
+							</ol>
+						</nav>
+					</div>
+
+
+					<div id="alert-status" class="alert alert-warning d-none" role="alert">
+						A simple warning alert—check it out!
+					</div>
+				</div>
+
+
+
+
+			</main>
+
+
+
+
+
+
+
+
+			<!-- Content here-->
+
+			{% block body %}
+
+			<!-- Grid row -->
+			<div class="row">
+
+				<!-- Grid column -->
+				<div class="col-lg-2 col-md-12"></div>
+
+				<div class="col-lg-8 col-md-12">
+
+					<div class="card card-cascade wider text-center">
+
+						<!-- Card image
+						<div class="view view-cascade overlay">
+						<img class="card-img-top" src="{% static 'assets/avatar/black-and-white-board.jpg' %}" alt="Card image cap">
+						<a href="#!">
+						<div class="mask rgba-white-slight"></div>
+					</a>
+				</div>
+			-->
+			<div class="card-header">
+				Featured
+			</div>
+			<div class="card-body card-body-cascade">
+				<h5 class="card-title">BIENVENIDO A CORONASOFT</h5>
+				<p class="card-text">{{ user.username | upper }}</p>
+				<a href="#!" class="btn btn-primary">Go somewhere</a>
+			</div>
+			<div class="card-footer text-muted">
+				2 days ago
+			</div>
+		</div>
+
+	</div>
+	<div class="col-lg-2 col-md-12"></div>
+	<!-- Grid column -->
+
+</div>
+<!-- Grid row -->
+
+
+{% endblock body %}
+
+</section>
+
+<!-- Help Modal -->
+
+<div class="modal fade" id="ModalHelp" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title text-center" id="exampleModalLongTitle">Modal title</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				Lorem ipsum dolor sit amet, consectetur adipisicing elit. Suscipit sunt perferendis magni expedita possimus quidem, ex, culpa totam, sapiente, laboriosam iste fugit accusamus odio! Impedit beatae eveniet asperiores distinctio sunt?
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-light" data-dismiss="modal">Close</button>
+				&nbsp;
+				<button type="button" class="btn btn-light">Save changes</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+</main>
+
+
+<!--=============================================
+=            Include JavaScript files           =
+==============================================-->
+<!-- jQuery V3.4.1 -->
+<script src="{% static 'js/jquery-3.4.1.min.js' %}" ></script>
+
+<!-- popper -->
+<script src="{% static 'js/popper.min.js' %}" ></script>
+
+<!-- Bootstrap V4.3 -->
+<script src="{% static 'js/bootstrap.min.js' %}" ></script>
+
+<!-- jQuery Custom Content Scroller V3.1.5 -->
+<script src="{% static 'js/jquery.mCustomScrollbar.concat.min.js' %}" ></script>
+
+<!-- Bootstrap Material Design V4.0 -->
+<!-- <script src="{% static 'js/bootstrap-material-design.min.js' %}" ></script> -->
+<!-- <script>$(document).ready(function() { $('body').bootstrapMaterialDesign(); });</script> -->
+
+<!-- Simple javascript toast notifications -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+<script src="{% static 'js/main.js' %}" ></script>
+
+<!-- DataTables JS -->
+<script src="{% static 'assets/datatables/datatables.min.js' %}" ></script>
+
+<!-- DataTables Select JS <script src="js/addons/datatables-select2.min.js" type="text/javascript"></script>-->
+
+{% block extrajs %}
+{% endblock extrajs %}
+
+</body>
+</html>

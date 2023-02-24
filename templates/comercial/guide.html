@@ -1,0 +1,436 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Guides
+{% endblock title %}
+
+{% block body %}
+
+    <form id="new-guide-form" action="{% url 'comercial:new_guide' %}" method="POST">
+
+
+        <div class="mr-3 ml-0">
+
+
+            <div class="col-sm-12 p-1">
+
+                <table class="table table-sm text-uppercase small mt-3 mb-0">
+                    <tr>
+                        <td class="border-top-0" rowspan="3" colspan="4" class="align-middle" style="width: 60%;">
+
+                            <div class="card">
+                                <div class="card-body text-center font-weight-bolder">
+                                    <h2>EMISION DE GUIAS</h2>
+                                </div>
+                            </div>
+
+                        </td>
+                        <td class="border-top-0" style="width: 15%;">Numero de Guia:</td>
+                        <td class="border-top-0" style="width: 15%;">
+                            <input type="text" class="form-control" id="id_serie" name="serie" placeholder="N serie"
+                                   required>
+                        </td>
+                        <td class="border-top-0" style="width: 10%;">
+                            <input type="text" class="form-control" id="id_guide" name="guide" placeholder="N Guia"
+                                   required>
+                        </td>
+                    </tr>
+
+                    <tr>
+
+                        <td class="">Fecha de Emision:</td>
+                        <td class="" colspan="2"><input type="date" class="form-control" id="id_departure_date"
+                                                        name="departure_date" placeholder="Selecione"></td>
+                    </tr>
+                    <tr>
+
+                        <td class="">Fecha de Traslado:</td>
+                        <td class="" colspan="2"><input type="date" class="form-control" id="id_traslate_date"
+                                                        name="traslate_date" placeholder="Selecione"></td>
+                    </tr>
+
+
+                    <tr>
+
+                        <td class="border-top-0" colspan="2">
+
+
+                            <div class="dropdown" id='data-grid-programming'>
+                                <button class="btn btn-secondary btn-block dropdown-toggle" id="programmingLabel"
+                                        programming="0"
+                                        type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Seleccione una programación ...
+                                </button>
+                                <div class="dropdown-menu m-0 p-0" aria-labelledby="programmingLabel"
+                                     style="width: 100%;">
+
+                                    <table class="table table-hover table-bordered table-sm small m-0">
+                                        <thead>
+                                        <tr class="bg-light">
+                                            <th class="align-middle text-center" style="width: 15%;">TRACTO</th>
+                                            <th class="align-middle text-center" style="width: 35%;">PILOTO</th>
+                                            <th class="align-middle text-center" style="width: 30%;">SEDE</th>
+                                            <th class="align-middle text-center" style="width: 20%;">FECHA DE SALIDA
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for programming in programmings %}
+                                            <tr style="cursor: pointer;" pk="{{ programming.id }}">
+                                                <td>{{ programming.truck.license_plate }}</td>
+                                                <td>{{ programming.setemployee_set.first.employee.names }}
+                                                    {{ programming.setemployee_set.first.employee.paternal_last_name }}
+                                                </td>
+                                                <td>{{ programming.route_set.all.last.subsidiary.name }}</td>
+                                                <td>{{ programming.departure_date|date:'Y-m-d' }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </td>
+                        <td class="border-top-0" colspan="2"></td>
+                        <td class="" colspan="3"></td>
+                    </tr>
+
+
+                    <tr>
+                        <td class="border-top-0" style="width: 15%;">Punto de Partida:</td>
+                        <td class="border-top-0" style="width: 15%;"><input type="text"
+                                                                            class="form-control text-uppercase"
+                                                                            id="id_origin" name="origin"
+                                                                            placeholder="Sede A"></td>
+
+                        <td class="border-top-0" style="width: 15%;">Punto de Llegada:</td>
+                        <td class="border-top-0" style="width: 15%;"><input type="text"
+                                                                            class="form-control text-uppercase"
+                                                                            id="id_destiny" name="destiny"
+                                                                            placeholder="Sede B"></td>
+                        <td class="border-top-0">Fecha Inicio de Traslado:</td>
+                        <td class="border-top-0"><input type="date" class="form-control" id="id_init_departure_date"
+                                                        name="init_departure_date" placeholder="Selecione"></td>
+                        <td class="border-top-0" colspan="1">
+                            <button type="submit" id="id-btn-save" class="btn btn-primary btn-block">Guardar</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="">Numero de RUC:</td>
+                        <td class=""><input type="text" class="form-control" id="id_ruc_empresa" name="ruc_empresa"
+                                            placeholder="20450509125"></td>
+                        <td class="">Nombre o Razon Social Del Destinatario:</td>
+                        <td class=""><input type="text" class="form-control text-uppercase" id="id_empresa"
+                                            name="empresa"
+                                            placeholder="VICTORIA JUAN GAS SOCIEDAD ANONIMA CERRADA"></td>
+                        <td class="">Costo Minimo:</td>
+                        <td class=""><input type="number" class="form-control" id="id_minimal_cost" value="0"
+                                            name="minimal_cost"
+                                            placeholder="0"></td>
+                        <td class="border-top-0" colspan="1">
+                            {#                            <button type="button" id="btn-new" class="btn btn-primary btn-block">Nuevo</button>#}
+                            <button type="button" disabled class="btn btn-primary btn-block"><span
+                                    class="fa fa-print"></span> Imprimir
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="">Marca y Numero de Placa:</td>
+                        <td class=""><input type="text" class="form-control" id="id_license_plate" name="license_plate"
+                                            placeholder="FREIGHTLINER - C3N.703"></td>
+
+                        <td class="">N. Constancia de Inscripcion:</td>
+                        <td class=""><input type="text" class="form-control" id="id_constancia" name="constancia"
+                                            placeholder="53K5OELE"></td>
+                        <td class="">Tipo de Licencia / N. Licencia de Conducir:</td>
+                        <td class=""><input type="text" class="form-control" id="id_license" name="license"
+                                            placeholder="M-06154544"></td>
+                        <td class="border-top-0" colspan="1">
+                            <button type="button" id="btn-detail" class="btn btn-primary btn-block"
+                                    data-toggle="modal" data-target="#modal-updetail">Detalle
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="">N. de RUC:</td>
+                        <td class=""><input type="text" class="form-control" id="id_ruc_client" name="ruc_client"
+                                            placeholder="20498189637"></td>
+                        <td class="">Nombre o Razon Social:</td>
+                        <td class=""><input type="text" class="form-control" id="id_client" name="client"
+                                            placeholder="RAZON SOCIAL"></td>
+                        <td class="" colspan="1">
+                            Conductor:
+                        </td>
+                        <td class="" colspan="1">
+                            <input type="text" class="form-control" id="id_driver" name="driver"
+                                   placeholder="MARCOS ALONSO ">
+                        </td>
+                        <td class="border-top-0" colspan="1">
+                            <button type="button" id="btn-exit" class="btn btn-primary btn-block">Salir</button>
+                        </td>
+                    </tr>
+
+                </table>
+
+
+            </div>
+
+
+            <div class="col-sm-12 p-1">
+                <div class="card">
+                    <div class="card-body p-0" id="programmings">
+                        <table class="table table-bordered table-sm small text-uppercase m-0">
+                            <thead>
+                            <tr class="bg-light" style="height: 50px;">
+                                <th class="align-middle text-center">#</th>
+                                <th class="align-middle text-center">Descripción</th>
+                                <th class="align-middle text-center">Cantidad</th>
+                                <th class="align-middle text-center">Unidad</th>
+                                <th class="align-middle text-center">Tipo</th>
+                                <th class="align-middle text-center">Almacen</th>
+                                <th class="align-middle text-center">Eliminar</th>
+                            </tr>
+                            </thead>
+                            <tbody id="id_table_detail">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Modal -->
+    <div class="modal fade" id="modal-updetail" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info">
+                    <h5 class="modal-title text-white" id="exampleModalLongTitle">DETALLE GUIA</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="modal-detail">
+                    SELECCIONE PRIMERO LA PROGRAMACIÓN
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Salir</button>
+                    <button type="button" id="id_add" class="btn btn-primary">Agregar Detalle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+        $(document).on('click', '#data-grid-programming tbody tr', function () {
+            let _programming_id = $(this).attr("pk");
+            $('#programmingLabel').attr('programming', _programming_id).addClass('btn-primary').removeClass('btn-secondary');
+
+
+            $.ajax({
+                url: '/comercial/get_programming_guide/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'programming': _programming_id},
+                success: function (response) {
+
+                    {#console.log(response);#}
+                    $('#id_origin').addClass('text-primary').val(response.origin);
+                    $('#id_destiny').addClass('text-primary').val(response.destiny);
+                    $('#id_departure_date').addClass('text-primary').val(response.departure_date);
+                    $('#id_traslate_date').addClass('text-primary').val(response.departure_date);
+                    $('#id_init_departure_date').addClass('text-primary').val(response.departure_date);
+                    $('#id_serie').addClass('text-primary').val(response.truck_serial);
+                    $('#id_license_plate').addClass('text-primary').val(response.truck_brand + ' ' + response.license_plate);
+                    $('#id_license').addClass('text-primary').val(response.license_type + ' / ' + response.license);
+                    $('#id_driver').addClass('text-primary').val(response.pilot);
+                    $('#modal-detail').html(response.products_grids);
+                },
+                fail: function (response) {
+                    console.log("error");
+                }
+            });
+        });
+
+        $("#btn-detail").click(function (){
+            clean_detail()
+        });
+
+        function clean_detail() {
+
+            $('#id_product').val('0').trigger('change');
+            $('#id_unit').val('0').trigger('change');
+            $('#id_type').val('0').trigger('change');
+            $('#id_stock').val('0');
+            $('#id_quantity').val('0');
+            $('#id_product_store').val('0');
+            $('#product_store_name').val('0');
+
+        }
+
+        $("#id_add").click(function () {
+
+
+            let id_product = $('#id_product').val();
+            let name_product = $('#id_product option:selected').text();
+            let id_unit = $('#id_unit').val();
+            let name_unit = $('#id_unit option:selected').text();
+            let quantity = parseInt($('#id_quantity').val());
+            let product_store = $('#id_product_store').val();
+            let product_store_name = $('#product_store_name').val();
+            let stock = parseInt($('#id_stock').val());
+            let _id_type = $('#id_type').val();
+            let _type = $('#id_type option:selected').text();
+
+            {#console.log('quantity', quantity)#}
+            {#console.log('stock', stock)#}
+            {#console.log('id_unit', id_unit)#}
+            {#console.log('name_unit', name_unit)#}
+
+            if (quantity > stock) {
+                toastr.warning('NO HAY STOCK SUFICIENTE. FAVOR REVISAR', '¡MENSAJE!');
+                return false;
+            }
+
+            if (isNaN(quantity) || quantity === 0) {
+                toastr.warning('LA CANTIDAD DEBE SER MAYOR A 0', '¡MENSAJE!');
+                return false;
+            }
+            if (isNaN(stock)) {
+                toastr.warning('SIN STOCK, FAVOR REVISAR EL ALMACEN', '¡MENSAJE!');
+                return false;
+            }
+            if (isNaN(product_store)) {
+                toastr.warning('NO EXISTE ALMACEN, FAVOR REVISAR', '¡MENSAJE!');
+                return false;
+            }
+            if ($("#id_table_detail tr[product=" + id_product + "][ty=" + _id_type + "]").length) {
+                toastr.warning('EL PRODUCTO CON ESTE TIPO YA SE ENCUENTRA EN EL REGISTRO', '¡MENSAJE!');
+                return false;
+            }
+
+            /*
+            if ($("#id_table_detail tr[product=" + id_product + "]").length) {
+                alert('Producto ya seleccionado, Seleccione Otro.')
+                return falseg;
+            }
+            */
+
+            $('#id_table_detail').append(
+                '<tr product="' + id_product + '" store_p="' + product_store + '" ty="' + _id_type + '">' +
+                '<td class="align-middle text-center">' + '</td>' +
+                '<td class="align-middle text-center">' + name_product + '</td>' +
+                '<td class="align-middle text-center item-quantity">' + quantity + '</td>' +
+                '<td class="align-middle text-center item-unit" pu="' + id_unit + '">' + name_unit + '</td>' +
+                '<td class="align-middle text-center item-type">' + _type + '</td>' +
+                '<td class="align-middle text-center item-store">' + product_store_name + '</td>' +
+                '<td class="align-middle text-center"> ' + "<button type='button' onclick='deleteItem(" + id_product + "," + '"' + _id_type + '"' + ")' " +
+                "class='btn btn-danger delete-detail'><i class='fa fa-trash'></i></button>" + "</td>" +
+                '</tr>'
+                {#'<td class="text-center">' + '<button type="button" onclick="deleteItem(' + id_product + ')" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +#}
+            );
+            counterStrike();
+            toastr.info('Producto agregado con exito.', '¡Mensaje!');
+            clean_detail()
+            {#$('#id_product').val('0').trigger('change');#}
+            {#$('#id_unit').val('0').trigger('change');#}
+        });
+
+        /*
+                function deleteItem($id) {
+                    $('#id_table_detail').find("tr[product=" + $id + "]").remove();
+                    counterStrike();
+                }*/
+        function deleteItem($p, $t) {
+            $('#id_table_detail').find('tr[product="' + $p + '"][ty="' + $t + '"]').remove();
+            counterStrike();
+        }
+
+        function counterStrike() {
+            let l = 1;
+            $('#id_table_detail tr').each(function () {
+                $(this).attr('i', l);
+                $(this).children('td:first').text(l);
+                l++;
+            });
+
+        }
+
+        function hasRowDetails() {
+            let _response = false;
+            if ($("#id_table_detail tr").length > 0) {
+                _response = true;
+            }
+            return _response;
+        }
+
+        $('#new-guide-form').submit(function (event) {
+            let minimal_cost = 0;
+            event.preventDefault();
+
+            let store_p = $("#id_table_detail tr").attr('store_p');
+
+            if (isNaN(store_p)) {
+                 toastr.warning('EL PRODUCTO NO CUENTA CON ALMACEN FAVOR DE VOLVER A AGREGARLO', '¡MENSAJE!');
+                return false;
+            }
+
+            let guides = {
+                "Details": [],
+                "Serial": $('#id_serie').val(),
+                "Code": $('#id_guide').val(),
+                "Minimal_cost": $('#id_minimal_cost').val(),
+                "Client": $('#id_client').val(),
+                "Programming": $('#programmingLabel').attr('programming'),
+
+            };
+            // Recorre cada detalle de producto (son 2 arrays) each -> recorre
+
+            $("#id_table_detail tr").each(function () {
+                var detailObj = {
+
+                    "Product": $(this).attr('product'),
+                    "Quantity": $(this).find("td.item-quantity").text(),
+                    "Unit": $(this).find("td.item-unit").attr('pu'),
+                    "type": $(this).attr('ty'),
+                    "Store": $(this).attr('store_p'),
+                };
+                guides.Details.push(detailObj);
+
+            });
+
+            console.log(JSON.stringify(guides));
+
+            $.ajax({
+                url: '/comercial/create_guide/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'guides': JSON.stringify(guides)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response.message, '¡GUIA REGISTRADA CORRECTAMENTE!');
+                        // Simulate a mouse click:
+                        window.location.href = "/comercial/print_programming_guide/" + response.programming + "/" + response.guide + "/";
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    }
+                },
+                fail: function (response) {
+                    toastr.error("Error. ", '¡Inconcebible!');
+                }
+            });
+
+        });
+
+    </script>
+{% endblock extrajs %}

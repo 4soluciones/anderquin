@@ -1,0 +1,120 @@
+<form class="needs-validation" id="new-cash-to-bank-form" method="POST">
+
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label for="id-transfer-date">Fecha de Depósito:</label>
+        <input type="date" class="form-control"
+               id="id-deposit-date"
+               name="deposit-date"
+               value="{{ formatdate }}"
+               required>
+        <div class="invalid-feedback">
+            Valid date is required.
+        </div>
+    </div>
+
+    <hr class="mb-4">
+
+    <div class="row">
+
+        <div class="col-md-4 mb-3">
+            <label for="id-transfer-subsidiary-origin-name">Caja Origen:</label>
+            <select class="custom-select my-1 mr-sm-2"
+                    id="id-cash-origin-deposit"
+                    name="cash-origin-deposit" required>
+                <option value="0">Seleccione</option>
+                {% for s in only_cash_set %}
+                    <option value="{{ s.pk }}">{{ s.name }}</option>
+                {% endfor %}
+
+            </select>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label for="id-transfer-bank-balance">Saldo actual:</label>
+            <input type="text" class="form-control" id="id-current-balance-deposit" name="current-balance-deposit"
+                   readonly>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+    </div>
+
+    <hr class="mb-4">
+
+    <div class="row">
+
+        <div class="col-md-4 mb-3">
+            <label for="id-transfer-subsidiary-destiny">Cuenta Bancaria Destino:</label>
+            <select class="custom-select my-1 mr-sm-2"
+                    id="id-bank-account"
+                    name="bank-account" required>
+                <option value="0">Seleccione</option>
+                {% for s in accounts_banks_set %}
+                    <option value="{{ s.pk }}">{{ s.name }} - {{ s.subsidiary.name }}</option>
+                {% endfor %}
+
+            </select>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+
+        <div class="col-md-4 mb-3">
+            <label for="id-transfer-total">Monto a Depositar:</label>
+            <input type="text"
+                   class="form-control decimal"
+                   id="id-deposit-amount"
+                   name="deposit-amount" required>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+
+    </div>
+
+    <hr class="mb-4">
+
+    <div class="row">
+
+
+        <div class="col-md-9 mb-3">
+
+            <label for="id-transfer-description">Descripcion del Deposito:</label>
+            <input type="text"
+                   class="form-control text-uppercase"
+                   id="id-description-deposit"
+                   maxlength="100"
+                   name="description-deposit" required>
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+
+        </div>
+        <div class="col-md-3 mb-3">
+            <label for="id-transfer-total">COD-OP:</label>
+            <input type="text"
+                   class="form-control decimal"
+                   id="id-code-operation-deposit"
+                   name="code-operation-deposit">
+            <div class="invalid-feedback">
+                Valid value name is required.
+            </div>
+        </div>
+
+    </div>
+
+    <hr class="mb-4">
+    <button class="btn btn-primary btn-lg btn-block" type="submit" id="btn-deposit-cash-to-bank-save">Guardar</button>
+</form>
+
+
+
+

@@ -1,0 +1,133 @@
+<table class="table table-bordered" id="report-comparative">
+    <thead>
+    <tr class="text-uppercase text-center">
+        <td class="col-form-label col-form-label-lg align-middle text-center font-weight-bold">MESES</td>
+        <td class="col-form-label col-form-label-lg bg-warning font-weight-bold">BASE IMPONIBLE COMPRAS</td>
+        <td class="col-form-label col-form-label-lg bg-warning font-weight-bold">IGV TOTAL COMPRAS</td>
+        <td class="col-form-label col-form-label-lg bg-warning font-weight-bold">TOTAL COMPRAS</td>
+        <td class="col-form-label col-form-label-lg bg-success font-weight-bold">BASE IMPONIBLE VENTAS</td>
+        <td class="col-form-label col-form-label-lg bg-success font-weight-bold">IGV TOTAL VENTAS</td>
+        <td class="col-form-label col-form-label-lg bg-success font-weight-bold">TOTAL VENTAS</td>
+        <td class="col-form-label col-form-label-lg bg-success font-weight-bold">GUARDAR</td>
+        <td class="col-form-label col-form-label-lg bg-warning font-weight-bold">DIFERENCIA IGV</td>
+        {#        <td class="col-form-label col-form-label-lg bg-success font-weight-bold">EDITAR</td>#}
+    </tr>
+    </thead>
+    <tbody>
+    {% for t in tribute_dict %}
+        <tr class="text-uppercase text-center" pk="{{ t.month }}">
+            <td class="col-form-label col-form-label-lg font-weight-bold text-right month"
+                month="{{ t.month }}">{{ t.month_names }}</td>
+            <td class="col-form-label col-form-label-lg bg-warning purchase-base-total">{{ t.purchase_base_total }}</td>
+            <td class="col-form-label col-form-label-lg bg-warning purchase-igv-total">{{ t.purchase_igv_total }}</td>
+            <td class="col-form-label col-form-label-lg bg-warning purchase-total">{{ t.purchases_sum_total }}</td>
+
+            <td class="col-form-label col-form-label-lg bg-success sale-base-total">
+                <input type="text" class="form-control text-right" id="id-sale-subtotal"
+                       name="sale-sub-total" value="{{ t.sale_base_total }}" min="0"
+                       placeholder="" readonly>
+            </td>
+            <td class="col-form-label col-form-label-lg bg-success sale-igv-total">
+                <input type="text" class="form-control text-right" id="id-sale-igv"
+                       name="sale-igv" value="{{ t.sale_igv_total }}" min="0"
+                       placeholder="" readonly>
+            </td>
+            <td class="col-form-label col-form-label-lg bg-success sale-total">
+                <input type="text" class="form-control text-right" id="id-sale-total"
+                       name="sale-total" value="{{ t.sales_sum_total }}" min="0"
+                       placeholder="Escribir monto total de venta...">
+            </td>
+            <td class="col-form-label col-form-label-lg bg-success">
+                <button type="button" class="btn btn-link text-dark btn-save"><i class="fas fa-save btn-lg"></i>
+                </button>
+
+            </td>
+            <td class="col-form-label col-form-label-lg bg-warning">{{ t.difference_igv }}</td>
+            {#            <td class="col-form-label col-form-label-lg bg-success">#}
+            {#                <button type="button" class="btn btn-link text-dark btn-edit"><i class="fa fa-pencil-alt btn-lg"></i></button>#}
+            {#            </td>#}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        $('.btn-save').click(function () {
+
+            let btn = $(this);
+            let _tr = $(this).parent('td').parent('tr')
+            let _base_buy_total = _tr.find('td.purchase-base-total').text().replace(',', '')
+            let _igv_buy_total = _tr.find('td.purchase-igv-total').text().replace(',', '')
+            let _total_buy = _tr.find('td.purchase-total').text().replace(',', '')
+            let _base_sale_total = _tr.find('td.sale-base-total input').val().replace(',', '')
+            let _igv_sale_total = _tr.find('td.sale-igv-total input').val().replace(',', '')
+            let _total_sale = _tr.find('td.sale-total input').val().replace(',', '')
+            let _month = _tr.find('td.month').attr('month')
+            {#console.log('btn', btn)#}
+            {#console.log('tr', _tr)#}
+            {#console.log('_base_buy_total', _base_buy_total)#}
+            {#console.log('_igv_buy_total', _igv_buy_total)#}
+            {#console.log('_total_buy', _total_buy)#}
+            {#console.log('_base_sale_total', _base_sale_total)#}
+            {#console.log('_igv_sale_total', _igv_sale_total)#}
+            {#console.log('_total_sale', _total_sale)#}
+            {#console.log('month', _month)#}
+
+            $.ajax({
+                url: '/accounting/save_register_tributary/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'base_buy_total': _base_buy_total,
+                    'igv_buy_total': _igv_buy_total,
+                    'total_buy': _total_buy,
+                    'base_sale_total': _base_sale_total,
+                    'igv_sale_total': _igv_sale_total,
+                    'total_sale': _total_sale,
+                    'month': _month,
+                },
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response['message'], '¡Bien hecho!');
+                    }
+                },
+                fail: function (response) {
+                    console.log("error");
+                }
+            });
+        });
+
+        {#$('#printReportExcel').click(function () {#}
+        {#    $("#tbl-comparative").table2excel({filename: "Comparative.xls"});#}
+        {# });#}
+
+        /*$('#id-sale-total').keyup(function () {
+
+
+            let sale_total = $('#id-sale-total').val();
+            let sale_base_total = sale_total / 1.18
+            let sale_igv = sale_total - sale_base_total
+
+            $("#id-sale-subtotal").val(sale_base_total.toFixed(2));
+            $("#id-sale-igv").val(sale_igv.toFixed(2));
+        });*/
+
+        $('.sale-total').keyup(function () {
+
+            let _tr = $(this).parent('tr')
+            let sale_total = $(this).find('#id-sale-total').val()
+            let sale_base_total = sale_total / Number(1.18)
+            let sale_igv = sale_total - sale_base_total
+
+            _tr.find('.sale-base-total input#id-sale-subtotal').val(sale_base_total.toFixed(2));
+            _tr.find('.sale-igv-total input#id-sale-igv').val(sale_igv.toFixed(2));
+
+        });
+
+
+    </script>
+{% endblock extrajs %}

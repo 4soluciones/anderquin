@@ -1,0 +1,27 @@
+{% if client_product_set %}
+<table class="table table-sm small m-0 p-0 table-bordered text-uppercase table-client-advancement">
+
+    <thead style="background: #1465b3" class="text-white text-center">
+        <td class="font-weight-normal">#</td>
+        <td class="font-weight-normal">Producto</td>
+        <td class="font-weight-normal">Cantidad</td>
+        <td class="font-weight-normal">Unidad</td>
+    </thead>
+    <tbody id="details-client-advancement">
+    {% for c in client_product_set %}
+        <tr product="{{ c.product.id }}" unit="{{ c.unit.id }}" product_final="{{ c.get_final_product.id }}" class="text-center">
+            <td>{{ c.product.id }}</td>
+            <td>{{ c.product.name }}</td>
+            <td class="quantity-client">{{ c.quantity|floatformat:0 }}</td>
+            <td>{{ c.unit.description }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+<script>
+    function Difference(Valor1, Valor2) {
+        let S = parseFloat(Valor1 - Valor2);
+        return S;
+    };
+</script>

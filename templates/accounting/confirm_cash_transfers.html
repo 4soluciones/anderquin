@@ -1,0 +1,103 @@
+<div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+        <div class="modal-header pb-2 pt-2">
+            <h4 class="modal-title mb-3 mt-3 text-uppercase">Confirmacion de transferencias de Cajas</h4>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+
+
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">SEDE QUE
+                        REALIZO OPERACION
+                    </th>
+                    <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">FECHA DE
+                        OPERACION
+                    </th>
+                    <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">MONTO
+                        ENVIADO
+                    </th>
+                    <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">ACCION</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                {% for transfer in cash_transfer_set %}
+                    <tr>
+                        <td class="text-center">{{ transfer.get_origin.subsidiary.name }}
+                            - {{ transfer.get_origin.name }}</td>
+                        <td class="text-center">{{ transfer.the_one_that_requests.register_date }}</td>
+                        <td class="text-center">{{ transfer.get_amount|floatformat:2 }}</td>
+                        <td class="text-center">
+
+                            {% if transfer.get_origin.subsidiary.id != subsidiary_obj.id %}
+                            <a href="#" class="btn btn-outline-success accept-transfer"
+                                    pk="{{ transfer.id }}">
+                                <i class="fas fa-check"></i>
+                            </a>
+                            {% endif %}
+                            <a href="#" class="btn btn-outline-danger desist-transfer" pk="{{ transfer.id }}">
+                                <i class="fas fa-ban"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    $(document).on('click', '.accept-transfer', function (event) {
+        event.preventDefault();
+        let search = $(this).attr('pk');
+        $.ajax({
+            url: '/accounting/accept_cash_to_cash_transfer/',
+            dataType: 'json',
+            type: 'GET',
+            data: {'pk': search},
+            success: function (response) {
+                console.log(response);
+                if(response.success){
+                    toastr.success(response['message'], '¡Bien hecho!');
+                    $('#modal-confirm-transfers').modal('hide');
+                }
+            },
+            fail: function (response) {
+                console.log(response);
+            }
+        });
+    });
+
+    $(document).on('click', '.desist-transfer', function (event) {
+        event.preventDefault();
+        let search = $(this).attr('pk');
+        $.ajax({
+            url: '/accounting/desist_cash_to_cash_transfer/',
+            dataType: 'json',
+            type: 'GET',
+            data: {'pk': search},
+            success: function (response) {
+                console.log(response);
+                if(response.success){
+                    toastr.success(response['message'], '¡Bien hecho!');
+                    $('#modal-confirm-transfers').modal('hide');
+                }
+            },
+            fail: function (response) {
+                console.log(response);
+            }
+        });
+    });
+
+</script>
+
+

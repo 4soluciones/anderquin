@@ -1,0 +1,214 @@
+<div class="row mr-3 ml-0">
+
+<div class="col-sm-12 p-1">
+
+    <table class="table table-sm text-uppercase small mt-3 mb-0">
+        <tr>
+
+            <td class="border-top-0" colspan="3">Origen:</td>
+            <td class="border-top-0" colspan="3">Destino:</td>
+
+        </tr>
+        <tr>
+
+            <td class="border-top-0" colspan="3">
+                <select class="form-control form-control-sm font-weight-bold text-uppercase" id="id_origin" name="origin" required readonly="true">
+                      <option selected value="{{ subsidiary_origin.id }}">
+                         {{ subsidiary_origin.name }}
+                      </option>
+                </select>
+            <input type="hidden" id="id_programming" name="programming" value="{{ programming_obj.id }}">
+            </td>
+
+            <td class="border-top-0" colspan="3">
+                <select class="form-control form-control-sm font-weight-bold text-uppercase" id="id_destiny" name="destiny" required>
+                    <option {% if destiny is None %}selected{% endif %} disabled value="">Seleccione</option>
+                    {% for subsidiary in subsidiaries %}
+                        <option {% if destiny.subsidiary.id == subsidiary.id %}selected{% endif %} value="{{ subsidiary.id }}">
+                            {{ subsidiary.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td class="border-top-1" colspan="3">Piloto:</td>
+            <td class="border-top-1" colspan="3">Copiloto:</td>
+
+        </tr>
+
+        <tr>
+
+            <td class="border-top-0" colspan="3">
+                <select class="form-control form-control-sm font-weight-bold text-uppercase" id="id_pilot" name="pilot" required>
+                    <option {% if pilot is None %}selected{% endif %} disabled value="">Seleccione</option>
+                    {% for employee in employees %}
+                        <option {% if pilot.employee.id == employee.id %}selected{% endif %} value="{{ employee.id }}">
+                            {{ employee.names }} {{ employee.paternal_last_name }} {{ employee.maternal_last_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="border-top-0" colspan="3">
+                <select class="form-control form-control-sm font-weight-bold text-uppercase" id="id_copilot" name="copilot">
+                    <option {% if copilot is None %}selected{% endif %} value="0">Seleccione</option>
+                    {% for employee in employees %}
+                        <option {% if copilot.employee.id == employee.id %}selected{% endif %} value="{{ employee.id }}">
+                            {{ employee.names }} {{ employee.paternal_last_name }} {{ employee.maternal_last_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td class="border-top-1 pt-5" colspan="2">Placa Vehiculo:</td>
+            <td class="border-top-1 pt-5" colspan="2">Placa Remolque:</td>
+            <td class="border-top-1 pt-5" colspan="2">Estado:</td>
+        </tr>
+
+        <tr>
+
+            <td class="border-top-0" colspan="2">
+                <select class="form-control form-control-sm font-weight-bold text-uppercase" id="id_truck" name="truck" required>
+                    <option {% if programming_obj is None %}selected{% endif %} disabled value="">Seleccione</option>
+                    {% for truck in trucks %}
+                        <option {% if programming_obj.truck.id == truck.id %}selected{% endif %} value="{{ truck.id }}">
+                            {{ truck.license_plate }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="border-top-0" colspan="2">
+                <select class="form-control form-control-sm font-weight-bold text-uppercase" id="id_towing" name="towing">
+                    <option {% if programming_obj is None %}selected{% endif %} disabled value="">Seleccione</option>
+                    {% for towing in towings %}
+                        <option {% if programming_obj.towing.id == towing.id %}selected{% endif %} value="{{ towing.id }}">
+                            {{ towing.license_plate }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="border-top-0" colspan="2">
+                <select class="form-control form-control-sm font-weight-bold text-uppercase" id="id_status" name="status">
+                    {% for item in choices_status %}
+                        <option {% if programming_obj.status == item.0 %}selected{% endif %} value="{{ item.0 }}">
+                            {{ item.1 }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+
+
+        <tr>
+
+
+            <td class="border-top-1" colspan="2">Fecha de Salida:</td>
+            <td class="border-top-1" colspan="2">Fecha de LLegada:</td>
+            <td class="border-top-1" colspan="2">Turno:</td>
+
+        </tr>
+
+
+        <tr>
+            <td class="border-top-0" colspan="2">
+                <input type="date" class="form-control form-control-sm font-weight-bold text-uppercase"
+                       id="id_departure_date"
+                       name="departure_date"
+                       value="{% if programming_obj.departure_date %}{{ programming_obj.departure_date|date:'Y-m-d' }}{%else%}{{current_date}}{% endif %}"
+                       required>
+            </td>
+
+            <td class="border-top-0" colspan="2">
+                <input type="date" class="form-control form-control-sm font-weight-bold text-uppercase" id="id_arrival_date"
+                               name="arrival_date" value="{{ programming_obj.arrival_date|date:'Y-m-d' }}">
+            </td>
+            <td class="border-top-0" colspan="2">
+                <input type="text" class="form-control form-control-sm font-weight-bold text-uppercase" id="id_order"
+                               name="order" value="{{ programming_obj.order }}" placeholder="Ingrese Turno" required>
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td class="border-top-1" colspan="2">Kilometraje Inicial:</td>
+            <td class="border-top-1" colspan="2">Kilometraje Final:</td>
+            <td class="border-top-1" colspan="2">Peso:</td>
+
+        </tr>
+
+        <tr>
+
+            <td class="border-top-0" colspan="2">
+                <input type="number" class="form-control form-control-sm font-weight-bold text-uppercase" id="id_km_initial"
+                               name="km_initial" value="{{ programming_obj.km_initial }}"
+                               placeholder="Kilometraje Inicial">
+            </td>
+            <td class="border-top-0" colspan="2">
+                <input type="number" class="form-control form-control-sm font-weight-bold text-uppercase" id="id_km_ending"
+                               name="km_ending" value="{{ programming_obj.km_ending }}"
+                               placeholder="Kilometraje Final">
+            </td>
+
+            <td class="border-top-0" colspan="2">
+                <input type="number" class="form-control form-control-sm font-weight-bold text-uppercase" id="id_weight" name="weight"
+                               min="0" value="{{ programming_obj.weight|floatformat }}"
+                               placeholder="Peso">
+            </td>
+        </tr>
+
+        <tr>
+
+            <td class="border-top-1 pt-5" colspan="4">Observaciones:</td>
+            <td class="border-top-1 pt-5" colspan="2"></td>
+
+
+        </tr>
+        <tr>
+
+            <td class="border-top-0" colspan="4">
+                <textarea class="form-control form-control-sm font-weight-bold text-uppercase" name="observation" id="id_observation" rows="5" cols="40">{{ programming_obj.observation }}</textarea>
+            </td>
+            <td class="border-top-0" colspan="2">
+                    <button type="submit" id="btn-save"
+                            class="btn btn-primary btn-block pb-1 programming-save">Guardar
+                    </button>
+                    <button type="button"
+                            class="btn btn-success btn-block pb-1 mt-0 programming-update" style="display: none;">Guardar Cambios
+                    </button>
+                    <button type="button" id="btn-new"
+                            class="btn btn-secondary btn-block pb-1 programming-new">Nuevo
+                    </button>
+                    <button type="button" id="btn-exit"
+                            class="btn btn-secondary btn-block pb-1 programming-cancel" style="display: none;">Cancelar
+                    </button>
+            </td>
+
+        </tr>
+
+
+    </table>
+
+ </div>
+
+
+
+
+</div>
+
+
+
+<script type="text/javascript">
+
+
+
+{#    $('#id_pilot option[value={{pilot.employee.id}}]').attr('selected','selected');#}
+
+</script>

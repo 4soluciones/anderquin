@@ -1,0 +1,220 @@
+{% if dictionary %}
+    <div class="" id="grid-dictionary">
+
+        <table class="table table-sm table-bordered table-striped" id="table-dictionary">
+            <thead>
+            <tr class="text-white small text-uppercase">
+                {#            <th class="text-uppercase text-center align-middle bg-light text-dark small font-weight-bold">ID</th>#}
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Fecha</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">TOTAL
+                    ENTRADAS
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">TOTAL
+                    SALIDAS
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">SALDO
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">
+                    Operacion
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">
+                    Descripcion de la operacion
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Cliente
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Tipo de
+                    doc
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Serie</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Nro
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">subtotal
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Igv</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">total</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Placa</th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">
+                    Responsable
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Usuario
+                </th>
+                <th class="text-uppercase text-center align-middle bg-light text-dark font-weight-bold">Acciones
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for header in dictionary %}
+
+                <tr class="woody">
+                    {% for body in header.body %}
+                        {% if forloop.first %}
+
+                            <td class="align-middle text-center text-secondary font-weight-bold"
+                                rowspan="{{ header.rowspan }}">{{ header.date|date:"d/m/Y" }}</td>
+                            <td class="align-middle text-center text-secondary font-weight-bold"
+                                rowspan="{{ header.rowspan }}">{{ header.sum_total_in }}</td>
+                            <td class="align-middle text-center text-secondary font-weight-bold"
+                                rowspan="{{ header.rowspan }}">{{ header.sum_total_outs }}</td>
+                            <td class="align-middle text-center text-secondary font-weight-bold"
+                                rowspan="{{ header.rowspan }}">{{ header.sum_total_balance }}</td>
+                            <td class="align-middle text-center text-uppercase type">{{ body.type }}</td>
+                            <td class="align-middle text-center text-uppercase">{{ body.description }}</td>
+                            <td class="align-middle text-center">{{ body.order_set.0.client|default:"-" }}</td>
+                            <td class="align-middle text-center">{{ body.document_type }}</td>
+                            <td class="align-middle text-center">{{ body.serial|default_if_none:"-" }}</td>
+                            <td class="align-middle text-center">{{ body.nro|default:"-" }}</td>
+                            <td class="align-middle text-center">{% if body.subtotal == "0.00" %}-{% else %}
+                                {{ body.subtotal }}{% endif %}</td>
+                            <td class="align-middle text-center">{% if body.igv == "0.00" %}-{% else %}
+                                {{ body.igv }}{% endif %}</td>
+                            <td class="align-middle text-right">{% if body.total == "0.00" %}-{% else %}
+                                {{ body.total }}{% endif %}</td>
+                            <td class="align-middle text-center">{{ body.order_set.0.distribution_mobil.0.license_plate|default:"-" }}</td>
+                            <td class="align-middle text-center">{{ body.order_set.0.distribution_mobil.0.pilot|default:"-" }}</td>
+                            <td class="align-middle text-center">{{ body.user.worker_set.last.employee.full_name | upper |default:"-" }}</td>
+                            <td></td>
+                            </tr>
+                        {% else %}
+                            <tr class="woody">
+                                <td class="align-middle text-center text-uppercase type">{{ body.type }}</td>
+                                <td class="align-middle text-center text-uppercase cash-description"
+                                    pk="{{ body.id }}">{{ body.description }} <a
+                                        class="btn-sm float-right btn-outline-warning"
+                                        onclick="cashDescriptionEdit('{{ body.description }}',{{ body.id }})"><i
+                                        class="fas fa-edit"></i></a></td>
+                                <td class="align-middle text-center">{{ body.order_set.0.client|default:"-" }}</td>
+                                <td class="align-middle text-center">{{ body.document_type }}</td>
+                                <td class="align-middle text-center">{{ body.serial|default_if_none:"-" }}</td>
+                                <td class="align-middle text-center">{{ body.nro|default:"-" }}</td>
+                                <td class="align-middle text-center">{% if body.subtotal == "0.00" %}-{% else %}
+                                    {{ body.subtotal }}{% endif %}</td>
+                                <td class="align-middle text-center">{% if body.igv == "0.00" %}-{% else %}
+                                    {{ body.igv }}{% endif %}</td>
+                                <td class="align-middle text-right">{% if body.total == "0.00" %}-{% else %}
+                                    {{ body.total }}{% endif %}</td>
+                                <td class="align-middle text-center">{{ body.order_set.0.distribution_mobil.0.license_plate|default:"-" }}</td>
+                                <td class="align-middle text-center">{{ body.order_set.0.distribution_mobil.0.pilot|default:"-" }}</td>
+                                <td class="align-middle text-center">{{ body.user.worker_set.last.employee.full_name | upper |default:"-" }}</td>
+                                <td>
+                                    {% if body.type != 'Apertura' and body.type != 'Cierre' %}
+                                        <button type="button"
+                                                data-toggle="modal"
+                                                data-target="#modal-cash"
+                                                cash-flow="{{ body.id }}"
+                                                transaction-date="{{ body.date|date:"Y-m-d" }}"
+                                                class="btn btn-outline-primary reassignment">Reasignar
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endif %}
+
+                    {% endfor %}
+            {% endfor %}
+            </tbody>
+            <tfoot>
+            <tr class="text-dark font-weight-bold" style="background-color: #00e25b">
+                <td class="align-middle text-center text-uppercase type" rowspan="3">TOTALES</td>
+                <td class="align-middle text-center text-uppercase type"
+                    rowspan="3">{{ sum_total_inputs_dates|floatformat:2 }}</td>
+                <td class="align-middle text-center text-uppercase type"
+                    rowspan="3">{{ sum_total_outputs_dates|floatformat:2 }}</td>
+                <td class="align-middle text-center text-uppercase type"
+                    rowspan="3">{{ sum_total_balance_dates|floatformat:2 }}</td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info alert-dismissible fade show mt-3 text-uppercase" role="alert">
+        <strong>Atencion!</strong> Tu debes ingresar una rango fecha primero.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+{% endif %}
+
+<style>
+    .sweet-alert fieldset input {
+
+        font-family: Hind Vadodara, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica Neue, Arial, sans-serif;
+        font-size: .9375rem;
+    }
+
+</style>
+
+
+<script>
+
+
+    $("#table-dictionary tr.woody td.type").each(function () {
+        let type = $(this).text();
+
+        if (type === 'Apertura') {
+            $(this).parent('tr').addClass('font-weight-bold').css('color', '#113ddb');
+        } else if (type === 'Entrada') {
+            $(this).addClass('font-weight-bold').css('color', '#37cf3e');
+        } else if (type === 'Salida') {
+            $(this).addClass('font-weight-bold').css('color', '#d26666');
+        } else if (type === 'Cierre') {
+            $(this).parent('tr').addClass('font-weight-bold').css('color', '#372325');
+        }
+
+    });
+
+    $(document).on('click', '.reassignment', function () {
+        let _id = $(this).attr('cash-flow');
+        let _date = $(this).attr('transaction-date');
+        $('#id-cash-flow-current-date').val(_date);
+        $('#id-cash-flow').val(_id);
+    });
+
+    function cashDescriptionEdit(description, $cash_flow_id) {
+        swal({
+                title: "Editar Descripción",
+                text: "Ingresar la nueva descripción:",
+                type: "input",
+                showCancelButton: true,
+                closeOnConfirm: false,
+                animation: "slide-from-top",
+                confirmButtonColor: '#009688',
+                inputValue: description
+            },
+            function (inputValue) {
+                if (inputValue === false)
+                    return false;
+                if (inputValue === "") {
+                    swal.showInputError("Ingresar la descripción antes de guardar");
+                    return false
+                }
+                $.ajax({
+                    url: '/accounting/update_description_cash/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'description': inputValue, 'cash_flow_id': $cash_flow_id},
+                    success: function (response) {
+                        let _btn = '<a class="btn-sm float-right btn-outline-warning" onclick="cashDescriptionEdit("' + inputValue + '",' + $cash_flow_id + ')"><i class="fas fa-edit"></i></a>'
+                        $('td.cash-description[pk="' + $cash_flow_id + '"]').html(inputValue + _btn);
+                        swal("Guardado con Éxito!", "La nueva descripción es: " + inputValue, "success");
+                    },
+                });
+
+
+            });
+    }
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,335 @@
+<form id="loan-payment-buys-form" action="" method="POST">
+    {% csrf_token %}
+
+    <input type="hidden" id="requirement_id" name="requirement_id" value="{{ requirement_id }}">
+    {#    <input type="hidden" id="id_price_unit" name="price_unit" value="{{ detail.price_unit }}">#}
+
+    <div class="input-group input-group-sm mb-3">
+        <div class="input-group-prepend">
+            <span class="input-group-text font-weight-bold" id="inputGroup-sizing-sm">Factura Nro:</span>
+        </div>
+        <input type="text" class="form-control font-weight-bold" aria-label="Sizing example input"
+               aria-describedby="inputGroup-sizing-sm" value="{{ invoice }}" readonly>
+    </div>
+
+
+    <table class="table table-sm pay-options">
+        <thead>
+        <tr class="text-uppercase font-weight-lighter">
+            <th class="border-bottom-0 border-right align-middle text-center">Deuda en DOLAR(ES)</th>
+            <th class="border-bottom-0 border-right align-middle text-center">Deuda en SOLES(PEN)</th>
+            <th class="border-bottom-0 border-right align-middle">Monto a pagar</th>
+            <th class="border-bottom-0 border-right align-middle">T.P</th>
+            <th class="border-bottom-0 border-right align-middle">Fecha operacion</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td class="border-top-0 border-bottom border-right align-middle pay-loan"
+                style="width: 10%">
+                <input type="text"
+                       id="id_amount_dollar"
+                       name="amount_dollar"
+                       class="form-control form-control-sm text-center text-danger font-weight-bold"
+                       value="$ {{ amount_dollar|floatformat:2 }}" readonly>
+            </td>
+            <td class="border-top-0 border-bottom border-right align-middle text-center pay-loan"
+                style="width: 10%">
+                <input type="text"
+                       id="id_amount_sol"
+                       name="amount_sol"
+                       class="form-control form-control-sm text-center text-danger font-weight-bold"
+                       value="S/. {{ amount_sol|floatformat:2 }}" readonly>
+            </td>
+
+            <td class="border-top-0 border-bottom border-right align-middle" style="width: 20%">
+                <input type="text"
+                       id="id_loan_payment"
+                       name="loan_payment"
+                       autocomplete="off"
+                       class="form-control form-control-sm">
+            </td>
+
+            <td class="border-top-0 border-bottom border-right align-middle" style="width: 15%">
+                <select id="id_transaction_payment_type"
+                        name="transaction_payment_type"
+                        class="form-control form-control-sm">
+                    <option value="0">Seleccione</option>
+                    {% for item in choices_payments %}
+                        {% if item.0 != 'F' %}
+                            <option value="{{ item.0 }}">{{ item.1 }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="border-top-0 border-bottom border-right align-middle" style="width: 15%">
+
+                <input type="date"
+                       id="id_date_return_loan0"
+                       name="date_return_loan0"
+                       class="form-control form-control-sm"
+                       value="{{ date }}">
+            </td>
+        </tr>
+        </tbody>
+        {#            CUANDO ES EFECTIVO EN LOS PAGOS SIMPLES#}
+        <table class="table table-sm table-bordered" id="cash" style="display: none">
+            <thead>
+            <tr class="text-uppercase font-weight-lighter">
+                <th class="border-bottom-0 border-right align-middle">TIPO DE CAJA:</th>
+                <th class="border-bottom-0 border-right align-middle">SALDO DE CAJA:</th>
+                <th class="border-bottom-0 border-right align-middle code">FECHA DE CAJA:</th>
+                <th class="border-bottom-0 border-right align-middle voucher">DESCRIPCION:</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr>
+                <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
+                    style="width: 20%">
+                    <select id="id_cash" name="id_cash_efectivo"
+                            class="form-control form-control-sm text-uppercase"
+                            aria-selected="Text input with radio button">
+                        {% for c in choices_account %}
+                            <option value="{{ c.id }}"
+                            >{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
+                    style="width: 10%">
+                    <input type="text"
+                           id="cash-amount"
+                           name="cash-amount"
+                           readonly
+                           class="form-control form-control-sm text-right text-success font-weight-bold">
+                </td>
+                <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
+                    style="width: 10%">
+                    <input type="date"
+                           id="id_date"
+                           name="id_date"
+                           readonly
+                           class="form-control form-control-sm">
+                </td>
+
+                <td class="border-top-0 border-bottom border-right align-middle" style="width: 60%">
+                    <input type="text"
+                           id="id_description"
+                           name="id_description"
+                           autocomplete="off"
+                           value="PAGO DE LA FACTURA DE GLP Nro: {{ invoice }} "
+                           class="form-control form-control-sm text-uppercase">
+                </td>
+
+            </tr>
+
+            </tbody>
+        </table>
+        {#            CUANDO ES DEPOSITO EN LOS PAGOS SIMPLE#}
+        <table class="table table-sm table-bordered" id="deposit" style="display: none">
+            <thead>
+            <tr class="text-uppercase font-weight-lighter">
+                <th class="border-bottom-0 border-right align-middle">ENTIDAD BANCARIA:</th>
+                <th class="border-bottom-0 border-right align-middle code">FECHA DEL PAGO</th>
+                <th class="border-bottom-0 border-right align-middle">SALDO DE LA ENTIDAD</th>
+                <th class="border-bottom-0 border-right align-middle code">DESCRIPCION DEL PAGO</th>
+                <th class="border-bottom-0 border-right align-middle code">COD-OP</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
+                    style="width: 25%">
+                    <select id="id_cash_deposit" name="id_cash_deposit"
+                            class="form-control form-control-sm text-uppercase"
+                            aria-selected="Text input with radio button">
+                        {% for c in choices_account_bank %}
+                            <option value="{{ c.id }}"
+                            >{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
+                    style="width: 5%">
+                    <input type="date"
+                           id="id_date_deposit"
+                           name="id_date_deposit"
+                           value="{{ date }}"
+                           class="form-control form-control-sm">
+                </td>
+                <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
+                    style="width: 10%">
+                    <input type="text"
+                           id="cash-amount-deposit"
+                           name="cash-amount-deposit"
+                           readonly
+                           class="form-control form-control-sm text-success font-weight-bold">
+                </td>
+                <td class="border-top-0 border-bottom border-right align-middle" style="width: 40%">
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           id="id_description_deposit"
+                           name="description_deposit"
+                           value="PAGO DE LA FACTURA DE GLP Nro: {{ invoice }}">
+                </td>
+                <td class="border-top-0 border-bottom border-right align-middle" style="width: 20%">
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           id="id_code_operation"
+                           name="code_operation">
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <tfoot>
+        <tr class="border-0">
+            <td class="border-0 pr-0 text-right">
+                <button type="submit" id="btn-save" class="btn btn-primary"> Guardar</button>
+            </td>
+        </tr>
+        </tfoot>
+    </table>
+
+</form>
+
+<script type="text/javascript">
+
+    $('#id_transaction_payment_type').change(function () {
+        let type = $('#id_transaction_payment_type').val();
+        if (type === 'E') {
+            $('#cash').css('display', 'table');
+            $('#deposit').css('display', 'none');
+            $('#id_cash').trigger('change');
+            $('#fises').css('display', 'none');
+        } else if (type === 'D') {
+            $('#deposit').css('display', 'table');
+            $('#cash').css('display', 'none');
+            $('#id_cash_deposit').trigger('change');
+            $('#fises').css('display', 'none');
+        } else if (type === 'F') {
+            $('#fises').css('display', 'table');
+            $('#cash').css('display', 'none');
+            $('#deposit').css('display', 'none');
+        } else if (type === 'V' || type === 'C') {
+            $('#cash').css('display', 'none');
+            $('#deposit').css('display', 'none');
+            $('#fises').css('display', 'none');
+        }
+    });
+
+    $("#id_cash").change(function () {
+
+        $("#id_date").val('');
+
+        if ($("#id_cash").val() !== '') {
+
+            $.ajax({
+                url: '/accounting/get_cash_date/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'cash_id': $("#id_cash").val()},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        {#toastr.success(response.message, '¡Bien hecho!');#}
+                        $("#id_date").val(response.cash_date);
+                    }
+                },
+                fail: function (response) {
+                    toastr.error("Error. ", '¡Inconcebible!');
+                }
+            });
+        }
+    });
+
+    $("#id_cash").change(function () {
+
+        if ($("#id_cash").val() != '') {
+
+            $.ajax({
+                url: '/accounting/get_initial_balance/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'cash': $("#id_cash").val()},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        {#toastr.success(response.message, '¡Bien hecho!');#}
+                        $("#cash-amount").val(parseFloat(response.initial_balance).toFixed(2));
+                    }
+                },
+                fail: function (response) {
+                    toastr.error("Error. ", '¡Inconcebible!');
+                }
+            });
+        }
+    });
+
+    $("#id_cash_deposit").change(function () {
+
+        if ($("#id_cash_deposit").val() != '') {
+
+            $.ajax({
+                url: '/accounting/get_initial_balance/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'cash': $("#id_cash_deposit").val()},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        {#toastr.success(response.message, '¡Bien hecho!');#}
+                        $("#cash-amount-deposit").val('S/. '+ parseFloat(response.initial_balance).toFixed(2)).addClass('text-right');
+                    }
+                },
+                fail: function (response) {
+                    toastr.error("Error. ", '¡Inconcebible!');
+                }
+            });
+        }
+    });
+
+
+    $('#loan-payment-buys-form').submit(function (event) {
+        event.preventDefault();
+        let data = new FormData($('#loan-payment-buys-form').get(0));
+
+        $('#btn-save').attr("disabled", "true");
+
+        $.ajax({
+            url: '/buys/new_loan_payment_buys_approved/',
+            type: "POST",
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (response, textStatus, xhr) {
+                if (xhr.status === 200) {
+                    // $('#product-detail-grid').html(response.grid);
+                    $('#modal-payment').modal('hide');
+                    {#$('#table-order').html(response['grid']);#}
+                    toastr.success(response['message'], '¡Bien hecho!');
+                    $("#id_btn_show").trigger('click');
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                if (jqXhr.status === 500) {
+                    toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                }
+            }
+        });
+        $('#btn-save').removeAttr("disabled", "false");
+
+    });
+
+
+
+</script>
+

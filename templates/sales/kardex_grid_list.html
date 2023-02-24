@@ -1,0 +1,106 @@
+{% if inventories %}
+
+<table class="table table-bordered table-sm table-striped">
+    <thead>
+        <tr>
+            <th scope="col" style="text-transform: uppercase;" colspan="5" class="bg-primary text-center text-white-50 h6">Descripcion</th>
+            <th scope="col" style="text-transform: uppercase;" colspan="3" class="bg-secondary text-center text-white-50 h6">Entradas</th>
+            <th scope="col" style="text-transform: uppercase;" colspan="3" class="bg-success text-center text-white-50 h6">Salidas</th>
+            <th scope="col" style="text-transform: uppercase;" colspan="3" class="bg-danger text-white-50 text-center h6">Saldo</th>
+        </tr>
+        <tr>
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-primary text-black-50 small">Id</th>
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-primary text-black-50 small">Fecha</th>
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-primary text-black-50 small">PS</th>
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-primary text-black-50 small">PK</th>
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-primary text-black-50 small">Tipo de operación</th>
+
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-secondary text-black-50 small">Cantidad</th>
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-secondary text-black-50 small">Precio unitario</th>
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-secondary text-black-50 small">Precio total</th>
+
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-success text-black-50 small">Cantidad</th>
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-success text-black-50 small">Precio unitario</th>
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-success text-black-50 small">Precio total</th>
+
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-danger text-black-50 small">Cantidad restante</th>
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-danger text-black-50 small">Precio restante</th>
+            <th scope="col" style="text-transform: uppercase;" class="align-middle text-center table-danger text-black-50 small">Precio total restante</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="detail">
+        {% for kardex in inventories %}
+        <tr class="detail">
+
+            <td class="align-middle text-primary" >{{ kardex.id }}</td>
+            <td class="align-middle text-primary text-center" >{{ kardex.create_at|date:"Y/m/d" }}</td>
+            <td class="align-middle text-primary text-center" >
+                {{ kardex.product_store.id }}
+            </td>
+            <td class="align-middle text-primary text-center small font-weight-bolder" >
+                {% if kardex.programming_invoice %}
+                    <span class="text-danger">PI:{{ kardex.programming_invoice.id }}</span><br>
+                    Proc. :<br>
+                    {{ kardex.programming_invoice.requirement_buys.subsidiary.name }}<br>
+                    {{ kardex.programming_invoice.kardex_set.first.product_store.subsidiary_store.name }}<br>
+
+                {% elif kardex.requirement_detail.id %}
+                    <span class="text-primary">RD:{{ kardex.requirement_detail.id }}</span>
+                {% elif kardex.purchase_detail.id %}
+                    <span class="text-success">COMPRA[PD]:{{ kardex.purchase_detail.id }}</span>
+                {% elif kardex.manufacture_detail.id %}
+                    <span class="text-primary">PRODUCCION[MD]:{{ kardex.manufacture_detail.id }}</span>
+                {% elif kardex.manufacture_recipe.id %}
+                    <span class="text-primary">RECETA[MR]:{{ kardex.manufacture_recipe.id }}</span>
+                {% elif kardex.order_detail.id %}
+                    <span class="text-success">VENTA[{{ kardex.order_detail.order.type }}][OD]:{{ kardex.order_detail.id }}</span>
+                {% elif kardex.distribution_detail.id %}
+                    <span class="text-primary">DISTRIBUCION[DD]:{{ kardex.distribution_detail.id }}</span><br>
+                    <span class="text-primary">PLACA: {{ kardex.distribution_detail.distribution_mobil.truck.license_plate }}</span>
+                {% elif kardex.loan_payment.id %}
+                    <span class="text-danger">RETORNO[LP]:{{ kardex.loan_payment.id }}</span>
+                {% elif kardex.ball_change.id %}
+                    <span class="text-primary">CAMBIO[LP]:{{ kardex.ball_change.id }}</span>
+                {% elif kardex.guide_detail.id %}
+                    <span class="text-warning">GUIA[GD]:{{ kardex.guide_detail.id }}</span><br>
+                    {% if kardex.guide_detail.guide.programming is None %}
+                        {% if kardex.guide_detail.guide.guide_motive.type == 'E' %}
+                            NOTA DE ENTRADA:<br>[{{ kardex.guide_detail.guide.get_serial }}-{{ kardex.guide_detail.guide.code }}]
+                        {% elif kardex.guide_detail.guide.guide_motive.type == 'S' %}
+                            NOTA DE SALIDA:<br>[{{ kardex.guide_detail.guide.get_serial }}-{{ kardex.guide_detail.guide.code }}]
+                        {% endif %}
+
+                    {% else %}
+{#                        PROGRAMACION[P]:{{ kardex.guide_detail.guide.programming.id }}#}
+                        <span class="text-warning">PLACA: {{ kardex.guide_detail.guide.programming.truck.license_plate }}</span>
+                    {% endif %}
+                {% elif kardex.advance_detail.id %}
+                    <span class="text-primary">ADELANTO[AD]:{{ kardex.advance_detail.id }}</span><br>
+                    <span class="text-primary">CLIENTE: {{ kardex.advance_detail.client_advancement.client.names }}</span>
+                {% endif %}
+
+            </td>
+            <td class="align-middle text-primary" >{{ kardex.get_operation_display }}</td>
+
+            <td class="align-middle text-secondary text-center" >{% if kardex.operation == 'E' %}{{ kardex.quantity }}{% if product.id == 9 %}({{kardex.conversion_mml_g|floatformat:2}}gl){% else %}{% endif %}{% else %}0{% endif %}</td>
+            <td class="align-middle text-secondary text-right" >{% if kardex.operation == 'E' %}{{ kardex.price_unit|floatformat:2 }}{% else %}0{% endif %}</td>
+            <td class="align-middle text-secondary text-right" >{% if kardex.operation == 'E' %}{{ kardex.price_total|floatformat:2 }}{% else %}0{% endif %}</td>
+
+            <td class="align-middle text-success text-center" >{% if kardex.operation == 'S' %}{{ kardex.quantity }}{% if product.id == 9 %}({{kardex.conversion_mml_g|floatformat:2}}gl){% else %}{% endif %}{% else %}0{% endif %}</td>
+            <td class="align-middle text-success text-right" >{% if kardex.operation == 'S' %}{{ kardex.price_unit|floatformat:2 }}{% else %}0{% endif %}</td>
+            <td class="align-middle text-success text-right" >{% if kardex.operation == 'S' %}{{ kardex.price_total|floatformat:2 }}{% else %}0{% endif %}</td>
+
+            <td class="align-middle text-danger text-center" >{{ kardex.remaining_quantity }}{% if product.id == 9 %}({{kardex.conversion_mml_g_remainig|floatformat:2}}gl){% else %}{% endif %}</td>
+            <td class="align-middle text-danger text-right" >{{ kardex.remaining_price|floatformat:2 }}</td>
+            <td class="align-middle text-danger text-right" >{{ kardex.remaining_price_total|floatformat:2 }}</td>
+
+        </tr>
+        {% endfor %}
+
+    </tbody>
+</table>
+
+{% else %}
+    Lo sentimos, no hay kardex registradas.
+{% endif %}

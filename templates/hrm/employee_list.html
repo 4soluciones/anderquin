@@ -1,0 +1,192 @@
+
+{% extends 'home.html' %}
+
+{% block title %}
+coronasoft.dev | Datos personales del trabajador
+{% endblock title %}
+
+{% block body %}
+
+
+<!-- Content -->
+<div class="container-fluid">
+
+    <!-- Provides extra visual weight and identifies the primary action in a set of buttons -->
+    <button type="button" onclick="showModalCreation('{% url 'hrm:json_employee_create' %}')" class="btn btn-outline-info mb-5">
+        <i class="fas fa-user-plus"></i> &nbsp; NUEVO TRABAJADOR
+    </button>
+
+    <div id="employee-grid-list" >{% include "hrm/employee_grid_list.html" %}</div>
+
+</div>
+
+
+<div class="modal fade bd-example-modal-lg" id="creation" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
+<div class="modal fade" id="edition" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
+<div class="modal fade" id="get-worker-designation" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
+<div class="modal fade" id="get-worker-establishment" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
+<div class="modal fade" id="get-worker-user" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
+
+
+
+{% endblock body %}
+
+
+{% block extrajs %}
+<script type="text/javascript">
+
+    var $ = jQuery.noConflict();
+
+    $('#employee-data-grid').dataTable({
+        columnDefs: [{
+            orderable: false,
+            className: 'select-checkbox',
+            targets: 0
+        }],
+        select: {
+            style: 'os',
+            selector: 'td:first-child'
+        }
+    });
+    $(document).on('click', '.worker-designation', function () {
+        var search = $(this).attr('pk');
+        $.ajax({
+            url: '/hrm/get_worker_designation/',
+            dataType: 'json',
+            type: 'GET',
+            data: {'pk': search},
+            success: function (response) {
+                console.log(response);
+                if(response.success){
+                    $('#get-worker-designation').html(response.form);
+                    $('#get-worker-designation').modal('show');
+                }
+            },
+            fail: function (response) {
+                console.log(response);
+            }
+        });
+    });
+    $(document).on('click', '.worker-change-designation', function () {
+        var search = $(this).attr('pk');
+        $.ajax({
+            url: '/hrm/edit_worker_designation/',
+            dataType: 'json',
+            type: 'GET',
+            data: {'pk': search},
+            success: function (response) {
+                console.log(response);
+                if(response.success){
+                    $('#get-worker-designation').html(response.form);
+                    $('#get-worker-designation').modal('show');
+                }
+            },
+            fail: function (response) {
+                console.log(response);
+            }
+        });
+    });
+    $(document).on('click', '.worker-change-establishment', function () {
+        let search = $(this).attr('pk');
+        $.ajax({
+            url: '/hrm/get_worker_establishment/',
+            dataType: 'json',
+            type: 'GET',
+            data: {'pk': search},
+            success: function (response) {
+                console.log(response);
+                if(response.success){
+                    $('#get-worker-establishment').html(response.form);
+                    $('#get-worker-establishment').modal('show');
+                }
+            },
+            fail: function (response) {
+                console.log(response);
+            }
+        });
+    });
+    $(document).on('click', '.worker-change-user', function () {
+        let search = $(this).attr('pk');
+        $.ajax({
+            url: '/hrm/get_worker_user/',
+            dataType: 'json',
+            type: 'GET',
+            data: {'pk': search},
+            success: function (response) {
+                console.log(response);
+                if(response.success){
+                    $('#get-worker-user').html(response.form);
+                    $('#get-worker-user').modal('show');
+                }
+            },
+            fail: function (response) {
+                console.log(response);
+            }
+        });
+    });
+
+    $('.staff-in-training-designation').on('click', function () {
+        var search = $(this).attr('pk');
+        $.ajax({
+            url: '/sales/get_kardex_by_product/',
+            dataType: 'json',
+            type: 'GET',
+            data: {'pk': search},
+            success: function (response) {
+                console.log(response);
+                if(response.success){
+                    $('#show-kardex').html(response.form);
+                    $('#show-kardex').modal('show');
+                }
+            },
+            fail: function (response) {
+                console.log(response);
+            }
+        });
+    });
+
+    $('.third-party-personnel-designation').on('click', function () {
+        var search = $(this).attr('pk');
+        $.ajax({
+            url: '/sales/set_product_detail/',
+            dataType: 'json',
+            type: 'GET',
+            data: {'pk': search},
+            success: function (response) {
+                if(response.success){
+                    console.log(response.serialized_data);
+                    $('#get-worker-designation').html(response.form);
+                    $('#get-worker-designation').modal('show');
+                }
+            },
+            fail: function (response) {
+                console.log(response);
+            }
+        });
+    });
+
+    function refreshTable() {
+        $('#employee-data-grid').DataTable().draw();
+    }
+
+    function showModalDelete(url) {
+        $('#delete').load(url, function () {
+            $(this).modal('show');
+        });
+    };
+
+    function showModalEdition(url) {
+        $('#edition').load(url, function () {
+            $(this).modal('show');
+        });
+    };
+
+    function showModalCreation(url) {
+        $('#creation').load(url, function () {
+            $(this).modal('show');
+        });
+    };
+
+
+</script>
+{% endblock extrajs %}

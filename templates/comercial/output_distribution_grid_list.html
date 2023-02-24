@@ -1,0 +1,78 @@
+{% if distribution_mobil %}
+    <div class="card border-info m-3">
+        <div class="card-header bg-info">
+            <h4 class="card-title text-center text-white">LISTA DE SALIDAS REPARTO</h4>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive dataTables_wrapper ">
+                <table id="table-distribution-programmings"
+                       class="table table-primary table-striped align-content-center table-bordered response"
+                       cellspacing="0" width="100%">
+                    <thead>
+                    <tr class="text-center bg-info text-white" style="height: 20px">
+
+                        <th class="th-sm">Placa</th>
+                        <th class="th-sm">Fecha</th>
+                        <th class="th-sm">Estado</th>
+                        <th class="th-sm">Detalle</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    {% for dm in distribution_mobil %}
+                        <tr class="text-center ">
+                            <td>{{ dm.truck.license_plate }}</td>
+                            <td>{{ dm.date_distribution }}</td>
+                            <td>{{ dm.get_status_display }}</td>
+                            <td class="p-1">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-success  dropdown-toggle" pk="{{ dm.id }}"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Action
+                                    </button>
+                                    <div class="dropdown-menu bg-secondary text-white font-italic">
+                                        <a class="dropdown-item btn-show-detail" pk="{{ dm.id }}"><i
+                                                class="fas fa-save pr-1"></i> Ver Detalle </a>
+
+                                        <a class="dropdown-item btn-update" pk="{{ dm.id }}"><i
+                                                class="fas fa-edit pr-1"></i> Retorno </a>
+                                        <a class="dropdown-item btn-purchase text-white" href="{% url 'sales:sales_list' dm.id %}"><i
+                                                class="fas fa-edit pr-1"></i> Ventas </a>
+                                        <a class="dropdown-item btn-annular" pk="{{ dm.id }}"><i
+                                                class="fas fa-edit pr-1"></i> Anular </a>
+                                    </div>
+                                </div>
+                            </td>
+
+                        </tr>
+                        <tr style="display: none">
+                            <td colspan="4" class="table-details-distribution bg-white"></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center bg-info text-white" style="height: 20px">
+
+                        <th class="th-sm">Placa</th>
+                        <th class="th-sm">Fecha</th>
+                        <th class="th-sm">Estado</th>
+                        <th class="th-sm">Detalle</th>
+                    </tr>
+                    </tfoot>
+                </table>
+
+            </div>
+
+        </div>
+
+        <!-- Card -->
+    </div>
+
+
+{% else %}
+    <h1>No existen salidas programadas</h1>
+{% endif %}
+<script>
+
+</script>

@@ -1,0 +1,208 @@
+{% extends 'home.html' %}
+{% block title %}
+    coronasoft.dev | Generador de Boletas
+{% endblock title %}
+
+{% block body %}
+
+    <div class="row mr-3 ml-0 mt-2">
+        <div class="col-sm-12 p-0">
+            <div class="card">
+                <div class="card-body text-center font-weight-bolder pb-1">
+                    <h2>GENERADOR DE BOLETAS</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form id="new-receipt-form" action="{% url 'sales:generate_receipt_random' %}" method="POST">
+        <div class="card-group">
+            <div class="card col-sm-6">
+                <div class="card-body ">
+                    <table class="table table-sm table-bordered small font-weight-bolder text-uppercase" id="table-random">
+                        <tbody>
+                        <tr>
+                            <th class="align-middle text-center p-0" scope="row" style="width: 20%">
+                                <label class="m-0" for="surnames" class="text-uppercase">Producto:</label>
+                            </th>
+                            <td class="align-middle text-center p-0">
+                                <select id="create_product" name="create_product"
+                                        class="form-control form-control-sm text-uppercase font-weight-bolder">
+                                    <option selected value="0">Seleccione...</option>
+                                    {% for p in products_set %}
+                                        <option value="{{ p.id }}" unit="{{ p.calculate_minimum_unit_id }}"
+                                                store_p="0">{{ p.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td class="align-middle text-center p-0">
+                                <button class="btn btn-success float-right btn-sm btn-block generate" id="btn_generate"
+                                        type="submit">
+                                    GENERAR
+                                </button>
+                            </td>
+                            <input type="checkbox" id="demo" name="demo" value="0">
+                        </tr>
+                        <tr>
+                            <th class="align-middle text-center p-0" scope="row" style="width: 20%">
+                                <label class="m-0" for="surnames" class="text-uppercase">Serie:</label>
+                            </th>
+                            <td class="align-middle text-center p-0">
+                                <select id="id_truck" name="id_truck"
+                                        class="form-control form-control-sm text-uppercase font-weight-bolder">
+                                    <option selected value="0">Seleccione...</option>
+                                    {% for serie in trucks %}
+                                        {% if serie.serial %}
+                                            <option value="{{ serie.id }}">{{ serie.license_plate }}
+                                                | {{ serie.serial }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="align-middle text-center p-0" style="width: 20%">
+                                Cliente:
+                            </th>
+                            <td class="border-top-0">
+                                <select id="id_client_name" name="id_client_name"
+                                        class="form-control form-control-sm"
+                                        aria-selected="Text input with radio button">
+                                    <option selected value="0">Seleccione...</option>
+                                    {% for client in clients %}
+                                        <option value="{{ client.id }}">{{ client.names }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="align-middle text-center p-0">Fecha</td>
+                            <td class="align-middle">
+                                <input type="date"
+                                       class="form-control"
+                                       name="date"
+                                       id="date"
+                                       value="{{ date_now }}" required>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="align-middle text-center p-0">
+                                <label class="m-0" for="surnames" class="text-uppercase">Precio:</label>
+                            </th>
+                            <td>
+                                <input type="text"
+                                       class="form-control"
+                                       name="price"
+                                       id="price"
+                                       required>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="align-middle text-center p-0">
+                                <label class="m-0" for="surnames" class="text-uppercase">Nro Boletas:</label>
+                            </th>
+                            <td>
+                                <input type="text"
+                                       class="form-control"
+                                       name="counter"
+                                       id="counter"
+                                       value="{{ date_now }}" required>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <style>
+        span.select2-container {
+            width: 100% !important;
+            text-align: center;
+        }
+
+        .select2-hidden-accessible {
+            position: fixed !important;
+        }
+
+        .page-content {
+            overflow-y: hidden !important;
+        }
+    </style>
+
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p class="text-dark"style="font-size: 12px">Generando...</p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+
+        $('#id_client_name').select2({
+            theme: 'bootstrap4',
+        });
+        $('#id_serie').select2({
+            theme: 'bootstrap4',
+        });
+
+        $("#new-receipt-form").submit(function (event) {
+
+            event.preventDefault();
+
+            var data = new FormData($('#new-receipt-form').get(0));
+
+
+            $("#btn_generate").attr("disabled");
+            $('#table-random').empty();
+            $('#table-random').html(loader);
+
+
+            $.ajax({
+
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+
+                    if (xhr.status == 200) {
+                        toastr.success('SUNAT: ' + response.msg_sunat, '¡Bien hecho!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    }
+
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    console.log(jqXhr);
+                    toastr.error(jqXhr.responseJSON.error, '¡ERROR DE SUNAT!');
+                }
+
+            });//end ajax
+
+            $("#btn_generate").removeAttr("disabled");
+
+        }); //end submit
+
+
+    </script>
+
+
+
+{% endblock extrajs %}

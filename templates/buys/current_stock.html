@@ -1,0 +1,48 @@
+<table class="table table-sm m-0 small text-uppercase tbl-current-stock">
+    <thead>
+        <tr class="table-primary">
+            <td>Producto</td>
+            <td>Pluspetrol</td>
+            <td>Cant. Solicitada</td>
+            <td>Cant. Salida</td>
+            <td>Cant. Restante</td>
+        </tr>
+    </thead>
+    <tbody>
+    {% for dt in details %}
+        <tr class="table-primary">
+            <td>{{ dt.product.name }}</td>
+            <td>
+{#                {{ dt.kardex_set.all.first.remaining_quantity }}/{{ dt.kardex_set.all.count }}#}
+                {% for ps in dt.product.productstore_set.all %}
+                    {% if my_subsidiary_store.id == ps.subsidiary_store.id %}
+                        {{ ps.stock|floatformat:2 }}
+                    {% endif %}
+                {% endfor %}
+            </td>
+            <td class="quantity-request">{{ dt.quantity|default:"0.00" }}</td>
+            <td class="quantity-sent">{{ dt.requirement_buys.programminginvoice_set.last.calculate_total_quantity|default:"0.00" }}</td>
+            <td class="quantity-remaining"></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<script>
+    function Difference(Valor1,Valor2) {
+      let S=parseFloat(Valor1 - Valor2);
+      return S;
+    };
+
+    $('.tbl-current-stock tbody tr').each(function () {
+        let _request = parseFloat($(this).find('td.quantity-request').text());
+        let _sent = parseFloat($(this).find('td.quantity-sent').text());
+        let _remaining = Difference(_request, _sent).toFixed(2);
+        $(this).find('td.quantity-remaining').text(_remaining.toString());
+    });
+    $('.tbl-current-stock tbody tr td').each(function () {
+        let _str = $(this).text();
+        _str = _str.replace(',', '.');
+        $(this).text(_str);
+    });
+
+</script>

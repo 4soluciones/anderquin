@@ -1,0 +1,86 @@
+{% load static %}
+{% load operations %}
+<div class="modal-dialog  modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header" style="background: #0b55a4">
+            <h6 class="modal-title  text-white">RECUPERACIÓN DE BALONES DE REPARTO</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+            <div class="modal-body mod">
+                <div class="card mt-2 ml-2 mr-2" style="border-color: #0660ae">
+                    <div class="card-header" style="background: #075ea9">
+                        <div class="row ml-4 mr-4">
+                            <div class="col-sm-2 pr-2 pl-2">
+                                <label class="text-white font-weight-normal">Numero</label>
+                                <input type="text" readonly class="form-control form-control-sm text-center"
+                                       id="id_pk"
+                                       required
+                                       value="{{ distribution_mobil.id }}"></div>
+                            <div class="col-sm-2 pr-2 pl-2">
+                                <label class="text-white font-weight-normal">Placa vehiculo</label>
+                                <input type="text" readonly class="form-control form-control-sm text-center"
+                                       id="id_truck"
+                                       required
+                                       value="{{ distribution_mobil.truck.license_plate }}"></div>
+                            <div class="col-sm-4 pr-2 pl-2">
+                                <label class="text-white font-weight-normal">Nombre del conductor</label>
+                                <input type="text" readonly class="form-control form-control-sm text-center"
+                                       id="id_pilot_name"
+                                       required
+                                       value="{{ distribution_mobil.pilot.full_name }}"></div>
+                            <div class="col-sm-4 pr-2 pl-2">
+                                <label class="text-white font-weight-normal">Cliente</label>
+                                <select class="form-control form-control-sm" id="id_client"
+                                        name="client" required>
+                                    <option selected value=""> Seleccione</option>
+                                    {% for c in client_set %}
+                                        <option value="{{ c.id }}">{{ c.names }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="card-body">
+                       <div class="table-responsive" id="table-order"></div>
+                    </div>
+                </div>
+            </div><!-- modal-body -->
+
+
+            <div class="modal-footer">
+                &nbsp;
+                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Cerrar</button>
+
+            </div>
+
+
+    </div>
+</div>
+
+<script type="text/javascript">
+   $('#id_client').change(function () {
+            $('#table-order').empty()
+            let _search = $(this).val();
+             let _distribution_pk = $('#id_pk').val();
+            $('#table-order').empty();
+            {#$('#table-order').html(loader);#}
+            $.ajax({
+                url: '/comercial/get_order_detail_by_client/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'client_id': _search,'pk': _distribution_pk},
+                success: function (response) {
+                    {#$('#table-order').html(response['grid']);#}
+                    $('#table-order').html(response.grid).parent('div').slideDown();
+                },
+            });
+    });
+
+</script>

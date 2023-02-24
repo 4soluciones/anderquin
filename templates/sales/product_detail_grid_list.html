@@ -1,0 +1,115 @@
+{% if product_details %}
+<div class="col-md-12">
+    <table class="table table-hover ">
+        <thead class="bg-light ">
+            <tr>
+                <th>
+                    <div class="form-check-inline">
+                        <label class="form-check-label">
+                            <input type="checkbox" class="form-check-input" value="">
+                        </label>
+                    </div>
+                </th>
+                <th>Unidad de medida</th>
+                <th>Precio de Venta</th>
+                <th>Cantidad Minima</th>
+                <th>Habilitado</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% for obj in product_details %}
+
+            <tr>
+                <td>
+                    <div class="form-check-inline">
+                        <label class="form-check-label">
+                            <input type="checkbox" class="form-check-input" value="">
+                        </label>
+                    </div>
+                </td>
+                <td><a href="#"><small>{{ obj.unit }}</small></a></td>
+                <td><small>{{ obj.price_sale|floatformat:2 }}</small></td>
+                <td><small>{{ obj.quantity_minimum|floatformat:2 }}</small></td>
+                <td class="text-center">
+                    <div class="form-check-inline">
+                        <label class="form-check-label">
+                            <input type="checkbox" class="form-check-input align-middle check-enabled" {% if obj.is_enabled %}checked{% endif %} value="{{ obj.id }}">
+                        </label>
+                    </div>
+                </td>
+                <td>
+                    <a class="edit-product-detail" pk="{{ obj.id }}"><i class="fa fa-pencil-alt"></i></a>
+                    <a class="delete-product-detail" pk="{{ obj.id }}"><i class="fa fa-trash"></i></a>
+                </td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+    </table>
+</div>
+{% else %}
+Lo sentimos, no hay presentaciones registradas</h1>
+{% endif %}
+
+<script type="text/javascript">
+
+    $('.edit-product-detail').on('click', function () {
+        $('#btn-product-detail-save').fadeOut();
+        $('#btn-product-detail-update').fadeIn();
+        var search = $(this).attr('pk');
+        $.ajax({
+            url: '/sales/get_product_detail/',
+            dataType: 'json',
+            type: 'GET',
+            data: {'pk': search},
+            success: function (response, textStatus, xhr) {
+                if(xhr.status==200){
+                    var myObj = JSON.parse(response.obj);
+                    console.log(myObj);
+                    $('#id_product_detail').val(myObj[0]['pk']);
+                    $('#id_product').val(myObj[0]['fields']['product']);
+                    $('#id_unit option[value="' + myObj[0]['fields']['unit'] + '"]').prop('selected', true);
+                    $('#id_price_sale').val(myObj[0]['fields']['price_sale']);
+                    $('#id_quantity_minimum').val(myObj[0]['fields']['quantity_minimum']);
+                }
+            },
+            fail: function (response) {
+                console.log(response);
+            }
+        });
+    });
+
+
+    $(".check-enabled").on("click", function () {
+
+        var pk = $(this).attr('value');
+        var status = 'False';
+        if($(this).is(':checked')){
+            status = 'True';
+        }
+
+        console.log('status: ' + status);
+        console.log('pk: ' + pk);
+
+        $.ajax({
+           url: '/sales/toogle_status_product_detail/',
+           async: true,
+           dataType: 'json',
+           type: 'GET',
+           data: {'pk': pk, 'status': status},
+           success: function (response, textStatus, xhr) {
+              if(xhr.status==200){
+                  toastr.success(response['message'],'¡Bien hecho!');
+              }
+
+           },
+           fail: function (response) {
+               console.log("error");
+           }
+        });
+
+    });
+</script>
