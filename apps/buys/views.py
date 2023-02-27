@@ -348,7 +348,7 @@ def get_detail_purchase_store(request):
         #     return response
         try:
             # subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj)
-            subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='M')
+            subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj)
         except SubsidiaryStore.DoesNotExist:
             data = {'detalle': 'NO EXISTE ALMACEN DE MERCADERIA'}
             response = JsonResponse(data)
