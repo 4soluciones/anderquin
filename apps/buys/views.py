@@ -38,7 +38,7 @@ def purchase_form(request):
         'supplier_obj': supplier_obj,
         'unitmeasurement_obj': unitmeasurement_obj,
         'product_obj': product_obj,
-        'truck_set': truck_set,
+        # 'truck_set': truck_set,
         # 'list_detail_purchase': get_employees(need_rendering=False),
     })
 
@@ -54,15 +54,15 @@ def save_purchase(request):
         provider_id = str(data_purchase["ProviderId"])
         type_bill = str(data_purchase["Type_bill"])
         date = str(data_purchase["Date"])
-        invoice = str(data_purchase["Invoice"])
-        print(data_purchase["truck"])
-        if (data_purchase["truck"]) is not None:
-            truck_id = int(data_purchase["truck"])
-            truck_obj = Truck.objects.get(id=truck_id)
-            status = 'A'
-        else:
-            truck_obj = None
-            status = 'S'
+        # invoice = str(data_purchase["Invoice"])
+        # print(data_purchase["truck"])
+        # if (data_purchase["truck"]) is not None:
+        #     truck_id = int(data_purchase["truck"])
+        #     truck_obj = Truck.objects.get(id=truck_id)
+        #     status = 'A'
+        # else:
+        #     truck_obj = None
+        #     status = 'S'
         user_id = request.user.id
         user_obj = User.objects.get(pk=int(user_id))
 
@@ -73,11 +73,11 @@ def save_purchase(request):
         purchase_obj = Purchase(
             supplier=supplier_obj,
             purchase_date=date,
-            bill_number=invoice,
+            # bill_number=invoice,
             user=user_obj,
             subsidiary=subsidiary_obj,
-            truck=truck_obj,
-            status=status,
+            # truck=truck_obj,
+            # status=status,
             type_bill=type_bill,
         )
         purchase_obj.save()
