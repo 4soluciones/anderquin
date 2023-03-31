@@ -234,7 +234,7 @@ class Supplier(models.Model):
     is_enabled = models.BooleanField('Habilitado', default=True)
     sector = models.CharField('Tipo de Rubro', max_length=2, choices=SECTOR_CHOICES, default='N', )
 
-    is_type_gloria = models.BooleanField('Tipo Gloria-Deprodeca', default=True, null=True, blank=True)
+    is_type_gloria = models.BooleanField('Tipo Gloria-Deprodeca', default=True, blank=True)
 
     def __str__(self):
         return self.name
