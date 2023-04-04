@@ -189,7 +189,7 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
     # **************************************************************************************************************** #
 
     style_table_0 = [
-        ('BOX', (0, 0), (-1, -1), 3, colors.black),
+        # ('BOX', (0, 0), (-1, -1), 3, colors.black),
         ('VALIGN', (0, 1), (0, 1), 'TOP'),
         # ('GRID', (0, 0), (-1, -1), 1, colors.black),
 
@@ -199,7 +199,7 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
     p0_1 = Paragraph(f'INDUSTRIAS ANDERQUIN EIRL', styles["Center-titulo"])
     p0_2 = Paragraph(f'RUC: {RUC}', styles["Center-titulo"])
 
-    colwiths_table_0 = [_wt * 0.8 * 100 / 100]
+    colwiths_table_0 = [_wt * 0.6 * 100 / 100]
     rowwiths_table_0 = [inch * 0.75, inch * 0.75]
     ana_c0 = Table(
         [(p0_1,)] +
@@ -211,9 +211,13 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
     # **************************************************************************************************************** #
 
     style_table_1 = [
-        # ('BOX', (1, 0), (1, 1), 3, colors.black),
+        ('BOX', (1, 0), (-1, -1), 3, colors.black),
+        ('BOX', (1, 1), (-1, -1), 3, colors.black),
+        ('GRID', (-1, 0), (-1, -1), 3, colors.black),
         # ('GRID', (0, 0), (-1, -1), 1, colors.black),
         ('VALIGN', (1, -1), (1, -1), 'TOP'),
+        ('VALIGN', (-1, 0), (-1, 0), 'CENTER'),
+        ('VALIGN', (-1, 1), (-1, 1), 'CENTER'),
         # ('BACKGROUND', (0, 0), (-1, -1), colors.grey),
 
         ('TOPPADDING', (0, 0), (1, 0), 0),
@@ -222,18 +226,21 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
         ('BOTTOMPADDING', (0, 0), (1, 0), 0),
 
         ('SPAN', (0, 0), (0, -1)),
+        ('SPAN', (2, 1), (2, -1)),
     ]
 
     ORDEN_COMPRA = f'OC-2022-00154'
     p1_1 = Paragraph(f'ORDEN DE COMPRA', styles["Center-titulo"])
     p1_2 = Paragraph(f'{ORDEN_COMPRA}', styles["Center-titulo"])
+    p1_3 = Paragraph(f'SIG - FO - 029', styles["Center-titulo"])
+    p1_4 = Paragraph(f'VERSION : 01', styles["Center-titulo"])
 
-    colwiths_table_1 = [_wt * 20 / 100, _wt * 80 / 100]
+    colwiths_table_1 = [_wt * 20 / 100, _wt * 60 / 100, _wt * 20 / 100]
     rowwiths_table_1 = [inch * 1.5, inch * 0.75, inch * 0.75]
     ana_c1 = Table(
-        [(I, ana_c0)] +
-        [('', p1_1)] +
-        [('', p1_2)],
+        [(I, ana_c0, p1_3)] +
+        [('', p1_1, p1_4)] +
+        [('', p1_2, '')],
         colWidths=colwiths_table_1, rowHeights=rowwiths_table_1)
     ana_c1.setStyle(TableStyle(style_table_1))
 
@@ -320,6 +327,7 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
     style_table_4 = [
         ('BOX', (0, 0), (-1, -1), 2, colors.black),
         ('BACKGROUND', (0, 0), (-1, -1), COLOR_GREEN),
+        ('VALIGN', (0, 0), (-1, 0), 'CENTER'),
     ]
 
     p4_1 = Paragraph(f'N°', styles["Left"])
@@ -395,13 +403,168 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
     colwiths_table_6 = [_wt * 100 / 100]
     rowwiths_table_6 = [inch * 0.5]
     ana_c6 = Table(
-        [(p6_1, )],
+        [(p6_1,)],
         colWidths=colwiths_table_6, rowHeights=rowwiths_table_6)
     ana_c6.setStyle(TableStyle(style_table_6))
 
     _dictionary.append(Spacer(width=8, height=16))
     _dictionary.append(ana_c6)
 
+    # **************************************************************************************************************** #
+    # **************************************************************************************************************** #
+
+    style_table_7 = [
+        # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('BOX', (0, 0), (-1, 3), 2, colors.black),
+        ('BOX', (0, 4), (-1, -1), 2, colors.black),
+        ('BOX', (-1, -4), (-1, -1), 2, colors.black),
+        ('BOX', (0, 0), (0, -1), 2, colors.black),
+
+        ('SPAN', (-1, 0), (-1, 3)),
+        ('SPAN', (-1, 0), (-1, 3)),
+        ('SPAN', (1, 4), (1, 5)),
+    ]
+
+    p7_1 = Paragraph(f'FACTURAR A', styles["Left"])
+    p7_2 = Paragraph(f'INDUSTRIAS ANDERQUIN EIRL', styles["Left"])
+    p7_3 = Paragraph(f'RUC: 20604193053', styles["Left"])
+    p7_4 = Paragraph(f'JR. CARABAYA NRO. 443 (AL FRENTE DE LA PLAZA MANCO CAPAC) PUNO - SAN ROMAN - JULIACA',
+                     styles["Left"])
+    p7_5 = Paragraph(f'Juliaca, San Roman, Puno', styles["Left"])
+
+    p7_6 = Paragraph(f'ENTREGA', styles["Left"])
+    p7_7 = Paragraph(
+        f'JR. PALMERAS-STA. ASUNCION MZA. I5 LOTE 10 FRENTE A LA PLAZA DE SANTA ASUNCION PUNO-SAN ROMAN-JULIACA',
+        styles["Left"])
+
+    colwiths_table_7 = [_wt * 15 / 100, _wt * 70 / 100, _wt * 15 / 100]
+    rowwiths_table_7 = [inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5]
+    ana_c7 = Table(
+        [(p7_1, p7_2, '')] +
+        [('', p7_3, '')] +
+        [('', p7_4, '')] +
+        [('', p7_5, '')] +
+        [(p7_6, p7_7, '')] +
+        [('', '', '')] +
+        [('', '', '')] +
+        [('', '', '')],
+        colWidths=colwiths_table_7, rowHeights=rowwiths_table_7)
+    ana_c7.setStyle(TableStyle(style_table_7))
+
+    _dictionary.append(Spacer(width=8, height=16))
+    _dictionary.append(ana_c7)
+
+    # **************************************************************************************************************** #
+    # ********************* if ********************* #
+    # **************************************************************************************************************** #
+
+    style_table_8 = [
+        # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]
+
+    p8_1 = Paragraph(f'Referencia de Venta', styles["Left"])
+
+    colwiths_table_8 = [_wt * 100 / 100]
+    rowwiths_table_8 = [inch * 0.75]
+    ana_c8 = Table(
+        [(p8_1,)],
+        colWidths=colwiths_table_8, rowHeights=rowwiths_table_8)
+    ana_c8.setStyle(TableStyle(style_table_8))
+    _dictionary.append(Spacer(width=8, height=16))
+    _dictionary.append(ana_c8)
+
+    # **************************************************************************************************************** #
+    # **************************************************************************************************************** #
+
+    style_table_9 = [
+        # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('BOX', (0, 0), (-1, -1), 2, colors.black),
+        # ('BOX', (0, 4), (-1, -1), 2, colors.black),
+        # ('BOX', (-1, -4), (-1, -1), 2, colors.black),
+        # ('BOX', (0, 0), (0, -1), 2, colors.black),
+
+        # ('SPAN', (-1, 0), (-1, 3)),
+        # ('SPAN', (-1, 0), (-1, 3)),
+        # ('SPAN', (1, 4), (1, 5)),
+
+    ]
+
+    p9_1 = Paragraph(f'Razón Social: ', styles["Right"])
+    p9_2 = Paragraph(f'MAMANI ADCO JUANA', styles["Left"])
+    p9_3 = Paragraph(f'RUC: ', styles["Right"])
+    p9_4 = Paragraph(f'10024131501', styles["Left"])
+    p9_5 = Paragraph(f'Dirección: ', styles["Right"])
+    p9_6 = Paragraph(f'Referencia: ', styles["Right"])
+
+    colwiths_table_9 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
+    rowwiths_table_9 = [inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5]
+    ana_c9 = Table(
+        [(p9_1, '', p9_2)] +
+        [(p9_3, '', p9_4)] +
+        [(p9_5, '', '')] +
+        [(p9_6, '', '')],
+        colWidths=colwiths_table_9, rowHeights=rowwiths_table_9)
+    ana_c9.setStyle(TableStyle(style_table_9))
+
+    _dictionary.append(Spacer(width=8, height=16))
+    _dictionary.append(ana_c9)
+
+    # **************************************************************************************************************** #
+    # **************************************************************************************************************** #
+
+    style_table_10 = [
+        # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]
+
+    p10_1 = Paragraph(f'Referencia de Venta a la Entidad', styles["Left"])
+
+    colwiths_table_10 = [_wt * 100 / 100]
+    rowwiths_table_10 = [inch * 0.75]
+    ana_c10 = Table(
+        [(p10_1,)],
+        colWidths=colwiths_table_10, rowHeights=rowwiths_table_10)
+    ana_c10.setStyle(TableStyle(style_table_10))
+    _dictionary.append(Spacer(width=8, height=16))
+    _dictionary.append(ana_c10)
+
+    # **************************************************************************************************************** #
+    # **************************************************************************************************************** #
+
+    style_table_11 = [
+        # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('BOX', (0, 0), (-1, -1), 2, colors.black),
+        # ('BOX', (0, 4), (-1, -1), 2, colors.black),
+        # ('BOX', (-1, -4), (-1, -1), 2, colors.black),
+        # ('BOX', (0, 0), (0, -1), 2, colors.black),
+
+        # ('SPAN', (-1, 0), (-1, 3)),
+        # ('SPAN', (-1, 0), (-1, 3)),
+        # ('SPAN', (1, 4), (1, 5)),
+
+    ]
+
+    p11_1 = Paragraph(f'Razón Social: ', styles["Right"])
+    p11_2 = Paragraph(f'COMITE DE COMPRA PUNO 4', styles["Left"])
+    p11_3 = Paragraph(f'RUC: ', styles["Right"])
+    p11_4 = Paragraph(f'20448690041', styles["Left"])
+    p11_5 = Paragraph(f'Dirección: ', styles["Right"])
+    # p10_6 = Paragraph(f'Referencia: ', styles["Right"])
+
+    colwiths_table_11 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
+    rowwiths_table_11 = [inch * 0.5, inch * 0.5, inch * 0.5]
+    ana_c11 = Table(
+        [(p11_1, '', p11_2)] +
+        [(p11_3, '', p11_4)] +
+        [(p11_5, '', '')],
+        colWidths=colwiths_table_11, rowHeights=rowwiths_table_11)
+    ana_c11.setStyle(TableStyle(style_table_11))
+
+    _dictionary.append(Spacer(width=8, height=16))
+    _dictionary.append(ana_c11)
+
+    # **************************************************************************************************************** #
+    # ********************* endif ********************* #
+    # **************************************************************************************************************** #
 
     # **************************************************************************************************************** #
     # **************************************************************************************************************** #

@@ -32,7 +32,7 @@ def purchase_form(request):
     supplier_obj = Supplier.objects.all()
     product_obj = Product.objects.all()
     unitmeasurement_obj = Unit.objects.all()
-    truck_set = Truck.objects.all()
+    # truck_set = Truck.objects.all()
     return render(request, 'buys/purchase_form.html', {
         # 'form': form_obj,
         'supplier_obj': supplier_obj,
@@ -64,10 +64,14 @@ def save_purchase(request):
         #     truck_obj = None
         #     status = 'S'
         user_id = request.user.id
+
         user_obj = User.objects.get(pk=int(user_id))
 
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        print(subsidiary_obj)
+        print("************************************************************")
+        print(request)
+        print("************************************************************")
+
         supplier_obj = Supplier.objects.get(id=int(provider_id))
 
         purchase_obj = Purchase(
