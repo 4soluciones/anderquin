@@ -57,7 +57,7 @@
                         </button>
                     </td>
                 </tr>
-                <!--
+
                 <tr>
                     <td>Numero Comprobante:</td>
                     <td><input type="text" class="form-control" id="id_factura"
@@ -66,6 +66,47 @@
                                value="">
                     </td>
                 </tr>
+                <tr>
+                    <td>Entrega:</td>
+                    <td><input type="text" class="form-control" id="id_entrega"
+                               name="entrega"
+                               placeholder="Entrega"
+                               value="">
+                    </td>
+                </tr>
+                <tr id="id-tr-reference" hidden>
+                    <td>Referencia de Venta:</td>
+                    <td><select class="form-control" id="id-sales-reference" name="sales-reference">
+                        <option disabled selected value=""> Seleccione</option>
+                        {% for t in salesreference_set %}
+                            <option value="{{ t.id }}">{{ t.ruc }}</option>
+                        {% endfor %}
+                    </select>
+                    </td>
+                    <td>
+                        <button type="button" id="btn-detail" class="btn btn-success btn-block pb-1"
+                                data-toggle="modal"
+                                data-target="#modal-addreference">Agregar
+                        </button>
+                    </td>
+                </tr>
+                <tr id="id-tr-reference-entity" hidden>
+                    <td>Referencia de Venta a la Entidad:</td>
+                    <td><select class="form-control" id="id-sales-reference-entity" name="sales-reference-entity">
+                        <option disabled selected value=""> Seleccione</option>
+                        {% for t in salesreferenceentity_set %}
+                            <option value="{{ t.id }}">{{ t.ruc }}</option>
+                        {% endfor %}
+                    </select>
+                    </td>
+                    <td>
+                        <button type="button" id="btn-detail" class="btn btn-success btn-block pb-1"
+                                data-toggle="modal"
+                                data-target="#modal-addreference-entity">Agregar
+                        </button>
+                    </td>
+                </tr>
+                <!--
                 <tr>
                     <td>Vehiculo:</td>
                     <td><select class="form-control" id="id-truck" name="truck">
@@ -82,6 +123,7 @@
         </div>
     </div>
 </form>
+
 <div class="modal fade" id="modal-updetail" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -148,6 +190,121 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="limper()" data-dismiss="modal">Salir</button>
                 <button type="button" id="id_add" class="btn btn-primary">Agregar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-addreference" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">REFERENCIA DE VENTA</h5>
+                <button type="button" class="close" onclick="limper()" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-detail">
+                <table class="table table-sm">
+                    <tr>
+                        <td>Razón Social:</td>
+                        <td>
+                            <input type="text" class="form-control" id="id_razon_social"
+                                   name="razon_social"
+                                   placeholder="Razón Social" required
+                                   value="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>RUC:</td>
+                        <td>
+                            <input type="text" class="form-control" id="id_ruc"
+                                   name="ruc"
+                                   placeholder="Ruc" required
+                                   value="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Dirección:
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" id="id_direccion"
+                                   name="direccion"
+                                   placeholder="Dirección" required
+                                   value="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Referencia:
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" id="id_referencia"
+                                   name="referencia"
+                                   placeholder="Referencia" required
+                                   value="">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="limper_reference()" data-dismiss="modal">
+                    Salir
+                </button>
+                <button type="button" id="id_add_reference" class="btn btn-primary">Agregar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-addreference-entity" tabindex="-1" role="dialog"
+     aria-labelledby="exampleModalLongTitle"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">REFERENCIA DE VENTA A LA ENTIDAD</h5>
+                <button type="button" class="close" onclick="limper()" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-detail">
+                <table class="table table-sm">
+                    <tr>
+                        <td>Razón Social:</td>
+                        <td>
+                            <input type="text" class="form-control" id="id_razon_social_entity"
+                                   name="razon_social_entity"
+                                   placeholder="Razón Social" required
+                                   value="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>RUC:</td>
+                        <td>
+                            <input type="text" class="form-control" id="id_ruc_entity"
+                                   name="ruc_entity"
+                                   placeholder="Ruc" required
+                                   value="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Dirección:
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" id="id_direccion_entity"
+                                   name="direccion_entity"
+                                   placeholder="Dirección" required
+                                   value="">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="limper_reference_entity()"
+                        data-dismiss="modal">Salir
+                </button>
+                <button type="button" id="id_add_reference_entity" class="btn btn-primary">Agregar</button>
             </div>
         </div>
     </div>

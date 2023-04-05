@@ -32,6 +32,12 @@
         $('#id_producto').select2({
             theme: 'bootstrap4',
         });
+        $('#id-sales-reference').select2({
+            theme: 'bootstrap4',
+        });
+        $('#id-sales-reference-entity').select2({
+            theme: 'bootstrap4',
+        });
         /*
         $('#id-truck').select2({
             theme: 'bootstrap4',
@@ -41,15 +47,21 @@
             limper_form();
         });
 
+        window.onload = function () {
+            {#document.getElementById('id-tr-reference').style.visibility = "hidden"; // hide#}
+            {#document.getElementById('id-tr-reference-entity').style.visibility = "hidden"; // hide#}
+        }
+
         function limper_form(request) {
             $('#id_fechacompra').val('');
-            //$("#id_factura").val('');
+            $("#id_factura").val('');
+            $("#id_entrega").val('');
             $('#id_proveedor option').removeAttr('selected');
             $('#id_proveedor option:first').attr('selected', 'selected');
             $('#id_proveedor').trigger('change');
-            //$('#id-truck option').removeAttr('selected');
-            //$('#id-truck option:first').attr('selected', 'selected');
-            //$('#id-truck').trigger('change');
+
+            document.getElementById("id-tr-reference").hidden = true;
+            document.getElementById("id-tr-reference-entity").hidden = true;
         };
 
         function limper(request) {
@@ -63,6 +75,20 @@
             {#$('#id_producto option[value=0]').attr('selected','selected');#}
             {#$('#id_unidad option[value=0]').attr('selected','selected');#}
         };
+
+        function limper_reference(request) {
+            $('#id_razon_social').val('');
+            $('#id_ruc').val('');
+            $('#id_direccion').val('');
+            $('#id_referencia').val('');
+        };
+
+        function limper_reference_entity(request) {
+            $('#id_razon_social_entity').val('');
+            $('#id_ruc_entity').val('');
+            $('#id_direccion_entity').val('');
+        };
+
         $("#id_add").click(function () {
 
             let id_product = $('#id_producto').val();
@@ -102,16 +128,94 @@
 
         });
 
+        $("#id_add_reference").click(function () {
+
+            let razon_social = $('#id_razon_social').val();
+            let ruc = $('#id_ruc').val();
+            let direccion = $('#id_direccion').val();
+            let referencia = $('#id_referencia').val();
+
+            if (razon_social && ruc) {
+                $.ajax({
+                    url: '/buys/add_reference/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    // registra nuevo referencia de venta
+                    data: {
+                        'razon_social': razon_social,
+                        'ruc': ruc,
+                        'direccion': direccion,
+                        'referencia': referencia
+                    },
+                    // si va bien retorna la data
+                    success: function (response) {
+                        toastr.success('REFERENCIA DE VENTA AGREGADO CORRECTAMENTE!');
+                        const $select = document.querySelector("#id-sales-reference");
+                        const option = document.createElement('option');
+                        option.value = response.id;
+                        option.text = response.ruc;
+                        $select.appendChild(option);
+                        limper_reference();
+                    },
+                });
+
+
+            } else {
+                {#toastr.succes('info messages');#}
+                toastr.warning('POR FAVOR, COMPLETE TODO LOS CAMPOS!');
+            }
+        });
+
+        $("#id_add_reference_entity").click(function () {
+
+            let razon_social_entity = $('#id_razon_social_entity').val();
+            let ruc_entity = $('#id_ruc_entity').val();
+            let direccion_entity = $('#id_direccion_entity').val();
+
+            if (razon_social_entity && ruc_entity) {
+                $.ajax({
+                    url: '/buys/add_reference_entity/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    // registra nuevo referencia de venta
+                    data: {
+                        'razon_social_entity': razon_social_entity,
+                        'ruc_entity': ruc_entity,
+                        'direccion_entity': direccion_entity,
+                    },
+                    // si va bien retorna la data
+                    success: function (response) {
+                        toastr.success('REFERENCIA DE VENTA A LA ENTIDAD AGREGADO CORRECTAMENTE!');
+                        const $select = document.querySelector("#id-sales-reference-entity");
+                        const option = document.createElement('option');
+                        option.value = response.id;
+                        option.text = response.ruc;
+                        $select.appendChild(option);
+                        limper_reference_entity();
+                    },
+                });
+            } else {
+                {#toastr.succes('info messages');#}
+                toastr.warning('POR FAVOR, COMPLETE TODO LOS CAMPOS!');
+            }
+        });
+
         $('#purchase-form').submit(function (event) {
             event.preventDefault();
+
             if ($("#id_detail_data_grid tbody tr").length > 0) {
                 let Detail_purchase = {
                     "Details": [],
-                    //"Invoice": $('#id_factura').val(),
+                    "Invoice": $('#id_factura').val(),
                     "ProviderId": $('#id_proveedor').val(),
                     "Date": $('#id_fechacompra').val(),
                     //"truck": $('#id-truck').val(),
-                    "Type_bill": $('#id_type_bill').val()
+                    "Type_bill": $('#id_type_bill').val(),
+                    "delivery": $('#id_entrega').val(),
+                    "referenceId": $('#id-sales-reference').val(),
+                    "referenceEntityId": $('#id-sales-reference-entity').val()
                 };
                 // Recorre cada detalle de producto (son 2 arrays) each -> recorre
 
@@ -141,13 +245,14 @@
                     success: function (response, textStatus, xhr) {
                         if (xhr.status === 200) {
                             toastr.success(response.message, '¡COMPRA REGISTRADA CORRECTAMENTE!');
+                            id_buys = response.pk
 
-                            let url_print_pdf = "/buys/print_pdf_purchase_order/";
+                            let url_print_pdf = "/buys/print_pdf_purchase_order/" + id_buys + "/";
                             window.location.href = url_print_pdf;
 
                             setTimeout(() => {
                                 location.reload();
-                            }, 800);
+                            }, 1000);
                         }
                     },
                     error: function (jqXhr, textStatus, xhr) {
@@ -156,9 +261,6 @@
                 });
 
             } else {
-
-                let url_print_pdf = "/buys/print_pdf_purchase_order/";
-                window.location.href = url_print_pdf;
                 toastr.warning("PARA REALIZAR LA COMPRA NECESITA AGREGAR PRODUCTOS. ", '¡ADVERTENCIA!');
             }
         });
@@ -186,9 +288,38 @@
                                 '<option value="' + element['pk'] + '">' + element['fields']['name'] + '</option>')
                     )
                 },
-
             });
+        });
 
+        $('#id_proveedor').change(function () {
+            //recupera el id_dela opcion seleccionada
+            let supplier_id = $(this).val();
+
+            {#console.log(_search)#}
+
+            $.ajax({
+                url: '/buys/is_supplier_reference/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                //mando  id del producto del combo
+                data: {'supplier_id': supplier_id},
+                // si va bien retorna la data
+                success: function (response) {
+                    if (response.status) {
+                        {#document.getElementById('id-tr-reference').style.visibility = "visible"; // visible#}
+                        {#document.getElementById('id-tr-reference-entity').style.visibility = "visible"; // visible#}
+                        document.getElementById("id-tr-reference").hidden = false;
+                        document.getElementById("id-tr-reference-entity").hidden = false;
+                    } else {
+                        {#document.getElementById('id-tr-reference').style.visibility = "hidden"; // hide#}
+                        {#document.getElementById('id-tr-reference-entity').style.visibility = "hidden"; // hide#}
+                        document.getElementById("id-tr-reference").hidden = true;
+                        document.getElementById("id-tr-reference-entity").hidden = true;
+                    }
+
+                },
+            });
         });
 
         //Bonton eliminar fila

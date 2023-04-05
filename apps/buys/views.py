@@ -32,15 +32,71 @@ def purchase_form(request):
     supplier_obj = Supplier.objects.all()
     product_obj = Product.objects.all()
     unitmeasurement_obj = Unit.objects.all()
+    salesreference_set = SalesReference.objects.all()
+    salesreferenceentity_set = SalesReferenceEntity.objects.all()
     # truck_set = Truck.objects.all()
     return render(request, 'buys/purchase_form.html', {
         # 'form': form_obj,
         'supplier_obj': supplier_obj,
         'unitmeasurement_obj': unitmeasurement_obj,
         'product_obj': product_obj,
+        'salesreference_set': salesreference_set,
+        'salesreferenceentity_set': salesreferenceentity_set
         # 'truck_set': truck_set,
         # 'list_detail_purchase': get_employees(need_rendering=False),
     })
+
+
+def is_supplier_reference(request):
+    if request.method == 'GET':
+        supplier_id = request.GET.get('supplier_id', '')
+        supplier_obj = Supplier.objects.get(id=supplier_id)
+
+        return JsonResponse({
+            'status': supplier_obj.is_type_reference
+        }, status=HTTPStatus.OK)
+
+
+def add_reference(request):
+    if request.method == 'GET':
+        razon_social = request.GET.get('razon_social', '').upper()
+        ruc = request.GET.get('ruc', '')
+        direccion = request.GET.get('direccion', '')
+        referencia = request.GET.get('referencia', '')
+
+        sales_reference_obj = SalesReference(
+            business_name=razon_social,
+            ruc=ruc,
+            address=direccion,
+            reference=referencia
+        )
+        sales_reference_obj.save()
+
+        return JsonResponse({
+            'id': sales_reference_obj.id,
+            'ruc': sales_reference_obj.ruc,
+            'status': 'OK'
+        }, status=HTTPStatus.OK)
+
+
+def add_reference_entity(request):
+    if request.method == 'GET':
+        razon_social_entity = request.GET.get('razon_social_entity', '').upper()
+        ruc_entity = request.GET.get('ruc_entity', '')
+        direccion_entity = request.GET.get('direccion_entity', '')
+
+        sales_reference_entity_obj = SalesReferenceEntity(
+            business_name=razon_social_entity,
+            ruc=ruc_entity,
+            address=direccion_entity
+        )
+        sales_reference_entity_obj.save()
+
+        return JsonResponse({
+            'id': sales_reference_entity_obj.id,
+            'ruc': sales_reference_entity_obj.ruc,
+            'status': 'OK'
+        }, status=HTTPStatus.OK)
 
 
 @csrf_exempt
@@ -54,7 +110,11 @@ def save_purchase(request):
         provider_id = str(data_purchase["ProviderId"])
         type_bill = str(data_purchase["Type_bill"])
         date = str(data_purchase["Date"])
-        # invoice = str(data_purchase["Invoice"])
+        invoice = str(data_purchase["Invoice"]).upper()
+        delivery = str(data_purchase["delivery"]).upper()
+        reference_id = data_purchase["referenceId"]
+        referenceEntity_id = data_purchase["referenceEntityId"]
+
         # print(data_purchase["truck"])
         # if (data_purchase["truck"]) is not None:
         #     truck_id = int(data_purchase["truck"])
@@ -66,25 +126,30 @@ def save_purchase(request):
         user_id = request.user.id
 
         user_obj = User.objects.get(pk=int(user_id))
-
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        print("************************************************************")
-        print(request)
-        print("************************************************************")
 
         supplier_obj = Supplier.objects.get(id=int(provider_id))
 
         purchase_obj = Purchase(
             supplier=supplier_obj,
             purchase_date=date,
-            # bill_number=invoice,
+            bill_number=invoice,
             user=user_obj,
             subsidiary=subsidiary_obj,
             # truck=truck_obj,
             # status=status,
             type_bill=type_bill,
+            delivery=delivery
         )
         purchase_obj.save()
+
+        if reference_id and referenceEntity_id:
+            reference_obj = SalesReference.objects.get(id=int(reference_id))
+            reference_entity_obj = SalesReferenceEntity.objects.get(id=int(referenceEntity_id))
+
+            purchase_obj.sales_reference = reference_obj
+            purchase_obj.sales_reference_entity = reference_entity_obj
+            purchase_obj.save()
 
         for detail in data_purchase['Details']:
             quantity = decimal.Decimal(detail['Quantity'])
@@ -108,6 +173,7 @@ def save_purchase(request):
             new_purchase_detail_obj.save()
 
         return JsonResponse({
+            'pk': purchase_obj.id,
             'message': 'COMPRA REGISTRADA CORRECTAMENTE.',
 
         }, status=HTTPStatus.OK)
@@ -943,7 +1009,8 @@ def get_programming_by_truck_and_dates(request):
 
             purchase_detail_set = PurchaseDetail.objects.filter(purchase__subsidiary__id=subsidiary_obj.id,
                                                                 purchase__status='A', purchase__truck=truck_obj,
-                                                                purchase__purchase_date__range=(date_initial, date_final)).annotate(
+                                                                purchase__purchase_date__range=(
+                                                                    date_initial, date_final)).annotate(
                 total=Sum(F('price_unit') * F('quantity'))).aggregate(Sum('total'))
 
             programming_expense_total_price = ProgrammingExpense.objects.filter(
@@ -1810,7 +1877,8 @@ def report_purchases_all(request):
     truck_set = Truck.objects.all().order_by('license_plate')
     truck_set2 = Purchase.objects.filter(subsidiary=subsidiary_obj,
                                          truck__isnull=False).distinct('truck__license_plate').values('truck__id',
-                                                                                                      'truck__license_plate').order_by('truck__license_plate')
+                                                                                                      'truck__license_plate').order_by(
+        'truck__license_plate')
     if request.method == 'GET':
         mydate = datetime.now()
         formatdate = mydate.strftime("%Y-%m-%d")
@@ -1880,7 +1948,6 @@ def report_purchases_all(request):
 
 
 def get_all_purchases(purchase_set):
-
     sum_all_total = 0
     purchase_dict = []
     truck_dict = {}
@@ -1977,11 +2044,12 @@ def report_purchases_by_supplier(request):
         sum_total = 0
 
         purchase_detail_set = PurchaseDetail.objects.filter(
-            purchase__status='A',purchase__purchase_date__range=[start_date, end_date]).values(
+            purchase__status='A', purchase__purchase_date__range=[start_date, end_date]).values(
             'purchase__supplier__name',
             'purchase__supplier__business_name',
             'purchase__supplier__sector',
-            'purchase__supplier__id').exclude(purchase__supplier__id__in=[1, 363, 364, 369]).annotate(total=Sum(F('price_unit') * F('quantity'))).order_by('-total')
+            'purchase__supplier__id').exclude(purchase__supplier__id__in=[1, 363, 364, 369]).annotate(
+            total=Sum(F('price_unit') * F('quantity'))).order_by('-total')
 
         for p in purchase_detail_set:
             supplier_id = p['purchase__supplier__id']
@@ -2057,7 +2125,11 @@ def get_purchases_by_provider_category(request):
         purchase_detail_set = PurchaseDetail.objects.filter(purchase__subsidiary__id=subsidiary_obj.id,
                                                             purchase__supplier__sector=category_id,
                                                             purchase__status='A',
-                                                            purchase__purchase_date__range=[start_date, end_date]).values('purchase__supplier__id', 'purchase__supplier__name', 'purchase__supplier__business_name').exclude(purchase__supplier__id__in=[1, 363, 364, 369]).annotate(total=Sum(F('price_unit') * F('quantity'))).order_by('-total')
+                                                            purchase__purchase_date__range=[start_date,
+                                                                                            end_date]).values(
+            'purchase__supplier__id', 'purchase__supplier__name', 'purchase__supplier__business_name').exclude(
+            purchase__supplier__id__in=[1, 363, 364, 369]).annotate(
+            total=Sum(F('price_unit') * F('quantity'))).order_by('-total')
 
         for p in purchase_detail_set:
             supplier_id = p['purchase__supplier__id']
@@ -2082,7 +2154,3 @@ def get_purchases_by_provider_category(request):
         return JsonResponse({
             'grid': tpl.render(context, request),
         }, status=HTTPStatus.OK)
-
-
-
-

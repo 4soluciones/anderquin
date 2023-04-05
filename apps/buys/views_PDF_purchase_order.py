@@ -25,6 +25,8 @@ from reportlab.rl_settings import defaultPageSize
 
 
 from anderquin import settings
+from .models import Purchase, PurchaseDetail, SalesReference, SalesReferenceEntity
+from ..sales.models import Supplier
 
 PAGE_HEIGHT = defaultPageSize[1]
 PAGE_WIDTH = defaultPageSize[0]
@@ -66,6 +68,9 @@ styles.add(ParagraphStyle(name='Center-ng', alignment=TA_CENTER, leading=10, fon
                           textColor=colors.white))
 styles.add(
     ParagraphStyle(name='Left', alignment=TA_LEFT, leading=30, fontName='Square', fontSize=25, textColor=colors.black))
+styles.add(
+    ParagraphStyle(name='Left-Simple', alignment=TA_LEFT, leading=15, fontName='Square', fontSize=15,
+                   textColor=colors.black))
 styles.add(ParagraphStyle(name='Left-name', alignment=TA_LEFT, leading=8, fontName='Square-Bold', fontSize=8,
                           textColor=COLOR_PDF))
 styles.add(ParagraphStyle(name='Left-datos', alignment=TA_LEFT, leading=10, fontName='Square-Bold', fontSize=10,
@@ -169,7 +174,7 @@ BASE = 21
 ALTURA = 29.7
 
 
-def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
+def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
 
     _wt = BASE * inch - 50 * 0.05 * inch  # termical
     tbh_business_name_address = ''
@@ -188,14 +193,21 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
     # **************************************************************************************************************** #
     # **************************************************************************************************************** #
 
+    purchase_obj = Purchase.objects.get(id=pk)
+    purchase_detail = PurchaseDetail.objects.filter(purchase__id=purchase_obj.id)
+
+    supplier_obj = purchase_obj.supplier
+
+    # **************************************************************************************************************** #
+    # **************************************************************************************************************** #
+
     style_table_0 = [
         # ('BOX', (0, 0), (-1, -1), 3, colors.black),
         ('VALIGN', (0, 1), (0, 1), 'TOP'),
         # ('GRID', (0, 0), (-1, -1), 1, colors.black),
-
     ]
 
-    RUC = f'15234235'
+    RUC = f'20604193053'
     p0_1 = Paragraph(f'INDUSTRIAS ANDERQUIN EIRL', styles["Center-titulo"])
     p0_2 = Paragraph(f'RUC: {RUC}', styles["Center-titulo"])
 
@@ -229,7 +241,7 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
         ('SPAN', (2, 1), (2, -1)),
     ]
 
-    ORDEN_COMPRA = f'OC-2022-00154'
+    ORDEN_COMPRA = f'{purchase_obj.bill_number}'
     p1_1 = Paragraph(f'ORDEN DE COMPRA', styles["Center-titulo"])
     p1_2 = Paragraph(f'{ORDEN_COMPRA}', styles["Center-titulo"])
     p1_3 = Paragraph(f'SIG - FO - 029', styles["Center-titulo"])
@@ -286,8 +298,9 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
         ('BACKGROUND', (2, 0), (2, 0), COLOR_GREEN),
     ]
 
-    NOMBRE_PROVEEDOR = f'DEPRODECA S.A.C.'
-    RUC_PROVEEDOR = f'6-4925211265432'
+    NOMBRE_PROVEEDOR = f'{supplier_obj.name}'
+    RUC_PROVEEDOR = f'{supplier_obj.ruc}'
+
     p3_1 = Paragraph(f'PROVEEDOR:', styles["Left"])
     p3_2 = Paragraph(f'{NOMBRE_PROVEEDOR}', styles["Left"])
     p3_3 = Paragraph(f'{RUC_PROVEEDOR}', styles["Left"])
@@ -353,22 +366,26 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
     # **************************************************************************************************************** #
     # **************************************************************************************************************** #
 
-    products = 1
     total = 0
-    for i in range(products):
+    contador = 1
+    # for i in range(products):
+    for i in purchase_detail.all():
         style_table_5 = [
             ('BOX', (0, 0), (-1, -1), 2, colors.black),
             # ('BACKGROUND', (0, 0), (-1, -1), COLOR_GREEN),
         ]
 
-        num = f'1'
-        cod = f'1001107'
-        descripcion = f'BONLE BONLE EVAP. ENTERA 400 GR 24.00024.000'
-        um = f'BX 24'
-        p_und = f'947 - 0'
-        unidades = 22728
-        precio_unidad = 2.725833
-        sub_total = 61952.74
+        product = i.product
+
+        num = f'{contador}'
+        contador += 1
+        cod = f'{product.code}'
+        descripcion = f'{product.name}'
+        um = f'{i.unit.name}'
+        p_und = f'{round(i.price_unit, 2)}'
+        unidades = f'{i.quantity}'
+        precio_unidad = f'{round(i.price_unit, 2)}'
+        sub_total = round(i.multiplicate(), 2)
 
         total += sub_total
 
@@ -376,7 +393,7 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
         p5_2 = Paragraph(cod, styles["Left"])
         p5_3 = Paragraph(descripcion, styles["Left"])
         p5_4 = Paragraph(um, styles["Left"])
-        p5_5 = Paragraph(p_und, styles["Left"])
+        p5_5 = Paragraph(f'--', styles["Left"])
         p5_6 = Paragraph(f'{unidades}', styles["Left"])
         p5_7 = Paragraph(f'{precio_unidad}', styles["Left"])
         p5_8 = Paragraph(f'{sub_total}', styles["Right"])
@@ -424,7 +441,7 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
         ('SPAN', (-1, 0), (-1, 3)),
         ('SPAN', (1, 4), (1, 5)),
     ]
-
+    entrega = purchase_obj.delivery
     p7_1 = Paragraph(f'FACTURAR A', styles["Left"])
     p7_2 = Paragraph(f'INDUSTRIAS ANDERQUIN EIRL', styles["Left"])
     p7_3 = Paragraph(f'RUC: 20604193053', styles["Left"])
@@ -433,9 +450,7 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
     p7_5 = Paragraph(f'Juliaca, San Roman, Puno', styles["Left"])
 
     p7_6 = Paragraph(f'ENTREGA', styles["Left"])
-    p7_7 = Paragraph(
-        f'JR. PALMERAS-STA. ASUNCION MZA. I5 LOTE 10 FRENTE A LA PLAZA DE SANTA ASUNCION PUNO-SAN ROMAN-JULIACA',
-        styles["Left"])
+    p7_7 = Paragraph(f'{entrega}', styles["Left"])
 
     colwiths_table_7 = [_wt * 15 / 100, _wt * 70 / 100, _wt * 15 / 100]
     rowwiths_table_7 = [inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5]
@@ -457,117 +472,141 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
     # **************************************************************************************************************** #
     # ********************* if ********************* #
     # **************************************************************************************************************** #
+    if purchase_obj.supplier.is_type_reference:
+        style_table_8 = [
+            # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]
 
-    style_table_8 = [
+        p8_1 = Paragraph(f'Referencia de Venta', styles["Left"])
+
+        colwiths_table_8 = [_wt * 100 / 100]
+        rowwiths_table_8 = [inch * 0.75]
+        ana_c8 = Table(
+            [(p8_1,)],
+            colWidths=colwiths_table_8, rowHeights=rowwiths_table_8)
+        ana_c8.setStyle(TableStyle(style_table_8))
+        _dictionary.append(Spacer(width=8, height=16))
+        _dictionary.append(ana_c8)
+
+        # **************************************************************************************************************** #
+        # **************************************************************************************************************** #
+
+        style_table_9 = [
+            # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('BOX', (0, 0), (-1, -1), 2, colors.black),
+            # ('BOX', (0, 4), (-1, -1), 2, colors.black),
+            # ('BOX', (-1, -4), (-1, -1), 2, colors.black),
+            # ('BOX', (0, 0), (0, -1), 2, colors.black),
+
+            # ('SPAN', (-1, 0), (-1, 3)),
+            # ('SPAN', (-1, 0), (-1, 3)),
+            # ('SPAN', (1, 4), (1, 5)),
+
+        ]
+
+        reference_obj = purchase_obj.sales_reference
+
+        p9_1 = Paragraph(f'Razón Social: ', styles["Right"])
+        p9_2 = Paragraph(f'{reference_obj.business_name}', styles["Left"])
+        p9_3 = Paragraph(f'RUC: ', styles["Right"])
+        p9_4 = Paragraph(f'{reference_obj.ruc}', styles["Left"])
+        p9_5 = Paragraph(f'Dirección: ', styles["Right"])
+        p9_6 = Paragraph(f'{reference_obj.address}', styles["Left"])
+        p9_7 = Paragraph(f'Referencia: ', styles["Right"])
+        p9_8 = Paragraph(f'{reference_obj.reference}', styles["Left"])
+
+        colwiths_table_9 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
+        rowwiths_table_9 = [inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5]
+        ana_c9 = Table(
+            [(p9_1, '', p9_2)] +
+            [(p9_3, '', p9_4)] +
+            [(p9_5, '', p9_6)] +
+            [(p9_7, '', p9_8)],
+            colWidths=colwiths_table_9, rowHeights=rowwiths_table_9)
+        ana_c9.setStyle(TableStyle(style_table_9))
+
+        _dictionary.append(Spacer(width=8, height=16))
+        _dictionary.append(ana_c9)
+
+        # **************************************************************************************************************** #
+        # **************************************************************************************************************** #
+
+        style_table_10 = [
+            # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]
+
+        p10_1 = Paragraph(f'Referencia de Venta a la Entidad', styles["Left"])
+
+        colwiths_table_10 = [_wt * 100 / 100]
+        rowwiths_table_10 = [inch * 0.75]
+        ana_c10 = Table(
+            [(p10_1,)],
+            colWidths=colwiths_table_10, rowHeights=rowwiths_table_10)
+        ana_c10.setStyle(TableStyle(style_table_10))
+        _dictionary.append(Spacer(width=8, height=16))
+        _dictionary.append(ana_c10)
+
+        # **************************************************************************************************************** #
+        # **************************************************************************************************************** #
+
+        style_table_11 = [
+            # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('BOX', (0, 0), (-1, -1), 2, colors.black),
+            # ('BOX', (0, 4), (-1, -1), 2, colors.black),
+            # ('BOX', (-1, -4), (-1, -1), 2, colors.black),
+            # ('BOX', (0, 0), (0, -1), 2, colors.black),
+
+            # ('SPAN', (-1, 0), (-1, 3)),
+            # ('SPAN', (-1, 0), (-1, 3)),
+            # ('SPAN', (1, 4), (1, 5)),
+
+        ]
+
+        reference_entity_obj = purchase_obj.sales_reference_entity
+
+        p11_1 = Paragraph(f'Razón Social: ', styles["Right"])
+        p11_2 = Paragraph(f'{reference_entity_obj.business_name}', styles["Left"])
+        p11_3 = Paragraph(f'RUC: ', styles["Right"])
+        p11_4 = Paragraph(f'{reference_entity_obj.ruc}', styles["Left"])
+        p11_5 = Paragraph(f'Dirección: ', styles["Right"])
+        p11_6 = Paragraph(f'{reference_entity_obj.address}', styles["Left"])
+        # p10_6 = Paragraph(f'Referencia: ', styles["Right"])
+
+        colwiths_table_11 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
+        rowwiths_table_11 = [inch * 0.5, inch * 0.5, inch * 0.5]
+        ana_c11 = Table(
+            [(p11_1, '', p11_2)] +
+            [(p11_3, '', p11_4)] +
+            [(p11_5, '', p11_6)],
+            colWidths=colwiths_table_11, rowHeights=rowwiths_table_11)
+        ana_c11.setStyle(TableStyle(style_table_11))
+
+        _dictionary.append(Spacer(width=8, height=16))
+        _dictionary.append(ana_c11)
+
+        # **************************************************************************************************************** #
+        # ********************* endif ********************* #
+        # **************************************************************************************************************** #
+
+    # **************************************************************************************************************** #
+    # **************************************************************************************************************** #
+
+    style_table_12 = [
         # ('GRID', (0, 0), (-1, -1), 1, colors.black),
     ]
 
-    p8_1 = Paragraph(f'Referencia de Venta', styles["Left"])
+    usuario = request.user
+    p12_1 = Paragraph(f'Usuario {usuario} - {datetime.now()}', styles["Left-Simple"])
 
-    colwiths_table_8 = [_wt * 100 / 100]
-    rowwiths_table_8 = [inch * 0.75]
-    ana_c8 = Table(
-        [(p8_1,)],
-        colWidths=colwiths_table_8, rowHeights=rowwiths_table_8)
-    ana_c8.setStyle(TableStyle(style_table_8))
+    colwiths_table_12 = [_wt * 100 / 100]
+    rowwiths_table_12 = [inch * 0.75]
+    ana_c12 = Table(
+        [(p12_1,)],
+        colWidths=colwiths_table_12, rowHeights=rowwiths_table_12)
+    ana_c12.setStyle(TableStyle(style_table_12))
     _dictionary.append(Spacer(width=8, height=16))
-    _dictionary.append(ana_c8)
+    _dictionary.append(ana_c12)
 
-    # **************************************************************************************************************** #
-    # **************************************************************************************************************** #
-
-    style_table_9 = [
-        # ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('BOX', (0, 0), (-1, -1), 2, colors.black),
-        # ('BOX', (0, 4), (-1, -1), 2, colors.black),
-        # ('BOX', (-1, -4), (-1, -1), 2, colors.black),
-        # ('BOX', (0, 0), (0, -1), 2, colors.black),
-
-        # ('SPAN', (-1, 0), (-1, 3)),
-        # ('SPAN', (-1, 0), (-1, 3)),
-        # ('SPAN', (1, 4), (1, 5)),
-
-    ]
-
-    p9_1 = Paragraph(f'Razón Social: ', styles["Right"])
-    p9_2 = Paragraph(f'MAMANI ADCO JUANA', styles["Left"])
-    p9_3 = Paragraph(f'RUC: ', styles["Right"])
-    p9_4 = Paragraph(f'10024131501', styles["Left"])
-    p9_5 = Paragraph(f'Dirección: ', styles["Right"])
-    p9_6 = Paragraph(f'Referencia: ', styles["Right"])
-
-    colwiths_table_9 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
-    rowwiths_table_9 = [inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5]
-    ana_c9 = Table(
-        [(p9_1, '', p9_2)] +
-        [(p9_3, '', p9_4)] +
-        [(p9_5, '', '')] +
-        [(p9_6, '', '')],
-        colWidths=colwiths_table_9, rowHeights=rowwiths_table_9)
-    ana_c9.setStyle(TableStyle(style_table_9))
-
-    _dictionary.append(Spacer(width=8, height=16))
-    _dictionary.append(ana_c9)
-
-    # **************************************************************************************************************** #
-    # **************************************************************************************************************** #
-
-    style_table_10 = [
-        # ('GRID', (0, 0), (-1, -1), 1, colors.black),
-    ]
-
-    p10_1 = Paragraph(f'Referencia de Venta a la Entidad', styles["Left"])
-
-    colwiths_table_10 = [_wt * 100 / 100]
-    rowwiths_table_10 = [inch * 0.75]
-    ana_c10 = Table(
-        [(p10_1,)],
-        colWidths=colwiths_table_10, rowHeights=rowwiths_table_10)
-    ana_c10.setStyle(TableStyle(style_table_10))
-    _dictionary.append(Spacer(width=8, height=16))
-    _dictionary.append(ana_c10)
-
-    # **************************************************************************************************************** #
-    # **************************************************************************************************************** #
-
-    style_table_11 = [
-        # ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('BOX', (0, 0), (-1, -1), 2, colors.black),
-        # ('BOX', (0, 4), (-1, -1), 2, colors.black),
-        # ('BOX', (-1, -4), (-1, -1), 2, colors.black),
-        # ('BOX', (0, 0), (0, -1), 2, colors.black),
-
-        # ('SPAN', (-1, 0), (-1, 3)),
-        # ('SPAN', (-1, 0), (-1, 3)),
-        # ('SPAN', (1, 4), (1, 5)),
-
-    ]
-
-    p11_1 = Paragraph(f'Razón Social: ', styles["Right"])
-    p11_2 = Paragraph(f'COMITE DE COMPRA PUNO 4', styles["Left"])
-    p11_3 = Paragraph(f'RUC: ', styles["Right"])
-    p11_4 = Paragraph(f'20448690041', styles["Left"])
-    p11_5 = Paragraph(f'Dirección: ', styles["Right"])
-    # p10_6 = Paragraph(f'Referencia: ', styles["Right"])
-
-    colwiths_table_11 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
-    rowwiths_table_11 = [inch * 0.5, inch * 0.5, inch * 0.5]
-    ana_c11 = Table(
-        [(p11_1, '', p11_2)] +
-        [(p11_3, '', p11_4)] +
-        [(p11_5, '', '')],
-        colWidths=colwiths_table_11, rowHeights=rowwiths_table_11)
-    ana_c11.setStyle(TableStyle(style_table_11))
-
-    _dictionary.append(Spacer(width=8, height=16))
-    _dictionary.append(ana_c11)
-
-    # **************************************************************************************************************** #
-    # ********************* endif ********************* #
-    # **************************************************************************************************************** #
-
-    # **************************************************************************************************************** #
-    # **************************************************************************************************************** #
     # **************************************************************************************************************** #
     # **************************************************************************************************************** #
 
@@ -596,7 +635,7 @@ def print_pdf(request, pk=None, pago_id=None):  # TICKET PASSENGER OLD
     #
 
     response = HttpResponse(content_type='application/pdf')
-    # response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(doctor_full_name + '-' + str(637))
+    response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(ORDEN_COMPRA + '-' + str(637))
 
     tomorrow = datetime.now() + timedelta(days=1)
     tomorrow = tomorrow.replace(hour=0, minute=0, second=0)

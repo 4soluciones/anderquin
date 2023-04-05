@@ -69,5 +69,8 @@ urlpatterns = [
     path('get_purchases_by_license_plate/', get_purchases_by_license_plate, name='get_purchases_by_license_plate'),
     path('get_purchases_by_provider_category/', get_purchases_by_provider_category, name='get_purchases_by_provider_category'),
 
-    path('print_pdf_purchase_order/', print_pdf, name='print_pdf_purchase_order'),
+    path('is_supplier_reference/', is_supplier_reference, name='is_supplier_reference'),
+    path('add_reference/', add_reference, name='add_reference'),
+    path('add_reference_entity/', add_reference_entity, name='add_reference_entity'),
+    path('print_pdf_purchase_order/<int:pk>/', print_pdf, name='print_pdf_purchase_order'),
 ]
