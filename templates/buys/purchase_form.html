@@ -59,6 +59,9 @@
             $('#id_proveedor option').removeAttr('selected');
             $('#id_proveedor option:first').attr('selected', 'selected');
             $('#id_proveedor').trigger('change');
+            $('#id_currency option').removeAttr('selected');
+            $('#id_currency option:first').attr('selected', 'selected');
+            $('#id_currency').trigger('change');
 
             document.getElementById("id-tr-reference").hidden = true;
             document.getElementById("id-tr-reference-entity").hidden = true;
@@ -154,7 +157,7 @@
                         const $select = document.querySelector("#id-sales-reference");
                         const option = document.createElement('option');
                         option.value = response.id;
-                        option.text = response.ruc;
+                        option.text = response.business_name;
                         $select.appendChild(option);
                         limper_reference();
                     },
@@ -191,7 +194,7 @@
                         const $select = document.querySelector("#id-sales-reference-entity");
                         const option = document.createElement('option');
                         option.value = response.id;
-                        option.text = response.ruc;
+                        option.text = response.business_name;
                         $select.appendChild(option);
                         limper_reference_entity();
                     },
@@ -214,6 +217,7 @@
                     //"truck": $('#id-truck').val(),
                     "Type_bill": $('#id_type_bill').val(),
                     "delivery": $('#id_entrega').val(),
+                    "currency": $('#id_currency').val(),
                     "referenceId": $('#id-sales-reference').val(),
                     "referenceEntityId": $('#id-sales-reference-entity').val()
                 };
@@ -250,9 +254,11 @@
                             let url_print_pdf = "/buys/print_pdf_purchase_order/" + id_buys + "/";
                             window.location.href = url_print_pdf;
 
+                            console.log(url_print_pdf)
+
                             setTimeout(() => {
                                 location.reload();
-                            }, 1000);
+                            }, 2000);
                         }
                     },
                     error: function (jqXhr, textStatus, xhr) {

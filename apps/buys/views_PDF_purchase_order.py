@@ -175,7 +175,6 @@ ALTURA = 29.7
 
 
 def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
-
     _wt = BASE * inch - 50 * 0.05 * inch  # termical
     tbh_business_name_address = ''
     ml = 0.0 * inch
@@ -595,8 +594,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         # ('GRID', (0, 0), (-1, -1), 1, colors.black),
     ]
 
-    usuario = request.user
-    p12_1 = Paragraph(f'Usuario {usuario} - {datetime.now()}', styles["Left-Simple"])
+    p12_1 = Paragraph(f'Observacion', styles["Left"])
 
     colwiths_table_12 = [_wt * 100 / 100]
     rowwiths_table_12 = [inch * 0.75]
@@ -606,6 +604,61 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     ana_c12.setStyle(TableStyle(style_table_12))
     _dictionary.append(Spacer(width=8, height=16))
     _dictionary.append(ana_c12)
+
+    # **************************************************************************************************************** #
+    # **************************************************************************************************************** #
+
+    style_table_13 = [
+        # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('BOX', (0, 0), (-1, -1), 2, colors.black),
+        # ('BOX', (0, 4), (-1, -1), 2, colors.black),
+        # ('BOX', (-1, -4), (-1, -1), 2, colors.black),
+        # ('BOX', (0, 0), (0, -1), 2, colors.black),
+
+        # ('SPAN', (-1, 0), (-1, 3)),
+        # ('SPAN', (-1, 0), (-1, 3)),
+        # ('SPAN', (1, 4), (1, 5)),
+
+    ]
+
+    reference_entity_obj = purchase_obj.sales_reference_entity
+
+    p13_1 = Paragraph(f'Observación: ', styles["Right"])
+    p13_2 = Paragraph(f'{purchase_obj.get_currency_type()}', styles["Left"])
+
+    colwiths_table_13 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
+    rowwiths_table_13 = [inch * 1]
+    ana_c13 = Table(
+        [(p13_1, '', p13_2)],
+        colWidths=colwiths_table_13, rowHeights=rowwiths_table_13)
+    ana_c13.setStyle(TableStyle(style_table_13))
+
+    _dictionary.append(Spacer(width=8, height=16))
+    _dictionary.append(ana_c13)
+
+    # **************************************************************************************************************** #
+    # **************************************************************************************************************** #
+
+    style_table_99 = [
+        # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]
+
+    usuario = request.user
+    p99_1 = Paragraph(f'Usuario: {usuario} - {datetime.now()}', styles["Left-Simple"])
+
+    colwiths_table_99 = [_wt * 100 / 100]
+    rowwiths_table_99 = [inch * 0.75]
+    ana_c99 = Table(
+        [(p99_1,)],
+        colWidths=colwiths_table_99, rowHeights=rowwiths_table_99)
+    ana_c99.setStyle(TableStyle(style_table_99))
+    _dictionary.append(Spacer(width=8, height=16))
+    _dictionary.append(ana_c99)
+
+    # **************************************************************************************************************** #
+    # **************************************************************************************************************** #
+
+
 
     # **************************************************************************************************************** #
     # **************************************************************************************************************** #
@@ -635,7 +688,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     #
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(ORDEN_COMPRA + '-' + str(637))
+    response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(ORDEN_COMPRA)
 
     tomorrow = datetime.now() + timedelta(days=1)
     tomorrow = tomorrow.replace(hour=0, minute=0, second=0)

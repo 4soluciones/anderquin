@@ -39,6 +39,7 @@ class SalesReferenceEntity(models.Model):
 class Purchase(models.Model):
     STATUS_CHOICES = (('S', 'SIN ALMACEN'), ('A', 'EN ALMACEN'), ('N', 'ANULADO'),)
     TYPE_CHOICES = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'),)
+    CURRENCY_TYPE_CHOICES = (('S', 'SOL'), ('D', 'DOLAR'),)
     id = models.AutoField(primary_key=True)
     supplier = models.ForeignKey(Supplier, verbose_name='Proveedor', on_delete=models.CASCADE, null=True, blank=True)
     purchase_date = models.DateField('Fecha compra', null=True, blank=True)
@@ -48,13 +49,13 @@ class Purchase(models.Model):
     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='S')
     truck = models.ForeignKey(Truck, on_delete=models.SET_NULL, null=True, blank=True)
     type_bill = models.CharField('Tipo de comprobante', max_length=1, choices=TYPE_CHOICES, default='T')
-
     delivery = models.CharField('Entregar a', max_length=255, null=True, blank=True)
     sales_reference = models.ForeignKey(SalesReference, verbose_name='Referencia de Venta', on_delete=models.CASCADE,
                                         null=True, blank=True)
     sales_reference_entity = models.ForeignKey(SalesReferenceEntity, verbose_name='Referencia de Venta a la Entidad',
                                                on_delete=models.CASCADE,
                                                null=True, blank=True)
+    currency_type = models.CharField('Tipo de moneda', max_length=1, choices=CURRENCY_TYPE_CHOICES, default='S')
 
     def __str__(self):
         return str(self.id)
@@ -62,6 +63,13 @@ class Purchase(models.Model):
     class Meta:
         verbose_name = 'Compra'
         verbose_name_plural = 'Compras'
+
+    def get_currency_type(self):
+        currency_set = {
+            'S': 'Sol',
+            'D': 'Dolar'
+        }
+        return currency_set[self.currency_type]
 
     def total(self):
         response = 0

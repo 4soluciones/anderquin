@@ -75,6 +75,7 @@ def add_reference(request):
         return JsonResponse({
             'id': sales_reference_obj.id,
             'ruc': sales_reference_obj.ruc,
+            'business_name': sales_reference_obj.business_name,
             'status': 'OK'
         }, status=HTTPStatus.OK)
 
@@ -95,6 +96,7 @@ def add_reference_entity(request):
         return JsonResponse({
             'id': sales_reference_entity_obj.id,
             'ruc': sales_reference_entity_obj.ruc,
+            'business_name': sales_reference_entity_obj.business_name,
             'status': 'OK'
         }, status=HTTPStatus.OK)
 
@@ -112,6 +114,7 @@ def save_purchase(request):
         date = str(data_purchase["Date"])
         invoice = str(data_purchase["Invoice"]).upper()
         delivery = str(data_purchase["delivery"]).upper()
+        currency = str(data_purchase["currency"])
         reference_id = data_purchase["referenceId"]
         referenceEntity_id = data_purchase["referenceEntityId"]
 
@@ -139,7 +142,8 @@ def save_purchase(request):
             # truck=truck_obj,
             # status=status,
             type_bill=type_bill,
-            delivery=delivery
+            delivery=delivery,
+            currency_type=currency
         )
         purchase_obj.save()
 

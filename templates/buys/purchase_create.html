@@ -60,7 +60,7 @@
 
                 <tr>
                     <td>Numero Comprobante:</td>
-                    <td><input type="text" class="form-control" id="id_factura"
+                    <td><input type="text" class="form-control" id="id_factura" required
                                name="factura"
                                placeholder="Numero Comprobante"
                                value="">
@@ -68,10 +68,20 @@
                 </tr>
                 <tr>
                     <td>Entrega:</td>
-                    <td><input type="text" class="form-control" id="id_entrega"
+                    <td><input type="text" class="form-control" id="id_entrega" required
                                name="entrega"
                                placeholder="Entrega"
                                value="">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Moneda:</td>
+                    <td style="width: 10%">
+                        <select class="form-control" id="id_currency" name="currency" required>
+                            <option disabled selected value=""> Seleccione</option>
+                            <option value="S">SOL</option>
+                            <option value="D">DOLAR</option>
+                        </select>
                     </td>
                 </tr>
                 <tr id="id-tr-reference" hidden>
@@ -79,7 +89,7 @@
                     <td><select class="form-control" id="id-sales-reference" name="sales-reference">
                         <option disabled selected value=""> Seleccione</option>
                         {% for t in salesreference_set %}
-                            <option value="{{ t.id }}">{{ t.ruc }}</option>
+                            <option value="{{ t.id }}">{{ t.business_name }}</option>
                         {% endfor %}
                     </select>
                     </td>
@@ -95,7 +105,7 @@
                     <td><select class="form-control" id="id-sales-reference-entity" name="sales-reference-entity">
                         <option disabled selected value=""> Seleccione</option>
                         {% for t in salesreferenceentity_set %}
-                            <option value="{{ t.id }}">{{ t.ruc }}</option>
+                            <option value="{{ t.id }}">{{ t.business_name }}</option>
                         {% endfor %}
                     </select>
                     </td>
@@ -181,7 +191,7 @@
                         <td>
                             <input type="text" class="form-control" id="id_preciounitario"
                                    name="preciounitario"
-                                   placeholder="S/.0.00" required
+                                   placeholder="precio" required
                                    value="{{ employee.person.paternal_last_name }}">
                         </td>
                     </tr>
