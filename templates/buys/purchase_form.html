@@ -84,6 +84,9 @@
             $('#id_ruc').val('');
             $('#id_direccion').val('');
             $('#id_referencia').val('');
+            $('#id_is_private option').removeAttr('selected');
+            $('#id_is_private option:first').attr('selected', 'selected');
+            $('#id_is_private').trigger('change');
         };
 
         function limper_reference_entity(request) {
@@ -130,15 +133,15 @@
             }
 
         });
-
         $("#id_add_reference").click(function () {
 
-            let razon_social = $('#id_razon_social').val();
+            let business_name = $('#id_razon_social').val();
             let ruc = $('#id_ruc').val();
-            let direccion = $('#id_direccion').val();
-            let referencia = $('#id_referencia').val();
+            let address = $('#id_direccion').val();
+            let reference = $('#id_referencia').val();
+            let is_private = $('#id_is_private').val();
 
-            if (razon_social && ruc) {
+            if (business_name && ruc && address && is_private) {
                 $.ajax({
                     url: '/buys/add_reference/',
                     async: true,
@@ -146,14 +149,15 @@
                     type: 'GET',
                     // registra nuevo referencia de venta
                     data: {
-                        'razon_social': razon_social,
+                        'business_name': business_name,
                         'ruc': ruc,
-                        'direccion': direccion,
-                        'referencia': referencia
+                        'address': address,
+                        'reference': reference,
+                        'is_private': is_private
                     },
                     // si va bien retorna la data
                     success: function (response) {
-                        toastr.success('REFERENCIA DE VENTA AGREGADO CORRECTAMENTE!');
+                        toastr.success('REFERENCIA AGREGADA CORRECTAMENTE!');
                         const $select = document.querySelector("#id-sales-reference");
                         const option = document.createElement('option');
                         option.value = response.id;
@@ -170,6 +174,7 @@
             }
         });
 
+        /*
         $("#id_add_reference_entity").click(function () {
 
             let razon_social_entity = $('#id_razon_social_entity').val();
@@ -204,6 +209,7 @@
                 toastr.warning('POR FAVOR, COMPLETE TODO LOS CAMPOS!');
             }
         });
+        */
 
         $('#purchase-form').submit(function (event) {
             event.preventDefault();
@@ -216,10 +222,9 @@
                     "Date": $('#id_fechacompra').val(),
                     //"truck": $('#id-truck').val(),
                     "Type_bill": $('#id_type_bill').val(),
-                    "delivery": $('#id_entrega').val(),
                     "currency": $('#id_currency').val(),
                     "referenceId": $('#id-sales-reference').val(),
-                    "referenceEntityId": $('#id-sales-reference-entity').val()
+                    "reference_entityId": $('#id-sales-reference-entity').val()
                 };
                 // Recorre cada detalle de producto (son 2 arrays) each -> recorre
 
@@ -316,11 +321,42 @@
                         {#document.getElementById('id-tr-reference').style.visibility = "visible"; // visible#}
                         {#document.getElementById('id-tr-reference-entity').style.visibility = "visible"; // visible#}
                         document.getElementById("id-tr-reference").hidden = false;
-                        document.getElementById("id-tr-reference-entity").hidden = false;
+                        {#document.getElementById("id-tr-reference-entity").hidden = false;#}
                     } else {
                         {#document.getElementById('id-tr-reference').style.visibility = "hidden"; // hide#}
                         {#document.getElementById('id-tr-reference-entity').style.visibility = "hidden"; // hide#}
                         document.getElementById("id-tr-reference").hidden = true;
+                        {#document.getElementById("id-tr-reference-entity").hidden = true;#}
+                    }
+
+                },
+            });
+        });
+
+        $('#id-sales-reference').change(function () {
+            //recupera el id_dela opcion seleccionada
+            let entity_id = $(this).val();
+
+            {#console.log(_search)#}
+
+            $.ajax({
+                url: '/buys/is_entity_private/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                //mando  id del producto del combo
+                data: {'entity_id': entity_id},
+                // si va bien retorna la data
+                success: function (response) {
+                    if (response.status) {
+                        {#document.getElementById('id-tr-reference').style.visibility = "visible"; // visible#}
+                        {#document.getElementById('id-tr-reference-entity').style.visibility = "visible"; // visible#}
+                        {#document.getElementById("id-tr-reference").hidden = false;#}
+                        document.getElementById("id-tr-reference-entity").hidden = false;
+                    } else {
+                        {#document.getElementById('id-tr-reference').style.visibility = "hidden"; // hide#}
+                        {#document.getElementById('id-tr-reference-entity').style.visibility = "hidden"; // hide#}
+                        {#document.getElementById("id-tr-reference").hidden = true;#}
                         document.getElementById("id-tr-reference-entity").hidden = true;
                     }
 

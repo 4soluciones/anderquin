@@ -32,16 +32,14 @@ def purchase_form(request):
     supplier_obj = Supplier.objects.all()
     product_obj = Product.objects.all()
     unitmeasurement_obj = Unit.objects.all()
-    salesreference_set = SalesReference.objects.all()
-    salesreferenceentity_set = SalesReferenceEntity.objects.all()
+    entity_reference_set = EntityReference.objects.all()
     # truck_set = Truck.objects.all()
     return render(request, 'buys/purchase_form.html', {
         # 'form': form_obj,
         'supplier_obj': supplier_obj,
         'unitmeasurement_obj': unitmeasurement_obj,
         'product_obj': product_obj,
-        'salesreference_set': salesreference_set,
-        'salesreferenceentity_set': salesreferenceentity_set
+        'entity_reference_set': entity_reference_set,
         # 'truck_set': truck_set,
         # 'list_detail_purchase': get_employees(need_rendering=False),
     })
@@ -57,48 +55,65 @@ def is_supplier_reference(request):
         }, status=HTTPStatus.OK)
 
 
+def is_entity_private(request):
+    if request.method == 'GET':
+        entity_id = request.GET.get('entity_id', '')
+        entity_obj = EntityReference.objects.get(id=entity_id)
+
+        return JsonResponse({
+            'status': entity_obj.is_private
+        }, status=HTTPStatus.OK)
+
+
 def add_reference(request):
     if request.method == 'GET':
-        razon_social = request.GET.get('razon_social', '').upper()
+        business_name = request.GET.get('business_name', '').upper()
         ruc = request.GET.get('ruc', '')
-        direccion = request.GET.get('direccion', '')
-        referencia = request.GET.get('referencia', '')
+        address = request.GET.get('address', '')
+        reference = request.GET.get('reference', '')
+        is_private = str(request.GET.get('is_private', ''))
 
-        sales_reference_obj = SalesReference(
-            business_name=razon_social,
+        if is_private == '0': is_private = False
+        else: is_private = True
+
+        entity_reference_obj = EntityReference(
+            business_name=business_name,
             ruc=ruc,
-            address=direccion,
-            reference=referencia
+            address=address,
+            reference=reference,
+            is_private=is_private
         )
-        sales_reference_obj.save()
+        entity_reference_obj.save()
 
         return JsonResponse({
-            'id': sales_reference_obj.id,
-            'ruc': sales_reference_obj.ruc,
-            'business_name': sales_reference_obj.business_name,
+            'id': entity_reference_obj.id,
+            'ruc': entity_reference_obj.ruc,
+            'business_name': entity_reference_obj.business_name,
+            'is_private': entity_reference_obj.is_private,
             'status': 'OK'
         }, status=HTTPStatus.OK)
 
 
-def add_reference_entity(request):
-    if request.method == 'GET':
-        razon_social_entity = request.GET.get('razon_social_entity', '').upper()
-        ruc_entity = request.GET.get('ruc_entity', '')
-        direccion_entity = request.GET.get('direccion_entity', '')
-
-        sales_reference_entity_obj = SalesReferenceEntity(
-            business_name=razon_social_entity,
-            ruc=ruc_entity,
-            address=direccion_entity
-        )
-        sales_reference_entity_obj.save()
-
-        return JsonResponse({
-            'id': sales_reference_entity_obj.id,
-            'ruc': sales_reference_entity_obj.ruc,
-            'business_name': sales_reference_entity_obj.business_name,
-            'status': 'OK'
-        }, status=HTTPStatus.OK)
+#
+# def add_reference_entity(request):
+#     if request.method == 'GET':
+#         razon_social_entity = request.GET.get('razon_social_entity', '').upper()
+#         ruc_entity = request.GET.get('ruc_entity', '')
+#         direccion_entity = request.GET.get('direccion_entity', '')
+#
+#         sales_reference_entity_obj = SalesReferenceEntity(
+#             business_name=razon_social_entity,
+#             ruc=ruc_entity,
+#             address=direccion_entity
+#         )
+#         sales_reference_entity_obj.save()
+#
+#         return JsonResponse({
+#             'id': sales_reference_entity_obj.id,
+#             'ruc': sales_reference_entity_obj.ruc,
+#             'business_name': sales_reference_entity_obj.business_name,
+#             'status': 'OK'
+#         }, status=HTTPStatus.OK)
 
 
 @csrf_exempt
@@ -113,10 +128,9 @@ def save_purchase(request):
         type_bill = str(data_purchase["Type_bill"])
         date = str(data_purchase["Date"])
         invoice = str(data_purchase["Invoice"]).upper()
-        delivery = str(data_purchase["delivery"]).upper()
         currency = str(data_purchase["currency"])
         reference_id = data_purchase["referenceId"]
-        referenceEntity_id = data_purchase["referenceEntityId"]
+        reference_entity_id = data_purchase["reference_entityId"]
 
         # print(data_purchase["truck"])
         # if (data_purchase["truck"]) is not None:
@@ -142,17 +156,19 @@ def save_purchase(request):
             # truck=truck_obj,
             # status=status,
             type_bill=type_bill,
-            delivery=delivery,
             currency_type=currency
         )
         purchase_obj.save()
 
-        if reference_id and referenceEntity_id:
-            reference_obj = SalesReference.objects.get(id=int(reference_id))
-            reference_entity_obj = SalesReferenceEntity.objects.get(id=int(referenceEntity_id))
+        if reference_id:
+            reference_obj = EntityReference.objects.get(id=int(reference_id))
 
-            purchase_obj.sales_reference = reference_obj
-            purchase_obj.sales_reference_entity = reference_entity_obj
+            purchase_obj.reference = reference_obj
+            purchase_obj.save()
+
+        if reference_entity_id:
+            reference_entity_obj = EntityReference.objects.get(id=int(reference_entity_id))
+            purchase_obj.reference_entity = reference_entity_obj
             purchase_obj.save()
 
         for detail in data_purchase['Details']:
@@ -537,8 +553,12 @@ def get_units_by_product(request):
         units = Unit.objects.filter(productdetail__product=product_obj)
         units_serialized_obj = serializers.serialize('json', units)
 
+        product_details = ProductDetail.objects.filter(product=product_obj)
+        products_serialized_obj = serializers.serialize('json', product_details)
+
         return JsonResponse({
             'units': units_serialized_obj,
+            # 'units': products_serialized_obj,
         }, status=HTTPStatus.OK)
 
 

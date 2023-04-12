@@ -67,14 +67,6 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Entrega:</td>
-                    <td><input type="text" class="form-control" id="id_entrega" required
-                               name="entrega"
-                               placeholder="Entrega"
-                               value="">
-                    </td>
-                </tr>
-                <tr>
                     <td>Moneda:</td>
                     <td style="width: 10%">
                         <select class="form-control" id="id_currency" name="currency" required>
@@ -86,9 +78,9 @@
                 </tr>
                 <tr id="id-tr-reference" hidden>
                     <td>Referencia de Venta:</td>
-                    <td><select class="form-control" id="id-sales-reference" name="sales-reference">
+                    <td><select class="form-control" id="id-sales-reference" name="sales-reference" required>
                         <option disabled selected value=""> Seleccione</option>
-                        {% for t in salesreference_set %}
+                        {% for t in entity_reference_set %}
                             <option value="{{ t.id }}">{{ t.business_name }}</option>
                         {% endfor %}
                     </select>
@@ -102,19 +94,22 @@
                 </tr>
                 <tr id="id-tr-reference-entity" hidden>
                     <td>Referencia de Venta a la Entidad:</td>
-                    <td><select class="form-control" id="id-sales-reference-entity" name="sales-reference-entity">
+                    <td><select class="form-control" id="id-sales-reference-entity" name="sales-reference-entity"
+                                required>
                         <option disabled selected value=""> Seleccione</option>
-                        {% for t in salesreferenceentity_set %}
+                        {% for t in entity_reference_set %}
                             <option value="{{ t.id }}">{{ t.business_name }}</option>
                         {% endfor %}
                     </select>
                     </td>
-                    <td>
-                        <button type="button" id="btn-detail" class="btn btn-success btn-block pb-1"
-                                data-toggle="modal"
-                                data-target="#modal-addreference-entity">Agregar
-                        </button>
-                    </td>
+                    {% comment %}
+                        <td>
+                            <button type="button" id="btn-detail" class="btn btn-success btn-block pb-1"
+                                    data-toggle="modal"
+                                    data-target="#modal-addreference-entity">Agregar
+                            </button>
+                        </td>
+                    {% endcomment %}
                 </tr>
                 <!--
                 <tr>
@@ -161,15 +156,6 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>Cantidad:</td>
-                        <td>
-                            <input type="text" class="form-control" id="id_cantidad"
-                                   name="cantidad"
-                                   placeholder="Cantidad" required
-                                   value="{{ employee.person.paternal_last_name }}">
-                        </td>
-                    </tr>
-                    <tr>
                         <td>Unidad de Medida:
                         </td>
                         <td>
@@ -183,6 +169,15 @@
                                     {% endif %}
                                 {% endfor %}
                             </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Cantidad:</td>
+                        <td>
+                            <input type="text" class="form-control" id="id_cantidad"
+                                   name="cantidad"
+                                   placeholder="Cantidad" required
+                                   value="{{ employee.person.paternal_last_name }}">
                         </td>
                     </tr>
                     <tr>
@@ -253,6 +248,17 @@
                                    name="referencia"
                                    placeholder="Referencia" required
                                    value="">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>¿Entidad Privada?:
+                        </td>
+                        <td>
+                            <select class="form-control" id="id_is_private" name="is_private" required>
+                                <option disabled selected value=""> Seleccione</option>
+                                <option value="1">PRIVADA</option>
+                                <option value="0">PÚBLICA</option>
+                            </select>
                         </td>
                     </tr>
                 </table>

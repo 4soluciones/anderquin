@@ -721,11 +721,13 @@ def set_product_detail(request):
     else:
         if request.method == 'POST':
             id_product = request.POST.get('product', '')
+            price_purchase = request.POST.get('price_purchase', '')
             price_sale = request.POST.get('price_sale', '')
             id_unit = request.POST.get('unit', '')
             quantity_minimum = request.POST.get('quantity_minimum', '')
 
-            if decimal.Decimal(price_sale) == 0 or decimal.Decimal(quantity_minimum) == 0:
+            if decimal.Decimal(price_sale) == 0 or decimal.Decimal(quantity_minimum) == 0 or decimal.Decimal(
+                    price_purchase) == 0:
                 data['error'] = "Ingrese valores validos."
                 response = JsonResponse(data)
                 response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
@@ -737,6 +739,7 @@ def set_product_detail(request):
             try:
                 product_detail_obj = ProductDetail(
                     product=product_obj,
+                    price_purchase=decimal.Decimal(price_purchase),
                     price_sale=decimal.Decimal(price_sale),
                     unit=unit_obj,
                     quantity_minimum=decimal.Decimal(quantity_minimum),
@@ -792,11 +795,13 @@ def update_product_detail(request):
     if request.method == 'POST':
         id_product_detail = request.POST.get('product_detail', '')
         id_product = request.POST.get('product', '')
+        price_purchase = request.POST.get('price_purchase', '')
         price_sale = request.POST.get('price_sale', '')
         id_unit = request.POST.get('unit', '')
         quantity_minimum = request.POST.get('quantity_minimum', '')
 
-        if decimal.Decimal(price_sale) == 0 or decimal.Decimal(quantity_minimum) == 0:
+        if decimal.Decimal(price_sale) == 0 or decimal.Decimal(quantity_minimum) == 0 or decimal.Decimal(
+                price_purchase) == 0:
             data['error'] = "Ingrese valores validos."
             response = JsonResponse(data)
             response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
@@ -807,6 +812,7 @@ def update_product_detail(request):
         product_detail_obj = ProductDetail.objects.get(id=int(id_product_detail))
         product_detail_obj.quantity_minimum = quantity_minimum
         product_detail_obj.price_sale = price_sale
+        product_detail_obj.price_purchase = price_purchase
         product_detail_obj.product = product_obj
         product_detail_obj.unit = unit_obj
         product_detail_obj.save()
@@ -1226,7 +1232,7 @@ def generate_receipt_random(request):
                                            unit=unit_obj,
                                            status='V')
             detail_order_obj.save()
-            
+
             r = send_receipt_nubefact(order_obj.id, is_demo)
             codigo_hash = r.get('codigo_hash')
             if codigo_hash:
@@ -5469,7 +5475,6 @@ def purchase_report_by_category(request):
         sum_float_purchases_sum_total = 0
         float_purchases_sum_total = 0
         float_total_month = 0
-
 
         for i in range(1, 13):
 

@@ -25,7 +25,7 @@ from reportlab.rl_settings import defaultPageSize
 
 
 from anderquin import settings
-from .models import Purchase, PurchaseDetail, SalesReference, SalesReferenceEntity
+from .models import Purchase, PurchaseDetail, EntityReference
 from ..sales.models import Supplier
 
 PAGE_HEIGHT = defaultPageSize[1]

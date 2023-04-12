@@ -9,31 +9,21 @@ from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill, Adjust
 
 
-class SalesReference(models.Model):
+class EntityReference(models.Model):
     business_name = models.CharField('Razon social', max_length=200, null=True, blank=True)
     ruc = models.CharField('Ruc de la empresa', max_length=11, null=True, blank=True)
     address = models.CharField('Dirección de la empresa', max_length=200, null=True, blank=True)
     reference = models.CharField('Referencia', max_length=200, null=True, blank=True)
+    ###################
+
+    is_private = models.BooleanField('¿Entidad Privada?', default=True)
 
     def __str__(self):
         return self.business_name
 
     class Meta:
-        verbose_name = 'Referencia de Venta'
-        verbose_name_plural = 'Referencia de Venta'
-
-
-class SalesReferenceEntity(models.Model):
-    business_name = models.CharField('Razon social', max_length=200, null=True, blank=True)
-    ruc = models.CharField('Ruc de la empresa', max_length=11, null=True, blank=True)
-    address = models.CharField('Dirección de la empresa', max_length=200, null=True, blank=True)
-
-    def __str__(self):
-        return self.business_name
-
-    class Meta:
-        verbose_name = 'Referencia de Venta a la Entidad'
-        verbose_name_plural = 'Referencia de Venta a la Entidad'
+        verbose_name = 'Entidad de Referencia'
+        verbose_name_plural = 'Entidades de Referencia'
 
 
 class Purchase(models.Model):
@@ -49,13 +39,14 @@ class Purchase(models.Model):
     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='S')
     truck = models.ForeignKey(Truck, on_delete=models.SET_NULL, null=True, blank=True)
     type_bill = models.CharField('Tipo de comprobante', max_length=1, choices=TYPE_CHOICES, default='T')
-    delivery = models.CharField('Entregar a', max_length=255, null=True, blank=True)
-    sales_reference = models.ForeignKey(SalesReference, verbose_name='Referencia de Venta', on_delete=models.CASCADE,
-                                        null=True, blank=True)
-    sales_reference_entity = models.ForeignKey(SalesReferenceEntity, verbose_name='Referencia de Venta a la Entidad',
-                                               on_delete=models.CASCADE,
-                                               null=True, blank=True)
+    ###################
+
     currency_type = models.CharField('Tipo de moneda', max_length=1, choices=CURRENCY_TYPE_CHOICES, default='S')
+    reference = models.ForeignKey(EntityReference, verbose_name='Referencia de Venta', on_delete=models.CASCADE,
+                                        null=True, blank=True)
+    reference_entity = models.ForeignKey(EntityReference, verbose_name='Referencia de Venta a la Entidad',
+                                               on_delete=models.CASCADE,
+                                               null=True, blank=True, related_name='entity_purchase')
 
     def __str__(self):
         return str(self.id)
