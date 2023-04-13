@@ -69,8 +69,8 @@ def add_reference(request):
     if request.method == 'GET':
         business_name = request.GET.get('business_name', '').upper()
         ruc = request.GET.get('ruc', '')
-        address = request.GET.get('address', '')
-        reference = request.GET.get('reference', '')
+        address = request.GET.get('address', '').upper()
+        reference = request.GET.get('reference', '').upper()
         is_private = str(request.GET.get('is_private', ''))
 
         if is_private == '0': is_private = False
@@ -129,6 +129,9 @@ def save_purchase(request):
         date = str(data_purchase["Date"])
         invoice = str(data_purchase["Invoice"]).upper()
         currency = str(data_purchase["currency"])
+        payment_method = str(data_purchase["payment_method"])
+        payment_condition = str(data_purchase["payment_condition"]).upper()
+        delivery = data_purchase["delivery"]
         reference_id = data_purchase["referenceId"]
         reference_entity_id = data_purchase["reference_entityId"]
 
@@ -156,7 +159,9 @@ def save_purchase(request):
             # truck=truck_obj,
             # status=status,
             type_bill=type_bill,
-            currency_type=currency
+            currency_type=currency,
+            payment_method=payment_method,
+            payment_condition=payment_condition,
         )
         purchase_obj.save()
 
@@ -169,6 +174,10 @@ def save_purchase(request):
         if reference_entity_id:
             reference_entity_obj = EntityReference.objects.get(id=int(reference_entity_id))
             purchase_obj.reference_entity = reference_entity_obj
+            purchase_obj.save()
+
+        if delivery:
+            purchase_obj.delivery = delivery
             purchase_obj.save()
 
         for detail in data_purchase['Details']:
@@ -559,6 +568,27 @@ def get_units_by_product(request):
         return JsonResponse({
             'units': units_serialized_obj,
             # 'units': products_serialized_obj,
+        }, status=HTTPStatus.OK)
+
+def get_price_by_unit(request):
+    if request.method == 'GET':
+        id_product = request.GET.get('id_product', '')
+        id_unit = request.GET.get('id_unit', '')
+
+        product_obj = Product.objects.get(id=id_product)
+        unit_obj = Unit.objects.get(id=id_unit)
+
+        product_detail = ProductDetail.objects.get(
+            product=product_obj,
+            unit=unit_obj
+        )
+
+        price = product_detail.price_purchase
+        quantity = product_detail.quantity_minimum
+
+        return JsonResponse({
+            'price': price,
+            'quantity': quantity
         }, status=HTTPStatus.OK)
 
 

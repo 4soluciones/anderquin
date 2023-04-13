@@ -21,6 +21,7 @@ urlpatterns = [
     path('get_programming_invoice/', get_programming_invoice, name='get_programming_invoice'),
     path('save_detail_purchase_store/', save_detail_purchase_store, name='save_detail_purchase_store'),
     path('get_units_by_product/', get_units_by_product, name='get_units_by_product'),
+    path('get_price_by_unit/', get_price_by_unit, name='get_price_by_unit'),
     path('get_scop_truck/', get_scop_truck, name='get_scop_truck'),
     path('save_programming_invoice/', save_programming_invoice, name='save_programming_invoice'),
     path('save_detail_requirement_store/', save_detail_requirement_store, name='save_detail_requirement_store'),

@@ -9,6 +9,21 @@ from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill, Adjust
 
 
+class MoneyChange(models.Model):
+    id = models.AutoField(primary_key=True)
+    search_date = models.DateField('Fecha de busqueda', null=True, blank=True, unique=True)
+    sunat_date = models.DateField('Fecha de sunat', null=True, blank=True, unique=True)
+    sell = models.DecimalField('Venta', max_digits=10, decimal_places=4, default=0)
+    buy = models.DecimalField('Compra', max_digits=10, decimal_places=4, default=0)
+
+    def __str__(self):
+        return str(self.id)
+
+    class Meta:
+        verbose_name = 'Cambio de Moneda'
+        verbose_name_plural = 'Cambio de Monedas'
+
+
 class EntityReference(models.Model):
     business_name = models.CharField('Razon social', max_length=200, null=True, blank=True)
     ruc = models.CharField('Ruc de la empresa', max_length=11, null=True, blank=True)
@@ -30,6 +45,8 @@ class Purchase(models.Model):
     STATUS_CHOICES = (('S', 'SIN ALMACEN'), ('A', 'EN ALMACEN'), ('N', 'ANULADO'),)
     TYPE_CHOICES = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'),)
     CURRENCY_TYPE_CHOICES = (('S', 'SOL'), ('D', 'DOLAR'),)
+    PAYMENT_METHOD_CHOICES = (('CO', 'CONTADO'), ('CR', 'CREDITO'),)
+    DELIVERY_CHOICES = (('A', 'Anderquin'), ('P', 'Proveedor'))
     id = models.AutoField(primary_key=True)
     supplier = models.ForeignKey(Supplier, verbose_name='Proveedor', on_delete=models.CASCADE, null=True, blank=True)
     purchase_date = models.DateField('Fecha compra', null=True, blank=True)
@@ -43,10 +60,16 @@ class Purchase(models.Model):
 
     currency_type = models.CharField('Tipo de moneda', max_length=1, choices=CURRENCY_TYPE_CHOICES, default='S')
     reference = models.ForeignKey(EntityReference, verbose_name='Referencia de Venta', on_delete=models.CASCADE,
-                                        null=True, blank=True)
+                                  null=True, blank=True)
     reference_entity = models.ForeignKey(EntityReference, verbose_name='Referencia de Venta a la Entidad',
-                                               on_delete=models.CASCADE,
-                                               null=True, blank=True, related_name='entity_purchase')
+                                         on_delete=models.CASCADE,
+                                         null=True, blank=True, related_name='entity_purchase')
+    payment_method = models.CharField('Método de Pago', max_length=2, choices=PAYMENT_METHOD_CHOICES, default='CO')
+    payment_condition = models.CharField('Condicion de Pago', max_length=255, null=True, blank=True)
+    money_change = models.ForeignKey(MoneyChange, verbose_name='Cambio de Moneda', on_delete=models.CASCADE, null=True,
+                                     blank=True)
+
+    delivery = models.CharField('Enviar a', max_length=1, choices=DELIVERY_CHOICES, default='A', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
@@ -57,10 +80,17 @@ class Purchase(models.Model):
 
     def get_currency_type(self):
         currency_set = {
-            'S': 'Sol',
-            'D': 'Dolar'
+            'S': 'SOL',
+            'D': 'DOLAR'
         }
         return currency_set[self.currency_type]
+
+    def get_payment_method(self):
+        payment_method_set = {
+            'CO': 'CONTADO',
+            'CR': 'CRÉDITO'
+        }
+        return payment_method_set[self.payment_method]
 
     def total(self):
         response = 0

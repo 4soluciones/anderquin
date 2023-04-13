@@ -76,9 +76,37 @@
                         </select>
                     </td>
                 </tr>
+                <tr>
+                    <td>Método de Pago:</td>
+                    <td style="width: 10%">
+                        <select class="form-control" id="id_payment_method" name="payment_method" required>
+                            <option disabled selected value=""> Seleccione</option>
+                            <option value="CO">CONTADO</option>
+                            <option value="CR">CREDITO</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Condición de Pago:</td>
+                    <td><input type="text" class="form-control" id="id_payment_condition" required
+                               name="payment_condition"
+                               placeholder="Condición de Pago"
+                               value="">
+                    </td>
+                </tr>
+                <tr id="id-tr-delivery" hidden>
+                    <td>Entrega:</td>
+                    <td style="width: 10%">
+                        <select class="form-control" id="id_delivery" name="delivery">
+                            <option disabled selected value=""> Seleccione</option>
+                            <option value="A">ANDERQUIN</option>
+                            <option value="P">PROVEEDOR</option>
+                        </select>
+                    </td>
+                </tr>
                 <tr id="id-tr-reference" hidden>
                     <td>Referencia de Venta:</td>
-                    <td><select class="form-control" id="id-sales-reference" name="sales-reference" required>
+                    <td><select class="form-control" id="id-sales-reference" name="sales-reference">
                         <option disabled selected value=""> Seleccione</option>
                         {% for t in entity_reference_set %}
                             <option value="{{ t.id }}">{{ t.business_name }}</option>
@@ -94,8 +122,7 @@
                 </tr>
                 <tr id="id-tr-reference-entity" hidden>
                     <td>Referencia de Venta a la Entidad:</td>
-                    <td><select class="form-control" id="id-sales-reference-entity" name="sales-reference-entity"
-                                required>
+                    <td><select class="form-control" id="id-sales-reference-entity" name="sales-reference-entity">
                         <option disabled selected value=""> Seleccione</option>
                         {% for t in entity_reference_set %}
                             <option value="{{ t.id }}">{{ t.business_name }}</option>
@@ -187,6 +214,15 @@
                             <input type="text" class="form-control" id="id_preciounitario"
                                    name="preciounitario"
                                    placeholder="precio" required
+                                   value="" readonly>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Cantidad X UM:</td>
+                        <td>
+                            <input type="text" class="form-control" id="id_cantidad_unidad"
+                                   name="cantidad_unidad"
+                                   placeholder="Cantidad X UM" required readonly
                                    value="{{ employee.person.paternal_last_name }}">
                         </td>
                     </tr>
