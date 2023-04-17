@@ -25,11 +25,26 @@
 
 {% block extrajs %}
     <script type="text/javascript">
+
+        window.onload = function () {
+            var date = new Date(); //Fecha actual
+            var day = date.getDate(); //obteniendo dia
+            var month = date.getMonth() + 1; //obteniendo mes
+            var year = date.getFullYear(); //obteniendo año
+            if (day < 10)
+                day = '0' + day; //agrega cero si el menor de 10
+            if (month < 10)
+                month = '0' + month //agrega cero si el menor de 10
+            document.getElementById('id_fechacompra').value = year + "-" + month + "-" + day;
+        }
         {#document.ready = document.getElementById("opciones").value = '0';#}
         $('#id_proveedor').select2({
             theme: 'bootstrap4',
         });
         $('#id_producto').select2({
+            theme: 'bootstrap4',
+        })
+        ;$('#id_delivery').select2({
             theme: 'bootstrap4',
         });
         $('#id-sales-reference').select2({
@@ -47,16 +62,12 @@
             limper_form();
         });
 
-        window.onload = function () {
-            {#document.getElementById('id-tr-reference').style.visibility = "hidden"; // hide#}
-            {#document.getElementById('id-tr-reference-entity').style.visibility = "hidden"; // hide#}
-        }
-
         function limper_form(request) {
             $('#id_fechacompra').val('');
             $("#id_factura").val('');
             $("#id_entrega").val('');
             $("#id_payment_condition").val('');
+            $("#id_observation").val('');
             $('#id_proveedor option').removeAttr('selected');
             $('#id_proveedor option:first').attr('selected', 'selected');
             $('#id_proveedor').trigger('change');
@@ -234,7 +245,7 @@
             if ($("#id_detail_data_grid tbody tr").length > 0) {
                 let Detail_purchase = {
                     "Details": [],
-                    "Invoice": $('#id_factura').val(),
+                    {#"Invoice": $('#id_factura').val(),#}
                     "ProviderId": $('#id_proveedor').val(),
                     "Date": $('#id_fechacompra').val(),
                     //"truck": $('#id-truck').val(),
@@ -244,7 +255,8 @@
                     "payment_condition": $('#id_payment_condition').val(),
                     "delivery": $('#id_delivery').val(),
                     "referenceId": $('#id-sales-reference').val(),
-                    "reference_entityId": $('#id-sales-reference-entity').val()
+                    "reference_entityId": $('#id-sales-reference-entity').val(),
+                    "observation": $('#id_observation').val()
                 };
                 // Recorre cada detalle de producto (son 2 arrays) each -> recorre
 
@@ -364,7 +376,7 @@
                         {#document.getElementById('id-tr-reference').style.visibility = "visible"; // visible#}
                         {#document.getElementById('id-tr-reference-entity').style.visibility = "visible"; // visible#}
                         document.getElementById("id-tr-reference").hidden = false;
-                        document.getElementById("id-tr-delivery").hidden = true;
+                        {#document.getElementById("id-tr-delivery").hidden = true;#}
                         {#document.getElementById("id-tr-reference-entity").hidden = false;#}
                     } else {
                         {#document.getElementById('id-tr-reference').style.visibility = "hidden"; // hide#}
@@ -373,7 +385,6 @@
                         document.getElementById("id-tr-delivery").hidden = false;
                         {#document.getElementById("id-tr-reference-entity").hidden = true;#}
                     }
-
                 },
             });
         });
@@ -381,6 +392,7 @@
         $('#id-sales-reference').change(function () {
             //recupera el id_dela opcion seleccionada
             let entity_id = $(this).val();
+            let supplier_id = document.getElementById('id_proveedor').value
 
             {#console.log(_search)#}
 
@@ -390,7 +402,7 @@
                 dataType: 'json',
                 type: 'GET',
                 //mando  id del producto del combo
-                data: {'entity_id': entity_id},
+                data: {'entity_id': entity_id, 'supplier_id': supplier_id},
                 // si va bien retorna la data
                 success: function (response) {
                     if (response.status) {
@@ -405,6 +417,25 @@
                         document.getElementById("id-tr-reference-entity").hidden = true;
                     }
 
+                    document.getElementById("id-tr-delivery").hidden = false;
+
+                    addresses_client = response.addresses_client;
+                    let client_group = document.getElementById('id_client_group')
+                    for (var id in addresses_client) {
+                        const opt = document.createElement("option"); // <option></option>
+                        opt.textContent = addresses_client[id]
+                        opt.value = `c-${id}`
+                        client_group.appendChild(opt)
+                    }
+                    addresses_supplier = response.addresses_supplier;
+                    let supplier_group = document.getElementById('id_supplier_group')
+                    for (var id in addresses_supplier) {
+                        const opt = document.createElement("option"); // <option></option>
+                        opt.textContent = addresses_supplier[id]
+                        opt.value = `p-${id}`
+                        supplier_group.appendChild(opt)
+                        console.log(id, addresses_supplier[id])
+                    }
                 },
             });
         });

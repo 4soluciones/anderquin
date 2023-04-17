@@ -2,6 +2,7 @@ from import_export.admin import ImportExportModelAdmin
 from django.contrib import admin
 from apps.sales import models
 # Register your models here.
+from apps.sales.models import City, AddressSupplier
 
 
 class SubsidiaryAdmin(admin.ModelAdmin):
@@ -40,6 +41,7 @@ class ProductStoreAdmin(admin.ModelAdmin):
 
     def get_subsidiary(self, obj):
         return obj.subsidiary_store.subsidiary
+
     get_subsidiary.admin_order_field = 'subsidiary'  # Allows column order sorting
     get_subsidiary.short_description = 'Sede'  # Renames column head
 
@@ -60,6 +62,22 @@ admin.site.register(models.Supplier, SupplierAdmin)
 # admin.site.register(models.Supplier)
 admin.site.register(models.ProductSupplier)
 admin.site.register(models.Client)
+
+
 # admin.site.register(models.LegalClient)
 # admin.site.register(models.NaturalClient)
 # admin.site.register(models.Kardex)
+
+
+class CityAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+
+
+admin.site.register(City, CityAdmin)
+
+
+class AddressSupplierAdmin(admin.ModelAdmin):
+    list_display = ('id', 'supplier', 'city', 'address')
+
+
+admin.site.register(AddressSupplier, AddressSupplierAdmin)

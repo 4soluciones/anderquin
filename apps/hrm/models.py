@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+
+
 # Create your models here.
 
 
@@ -116,8 +118,9 @@ class TelephoneNationalLongDistanceCode(models.Model):
 class Employee(models.Model):
     GENDER_CHOICES = (('1', 'masculino'), ('2', 'femenino'),)
     CENTER_INDICATOR_CHOICES = (('1', 'direccion 1'), ('2', 'direccion 2'),)
-    LICENSE_TYPE_CHOICES = (('1', 'A-I'), ('2', 'A-IIB'), ('3', 'A-IIIC'), ('4', 'A-IIIB'), ('5', 'A-IVA'), ('6', 'A-IIA'),
-                            ('7', 'A-IIIA'), ('8', 'B-I'), ('9', 'B-IIA'), ('10', 'B-IIB'), ('11', 'B-IIC'), ('12', 'SIN LICENCIA'),)
+    LICENSE_TYPE_CHOICES = (
+    ('1', 'A-I'), ('2', 'A-IIB'), ('3', 'A-IIIC'), ('4', 'A-IIIB'), ('5', 'A-IVA'), ('6', 'A-IIA'),
+    ('7', 'A-IIIA'), ('8', 'B-I'), ('9', 'B-IIA'), ('10', 'B-IIB'), ('11', 'B-IIC'), ('12', 'SIN LICENCIA'),)
     ESSALUD_ASSISTANCE_CHOICES = (('1', 'dirección 1'), ('2', ' dirección 2'),)
 
     document_type = models.ForeignKey('DocumentType', on_delete=models.CASCADE)
@@ -322,7 +325,7 @@ class Worker(models.Model):
     AGREEMENT_TO_AVOID_DOUBLE_TAXATION_CHOICES = (
         ('0', 'NINGUNO'), ('1', 'CANADA'), ('2', 'CHILE'), ('3', 'CAN'), ('4', 'BRASIL'),)
     id = models.AutoField(primary_key=True)
-    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, null=True, blank=True )
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, null=True, blank=True)
     labor_regime = models.ForeignKey('LaborRegime', on_delete=models.CASCADE)
     educational_situation = models.ForeignKey('EducationalSituation', on_delete=models.CASCADE)
     occupation_private_sector = models.ForeignKey(
@@ -339,7 +342,7 @@ class Worker(models.Model):
     subject_to_night_time = models.BooleanField(default=False)
     is_unionized = models.BooleanField(default=False)
     periodicity = models.CharField(max_length=1, choices=PERIODICITY_CHOICES, default='1', )
-    initial_basic_remuneration = models.DecimalField(max_digits=10, decimal_places=2, default='0',)
+    initial_basic_remuneration = models.DecimalField(max_digits=10, decimal_places=2, default='0', )
     situation = models.ForeignKey('Situation', on_delete=models.CASCADE, null=True)
     exempted_5th_category_rent = models.BooleanField(default=False)
     special_situation = models.ForeignKey('SpecialSituation', on_delete=models.CASCADE, null=True)
@@ -350,7 +353,8 @@ class Worker(models.Model):
         max_length=1, choices=AGREEMENT_TO_AVOID_DOUBLE_TAXATION_CHOICES, default='0', )
     # Solo para los CAS (tipo de trabajador = 67).
     ruc = models.CharField(max_length=11, null=True, blank=True)
-    user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.SET_NULL, null=True, blank=True,
+                             related_name='user_worker')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -401,11 +405,11 @@ class StaffInTraining(models.Model):
     VOCATIONAL_TRAINING_CENTER_CHOICES = (
         ('1', 'Centro Educativo'), ('2', 'Universidad'), ('3', 'Instituto'), ('4', 'Otros'),)
     id = models.AutoField(primary_key=True)
-    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, null=True, blank=True )
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, null=True, blank=True)
     labor_training_modality_type = models.ForeignKey(
         'LaborTrainingModalityType', on_delete=models.CASCADE)
     medical_insurance = models.CharField(
-        max_length=1, choices=MEDICAL_INSURANCE_CHOICES, null=True,)
+        max_length=1, choices=MEDICAL_INSURANCE_CHOICES, null=True, )
     educational_situation = models.ForeignKey('EducationalSituation', on_delete=models.CASCADE)
     occupation_private_sector = models.ForeignKey(
         'OccupationPrivateSector', on_delete=models.CASCADE, null=True)
@@ -414,7 +418,7 @@ class StaffInTraining(models.Model):
     mother_with_family_responsibility = models.BooleanField(default=False)
     disability = models.BooleanField(default=False)
     vocational_training_center = models.CharField(
-        max_length=1, choices=VOCATIONAL_TRAINING_CENTER_CHOICES, null=True,)
+        max_length=1, choices=VOCATIONAL_TRAINING_CENTER_CHOICES, null=True, )
     subject_to_night_time_work = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -430,7 +434,7 @@ class StaffInTraining(models.Model):
 class ThirdPartyPersonnel(models.Model):
     SCTR_PENSION_CHOICES = (('1', 'ONP'), ('2', 'Seguro Privado'),)
     id = models.AutoField(primary_key=True)
-    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, null=True, blank=True )
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, null=True, blank=True)
     employer_ruc_that_highlights_displaces_me = models.CharField(
         max_length=11, null=True, blank=True)
     sctr_pension = models.CharField(max_length=1, choices=SCTR_PENSION_CHOICES, null=True, )
@@ -522,7 +526,7 @@ class Period(models.Model):
         '3', 'Régimen de Aseguramiento de Salud'), ('4', 'Régimen pensionario'), ('5', 'SCTR Salud'),)
     SCTR_HEALTH_CHOICES = (('1', 'EsSalud'), ('2', 'EPS'),)
     id = models.AutoField(primary_key=True)
-    worker = models.ForeignKey('Worker', on_delete=models.CASCADE, null=True, blank=True )
+    worker = models.ForeignKey('Worker', on_delete=models.CASCADE, null=True, blank=True)
     category = models.CharField(max_length=1, choices=CATEGORY_CHOICES, null=True, )
     register_type = models.CharField(max_length=1, choices=REGISTER_TYPE_CHOICES, null=True, )
 
@@ -574,7 +578,7 @@ class Subsidiary(models.Model):
 
 class Establishment(models.Model):
     id = models.AutoField(primary_key=True)
-    worker = models.ForeignKey('Worker', on_delete=models.CASCADE, null=True, blank=True )
+    worker = models.ForeignKey('Worker', on_delete=models.CASCADE, null=True, blank=True)
     subsidiary = models.ForeignKey(Subsidiary, on_delete=models.CASCADE, null=True, blank=True)
     # ruc_own_or_the_employer_to_whom_i_highlight_or_displace_personal
     ruc_own = models.CharField(max_length=11, null=True, blank=True)
@@ -644,7 +648,8 @@ class FinancialSystemEntity(models.Model):
 class PaymentAccountData(models.Model):
     id = models.AutoField(primary_key=True)
     worker = models.ForeignKey('Worker', on_delete=models.CASCADE, )
-    financial_system_entity = models.ForeignKey('FinancialSystemEntity', on_delete=models.CASCADE, null=True, blank=True )
+    financial_system_entity = models.ForeignKey('FinancialSystemEntity', on_delete=models.CASCADE, null=True,
+                                                blank=True)
     account_number_where_the_remuneration_is_paid = models.CharField(max_length=14, null=True, blank=True)
 
     def __str__(self):
@@ -685,7 +690,7 @@ class Beneficiary(models.Model):
     GENDER_CHOICES = (('1', 'masculino'), ('2', 'femenino'),)
     ESSALUD_ASSISTANCE_CHOICES = (('1', 'dirección 1'), ('2', ' dirección 2'),)
     id = models.AutoField(primary_key=True)
-    worker = models.ForeignKey('Worker', on_delete=models.CASCADE, null=True, blank=True )
+    worker = models.ForeignKey('Worker', on_delete=models.CASCADE, null=True, blank=True)
     document_type = models.ForeignKey('DocumentType', on_delete=models.CASCADE)
     document_number = models.CharField(max_length=15, null=True, blank=True)
     document_issuing_country = models.ForeignKey('DocumentIssuingCountry', on_delete=models.CASCADE)
@@ -739,7 +744,8 @@ class Beneficiary(models.Model):
         'Centro asistencial', max_length=1, choices=ESSALUD_ASSISTANCE_CHOICES, default='1', )
 
     telephone_national_long_distance_code = models.ForeignKey(
-        'TelephoneNationalLongDistanceCode', related_name='beneficiary_cldn', on_delete=models.SET_NULL, null=True, blank=True)
+        'TelephoneNationalLongDistanceCode', related_name='beneficiary_cldn', on_delete=models.SET_NULL, null=True,
+        blank=True)
     telephone_number = models.CharField(max_length=9, null=True, blank=True)
     email = models.EmailField(max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

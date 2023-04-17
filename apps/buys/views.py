@@ -19,7 +19,7 @@ from apps.sales.views import kardex_input, kardex_ouput, kardex_initial, calcula
     save_loan_payment_in_cash_flow
 from .models import *
 from ..sales.models import Product, Unit, Supplier, SubsidiaryStore, ProductStore, ProductDetail, Kardex, Cash, \
-    CashFlow, TransactionPayment
+    CashFlow, TransactionPayment, AddressSupplier
 
 
 class Home(TemplateView):
@@ -58,10 +58,24 @@ def is_supplier_reference(request):
 def is_entity_private(request):
     if request.method == 'GET':
         entity_id = request.GET.get('entity_id', '')
+        supplier_id = request.GET.get('supplier_id', '')
         entity_obj = EntityReference.objects.get(id=entity_id)
 
+        addresses_client = AddressEntityReference.objects.filter(entity_reference=entity_obj)
+        addresses_supplier = AddressSupplier.objects.filter(supplier_id=supplier_id)
+
+        client_dict = {}
+        for i in addresses_client:
+            client_dict[i.id] = f'{i.address}'[:30]
+
+        supplier_dict = {}
+        for i in addresses_supplier:
+            supplier_dict[i.id] = f'{i.city.name}'
+
         return JsonResponse({
-            'status': entity_obj.is_private
+            'status': entity_obj.is_private,
+            'addresses_client': client_dict,
+            'addresses_supplier': supplier_dict
         }, status=HTTPStatus.OK)
 
 
@@ -73,8 +87,10 @@ def add_reference(request):
         reference = request.GET.get('reference', '').upper()
         is_private = str(request.GET.get('is_private', ''))
 
-        if is_private == '0': is_private = False
-        else: is_private = True
+        if is_private == '0':
+            is_private = False
+        else:
+            is_private = True
 
         entity_reference_obj = EntityReference(
             business_name=business_name,
@@ -127,13 +143,14 @@ def save_purchase(request):
         provider_id = str(data_purchase["ProviderId"])
         # type_bill = str(data_purchase["Type_bill"])
         date = str(data_purchase["Date"])
-        invoice = str(data_purchase["Invoice"]).upper()
+        # invoice = str(data_purchase["Invoice"]).upper()
         currency = str(data_purchase["currency"])
         payment_method = str(data_purchase["payment_method"])
         payment_condition = str(data_purchase["payment_condition"]).upper()
-        delivery = data_purchase["delivery"]
+        delivery = str(data_purchase["delivery"]).split('-')
         reference_id = data_purchase["referenceId"]
         reference_entity_id = data_purchase["reference_entityId"]
+        observation = data_purchase["observation"]
 
         # print(data_purchase["truck"])
         # if (data_purchase["truck"]) is not None:
@@ -150,10 +167,29 @@ def save_purchase(request):
 
         supplier_obj = Supplier.objects.get(id=int(provider_id))
 
+        DIRECCION_CENTRAL = 'JR. CARABAYA NRO. 443 (AL FRENTE DE LA PLAZA MANCO CAPAC) PUNO - SAN ROMAN - JULIACA'
+        DIRECCION_ALMACEN = 'JR. PALMERAS-STA. ASUNCION MZA. I5 LOTE 10 FRENTE A LA PLAZA DE SANTA ASUNCION PUNO-SAN ROMAN-JULIACA'
+
+        delivery_from = delivery[0]
+        delivery_id = delivery[1]
+
+        name_address = ''
+        if delivery_from == 'a':
+            if delivery_id == 'C':
+                name_address = DIRECCION_CENTRAL
+            elif delivery_id == 'A':
+                name_address = DIRECCION_ALMACEN
+        elif delivery_from == 'c':
+            address_entity = AddressEntityReference.objects.get(id=int(delivery_id))
+            name_address = f'{address_entity.address}'
+        elif delivery_from == 'p':
+            address_supplier = AddressSupplier.objects.get(id=int(delivery_id))
+            name_address = f'{address_supplier.address} - {address_supplier.city}'
+
         purchase_obj = Purchase(
             supplier=supplier_obj,
             purchase_date=date,
-            bill_number=invoice,
+            # bill_number=invoice,
             user=user_obj,
             subsidiary=subsidiary_obj,
             # truck=truck_obj,
@@ -162,9 +198,12 @@ def save_purchase(request):
             currency_type=currency,
             payment_method=payment_method,
             payment_condition=payment_condition,
+            delivery=name_address,
+            observation=observation
         )
         purchase_obj.save()
-
+        purchase_obj.bill_number = f'OC-{datetime.now().year}-{str(purchase_obj.id).zfill(5)}'
+        purchase_obj.save()
         if reference_id:
             reference_obj = EntityReference.objects.get(id=int(reference_id))
 
@@ -176,9 +215,10 @@ def save_purchase(request):
             purchase_obj.reference_entity = reference_entity_obj
             purchase_obj.save()
 
-        if delivery:
-            purchase_obj.delivery = delivery
-            purchase_obj.save()
+
+        # if delivery:
+        #     purchase_obj.delivery = delivery
+        #     purchase_obj.save()
 
         for detail in data_purchase['Details']:
             quantity = decimal.Decimal(detail['Quantity'])
@@ -569,6 +609,7 @@ def get_units_by_product(request):
             'units': units_serialized_obj,
             # 'units': products_serialized_obj,
         }, status=HTTPStatus.OK)
+
 
 def get_price_by_unit(request):
     if request.method == 'GET':

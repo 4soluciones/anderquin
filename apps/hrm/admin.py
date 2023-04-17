@@ -2,6 +2,7 @@ from import_export.admin import ImportExportModelAdmin
 from django.contrib import admin
 from apps.hrm import models
 # Register your models here.
+from apps.hrm.models import Worker, Employee
 
 
 class DocumentTypeAdmin(ImportExportModelAdmin):
@@ -79,7 +80,7 @@ admin.site.register(models.TelephoneNationalLongDistanceCode,
 
 
 class EmployeeAdmin(ImportExportModelAdmin):
-    list_display = ('document_type', 'document_number', 'document_issuing_country',
+    list_display = ('document_type', 'telephone_number', 'document_number', 'document_issuing_country',
                     'birthdate', 'paternal_last_name', 'maternal_last_name', 'names')
     ordering = ('paternal_last_name',)
 
@@ -97,3 +98,9 @@ admin.site.register(models.LaborRegime, LaborRegimeAdmin)
 
 admin.site.register(models.Subsidiary)
 
+
+class WorkerAdmin(admin.ModelAdmin):
+    list_display = ('id', 'employee', 'user')
+
+
+admin.site.register(Worker, WorkerAdmin)

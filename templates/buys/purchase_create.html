@@ -32,7 +32,8 @@
                     <td><input type="date" class="form-control" id="id_fechacompra"
                                name="fechacompra"
                                placeholder="Fecha compra"
-                               value="{{ employee.birthdate|date:"Y-m-d" }}" required>
+                               value=""
+                               required readonly>
                     </td>
                     <td>
                         <button type="submit" id="btn-save"
@@ -59,20 +60,20 @@
                     </td>
                 </tr>
                 -->
-                <tr>
-                    <td>Numero Comprobante:</td>
-                    <td><input type="text" class="form-control" id="id_factura" required
-                               name="factura"
-                               placeholder="Numero Comprobante"
-                               value="">
-                    </td>
-                    <td>
-                        <button type="button" id="btn-detail" class="btn btn-primary btn-block pb-1"
-                                data-toggle="modal"
-                                data-target="#modal-updetail">Detalles
-                        </button>
-                    </td>
-                </tr>
+                {#                <tr>#}
+                {#                    <td>Numero Comprobante:</td>#}
+                {#                    <td><input type="text" class="form-control" id="id_factura" required#}
+                {#                               name="factura"#}
+                {#                               placeholder="Numero Comprobante"#}
+                {#                               value="">#}
+                {#                    </td>#}
+                {#                    <td>#}
+                {#                        <button type="button" id="btn-detail" class="btn btn-primary btn-block pb-1"#}
+                {#                                data-toggle="modal"#}
+                {#                                data-target="#modal-updetail">Detalles#}
+                {#                        </button>#}
+                {#                    </td>#}
+                {#                </tr>#}
                 <tr>
                     <td>Moneda:</td>
                     <td style="width: 10%">
@@ -81,6 +82,12 @@
                             <option value="S">SOL</option>
                             <option value="D">DOLAR</option>
                         </select>
+                    </td>
+                    <td>
+                        <button type="button" id="btn-detail" class="btn btn-primary btn-block pb-1"
+                                data-toggle="modal"
+                                data-target="#modal-updetail">Detalles
+                        </button>
                     </td>
                 </tr>
                 <tr>
@@ -95,22 +102,13 @@
                 </tr>
                 <tr>
                     <td>Condición de Pago:</td>
-                    <td><input type="text" class="form-control" id="id_payment_condition" required
+                    <td><input type="text" class="form-control" id="id_payment_condition"
                                name="payment_condition"
                                placeholder="Condición de Pago"
                                value="">
                     </td>
                 </tr>
-                <tr id="id-tr-delivery" hidden>
-                    <td>Entrega:</td>
-                    <td style="width: 10%">
-                        <select class="form-control" id="id_delivery" name="delivery">
-                            <option disabled selected value=""> Seleccione</option>
-                            <option value="A">ANDERQUIN</option>
-                            <option value="P">PROVEEDOR</option>
-                        </select>
-                    </td>
-                </tr>
+
                 <tr id="id-tr-reference" hidden>
                     <td>Referencia de Venta:</td>
                     <td><select class="form-control" id="id-sales-reference" name="sales-reference">
@@ -145,6 +143,32 @@
                         </td>
                     {% endcomment %}
                 </tr>
+                <tr id="id-tr-delivery" hidden>
+                    <td>Lugar de Entrega:</td>
+                    <td style="width: 10%">
+                        {#                        <select class="form-control" id="id_delivery" name="delivery">#}
+                        <select class="selectpicker form-control" data-style="btn-info"
+                                data-live-search="true" id="id_delivery" name="delivery">
+                            <option disabled selected value=""> Seleccione</option>
+                            <optgroup label="ANDERQUIN">
+                                <option value="a-C">CENTRAL</option>
+                                <option value="a-A">ALMACEN</option>
+                            </optgroup>
+                            <optgroup label="CLIENTE" id="id_client_group">
+                            </optgroup>
+                            <optgroup label="PROVEEDOR" id="id_supplier_group">
+                            </optgroup>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Observaciones:</td>
+                    <td><input type="text" class="form-control" id="id_observation"
+                               name="observation"
+                               placeholder="Observaciones"
+                               value="">
+                    </td>
+                </tr>
                 <!--
                 <tr>
                     <td>Vehiculo:</td>
@@ -158,6 +182,7 @@
                     <td></td>
                 </tr>
                 -->
+
             </table>
         </div>
     </div>

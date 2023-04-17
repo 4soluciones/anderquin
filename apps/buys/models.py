@@ -27,7 +27,7 @@ class MoneyChange(models.Model):
 class EntityReference(models.Model):
     business_name = models.CharField('Razon social', max_length=200, null=True, blank=True)
     ruc = models.CharField('Ruc de la empresa', max_length=11, null=True, blank=True)
-    address = models.CharField('Dirección de la empresa', max_length=200, null=True, blank=True)
+    # address = models.CharField('Dirección de la empresa', max_length=200, null=True, blank=True)
     reference = models.CharField('Referencia', max_length=200, null=True, blank=True)
     ###################
 
@@ -41,12 +41,24 @@ class EntityReference(models.Model):
         verbose_name_plural = 'Entidades de Referencia'
 
 
+class AddressEntityReference(models.Model):
+    entity_reference = models.ForeignKey(EntityReference, on_delete=models.CASCADE, related_name='entity_address')
+    address = models.CharField('Dirección', max_length=200)
+
+    def __str__(self):
+        return f'{self.address}'
+
+    class Meta:
+        verbose_name = 'Dirección de la Entidad'
+        verbose_name_plural = 'Direcciones de la Entidad'
+
+
 class Purchase(models.Model):
     STATUS_CHOICES = (('S', 'SIN ALMACEN'), ('A', 'EN ALMACEN'), ('N', 'ANULADO'),)
     TYPE_CHOICES = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'),)
     CURRENCY_TYPE_CHOICES = (('S', 'SOL'), ('D', 'DOLAR'),)
     PAYMENT_METHOD_CHOICES = (('CO', 'CONTADO'), ('CR', 'CREDITO'),)
-    DELIVERY_CHOICES = (('A', 'Anderquin'), ('P', 'Proveedor'))
+    # DELIVERY_CHOICES = (('A', 'Anderquin'), ('P', 'Proveedor'))
     id = models.AutoField(primary_key=True)
     supplier = models.ForeignKey(Supplier, verbose_name='Proveedor', on_delete=models.CASCADE, null=True, blank=True)
     purchase_date = models.DateField('Fecha compra', null=True, blank=True)
@@ -69,7 +81,8 @@ class Purchase(models.Model):
     money_change = models.ForeignKey(MoneyChange, verbose_name='Cambio de Moneda', on_delete=models.CASCADE, null=True,
                                      blank=True)
 
-    delivery = models.CharField('Enviar a', max_length=1, choices=DELIVERY_CHOICES, default='A', null=True, blank=True)
+    delivery = models.CharField('Enviar a', max_length=200, null=True, blank=True)
+    observation = models.TextField('Observación', blank=True, null=True)
 
     def __str__(self):
         return str(self.id)

@@ -226,7 +226,7 @@ class Supplier(models.Model):
     business_name = models.CharField('Razon social', max_length=45, null=True, blank=True)
     ruc = models.CharField('Ruc de la empresa', max_length=11, null=True, blank=True)
     phone = models.CharField('Telefono de la empresa', max_length=45, null=True, blank=True)
-    address = models.CharField('Dirección de la empresa', max_length=200, null=True, blank=True)
+    # address = models.CharField('Dirección de la empresa', max_length=200, null=True, blank=True)
     email = models.EmailField('Email de la empresa', max_length=50, null=True, blank=True)
     contact_names = models.CharField('Nombres del contacto', max_length=45, null=True, blank=True)
     contact_surnames = models.CharField(
@@ -245,6 +245,31 @@ class Supplier(models.Model):
     class Meta:
         verbose_name = 'Proveedor'
         verbose_name_plural = 'Proveedores'
+
+
+class City(models.Model):
+    name = models.CharField('Ciudad', max_length=50)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Ciudad'
+        verbose_name_plural = 'Ciudades'
+
+
+class AddressSupplier(models.Model):
+    supplier = models.ForeignKey(Supplier, verbose_name='Proveedor', on_delete=models.CASCADE,
+                                 related_name='supplier_address')
+    city = models.ForeignKey(City, verbose_name='Ciudad', on_delete=models.SET_NULL, null=True, blank=True)
+    address = models.CharField('Dirección', max_length=200)
+
+    def __str__(self):
+        return f'{self.address}'
+
+    class Meta:
+        verbose_name = 'Dirección del Proveedor'
+        verbose_name_plural = 'Direcciones del Proveedor'
 
 
 class ProductSupplier(models.Model):
