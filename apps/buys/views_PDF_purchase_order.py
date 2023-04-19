@@ -26,7 +26,7 @@ from reportlab.rl_settings import defaultPageSize
 
 
 from anderquin import settings
-from .models import Purchase, PurchaseDetail, EntityReference, MoneyChange
+from .models import Purchase, PurchaseDetail, EntityReference, MoneyChange, AddressEntityReference
 from ..hrm.models import Worker
 from ..sales.models import Supplier, ProductSupplier, ProductDetail
 
@@ -602,12 +602,14 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
 
         reference_obj = purchase_obj.reference
 
+        addressEntity_obj = reference_obj.entity_address.all().first()
+
         p9_1 = Paragraph(f'Razón Social: ', styles["Right"])
         p9_2 = Paragraph(f'{reference_obj.business_name}', styles["Left"])
         p9_3 = Paragraph(f'RUC: ', styles["Right"])
         p9_4 = Paragraph(f'{reference_obj.ruc}', styles["Left"])
         p9_5 = Paragraph(f'Dirección: ', styles["Right"])
-        p9_6 = Paragraph(f'', styles["Left"])
+        p9_6 = Paragraph(f'{addressEntity_obj.address}', styles["Left"])
         p9_7 = Paragraph(f'Referencia: ', styles["Right"])
         p9_8 = Paragraph(f'', styles["Left"])
 
@@ -657,17 +659,18 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
                 # ('SPAN', (-1, 0), (-1, 3)),
                 # ('SPAN', (-1, 0), (-1, 3)),
                 # ('SPAN', (1, 4), (1, 5)),
-
             ]
 
             reference_entity_obj = purchase_obj.reference_entity
+
+            addressEntity_obj = reference_entity_obj.entity_address.all().first()
 
             p11_1 = Paragraph(f'Razón Social: ', styles["Right"])
             p11_2 = Paragraph(f'{reference_entity_obj.business_name}', styles["Left"])
             p11_3 = Paragraph(f'RUC: ', styles["Right"])
             p11_4 = Paragraph(f'{reference_entity_obj.ruc}', styles["Left"])
             p11_5 = Paragraph(f'Dirección: ', styles["Right"])
-            p11_6 = Paragraph(f'', styles["Left"])
+            p11_6 = Paragraph(f'{addressEntity_obj.address}', styles["Left"])
             # p10_6 = Paragraph(f'Referencia: ', styles["Right"])
 
             colwiths_table_11 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]

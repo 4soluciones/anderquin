@@ -87,6 +87,14 @@ def add_reference(request):
         reference = request.GET.get('reference', '').upper()
         is_private = str(request.GET.get('is_private', ''))
 
+        print("********************")
+        print(business_name)
+        print(ruc)
+        print(address)
+        print(reference)
+        print(is_private)
+        print("********************")
+
         if is_private == '0':
             is_private = False
         else:
