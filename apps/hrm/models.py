@@ -353,8 +353,7 @@ class Worker(models.Model):
         max_length=1, choices=AGREEMENT_TO_AVOID_DOUBLE_TAXATION_CHOICES, default='0', )
     # Solo para los CAS (tipo de trabajador = 67).
     ruc = models.CharField(max_length=11, null=True, blank=True)
-    user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.SET_NULL, null=True, blank=True,
-                             related_name='user_worker')
+    user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

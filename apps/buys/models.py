@@ -83,7 +83,10 @@ class Purchase(models.Model):
                                      blank=True)
 
     delivery = models.CharField('Enviar a', max_length=200, null=True, blank=True)
+    city = models.CharField('Ciudad', max_length=200, null=True, blank=True)
     observation = models.TextField('Observación', blank=True, null=True)
+
+    oc_supplier = models.CharField('Referencia', max_length=100, blank=True, null=True)
 
     def __str__(self):
         return str(self.id)

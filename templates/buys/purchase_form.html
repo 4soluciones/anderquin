@@ -278,7 +278,8 @@
                     "delivery": $('#id_delivery').val(),
                     "referenceId": $('#id-sales-reference').val(),
                     "reference_entityId": $('#id-sales-reference-entity').val(),
-                    "observation": $('#id_observation').val()
+                    "observation": $('#id_observation').val(),
+                    "supplier_order": $('#id_supplier_order').val()
                 };
                 // Recorre cada detalle de producto (son 2 arrays) each -> recorre
 
@@ -396,13 +397,18 @@
                         {#document.getElementById('id-tr-reference').style.visibility = "visible"; // visible#}
                         {#document.getElementById('id-tr-reference-entity').style.visibility = "visible"; // visible#}
                         document.getElementById("id-tr-reference").hidden = false;
+                        document.getElementById("id-tr-supplier-order").hidden = false;
                         {#document.getElementById("id-tr-delivery").hidden = true;#}
                         {#document.getElementById("id-tr-reference-entity").hidden = false;#}
                     } else {
                         {#document.getElementById('id-tr-reference').style.visibility = "hidden"; // hide#}
                         {#document.getElementById('id-tr-reference-entity').style.visibility = "hidden"; // hide#}
                         document.getElementById("id-tr-reference").hidden = true;
+                        document.getElementById("id-tr-supplier-order").hidden = true;
                         document.getElementById("id-tr-delivery").hidden = false;
+
+                        get_addresses_supplier(supplier_id);
+
                         {#document.getElementById("id-tr-reference-entity").hidden = true;#}
                     }
                 },
@@ -449,11 +455,79 @@
                     $('#id-sales-reference-entity option:first').attr('selected', 'selected');
                     $('#id-sales-reference-entity').trigger('change');
 
-                    get_addresses_by_client_supplier_id(entity_id, supplier_id);
+                    {#get_addresses_by_client_supplier_id(entity_id, supplier_id);#}
+                    get_addresses_client(entity_id);
+                    get_addresses_supplier(supplier_id);
                     get_entities();
                 },
             });
         });
+
+        function get_addresses_client(entity_id) {
+
+            let padre_1 = document.getElementById("id_client_group"); //obteniendo el elemento padre
+
+            padre_1.innerHTML = ''; //estableciendo el contenido HTML del elemento padre como una cadena vacía para eliminar todas las etiquetas hijas
+            if ($("#id_delivery").hasClass('select2-hidden-accessible')) {
+                $("#id_delivery").select2("destroy");
+                $("#id_delivery").select2();
+            }
+
+            $.ajax({
+                url: '/buys/get_addresses_client/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                //mando  id del producto del combo
+                data: {'entity_id': entity_id},
+                // si va bien retorna la data
+                success: function (response) {
+
+                    let addresses_client = response.addresses_client;
+
+                    for (var id in addresses_client) {
+                        const opt = document.createElement("option"); // <option></option>
+                        opt.textContent = addresses_client[id]
+                        opt.value = `c-${id}`
+                        padre_1.appendChild(opt)
+                    }
+                },
+            });
+
+        }
+
+        function get_addresses_supplier(supplier_id) {
+
+            let padre_2 = document.getElementById("id_supplier_group"); //obteniendo el elemento padre
+
+            padre_2.innerHTML = '';
+            if ($("#id_delivery").hasClass('select2-hidden-accessible')) {
+                $("#id_delivery").select2("destroy");
+                $("#id_delivery").select2();
+            }
+
+            $.ajax({
+                url: '/buys/get_addresses_supplier/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                //mando  id del producto del combo
+                data: {'supplier_id': supplier_id},
+                // si va bien retorna la data
+                success: function (response) {
+
+                    let addresses_supplier = response.addresses_supplier;
+
+                    for (var id in addresses_supplier) {
+                        const opt = document.createElement("option"); // <option></option>
+                        opt.textContent = addresses_supplier[id]
+                        opt.value = `p-${id}`
+                        padre_2.appendChild(opt)
+                    }
+                },
+            });
+
+        }
 
         function get_entities() {
             let padre_1 = document.getElementById("id_name"); //obteniendo el elemento padre
@@ -483,51 +557,6 @@
                 },
             });
         }
-
-        function get_addresses_by_client_supplier_id(entity_id, supplier_id) {
-
-            let padre_1 = document.getElementById("id_client_group"); //obteniendo el elemento padre
-            let padre_2 = document.getElementById("id_supplier_group"); //obteniendo el elemento padre
-
-            padre_1.innerHTML = ''; //estableciendo el contenido HTML del elemento padre como una cadena vacía para eliminar todas las etiquetas hijas
-            padre_2.innerHTML = '';
-            if ($("#id_delivery").hasClass('select2-hidden-accessible')) {
-                $("#id_delivery").select2("destroy");
-                $("#id_delivery").select2();
-            }
-
-            $.ajax({
-                url: '/buys/get_addresses_by_client_supplier_id/',
-                async: true,
-                dataType: 'json',
-                type: 'GET',
-                //mando  id del producto del combo
-                data: {'entity_id': entity_id, 'supplier_id': supplier_id},
-                // si va bien retorna la data
-                success: function (response) {
-
-                    let addresses_client = response.addresses_client;
-
-                    for (var id in addresses_client) {
-                        const opt = document.createElement("option"); // <option></option>
-                        opt.textContent = addresses_client[id]
-                        opt.value = `c-${id}`
-                        padre_1.appendChild(opt)
-                    }
-
-                    let addresses_supplier = response.addresses_supplier;
-
-                    for (var id in addresses_supplier) {
-                        const opt = document.createElement("option"); // <option></option>
-                        opt.textContent = addresses_supplier[id]
-                        opt.value = `p-${id}`
-                        padre_2.appendChild(opt)
-                    }
-                },
-            });
-
-        }
-
 
         //Bonton eliminar fila
         function deleteItem($id) {

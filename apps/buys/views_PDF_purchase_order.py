@@ -34,7 +34,8 @@ PAGE_HEIGHT = defaultPageSize[1]
 PAGE_WIDTH = defaultPageSize[0]
 
 COLOR_PDF = colors.Color(red=(152.0 / 255), green=(29.0 / 255), blue=(31.0 / 255))
-COLOR_GREEN = colors.Color(red=(27.0 / 255), green=(140.0 / 255), blue=(66.0 / 255))
+COLOR_BLUE = colors.Color(red=(27.0 / 255), green=(140.0 / 255), blue=(66.0 / 255))
+COLOR_BLUE = colors.Color(red=(133.0 / 255), green=(180.0 / 255), blue=(242.0 / 255))
 
 styles = getSampleStyleSheet()
 styles.add(ParagraphStyle(name='Right', alignment=TA_RIGHT, leading=30, fontName='Square', fontSize=25))
@@ -50,8 +51,8 @@ styles.add(
                    fontSize=7))
 styles.add(ParagraphStyle(name='Justify_Bold', alignment=TA_JUSTIFY, leading=8, fontName='Square-Bold', fontSize=8))
 
-styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER, leading=10, fontName='Square-Bold', fontSize=10,
-                          textColor=COLOR_PDF))
+styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER, leading=50, fontName='Square-Bold', fontSize=35,
+                          textColor=colors.black))
 styles.add(ParagraphStyle(name='Center-fecha', alignment=TA_CENTER, leading=10, fontName='Square-Bold', fontSize=10,
                           textColor=colors.black))
 styles.add(ParagraphStyle(name='Center-datos', alignment=TA_CENTER, leading=10, fontName='Square', fontSize=10,
@@ -363,12 +364,12 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         ('BOX', (0, 0), (0, 0), 2, colors.black),
         ('BOX', (0, 0), (0, -1), 2, colors.black),
         ('BOX', (0, 0), (0, 2), 2, colors.black),
-        ('BACKGROUND', (0, 0), (0, 0), COLOR_GREEN),
+        ('BACKGROUND', (0, 0), (0, 0), COLOR_BLUE),
         ('SPAN', (-1, -2), (-1, -1)),
 
         ('BOX', (2, 0), (2, 0), 2, colors.black),
         ('BOX', (2, 0), (2, -1), 2, colors.black),
-        ('BACKGROUND', (2, 0), (2, 0), COLOR_GREEN),
+        ('BACKGROUND', (2, 0), (2, 0), COLOR_BLUE),
     ]
 
     NOMBRE_PROVEEDOR = f'{supplier_obj.name}'
@@ -428,7 +429,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
 
     style_table_4 = [
         ('BOX', (0, 0), (-1, -1), 2, colors.black),
-        ('BACKGROUND', (0, 0), (-1, -1), COLOR_GREEN),
+        ('BACKGROUND', (0, 0), (-1, -1), COLOR_BLUE),
         ('VALIGN', (0, 0), (-1, 0), 'CENTER'),
     ]
 
@@ -461,7 +462,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     for i in purchase_detail.all():
         style_table_5 = [
             ('BOX', (0, 0), (-1, -1), 2, colors.black),
-            # ('BACKGROUND', (0, 0), (-1, -1), COLOR_GREEN),
+            # ('BACKGROUND', (0, 0), (-1, -1), COLOR_BLUE),
         ]
 
         product = i.product
@@ -503,7 +504,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     # **************************************************************************************************************** #
     style_table_6 = [
         ('BOX', (0, 0), (-1, -1), 2, colors.black),
-        # ('BACKGROUND', (0, 0), (-1, -1), COLOR_GREEN),
+        # ('BACKGROUND', (0, 0), (-1, -1), COLOR_BLUE),
     ]
     if currency_type:
         p6_1 = Paragraph(f'TOTAL: $. {total}', styles["Right"])
@@ -553,12 +554,15 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     # else:
     #     direccion = f'{reference_obj.address}'
 
+
     p7_7 = Paragraph(f'{purchase_obj.delivery}', styles["Left"])
+    p7_8 = Paragraph(f'{purchase_obj.city}', styles["Center"])
+
 
     colwiths_table_7 = [_wt * 14 / 100, _wt * 1 / 100, _wt * 1 / 100, _wt * 70 / 100, _wt * 14 / 100]
     rowwiths_table_7 = [inch * 1]
     ana_c7 = Table(
-        [(p7_6, '', '', p7_7, '')],
+        [(p7_6, '', '', p7_7, p7_8)],
         colWidths=colwiths_table_7, rowHeights=rowwiths_table_7)
     ana_c7.setStyle(TableStyle(style_table_7))
 
@@ -611,7 +615,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         p9_5 = Paragraph(f'Dirección: ', styles["Right"])
         p9_6 = Paragraph(f'{addressEntity_obj.address}', styles["Left"])
         p9_7 = Paragraph(f'Referencia: ', styles["Right"])
-        p9_8 = Paragraph(f'', styles["Left"])
+        p9_8 = Paragraph(f'{purchase_obj.oc_supplier}', styles["Left"])
 
         colwiths_table_9 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
         rowwiths_table_9 = [inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5]

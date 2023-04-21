@@ -115,26 +115,34 @@ def add_address_entity(request):
         }, status=HTTPStatus.OK)
 
 
-def get_addresses_by_client_supplier_id(request):
+def get_addresses_supplier(request):
     if request.method == 'GET':
-        entity_id = request.GET.get('entity_id', '')
         supplier_id = request.GET.get('supplier_id', '')
-        entity_obj = EntityReference.objects.get(id=int(entity_id))
 
-        addresses_client = AddressEntityReference.objects.filter(entity_reference=entity_obj)
         addresses_supplier = AddressSupplier.objects.filter(supplier_id=supplier_id)
-
-        client_dict = {}
-        for i in addresses_client:
-            client_dict[i.id] = f'{i.address}'[:30]
 
         supplier_dict = {}
         for i in addresses_supplier:
             supplier_dict[i.id] = f'{i.city.name}'
 
         return JsonResponse({
-            'addresses_client': client_dict,
             'addresses_supplier': supplier_dict
+        }, status=HTTPStatus.OK)
+
+
+def get_addresses_client(request):
+    if request.method == 'GET':
+        entity_id = request.GET.get('entity_id', '')
+        entity_obj = EntityReference.objects.get(id=int(entity_id))
+
+        addresses_client = AddressEntityReference.objects.filter(entity_reference=entity_obj)
+
+        client_dict = {}
+        for i in addresses_client:
+            client_dict[i.id] = f'{i.address}'[:30]
+
+        return JsonResponse({
+            'addresses_client': client_dict
         }, status=HTTPStatus.OK)
 
 
@@ -191,6 +199,7 @@ def save_purchase(request):
         reference_id = data_purchase["referenceId"]
         reference_entity_id = data_purchase["reference_entityId"]
         observation = data_purchase["observation"]
+        supplier_order = data_purchase["supplier_order"]
 
         # print(data_purchase["truck"])
         # if (data_purchase["truck"]) is not None:
@@ -214,18 +223,23 @@ def save_purchase(request):
         delivery_id = delivery[1]
 
         name_address = ''
+        city_address = ''
         if delivery_from == 'a':
             if delivery_id == 'C':
                 name_address = DIRECCION_CENTRAL
+                city_address = f'JULIACA'
             elif delivery_id == 'A':
                 name_address = DIRECCION_ALMACEN
+                city_address = f'JULIACA'
         elif delivery_from == 'c':
             address_entity = AddressEntityReference.objects.get(id=int(delivery_id))
             name_address = f'{address_entity.address}'
+            city_address = f'{address_entity.city.name}'
+
         elif delivery_from == 'p':
             address_supplier = AddressSupplier.objects.get(id=int(delivery_id))
             name_address = f'{address_supplier.address} - {address_supplier.city}'
-
+            city_address = f'{address_supplier.city.name}'
         purchase_obj = Purchase(
             supplier=supplier_obj,
             purchase_date=date,
@@ -239,7 +253,9 @@ def save_purchase(request):
             payment_method=payment_method,
             payment_condition=payment_condition,
             delivery=name_address,
-            observation=observation
+            city=city_address,
+            observation=observation,
+            oc_supplier=supplier_order
         )
         purchase_obj.save()
         purchase_obj.bill_number = f'OC-{datetime.now().year}-{str(purchase_obj.id).zfill(5)}'
