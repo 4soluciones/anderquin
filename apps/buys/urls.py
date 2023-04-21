@@ -7,8 +7,8 @@ from apps.buys.views_PDF_purchase_order import print_pdf
 
 urlpatterns = [
     path('', login_required(Home.as_view()), name='home'),
-    path('purchase_form/', purchase_form, name='purchase_form'),
-    path('save_purchase/', save_purchase, name='save_purchase'),
+    path('purchase_form/', login_required(purchase_form), name='purchase_form'),
+    path('save_purchase/', login_required(save_purchase), name='save_purchase'),
 
     # COMPRAS NORMALES
     path('get_purchase_list/', get_purchase_list, name='get_purchase_list'),
