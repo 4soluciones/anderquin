@@ -121,7 +121,30 @@
                     <td>
                         <button type="button" id="btn-detail" class="btn btn-success btn-block pb-1"
                                 data-toggle="modal"
-                                data-target="#modal-addreference">Agregar
+                                data-target="#modal-addreference">Agregar Referencia
+                        </button>
+                    </td>
+                </tr>
+                <tr id="id-tr-delivery" hidden>
+                    <td>Lugar de Entrega:</td>
+                    <td style="width: 10%">
+                        {#                        <select class="form-control" id="id_delivery" name="delivery">#}
+                        <select class="form-control" id="id_delivery" name="delivery">
+                            <option disabled selected value=""> Seleccione</option>
+                            <optgroup label="ANDERQUIN">
+                                <option value="a-C">CENTRAL</option>
+                                <option value="a-A">ALMACEN</option>
+                            </optgroup>
+                            <optgroup label="CLIENTE" id="id_client_group"></optgroup>
+                            <optgroup label="PROVEEDOR" id="id_supplier_group"></optgroup>
+                        </select>
+                    </td>
+                    <td>
+                        <button type="button" id="id_address_add" class="btn btn-success btn-block"
+                                data-toggle="modal"
+                                data-target="#modal-address-add"
+                                hidden>
+                            Agregar Dirección
                         </button>
                     </td>
                 </tr>
@@ -143,24 +166,7 @@
                         </td>
                     {% endcomment %}
                 </tr>
-                <tr id="id-tr-delivery" hidden>
-                    <td>Lugar de Entrega:</td>
-                    <td style="width: 10%">
-                        {#                        <select class="form-control" id="id_delivery" name="delivery">#}
-                        <select class="selectpicker form-control" data-style="btn-info"
-                                data-live-search="true" id="id_delivery" name="delivery">
-                            <option disabled selected value=""> Seleccione</option>
-                            <optgroup label="ANDERQUIN">
-                                <option value="a-C">CENTRAL</option>
-                                <option value="a-A">ALMACEN</option>
-                            </optgroup>
-                            <optgroup label="CLIENTE" id="id_client_group">
-                            </optgroup>
-                            <optgroup label="PROVEEDOR" id="id_supplier_group">
-                            </optgroup>
-                        </select>
-                    </td>
-                </tr>
+
                 <tr>
                     <td>Observaciones:</td>
                     <td><input type="text" class="form-control" id="id_observation"
@@ -299,26 +305,6 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>Dirección:
-                        </td>
-                        <td>
-                            <input type="text" class="form-control" id="id_direccion"
-                                   name="direccion"
-                                   placeholder="Dirección" required
-                                   value="">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Referencia:
-                        </td>
-                        <td>
-                            <input type="text" class="form-control" id="id_referencia"
-                                   name="referencia"
-                                   placeholder="Referencia" required
-                                   value="">
-                        </td>
-                    </tr>
-                    <tr>
                         <td>¿Entidad Privada?:
                         </td>
                         <td>
@@ -341,35 +327,38 @@
     </div>
 </div>
 
-<div class="modal fade" id="modal-addreference-entity" tabindex="-1" role="dialog"
+<div class="modal fade" id="modal-address-add" tabindex="-1" role="dialog"
      aria-labelledby="exampleModalLongTitle"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">REFERENCIA DE VENTA A LA ENTIDAD</h5>
-                <button type="button" class="close" onclick="limper()" data-dismiss="modal" aria-label="Close">
+                <h5 class="modal-title" id="exampleModalLongTitle">AGREGAR DIRECCIÓN</h5>
+                <button type="button" class="close" onclick="limper_reference_entity()" data-dismiss="modal"
+                        aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body" id="modal-detail">
                 <table class="table table-sm">
                     <tr>
-                        <td>Razón Social:</td>
+                        <td>Razón Social</td>
                         <td>
-                            <input type="text" class="form-control" id="id_razon_social_entity"
-                                   name="razon_social_entity"
-                                   placeholder="Razón Social" required
-                                   value="">
+                            <select class="form-control" id="id_name" name="name" required>
+                                <option disabled selected value=""> Seleccione</option>
+
+                            </select>
                         </td>
                     </tr>
                     <tr>
-                        <td>RUC:</td>
+                        <td>Ciudad</td>
                         <td>
-                            <input type="text" class="form-control" id="id_ruc_entity"
-                                   name="ruc_entity"
-                                   placeholder="Ruc" required
-                                   value="">
+                            <select class="form-control" id="id_city_address" name="city_address" required>
+                                <option disabled selected value=""> Seleccione</option>
+                                {% for city in cities %}
+                                    <option value="{{ city.id }}">{{ city.name }}</option>
+                                {% endfor %}
+                            </select>
                         </td>
                     </tr>
                     <tr>
@@ -388,7 +377,7 @@
                 <button type="button" class="btn btn-secondary" onclick="limper_reference_entity()"
                         data-dismiss="modal">Salir
                 </button>
-                <button type="button" id="id_add_reference_entity" class="btn btn-primary">Agregar</button>
+                <button type="button" id="id_add_address_entity" class="btn btn-success">Agregar Dirección</button>
             </div>
         </div>
     </div>

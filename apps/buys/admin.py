@@ -3,7 +3,7 @@ from django.contrib import admin
 from apps.buys import models
 
 # Register your models here.
-from apps.buys.models import AddressEntityReference, EntityReference
+from apps.buys.models import AddressEntityReference, EntityReference, PurchaseDetail
 
 
 class MoneyChangeAdmin(admin.ModelAdmin):
@@ -22,7 +22,13 @@ admin.site.register(AddressEntityReference, AddressEntityReferenceAdmin)
 
 
 class EntityReferenceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'business_name', 'ruc', 'reference')
+    list_display = ('id', 'business_name', 'ruc')
 
 
 admin.site.register(EntityReference, EntityReferenceAdmin)
+
+
+class PurchaseDetailAdmin(admin.ModelAdmin):
+    list_display = ('id', 'purchase', 'product', 'quantity', 'unit', 'price_unit')
+
+admin.site.register(PurchaseDetail, PurchaseDetailAdmin)

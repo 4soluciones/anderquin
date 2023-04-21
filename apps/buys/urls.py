@@ -10,7 +10,7 @@ urlpatterns = [
     path('purchase_form/', purchase_form, name='purchase_form'),
     path('save_purchase/', save_purchase, name='save_purchase'),
 
-    #COMPRAS NORMALES
+    # COMPRAS NORMALES
     path('get_purchase_list/', get_purchase_list, name='get_purchase_list'),
     path('get_purchase_annular_list/', get_purchase_annular_list, name='get_purchase_annular_list'),
     path('get_purchase_store_list/', get_purchase_store_list, name='get_purchase_store_list'),
@@ -28,24 +28,27 @@ urlpatterns = [
     path('get_expense_programming/', get_expense_programming, name='get_expense_programming'),
     path('save_programming_fuel/', save_programming_fuel, name='save_programming_fuel'),
     path('get_approve_detail_requirement/', get_approve_detail_requirement, name='get_approve_detail_requirement'),
-    path('update_details_requirement_store/', update_details_requirement_store, name='update_details_requirement_store'),
+    path('update_details_requirement_store/', update_details_requirement_store,
+         name='update_details_requirement_store'),
     path('update_state_annular_purchase/', update_state_annular_purchase, name='update_state_annular_purchase'),
     path('get_products_by_requirement/', get_products_by_requirement, name='get_products_by_requirement'),
     path('get_list_requirement_stock/', get_list_requirement_stock, name='get_list_requirement_stock'),
     path('get_requirement_balance/', get_requirement_balance, name='get_requirement_balance'),
-    path('get_programming_by_truck_and_dates/', get_programming_by_truck_and_dates, name='get_programming_by_truck_and_dates'),
+    path('get_programming_by_truck_and_dates/', get_programming_by_truck_and_dates,
+         name='get_programming_by_truck_and_dates'),
     path('get_report_kardex_glp/', get_report_kardex_glp, name='get_report_kardex_glp'),
     path('get_rateroutes_programming/', get_rateroutes_programming, name='get_rateroutes_programming'),
     # path('SalesList/<int:pk>/', SalesList, name='SalesList'),
     path('kardex_glp_pdf/<str:date_initial>/<str:date_final>/', kardex_glp_pdf, name='kardex_glp_pdf'),
     # path('kardex_glp_pdf/', kardex_glp_pdf, name='kardex_glp_pdf'),
-    #requerimientos GLP
+    # requerimientos GLP
     path('requirement_buy_create/', requirement_buy_create, name='requirement_buy_create'),
     path('create_requirement_view/', login_required(create_requirement_view), name='create_requirement_view'),
     path('save_requirement/', login_required(save_requirement), name='save_requirement'),
     path('requirement_buy_save/', requirement_buy_save, name='requirement_buy_save'),
     path('requirement_buy_list/', login_required(get_requeriments_buys_list), name='requirement_buy_list'),
-    path('get_requirements_buys_list_approved/', get_requirements_buys_list_approved, name='get_requirements_buys_list_approved'),
+    path('get_requirements_buys_list_approved/', get_requirements_buys_list_approved,
+         name='get_requirements_buys_list_approved'),
     path('save_programming_buys/', save_programming_buys, name='save_programming_buys'),
     path('get_units_product/', get_units_product, name='get_units_product'),
 
@@ -68,10 +71,16 @@ urlpatterns = [
     path('report_purchases_all/', report_purchases_all, name='report_purchases_all'),
     path('report_purchases_by_supplier/', report_purchases_by_supplier, name='report_purchases_by_supplier'),
     path('get_purchases_by_license_plate/', get_purchases_by_license_plate, name='get_purchases_by_license_plate'),
-    path('get_purchases_by_provider_category/', get_purchases_by_provider_category, name='get_purchases_by_provider_category'),
+    path('get_purchases_by_provider_category/', get_purchases_by_provider_category,
+         name='get_purchases_by_provider_category'),
 
     path('is_supplier_reference/', is_supplier_reference, name='is_supplier_reference'),
     path('is_entity_private/', is_entity_private, name='is_entity_private'),
     path('add_reference/', add_reference, name='add_reference'),
+    path('add_address_entity/', add_address_entity, name='add_address_entity'),
+    path('get_addresses_by_client_supplier_id/',
+         get_addresses_by_client_supplier_id, name='get_addresses_by_client_supplier_id'),
+    path('get_entities/', get_entities, name='get_entities'),
     path('print_pdf_purchase_order/<int:pk>/', print_pdf, name='print_pdf_purchase_order'),
+
 ]

@@ -33,6 +33,7 @@ def purchase_form(request):
     product_obj = Product.objects.all()
     unitmeasurement_obj = Unit.objects.all()
     entity_reference_set = EntityReference.objects.all()
+    cities = City.objects.all()
     # truck_set = Truck.objects.all()
     return render(request, 'buys/purchase_form.html', {
         # 'form': form_obj,
@@ -40,6 +41,7 @@ def purchase_form(request):
         'unitmeasurement_obj': unitmeasurement_obj,
         'product_obj': product_obj,
         'entity_reference_set': entity_reference_set,
+        'cities': cities,
         # 'truck_set': truck_set,
         # 'list_detail_purchase': get_employees(need_rendering=False),
     })
@@ -59,7 +61,65 @@ def is_entity_private(request):
     if request.method == 'GET':
         entity_id = request.GET.get('entity_id', '')
         supplier_id = request.GET.get('supplier_id', '')
-        entity_obj = EntityReference.objects.get(id=entity_id)
+        entity_obj = EntityReference.objects.get(id=int(entity_id))
+
+        return JsonResponse({
+            'status': entity_obj.is_private,
+        }, status=HTTPStatus.OK)
+
+
+def add_reference(request):
+    if request.method == 'GET':
+        business_name = request.GET.get('business_name', '').upper()
+        ruc = request.GET.get('ruc', '')
+        is_private = str(request.GET.get('is_private', ''))
+
+        if is_private == '0':
+            is_private = False
+        else:
+            is_private = True
+
+        entity_reference_obj = EntityReference(
+            business_name=business_name,
+            ruc=ruc,
+            is_private=is_private
+        )
+        entity_reference_obj.save()
+
+        return JsonResponse({
+            'id': entity_reference_obj.id,
+            'ruc': entity_reference_obj.ruc,
+            'business_name': entity_reference_obj.business_name,
+            'is_private': entity_reference_obj.is_private,
+            'status': 'OK'
+        }, status=HTTPStatus.OK)
+
+
+def add_address_entity(request):
+    if request.method == 'GET':
+        business_name_id = request.GET.get('name_id', '')
+        city_id = request.GET.get('city_id', '')
+        address = request.GET.get('address', '').upper()
+
+        entity_reference_obj = EntityReference.objects.get(id=int(business_name_id))
+        city_obj = City.objects.get(id=int(city_id))
+        address_entity_obj = AddressEntityReference(
+            entity_reference=entity_reference_obj,
+            city=city_obj,
+            address=address
+        )
+        address_entity_obj.save()
+        return JsonResponse({
+            'id': address_entity_obj.id,
+            'address': address[:30]
+        }, status=HTTPStatus.OK)
+
+
+def get_addresses_by_client_supplier_id(request):
+    if request.method == 'GET':
+        entity_id = request.GET.get('entity_id', '')
+        supplier_id = request.GET.get('supplier_id', '')
+        entity_obj = EntityReference.objects.get(id=int(entity_id))
 
         addresses_client = AddressEntityReference.objects.filter(entity_reference=entity_obj)
         addresses_supplier = AddressSupplier.objects.filter(supplier_id=supplier_id)
@@ -73,48 +133,20 @@ def is_entity_private(request):
             supplier_dict[i.id] = f'{i.city.name}'
 
         return JsonResponse({
-            'status': entity_obj.is_private,
             'addresses_client': client_dict,
             'addresses_supplier': supplier_dict
         }, status=HTTPStatus.OK)
 
 
-def add_reference(request):
+def get_entities(request):
     if request.method == 'GET':
-        business_name = request.GET.get('business_name', '').upper()
-        ruc = request.GET.get('ruc', '')
-        address = request.GET.get('address', '').upper()
-        reference = request.GET.get('reference', '').upper()
-        is_private = str(request.GET.get('is_private', ''))
-
-        print("********************")
-        print(business_name)
-        print(ruc)
-        print(address)
-        print(reference)
-        print(is_private)
-        print("********************")
-
-        if is_private == '0':
-            is_private = False
-        else:
-            is_private = True
-
-        entity_reference_obj = EntityReference(
-            business_name=business_name,
-            ruc=ruc,
-            address=address,
-            reference=reference,
-            is_private=is_private
-        )
-        entity_reference_obj.save()
+        entities = EntityReference.objects.all()
+        entities_dict = {}
+        for i in entities:
+            entities_dict[i.id] = f'{i.business_name}'[:30]
 
         return JsonResponse({
-            'id': entity_reference_obj.id,
-            'ruc': entity_reference_obj.ruc,
-            'business_name': entity_reference_obj.business_name,
-            'is_private': entity_reference_obj.is_private,
-            'status': 'OK'
+            'entities': entities_dict
         }, status=HTTPStatus.OK)
 
 
@@ -222,7 +254,6 @@ def save_purchase(request):
             reference_entity_obj = EntityReference.objects.get(id=int(reference_entity_id))
             purchase_obj.reference_entity = reference_entity_obj
             purchase_obj.save()
-
 
         # if delivery:
         #     purchase_obj.delivery = delivery

@@ -47,7 +47,17 @@
         ;$('#id_delivery').select2({
             theme: 'bootstrap4',
         });
+
         $('#id-sales-reference').select2({
+            theme: 'bootstrap4',
+        });
+        $('#id_address').select2({
+            theme: 'bootstrap4',
+        });
+        $('#id_name').select2({
+            theme: 'bootstrap4',
+        });
+        $('#id_city_address').select2({
             theme: 'bootstrap4',
         });
         $('#id-sales-reference-entity').select2({
@@ -77,12 +87,19 @@
             $('#id_payment_method option').removeAttr('selected');
             $('#id_payment_method option:first').attr('selected', 'selected');
             $('#id_payment_method').trigger('change');
-            $('#id_delivery option').removeAttr('selected');
+            $('#id-sales-reference option').removeAttr('selected');
+            $('#id-sales-reference option:first').attr('selected', 'selected');
+            $('#id-sales-reference').trigger('change');
+            $('#id-sales-reference-entity option').removeAttr('selected');
+            $('#id-sales-reference-entity option:first').attr('selected', 'selected');
+            $('#id-sales-reference-entity').trigger('change');
+            /*$('#id_delivery option').removeAttr('selected');
             $('#id_delivery option:first').attr('selected', 'selected');
-            $('#id_delivery').trigger('change');
+            $('#id_delivery').trigger('change');*/
 
             document.getElementById("id-tr-reference").hidden = true;
             document.getElementById("id-tr-reference-entity").hidden = true;
+            document.getElementById("id_address_add").hidden = true;
         };
 
         function limper(request) {
@@ -102,15 +119,18 @@
             $('#id_razon_social').val('');
             $('#id_ruc').val('');
             $('#id_direccion').val('');
-            $('#id_referencia').val('');
             $('#id_is_private option').removeAttr('selected');
             $('#id_is_private option:first').attr('selected', 'selected');
             $('#id_is_private').trigger('change');
         };
 
         function limper_reference_entity(request) {
-            $('#id_razon_social_entity').val('');
-            $('#id_ruc_entity').val('');
+            $('#id_name option').removeAttr('selected');
+            $('#id_name option:first').attr('selected', 'selected');
+            $('#id_name').trigger('change');
+            $('#id_city_address option').removeAttr('selected');
+            $('#id_city_address option:first').attr('selected', 'selected');
+            $('#id_city_address').trigger('change');
             $('#id_direccion_entity').val('');
         };
 
@@ -158,11 +178,9 @@
 
             let business_name = $('#id_razon_social').val();
             let ruc = $('#id_ruc').val();
-            let address = $('#id_direccion').val();
-            let reference = $('#id_referencia').val();
             let is_private = $('#id_is_private').val();
 
-            if (business_name && ruc && address && is_private) {
+            if (business_name && ruc && is_private) {
                 $.ajax({
                     url: '/buys/add_reference/',
                     async: true,
@@ -172,8 +190,6 @@
                     data: {
                         'business_name': business_name,
                         'ruc': ruc,
-                        'address': address,
-                        'reference': reference,
                         'is_private': is_private
                     },
                     // si va bien retorna la data
@@ -202,33 +218,39 @@
             }
         });
 
-        /*
-        $("#id_add_reference_entity").click(function () {
 
-            let razon_social_entity = $('#id_razon_social_entity').val();
-            let ruc_entity = $('#id_ruc_entity').val();
-            let direccion_entity = $('#id_direccion_entity').val();
+        $("#id_add_address_entity").click(function () {
 
-            if (razon_social_entity && ruc_entity) {
+            let name_id = $('#id_name').val();
+            let city_id = $('#id_city_address').val();
+            let address = $('#id_direccion_entity').val();
+
+            if (name_id && city_id && address) {
                 $.ajax({
-                    url: '/buys/add_reference_entity/',
+                    url: '/buys/add_address_entity/',
                     async: true,
                     dataType: 'json',
                     type: 'GET',
                     // registra nuevo referencia de venta
                     data: {
-                        'razon_social_entity': razon_social_entity,
-                        'ruc_entity': ruc_entity,
-                        'direccion_entity': direccion_entity,
+                        'name_id': name_id,
+                        'city_id': city_id,
+                        'address': address,
                     },
                     // si va bien retorna la data
                     success: function (response) {
-                        toastr.success('REFERENCIA DE VENTA A LA ENTIDAD AGREGADO CORRECTAMENTE!');
-                        const $select = document.querySelector("#id-sales-reference-entity");
-                        const option = document.createElement('option');
-                        option.value = response.id;
-                        option.text = response.business_name;
-                        $select.appendChild(option);
+
+                        toastr.success('DIRECCION AÑADIDA CORRECTAMENTE!');
+                        {#const $select = document.querySelector("#id_client_group");#}
+                        {#const option = document.createElement('option');#}
+                        {#option.value = `c-${response.id}`;#}
+                        {#option.text = response.address;#}
+                        {#$select.appendChild(option);#}
+
+                        $('#id-sales-reference option').removeAttr('selected');
+                        $('#id-sales-reference option:first').attr('selected', 'selected');
+                        $('#id-sales-reference').trigger('change');
+
                         limper_reference_entity();
                     },
                 });
@@ -237,7 +259,7 @@
                 toastr.warning('POR FAVOR, COMPLETE TODO LOS CAMPOS!');
             }
         });
-        */
+
 
         $('#purchase-form').submit(function (event) {
             event.preventDefault();
@@ -361,8 +383,6 @@
             //recupera el id_dela opcion seleccionada
             let supplier_id = $(this).val();
 
-            {#console.log(_search)#}
-
             $.ajax({
                 url: '/buys/is_supplier_reference/',
                 async: true,
@@ -388,6 +408,7 @@
                 },
             });
         });
+
 
         $('#id-sales-reference').change(function () {
             //recupera el id_dela opcion seleccionada
@@ -418,27 +439,95 @@
                     }
 
                     document.getElementById("id-tr-delivery").hidden = false;
+                    document.getElementById("id_address_add").hidden = false;
 
-                    addresses_client = response.addresses_client;
-                    let client_group = document.getElementById('id_client_group')
+
+                    $('#id_delivery option').removeAttr('selected');
+                    $('#id_delivery option:first').attr('selected', 'selected');
+                    $('#id_delivery').trigger('change');
+                    $('#id-sales-reference-entity option').removeAttr('selected');
+                    $('#id-sales-reference-entity option:first').attr('selected', 'selected');
+                    $('#id-sales-reference-entity').trigger('change');
+
+                    get_addresses_by_client_supplier_id(entity_id, supplier_id);
+                    get_entities();
+                },
+            });
+        });
+
+        function get_entities() {
+            let padre_1 = document.getElementById("id_name"); //obteniendo el elemento padre
+
+            padre_1.innerHTML = '';
+            if ($("#id_name").hasClass('select2-hidden-accessible')) {
+                $("#id_name").select2("destroy");
+                $("#id_name").select2();
+            }
+            $.ajax({
+                url: '/buys/get_entities/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                //mando  id del producto del combo
+                data: {},
+                // si va bien retorna la data
+                success: function (response) {
+                    let entities = response.entities;
+
+                    for (var id in entities) {
+                        const opt = document.createElement("option"); // <option></option>
+                        opt.textContent = entities[id]
+                        opt.value = id
+                        padre_1.appendChild(opt)
+                    }
+                },
+            });
+        }
+
+        function get_addresses_by_client_supplier_id(entity_id, supplier_id) {
+
+            let padre_1 = document.getElementById("id_client_group"); //obteniendo el elemento padre
+            let padre_2 = document.getElementById("id_supplier_group"); //obteniendo el elemento padre
+
+            padre_1.innerHTML = ''; //estableciendo el contenido HTML del elemento padre como una cadena vacía para eliminar todas las etiquetas hijas
+            padre_2.innerHTML = '';
+            if ($("#id_delivery").hasClass('select2-hidden-accessible')) {
+                $("#id_delivery").select2("destroy");
+                $("#id_delivery").select2();
+            }
+
+            $.ajax({
+                url: '/buys/get_addresses_by_client_supplier_id/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                //mando  id del producto del combo
+                data: {'entity_id': entity_id, 'supplier_id': supplier_id},
+                // si va bien retorna la data
+                success: function (response) {
+
+                    let addresses_client = response.addresses_client;
+
                     for (var id in addresses_client) {
                         const opt = document.createElement("option"); // <option></option>
                         opt.textContent = addresses_client[id]
                         opt.value = `c-${id}`
-                        client_group.appendChild(opt)
+                        padre_1.appendChild(opt)
                     }
-                    addresses_supplier = response.addresses_supplier;
-                    let supplier_group = document.getElementById('id_supplier_group')
+
+                    let addresses_supplier = response.addresses_supplier;
+
                     for (var id in addresses_supplier) {
                         const opt = document.createElement("option"); // <option></option>
                         opt.textContent = addresses_supplier[id]
                         opt.value = `p-${id}`
-                        supplier_group.appendChild(opt)
-                        console.log(id, addresses_supplier[id])
+                        padre_2.appendChild(opt)
                     }
                 },
             });
-        });
+
+        }
+
 
         //Bonton eliminar fila
         function deleteItem($id) {

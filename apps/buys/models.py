@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models import Sum
 
 from apps.hrm.models import Subsidiary, District, DocumentType
-from apps.sales.models import Unit, Product, Supplier, SubsidiaryStore, LoanPayment
+from apps.sales.models import Unit, Product, Supplier, SubsidiaryStore, LoanPayment, City
 from apps.comercial.models import Truck
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill, Adjust
@@ -28,7 +28,7 @@ class EntityReference(models.Model):
     business_name = models.CharField('Razon social', max_length=200, null=True, blank=True)
     ruc = models.CharField('Ruc de la empresa', max_length=11, null=True, blank=True)
     # address = models.CharField('Dirección de la empresa', max_length=200, null=True, blank=True)
-    reference = models.CharField('Referencia', max_length=200, null=True, blank=True)
+    # reference = models.CharField('Referencia', max_length=200, null=True, blank=True)
     ###################
 
     is_private = models.BooleanField('¿Entidad Privada?', default=True)
@@ -43,6 +43,7 @@ class EntityReference(models.Model):
 
 class AddressEntityReference(models.Model):
     entity_reference = models.ForeignKey(EntityReference, on_delete=models.CASCADE, related_name='entity_address')
+    city = models.ForeignKey(City, on_delete=models.SET_NULL, blank=True, null=True)
     address = models.CharField('Dirección', max_length=200)
 
     def __str__(self):
