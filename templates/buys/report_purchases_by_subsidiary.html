@@ -1,0 +1,98 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    coronasoft.dev | Estado de cuentas
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="card-header text-left mt-2 mb-1 p-1 bg-light">
+            <div class="form-inline mt-1 mb-1 p-0">
+                <table>
+                    <tr>
+                        <form class="form-inline" id="search-form" method="POST">
+                            {% csrf_token %}
+                            <td class="pl-2 pr-2 text-dark">Fecha inicial</td>
+                            <td class="pl-2 pr-2">
+                                <input type="date"
+                                       class="form-control"
+                                       id="id_date_initial"
+                                       name="id_date_initial"
+                                       value="{{ formatdate }}" required>
+                            </td>
+                            <td class="pl-2 pr-2 text-dark">Fecha final</td>
+                            <td class="pl-2 pr-2">
+                                <input type="date"
+                                       class="form-control"
+                                       id="id_date_final" name="id_date_final"
+                                       value="{{ formatdate }}" required>
+                            </td>
+                            <td class="pl-2 pr-2">
+                                <button type="submit" id="search-form"
+                                        class="btn btn-primary btn-block"><i class="fas fa-search-dollar"></i> MOSTRAR
+                                </button>
+                            </td>
+                        </form>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="table-responsive" id="tbl-purchases">
+
+        </div>
+    </div>
+
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p>Cargando...</p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#search-form').get(0));
+
+            $('#btn-search').attr("disabled", "true");
+            $('#tbl-purchases').empty();
+            $('#tbl-purchases').html(loader);
+
+            $.ajax({
+                url: '/buys/report_purchases_by_subsidiary/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response['message'], '¡Bien hecho!');
+                        $('#tbl-purchases').html(response.grid);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Error!');
+                    }
+                }
+            });
+            $('#btn-search').removeAttr("disabled", "false");
+
+        });
+
+
+    </script>
+{% endblock extrajs %}

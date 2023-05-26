@@ -1,70 +1,60 @@
 {% if clients %}
 
     <div class="card">
-
-        <div class="card-header">
-            <h5 class="card-title">Listado de Clientes</h5>
+        <div class="card-header p-2">
+            <a class="btn btn-outline-info mb-3 mt-3 btn-sm" data-toggle="modal"
+               data-target="#modal-option">
+                <i class="fas fa-user-plus"></i> &nbsp;NUEVO CLIENTE
+            </a>
         </div>
-        <div class="card-body">
+        <div class="card-body p-2 table-responsive small">
 
             <div class="table-responsive dataTables_wrapper ">
-                <table id="client-data-grid" class="table table-bordered" cellspacing="0" width="100%">
+                <table id="client-data-grid" class="table table-bordered align-content-center w-100 h-100">
                     <thead>
-                    <tr class="text-center">
-                        <th>#</th>
-                        <th scope="col">Nombre</th>
-                        <th scope="col">Telefono</th>
-                        <th scope="col">Tipo de Documento</th>
-                        <th scope="col">Nmero de Documento</th>
-                        <th scope="col">Direccion</th>
-                        <th scope="col">Distrito</th>
-                        <th scope="col">Asociados</th>
-                        <th scope="col">Referencia</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">Acción</th>
+                    <tr class="text-center font-weight-bold text-uppercase bg-light">
+                        <th class="th-sm">Nº</th>
+                        <th class="th-sm">Nombre</th>
+                        <th class="th-sm">Telefono</th>
+                        <th class="th-sm">Tipo de Documento</th>
+                        <th class="th-sm">Nmero de Documento</th>
+                        <th class="th-sm">Tipo de Cliente</th>
+                        <th class="th-sm">Direccion</th>
+                        {#                        <th class="th-sm">Distrito</th>#}
+                        <th class="th-sm">Asociados</th>
+                        <th class="th-sm">Email</th>
+                        <th class="th-sm">Acción</th>
                     </tr>
                     </thead>
-                    <tbody>
+                    <tbody style="font-size: 13px;">
                     {% for client in clients %}
-                        <tr class="text-center">
-                            <th scope="row">{{ client.id }}</th>
-                            <td>{{ client.names }}</td>
-                            <td>{{ client.phone|default:"-" }}</td>
-                            <td>{{ client.clienttype_set.first.document_type }}</td>
-                            <td>{{ client.clienttype_set.first.document_number }}</td>
-                            <td>{{ client.clientaddress_set.first.address|default_if_none:"-"|default:"-"}}</td>
-                            <td>{{ client.clientaddress_set.first.district|default_if_none:"-"|default:"-" }}</td>
-                            <td>
+                        <tr class="text-center" pk="{{ client.id }}">
+                            <td class="align-middle">{{ forloop.counter }}</td>
+                            <td class="align-middle">{{ client.names|upper }}</td>
+                            <td class="align-middle">{{ client.phone|default:"-" }}</td>
+                            <td class="align-middle">{{ client.clienttype_set.first.document_type.short_description }}</td>
+                            <td class="align-middle">{{ client.clienttype_set.first.document_number }}</td>
+                            <td class="align-middle font-weight-bold bg-light">{{ client.get_type_client_display|default:"-" }}</td>
+                            <td class="align-middle">{{ client.clientaddress_set.first.address|upper|default_if_none:"-"|default:"-" }}</td>
+                            {#                            <td>{{ client.clientaddress_set.first.district|default_if_none:"-"|default:"-" }}</td>#}
+                            <td class="align-middle">
                                 {% for associate in client.clientassociate_set.all %}
                                     <button class="btn btn-sm btn-block btn-outline-primary">{{ associate.subsidiary.name }}</button>
                                 {% endfor %}
-
-
                             </td>
-                            <td>{{ client.clientaddress_set.first.reference|default:"-" }}</td>
-                            <td>{{ client.email|default:"-" }}</td>
-                            <td>
-                                <button type="button" class="btn btn-block btn-secondary client-edit" pk="{{ client.id }}">Editar</button>
-                                <button type="button" class="btn btn-block btn-primary client-new-associate" pk="{{ client.id }}">Asociar</button>
+                            <td class="align-middle">{{ client.email|default:"-" }}</td>
+                            <td class="align-middle">
+                                <button type="button" class="btn btn-block btn-secondary client-edit"
+                                        pk="{{ client.id }}">Editar
+                                </button>
+                                <button type="button" class="btn btn-block btn-primary client-new-associate"
+                                        pk="{{ client.id }}">Asociar
+                                </button>
                             </td>
 
                         </tr>
                     {% endfor %}
                     </tbody>
-                    <tfoot>
-                    <tr class="text-center">
-                        <th>#</th>
-                        <th scope="col">Nombre</th>
-                        <th scope="col">Telefono</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">Tipo de Documento</th>
-                        <th scope="col">Nmero de Documento</th>
-                        <th scope="col">Direccion</th>
-                        <th scope="col">Distrito</th>
-                        <th scope="col">Referencia</th>
-                        <th scope="col">Acción</th>
-                    </tr>
-                    </tfoot>
                 </table>
             </div>
         </div>

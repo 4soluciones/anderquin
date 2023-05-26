@@ -83,4 +83,14 @@ urlpatterns = [
     path('get_entities/', get_entities, name='get_entities'),
     path('print_pdf_purchase_order/<int:pk>/', print_pdf, name='print_pdf_purchase_order'),
 
+    # NEW BUYS
+    path('buy_list/', get_buy_list, name='buy_list'),
+    path('get_address_by_client_id/', get_address_by_client_id, name='get_address_by_client_id'),
+    path('get_product_by_criteria_table/', get_product_by_criteria_table, name='get_product_by_criteria_table'),
+    path('get_quantity_minimum/', get_quantity_minimum, name='get_quantity_minimum'),
+    path('get_type_change/', get_type_change, name='get_type_change'),
+    path('new_provider/', new_provider, name='new_provider'),
+    path('get_sunat/', get_sunat, name='get_sunat'),
+    path('save_provider/', save_provider, name='save_provider'),
+    path('report_purchases_by_subsidiary/', report_purchases_by_subsidiary, name='report_purchases_by_subsidiary'),
 ]

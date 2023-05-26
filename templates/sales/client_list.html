@@ -7,10 +7,6 @@
 {% block body %}
     <div class="container-fluid">
 
-        <a class="btn btn-outline-info mb-3 mt-3" data-toggle="modal"
-           data-target="#modal-option">
-            <i class="fas fa-user-plus"></i> &nbsp;NUEVO CLIENTE
-        </a>
 
         <div id="client-grid-list">{% include "sales/client_grid_list.html" %}</div>
 
@@ -71,8 +67,8 @@
                     </button>
                 </div>
 
-                <form id="new-client-associate-form" >
-                   {% csrf_token %}
+                <form id="new-client-associate-form">
+                    {% csrf_token %}
                     <div class="modal-body">
                         {% include "sales/client_associate_form.html" with subsidiaries=subsidiaries %}
                     </div>
@@ -94,9 +90,29 @@
 {% endblock body %}
 
 {% block extrajs %}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.3/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.5/css/buttons.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.5/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.5/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.5/js/buttons.print.min.js"></script>
+
     <script type="text/javascript">
 
-        $('#client-data-grid').dataTable();
+        $('#client-data-grid').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.13.3/i18n/es-ES.json"
+            },
+            dom: 'Bfrtip',
+            buttons: [
+                'excel', 'pdf', 'print',
+            ]
+
+        });
 
         $('#id_district').select2({
             theme: 'bootstrap4',
@@ -113,7 +129,6 @@
             let _document_number = $('#document_number').val();
             let _names = $('#names').val();
             let _address = $('#address').val();
-
             if (sessionStorage.getItem('document') === '01') {
 
                 if (_document_number.length !== 8) {
@@ -154,15 +169,16 @@
                     }
                 }
             }
+            if ($('#id_type_client').val() === '0') {
+                toastr.warning('¡SELECCIONE EL TIPO DE CLIENTE!', 'Error de Datos!');
+                return false;
+            }
+
 
             event.preventDefault();
 
             let data = new FormData($('#new-client-form').get(0));
-
-
             $("#btn-save").attr("disabled");
-
-
             $.ajax({
 
                 url: $(this).attr('action'),
@@ -209,7 +225,7 @@
                 type: 'GET',
                 async: true,
                 dataType: 'json', // for response
-                data: {'client_id': _client_id, 'names': _names, 'associates': JSON.stringify(_associates), },
+                data: {'client_id': _client_id, 'names': _names, 'associates': JSON.stringify(_associates),},
                 contentType: 'application/json;charset=UTF-8',
                 headers: {"X-CSRFToken": '{{ csrf_token }}'},
                 success: function (response, textStatus, xhr) {
@@ -233,18 +249,16 @@
 
         $(document).on('change', '#document_type', function () {
             let _val = $(this).val();
-            if (_val === '01'){
+            if (_val === '01') {
                 $("#document_number").attr('maxlength', 8);
                 $("#document_number").attr('size', 8);
                 sessionStorage.setItem('document', '01')
-            }
-            else{
-                if (_val === '06'){
+            } else {
+                if (_val === '06') {
                     $("#document_number").attr('maxlength', 11);
                     $("#document_number").attr('size', 11);
                     sessionStorage.setItem('document', '06')
-                }
-                else{
+                } else {
                     $("#document_number").attr('maxlength', 15);
                     $("#document_number").attr('size', 15);
                     sessionStorage.setItem('document', '00')
@@ -276,18 +290,21 @@
                         let _client = JSON.parse(response['client_serialized']);
                         let _client_address = JSON.parse(response['client_serialized_data_address']);
                         let _client_type = JSON.parse(response['client_serialized_data_type']);
-                        console.log(_client)
+                        //console.log(_client)
 
                         if (response['client_serialized'] !== '[]') {
                             $('#names').val(_client[0]['fields']['names']);
                             $('#phone').val(_client[0]['fields']['phone']);
                             $('#email').val(_client[0]['fields']['email']);
                             $('#client_id').val(_client[0]['pk']);
+                            $('#id_type_client option[value]').removeAttr('selected');
+                            $('#id_type_client option[value="' + _client[0]['fields']['type_client'] + '"]').attr('selected', 'selected').trigger('change');
                         }
 
                         if (response['client_serialized_data_address'] !== '[]') {
                             $('#address').val(_client_address[0]['fields']['address']);
                             $('#reference').val(_client_address[0]['fields']['reference']);
+
                             $('#id_district option[value]').removeAttr('selected');
                             $('#id_district option[value="' + _client_address[0]['fields']['district'] + '"]').attr('selected', 'selected').trigger('change');
                         }
@@ -296,19 +313,17 @@
                             $('#document_number').val(_client_type[0]['fields']['document_number']);
                             $('#document_type option[value="' + _document + '"]').attr('selected', 'selected');
                             sessionStorage.setItem('document', _document);
-                            if (_document === '01'){
+                            if (_document === '01') {
                                 $("#document_number").attr('maxlength', 8);
                                 $("#document_number").attr('size', 8);
-                            }
-                            else{
-                                if (_document === '06'){
+                            } else {
+                                if (_document === '06') {
                                     $("#document_number").attr('maxlength', 11);
                                     $("#document_number").attr('size', 11);
                                 }
                             }
 
                         }
-
 
 
                         $('#modal_client').modal('show');
@@ -320,7 +335,7 @@
             });
         });
 
-$(document).on('click', '.client-new-associate', function () {
+        $(document).on('click', '.client-new-associate', function () {
 
             $('#cl_names').empty();
 
@@ -351,7 +366,6 @@ $(document).on('click', '.client-new-associate', function () {
         });
 
 
-
         function OpenNaturalModal(document) {
             $('#modal_client').modal('show');
             $("#document_type").val(document);
@@ -376,7 +390,7 @@ $(document).on('click', '.client-new-associate', function () {
         }
 
 
-    $('#id_associate').select2();
+        $('#id_associate').select2();
 
     </script>
 {% endblock extrajs %}

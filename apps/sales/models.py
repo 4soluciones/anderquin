@@ -226,7 +226,7 @@ class Supplier(models.Model):
     business_name = models.CharField('Razon social', max_length=45, null=True, blank=True)
     ruc = models.CharField('Ruc de la empresa', max_length=11, null=True, blank=True)
     phone = models.CharField('Telefono de la empresa', max_length=45, null=True, blank=True)
-    # address = models.CharField('Dirección de la empresa', max_length=200, null=True, blank=True)
+    address = models.CharField('Dirección de la empresa', max_length=200, null=True, blank=True)
     email = models.EmailField('Email de la empresa', max_length=50, null=True, blank=True)
     contact_names = models.CharField('Nombres del contacto', max_length=45, null=True, blank=True)
     contact_surnames = models.CharField(
@@ -326,10 +326,12 @@ class RequirementDetail(models.Model):
 
 
 class Client(models.Model):
+    TYPE_CHOICES = (('PU', 'PUBLICO'), ('PR', 'PRIVADO'))
     id = models.AutoField(primary_key=True)
     names = models.CharField(max_length=45, null=True, blank=True, unique=True)
     phone = models.CharField('Telefono', max_length=9, null=True, blank=True)
     email = models.EmailField('Correo electronico', max_length=50, null=True, blank=True)
+    type_client = models.CharField('Tipo de Cliente', max_length=2, choices=TYPE_CHOICES, default='PU')
 
     def __str__(self):
         return self.names
@@ -559,7 +561,7 @@ class OrderDetail(models.Model):
 
 
 class TransactionPayment(models.Model):
-    TYPE_CHOICES = (('E', 'Efectivo'), ('D', 'Deposito'), ('F', 'FISE'))
+    TYPE_CHOICES = (('E', 'Contado'), ('D', 'Deposito'), ('C', 'Credito'))
     id = models.AutoField(primary_key=True)
     payment = models.DecimalField('Pago', max_digits=10, decimal_places=2, default=0)
     type = models.CharField('Tipo de pago', max_length=1, choices=TYPE_CHOICES, default='E', )

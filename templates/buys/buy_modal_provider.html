@@ -1,0 +1,147 @@
+<div class="modal-dialog modal-dialog-centered roboto-condensed-regular" role="document">
+
+    <div class="modal-content">
+
+        <div class="modal-header text-center">
+            <h6 class="modal-title  font-weight-bold">REGISTRAR NUEVO PROVEEDOR</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <form id="form-person" class="embed-responsive p-1" action="{% url 'buys:save_provider' %}"
+              method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label>Ruc</label>
+                        <input type="text" class="form-control" id="id_ruc_provider"
+                               name="ruc_provider"
+                               placeholder="" required
+                               value="">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label>Razon social</label>
+                        <input type="text" class="form-control" id="id_name_provider"
+                               name="name_provider"
+                               placeholder="" required
+                               value="">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label>Nombre</label>
+                        <input type="text" class="form-control" id="id_description_provider"
+                               name="description_provider"
+                               placeholder=""
+                               value="">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label>Telefono</label>
+                        <input type="text" class="form-control" id="id_phone_provider"
+                               name="phone_provider"
+                               placeholder=""
+                               value="">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label>Direccion</label>
+                        <input type="text" class="form-control" id="id_address_provider"
+                               name="address_provider"
+                               placeholder="" required
+                               value="">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <label>Email</label>
+                        <input type="text" class="form-control" id="id_email_provider"
+                               name="email_provider"
+                               placeholder=""
+                               value="">
+                    </div>
+                </div>
+            </div><!-- modal-body -->
+            <div class="modal-footer"> &nbsp;
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button> &nbsp;
+                <button id="btn_save" type="submit" class="btn btn-primary">Registrar</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#id_ruc_provider').keypress(function (e) {
+
+        if (e.keyCode === 13) {
+            e.preventDefault()
+            $(this).trigger("enterKey");
+            let _document_number = $('#id_ruc_provider').val();
+            if (_document_number.length !== 11) {
+                toastr.warning('Por favor ingrese un numero de documento valido');
+                return false;
+            }
+            $.ajax({
+                url: '/buys/get_sunat/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'nro_document': $('#id_ruc_provider').val(),
+                    'type': '01'
+                },
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success('¡Bien hecho!');
+                        $("#id_name_provider").val(response.result);
+                        $("#id_description_provider").val(response.result);
+                        $("#id_address_provider").val(response.address);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Mensaje!');
+                    } else {
+                        if (textStatus === 'timeout') {
+                            toastr.error('Failed from timeout', '¡Error de Consulta!');
+                        } else {
+                            console.log(" STATUS: " + xhr + " " + textStatus);
+                        }
+                    }
+                }
+            });
+        }
+    });
+    $('#form-person').submit(function (event) {
+        event.preventDefault();
+        let data = new FormData($('#form-person').get(0));
+        $.ajax({
+            url: $(this).attr('action'),
+            type: $(this).attr('method'),
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response) {
+                if (response.message) {
+                    toastr.success(response.resp, 'Mensaje');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 400);
+                }
+            },
+            error: function (response) {
+                toastr.error('Problemas al registrar datos', 'Mensaje');
+            }
+        });
+    });
+</script>

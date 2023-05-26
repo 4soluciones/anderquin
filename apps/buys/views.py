@@ -16,10 +16,12 @@ from django.views.generic import TemplateView
 from apps.hrm.models import Subsidiary
 from apps.hrm.views import get_subsidiary_by_user
 from apps.sales.views import kardex_input, kardex_ouput, kardex_initial, calculate_minimum_unit, \
-    save_loan_payment_in_cash_flow
+    save_loan_payment_in_cash_flow, Client, ClientAddress, ClientType, ClientAssociate
 from .models import *
+from .views_PDF_purchase_order import query_apis_net_money
 from ..sales.models import Product, Unit, Supplier, SubsidiaryStore, ProductStore, ProductDetail, Kardex, Cash, \
     CashFlow, TransactionPayment, AddressSupplier
+from ..sales.views_SUNAT import query_apis_net_dni_ruc
 
 
 class Home(TemplateView):
@@ -188,88 +190,155 @@ def save_purchase(request):
         data_purchase = json.loads(purchase_request)
         # print(data_purchase)
 
-        provider_id = str(data_purchase["ProviderId"])
-        # type_bill = str(data_purchase["Type_bill"])
-        date = str(data_purchase["Date"])
-        # invoice = str(data_purchase["Invoice"]).upper()
-        currency = str(data_purchase["currency"])
-        payment_method = str(data_purchase["payment_method"])
-        payment_condition = str(data_purchase["payment_condition"]).upper()
-        delivery = str(data_purchase["delivery"]).split('-')
-        reference_id = data_purchase["referenceId"]
-        reference_entity_id = data_purchase["reference_entityId"]
-        observation = data_purchase["observation"]
-        supplier_order = data_purchase["supplier_order"]
+        # provider_id = str(data_purchase["ProviderId"])
+        # # type_bill = str(data_purchase["Type_bill"])
+        # # invoice = str(data_purchase["Invoice"]).upper()
+        # currency = str(data_purchase["currency"])
+        # payment_method = str(data_purchase["payment_method"])
+        # payment_condition = str(data_purchase["payment_condition"]).upper()
+        # delivery = str(data_purchase["delivery"]).split('-')
+        # reference_id = data_purchase["referenceId"]
+        # reference_entity_id = data_purchase["reference_entityId"]
+        # observation = data_purchase["observation"]
+        # supplier_order = data_purchase["supplier_order"]
 
-        # print(data_purchase["truck"])
-        # if (data_purchase["truck"]) is not None:
-        #     truck_id = int(data_purchase["truck"])
-        #     truck_obj = Truck.objects.get(id=truck_id)
-        #     status = 'A'
-        # else:
-        #     truck_obj = None
-        #     status = 'S'
+        supplier_id = str(data_purchase["SupplierId"])
+        date = str(data_purchase["Date"])
+        reference = str(data_purchase["Reference"])
+        type_pay = str(data_purchase["Type_Pay"])
+        pay_condition = str(data_purchase["Pay_condition"])
+        base_total = decimal.Decimal(data_purchase["Base_Total"])
+        igv_total = decimal.Decimal(data_purchase["Igv_Total"])
+        total = decimal.Decimal(data_purchase["Import_Total"])
+        check_igv = str(data_purchase["Check_Igv"])
+        check_dollar = str(data_purchase["Check_Dollar"])
+
+        client_reference = int(data_purchase["client_reference_id"])
+        client_entity = int(data_purchase["client_final"])
+
+        check_subsidiary = str(data_purchase["check-subsidiary"])
+        check_provider = str(data_purchase["check-provider"])
+        check_client_reference = data_purchase["check-client"]
+        check_client_entity = str(data_purchase["check-client-final"])
+
+        address_subsidiary = data_purchase["address_subsidiary"]
+        address_provider = data_purchase["address_provider"]
+        client_address_reference = data_purchase["client_address_reference"]
+        client_address_entity = data_purchase["client_final_address"]
+
+        observations = str(data_purchase["observations"])
+
         user_id = request.user.id
 
         user_obj = User.objects.get(pk=int(user_id))
         subsidiary_obj = get_subsidiary_by_user(user_obj)
 
-        supplier_obj = Supplier.objects.get(id=int(provider_id))
+        supplier_obj = Supplier.objects.get(id=int(supplier_id))
+        # DIRECCION_CENTRAL = 'JR. CARABAYA NRO. 443 (AL FRENTE DE LA PLAZA MANCO CAPAC) PUNO - SAN ROMAN - JULIACA'
+        # DIRECCION_ALMACEN = 'JR. PALMERAS-STA. ASUNCION MZA. I5 LOTE 10 FRENTE A LA PLAZA DE SANTA ASUNCION PUNO-SAN ROMAN-JULIACA'
+        #
+        # delivery_from = delivery[0]
+        # delivery_id = delivery[1]
+        #
+        # name_address = ''
+        # city_address = ''
+        # if delivery_from == 'a':
+        #     if delivery_id == 'C':
+        #         name_address = DIRECCION_CENTRAL
+        #         city_address = f'JULIACA'
+        #     elif delivery_id == 'A':
+        #         name_address = DIRECCION_ALMACEN
+        #         city_address = f'JULIACA'
+        # elif delivery_from == 'c':
+        #     address_entity = AddressEntityReference.objects.get(id=int(delivery_id))
+        #     name_address = f'{address_entity.address}'
+        #     city_address = f'{address_entity.city.name}'
+        #
+        # elif delivery_from == 'p':
+        #     address_supplier = AddressSupplier.objects.get(id=int(delivery_id))
+        #     name_address = f'{address_supplier.address} - {address_supplier.city}'
+        #     city_address = f'{address_supplier.city.name}'
+        currency_type = 'S'
+        if check_dollar == '1':
+            currency_type = 'D'
 
-        DIRECCION_CENTRAL = 'JR. CARABAYA NRO. 443 (AL FRENTE DE LA PLAZA MANCO CAPAC) PUNO - SAN ROMAN - JULIACA'
-        DIRECCION_ALMACEN = 'JR. PALMERAS-STA. ASUNCION MZA. I5 LOTE 10 FRENTE A LA PLAZA DE SANTA ASUNCION PUNO-SAN ROMAN-JULIACA'
+        client_reference_obj = None
+        delivery_choice = ''
+        city = ''
 
-        delivery_from = delivery[0]
-        delivery_id = delivery[1]
+        if client_reference:
+            client_reference_obj = Client.objects.get(id=int(client_reference))
+        client_entity_obj = None
+        if client_entity:
+            client_entity_obj = Client.objects.get(id=int(client_entity))
+        delivery_address = ''
 
-        name_address = ''
-        city_address = ''
-        if delivery_from == 'a':
-            if delivery_id == 'C':
-                name_address = DIRECCION_CENTRAL
-                city_address = f'JULIACA'
-            elif delivery_id == 'A':
-                name_address = DIRECCION_ALMACEN
-                city_address = f'JULIACA'
-        elif delivery_from == 'c':
-            address_entity = AddressEntityReference.objects.get(id=int(delivery_id))
-            name_address = f'{address_entity.address}'
-            city_address = f'{address_entity.city.name}'
+        if check_subsidiary == '1':
+            subsidiary_address_obj = Subsidiary.objects.get(id=int(address_subsidiary))
+            delivery_address = subsidiary_address_obj.address
+            delivery_choice = 'S'
+            city = subsidiary_address_obj.district.description
+        elif check_provider == '1':
+            address_provider_set = AddressSupplier.objects.filter(supplier__id=int(address_provider))
+            delivery_choice = 'P'
+            if address_provider_set.exists():
+                address_provider_obj = address_provider_set.last()
+                delivery_address = address_provider_obj.address
+                city = address_provider_obj.city.name
 
-        elif delivery_from == 'p':
-            address_supplier = AddressSupplier.objects.get(id=int(delivery_id))
-            name_address = f'{address_supplier.address} - {address_supplier.city}'
-            city_address = f'{address_supplier.city.name}'
+        elif check_client_reference == '1':
+            client_address_referencer_set = ClientAddress.objects.filter(id=int(client_address_reference))
+            delivery_choice = 'CR'
+            if client_address_referencer_set.exists():
+                client_address_referencer_obj = client_address_referencer_set.last()
+                delivery_address = client_address_referencer_obj.address
+                city = client_address_referencer_obj.district.description
+
+        elif check_client_entity == '1':
+            client_address_entity_set = ClientAddress.objects.filter(id=int(client_address_entity))
+            delivery_choice = 'CP'
+            if client_address_entity_set.exists():
+                client_address_entity_obj = client_address_entity_set.last()
+                delivery_address = client_address_entity_obj.address
+                city = client_address_entity_obj.district.description
+
         purchase_obj = Purchase(
             supplier=supplier_obj,
             purchase_date=date,
-            # bill_number=invoice,
             user=user_obj,
             subsidiary=subsidiary_obj,
+            bill_number=reference,
+            payment_method=type_pay,
+            payment_condition=pay_condition,
+            currency_type=currency_type,
+            client_reference=client_reference_obj,
+            client_reference_entity=client_entity_obj,
+            delivery_address=delivery_address.upper(),
+            delivery_choice=delivery_choice,
+            observation=observations.upper(),
+            city=city.upper()
             # truck=truck_obj,
             # status=status,
             # type_bill=type_bill,
-            currency_type=currency,
-            payment_method=payment_method,
-            payment_condition=payment_condition,
-            delivery=name_address,
-            city=city_address,
-            observation=observation,
-            oc_supplier=supplier_order
+            # currency_type=currency,
+            #
+            # delivery=name_address,
+            # city=city_address,
+            # oc_supplier=supplier_order
         )
         purchase_obj.save()
         purchase_obj.bill_number = f'OC-{datetime.now().year}-{str(purchase_obj.id).zfill(5)}'
         purchase_obj.save()
-        if reference_id:
-            reference_obj = EntityReference.objects.get(id=int(reference_id))
-
-            purchase_obj.reference = reference_obj
-            purchase_obj.save()
-
-        if reference_entity_id:
-            reference_entity_obj = EntityReference.objects.get(id=int(reference_entity_id))
-            purchase_obj.reference_entity = reference_entity_obj
-            purchase_obj.save()
+        # if reference_id:
+        #     reference_obj = EntityReference.objects.get(id=int(reference_id))
+        #
+        #     purchase_obj.reference = reference_obj
+        #     purchase_obj.save()
+        #
+        # if reference_entity_id:
+        #     reference_entity_obj = EntityReference.objects.get(id=int(reference_entity_id))
+        #     purchase_obj.reference_entity = reference_entity_obj
+        #     purchase_obj.save()
 
         # if delivery:
         #     purchase_obj.delivery = delivery
@@ -278,11 +347,8 @@ def save_purchase(request):
         for detail in data_purchase['Details']:
             quantity = decimal.Decimal(detail['Quantity'])
             price = decimal.Decimal(detail['Price'])
-            # recuperamos del producto
             product_id = int(detail['Product'])
             product_obj = Product.objects.get(id=product_id)
-
-            # recuperamos la unidad
             unit_id = int(detail['Unit'])
             unit_obj = Unit.objects.get(id=unit_id)
 
@@ -663,6 +729,27 @@ def get_units_by_product(request):
         return JsonResponse({
             'units': units_serialized_obj,
             # 'units': products_serialized_obj,
+        }, status=HTTPStatus.OK)
+
+
+def get_quantity_minimum(request):
+    if request.method == 'GET':
+        product_id = request.GET.get('product_id', '')
+        unit_id = request.GET.get('unit_id', '')
+        quantity_minimum = ''
+        price_sale = ''
+        price_purchase = ''
+        product_detail_set = ProductDetail.objects.filter(product__id=product_id, unit__id=unit_id)
+        if product_detail_set.exists():
+            product_detail_obj = product_detail_set.last()
+            quantity_minimum = product_detail_obj.quantity_minimum
+            price_sale = product_detail_obj.price_sale
+            price_purchase = product_detail_obj.price_purchase
+
+        return JsonResponse({
+            'quantity_minimum': round(quantity_minimum, 0),
+            'price_sale': price_sale,
+            'price_purchase': price_purchase,
         }, status=HTTPStatus.OK)
 
 
@@ -2300,6 +2387,282 @@ def get_purchases_by_provider_category(request):
         context = ({
             'purchase_dict': purchase_dict,
             'sum_total': '{:,}'.format(round(decimal.Decimal(sum_total), 2)),
+        })
+        return JsonResponse({
+            'grid': tpl.render(context, request),
+        }, status=HTTPStatus.OK)
+
+
+# -----------------------------------------------------------------------------------------------
+
+
+def get_buy_list(request):
+    supplier_obj = Supplier.objects.all()
+    product_obj = Product.objects.all()
+    unitmeasurement_obj = Unit.objects.all()
+    my_date = datetime.now()
+    formatdate = my_date.strftime("%Y-%m-%d")
+    return render(request, 'buys/buy_list.html', {
+        'supplier_obj': supplier_obj,
+        'unitmeasurement_obj': unitmeasurement_obj,
+        'product_obj': product_obj,
+        'choices_payments': TransactionPayment._meta.get_field('type').choices,
+        'choices_payments_purchase': Purchase._meta.get_field('payment_method').choices,
+        'formatdate': formatdate,
+        'supplier_set': Supplier.objects.all(),
+        'client_set': Client.objects.all(),
+        'subsidiary_set': Subsidiary.objects.all().order_by('id'),
+    })
+
+
+def get_address_by_client_id(request):
+    if request.method == 'GET':
+        client_id = request.GET.get('client_id', '')
+        client_obj = Client.objects.get(id=int(client_id))
+        client_address_set = ClientAddress.objects.filter(client=client_obj)
+        return JsonResponse({
+            'client_address_set': serializers.serialize('json', client_address_set),
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_product_by_criteria_table(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(pk=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        subsidiary_store_obj = SubsidiaryStore.objects.get(subsidiary=subsidiary_obj, category='V')
+        value = request.GET.get('value', '')
+        array_value = value.split()
+        product_query = Product.objects
+        full_query = None
+        product_list = []
+
+        for i in range(0, len(array_value)):
+            q = Q(name__icontains=array_value[i]) | Q(product_brand__name__icontains=array_value[i])
+            if full_query is None:
+                full_query = q
+            else:
+                full_query = full_query & q
+
+        product_set = product_query.filter(full_query).select_related(
+            'product_family', 'product_brand').order_by('id')
+
+        if not product_set:
+            data = {'error': 'NO EXISTE EL PRODUCTO, FAVOR DE INGRESAR PRODUCTO EXISTENTE.'}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+
+        for e in product_set:
+            unit_id = ''
+            unit_name = ''
+            price_sale = ''
+            stock = 0
+            product_store_id = ''
+            product_store_set = ProductStore.objects.filter(product_id=e.id, subsidiary_store=subsidiary_store_obj)
+
+            if product_store_set.exists():
+                product_store_obj = product_store_set.first()
+                stock = product_store_obj.stock
+                product_store_id = product_store_obj.id
+
+            item_product_list = {
+                'id': e.id,
+                'name': e.name,
+                'brand': e.product_brand.name,
+                'unit_dict': [],
+                'stock': stock,
+                'product_store_id': product_store_id
+            }
+            if e.productdetail_set.exists():
+                for pd in e.productdetail_set.all():
+                    item_unit = {
+                        'unit_id': pd.unit.id,
+                        'unit_name': pd.unit.name,
+                        'price_sale': pd.price_sale,
+                        'price_purchase': pd.price_purchase,
+                        'quantity_minimum': pd.quantity_minimum
+                    }
+                    item_product_list.get('unit_dict').append(item_unit)
+            product_list.append(item_product_list)
+
+        return JsonResponse({
+            'productList': product_list,
+        }, status=HTTPStatus.OK)
+
+
+def get_type_change(request):
+    if request.method == 'GET':
+        mydate = datetime.now()
+        formatdate = mydate.strftime("%Y-%m-%d")
+        money_change_set = MoneyChange.objects.filter(search_date=formatdate)
+
+        if money_change_set.exists():
+            money_change_obj = money_change_set.first()
+            sell = money_change_obj.sell
+            buy = money_change_obj.buy
+
+            return JsonResponse({'sell': sell, 'buy': buy},
+                                status=HTTPStatus.OK)
+        else:
+            r = query_apis_net_money(formatdate)
+
+            if r.get('fecha_busqueda') == formatdate:
+                sell = round(r.get('venta'), 3)
+                buy = round(r.get('compra'), 3)
+                search_date = r.get('fecha_busqueda')
+                sunat_date = r.get('fecha_sunat')
+
+                money_change_obj = MoneyChange(
+                    search_date=search_date,
+                    sunat_date=sunat_date,
+                    sell=sell,
+                    buy=buy
+                )
+                money_change_obj.save()
+
+            else:
+                data = {'error': 'NO EXISTE TIPO DE CAMBIO'}
+                response = JsonResponse(data)
+                response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+                return response
+
+        return JsonResponse({'sell': sell, 'buy': buy},
+                            status=HTTPStatus.OK)
+
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def new_provider(request):
+    t = loader.get_template('buys/buy_modal_provider.html')
+    c = ({})
+    return JsonResponse({
+        'form': t.render(c, request),
+    })
+
+
+def get_sunat(request):
+    if request.method == 'GET':
+        nro_document = request.GET.get('nro_document', '')
+        type_document = str(request.GET.get('type', ''))
+        person_obj_search = Supplier.objects.filter(ruc=nro_document)
+        if person_obj_search.exists():
+            names = person_obj_search.last().business_name
+            data = {
+                'error': 'EL PROVEEDOR ' + str(names) + ' YA SE ENCUENTRA REGISTRADO'}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+        else:
+            if type_document == '01':
+                type_name = 'RUC'
+                r = query_apis_net_dni_ruc(nro_document, type_name)
+
+                if r.get('numeroDocumento') == nro_document:
+                    business_name = r.get('nombre')
+                    address_business = r.get('direccion')
+                    result = business_name
+                    address = address_business
+                    return JsonResponse({'result': result, 'address': address}, status=HTTPStatus.OK)
+                else:
+                    data = {'error': 'NO EXISTE RUC. REGISTRE MANUAL O CORREGIRLO'}
+                    response = JsonResponse(data)
+                    response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+                    return response
+
+
+@csrf_exempt
+def save_provider(request):
+    if request.method == 'POST':
+        _ruc = request.POST.get('ruc_provider', '')
+        _names_business = request.POST.get('name_provider', '')
+        _names = request.POST.get('description_provider', '')
+        _telephone = request.POST.get('phone_provider', '')
+        _email = request.POST.get('email_provider', '')
+        _address = request.POST.get('address_provider', '')
+        if _names == '' or _names == None:
+            _names = _names_business
+        supplier_obj = Supplier(
+            ruc=_ruc,
+            business_name=_names_business,
+            name=_names,
+            phone=_telephone,
+            email=_email,
+            address=_address,
+        )
+        supplier_obj.save()
+        return JsonResponse({
+            'message': True,
+            'resp': 'Se registro exitosamente',
+        }, status=HTTPStatus.OK)
+
+
+def report_purchases_by_subsidiary(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+
+        return render(request, 'buys/report_purchases_by_subsidiary.html', {
+            'formatdate': formatdate,
+        })
+
+    elif request.method == 'POST':
+        date_initial = str(request.POST.get('id_date_initial'))
+        date_final = str(request.POST.get('id_date_final'))
+        subsidiary_set = Subsidiary.objects.all()
+        purchase_dict = []
+        for s in subsidiary_set:
+            quantity_total = 0
+            subsidiary_item = {
+                'id': s.id,
+                'name': s.name,
+                'purchases': [],
+                'quantity_total': 0,
+            }
+            purchase_set = Purchase.objects.filter(
+                subsidiary=s.id,
+                purchase_date__range=(date_initial, date_final)).prefetch_related(
+                Prefetch(
+                    'purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')
+                )
+            ).select_related('supplier')
+
+            for p in purchase_set:
+                client_reference = ''
+                address = ''
+                if p.client_reference is not None:
+                    client_reference = p.client_reference.names
+                if p.delivery_address is not None:
+                    address = p.delivery_address
+
+                item_purchase = {
+                    'id': p.id,
+                    'oc_number': p.bill_number,
+                    'client_reference': client_reference.upper(),
+                    'address': address.upper(),
+                    'date': p.purchase_date,
+                    'observations': p.observation,
+                    'purchase_detail': [],
+                    'rowspan': p.purchasedetail_set.count(),
+                }
+                for pd in p.purchasedetail_set.all():
+                    item_purchase_detail = {
+                        'id': pd.id,
+                        'quantity': round(pd.quantity, 0),
+                        'product': pd.product.name,
+                    }
+                    quantity_total += round(pd.quantity, 0)
+                    item_purchase.get('purchase_detail').append(item_purchase_detail)
+                subsidiary_item.get('purchases').append(item_purchase)
+            subsidiary_item['quantity_total'] = quantity_total
+            purchase_dict.append(subsidiary_item)
+        # print(purchase_dict)
+        tpl = loader.get_template('buys/report_purchases_by_subsidiary_grid.html')
+        context = ({
+            'purchase_dict': purchase_dict,
         })
         return JsonResponse({
             'grid': tpl.render(context, request),

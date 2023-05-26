@@ -153,5 +153,9 @@ urlpatterns = [
 
     # purchase_report_by_category
     path('purchase_report_by_category/', login_required(purchase_report_by_category), name='purchase_report_by_category'),
+
+    # QUOTATION
+    path('quotation/', login_required(quotation_list), name='quotation_list'),
+    path('get_product_quotation/', login_required(get_product_quotation), name='get_product_quotation'),
 ]
 

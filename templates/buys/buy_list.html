@@ -1,0 +1,1113 @@
+{% extends 'home.html' %}
+{% block title %}
+    Compras
+{% endblock title %}
+
+{% block body %}
+    <div class="col-sm-12 col-sm-12 col-lg-12 pt-3 roboto-condensed-regular">
+        <div class="card">
+            <div class="card-header pt-0">
+                <div class="row" style="background: #1a77c8">
+                    <div class="col-sm-8 col-md-8 col-lg-8">
+                        <div class="row p-2">
+                            <div class="col-sm-3 col-md-3 col-lg-3">
+                                <h4 class="montserrat text-white font-weight-bold mt-4 mb-0"><label>ORDEN DE
+                                    COMPRA:</label>
+                                </h4>
+                            </div>
+
+                            <div class="col-sm-2 col-md-2 col-lg-2 mb-3">
+                                <button type="button" onclick="showModalView('new_provider')"
+                                        class="btn btn-sm btn-secondary btn-block mt-3 mb-0 col-sm-12 col-md-12 col-lg-12">
+                                    Nuevo Proveedor
+                                </button>
+
+                            </div>
+
+                            <div class="col-sm-4 col-md-4 col-lg-4 mt-3">
+                                <form>
+                                    <div class="form-group row ">
+                                        <button type="button"
+                                                class="col-sm-5 btn btn-sm btn-outline-secondary border-0 text-white btn-block p-1"
+                                                id="btn-type-change">Tipo de Cambio:
+                                        </button>
+                                        <div class="col-sm-7">
+                                            <input type="text" class="form-control text-center font-weight-bold"
+                                                   id="type_change" readonly>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="col-sm-3 col-md-3 col-lg-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input check-dollar" type="checkbox" value=""
+                                           id="check_dollar">
+                                    <label class="form-check-label text-white" for="check_dollar">
+                                        COMPRA EN DOLARES
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <div class="row">
+
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-body p-0">
+                    <div class="row border">
+                        <div class="col-sm-5 col-md-5 col-lg-5 pr-0">
+                            <div class="card">
+                                <div class="card-header pb-1 pt-1">
+                                    <div class="row">
+                                        <div class="col-sm-9 col-md-9 col-lg-9 font-weight-bold">
+                                            DATOS DE LA ORDEN:
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body pt-1">
+                                    {% include "buys/buy_register.html" %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-7 col-md-7 col-lg-7 pl-0">
+                            <div class="card">
+                                <div class="card-header pb-1 pt-1">
+                                    <div class="row">
+                                        <div class="col-sm-9 col-md-9 col-lg-9 font-weight-bold">
+                                            REFERENCIA DE VENTA:
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body pt-1">
+                                    {% include "buys/buys_reference.html" %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="col-sm-12 col-md-12 col-lg-12 pt-1 roboto-condensed-regular">
+        <div class="card">
+            <div class="card-body pt-2">
+                <div class="table-responsive" id="render-table">
+                    {% include "buys/buy_detail.html" %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="modal-updetail" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">DETALLE DE LA COMPRA</h5>
+                    <button type="button" class="close" onclick="limper()" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                {#                {% include "buys/buy_modal_detail.html" %}#}
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card-body">
+        <div id="product-grid-list"></div>
+    </div>
+    <div class="modal fade bd-example-modal-lg" id="add-modal" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
+
+
+    <div class="mr-3 ml-0" style="
+            display: none;
+            position: absolute;
+            top: 83px;
+            left: 0px;
+            background: #e9ecef;
+            opacity: 0.5;
+            width: 100%;
+            {#height: 46em;#}
+            !important;bottom: 560px;
+            padding-right: 65em;
+            padding-top: 2em;" id="loading-666">
+
+    </div>
+
+
+
+    <div class="modal" id="modal-debs" tabindex="-1" role="dialog">
+
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header pb-2 pt-2">
+                    <h4 class="modal-title mb-3 mt-3 text-uppercase">Cantidad de coutas/letras:</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {#                    {% include "buys/modal_debs.html" with formatdate=formatdate %}#}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <style>
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon > i {
+        {#content: "$";#} position: absolute;
+            display: block;
+            transform: translate(0, -50%);
+            top: 50%;
+            pointer-events: none;
+            width: 25px;
+            text-align: center;
+            font-style: normal;
+        }
+
+        .input-icon > input {
+            padding-left: 25px;
+            padding-right: 8px;
+        }
+
+        .input-icon-right > i {
+            right: 0;
+        }
+
+        .input-icon-right > input {
+            padding-left: 0;
+            padding-right: 25px;
+            text-align: right;
+        }
+    </style>
+
+{% endblock body %}
+
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p><strong>Cargando Reniec/Sunat...</strong></p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        $("#id_ruc_provider").attr('maxlength', 11);
+
+
+        let array_units = [
+            {% for u in unitmeasurement_obj %}
+                {
+                    'id': '{{ u.id }}',
+                    'description': '{{ u.description }}'.trim(),
+
+                },
+            {% endfor %}
+        ];
+
+
+        let textOption = ''
+        {% for u in unitmeasurement_obj %}
+            textOption += `<option value="{{ u.id }}">{{ u.name }}</option>`
+        {% endfor %}
+
+
+        $(document).on('click', '#check_dollar', function (e) {
+            let _check = $(this);
+            if (_check.is(':checked')) {
+                $(".change-money").text('$')
+            } else {
+                $(".change-money").text('S/')
+            }
+        });
+
+
+        $(document).on('click', '#btn-type-change', function (e) {
+            let _input_type_change = $('#type_change')
+
+            $.ajax({
+                url: '/buys/get_type_change/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        {#toastr.success(response.message, '¡Bien hecho!');#}
+                        {#console.log(response)#}
+                        _input_type_change.val('$' + response.buy);
+                        {#_provider.attr('provider', response.pk);#}
+                        {#$('#loading-666').hide();#}
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, 'Mensaje');
+                    } else {
+                        if (textStatus === 'timeout') {
+                            toastr.error('Failed from timeout', 'Mensaje');
+                        } else {
+                            console.log(" STATUS: " + xhr + " " + textStatus);
+                        }
+                    }
+                    {#$('#loading-666').hide();#}
+                },
+            });
+            return false;
+        });
+        $("#btn-type-change").trigger('click');
+
+        $(document).on('keypress', '#id_ruc_provider', function (e) {
+
+            if (e.keyCode === 13) {
+
+                e.preventDefault()
+                $(this).trigger("enterKey");
+                let _ruc = $(this).val();
+                let _provider = $('#id_provider')
+
+                $('#loading-666').html(loader).show()
+
+                $.ajax({
+                    url: '/buys/get_provider_by_ruc/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {
+                        'ruc': _ruc,
+                    },
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡Bien hecho!');
+                            console.log(response)
+                            _provider.val(response.result);
+                            _provider.attr('provider', response.pk);
+                            $('#loading-666').hide();
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        if (jqXhr.status === 500) {
+                            toastr.error(jqXhr.responseJSON.error, 'Mensaje');
+                        } else {
+                            if (textStatus === 'timeout') {
+                                toastr.error('Failed from timeout', 'Mensaje');
+                            } else {
+                                console.log(" STATUS: " + xhr + " " + textStatus);
+                            }
+                        }
+                        $('#loading-666').hide();
+                    },
+                });
+                return false;
+            }
+        });
+
+        $('#id_proveedor').select2({
+            theme: 'bootstrap4',
+        });
+        {#$('#id_producto').select2({#}
+        {#    theme: 'bootstrap4',#}
+        {# });#}
+        $("#btn-new").click(function () {
+            limper_form();
+        });
+
+        function showModalView(ruta) {
+            $.ajax({
+                url: '/buys/' + ruta + '/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': 1},
+                success: function (response) {
+                    $('#add-modal').html(response.form);
+                    $('#add-modal').modal('show');
+                },
+                fail: function (response) {
+                    console.log(response);
+                }
+            });
+
+        };
+
+        function limper_form(request) {
+            $('#id_fechacompra').val('');
+            $("#id_factura").val('');
+            $('#id_proveedor option').removeAttr('selected');
+            $('#id_proveedor option:first').attr('selected', 'selected');
+            $('#id_proveedor').trigger('change');
+            $('#id_detail_data_grid tbody#details').empty();
+        };
+
+        function limper(request) {
+            $('#id_cantidad').val('');
+            $('#id_preciounitario').val('');
+            $('#id_import').val('');
+            $('#id_producto option').removeAttr('selected');
+            $('#id_producto option:first').attr('selected', 'selected');
+            $('#id_producto').trigger('change');
+            $("#id_unidad").empty().append('<option>Seleccione</option>');
+
+            {#$('#id_producto option[value=0]').attr('selected','selected');#}
+            {#$('#id_unidad option[value=0]').attr('selected','selected');#}
+        };
+        $('#id_import').keyup(function () {
+            let _total = parseFloat($(this).val());
+            if (_total !== '') {
+                let _item_quantity = parseFloat($('#id_cantidad').val());
+                let _item_price = _total / _item_quantity;
+                if (isNaN(_item_price)) {
+                    $('#id_preciounitario').val('');
+                } else {
+                    $('#id_preciounitario').val(parseFloat(_item_price).toFixed(2));
+                }
+            }
+        })
+        $("#id_add").click(function () {
+
+            let id_product = $('#id_producto').val();
+            let name_product = $('#id_producto option:selected').text();
+            let quantity = parseFloat($('#id_cantidad').val());
+            let id_unit = $('#id_unidad').val();
+            let name_unit = $('#id_unidad option:selected').text();
+            let price_unit = parseFloat($('#id_preciounitario').val());
+            let total_ = parseFloat($('#id_import').val());
+            let discount1 = parseFloat($('#id_discount_1').val());
+            let discount2 = parseFloat($('#id_discount_2').val());
+            let discount3 = parseFloat($('#id_discount_3').val());
+            let discount4 = parseFloat($('#id_discount_4').val());
+            if (id_product > 0 && quantity > 0 && id_unit > 0 && price_unit > 0) {
+                if ($("#id_detail_data_grid tr[product=" + id_product + "]").length) {
+                    toastr.warning('El producto ya se encuentra agregado.!');
+                    return false;
+                }
+                $('#id_detail_data_grid').append(
+                    '<tr class="text-center" product="' + id_product + '">' +
+                    '<td class="item-numero align-middle">' + '</td>' +
+                    '<td class="align-middle text-left">' + name_product + '</td>' +
+                    '<td class="item-quantity align-middle">' + quantity.toFixed(2) + '</td>' +
+                    '<td class="item-unit align-middle" pu="' + id_unit + '">' + name_unit + '</td>' +
+                    '<td class="item-price text-right align-middle">' + price_unit.toFixed(2) + '</td>' +
+                    '<td class="item-discount1 text-right align-middle">' + discount1.toFixed(2) + '</td>' +
+                    '<td class="item-discount2 text-right align-middle">' + discount2.toFixed(2) + '</td>' +
+                    '<td class="item-discount3 text-right align-middle">' + discount3.toFixed(2) + '</td>' +
+                    '<td class="item-discount4 text-right align-middle">' + discount4.toFixed(2) + '</td>' +
+                    '<td class="text-right align-middle">' + total_.toFixed(2) + '</td>' +
+                    '<td class="text-center align-middle">' + '<div class="form-check"> <input class="form-check-input position-static" type="checkbox" value="" id="id_check_kardex"></div>' + '</td>' +
+                    '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem(' + id_product + ')" class="btn btn-success delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                    '</tr>'
+                );
+                //$index++;
+                limper()
+                counterStrike()
+                toastr.info('Producto agregado correctamente');
+            } else {
+                {#toastr.succes('info messages');#}
+                toastr.warning('Por favor, complete todo los campos!');
+            }
+        });
+
+        $('#purchase-form').submit(function (event) {
+            event.preventDefault();
+
+            if ($('#payment_type').val() === '0') {
+                toastr.warning('¡Selecione el tipo de pago!', 'Mensaje');
+                return false;
+            }
+
+            if ($("#id_detail_data_grid tbody#details-table tr").length > 0 && $('.product-table').val() !== '') {
+                let table_foot = $("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("#id_detail_data_foot tbody#table-detail-foot tr")
+                let Detail_purchase = {
+                    "SupplierId": $('#supplier_id').val(),
+                    "Date": $('#id_fechacompra').val(),
+                    "Reference": $('#reference').val(),
+                    "Type_Pay": $('#payment_type').val(),
+                    "Pay_condition": $('#pay_condition').val(),
+                    {#"Invoice": $('#id_factura').val(),#}
+                    {#"Type_Bill": $('#id_type_bill').val(),#}
+                    "Base_Total": Number(table_foot.find("td.foot-base input.total-foot-base").val()),
+                    "Igv_Total": Number(table_foot.find("td.foot-igv input.total-foot-igv").val()),
+                    "Import_Total": Number(table_foot.find("td.foot-total input.total-foot-total").val()),
+                    {#"TotalFreight": Number(table_foot.find("td.foot-freight input.total-foot-freight").val()),#}
+                    {#"Total_Document": Number(table_foot.find("td.foot-document input.total-foot-document").val()),#}
+                    "Check_Igv": ($("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("div.form-check input.check-igv").is(':checked')) ? 1 : 0,
+                    "Check_Dollar": ($("#check_dollar").is(':checked')) ? 1 : 0,
+                    "Details": [],
+
+                    "client_reference_id": $('#client_reference_id').val(),
+                    "client_final": $('#client_final').val(),
+
+                    "check-subsidiary": ($("#check-subsidiary").is(':checked')) ? 1 : 0,
+                    "check-provider": ($("#check-provider").is(':checked')) ? 1 : 0,
+                    "check-client-final": ($("#check-client-final").is(':checked')) ? 1 : 0,
+                    "check-client": ($("#check-client").is(':checked')) ? 1 : 0,
+
+                    "address_subsidiary": $("#address_subsidiary").val(),
+                    "address_provider": $("#address_provider").val(),
+                    "client_address_reference": $("#client_address_reference").val(),
+                    "client_final_address": $("#client_final_address").val(),
+                    "observations": $("#observations").val(),
+
+                    {#"Freight": [],#}
+                    {#"Dues": [],#}
+                };
+                $("#id_detail_data_grid tbody#details-table tr").each(function () {
+                    let detailObj = {
+                        "Product": $(this).attr('product'),
+                        "Unit": $(this).find("td.unit select.unit-product").val(),
+                        "Quantity": $(this).find("td.item-quantity input.quantity-product").val(),
+                        "Price": Number($(this).find("td.item-price input.price-unit-product").val()),
+                        {#"Price_Unit_Discount": Number($(this).find("td.item-price").attr("price-unit-with-discount")),#}
+                        {#"Dto1": Number($(this).find("td.item-discount1 input.discount1").val()),#}
+                        {#"Dto2": Number($(this).find("td.item-discount2 input.discount2").val()),#}
+                        {#"Dto3": Number($(this).find("td.item-discount3 input.discount3").val()),#}
+                        {#"Dto4": Number($(this).find("td.item-discount4 input.discount4").val()),#}
+                        "Total": Number($(this).find("td.item-total input.total-detail").val()),
+                        {#"Check_kardex": ($(this).find("td.item-check div.form-check input.check-kardex").is(':checked')) ? 1 : 0,#}
+                    };
+                    Detail_purchase.Details.push(detailObj);
+                });
+                /*$("#id_freight_data_grid tbody#details-freight tr").each(function () {
+                    let detailFreight = {
+                        "DocumentFreight": $(this).find("td.document-freight input.document-freight-input").val(),
+                        "SerialFreight": $(this).find("td.serial-freight input.serial-freight-input").val(),
+                        "NumberFreight": $(this).find("td.number-freight input.number-freight-input").val(),
+                        "DateFreight": $(this).find("td.date-freight input.date-freight-input").val(),
+                        "TotalFreight": Number($(this).find("td.total-freight input.total-freight-input").val()),
+                    }
+                    Detail_purchase.Freight.push(detailFreight);
+                });*/
+                /*$("#id_debs_grid tbody#details-dues tr").each(function () {
+                    let dataDues = {
+                        "amountDue": $(this).find("td.amount-due").text().replace('S/ ', '')
+                    }
+                    Detail_purchase.Dues.push(dataDues)
+
+                });*/
+                {#console.log(JSON.stringify(Detail_purchase))#}
+
+                $.ajax({
+                    url: '/buys/save_purchase/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {'purchase': JSON.stringify(Detail_purchase)},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡COMPRA REGISTRADA CORRECTAMENTE!');
+                            let purchase_id = response.pk
+                            window.location.href = "/buys/print_pdf_purchase_order/" + purchase_id + "/";
+                            setTimeout(() => {
+                                location.reload();
+                            }, 2000);
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        toastr.error("ERROR. ", '¡INCONCEBIBLE!');
+                    }
+                });
+
+            } else {
+                toastr.warning("PARA REALIZAR LA COMPRA AGREGUE AL MENOS UN PRODUCTO. ", '¡ADVERTENCIA!');
+                return false;
+            }
+        });
+
+
+        $('#id_producto').change(function () {
+            //recupera el id_dela opcion seleccionada
+            let _search = $(this).val();
+            //vacia el combo-borra opciones
+            $('#id_unidad').empty();
+            if ($('#id_producto').val() !== '0') {
+                $.ajax({
+                    url: '/buys/get_units_by_product/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    //mando  id del producto del combo
+                    data: {'ip': _search},
+                    // si va bien retorna la data
+                    success: function (response) {
+                        //le da formato array
+                        let units = JSON.parse(response['units']);
+                        units.forEach(
+                            element =>
+                                $('#id_unidad').append(
+                                    '<option value="' + element['pk'] + '">' + element['fields']['description'] + '</option>')
+                        )
+                    },
+                });
+            }
+        })
+
+        //Bonton eliminar fila
+        function deleteItem($id) {
+            $('#details').find("tr[i=" + $id + "]").remove();
+            counterStrike();
+        }
+
+        function deleteItem2(btn) {
+            btn.parentNode.parentNode.remove();
+            counterStrike2();
+        }
+
+        // reasigna numero de fila a los detalles
+        function counterStrike() {
+            let l = 1;
+            $('#details tr').each(function () {
+                $(this).attr('i', l);
+                $(this).children('td:nth-child(1)').text(l);
+                l++;
+            });
+
+        }
+
+        function counterStrike2() {
+            let l = 1;
+            $('#details-table tr').each(function () {
+                $(this).attr('i', l);
+                $(this).children('td:nth-child(1)').text(l);
+                l++;
+            });
+
+        }
+
+        $(document).on('focusin', '.product-table', function (e) {
+            // $(this).parent('td').find('div.dropdown-menu').removeClass('show')
+            $(this).parent('td').find('div.dropdown-menu').css({
+                'background-color': 'transparent',
+                'border': 'transparent',
+                {#'margin-top': '10px'#}
+            })
+            $(this).val(' ');
+            //$('#id_unit_product').val('0')
+        });
+
+
+        $(document).on('keypress', '.product-table', function (e) {
+
+            $(this).parent('td').find('div.dropdown-menu').empty();
+            let _select_unit = $(this).parent('td').parent('tr').find('td.unit select.unit-product');
+
+            if (e.keyCode === 13) {
+
+                e.preventDefault()
+
+                $(this).trigger("enterKey");
+                let _product_name = $(this).val();
+                // let _td = $(this).parent('div.btn-group').parent('td')
+                let _td = $(this).parent('td')
+                let _menu = _td.find('.dropdown-menu')
+
+                if (_product_name.length > 3) {
+
+                    $.ajax({
+                        url: '/buys/get_product_by_criteria_table/',
+                        async: true,
+                        dataType: 'json', // for response
+                        type: 'GET',
+                        data: {
+                            'value': _product_name,
+                        },
+                        contentType: 'application/json;charset=UTF-8',
+                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                        success: function (response, textStatus, xhr) {
+                            if (xhr.status === 200) {
+                                _select_unit.empty()
+                                //console.log(response.productList[0].unit_dict)
+                                let _unit_dict = response.productList[0].unit_dict
+                                let list = response.productList;
+                                _menu.css({'background-color': '#fff', 'border': '1px solid rgba(0,0,0,.15)'})
+                                for (let i = 0; i < list.length; i++) {
+                                    _menu.append(`<a class="dropdown-item product-item" brand="${list[i].brand}" href="#" data-id="${list[i].id}">${list[i].name} - ${list[i].brand}</a>`)
+                                }
+                                _select_unit.append($('<option>').text('Seleccione'));
+                                for (let i = 0; i < _unit_dict.length; i++) {
+                                    let option = $('<option>').val(_unit_dict[i].unit_id).text(_unit_dict[i].unit_name);
+                                    _select_unit.append(option);
+                                }
+
+                            }
+                        },
+                        error: function (jqXhr, textStatus, xhr) {
+                            if (jqXhr.status === 500) {
+                                toastr.error(jqXhr.responseJSON.error, 'Mensaje');
+                            } else {
+                                if (textStatus === 'timeout') {
+                                    toastr.error('Failed from timeout', 'Mensaje');
+                                } else {
+                                    console.log(" STATUS: " + xhr + " " + textStatus);
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    toastr.warning('Para la busqueda ingrese minimo 3 caracteres', 'Error de llenado');
+                    return false;
+                }
+            }
+        });
+
+
+        $(document).on('click', '.product-item', function (e) {
+
+            let _product_id = $(this).attr('data-id');
+            let _unit_id = $(this).attr('unit_id');
+            let _product_name = $(this).text();
+            let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
+            let _td = $(this).parent('div.dropdown-menu').parent('td')
+            let _select = _td.find('select.unit-product')
+            let _brand_product = $(this).attr('brand')
+            let _unit_product = $(this).attr('unit_name')
+            //$('.product-table').val(_product_name)
+
+            _tr.attr('product', _product_id)
+            _td.find('input.product-table').val(_product_name)
+            {#_tr.find('td.brand input.brand-product').val(_brand_product)#}
+            {#_tr.find('td.unit input.unit-product').val(_unit_product)#}
+
+            {#_tr.attr('unit_id', _unit_id)#}
+
+            {#get_units_by_product(_product_id, _tr)#}
+
+            $(this).parent('div.dropdown-menu').empty()
+            $(this).parent('div.dropdown-menu').addClass('hide')
+        });
+
+        function get_units_by_product($product_id, _tr) {
+
+            let _select = _tr.find('td.unit #id_unit_product').val()
+            if ($product_id !== '0') {
+                $.ajax({
+                    url: '/buys/get_units_by_product/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'ip': $product_id},
+                    success: function (response) {
+                        let units = JSON.parse(response['units']);
+                        console.log(units)
+                        units.forEach(
+                            element =>
+                                _tr.find('td.unit input.unit-product').val(element[0])
+                        )
+                    },
+                });
+            }
+        }
+        $(document).on('change', '.unit-product', function (e) {
+            let unit_id = $(this).val();
+            let product_id = $(this).parent('td').parent('tr').attr('product')
+            let _tr = $(this).parent('td').parent('tr')
+            getQuantityMinimumByProduct(product_id, unit_id, _tr)
+
+        });
+
+        function getQuantityMinimumByProduct(product_id, _unit, _tr) {
+
+            let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum')
+            _input_quantity_minimum.val('')
+            if (product_id !== '0') {
+                $.ajax({
+                    url: '/buys/get_quantity_minimum/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {
+                        'product_id': product_id,
+                        'unit_id': _unit
+                    },
+                    success: function (response) {
+                        _input_quantity_minimum.val(response.quantity_minimum + 'UND')
+                    },
+                });
+            }
+        }
+
+        $(document).on('click', '#btn-add-new-detail', function () {
+
+            let _check = $("#check_dollar");
+            let _val_money = 'S/'
+
+            if (_check.is(':checked')) {
+                _val_money = '$'
+            }
+
+            $('#id_detail_data_grid > tbody').append(
+                '<tr class="text-center">' +
+                '<td class="item-numero align-middle">' + '</td>' +
+                '<td class="align-middle text-left product-item-table">' +
+                '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
+                '               data-toggle="dropdown" aria-expanded="false" placeholder="Ingrese producto...">' + '<div class="dropdown-menu"></div>' + '</td>' +
+                {#'<td class="align-middle brand">' +#}
+                {#'<input type="text" class="form-control text-center text-uppercase brand-product" id="brand_id" name="brand" readonly>' + '</td>' +#}
+                '<td class="align-middle unit text-center">' +
+                    '<select class="form-control unit-product" id="id_unit_product" name="unit_product" required>' +
+                    '<option value="0">Seleccione</option>' +
+                '</td>' +
+                '<td class="align-middle quantity-minimum text-center">' +
+                '<input type="text" class="form-control text-center quantity-minimum" readonly>' +
+                '</td>' +
+                {#'<td class="align-middle unit">' +#}
+                {#'<input type="text" class="form-control text-center text-uppercase unit-product" readonly>' + '</td>' +#}
+                '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">' + '</td>' +
+                '<td class="item-price text-right align-middle" price-unit-with-discount="">' + '<div class="input-icon">' +
+                '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
+                {#'<td class="item-discount1 text-right align-middle">' +#}
+                {#'<input type="text" class="form-control text-right text-uppercase discount1" placeholder="0.00">' + '</td>' +#}
+                {#'<td class="item-discount2 text-right align-middle">' +#}
+                {#'<input type="text" class="form-control text-right text-uppercase discount2" placeholder="0.00">' + '</td>' +#}
+                {#'<td class="item-discount3 text-right align-middle">' +#}
+                {#'<input type="text" class="form-control text-right text-uppercase discount3" placeholder="0.00">' + '</td>' +#}
+                {#'<td class="item-discount4 text-right align-middle">' +#}
+                {#'<input type="text" class="form-control text-right text-uppercase discount4" placeholder="0.00">' + '</td>' +#}
+                '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
+                '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
+                {#'<td class="item-check text-center align-middle">' +#}
+                {#'<div class="form-check">' + '<input class="form-check-input position-static check-kardex" type="checkbox" value="" checked> ' + '</div>' +#}
+                {#'</td>' +#}
+                '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem2(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                '</tr>');
+            counterStrike2()
+        });
+
+        $(document).on('keyup', '#id_total_freight', function () {
+            sum_table()
+        });
+
+        $(document).on('keyup', '.total-detail', function () {
+            let _tr = $(this).parent('div').parent('td').parent('tr')
+            {#let _tr = $("#id_detail_data_grid tbody#details-table tr")#}
+            let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
+            let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
+            {#console.log('_total',_total)#}
+            {#console.log('_quantity',_quantity)#}
+            let price_unit = _total / _quantity
+            {#console.log(price_unit)#}
+
+            _tr.find('td.item-price div.input-icon input.price-unit-product').val(Number(price_unit).toFixed(2));
+            calculate_total(_tr)
+            sum_table()
+        });
+
+        $(document).on('keyup', '.quantity-product', function () {
+
+            let _tr = $(this).parent('td').parent('tr')
+            let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
+            let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
+            let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
+
+            {#console.log("_tr", _tr.find('td.item-price div.input-icon input.price-unit-product'))#}
+            {#console.log("_quantity", _quantity)#}
+            {#console.log("_price_unit", _price_unit)#}
+            {#console.log("_total", _total)#}
+
+            if (_quantity !== 0 && _price_unit !== 0) {
+                _total = _quantity * _price_unit
+                _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(2));
+            }
+            calculate_total(_tr)
+            sum_table()
+        });
+        $(document).on('keyup', '.price-unit-product', function () {
+
+            let _tr = $(this).parent('div').parent('td').parent('tr')
+            let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
+            let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
+            let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
+
+            {#console.log("_quantity", _quantity)#}
+            {#console.log("_price_unit", _price_unit)#}
+            {#console.log("_total", _total)#}
+
+            if (_quantity !== 0 && _price_unit !== 0) {
+                _total = _quantity * _price_unit
+                _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(2));
+            }
+            calculate_total(_tr)
+            sum_table()
+        });
+
+        /*$(document).on('input', '.discount1, .discount2, .discount3, .discount4', function (e) {
+
+            let _tr = $(this).parent('td').parent('tr')
+            calculate_total(_tr)
+            sum_table()
+        });*/
+
+        function calculate_total(_tr) {
+
+            let $quantity = Number(_tr.find('td.item-quantity input.quantity-product').val());
+            let $price_unit = Number(_tr.find('td.item-price input.price-unit-product').val());
+            // let $price_unit;
+            let $d1_val = 0
+            let $d2_val = 0
+            let $d3_val = 0
+            let $d4_val = 0
+            let $total = Number(_tr.find('td.total-row input.total-detail').val());
+
+            let d1, d2, d3, d4, d1p, d2p, d3p, d4p, amount, $totalTemp
+
+            $price_unit = Number(_tr.find('td.item-price input.price-unit-product').val());
+            amount = $quantity * $price_unit
+
+            _tr.find('td.total-row input.total-detail').val(amount.toFixed(2))
+
+            /*if ($d1_val === 0 && $d2_val === 0 && $d3_val === 0 && $d4_val === 0) {
+                d1 = amount - [(amount * $d1_val) / 100]
+                d2 = d1 - [(d1 * $d2_val) / 100]
+                d3 = d2 - [(d2 * $d3_val) / 100]
+                d4 = d3 - [(d3 * $d4_val) / 100]
+
+                d1p = $price_unit - [($price_unit * $d1_val) / 100]
+                d2p = d1p - [(d1p * $d2_val) / 100]
+                d3p = d2p - [(d2p * $d3_val) / 100]
+                d4p = d3p - [(d3p * $d4_val) / 100]
+
+                _tr.find('td.item-price').attr('price-unit-with-discount', d4p.toFixed(2))
+                {#console.log('en el if', d4p)#}
+            } else {
+                d1 = amount - [(amount * $d1_val) / 100]
+                d2 = d1 - [(d1 * $d2_val) / 100]
+                d3 = d2 - [(d2 * $d3_val) / 100]
+                d4 = d3 - [(d3 * $d4_val) / 100]
+
+                d1p = $price_unit - [($price_unit * $d1_val) / 100]
+                d2p = d1p - [(d1p * $d2_val) / 100]
+                d3p = d2p - [(d2p * $d3_val) / 100]
+                d4p = d3p - [(d3p * $d4_val) / 100]
+
+                _tr.find('td.item-price').attr('price-unit-with-discount', d4p.toFixed(2))
+                {#console.log('fuera', d4p)#}
+
+                _tr.find('td.total-row input.total-detail').val(d4.toFixed(2))
+            }*/
+
+        }
+
+        function sum_table() {
+            let igv = 0;
+            let base = 0;
+            let sum_total = 0;
+            let total_freight = 0;
+            let total_document = 0;
+            let _total;
+
+            total_freight = Number($("#id_freight_data_grid tbody#details-freight tr input#id_total_freight").val());
+
+            $("#id_detail_data_grid tbody#details-table tr").each(function () {
+                let td_total = Number($(this).find("td.total-row input.total-detail").val());
+                sum_total = sum_total + td_total
+            });
+
+            let _check_igv = $("#id_detail_data_grid tfoot tr input.check-igv")
+
+            if (_check_igv.is(':checked')) {
+                base = sum_total / 1.18
+                igv = sum_total - base
+                _total = base + igv
+                total_document = _total + total_freight
+
+            } else {
+                base = sum_total
+                igv = sum_total * 0.18
+                _total = base + igv
+                total_document = _total + total_freight
+            }
+
+            $("#id_detail_data_grid tfoot tr input.total-foot-base").val(base.toFixed(2));
+            $("#id_detail_data_grid tfoot tr input.total-foot-igv").val(igv.toFixed(2));
+            $("#id_detail_data_grid tfoot tr input.total-foot-total").val(_total.toFixed(2));
+            $("#id_detail_data_grid tfoot tr input.total-foot-freight").val(total_freight.toFixed(2));
+            $("#id_detail_data_grid tfoot tr input.total-foot-document").val(total_document.toFixed(2));
+        }
+
+        $(document).on('change', '#id_detail_data_grid tfoot tr input.check-igv', function (e) {
+            sum_table()
+        });
+
+
+        $(document).on('change', '#payment_type', function (e) {
+            let type_pay = $(this).val();
+            if (type_pay === 'L') {
+                $('.dues').removeClass('d-none');
+                $('.table-dues').removeClass('d-none');
+                {#$('#modal-debs').modal('show');#}
+            } else {
+                $('.dues').addClass('d-none');
+                $('.table-dues').addClass('d-none');
+                $("#details-dues").empty();
+            }
+        });
+
+        $(document).on('click', '#add-dues', function (e) {
+
+            let _amount_due = $('#amount-due').val();
+
+            /*$('#id_debs_grid').append('<tbody />');
+
+            for (let i = 0; i < _quantity_debs; i++) {
+                $('#id_debs_grid tbody').append(
+                    '<tr>' +
+                    '<td class="align-middle text-center">' + count + '</td>' +
+                    '<td class="align-middle text-center">' +
+                    '<input type="text" class="form-control text-right text-uppercase debt" placeholder="0.00">' + '</td>' +
+                    '</td>' +
+                    '</tr>'
+                );
+                count++;
+            }*/
+
+            $('#id_debs_grid > tbody').append(
+                '<tr class="text-center">' +
+                '<td class="align-middle text-center due-count">' + '</td>' +
+                '<td class="align-middle text-center amount-due">' + 'S/ ' + _amount_due + '</td>' +
+                '<td class="align-middle"> ' + '<button type="button" onclick="deletedues(this)" class="btn btn-danger delete-detail" style="font-size: 0.6em"><i class="fa fa-trash" style="font-size: 1.5em"></i></button>' + '</td>' +
+                '</tr>'
+            );
+            counterStrikedebs()
+            $('#amount-due').val('');
+
+        });
+
+        function counterStrikedebs() {
+            let l = 1;
+            $('#details-dues tr').each(function () {
+                $(this).attr('i', l);
+                $(this).children('td:nth-child(1)').text(l);
+                l++;
+            });
+        }
+
+        function deletedues(btn) {
+            btn.parentNode.parentNode.remove();
+            counterStrikedebs();
+        }
+
+        function getAddress(client_id, _select) {
+            $.ajax({
+                url: '/buys/get_address_by_client_id/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'client_id': client_id},
+                success: function (response) {
+                    _select.empty();
+                    let _client_address = JSON.parse(response['client_address_set']);
+                    //console.log(_client_address)
+                    _select.append($('<option>').val("0").text('Seleccione'));
+                    if (response['client_address_set'] !== '[]') {
+                        for (var i = 0; i < response['client_address_set'][0].length; i++) {
+                            let option = $('<option>').val(_client_address[0]['pk']).text(_client_address[0]['fields']['address'].toUpperCase());
+                            _select.append(option);
+                        }
+                    }
+                },
+            });
+        }
+
+        $(document).on('change', '#client_reference_id', function (e) {
+            let client_id = $(this).val();
+            let _select = $('#client_address_reference')
+
+            if (client_id !== '0') {
+                let type_client = $('#client_reference_id option:selected').attr("type");
+                if (type_client === 'PR') {
+                    $('#client_final').val("0");
+                    $('#client_final_address').val("0");
+                    $('.client-final').removeClass('d-none');
+                    $('.delivery-client-final').removeClass('d-none');
+                    $('.delivery-client').addClass('d-none');
+
+                } else {
+                    $('.client-final').addClass('d-none');
+                    $('#client_final_address').val("0");
+                    $('.delivery-client-final').addClass('d-none');
+                    $('.delivery-client').removeClass('d-none');
+                    getAddress(client_id, _select)
+                }
+
+            } else {
+                toastr.warning('Seleccione un cliente valido', 'Error de llenado');
+                return false;
+            }
+        });
+
+        $(document).on('change', '#client_final', function (e) {
+            let client_id = $(this).val();
+            let _select = $('#client_final_address');
+            getAddress(client_id, _select);
+        });
+
+        $(document).on('change', '#check-subsidiary', function (e) {
+            if ($(this).is(":checked")) {
+                $(this).attr("checked");
+                $('#check-provider').prop('checked', false);
+                $('#check-client').prop('checked', false);
+                $('#check-client-final').prop('checked', false);
+            }
+        });
+        $(document).on('change', '#check-provider', function (e) {
+            if ($(this).is(":checked")) {
+                $(this).attr("checked");
+                $('#check-subsidiary').prop('checked', false);
+                $('#check-client').prop('checked', false);
+                $('#check-client-final').prop('checked', false);
+            }
+        });
+        $(document).on('change', '#check-client', function (e) {
+            if ($(this).is(":checked")) {
+                $(this).attr("checked");
+                $('#check-subsidiary').prop('checked', false);
+                $('#check-provider').prop('checked', false);
+                $('#check-client-final').prop('checked', false);
+            }
+        });
+        $(document).on('change', '#check-client-final', function (e) {
+            if ($(this).is(":checked")) {
+                $(this).attr("checked");
+                $('#check-subsidiary').prop('checked', false);
+                $('#check-provider').prop('checked', false);
+                $('#check-client').prop('checked', false);
+            }
+        });
+
+    </script>
+
+{% endblock extrajs %}

@@ -1,0 +1,159 @@
+<form id="purchase-form" action="{% url 'buys:save_purchase' %}" method="POST">
+    {% csrf_token %}
+    <div class="row p-1">
+        <div class="col-sm-8 col-md-8 col-lg-8">
+            {#            <label>RUC</label>#}
+            {#            <input type="text" class="form-control text-uppercase" id="id_ruc_provider"#}
+            {#                   name="ruc_provider"#}
+            {#                   placeholder="Ingrese RUC"#}
+            {#                   size="11"#}
+            {#                   value="" required>#}
+            <label>Proveedor</label>
+            <select id="supplier_id" name="supplier-id" class="form-control" required>
+                <option value="0">Seleccione</option>
+                {% for s in supplier_set %}
+                    <option value="{{ s.id }}">{{ s.name }}</option>
+                {% endfor %}
+                {#                <option value="T">TICKET</option>#}
+                {#                <option value="B">BOLETA</option>#}
+                {#                <option selected value="F">FACTURA</option>#}
+            </select>
+
+        </div>
+
+
+        <div class="col-sm-4 col-md-4 col-lg-4">
+            <label>Fecha</label>
+            <input type="date" class="form-control" id="id_fechacompra"
+                   name="fechacompra"
+                   placeholder="Fecha compra"
+                   value="{{ formatdate }}" required>
+        </div>
+    </div>
+    <div class="row p-1">
+        {#        <div class="col-sm-2 col-md-2 col-lg-2 pr-1">#}
+        {#            <label>Responsable:</label>#}
+        {#            <input type="text" class="form-control" id="id_user"#}
+        {#                   name="user"#}
+        {#                   placeholder="" readonly#}
+        {#                   value="{{ user.worker_set.last.employee.paternal_last_name|upper }}">#}
+        {#        </div>#}
+        {##}
+        {#        <div class="col-sm-2 col-md-2 col-lg-2 pl-1 pr-1">#}
+        {#            <label>Sucursal:</label>#}
+        {#            <input type="text" class="form-control" id="id_user"#}
+        {#                   name="user"#}
+        {#                   placeholder="" readonly#}
+        {#                   value="{{ user.worker_set.last.establishment_set.last.subsidiary.name|upper }}">#}
+        {##}
+        {#        </div>#}
+
+
+        {#        <div class="col-sm-2 col-md-2 col-lg-2 pr-1">#}
+        {#            <label>Tipo doc.</label>#}
+        {#            <select id="id_type_bill" name="type_bill" class="form-control">#}
+        {#                <option value="0">SELECCIONAR</option>#}
+        {#                <option disabled selected value=""> Seleccione</option>#}
+        {#                <option value="T">TICKET</option>#}
+        {#                <option value="B">BOLETA</option>#}
+        {#                <option selected value="F">FACTURA</option>#}
+        {#            </select>#}
+        {##}
+        {#        </div>#}
+        {##}
+        {#        <div class="col-sm-2 col-md-2 col-lg-2 pr-1 pl-1">#}
+        {#            <label>Numero doc.</label>#}
+        {#            <input type="text" class="form-control text-uppercase" id="id_factura"#}
+        {#                   name="factura"#}
+        {#                   placeholder="Numero "#}
+        {#                   value="" required>#}
+        {#        </div>#}
+
+        <div class="col-sm-4 col-md-4 col-lg-4"><label>Referencia</label>
+            <input type="text" class="form-control" id="reference"
+                   name="reference" autocomplete="off"
+                   placeholder="Orden de compra - proveedor"
+                   value="" required>
+        </div>
+
+        <div class="col-sm-4 col-md-4 col-lg-4">
+            <label>Tipo de pago</label>
+            <select id="payment_type" class="form-control text-uppercase">
+                <option value="0">Seleccione</option>
+                {% for item in choices_payments_purchase %}
+                    <option value="{{ item.0 }}">{{ item.1 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-sm-4 col-md-4 col-lg-4">
+            <label>Condicion de pago:</label>
+            <input type="text" class="form-control" id="pay_condition"
+                   name="pay_condition" autocomplete="off"
+                   placeholder=""
+                   value="" required>
+
+        </div>
+
+        <div class="col-sm-2 col-md-2 col-lg-2 pr-1 pl-1 dues d-none">
+            <label>Monto:</label>
+            <div class="input-group">
+                <input type="number" class="form-control text-right" placeholder="INGRESE MONTO"
+                       aria-label="Recipient's username" aria-describedby="add-dues" id="amount-due">
+                <button class="btn btn-outline-success" type="button" id="add-dues">+</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row p-2 table-dues d-none">
+
+        <div class="col-sm-8 col-md-8 col-lg-8 pr-1 pl-1">
+
+        </div>
+        <div class="col-sm-4 col-md-4 col-lg-4 pr-1 pl-1">
+            <div class="table-responsive">
+                <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
+
+                    <table id="id_debs_grid"
+                           class="table table-hover table-sm align-content-center table-bordered mb-0"
+                           cellspacing="0" style="width: 100%;">
+                        <thead>
+                        <tr class="text-center text-white text-uppercase" style="background: #1a77c8">
+                            <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Nº cuotas</th>
+                            <th scope="col" class="align-middle font-weight-normal" style="width: 20%;">Monto</th>
+                            <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Eliminar</th>
+                        </tr>
+                        </thead>
+                        <tbody id="details-dues">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="row p-4">
+        <div class="col-sm-4 col-md-4 col-lg-4">
+            <button type="button" id="btn-new"
+                    class="btn btn-sm btn-secondary btn-block p-1">Nuevo
+            </button>
+        </div>
+
+        <div class="col-sm-4 col-md-4 col-lg-4">
+            <button type="submit" id="btn-save"
+                    class="btn btn-sm btn-primary btn-block p-1">Guardar
+            </button>
+        </div>
+
+        <div class="col-sm-4 col-md-4 col-lg-4">
+            <button type="button" id="btn-add-new-detail"
+                    class="btn btn-sm btn-success btn-block">Agregar Detalle +
+            </button>
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+
+</script>

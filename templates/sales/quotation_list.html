@@ -1,0 +1,1633 @@
+{% extends 'home.html' %}
+
+{% load static %}
+{% load operations %}
+{% load app_filters %}
+
+{% block title %}
+    Cotización
+{% endblock title %}
+
+{% block body %}
+
+    <input type="hidden" class="form-control form-control-sm type" id="id_order_sale_quotation" value=""
+           readonly="true">
+    <input type="hidden" class="form-control form-control-sm type" id="id_order_sale_quotation_correlative" value=""
+           readonly="true">
+
+    <div class="card-group">
+        <div class="card col-sm-5 p-0">
+            <div class="col-sm-12 m-0 p-0 text-center">
+                <div id="product_list_sales">
+                    <strong> <br><br> Atencion!</strong> <br> Ingrese un texto para comenzar la búsqueda de productos...
+                </div>
+                <div class="loader-container col-auto" id="loader-product" style="display: none">
+                    <div class="loader"></div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card col-sm-7 p-0" id="tab-two">
+            <div class="card col-sm-12 p-0 roboto-condensed-regular" style="border-color: #33a922">
+                <div class="card-header text-center pb-3" style="background: #33a922">
+                    <div class="row align-self-center">
+                        <div class="col-sm-2 text-white align-self-center pl-0 pr-0">Productos</div>
+                        <div class="col-sm-4 pl-0">
+
+                            <input type="text" id="custom-search-product" class="form-control ml-2 text-uppercase"
+                                   placeholder="Ingrese un producto">
+                        </div>
+                        <div class="col-sm-2 text-white align-self-center pl-0 pr-0">Cod. Barras</div>
+                        <div class="col-sm-4 pl-0">
+                            <input type="text" id="custom-search-barcode" class="form-control ml-2 text-uppercase"
+                                   placeholder="Ingrese un codigo de barras">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="card-group">
+                        <div class="card p-0 border-0" style="flex-grow: 4">
+                            <div class="card-body pl-1 pt-2 pb-1 pr-1">
+                                <div class="form-row mb-0">
+                                    <div class="form-group col-md-12 text-uppercase small mt-2 mb-0">
+                                        <div class="card col-sm-12 pr-0 pl-0 border-right-0 border-top-0 border-left-0 border-bottom-0">
+                                            <div class="col-sm-12 col-sm-12 col-lg-12 ">
+                                                <div class="row">
+                                                    <div class="col-sm-4 col-md-4 col-lg-4 pr-0 pl-0">
+                                                        <div class="card-body pt-2 pb-1">
+                                                            <div class="card header mb-2 border-bottom-2 text-center font-weight-bold"
+                                                                 style="background-color: #cfe9da">
+                                                                <h4 class="montserrat text-dark font-weight-bold mt-1 mb-1 title-without">
+                                                                    NUEVA COTIZACIÓN
+                                                                </h4>
+                                                                <h4 class="montserrat font-weight-bold mt-1 mb-1 title-with text-primary d-none">
+                                                                    EDITAR COTIZACIÓN Nº:
+                                                                    <label id="lbl-order"></label>
+                                                                    <input type="hidden" id="order_id" value="">
+                                                                </h4>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-sm-2 col-md-2 col-lg-2 text-left align-middle pl-0 mt-0 mb-2">
+                                                        <label for="user_id" class="mb-0 font-weight-bold">Seleccione
+                                                            Usuario:</label>
+                                                        <select id="user_id" name="user"
+                                                                class="form-control form-control-sm"
+                                                                aria-selected="Text input with radio button">
+                                                            <option selected value="0">Seleccione...</option>
+                                                            {% for u in users %}
+                                                                <option value="{{ u.id }}">{{ u|upper }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-sm-6 col-md-6 col-lg-6 align-middle border border-primary">
+                                                        <div class="row pt-2 pb-0">
+                                                            <div class="col-sm-4 col-md-4 col-lg-4">
+                                                                <div class="input-group">
+                                                                    <input id="id-search-quotation" type="text"
+                                                                           class="form-control form-control-sm"
+                                                                           style="border-color: #96a494">
+                                                                    <span class="input-group-btn">
+                                                                        <button id="btn-search-quotation"
+                                                                                class="btn btn-sm btn-success"
+                                                                                type="button"
+                                                                                onclick="SearchQuotation()">
+                                                                          Buscar <span class="fa fa-search"></span>
+                                                                        </button>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-sm-4 col-md-4 col-lg-4">
+                                                                <div class="row save-order">
+                                                                    <button type="button" id="btn-save-quotation"
+                                                                            class="btn btn-success btn-sm text-uppercase text-center col-sm-12 col-md-12 col-lg-12">
+                                                                        <i class="fas fa-save"></i> Guardar cotización
+                                                                    </button>
+                                                                </div>
+                                                                <div class="row update-order d-none">
+                                                                    <button type="button" id="btn-update-order"
+                                                                            class="btn btn-primary btn-sm text-uppercase text-center">
+                                                                        <i class="fas fa-sync"></i> Actualizar
+                                                                        cotización
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-sm-4 col-md-4 col-lg-4">
+                                                                <button type="button"
+                                                                        class="btn btn-warning btn-sm text-uppercase text-center col-sm-12 col-md-12 col-lg-12"
+                                                                        id="btn-new-form"><i
+                                                                        class="far fa-check-circle"></i>
+                                                                    Nuevo
+                                                                </button>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="card-body pt-1 pb-0 ">
+                                                <div class="card header mb-0 border-0 text-left font-weight-bold">
+                                                    Metodo de Busqueda:
+                                                </div>
+
+                                                <table class="table table-sm text-uppercase small align-right"
+                                                       style="width: 100%">
+                                                    <tr class="align-right">
+                                                        <th class="border-top-0 align-middle text-left p-0"
+                                                            style="width: 5%">
+                                                            <input type="radio"
+                                                                   aria-label="Radio button for following text input"
+                                                                   id="radio1" name="radio">
+                                                        </th>
+                                                        <th class="border-top-0 align-middle text-left p-0"
+                                                            style="width: 10%">Numero Documento:
+                                                        </th>
+                                                        <th class="border-top-0 custom-control-inline text-left"
+                                                            style="width: 100%">
+                                                            <select id="document_type_sender"
+                                                                    name="document_type_sender"
+                                                                    class="form-control form-control-sm"
+                                                                    style="font-size: .8375rem;">
+                                                                <option selected value="0">Seleccione...</option>
+                                                                {% for type in document_types %}
+                                                                    {% if type.id == '01' %}
+                                                                        <option value="{{ type.id }}">DNI</option>
+                                                                    {% elif type.id == '06' %}
+                                                                        <option value="{{ type.id }}">RUC</option>
+                                                                    {% elif type.id == '-' %}
+                                                                        <option value="{{ type.id }}">OTRO</option>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </select>
+                                                            <input type="hidden"
+                                                                   class="form-control form-control-sm text-uppercase"
+                                                                   id="id-client-sender"
+                                                                   name="id-client-sender"
+                                                                   placeholder="">
+
+                                                        </th>
+                                                        <th class="border-top-0 align-middle text-right p-0"
+                                                            style="width: 30%">
+                                                            <input type="text"
+                                                                   class="form-control form-control-sm text-uppercase"
+                                                                   id="id-nro-document-sender"
+                                                                   name="nro-document-sender"
+                                                                   placeholder="" style="width: 100%">
+                                                        </th>
+                                                        <th class="border-top-0 align-middle text-right p-0"
+                                                            style="width: 30%">
+                                                            <button type="button" class="btn btn-sm btn-outline-info"
+                                                                    data-toggle="modal"
+                                                                    data-target="#modalClient" style="width: 90%">
+                                                                <i class="fas fa-user-plus"></i> &nbsp;NUEVO CLIENTE
+                                                            </button>
+
+                                                        </th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="border-top-0 align-middle text-left p-0">
+                                                            <input type="radio"
+                                                                   aria-label="Radio button for following text input"
+                                                                   id="radio2" name="radio" checked="checked">
+                                                        </th>
+                                                        <th class="border-top-0 align-middle text-left p-0">
+                                                            Nombres/Razón Social:
+                                                        </th>
+                                                        <td class="border-top-0 text-left" colspan="3">
+                                                            <input type="text"
+                                                                   class="form-control text-uppercase client-table dropdown-toggle"
+                                                                   data-toggle="dropdown" aria-expanded="false"
+                                                                   placeholder="Ingrese cliente y presione enter...">
+                                                            <div class="dropdown-menu"></div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <div class="form-row pl-1 pr-3">
+                                                <div class="form-group col-md-5 text-uppercase small">
+                                                    <label class="mb-2 text-center font-weight-bold"
+                                                           style="font-size: 1.3em">Cliente
+                                                        - Nombres/Razón social:</label>
+                                                    <input type="text"
+                                                           class="form-control form-control-sm text-uppercase"
+                                                           id="id_sender"
+                                                           name="sender" readonly
+                                                           placeholder="">
+                                                </div>
+                                                <div class="form-group col-md-7 text-uppercase small">
+                                                    <label class="mb-2 text-center font-weight-bold"
+                                                           style="font-size: 1.3em">
+                                                        Dirección:</label>
+                                                    <input type="text"
+                                                           class="form-control form-control-sm text-uppercase"
+                                                           id="id_address"
+                                                           name="name_address"
+                                                           placeholder="">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row mt-1 ml-0 mr-2">
+                                    <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                                        <label for="transaction_payment_type_" class="mb-0">Tipo de Pago</label>
+                                        <select id="transaction_payment_type" class="form-control form-control-sm">
+                                            <option value="0">Seleccione</option>
+                                            {% for item in choices_payments %}
+                                                <option value="{{ item.0 }}">{{ item.1 }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    {#                                    <div class="col-md-5 text-uppercase small pl-0 pr-0">#}
+                                    {#                                        <div class="row col-sm-12 m-0 p-0" id="cash" style="display: none">#}
+                                    {#                                            <div class="col-sm-6 pl-1 pr-0">#}
+                                    {#                                                <label for="code-operation" class="mb-0">Caja destino</label>#}
+                                    {#                                                <select id="id_cash" name="id_cash_efectivo"#}
+                                    {#                                                        class="form-control form-control-sm text-uppercase"#}
+                                    {#                                                        aria-selected="Text input with radio button">#}
+                                    {#                                                    {% for c in choices_account %}#}
+                                    {#                                                        <option value="{{ c.id }}"#}
+                                    {#                                                        >{{ c.name }}</option>#}
+                                    {#                                                    {% endfor %}#}
+                                    {#                                                </select>#}
+                                    {#                                            </div>#}
+                                    {#                                            <div class="col-sm-6 pl-1 pr-1">#}
+                                    {#                                                <label for="code-operation" class="mb-0">Fecha</label>#}
+                                    {#                                                <input type="date"#}
+                                    {#                                                       id="id_date"#}
+                                    {#                                                       name="id_date"#}
+                                    {#                                                       readonly#}
+                                    {#                                                       class="form-control form-control-sm">#}
+                                    {#                                            </div>#}
+                                    {#                                        </div>#}
+                                    {#                                        <div class="row col-sm-12 m-0 p-0" id="deposit" style="display: none">#}
+                                    {#                                            <div class="col-sm-6 pl-1 pr-0">#}
+                                    {#                                                <label for="code-operation" class="mb-0">Deposito a cuenta</label>#}
+                                    {#                                                <select id="id_cash_deposit" name="id_cash_deposit"#}
+                                    {#                                                        class="form-control form-control-sm text-uppercase"#}
+                                    {#                                                        aria-selected="Text input with radio button">#}
+                                    {#                                                    {% for c in choices_account_bank %}#}
+                                    {#                                                        <option value="{{ c.id }}"#}
+                                    {#                                                        >{{ c.name }}</option>#}
+                                    {#                                                    {% endfor %}#}
+                                    {#                                                </select>#}
+                                    {#                                            </div>#}
+                                    {#                                            <div class="col-sm-6 pl-1 pr-0">#}
+                                    {#                                                <label for="code-operation" class="mb-0">Codigo operacion</label>#}
+                                    {#                                                <input type="text" class="form-control form-control-sm"#}
+                                    {#                                                       id="code-operation"#}
+                                    {#                                                       placeholder="">#}
+                                    {#                                            </div>#}
+                                    {#                                        </div>#}
+                                    {#                                        <div class="row col-sm-12 m-0 p-0 text-center pl-1 pr-0" id="credit"#}
+                                    {#                                             style="display: none">#}
+                                    {#                                            <label for="id-credit-client" class="mb-0 text-center"> Deuda </label>#}
+                                    {#                                            <input type="text" class="form-control form-control-sm "#}
+                                    {#                                                   id="id-credit-client"#}
+                                    {#                                                   value="Credito del cliente" readonly>#}
+                                    {#                                        </div>#}
+                                    {#                                    </div>#}
+                                    <div class="col-md-2 text-uppercase small pl-1 pr-1">
+                                        <label for="code-operation" class="mb-0">Serie</label>
+                                        <select id="id_serie" name="id_serie"
+                                                class="form-control form-control-sm"
+                                                aria-selected="Text input with radio button">
+                                            <option selected value="0">Seleccione...</option>
+                                            {% for serie in series %}
+                                                {% if serie.serial %}
+                                                    <option selected
+                                                            value="{{ serie.id }}">{{ serie.serial|zfill:4 }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 text-uppercase small pl-0 pr-0">
+                                        <label for="hour" class="mb-0">Fecha y Hora</label>
+                                        <input type="date" class="form-control form-control-sm" id="date"
+                                               value="{{ date }}"
+                                               placeholder="Fecha">
+                                    </div>
+                                    <div class="col-md-3 text-uppercase small pl-1 pr-0">
+                                        <label for="hour" class="mb-0">Valido hasta:</label>
+                                        <input type="date" class="form-control form-control-sm" id="id_validity_date"
+                                               value="{{ date }}">
+                                    </div>
+                                </div>
+
+                                <div class="form-row mt-1 ml-0 mr-2" id="form_quotation">
+
+                                    <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                                        <label for="id_date_completion" class="mb-0">Tiempo entrega dias</label>
+                                        <input type="number" class="form-control form-control-sm"
+                                               id="id_date_completion"
+                                               name="date_completion"
+                                               placeholder="0">
+                                    </div>
+                                    <div class="col-md-8 text-uppercase small pl-1 pr-1">
+                                        <label for="id_place_delivery" class="mb-0">Lugar de entrega</label>
+                                        <input type="text" class="form-control form-control-sm text-uppercase"
+                                               id="id_place_delivery"
+                                               name="place_delivery"
+                                               placeholder="">
+                                    </div>
+
+                                </div>
+
+                                <div class="form-row mt-1 ml-0 mr-2" id="form_quotation_row2">
+{#                                    <div class="col-md-2 text-uppercase small pl-1 pr-0">#}
+{#                                        <label for="id_type_quotation" class="mb-0">Tipo de Cotización</label>#}
+{#                                        <select id="id_type_quotation" name="type_quotation"#}
+{#                                                class="form-control form-control-sm"#}
+{#                                                aria-selected="Text input with radio button">#}
+{#                                            <option selected value="0">Seleccione...</option>#}
+{#                                            <option value="P">PROYECTO</option>#}
+{#                                            <option value="O">OBRA</option>#}
+{#                                        </select>#}
+{#                                    </div>#}
+{#                                    <div class="col-md-2 text-uppercase small pl-1 pr-1">#}
+{#                                        <label for="id_name_type_quotation" class="mb-0">Nombre de Proyecto /#}
+{#                                            Obra</label>#}
+{#                                        <input type="text" class="form-control form-control-sm text-uppercase"#}
+{#                                               id="id_name_type_quotation"#}
+{#                                               name="name_type_quotation"#}
+{#                                               placeholder="">#}
+{#                                    </div>#}
+                                    <div class="col-md-12 text-uppercase small pl-1 pr-1">
+                                        <label for="id_observation" class="mb-0">Observación</label>
+                                        <input type="text" class="form-control form-control-sm text-uppercase"
+                                               id="id_observation"
+                                               name="observation" value=""
+                                               placeholder="">
+                                    </div>
+                                </div>
+
+                            </div> <!-- card-body -->
+                        </div>     <!-- card -->
+
+
+                    </div><!-- card-group -->
+
+
+                    {% include "sales/quotation_detail.html" %}
+
+                </div><!-- card-body-->
+            </div><!-- card-->
+
+
+        </div>
+
+    </div>
+
+    <div class="mr-3 ml-0" style="
+            display: none;
+            position: absolute;
+            top: 57px;
+            left: 956px;
+            background: #e9ecef;
+            opacity: 0.5;
+            width: 100%;
+            {#height: 46em;#}
+            !important;bottom: 560px;
+            padding-right: 65em;
+            padding-top: 2em;" id="loading-666">
+
+    </div>
+
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p><strong>Cargando Reniec/Sunat...</strong></p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        loader2 = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p>Cargando Comprobante...</p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+
+        /*$('#transaction_payment_type').change(function () {
+            let type = $('#transaction_payment_type').val();
+            if (type === 'E') {
+                $('#cash').css('display', '');
+                $('#deposit').css('display', 'none');
+                $('#id_cash').trigger('change');
+                $('#credit').css('display', 'none');
+            } else if (type === 'D') {
+                $('#deposit').css('display', '');
+                $('#cash').css('display', 'none');
+                $('#credit').css('display', 'none');
+            } else if (type === 'C') {
+                $('#credit').css('display', '');
+                $('#cash').css('display', 'none');
+                $('#deposit').css('display', 'none');
+            } else if (type === '0') {
+                $('#credit').css('display', 'none');
+                $('#cash').css('display', 'none');
+                $('#deposit').css('display', 'none');
+            }
+        });*/
+
+        $(document).on('click', '#btn-new-form', function () {
+            location.reload();
+        });
+
+
+        $("#id_cash").change(function () {
+
+            $("#id_date").val('');
+
+            if ($("#id_cash").val() !== '0') {
+
+                $.ajax({
+                    url: '/accounting/get_cash_date/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {'cash_id': $("#id_cash").val()},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, 'Mensaje');
+                            $("#id_date").val(response.cash_date);
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        if (jqXhr.status === 500) {
+                            toastr.warning(jqXhr.responseJSON.error, 'Mensaje');
+                        } else {
+                            if (textStatus === 'timeout') {
+                                toastr.error('Failed from timeout', 'Mensaje');
+                            } else {
+                                console.log(" STATUS: " + xhr + " " + textStatus);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        $("#id-nro-document-sender").attr('maxlength', 8);
+        sessionStorage.setItem('document', '01')
+
+        let pu;
+        let p;
+        sessionStorage.setItem('BillType', 'V');
+        if ($("#radio2").is(':checked')) {
+            $("#document_type_sender").attr('disabled', 'disabled');
+            $("#id_client_name").removeAttr('disabled');
+            $("#document_type_sender").find('option[value]').removeAttr('selected');
+            $("#document_type_sender").find('option[value="0"]').attr('selected', 'selected');
+            $("#id-nro-document-sender").attr('readonly', true);
+            $("#document_type_sender").trigger('change');
+        }
+        ;
+
+        $('#id-nro-document-sender').keypress(function (e) {
+
+            if (e.keyCode === 13) {
+                e.preventDefault()
+                $(this).trigger("enterKey");
+
+                let _document_number = $('#id-nro-document-sender').val();
+
+                if ((sessionStorage.getItem('document') === '01') && (_document_number.length !== 8)) {
+                    toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
+                    return false;
+                } else {
+                    if ((sessionStorage.getItem('document') === '06') && (_document_number.length !== 11)) {
+                        toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
+                        return false;
+                    }
+                }
+                if ($('#document_type_sender').val() === '0') {
+                    toastr.warning('¡Favor seleecionar un tipo de documento!', 'Error de Datos');
+                    return false;
+                }
+
+                $('#loading-666').html(loader).show()
+
+                $.ajax({
+                    url: '/sales/get_name_business/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {
+                        'nro_document': $('#id-nro-document-sender').val(),
+                        'type': $('#document_type_sender').val()
+                    },
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡Bien hecho!');
+                            $("#id_sender").val(response.result);
+                            $("#id-client-sender").val(response.pk);
+                            $("#id_address").val(response.address);
+                            $('#loading-666').hide();
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        if (jqXhr.status === 500) {
+                            toastr.error(jqXhr.responseJSON.error, '¡Error de Consulta!');
+                        } else {
+                            if (textStatus === 'timeout') {
+                                toastr.error('Failed from timeout', '¡Error de Consulta!');
+                            } else {
+                                console.log(" STATUS: " + xhr + " " + textStatus);
+                            }
+                        }
+                        $('#loading-666').hide();
+                    },
+                });
+                return false;
+            }
+        });
+
+        $("#radio1,#radio2").click(function () {
+            if ($("#radio1").is(':checked')) {
+                $("#id_client_name").attr('disabled', 'disabled');
+                $("#document_type_sender").removeAttr('disabled');
+                $("#id-nro-document-sender").attr('readonly', false);
+                $("#id_client_name").find('option[value]').removeAttr('selected');
+                $("#id_client_name").find('option[value="0"]').attr('selected', 'selected');
+                $("#id_client_name").trigger('change');
+                $('#document_type_sender').val(0);
+                $("#id_sender").val('');
+                $("#id-nro-document-sender").val('');
+                $("#id_address").val('');
+                $(".client-table").val('');
+                $(".client-table").attr('placeholder', '')
+                $(".client-table").attr('disabled', 'disabled');
+
+            } else if ($("#radio2").is(':checked')) {
+                $("#document_type_sender").attr('disabled', 'disabled');
+                $("#id_client_name").removeAttr('disabled');
+                $("#document_type_sender").find('option[value]').removeAttr('selected');
+                $("#document_type_sender").find('option[value="0"]').attr('selected', 'selected');
+                $("#id_sender").val('');
+                $("#id_address").val('');
+                $("#document_type_sender").trigger('change');
+                $("#id-nro-document-sender").val('');
+                $("#id-nro-document-sender").attr('readonly', true);
+                $(".client-table").attr('placeholder', 'INGRESE CLIENTE Y PRESIONE ENTER...')
+                $(".client-table").removeAttr('disabled');
+            }
+        });
+
+        $(document).on('keypress', '#custom-search-product', function (e) {
+
+            $('#product_list_sales').empty();
+            $('#custom-search-barcode').val(' ')
+
+            if (e.keyCode === 13) {
+
+                e.preventDefault()
+
+                $(this).trigger("enterKey");
+
+                let _product_name = $(this).val().trim();
+
+                if (_product_name.length === 0) {
+                    toastr.warning('¡Favor de ingresar una busqueda', 'Error de Datos');
+                    return false;
+                }
+                getProductsByNameOrBarcode(_product_name, '')
+
+            }
+        });
+
+        $(document).on('keypress', '#custom-search-barcode', function (e) {
+
+            $('#product_list_sales').empty();
+            $('#custom-search-product').val(' ');
+
+            if (e.keyCode === 13) {
+
+                e.preventDefault()
+
+                $(this).trigger("enterKey");
+
+                let _barcode = $(this).val().trim();
+
+                if (_barcode.length === 0) {
+                    toastr.warning('¡Favor de ingresar un codigo de barras', 'Error de Datos');
+                    return false;
+                }
+                getProductsByNameOrBarcode('', _barcode)
+
+            }
+        });
+
+        function getProductsByNameOrBarcode($product_name, $barcode) {
+
+            $('div#loader-product').css('display', '');
+            $.ajax({
+                url: '/sales/get_product_quotation/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {
+                    'value': $product_name,
+                    'barcode': $barcode
+                },
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        {#$('#product-grid-list').html(response.grid);#}
+                        $('#product_list_sales').html(response.grid).slideDown();
+                        $('div#loader-product').css('display', 'none');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Error de Consulta!');
+                    } else {
+                        if (textStatus === 'timeout') {
+                            toastr.error('Failed from timeout', '¡Error de Consulta!');
+                        } else {
+                            console.log(" STATUS: " + xhr + " " + textStatus);
+                        }
+                    }
+                }
+            });
+        }
+
+        $(document).on('click', 'table#product-data-grid tbody tr td table.table-prices tbody tr td.prices-list div button', function () {
+            let value = $(this).attr('pk');
+            let price = parseFloat($(this).attr('ip'));
+            let tr = $(this).parent('div').parent('div').parent('td').parent('tr');
+            let unit_id = tr.attr('unit');
+            let name_unit = tr.attr('unitname');
+            let product_id = tr.attr('product');
+            let name_product = tr.attr('productname');
+            let product_brand = tr.attr('product_brand');
+            let quantity_minim = parseFloat(tr.attr('quantity_minum'));
+            let quantity = parseFloat(tr.find('td.quantity-sales-price input.quantity-select').val());
+            let stock = parseFloat(tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text());
+            let store_id = tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary').attr('store_id');
+            if (isNaN(quantity)) {
+                toastr.warning('Ingrese la cantidad del producto');
+                tr.find('td.quantity-sales-price input.quantity-select').val('')
+                return false
+            }
+            if (quantity === '' || quantity === 0) {
+                toastr.warning('Ingrese la cantidad del producto');
+                tr.find('td.quantity-sales-price input.quantity-select').val('')
+                return false
+            }
+            if (quantity < 0) {
+                toastr.warning('La cantidad debe ser un valor positivo');
+                tr.find('td.quantity-sales-price input.quantity-select').val('')
+                return false
+            }
+            if ($("#sales-details tr[product=" + product_id + "][pu=" + unit_id + "]").length) {
+                let $msg = 'El producto con este tipo de unidad ya se encuentra en el registro.';
+                toastr.warning($msg, 'Mensaje');
+                tr.find('td.quantity-sales-price input.quantity-select').val('')
+                return false;
+            }
+            addOrderDetail(unit_id, product_id, quantity, price, name_unit, name_product, store_id, quantity_minim, 0, stock, product_brand);
+            /*if (quantity * quantity_minim <= stock) {
+                addOrderDetail(unit_id, product_id, quantity, price, name_unit, name_product, store_id, quantity_minim);
+                tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text((stock - quantity * quantity_minim).toFixed(2));
+            } else {
+                toastr.warning('Stock insuficiente en almacen');
+            }*/
+            tr.find('td.quantity-sales-price input.quantity-select').val('');
+        });
+
+        function addOrderDetail(a, b, c, d, e, f, g, h, i, j, k) {
+
+            let _unit_id = a
+            let _product_id = b
+            let _quantity = parseFloat(c)
+            let _price = parseFloat(d)
+            let _total = _quantity * _price
+            let _unit = e
+            let _product_name = f
+            let _product_brand = k
+            let _product_store = g
+            let _stock = j
+            let _quantity_minim = parseFloat(h)
+            $('#sales-details').append(
+                '<tr detail_id="' + i + '" product="' + _product_id + '" store_p="' + _product_store + '" pu="' + _unit_id + '" class="text-uppercase small text-center" style="font-size: 14px;">' +
+                '<td class="item-check text-center align-middle" style=" transform: scale(1.4);">' +
+                '<div class="form-check">' + '<input class="form-check-input position-static check-quotation " type="checkbox" value="" checked> ' + '</div>' +
+                '</td>' +
+                '<td class="align-middle text-left item-product">' + '<input type="text" class="form-control form-control-sm input-product-name" value="' + _product_name + ' - ' + _product_brand + '">' + '</td>' +
+                '<td class="align-middle item-quantity">' + '<input type="number" class="form-control form-control-sm text-right input-quantity" value="' + _quantity.toFixed(2) + '">' + '</td>' +
+                '<div class="input-group">' +
+                '<input type="text" class="form-control input-stock text-right border-0" id="stock_id" name="stock" value="' + _stock + '" disabled style="background-color: #e39898"> ' +
+                '<div class="input-group-append">' +
+                '<button class="btn btn-outline-red stock_refresh" type="button"><i class="fas fa-sync fa-xs"></i></button>' +
+                '</div>' +
+                '</div>' +
+                '</td>' +
+                '<td class="align-middle item-unit" pu="' + _unit_id + '" unit_min="' + _quantity_minim + '">' + _unit + '</td>' +
+                '<td class="align-middle item-price">' + '<input type="number" class="form-control form-control-sm text-right input-price" value="' + _price.toFixed(2) + '">' + '</td>' +
+                '<td class="align-middle item-total">' + '<input type="number" class="form-control form-control-sm text-right input-total-detail" value="' + _total.toFixed(2) + '">' + '</td>' +
+                '<td>' + '<button type="button" onclick="deleteItem(' + _product_id + ',' + _unit_id + ')" class="btn btn-danger btn-sm">' +
+                '<i class="fa fa-trash"></i></button>' + '</td>' +
+                '</tr>'
+            );
+            calculateTotal();
+            {#counterStrike();#}
+        }
+
+        function deleteItem($product, $unit) {
+            let quantity_delete = 0
+            let quantity_min = 0
+            let rows = $('#sales-details').find("tr[product=" + $product + "][pu=" + $unit + "]");
+            let detail_id = parseFloat(rows.attr('detail_id'));
+            quantity_delete = parseFloat(rows.find('td.item-quantity input.input-quantity').val());
+            quantity_min = parseFloat(rows.find('td.item-unit').attr('unit_min'));
+            $('#sales-details').find("tr[product=" + $product + "][pu=" + $unit + "]").remove();
+            let _row = $('table#product-data-grid tbody tr[product=' + $product + ']');
+            let old_stock = parseFloat(_row.find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text());
+            _row.find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text((old_stock + (quantity_delete * quantity_min)).toFixed(2));
+            calculateTotal();
+            {#counterStrike();#}
+
+            if (!isNaN(detail_id) || detail_id !== 0) {
+                deleteProduct(detail_id);
+            }
+        }
+
+        function deleteProduct(detail_id) {
+
+            if (detail_id > 0) {
+                $.ajax({
+                    url: '/sales/delete_item_product/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {'detail_id': detail_id},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            {#toastr.success(response.message, '¡Mensaje!');#}
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        toastr.error(jqXhr.responseJSON.error, '¡ERROR!');
+                    }
+                });
+            } else {
+                console.log('false')
+                return false;
+            }
+
+
+        }
+
+        function calculateTotal() {
+
+            let sum = 0;
+            $('#sales-details tr td.item-total').each(function () {
+                let total_detail = Number($(this).find('input.input-total-detail').val());
+                sum = sum + total_detail;
+            });
+
+
+            $('#sum-total').val(sum.toFixed(2));
+
+        }
+
+        function counterStrike() {
+            let index = 1;
+            $('#sales-details tr').each(function () {
+                $(this).attr('i', index);
+                $(this).children('td:first').text(index);
+                index++;
+            });
+
+        }
+
+        $(document).on('keyup', '#sales-details tr td.item-price input.input-price', function (e) {
+            let val = Number($(this).val());
+            let row = $(this).parent('td.item-price').parent('tr');
+            let quantity = Number(row.find('td.item-quantity input.input-quantity').val());
+            if (isNaN(val)) {
+                $(this).val('')
+            } else {
+                let total_detail = quantity * val
+                if (val !== '') {
+                    row.find('td.item-total input.input-total-detail').val((total_detail).toFixed(2))
+                    calculateTotal();
+                }
+            }
+        });
+        $(document).on('keyup', '#sales-details tr td.item-quantity input.input-quantity', function (e) {
+            let val = Number($(this).val());
+            let row = $(this).parent('td.item-quantity').parent('tr');
+            let price = Number(row.find('td.item-price input.input-price').val());
+            if (isNaN(val)) {
+                $(this).val('')
+            } else {
+                if (val !== '') {
+                    row.find('td.item-total input.input-total-detail').val((price * val).toFixed(2))
+                    calculateTotal();
+                }
+            }
+        });
+
+        $(document).on('keyup', '#sales-details tr td.item-total input.input-total-detail', function (e) {
+            let val = Number($(this).val());
+            let row = $(this).parent('td.item-total').parent('tr');
+            let quantity = Number(row.find('td.item-quantity input.input-quantity').val());
+
+            let price_unit = val / quantity
+            row.find('td.item-price input.input-price').val((price_unit).toFixed(2))
+            calculateTotal();
+
+        });
+
+        /*$(document).on('change', '#document_type_client', function () {
+            let _val = $(this).val();
+            if (_val === '01') {
+                $("#document_number_client").attr('maxlength', 8);
+                sessionStorage.setItem('client-document', '01')
+                $('#document_number_client').val('');
+                {#$('#id_sender').val('');#}
+                {#$('#id-address-line').css('display', 'none');#}
+                {#$('#id_address').val('')#}
+                {#$('#id_address_sender').val('');#}
+            } else if (_val === '06') {
+                $("#document_number_client").attr('maxlength', 11);
+                sessionStorage.setItem('client-document', '06')
+                $('#document_number_client').val('');
+                {#$('#id_sender').val('');#}
+                {#$('#id-address-line').css('display', '');#}
+                {#$('#id_address').val('')#}
+            } else if (_val === '-') {
+                $("#document_number_client").attr('maxlength', 15);
+                sessionStorage.setItem('client-document', '')
+                {#$('#id_sender').val('');#}
+                $('#document_number_client').val('');
+                {#$('#id-address-line').css('display', 'none');#}
+                {#$('#id_address').val('')#}
+            }
+        });*/
+
+
+        $(document).on('change', '#document_type_sender', function () {
+            let _val = $(this).val();
+            if (_val === '01') {
+                $("#id-nro-document-sender").attr('maxlength', 8);
+                sessionStorage.setItem('document', '01')
+                $('#id-nro-document-sender').val('');
+                $('#id_sender').val('');
+                $('#id-address-line').css('display', 'none');
+                $('#id_address').val('')
+                {#$('#id_address_sender').val('');#}
+            } else if (_val === '06') {
+                $("#id-nro-document-sender").attr('maxlength', 11);
+                sessionStorage.setItem('document', '06')
+                $('#id-nro-document-sender').val('');
+                $('#id_sender').val('');
+                $('#id-address-line').css('display', '');
+                $('#id_address').val('')
+            } else if (_val === '04' || _val === '07' || _val === '-') {
+                $("#id-nro-document-sender").attr('maxlength', 15);
+                sessionStorage.setItem('document', '')
+                $('#id_sender').val('');
+                $('#id-nro-document-sender').val('');
+                $('#id-address-line').css('display', 'none');
+                $('#id_address').val('')
+            }
+        });
+
+
+        $('#id_district').select2({
+            theme: 'bootstrap4',
+        });
+
+        $("#document_number_client").attr('maxlength', 8);
+        sessionStorage.setItem('client-document', '01')
+
+        $(document).on('click', '#save-new-client', function (e) {
+
+            e.preventDefault()
+
+            let _document_type = $('#document_type_client').val();
+            let _document_number = $('#document_number_client').val();
+            let _names = $('#client-names').val();
+            let _phone = $('#client-phone').val();
+            let _email = $('#client-email').val();
+            let _address = $('#client-address').val();
+            let _district = $('#id_district').val();
+            let _reference = $('#client-reference').val();
+
+            if (sessionStorage.getItem('client-document') === '01') {
+
+                if (_document_number.length !== 8) {
+                    toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
+                    return false;
+                }
+                if (_names.length === 0) {
+                    toastr.warning('¡Favor de completar los Nombres', 'Error de Datos!');
+                    return false;
+                }
+            } else {
+                if (sessionStorage.getItem('client-document') === '06') {
+                    if (_document_number.length !== 11) {
+                        toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
+                        return false;
+                    }
+                    if (_names.length === 0) {
+                        toastr.warning('¡Favor de completar la Razon Social', 'Error de Datos!');
+                        return false;
+                    }
+                    if (_address.length === 0) {
+                        toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
+                        return false;
+                    }
+                }
+            }
+
+            if ($('#id_district').val() === 0) {
+                toastr.warning('¡Favor de seleccionar un distrito', 'Error de Datos!');
+                return false;
+            }
+
+            let client_dict = {
+                "ClientTypeDocument": _document_type,
+                "ClientDocumentNumber": _document_number,
+                "ClientNames": _names,
+                "ClientPhone": _phone,
+                "ClientEmail": _email,
+                "ClientAddress": _address,
+                "ClientDistrict": _district,
+                "ClientReference": _reference,
+            }
+
+            $.ajax({
+                url: '/sales/save_new_client_sale/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'client_dict': JSON.stringify(client_dict)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response.message, '¡Mensaje!');
+                        $('#modalClient').modal('hide');
+                        $('#document_number_client').val('');
+                        $('#client-names').val('');
+                        $('#client-phone').val('');
+                        $('#client-email').val('');
+                        $('#client-address').val('');
+                        $('#id_district').val(0);
+                        $('#client-reference').val('');
+
+                        $("#id_sender").val(response.names);
+                        $("#id-client-sender").val(response.client_id);
+                        $("#id_address").val(response.client_address);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.error, '¡ERROR DE DATOS!');
+                }
+            });
+        });
+
+        $(document).on('focusin', '.client-table', function (e) {
+            $(this).parent('td').find('div.dropdown-menu').css({
+                'background-color': 'transparent',
+                'border': 'transparent',
+            })
+            $(this).val(' ');
+            $('#id_unit_product').val('0')
+            $('#id_sender').val('');
+            $('#id-nro-document-sender').val('');
+            $('#id_address').val('');
+            $('#document_type_sender').val('0');
+            $('#document_type_sender').trigger('change');
+        });
+
+        $(document).on('keypress', '.client-table', function (e) {
+
+            $(this).parent('td').find('div.dropdown-menu').empty()
+
+            if (e.keyCode === 13) {
+
+                e.preventDefault()
+
+                $(this).trigger("enterKey");
+                let _client_name = $(this).val();
+                let _td = $(this).parent('td')
+                let _menu = _td.find('.dropdown-menu')
+
+                if (_client_name.length > 3) {
+
+                    $.ajax({
+                        url: '/sales/get_clients_by_criteria/',
+                        async: true,
+                        dataType: 'json', // for response
+                        type: 'GET',
+                        data: {
+                            'value': _client_name,
+                        },
+                        contentType: 'application/json;charset=UTF-8',
+                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                        success: function (response, textStatus, xhr) {
+                            if (xhr.status === 200) {
+                                let list = response.client_list;
+                                _menu.css({'background-color': '#fff', 'border': '1px solid rgba(0,0,0,.15)'})
+                                for (let i = 0; i < list.length; i++) {
+                                    _menu.append(`<a class="dropdown-item client-item" client_name="${list[i].client_names}" client_document_number="${list[i].client_document_number}" client_address="${list[i].client_address}" client_type_document="${list[i].client_type_document}" href="#" data-id="${list[i].client_id}">cliente: ${list[i].client_names} - RUC: ${list[i].client_document_number}</a>`)
+                                }
+                            }
+                        },
+                        error: function (jqXhr, textStatus, xhr) {
+                            if (jqXhr.status === 500) {
+                                toastr.error(jqXhr.responseJSON.error, 'Mensaje');
+                            } else {
+                                if (textStatus === 'timeout') {
+                                    toastr.error('Failed from timeout', 'Mensaje');
+                                } else {
+                                    console.log(" STATUS: " + xhr + " " + textStatus);
+                                }
+                            }
+                        }
+                    });
+                } else {
+
+                    toastr.warning('Para la busqueda ingrese minimo 3 caracteres', 'Error de llenado');
+                    return false;
+                }
+            }
+        });
+
+        $(document).on('click', '.client-item', function (e) {
+
+            let _client_id = $(this).attr('data-id');
+            let _client_address = $(this).attr('client_address');
+            let _client_name = $(this).attr('client_name');
+            let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
+            let _td = $(this).parent('div.dropdown-menu').parent('td')
+            let _client_type_document = $(this).attr('client_type_document')
+            let _client_document_number = $(this).attr('client_document_number')
+
+            $('#document_type_sender').val(_client_type_document);
+            $('#document_type_sender').trigger('change');
+
+            $('#id_sender').val(_client_name);
+            $('#id_address').val(_client_address);
+            $("#id-nro-document-sender").val(_client_document_number);
+            $("#id-client-sender").val(_client_id);
+            $(".client-table").val(_client_name);
+
+            $(this).parent('div.dropdown-menu').empty()
+            $(this).parent('div.dropdown-menu').addClass('hide')
+        });
+
+        function hasRowDetails() {
+            var _response = false;
+            if ($("#sales-details tr").length > 0) {
+                _response = true;
+            }
+            return _response;
+        }
+
+        $(document).on('click', '#btn-save-quotation', function (e) {
+            createSales()
+        });
+
+        function createSales() {
+
+            if (($('#id-nro-document-sender').val() === '') && ($('#id_sender').val() === '') && ($('#id-client-sender').val()) === '') {
+                toastr.warning('¡Elija un cliente porfavor!', 'Mensaje');
+                $('#id-nro-document-sender').focus();
+                return false;
+            }
+
+            if ($('#id-type-order').val() === '0' || $('#id-type-order').val() === '') {
+                toastr.warning('Seleccione el tipo de orden que desea realizar');
+                return false;
+            }
+            if ($('#transaction_payment_type').val() === '0') {
+                toastr.warning('¡Selecione el tipo de pago!', 'Mensaje');
+                return false;
+            }
+            if (($('#type').val() === 'E') && ($('#id_serie').val() === '0')) {
+                toastr.warning('¡Favor de completar la serie!', 'Mensaje');
+                $('#id_serie').focus();
+                return false;
+            }
+            // Comprobar si hay filas en los detalles
+            if (hasRowDetails() === false) {
+                toastr.warning('¡Elija los productos..!', 'Mensaje');
+                return false;
+            }
+
+            if ($('#id_date_completion').val() === '' || $('#id_place_delivery').val() === '' || $('#id_type_quotation').val() === '0' || $('#id_name_type_quotation').val() === '' || $('#id_observation').val() === '') {
+                toastr.warning('Complete los campos de la cotización');
+                return false;
+            }
+
+            let sales = {
+                "Details": [],
+                "Client": $('#id-client-sender').val(),
+                "Address": $('#id_address').val(),
+                "SaleTotal": $('#sum-total').val(),
+                "TransactionPaymentType": $('#transaction_payment_type').val(),
+                "Distribution": $('#id_distribution').val(),
+                {#"Type": 'V',#}
+                "order_type": $('#id-type-order').val(),
+                "Serie": $('#id_serie').val(),
+                "BillType": sessionStorage.BillType,
+                "Date": $('#date').val(),
+                "Demo": ($('#demo').is(':checked')) ? 1 : 0,
+                "type_payment": $('#transaction_payment_type').val(),
+                "cash": $('#id_cash').val(),
+                "date_cash": $('#id_date').val(),
+                "cash_deposit": $('#id_cash_deposit').val(),
+                "cod_operation": $('#code-operation').val(),
+                "validity_date": $('#id_validity_date').val(),
+                "date_completion": $('#id_date_completion').val(),
+                "place_delivery": $('#id_place_delivery').val(),
+                "type_quotation": $('#id_type_quotation').val(),
+                "observation": $('#id_observation').val(),
+                "name_type_quotation": $('#id_name_type_quotation').val(),
+                "order_sale_quotation": Number($('#id_order_sale_quotation').val()),
+                "userID": $('#user_id').val()
+            };
+
+            $("#sales-details tr").each(function () {
+                let _quantity = $(this).find("td.item-quantity input.input-quantity").val();
+                if (_quantity === '' || _quantity <= 0) {
+                    toastr.warning('Ingrese un valor valido para la cantidad');
+                    return false
+                }
+                let _price = $(this).find("td.item-price input.input-price").val();
+                if (_price === '' || _quantity <= 0) {
+                    toastr.warning('Ingrese un valor valido para el precio');
+                    return false
+                }
+                let detailObj = {
+                    "Product": $(this).attr('product'),
+                    "Unit": $(this).find("td.item-unit").attr('pu'),
+                    "Quantity": parseFloat($(this).find("td.item-quantity input.input-quantity").val()).toFixed(2),
+                    "Price": parseFloat($(this).find("td.item-price input.input-price").val()).toFixed(2),
+                    "DetailTotal": parseFloat($(this).find("td.item-total input.input-total-detail").val()).toFixed(2),
+                    "_commentary": $(this).find("td.item-product input.input-product-name").val(),
+                    "Check_Quotation": ($(this).find("td.item-check div.form-check input.check-quotation").is(':checked')) ? 1 : 0,
+                    "Store": $(this).attr("store_p")
+                };
+                sales.Details.push(detailObj);
+
+            });
+            {#console.log(sales)#}
+            $.ajax({
+                url: '/sales/save_quotation/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'quotations': JSON.stringify(sales)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response.message + response.msg_sunat, '¡Mensaje!');
+
+                        window.open("/sales/print_quotation/" + response.id_sales + "/" + 'T' + "/", '_blank');
+
+                        {#clearForm();#}
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.error, '¡ERROR DE GUARDADO!');
+                }
+            });
+        }
+
+        function SearchQuotation() {
+            let correlative = $('#id-search-quotation').val();
+            $('#id-search-quotation').val('');
+            $.ajax({
+                url: '/sales/get_order_by_correlative/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'correlative': correlative},
+                success: function (response) {
+                    if (response.success) {
+                        {#console.log(response)#}
+
+                        $('#duplicate_check').removeAttr('disabled', 'disabled')
+
+                        $('.update-order').removeClass('d-none');
+                        $('.save-order').addClass('d-none');
+                        $("#order_id").val(response.order_id);
+
+                        $("#id_order_sale_quotation").val(response.order_id);
+                        $('.title-without').addClass('d-none');
+                        $('.title-with').removeClass('d-none');
+                        $('#lbl-order').text(response.correlative);
+
+                        $('.client-table').val(response.client_name);
+
+                        $("#id_order_sale_quotation_correlative").val(response.correlative);
+                        $("#document_type_sender").val(response.document_type);
+                        $("#document_type_sender").trigger('change');
+                        $("#id_validity_date").val(response.validity_date);
+                        $("#id_date_completion").val(response.date_completion);
+                        $("#id_place_delivery").val(response.place_delivery);
+                        $("#id_type_quotation").val(response.type_quotation);
+                        $("#id_type_quotation").trigger('change');
+                        $("#id_name_type_quotation").val(response.type_name_quotation);
+                        $("#id_observation").val(response.observation);
+                        $("#btn-voucher-order").prop("disabled", true);
+                        $('.print-ticket-bill-quotation').css('display', 'flex');
+                        $('#id-type-order').val('V');
+                        $('#transaction_payment_type').val(response.transaction_payment_type)
+                        {#let c = jQuery.Event("change");#}
+                        {#c.which = 13;#}
+                        {#c.keyCode = 13;#}
+                        {#$("#transaction_payment_type").trigger(c);#}
+                        $("#transaction_payment_type").trigger('change');
+                        $("#id-nro-document-sender").val(response.document_number);
+                        let e = jQuery.Event("keypress");
+                        e.which = 13;
+                        e.keyCode = 13;
+                        $("#id-nro-document-sender").trigger(e);
+
+                        let Detail = response['detail'];
+                        $('table#id-table-detail-order tbody#sales-details').empty();
+                        Detail.forEach(
+                            element =>
+                                addOrderDetail(element.unit_id, element.product_id, element.quantity, element.price, element.unit_name, element.product_name, element.store, element.unit_min, element.id, element.stock, element.product_brand)
+                        )
+                    } else {
+                        toastr.warning(response.message);
+                    }
+                },
+                fail: function (response) {
+                    toastr.error("error");
+                }
+            });
+        }
+
+        $(document).on('click', '#btn-update-order', function (e) {
+
+            if ($('#id-type-order').val() === 'T') {
+                if ($('#id_date_completion').val() === '' || $('#id_place_delivery').val() === '' || $('#id_type_quotation').val() === '0' || $('#id_name_type_quotation').val() === '' || $('#id_observation').val() === '') {
+                    toastr.warning('Complete los campos de la cotización');
+                    return false;
+                }
+            }
+            if ($('#id_order_sale_quotation').val() === '') {
+                toastr.warning('No existe cotizacion, actualice si es necesario');
+                return false;
+            }
+
+            if (hasRowDetails() === false) {
+                toastr.warning('¡Elija los productos..!', 'Mensaje');
+                return false;
+            }
+
+            let sales = {
+                "Details": [],
+                "Client": $('#id-client-sender').val(),
+                "SaleTotal": $('#sum-total').val(),
+                "TransactionPaymentType": $('#transaction_payment_type').val(),
+                "Distribution": $('#id_distribution').val(),
+                "Type": 'T',
+                "order_type": $('#id-type-order').val(),
+                "Serie": $('#id_serie').val(),
+                "BillType": sessionStorage.BillType,
+                "Date": $('#date').val(),
+                "Demo": ($('#demo').is(':checked')) ? 1 : 0,
+                "type_payment": $('#transaction_payment_type').val(),
+                "cash": $('#id_cash').val(),
+                "date_cash": $('#id_date').val(),
+                "cash_deposit": $('#id_cash_deposit').val(),
+                "cod_operation": $('#code-operation').val(),
+                "validity_date": $('#id_validity_date').val(),
+                "date_completion": $('#id_date_completion').val(),
+                "place_delivery": $('#id_place_delivery').val(),
+                "type_quotation": $('#id_type_quotation').val(),
+                "observation": $('#id_observation').val(),
+                "name_type_quotation": $('#id_name_type_quotation').val(),
+                "order_sale_quotation": Number($('#id_order_sale_quotation').val()),
+                "correlative_sale": $('#id_order_sale_quotation_correlative').val(),
+            };
+
+            $("#sales-details tr").each(function () {
+                let _quantity = $(this).find("td.item-quantity input.input-quantity").val();
+                if (_quantity === '' || _quantity <= 0) {
+                    toastr.warning('Ingrese un valor valido para la cantidad');
+                    return false
+                }
+                let _price = $(this).find("td.item-price input.input-price").val();
+                if (_price === '' || _quantity <= 0) {
+                    toastr.warning('Ingrese un valor valido para el precio');
+                    return false
+                }
+                let detailObj = {
+                    "Detail": $(this).attr('detail_id'),
+                    "Product": $(this).attr('product'),
+                    "Unit": $(this).find("td.item-unit").attr('pu'),
+                    "Quantity": parseFloat($(this).find("td.item-quantity input.input-quantity").val()).toFixed(2),
+                    "Price": parseFloat($(this).find("td.item-price input.input-price").val()).toFixed(2),
+                    "DetailTotal": parseFloat($(this).find("td.item-total input.input-total-detail").val()).toFixed(2),
+                    "_commentary": $(this).find("td.item-product input.input-product-name").val(),
+                    "Store": $(this).attr("store_p")
+                };
+                sales.Details.push(detailObj);
+            });
+            {#console.log(sales)#}
+            $.ajax({
+                url: '/sales/update_quotation/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'sales': JSON.stringify(sales)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response.message + response.msg_sunat, '¡Mensaje!');
+                        window.open("/sales/print_quotation/" + response.id_sales + "/" + 'T' + "/", '_blank');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.error, '¡ERROR DE SUNAT!');
+                }
+            });
+        });
+
+        function verifyStock() {
+
+            let flag_stock = true;
+
+            $("#sales-details tr").each(function () {
+
+                let _quantity = Number($(this).find("td.item-quantity input.input-quantity").val());
+                let _stock = Number($(this).find("td.item-stock input.input-stock").val());
+                let _product_name = $(this).find("td.item-product input.input-product-name").val();
+                let check = $(this).find("td.item-check div.form-check input.check-quotation").is(':checked')
+                {#console.log('_quantity',_quantity)#}
+                {#console.log('_stock',_stock)#}
+
+                if (check === true) {
+
+                    if (_quantity > _stock) {
+                        $(this).find("td.item-quantity input.input-quantity").focus()
+                        toastr.error('REVISE EL STOCK DEL PRODUCTO: ' + " | " + _product_name + " | " + 'ANTES DE REALIZAR LA VENTA,' + ' LA CANTIDAD DE: ' + _quantity + ' SUPERA EL STOCK DE: ' + _stock);
+                        flag_stock = false
+                        return false;
+                    }
+                }
+            });
+            return flag_stock;
+        }
+
+        function create_order($type, $print) {
+            if (verifyStock()) {
+                if ($type === 'T') {
+                    saveOrder($type, $print);
+                } else if ($type === 'F') {
+                    if ($("#document_type_sender").val() === '06') {
+                        let _document_number = $('#id-nro-document-sender').val();
+                        if (_document_number.length === 8) {
+                            toastr.warning('¡La factura solo se registra con RUC!', 'Mensaje');
+                            return false;
+                        } else {
+                            if (_document_number.length !== 11) {
+                                toastr.warning('¡La factura solo se registra con RUC!!', 'Mensaje');
+                                return false;
+                            }
+                        }
+                    } else {
+                        toastr.warning('El tipo de documento debe ser en RUC', 'Mensaje');
+                        return false;
+                    }
+                    let r = confirm("¿Desea generar la Factura Electronica?");
+                    sessionStorage.setItem('BillType', 'F');
+                    if (r === true) {
+                        saveOrder($type, $print);
+                    }
+                } else if ($type === 'B') {
+                    if ($("#document_type_sender").val() === '01') {
+                        let _document_number = $('#id-nro-document-sender').val();
+                        if (_document_number.length === 11) {
+                            toastr.warning('¡La boleta solo se registra con DNI!', 'Mensaje');
+                            return false;
+                        } else {
+                            if (_document_number.length !== 8) {
+                                toastr.warning('¡La boleta solo se registra con DNI!!', 'Mensaje');
+                                return false;
+                            }
+                        }
+                    }
+                    let r = confirm("¿Desea generar la Boleta Electronica?");
+                    sessionStorage.setItem('BillType', 'B');
+                    if (r === true) {
+                        saveOrder($type, $print);
+                    }
+                }
+            }
+        }
+
+        function saveOrder($type, $print) {
+
+            if ($('#transaction_payment_type').val() === '0') {
+                toastr.warning('¡Selecione el tipo de pago!', 'Mensaje');
+                return false;
+            }
+            if ($('#transaction_payment_type').val() === 'E') {
+                if ($('#id_date').val() === '') {
+                    toastr.error('No puede realizar ventas sin aperturar la caja', 'Mensaje');
+                    return false;
+                }
+            }
+            if (($('#type').val() === 'E') && ($('#id_serie').val() === '0')) {
+                toastr.warning('¡Favor de completar la serie!', 'Mensaje');
+                $('#id_serie').focus();
+                return false;
+            }
+            if (hasRowDetails() === false) {
+                toastr.warning('¡Elija los productos..!', 'Mensaje');
+                return false;
+            }
+            let _type;
+
+            if ($type === 'T') {
+                _type = 'V'
+            } else {
+                _type = 'E'
+            }
+
+            if ($('#user_id').val() === '0') {
+                toastr.warning('Seleccione el Usuario');
+                return false;
+            }
+
+            $(".print-ticket-bill-quotation").addClass('d-none')
+
+            let sales = {
+                "Details": [],
+                "Client": $('#id-client-sender').val(),
+                "Address": $('#id_address').val(),
+                "SaleTotal": $('#sum-total').val(),
+                "TransactionPaymentType": $('#transaction_payment_type').val(),
+                "Distribution": $('#id_distribution').val(),
+                "Type": _type,
+                "order_type": 'V',
+                "Serie": $('#id_serie').val(),
+                "BillType": sessionStorage.BillType,
+                "Date": $('#date').val(),
+                "Demo": ($('#demo').is(':checked')) ? 1 : 0,
+                "type_payment": $('#transaction_payment_type').val(),
+                "cash": $('#id_cash').val(),
+                "date_cash": $('#id_date').val(),
+                "cash_deposit": $('#id_cash_deposit').val(),
+                "cod_operation": $('#code-operation').val(),
+                "validity_date": $('#id_validity_date').val(),
+                "date_completion": $('#id_date_completion').val(),
+                "place_delivery": $('#id_place_delivery').val(),
+                "type_quotation": $('#id_type_quotation').val(),
+                "observation": $('#id_observation').val(),
+                "name_type_quotation": $('#id_name_type_quotation').val(),
+                "order_sale_quotation": Number($('#id_order_sale_quotation').val()),
+                "userID": $('#user_id').val()
+            };
+
+            $("#sales-details tr").each(function () {
+
+                let check = $(this).find("td.item-check div.form-check input.check-quotation").is(':checked')
+                let _quantity = $(this).find("td.item-quantity input.input-quantity").val();
+
+                if (check === true) {
+                    if (_quantity === '' || _quantity <= 0) {
+                        toastr.warning('Ingrese un valor valido para la cantidad');
+                        return false
+                    }
+                    let _price = $(this).find("td.item-price input.input-price").val();
+                    if (_price === '' || _quantity <= 0) {
+                        toastr.warning('Ingrese un valor valido para el precio');
+                        return false
+                    }
+
+                    let detailObj = {
+                        "Product": $(this).attr('product'),
+                        "Unit": $(this).find("td.item-unit").attr('pu'),
+                        "Quantity": parseFloat($(this).find("td.item-quantity input.input-quantity").val()).toFixed(2),
+                        "Price": parseFloat($(this).find("td.item-price input.input-price").val()).toFixed(2),
+                        "DetailTotal": parseFloat($(this).find("td.item-total input.input-total-detail").val()).toFixed(2),
+                        "_commentary": $(this).find("td.item-product input.input-product-name").val(),
+                        "Store": $(this).attr("store_p")
+                    };
+                    sales.Details.push(detailObj);
+                }
+            });
+            {#console.log(sales);#}
+
+            $.ajax({
+                url: '/sales/create_order_detail/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'sales': JSON.stringify(sales)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {
+                    "X-CSRFToken": '{{ csrf_token }}'
+                },
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response.message + response.msg_sunat, '¡Mensaje!');
+
+                        if ($type === 'T' && $print === 'T') {
+                            window.open("/sales/print_ticket_order_sales/" + response.id_sales + "/" + '0' + "/", '_blank');
+                        } else if ($type === 'F' || $type === 'F') {
+                            if ($print === 'T') {
+                                window.open("/sales/print_ticket_order_sales/" + response.id_sales + "/" + '1' + "/", '_blank');
+                            } else if ($print === 'A4') {
+                                window.location.href = "/sales/print_order_bill/" + response.id_sales + "/";
+                            }
+                        }
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.error, '¡ERROR DE SUNAT!');
+                }
+            });
+        }
+
+        $(document).on('click', '.stock_refresh', function (e) {
+
+            let _td = $(this).parent('div.input-group-append').parent('div.input-group').parent('td.item-stock');
+            let product_store_id = _td.attr("store_p");
+
+            $.ajax({
+                url: '/sales/refresh_stock/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'product_store_id': product_store_id},
+                success: function (response, textStatus, xhr) {
+                    {#console.log(response)#}
+                    if (xhr.status === 200) {
+                        _td.find('div.input-group input.input-stock').val(Number(response.stock).toFixed(0));
+                    } else {
+                        toastr.warning(response.message);
+                    }
+                },
+                fail: function (response) {
+                    toastr.error("error");
+                }
+            });
+        });
+
+
+    </script>
+
+{% endblock extrajs %}

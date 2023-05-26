@@ -56,6 +56,7 @@ class AddressEntityReference(models.Model):
 
 class Purchase(models.Model):
     STATUS_CHOICES = (('S', 'SIN ALMACEN'), ('A', 'EN ALMACEN'), ('N', 'ANULADO'),)
+    DELIVERY_CHOICES = (('S', 'SUCURSAL'), ('P', 'PROVIDER'), ('CR', 'CLIENTE REFERENCIA'), ('CP', 'CLIENTE ENTIDAD'))
     TYPE_CHOICES = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'),)
     CURRENCY_TYPE_CHOICES = (('S', 'SOL'), ('D', 'DOLAR'),)
     PAYMENT_METHOD_CHOICES = (('CO', 'CONTADO'), ('CR', 'CREDITO'),)
@@ -67,25 +68,23 @@ class Purchase(models.Model):
     user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, null=True, blank=True)
     subsidiary = models.ForeignKey(Subsidiary, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='S')
-    truck = models.ForeignKey(Truck, on_delete=models.SET_NULL, null=True, blank=True)
+    # truck = models.ForeignKey(Truck, on_delete=models.SET_NULL, null=True, blank=True)
     type_bill = models.CharField('Tipo de comprobante', max_length=1, choices=TYPE_CHOICES, default='T')
+    delivery_choice = models.CharField('Entrega a', max_length=2, choices=TYPE_CHOICES, default='S')
     ###################
 
     currency_type = models.CharField('Tipo de moneda', max_length=1, choices=CURRENCY_TYPE_CHOICES, default='S')
-    reference = models.ForeignKey(EntityReference, verbose_name='Referencia de Venta', on_delete=models.CASCADE,
-                                  null=True, blank=True)
-    reference_entity = models.ForeignKey(EntityReference, verbose_name='Referencia de Venta a la Entidad',
-                                         on_delete=models.CASCADE,
-                                         null=True, blank=True, related_name='entity_purchase')
+    client_reference = models.ForeignKey('sales.Client', verbose_name='Cliente de venta', on_delete=models.CASCADE,
+                                         null=True, blank=True)
+    client_reference_entity = models.ForeignKey('sales.Client', verbose_name='Cliente de entidad', on_delete=models.CASCADE,
+                                                null=True, blank=True, related_name='client_entity')
     payment_method = models.CharField('Método de Pago', max_length=2, choices=PAYMENT_METHOD_CHOICES, default='CO')
     payment_condition = models.CharField('Condicion de Pago', max_length=255, null=True, blank=True)
     money_change = models.ForeignKey(MoneyChange, verbose_name='Cambio de Moneda', on_delete=models.CASCADE, null=True,
                                      blank=True)
-
-    delivery = models.CharField('Enviar a', max_length=200, null=True, blank=True)
+    delivery_address = models.CharField('Direccion de envio', max_length=200, null=True, blank=True)
     city = models.CharField('Ciudad', max_length=200, null=True, blank=True)
     observation = models.TextField('Observación', blank=True, null=True)
-
     oc_supplier = models.CharField('Referencia', max_length=100, blank=True, null=True)
 
     def __str__(self):

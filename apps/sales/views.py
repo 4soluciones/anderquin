@@ -439,6 +439,7 @@ class ClientList(View):
         contexto['document_types'] = DocumentType.objects.all()
         contexto['districts'] = District.objects.all()
         contexto['subsidiaries'] = Subsidiary.objects.all()
+        contexto['type_client'] = Client._meta.get_field('type_client').choices
         return contexto
 
     def get(self, request, *args, **kwargs):
@@ -460,6 +461,7 @@ def new_client(request):
         id_district = request.POST.get('id_district', '')
         reference = request.POST.get('reference', '')
         operation = request.POST.get('operation', '')
+        type_client = str(request.POST.get('type_client', ''))
         client_id = int(request.POST.get('client_id', ''))  # solo se usa al editar
 
         if operation == 'N':
@@ -467,9 +469,10 @@ def new_client(request):
             if len(names) > 0:
 
                 data_client = {
-                    'names': names,
+                    'names': names.upper(),
                     'phone': phone,
                     'email': email,
+                    'type_client': type_client
                 }
 
                 client = Client.objects.create(**data_client)
@@ -505,7 +508,7 @@ def new_client(request):
 
                         data_client_address = {
                             'client': client,
-                            'address': address,
+                            'address': address.upper(),
                             'district': district,
                             'reference': reference,
                         }
@@ -518,6 +521,7 @@ def new_client(request):
             client_obj.names = names
             client_obj.phone = phone
             client_obj.email = email
+            client_obj.type_client = type_client
             client_obj.save()
             district = District.objects.get(id=id_district)
             document_type = DocumentType.objects.get(id=document_type_id)
@@ -5560,3 +5564,194 @@ def test(request):
         return render(request, 'sales/test.html', {
             'grid': tpl.render(context, request),
         })
+
+
+def quotation_list(request):
+    user_id = request.user.id
+    user_obj = User.objects.get(id=user_id)
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+    worker_obj = Worker.objects.filter(user=user_obj).last()
+    employee = Employee.objects.get(worker=worker_obj)
+    document_types = DocumentType.objects.all()
+    mydate = datetime.now()
+    formatdate = mydate.strftime("%Y-%m-%d")
+    series_set = Subsidiary.objects.filter(id=subsidiary_obj.id)
+    cash_set = Cash.objects.filter(subsidiary=subsidiary_obj, accounting_account__code__startswith='101')
+    cash_deposit_set = Cash.objects.filter(accounting_account__code__startswith='104')
+    sales_store = SubsidiaryStore.objects.filter(
+        subsidiary=subsidiary_obj, category='V').first()
+    users_set = User.objects.all()
+
+    return render(request, 'sales/quotation_list.html', {
+        'choices_account': cash_set,
+        'choices_account_bank': cash_deposit_set,
+        'employee': employee,
+        'sales_store': sales_store,
+        'subsidiary': subsidiary_obj,
+        'document_types': document_types,
+        'date': formatdate,
+        'choices_payments': TransactionPayment._meta.get_field('type').choices,
+        'series': series_set,
+        'users': users_set
+    })
+
+
+def get_product_quotation(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(pk=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        sales_store = SubsidiaryStore.objects.filter(
+            subsidiary=subsidiary_obj, category='V').first()
+        last_kardex = Kardex.objects.filter(product_store=OuterRef('id')).order_by('-id')[:1]
+        product_set = None
+
+        value = request.GET.get('value', '')
+        barcode = request.GET.get('barcode', '')
+
+        if value != '' and barcode == '':
+            array_value = value.split()
+            product_query = Product.objects
+            full_query = None
+
+            product_brand_set = ProductBrand.objects.filter(name__icontains=value.upper())
+
+            for i in range(0, len(array_value)):
+                q = Q(name__icontains=array_value[i]) | Q(product_brand__name__icontains=array_value[i])
+                if full_query is None:
+                    full_query = q
+                else:
+                    full_query = full_query & q
+
+            product_set = product_query.filter(full_query).select_related(
+                'product_family', 'product_brand').prefetch_related(
+                Prefetch(
+                    'productstore_set', queryset=ProductStore.objects.select_related('subsidiary_store__subsidiary')
+                        .annotate(
+                        last_remaining_quantity=Subquery(last_kardex.values('remaining_quantity'))
+                    )
+                ),
+                Prefetch(
+                    'productdetail_set', queryset=ProductDetail.objects.select_related('unit')
+                ),
+            ).order_by('id')
+
+        if value == '' and barcode != '':
+            product_set = Product.objects.filter(barcode=barcode).select_related(
+                'product_family', 'product_brand').prefetch_related(
+                Prefetch(
+                    'productstore_set', queryset=ProductStore.objects.select_related('subsidiary_store__subsidiary')
+                        .annotate(
+                        last_remaining_quantity=Subquery(last_kardex.values('remaining_quantity'))
+                    )
+                ),
+                Prefetch(
+                    'productdetail_set', queryset=ProductDetail.objects.select_related('unit')
+                ),
+            ).order_by('id')
+
+        t = loader.get_template('sales/quotation_product_grid.html')
+        c = ({
+            'subsidiary': subsidiary_obj,
+            'product_dic': product_set
+        })
+        return JsonResponse({
+            'grid': t.render(c, request),
+        })
+
+
+def save_quotation(request):
+    if request.method == 'GET':
+        quotation_request = request.GET.get('quotations', '')
+        data_quotation = json.loads(quotation_request)
+        type_payment = (data_quotation["type_payment"])
+        has_quotation_order = ''
+
+        _date = str(data_quotation["Date"])
+        client_address = str(data_quotation["Address"])
+        client_id = str(data_quotation["Client"])
+        client_obj = Client.objects.get(pk=int(client_id))
+        client_address_set = ClientAddress.objects.filter(client=client_obj)
+        if client_address_set.exists():
+            client_address_obj = client_address_set.last()
+            client_address_obj.address = client_address
+            client_address_obj.save()
+        else:
+            client_address_obj = ClientAddress(
+                client=client_obj,
+                address=client_address
+            )
+            client_address_obj.save()
+
+        sale_total = decimal.Decimal(data_quotation["SaleTotal"])
+        # user_id = request.user.id
+        # user_obj = User.objects.get(id=user_id)
+        user_id = request.user.id
+        user_subsidiary_obj = User.objects.get(id=user_id)
+        subsidiary_obj = get_subsidiary_by_user(user_subsidiary_obj)
+
+        user = int(data_quotation["userID"])
+        user_obj = User.objects.get(id=user)
+
+        subsidiary_store_sales_obj = SubsidiaryStore.objects.get(
+            subsidiary=subsidiary_obj, category='V')
+        _bill_type = str(data_quotation["BillType"])
+
+        validity_date = (data_quotation["validity_date"])
+        date_completion = (data_quotation["date_completion"])
+        place_delivery = (data_quotation["place_delivery"])
+        type_quotation = (data_quotation["type_quotation"])
+        type_name_quotation = (data_quotation["name_type_quotation"])
+        observation = (data_quotation["observation"])
+
+        order_sale_quotation = None
+        order_sale_quotation_obj = None
+
+        order_obj = Order(
+            type='T',
+            client=client_obj,
+            user=user_obj,
+            total=sale_total,
+            distribution_mobil=None,
+            truck=None,
+            subsidiary_store=subsidiary_store_sales_obj,
+            create_at=_date,
+            correlative_sale=get_correlative_order(subsidiary_obj, 'T'),
+            subsidiary=subsidiary_obj,
+            validity_date=validity_date,
+            date_completion=date_completion,
+            place_delivery=place_delivery,
+            type_quotation=type_quotation,
+            type_name_quotation=type_name_quotation,
+            observation=observation,
+            way_to_pay_type=type_payment,
+            has_quotation_order='S',
+            order_sale_quotation=order_sale_quotation,
+        )
+        order_obj.save()
+
+        for detail in data_quotation['Details']:
+            quantity = decimal.Decimal(detail['Quantity'])
+            price = decimal.Decimal(detail['Price'])
+            product_id = int(detail['Product'])
+            product_obj = Product.objects.get(id=product_id)
+            unit_id = int(detail['Unit'])
+            unit_obj = Unit.objects.get(id=unit_id)
+            commentary = str(detail['_commentary'])
+
+            order_detail_obj = OrderDetail(
+                order=order_obj,
+                product=product_obj,
+                quantity_sold=quantity,
+                price_unit=price,
+                unit=unit_obj,
+                commentary=commentary,
+                status='V',
+            )
+            order_detail_obj.save()
+
+        return JsonResponse({
+            'id_sales': order_obj.id,
+            'message': 'Cotización generada',
+        }, status=HTTPStatus.OK)
+

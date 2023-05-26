@@ -540,7 +540,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
                      styles["Left"])
     p7_5 = Paragraph(f'Juliaca, San Roman, Puno', styles["Left"])
 
-    reference_obj = purchase_obj.reference
+    # reference_obj = purchase_obj.reference
 
     p7_6 = Paragraph(f'LUGAR DE ENTREGA:', styles["Right"])
 
@@ -554,10 +554,8 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     # else:
     #     direccion = f'{reference_obj.address}'
 
-
-    p7_7 = Paragraph(f'{purchase_obj.delivery}', styles["Left"])
+    p7_7 = Paragraph(f'{purchase_obj.delivery_address}', styles["Left"])
     p7_8 = Paragraph(f'{purchase_obj.city}', styles["Center"])
-
 
     colwiths_table_7 = [_wt * 14 / 100, _wt * 1 / 100, _wt * 1 / 100, _wt * 70 / 100, _wt * 14 / 100]
     rowwiths_table_7 = [inch * 1]
@@ -572,7 +570,8 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     # **************************************************************************************************************** #
     # ********************* if ********************* #
     # **************************************************************************************************************** #
-    if supplier_obj.is_type_reference:
+    if purchase_obj.client_reference:
+        client_reference = purchase_obj.client_reference
         style_table_8 = [
             # ('GRID', (0, 0), (-1, -1), 1, colors.black),
         ]
@@ -604,18 +603,19 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
 
         ]
 
-        reference_obj = purchase_obj.reference
+        # reference_obj = purchase_obj.reference
 
-        addressEntity_obj = reference_obj.entity_address.all().first()
+        # addressEntity_obj = reference_obj.entity_address.all().first()
 
         p9_1 = Paragraph(f'Razón Social: ', styles["Right"])
-        p9_2 = Paragraph(f'{reference_obj.business_name}', styles["Left"])
+        p9_2 = Paragraph(f'{client_reference.names.upper()}', styles["Left"])
         p9_3 = Paragraph(f'RUC: ', styles["Right"])
-        p9_4 = Paragraph(f'{reference_obj.ruc}', styles["Left"])
+        p9_4 = Paragraph(f'{client_reference.clienttype_set.last().document_number}', styles["Left"])
         p9_5 = Paragraph(f'Dirección: ', styles["Right"])
-        p9_6 = Paragraph(f'{addressEntity_obj.address}', styles["Left"])
+        p9_6 = Paragraph(f'{client_reference.clientaddress_set.last().address.upper()}', styles["Left"])
         p9_7 = Paragraph(f'Referencia: ', styles["Right"])
-        p9_8 = Paragraph(f'{purchase_obj.oc_supplier}', styles["Left"])
+        # p9_8 = Paragraph(f'{purchase_obj.oc_supplier}', styles["Left"])
+        p9_8 = Paragraph(f'{"-"}', styles["Left"])
 
         colwiths_table_9 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
         rowwiths_table_9 = [inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5]
@@ -634,7 +634,8 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         # **************************************************************************************************************** #
 
         # ********************* if ********************* #
-        if purchase_obj.reference.is_private:
+        if purchase_obj.client_reference_entity:
+            client_reference_entity = purchase_obj.client_reference_entity
             style_table_10 = [
                 # ('GRID', (0, 0), (-1, -1), 1, colors.black),
             ]
@@ -665,16 +666,16 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
                 # ('SPAN', (1, 4), (1, 5)),
             ]
 
-            reference_entity_obj = purchase_obj.reference_entity
+            # reference_entity_obj = purchase_obj.reference_entity
 
-            addressEntity_obj = reference_entity_obj.entity_address.all().first()
+            # addressEntity_obj = reference_entity_obj.entity_address.all().first()
 
             p11_1 = Paragraph(f'Razón Social: ', styles["Right"])
-            p11_2 = Paragraph(f'{reference_entity_obj.business_name}', styles["Left"])
+            p11_2 = Paragraph(f'{client_reference_entity.names.upper()}', styles["Left"])
             p11_3 = Paragraph(f'RUC: ', styles["Right"])
-            p11_4 = Paragraph(f'{reference_entity_obj.ruc}', styles["Left"])
+            p11_4 = Paragraph(f'{client_reference_entity.clienttype_set.last().document_number}', styles["Left"])
             p11_5 = Paragraph(f'Dirección: ', styles["Right"])
-            p11_6 = Paragraph(f'{addressEntity_obj.address}', styles["Left"])
+            p11_6 = Paragraph(f'{client_reference_entity.clientaddress_set.last().address.upper()}', styles["Left"])
             # p10_6 = Paragraph(f'Referencia: ', styles["Right"])
 
             colwiths_table_11 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
@@ -688,12 +689,12 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
 
             _dictionary.append(Spacer(width=8, height=16))
             _dictionary.append(ana_c11)
-
-            # ********************* endif ********************* #
-
-        # **************************************************************************************************************** #
-        # ********************* endif ********************* #
-        # **************************************************************************************************************** #
+    #
+    #         # ********************* endif ********************* #
+    #
+    #     # **************************************************************************************************************** #
+    #     # ********************* endif ********************* #
+    #     # **************************************************************************************************************** #
     if purchase_obj.observation:
         style_table_12 = [
             # ('GRID', (0, 0), (-1, -1), 1, colors.black),
@@ -726,7 +727,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
 
         ]
 
-        observations = purchase_obj.observation
+        observations = purchase_obj.observation.upper()
 
         p13_1 = Paragraph(f'Observacion: ', styles["Right"])
         p13_2 = Paragraph(f'{observations}', styles["Left"])

@@ -1,0 +1,43 @@
+{% for d in purchase_dict %}
+    <div class="card">
+        <div class="card-body text-center p-2">
+            <h3>{{ d.name }}</h3>
+        </div>
+    </div>
+    <table class="table table-bordered table-sm" id="report-salary">
+        <thead>
+        <tr class="text-white bg-dark text-uppercase text-center">
+            <td class="col-form-label" style="width: 20%">Cliente</td>
+            <td class="col-form-label" style="width: 8%">OC/COMPRA</td>
+            <td class="col-form-label" style="width: 8%">FECHA OC</td>
+            <td class="col-form-label" style="width: 24%">LUGAR DE ENTREGA</td>
+            <td class="col-form-label" style="width: 15%">OBSERV.</td>
+            <td class="col-form-label" style="width: 5%">CANT./CJS</td>
+            <td class="col-form-label" style="width: 20%">PRODUCTO</td>
+        </tr>
+        </thead>
+        <tbody id="tbl-items">
+        {% for p in d.purchases %}
+            <tr class="text-center">
+                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.client_reference }}</td>
+                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.oc_number }}</td>
+                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.date|date:'d/m/Y' }}</td>
+                {#                    <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.client_reference }}</td>#}
+                {#                    <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.observations }}</td>#}
+                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.address|default:'-' }}</td>
+                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.observations|upper }}</td>
+                {% for pd in p.purchase_detail %}
+                    <td class="align-middle text-center font-weight-bold">{{ pd.quantity|safe }}</td>
+                    <td class="align-middle text-center">{{ pd.product }}</td>
+                    </tr>
+                {% endfor %}
+
+            </tr>
+        {% endfor %}
+        <tr class="text-center">
+            <td class="align-middle text-right bg-light font-weight-bold" colspan="5">TOTAL:</td>
+            <td class="align-middle text-center bg-light font-weight-bold" colspan="1">{{ d.quantity_total }}</td>
+        </tr>
+        </tbody>
+    </table>
+{% endfor %}
