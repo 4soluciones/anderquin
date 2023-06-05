@@ -446,12 +446,73 @@ class ClientList(View):
         return render(request, self.template_name, self.get_context_data())
 
 
+def client_save(request):
+    if request.method == 'GET':
+        client_request = request.GET.get('client', '')
+        data_client = json.loads(client_request)
+
+        document_type = str(data_client["document_type"])
+        document_number = str(data_client["document_number"])
+        names = str(data_client["names"])
+        phone = str(data_client["phone"])
+        email = str(data_client["email"])
+        type_client = str(data_client["type_client"])
+        siaf = str(data_client["siaf"])
+
+        document_type_obj = DocumentType.objects.get(id=document_type)
+
+        client_obj = Client(
+            names=names.upper(),
+            phone=phone,
+            email=email,
+            cod_siaf=siaf,
+            type_client=type_client
+        )
+        client_obj.save()
+
+        client_type_obj = ClientType(
+            client=client_obj,
+            document_type=document_type_obj,
+            document_number=document_number
+        )
+        client_type_obj.save()
+
+        if type_client == 'PU':
+            public_address = str(data_client["publicAddress"])
+            public_district = str(data_client["publicDistrict"])
+            district_obj = District.objects.get(id=int(public_district))
+
+            client_address_obj = ClientAddress(
+                client=client_obj,
+                address=public_address,
+                district=district_obj
+            )
+            client_address_obj.save()
+
+        elif type_client == 'PR':
+            for d in data_client['Addresses']:
+                new_address = str(d['new_address'])
+                district = str(d['district'])
+
+                district_obj = District.objects.get(id=district)
+
+                client_address_obj = ClientAddress(
+                    client=client_obj,
+                    address=new_address,
+                    district=district_obj
+                )
+                client_address_obj.save()
+
+        return JsonResponse({
+            'message': 'Cliente guardado',
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
 @csrf_exempt
 def new_client(request):
     data = dict()
-    print(request.method)
     if request.method == 'POST':
-
         names = request.POST.get('names')
         phone = request.POST.get('phone', '')
         address = request.POST.get('address', '')
@@ -463,23 +524,17 @@ def new_client(request):
         operation = request.POST.get('operation', '')
         type_client = str(request.POST.get('type_client', ''))
         client_id = int(request.POST.get('client_id', ''))  # solo se usa al editar
-
         if operation == 'N':
-
             if len(names) > 0:
-
                 data_client = {
                     'names': names.upper(),
                     'phone': phone,
                     'email': email,
                     'type_client': type_client
                 }
-
                 client = Client.objects.create(**data_client)
                 client.save()
-
                 if len(document_number) > 0:
-
                     try:
                         document_type = DocumentType.objects.get(id=document_type_id)
                     except DocumentType.DoesNotExist:
@@ -497,7 +552,6 @@ def new_client(request):
                     client_type.save()
 
                     if len(address) > 0:
-
                         try:
                             district = District.objects.get(id=id_district)
                         except District.DoesNotExist:
@@ -5716,7 +5770,7 @@ def save_quotation(request):
             truck=None,
             subsidiary_store=subsidiary_store_sales_obj,
             create_at=_date,
-            correlative_sale=get_correlative_order(subsidiary_obj, 'T'),
+            # correlative_sale=get_correlative_order(subsidiary_obj, 'T'),
             subsidiary=subsidiary_obj,
             validity_date=validity_date,
             date_completion=date_completion,

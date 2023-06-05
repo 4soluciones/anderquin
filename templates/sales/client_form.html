@@ -1,93 +1,239 @@
-<table class="table table-sm table-borderless small font-weight-bolder text-uppercase">
-    <tbody>
-    <tr>
-        <th scope="row" style="width: 40%;">
-            <label for="surnames">Tipo de documento</label>
-        </th>
-        <td>
-            <select id="document_type" name="document_type" class="form-control"
-                    style="font-size: .9375rem;">
-                {% for type in document_types %}
-                    <option value="{{ type.id }}">{{ type.description }}</option>
-                {% endfor %}
-            </select>
-        </td>
-    </tr>
-    <tr>
-        <th scope="row">
-            <label for="document_number">Nº de Documento</label>
-        </th>
-        <td>
-            <input type="text" class="form-control" id="document_number" name="document_number"
-                   autocomplete="off">
-            <input type="hidden" id="operation" name="operation" value="N">
-            <input type="hidden" id="client_id" name="client_id" value="0">
-        </td>
-    </tr>
-    <tr>
-        <th scope="row">
-            <label for="names">Nombres</label>
-        </th>
-        <td>
-            <input type="text" class="form-control" name="names" id="names">
-        </td>
-    </tr>
-    <tr>
-        <th scope="row">
-            <label for="phone">Telefono</label>
-        </th>
-        <td>
-            <input type="text" class="form-control" name="phone" id="phone">
-        </td>
-    </tr>
-    <tr>
-        <th scope="row">
-            <label for="email">E-mail</label>
-        </th>
-        <td>
-            <input type="text" class="form-control" name="email" id="email">
-        </td>
-    </tr>
-    <tr>
-        <th scope="row">
-            <label for="address">Direccion</label>
-        </th>
-        <td>
-            <input type="text" class="form-control" name="address" id="address">
-        </td>
-    </tr>
-    <tr>
-        <th scope="row">
-            <label for="id_district">Distritos</label>
-        </th>
-        <td>
-            <select id="id_district" name="id_district" class="form-control">
-                <option value="0">SELECCIONAR</option>
-                {% for district in districts %}
-                    <option value="{{ district.id }}">{{ district.description }}</option>
-                {% endfor %}
-            </select>
-        </td>
-    </tr>
-    <tr>
-        <th scope="row">
-            <label for="id_type_client">TIPO DE CLIENTE</label>
-        </th>
-        <td>
-            <select id="id_type_client" name="type_client" class="form-control" required>
-                <option value="0">SELECCIONAR</option>
-                {% for t in type_client %}
-                    <option value="{{ t.0 }}">{{ t.1 }}</option>
-                {% endfor %}
-            </select>
-        </td>
-        {#        <th scope="row">#}
-        {#            <label for="reference">Referencia</label>#}
-        {#        </th>#}
-        {#        <td>#}
-        {#            <input type="text" class="form-control" name="reference" id="reference">#}
-        {##}
-        {#        </td>#}
-    </tr>
-    </tbody>
-</table>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="row">
+            <div class="col-lg-6">
+                <label class="mb-1 mt-1 font-weight-light"
+                       for="document_type">Documento:</label>
+                <select class="form-control" id="document_type" name="document_type">
+                    <option value="00">Seleccionar</option>
+                    {% for type in document_types %}
+                        <option value="{{ type.id }}">{{ type.description }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-6">
+                <label class="mb-1 mt-1 font-weight-light"
+                       for="document_number">Numero de Documento:</label>
+                <input type="text" class="form-control" id="document_number"
+                       name="document_number" autocomplete="off"
+                       placeholder="">
+            </div>
+        </div>
+        <div class="row dni">
+            <div class="col-lg-12">
+                <label class="mb-1 mt-1 font-weight-light" for="names">Nombres / Razon Social:</label>
+                <input type="text" class="form-control" id="names" autocomplete="off"
+                       name="names">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6">
+                <label class="mb-1 mt-2 font-weight-light" for="phone">Telefono:</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">
+                            <i class="fas fa-phone"></i>
+                        </span>
+                    </div>
+                    <input type="text" class="form-control"
+                           id="phone" name="phone">
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <label for="email" class="mb-1 mt-2 font-weight-light">Correo:</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                    </div>
+                    <input type="email" class="form-control"
+                           placeholder="" id="email" name="email">
+                </div>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-sm-6 col-md-6 col-lg-6">
+                <label class="mb-1 mt-1 font-weight-light"
+                       for="id_type_client">Tipo de cliente:</label>
+                <select class="form-control" id="id_type_client" name="type_client">
+                    <option value="0">Seleccionar</option>
+                    {% for t in type_client %}
+                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-6 col-md-6 col-lg-6 siaf d-none">
+                <label class="mb-1 mt-1 font-weight-light"
+                       for="cod_siaf">Numero de SIAF:</label>
+                <input type="text" class="form-control" id="cod_siaf" name="siaf">
+            </div>
+            {#            <div class="col-sm-6 col-md-6 col-lg-6">#}
+            {#                <label class="mb-1 mt-1 font-weight-light"#}
+            {#                       for="id_district">Seleccione distrito</label>#}
+            {#                <select id="id_district" name="id_district" class="form-control">#}
+            {#                    <option value="0">Seleccionar</option>#}
+            {#                    {% for district in districts %}#}
+            {#                        <option value="{{ district.id }}">{{ district.description }}</option>#}
+            {#                    {% endfor %}#}
+            {#                </select>#}
+            {#            </div>#}
+        </div>
+
+        <div class="row public d-none">
+            <div class="col-sm-9 col-md-9 col-lg-9 pr-0">
+                <label class="mb-1 mt-2 font-weight-light" for="address">Dirección de
+                    Cliente:</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-address-card"></i></span>
+                    </div>
+                    <input type="text" class="form-control" id="address" autocomplete="off"
+                           name="address" placeholder="Dirección">
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3 col-lg-3 pl-1">
+                <label class="mb-1 mt-2 font-weight-light"
+                       for="id_district">Seleccione distrito:</label>
+                <select id="id_district" name="id_district" class="form-control">
+                    <option value="0">Seleccionar</option>
+                    {% for district in districts %}
+                        <option value="{{ district.id }}">{{ district.description }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row private main d-none">
+            <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
+                <label class="mb-1 mt-2 font-weight-light" for="new_address">Dirección del
+                    Cliente:</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-address-card"></i></span>
+                    </div>
+                    <input type="text" class="form-control new-address" id="new_address" autocomplete="off"
+                           name="address">
+                </div>
+            </div>
+            <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
+                <label class="mb-1 mt-2 font-weight-light"
+                       for="id_district2">Seleccione distrito:</label>
+                <select id="id_district2" name="id_district2" class="form-control district">
+                    <option value="0">Seleccionar</option>
+                    <option value="200901">JULIACA</option>
+                    <option value="200101">PUNO</option>
+                    <option value="040101">AREQUIPA</option>
+                    <option value="220101">TACNA</option>
+                    <option value="070101">CUSCO</option>
+                    {#                    {% for district in districts %}#}
+                    {#                        <option value="{{ district.id }}">{{ district.description }}</option>#}
+                    {#                    {% endfor %}#}
+                </select>
+            </div>
+            <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
+                <label class="mb-1 mt-2 font-weight-light"
+                       for="id-add-new-addressee">&nbsp;</label>
+                <button type="button" class="btn btn-outline-success btn-block"
+                        id="id-add-new-addressee">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{#<table class="table table-sm table-borderless small font-weight-bolder text-uppercase p-5">#}
+{#    <tbody>#}
+{#    <tr>#}
+{#        <th scope="row" style="width: 40%;">#}
+{#            <label for="surnames">Tipo de documento</label>#}
+{#        </th>#}
+{#        <td>#}
+{#            <select id="document_type" name="document_type" class="form-control"#}
+{#                    style="font-size: .9375rem;">#}
+{#                {% for type in document_types %}#}
+{#                    <option value="{{ type.id }}">{{ type.description }}</option>#}
+{#                {% endfor %}#}
+{#            </select>#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <th scope="row">#}
+{#            <label for="document_number">Nº de Documento</label>#}
+{#        </th>#}
+{#        <td>#}
+{#            <input type="text" class="form-control" id="document_number" name="document_number"#}
+{#                   autocomplete="off">#}
+{#            <input type="hidden" id="operation" name="operation" value="N">#}
+{#            <input type="hidden" id="client_id" name="client_id" value="0">#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <th scope="row">#}
+{#            <label for="names">Nombres</label>#}
+{#        </th>#}
+{#        <td>#}
+{#            <input type="text" class="form-control" name="names" id="names">#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <th scope="row">#}
+{#            <label for="phone">Telefono</label>#}
+{#        </th>#}
+{#        <td>#}
+{#            <input type="text" class="form-control" name="phone" id="phone">#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <th scope="row">#}
+{#            <label for="email">E-mail</label>#}
+{#        </th>#}
+{#        <td>#}
+{#            <input type="text" class="form-control" name="email" id="email">#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <th scope="row">#}
+{#            <label for="address">Direccion</label>#}
+{#        </th>#}
+{#        <td>#}
+{#            <input type="text" class="form-control" name="address" id="address">#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <th scope="row">#}
+{#            <label for="id_district">Distritos</label>#}
+{#        </th>#}
+{#        <td>#}
+{#            <select id="id_district" name="id_district" class="form-control">#}
+{#                <option value="0">SELECCIONAR</option>#}
+{#                {% for district in districts %}#}
+{#                    <option value="{{ district.id }}">{{ district.description }}</option>#}
+{#                {% endfor %}#}
+{#            </select>#}
+{#        </td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <th scope="row">#}
+{#            <label for="id_type_client">TIPO DE CLIENTE</label>#}
+{#        </th>#}
+{#        <td>#}
+{#            <select id="id_type_client" name="type_client" class="form-control" required>#}
+{#                <option value="0">SELECCIONAR</option>#}
+{#                {% for t in type_client %}#}
+{#                    <option value="{{ t.0 }}">{{ t.1 }}</option>#}
+{#                {% endfor %}#}
+{#            </select>#}
+{#        </td>#}
+{#        <th scope="row">#}
+{#            <label for="reference">Referencia</label>#}
+{#        </th>#}
+{#        <td>#}
+{#            <input type="text" class="form-control" name="reference" id="reference">#}
+{##}
+{#        </td>#}
+{#    </tr>#}
+{#    </tbody>#}
+{#</table>#}

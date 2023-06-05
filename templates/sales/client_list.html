@@ -33,10 +33,10 @@
 
 
     <div class="modal" id="modal_client" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Cliente</h5>
+                    <h5 class="modal-title">REGISTRO DE UN NUEVO CLIENTE</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -50,7 +50,8 @@
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Salir</button>
-                        <button type="submit" id="btn-save" class="btn btn-primary">Guardar Cambios</button>
+                        {#                        <button type="submit" id="btn-save" class="btn btn-primary">Guardar Cambios</button>#}
+                        <button type="button" id="btn-save-client" class="btn btn-primary">Guardar Cambios</button>
                     </div>
                 </form>
             </div>
@@ -117,6 +118,9 @@
         $('#id_district').select2({
             theme: 'bootstrap4',
         });
+        $('#id_district2').select2({
+            theme: 'bootstrap4',
+        });
 
         $(".btn-option").hover(function () {
             $(this).css("background-color", "#007bff");
@@ -124,13 +128,121 @@
             $(this).css("background-color", "#6c757d");
         });
 
-        $("#new-client-form").submit(function (event) {
+
+        $(document).on('click', '#btn-save-client', function (e) {
+            e.preventDefault();
+
+            let _document_number = $('#document_number').val();
+            let _names = $('#names').val();
+            let _address = $('#address').val();
+            let _type_client = $('#id_type_client').val();
+            if (sessionStorage.getItem('document') === '01') {
+                if (_document_number.length !== 8) {
+                    toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
+                    return false;
+                }
+                if (_names.length === 0) {
+                    toastr.warning('¡Favor de completar los Nombres', 'Error de Datos!');
+                    return false;
+                }
+            } else {
+                if (sessionStorage.getItem('document') === '06') {
+                    if (_document_number.length !== 11) {
+                        toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
+                        return false;
+                    }
+                    if (_names.length === 0) {
+                        toastr.warning('¡Favor de completar la Razon Social', 'Error de Datos!');
+                        return false;
+                    }
+                    /*if (_address.length === 0) {
+                        toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
+                        return false;
+                    }*/
+                }
+                if (sessionStorage.getItem('document') === '00') {
+                    if (_document_number.length === 0) {
+                        toastr.warning('¡Favor de seleccionar un tipo!', 'Error de Datos');
+                        return false;
+                    }
+                    if (_names.length === 0) {
+                        toastr.warning('¡Favor de completar la Nombre o Razon Social', 'Error de Datos!');
+                        return false;
+                    }
+                    /*if (_address.length === 0) {
+                        toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
+                        return false;
+                    }*/
+                }
+            }
+            if (_type_client === '0') {
+                toastr.warning('¡SELECCIONE EL TIPO DE CLIENTE!', 'Error de Datos!');
+                return false;
+            }
+
+            let client = {
+                "document_type": $('#document_type').val(),
+                "document_number": _document_number,
+                'names': _names,
+                'phone': $('#phone').val(),
+                'email': $('#email').val(),
+                'type_client': _type_client,
+                'publicAddress': '',
+                'publicDistrict': '',
+                'siaf': $('#cod_siaf').val(),
+                "Addresses": []
+            };
+
+            if (_type_client === 'PU') {
+
+                client.publicAddress = $('#address').val();
+                client.publicDistrict = $('#id_district').val();
+
+            } else if (_type_client === 'PR') {
+                let addresseeObj = {};
+                $(".private").each(function () {
+                    addresseeObj = {
+                        "new_address": $(this).find("input.new-address").val(),
+                        "district": $(this).find("select.district").val(),
+                        {#"Name": $(this).find("input.name-addressee").val(),#}
+                        {#"Phone": $(this).find("input.phone-addressee").val(),#}
+                    }
+                    client.Addresses.push(addresseeObj);
+                });
+            }
+            console.log(client)
+            $.ajax({
+                url: '/sales/client_save/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                cache: false,
+                {#processData: false,#}
+                data: {'client': JSON.stringify(client)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (response.success) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    console.log(jqXhr);
+                    toastr.error('Error', '¡Ocurrio un error!');
+                }
+            });
+        });
+
+
+        /*$("#new-client-form").submit(function (event) {
 
             let _document_number = $('#document_number').val();
             let _names = $('#names').val();
             let _address = $('#address').val();
             if (sessionStorage.getItem('document') === '01') {
-
                 if (_document_number.length !== 8) {
                     toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
                     return false;
@@ -173,10 +285,7 @@
                 toastr.warning('¡SELECCIONE EL TIPO DE CLIENTE!', 'Error de Datos!');
                 return false;
             }
-
-
             event.preventDefault();
-
             let data = new FormData($('#new-client-form').get(0));
             $("#btn-save").attr("disabled");
             $.ajax({
@@ -188,26 +297,23 @@
                 processData: false,
                 contentType: false,
                 success: function (response, textStatus, xhr) {
-
                     if (response.success) {
                         toastr.success(response.message, '¡Bien hecho!');
                         setTimeout(() => {
                             location.reload();
                         }, 1000);
                     }
-
                 },
                 error: function (jqXhr, textStatus, xhr) {
                     console.log(jqXhr);
                     toastr.error('Error', '¡Ocurrio un error!');
                 }
-
             });//end ajax
 
             $("#btn-save").removeAttr("disabled");
             $('#modal_client').modal('hide');
 
-        }); //end submit
+        }); //end submit*/
 
         $("#btn-save-associate").click(function (event) {
 
@@ -215,12 +321,9 @@
             let _client_id = $('#cl_client_id').val();
             let _associates = $('#id_associate').val();
             event.preventDefault();
-            console.log(_client_id);
-            console.log(_associates);
             $("#btn-save-associate").attr("disabled");
 
             $.ajax({
-
                 url: '/sales/new_client_associate/',
                 type: 'GET',
                 async: true,
@@ -389,8 +492,63 @@
             sessionStorage.setItem('document', '00')
         }
 
-
         $('#id_associate').select2();
+
+
+        $(document).on('change', '#id_type_client', function () {
+            let _type = $(this).val();
+            if (_type === 'PU') {
+                $('.public').removeClass('d-none');
+                $('.private').addClass('d-none');
+                $('.siaf').removeClass('d-none');
+            } else if (_type === 'PR') {
+                $('.public').addClass('d-none');
+                $('.private').removeClass('d-none');
+                $('.siaf').addClass('d-none');
+            } else {
+                $('.public').addClass('d-none');
+                $('.private').addClass('d-none');
+                $('.siaf').addClass('d-none');
+            }
+        });
+
+        $(document).on('click', '#id-add-new-addressee', function () {
+            $(".private.main").after('<div class="row private">' +
+                '                       <div class="col-sm-8 col-md-8 col-lg-8 pr-0">' +
+                '                            <label for="address" class="mb-1 mt-2 font-weight-light">Dirección del Cliente</label>' +
+                '                            <div class="input-group">' +
+                '                                <div class="input-group-prepend">' +
+                '                                   <span class="input-group-text">' + '<i class="fas fa-address-card"></i>' + '</span>' +
+                '                                </div>' +
+                '                                <input type="text" class="form-control new-address" id="new_address" autocomplete="off"' +
+                '                                    name="address">' +
+                '                            </div>' +
+                '                       </div>' +
+                '                       <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">' +
+                '                                <label class="mb-1 mt-2 font-weight-light" for="id_district2">Seleccione distrito</label>' +
+                '                             <select id="id_district2" name="id_district2" class="form-control district">' +
+                '                              <option value="0">Seleccionar</option>' +
+                '<option value="200901">JULIACA</option>' +
+                '<option value="200101">PUNO</option>' +
+                '<option value="040101">AREQUIPA</option>' +
+                '<option value="220101">TACNA</option>' +
+                '<option value="070101">CUSCO</option>' +
+                '                             </select>' +
+                '                            </div>' +
+                '                       <div class="col-sm-1">' +
+                '                             <label class="mb-1 mt-2 font-weight-light" for="id-add-new-addressee">&nbsp;</label>' +
+                '                                <button type="button" class="btn btn-outline-danger btn-block delete-row-address" >' +
+                '                                    <i class="fas fa-minus"></i>' +
+                '                                </button>' +
+                '                       </div>' +
+                '                     </div>');
+
+        });
+
+        $(document).on('click', '.delete-row-address', function () {
+            $(this).parent('div').parent('div').remove();
+        });
+
 
     </script>
 {% endblock extrajs %}

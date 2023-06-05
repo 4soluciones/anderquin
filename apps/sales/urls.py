@@ -157,5 +157,8 @@ urlpatterns = [
     # QUOTATION
     path('quotation/', login_required(quotation_list), name='quotation_list'),
     path('get_product_quotation/', login_required(get_product_quotation), name='get_product_quotation'),
+
+    # CLIENT
+    path('client_save/', login_required(client_save), name='client_save'),
 ]
 
