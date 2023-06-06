@@ -55,7 +55,7 @@ class AddressEntityReference(models.Model):
 
 
 class Purchase(models.Model):
-    STATUS_CHOICES = (('S', 'SIN ALMACEN'), ('A', 'EN ALMACEN'), ('N', 'ANULADO'),)
+    STATUS_CHOICES = (('S', 'SIN ASIGNAR'), ('A', 'ASIGNADO'), ('N', 'ANULADO'),)
     DELIVERY_CHOICES = (('S', 'SUCURSAL'), ('P', 'PROVIDER'), ('CR', 'CLIENTE REFERENCIA'), ('CP', 'CLIENTE ENTIDAD'))
     TYPE_CHOICES = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'),)
     CURRENCY_TYPE_CHOICES = (('S', 'SOL'), ('D', 'DOLAR'),)

@@ -3,7 +3,7 @@
     <div class="modal-content">
 
         <div class="modal-header text-center">
-            <h5 class="modal-title  font-weight-bold">DESTINAR - ALMACEN</h5>
+            <h5 class="modal-title  font-weight-bold">DETALLE DE ORDEN DE COMPRA</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -27,7 +27,7 @@
                         <td style="width: 20%" class="align-middle">Almacen destino</td>
                         <td style="width: 40%">
                             <select class="form-control" id="id_almacen" name="almacen" required>
-                                <option disabled selected value=""> Seleccione</option>
+{#                                <option disabled selected value=""> Seleccione</option>#}
                                 {% for a in subsidiary_stores.all %}
                                     {% if subsidiary_stores.id == a.id %}
                                         <option value="{{ a.id }}">{{ a.name }}</option>
@@ -43,51 +43,32 @@
 
                     <thead>
                     <tr class="text-white bg-info">
-                        <th>#</th>
                         <th>Producto</th>
                         <th>Cantidad</th>
                         <th>Unidad</th>
                         <th>Precio unitario</th>
                         <th>Importe</th>
-                        <!--<th>Almacen</th>-->
                     </tr>
                     </thead>
                     <tbody id="details">
                     {% for d in detail_purchase %}
-
-                        <tr product="{{ d.product.id }}" purchase_detail="{{ d.id }}">
-                            <td>{{ d.product.id }}</td>
+                        <tr product="{{ d.product.id }}" purchase_detail="{{ d.id }}" class="text-center">
+{#                            <td>{{ d.product.id }}</td>#}
                             <td>{{ d.product.name }}</td>
-                            <td class="item-quantity">{{ d.quantity|floatformat:2 }}</td>
+                            <td class="item-quantity">{{ d.quantity|floatformat:0 }}</td>
                             <td class="item-unit" pu="{{ d.unit.id }}">{{ d.unit.name }}</td>
-                            <td class="item-price">{{ d.price_unit|floatformat:4 }}</td>
-                            <td>{{ d.multiplicate|floatformat:2 }}</td>
-                            <!--<td class="item-store">
-                                <select  class="form-control form-control-sm">
-                                    <option selected value="0">seleccione</option>
-                                    {% for a in subsidiary_stores %}
-                                        <option value="{{ a.id }}">{{ a.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </td>-->
+                            <td class="item-price">S/ {{ d.price_unit|floatformat:4 }}</td>
+                            <td>S/ {{ d.multiplicate|floatformat:2 }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
             </div><!-- modal-body -->
-
-
             <div class="modal-footer">
-                &nbsp;
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                &nbsp;
-                <button id="assignment-changes" type="button" class="btn btn-primary">Asignar almacen</button>
-
-
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>                &nbsp;
+                <button id="assignment-changes" type="button" class="btn btn-primary">Asignar Orden</button>
             </div>
-
         </form>
-
     </div>
 </div>
 

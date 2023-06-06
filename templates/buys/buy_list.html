@@ -201,6 +201,7 @@
             padding-right: 25px;
             text-align: right;
         }
+
     </style>
 
 {% endblock body %}
@@ -731,15 +732,17 @@
                 });
             }
         }
-        $(document).on('change', '.unit-product', function (e) {
+
+        $(document).on('change', '.unit-product', async function (e) {
             let unit_id = $(this).val();
             let product_id = $(this).parent('td').parent('tr').attr('product')
             let _tr = $(this).parent('td').parent('tr')
-            getQuantityMinimumByProduct(product_id, unit_id, _tr)
-
+            await getQuantityMinimumByProduct(product_id, unit_id, _tr)
+            {#quantityMinimumXQuantity(_quantity, quantity_minimum, _tr)#}
+            _tr.find('td.quantity-minimum input.quantity-minimum').val('')
         });
 
-        function getQuantityMinimumByProduct(product_id, _unit, _tr) {
+        async function getQuantityMinimumByProduct(product_id, _unit, _tr) {
 
             let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum')
             _input_quantity_minimum.val('')
@@ -778,8 +781,8 @@
                 {#'<td class="align-middle brand">' +#}
                 {#'<input type="text" class="form-control text-center text-uppercase brand-product" id="brand_id" name="brand" readonly>' + '</td>' +#}
                 '<td class="align-middle unit text-center">' +
-                    '<select class="form-control unit-product" id="id_unit_product" name="unit_product" required>' +
-                    '<option value="0">Seleccione</option>' +
+                '<select class="form-control unit-product" id="id_unit_product" name="unit_product" required>' +
+                '<option value="0">Seleccione</option>' +
                 '</td>' +
                 '<td class="align-middle quantity-minimum text-center">' +
                 '<input type="text" class="form-control text-center quantity-minimum" readonly>' +
@@ -787,6 +790,7 @@
                 {#'<td class="align-middle unit">' +#}
                 {#'<input type="text" class="form-control text-center text-uppercase unit-product" readonly>' + '</td>' +#}
                 '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">' + '</td>' +
+                '<td class="align-middle item-quantity-x-unit">' + '<input type="text" class="form-control text-center quantity-x-unit text-uppercase" readonly>' + '</td>' +
                 '<td class="item-price text-right align-middle" price-unit-with-discount="">' + '<div class="input-icon">' +
                 '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
                 {#'<td class="item-discount1 text-right align-middle">' +#}
@@ -825,11 +829,16 @@
             calculate_total(_tr)
             sum_table()
         });
+        function quantityMinimumXQuantity(quantity, quantity_minimum, tr){
+            let _quantity_x_quantity_minimum = quantity_minimum * quantity
+            tr.find('td.item-quantity-x-unit input.quantity-x-unit').val(_quantity_x_quantity_minimum + 'UND');
+        }
 
         $(document).on('keyup', '.quantity-product', function () {
 
             let _tr = $(this).parent('td').parent('tr')
             let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
+            let _quantity_minimum = Number((_tr.find('td.quantity-minimum input.quantity-minimum').val()).replace('UND', ''))
             let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
             let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
 
@@ -837,7 +846,7 @@
             {#console.log("_quantity", _quantity)#}
             {#console.log("_price_unit", _price_unit)#}
             {#console.log("_total", _total)#}
-
+            quantityMinimumXQuantity(_quantity, _quantity_minimum, _tr)
             if (_quantity !== 0 && _price_unit !== 0) {
                 _total = _quantity * _price_unit
                 _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(2));
@@ -845,6 +854,7 @@
             calculate_total(_tr)
             sum_table()
         });
+
         $(document).on('keyup', '.price-unit-product', function () {
 
             let _tr = $(this).parent('div').parent('td').parent('tr')
@@ -901,7 +911,8 @@
                 d4p = d3p - [(d3p * $d4_val) / 100]
 
                 _tr.find('td.item-price').attr('price-unit-with-discount', d4p.toFixed(2))
-                {#console.log('en el if', d4p)#}
+
+            {#console.log('en el if', d4p)#}
             } else {
                 d1 = amount - [(amount * $d1_val) / 100]
                 d2 = d1 - [(d1 * $d2_val) / 100]
@@ -914,7 +925,8 @@
                 d4p = d3p - [(d3p * $d4_val) / 100]
 
                 _tr.find('td.item-price').attr('price-unit-with-discount', d4p.toFixed(2))
-                {#console.log('fuera', d4p)#}
+
+            {#console.log('fuera', d4p)#}
 
                 _tr.find('td.total-row input.total-detail').val(d4.toFixed(2))
             }*/
@@ -1033,8 +1045,8 @@
                     //console.log(_client_address)
                     _select.append($('<option>').val("0").text('Seleccione'));
                     if (response['client_address_set'] !== '[]') {
-                        for (var i = 0; i < response['client_address_set'][0].length; i++) {
-                            let option = $('<option>').val(_client_address[0]['pk']).text(_client_address[0]['fields']['address'].toUpperCase());
+                        for (let i = 0; i < _client_address.length; i++) {
+                            let option = $('<option>').val(_client_address[i]['pk']).text(_client_address[i]['fields']['address'].toUpperCase());
                             _select.append(option);
                         }
                     }
