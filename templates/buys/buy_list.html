@@ -829,7 +829,8 @@
             calculate_total(_tr)
             sum_table()
         });
-        function quantityMinimumXQuantity(quantity, quantity_minimum, tr){
+
+        function quantityMinimumXQuantity(quantity, quantity_minimum, tr) {
             let _quantity_x_quantity_minimum = quantity_minimum * quantity
             tr.find('td.item-quantity-x-unit input.quantity-x-unit').val(_quantity_x_quantity_minimum + 'UND');
         }
@@ -912,6 +913,7 @@
 
                 _tr.find('td.item-price').attr('price-unit-with-discount', d4p.toFixed(2))
 
+
             {#console.log('en el if', d4p)#}
             } else {
                 d1 = amount - [(amount * $d1_val) / 100]
@@ -925,6 +927,7 @@
                 d4p = d3p - [(d3p * $d4_val) / 100]
 
                 _tr.find('td.item-price').attr('price-unit-with-discount', d4p.toFixed(2))
+
 
             {#console.log('fuera', d4p)#}
 
@@ -1117,6 +1120,32 @@
                 $('#check-subsidiary').prop('checked', false);
                 $('#check-provider').prop('checked', false);
                 $('#check-client').prop('checked', false);
+            }
+        });
+
+        $(document).on('change', '#supplier_id', function (e) {
+            let supplier_id = $(this).val();
+            let _select = $('#address_provider');
+            if (supplier_id !== '0') {
+                $.ajax({
+                    url: '/buys/get_address_by_supplier_id/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'supplier_id': supplier_id},
+                    success: function (response) {
+                        _select.empty();
+                        let _supplier_address = JSON.parse(response['supplier_address_set']);
+                        //console.log(_supplier_address)
+                        _select.append($('<option>').val("0").text('Seleccione'));
+                        if (response['client_address_set'] !== '[]') {
+                            for (let i = 0; i < _supplier_address.length; i++) {
+                                let option = $('<option>').val(_supplier_address[i]['pk']).text(_supplier_address[i]['fields']['address'].toUpperCase());
+                                _select.append(option);
+                            }
+                        }
+                    },
+                });
             }
         });
 

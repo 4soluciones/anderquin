@@ -236,7 +236,6 @@ class Supplier(models.Model):
     contact_phone = models.CharField('Telefono del contacto', max_length=45, null=True, blank=True)
     is_enabled = models.BooleanField('Habilitado', default=True)
     sector = models.CharField('Tipo de Rubro', max_length=2, choices=SECTOR_CHOICES, default='N', )
-
     is_type_reference = models.BooleanField('Tipo Referencia', default=True)
 
     def __str__(self):
@@ -245,6 +244,20 @@ class Supplier(models.Model):
     class Meta:
         verbose_name = 'Proveedor'
         verbose_name_plural = 'Proveedores'
+
+
+class SupplierAddress(models.Model):
+    supplier = models.ForeignKey('Supplier', on_delete=models.CASCADE)
+    address = models.CharField('Dirección', max_length=200, null=True, blank=True)
+    district = models.ForeignKey(District, on_delete=models.SET_NULL, null=True, blank=True)
+    reference = models.CharField('Referencia', max_length=400, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.address)
+
+    class Meta:
+        verbose_name = 'Direccion de Proveedor'
+        verbose_name_plural = 'Direcciones de los Proveedores'
 
 
 class City(models.Model):

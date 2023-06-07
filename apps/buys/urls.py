@@ -93,4 +93,8 @@ urlpatterns = [
     path('get_sunat/', get_sunat, name='get_sunat'),
     path('save_provider/', save_provider, name='save_provider'),
     path('report_purchases_by_subsidiary/', report_purchases_by_subsidiary, name='report_purchases_by_subsidiary'),
+
+    # PROVEEDORES
+    path('suppliers/', supplier_list, name='supplier_list'),
+    path('get_address_by_supplier_id/', get_address_by_supplier_id, name='get_address_by_supplier_id'),
 ]

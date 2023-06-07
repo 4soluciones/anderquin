@@ -20,7 +20,7 @@ from apps.sales.views import kardex_input, kardex_ouput, kardex_initial, calcula
 from .models import *
 from .views_PDF_purchase_order import query_apis_net_money
 from ..sales.models import Product, Unit, Supplier, SubsidiaryStore, ProductStore, ProductDetail, Kardex, Cash, \
-    CashFlow, TransactionPayment, AddressSupplier
+    CashFlow, TransactionPayment, AddressSupplier, SupplierAddress
 from ..sales.views_SUNAT import query_apis_net_dni_ruc
 
 
@@ -2415,9 +2415,20 @@ def get_buy_list(request):
     })
 
 
+def get_address_by_supplier_id(request):
+    if request.method == 'GET':
+        supplier_id = request.GET.get('supplier_id', '')
+        supplier_obj = Supplier.objects.get(id=int(supplier_id))
+        supplier_address_set = SupplierAddress.objects.filter(supplier=supplier_obj)
+        return JsonResponse({
+            'supplier_address_set': serializers.serialize('json', supplier_address_set),
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
 def get_address_by_client_id(request):
     if request.method == 'GET':
-        client_id = request.GET.get('client_id', '')
+        client_id = request.GET.get('supplier_id', '')
         client_obj = Client.objects.get(id=int(client_id))
         client_address_set = ClientAddress.objects.filter(client=client_obj)
         return JsonResponse({
@@ -2667,3 +2678,15 @@ def report_purchases_by_subsidiary(request):
         return JsonResponse({
             'grid': tpl.render(context, request),
         }, status=HTTPStatus.OK)
+
+
+def supplier_list(request):
+    if request.method == 'GET':
+        supplier_set = Supplier.objects.all()
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+
+        return render(request, 'buys/supplier_list.html', {
+            'formatdate': formatdate,
+            'supplier_set': supplier_set,
+        })
