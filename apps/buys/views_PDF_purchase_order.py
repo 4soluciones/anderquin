@@ -592,6 +592,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
 
         style_table_9 = [
             # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('BOX', (0, 0), (-1, -1), 2, colors.black),
             # ('BOX', (0, 4), (-1, -1), 2, colors.black),
             # ('BOX', (-1, -4), (-1, -1), 2, colors.black),
@@ -618,7 +619,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         p9_8 = Paragraph(f'{"-"}', styles["Left"])
 
         colwiths_table_9 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
-        rowwiths_table_9 = [inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.5]
+        rowwiths_table_9 = [inch * 0.5, inch * 0.5, inch * 0.75, inch * 0.5]
         ana_c9 = Table(
             [(p9_1, '', p9_2)] +
             [(p9_3, '', p9_4)] +
@@ -750,9 +751,11 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     style_table_99 = [
         # ('GRID', (0, 0), (-1, -1), 1, colors.black),
     ]
+    _datetime = datetime.now()
+    _datetime_str = _datetime.strftime('%d-%m-%Y %H:%M')
 
     usuario = request.user
-    p99_1 = Paragraph(f'Usuario: {usuario} - {datetime.now()}', styles["Left-Simple"])
+    p99_1 = Paragraph(f'Usuario: {usuario} - {_datetime_str}', styles["Left-Simple"])
 
     colwiths_table_99 = [_wt * 100 / 100]
     rowwiths_table_99 = [inch * 0.75]

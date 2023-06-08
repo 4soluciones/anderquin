@@ -1,0 +1,230 @@
+{% load static %}
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+        <div id="modal-loader" class="overlay" style="display: none">
+            <i class="fas fa-3x fa-sync fa-spin"></i>
+        </div>
+        <div class="modal-header bg-light">
+            <h6 class="modal-title">REGISTRAR NUEVO PROVEEDOR</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <input type="hidden" class="form-control" id="supplier-id" name="supplier-id">
+
+        <div class="modal-body p-2">
+            <div class="card">
+                <div class="card-body bg-light">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="row">
+                                <div class="col-lg-3">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="supplier_number">Ruc:</label>
+                                    <input type="text" class="form-control" id="supplier_number"
+                                           name="supplier-number" maxlength="11"
+                                           placeholder="RUC">
+                                </div>
+                                <div class="col-lg-9">
+                                    <label class="mb-1 mt-1 font-weight-light" for="business_name">Razon
+                                        Social:
+                                    </label>
+                                    <input type="text" class="form-control text-uppercase" id="business_name"
+                                           name="business-name">
+                                </div>
+                            </div>
+                            <div class="row dni">
+                                <div class="col-lg-3">
+                                    <label class="mb-1 mt-2 font-weight-light"
+                                           for="phone">Telefono</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                                        <span class="input-group-text"><i
+                                                                class="fas fa-phone"></i></span>
+                                        </div>
+                                        <input type="text" class="form-control"
+                                               id="phone" name="phone">
+                                    </div>
+                                </div>
+                                <div class="col-lg-5 pr-1">
+                                    <label class="mb-1 mt-2 font-weight-light" for="email">Correo</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                                        <span class="input-group-text"><i
+                                                                class="fas fa-envelope"></i></span>
+                                        </div>
+                                        <input type="email" class="form-control"
+                                               id="email" name="email"
+                                        >
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 pl-1">
+                                    <label class="mb-1 mt-1 font-weight-light" for="contact_name">Persona
+                                        de Contacto:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                                        <span class="input-group-text"><i
+                                                                class="fas fa-user-md"></i></span>
+                                        </div>
+                                        <input type="text" class="form-control text-uppercase" id="contact_name"
+                                               name="contact_name">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row ruc d-none">
+                                <div class="col-lg-12">
+                                    <label class="mb-1 mt-1 font-weight-light" for="business_name">Razón
+                                        Social</label>
+                                    <input type="text" class="form-control" id="business_name"
+                                           name="business-name" placeholder="">
+                                </div>
+                            </div>
+                            <div class="row addresses main">
+                                <div class="col-sm-8 col-md-8 col-lg-8 pr-1">
+                                    <label class="mb-1 mt-2 font-weight-light" for="address">Dirección</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-address-card"></i>
+                                            </span>
+                                        </div>
+                                        <input type="text" class="form-control address" id="address"
+                                               name="address">
+                                    </div>
+                                </div>
+                                <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-2">
+                                    <label class="mb-1 mt-2 font-weight-light"
+                                           for="district">Distrito</label>
+                                    <select id="district" name="district" class="form-control district">
+                                        <option value="0">Seleccionar</option>
+                                        {% for d in districts %}
+                                            <option value="{{ d.id }}">{{ d.description }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
+                                    <label class="mb-1 mt-2 font-weight-light"
+                                           for="new-addressee">&nbsp;</label>
+                                    <button type="button" class="btn btn-outline-success btn-block"
+                                            id="new-addressee">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card -->
+            </div>
+        </div><!-- modal-body -->
+        <div class="modal-footer bg-light p-2">
+            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
+            &nbsp;
+            <button id="btn-save-supplier" type="button" class="btn btn-primary font-weight-light">Registrar
+            </button>
+        </div>
+
+        <div class="mr-3 ml-0" style="
+                display: none;
+                position: fixed;
+                top: 8px;
+                left: 5px;
+                background: #bdd9f5;
+                opacity: 0.5;
+                width: 100%;
+                {#height: 46em;#}
+                !important;bottom: 6px;
+                padding-right: 65em;
+                padding-left: 55em;
+                padding-top: 22em;" id="loading">
+
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    loader = '<div class="container">' +
+        '<div class="row">' +
+        '<div class="col-md-12">' +
+        '<div class="loader">' +
+        '<p><strong><h4>Consultando datos...</h4></strong></p>' +
+        '<div class="loader-inner"></div>' +
+        '<div class="loader-inner"></div>' +
+        '<div class="loader-inner"></div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+
+
+    $(document).on('click', '#btn-save-supplier', function (e) {
+        e.preventDefault();
+
+        let _document_number = $('#supplier_number').val();
+        let _names = $('#business_name').val();
+        let _phone = $('#phone').val();
+        let _mail = $('#email').val();
+        let _contact_name = $('#contact_name').val();
+        let _address = $('#address').val();
+
+        if (_document_number.length !== 11) {
+            toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
+            return false;
+        }
+        if (_names.length === 0) {
+            toastr.warning('¡Favor de completar la Razon Social', 'Error de Datos!');
+            return false;
+        }
+        if (_address.length === 0) {
+            toastr.warning('¡Favor de completar una dirección', 'Error de Datos!');
+            return false;
+        }
+
+        let supplier = {
+            "document_number": _document_number,
+            'names': _names,
+            'phone': _phone,
+            'email': _mail,
+            'contact_name': _contact_name,
+            "Addresses": []
+        };
+
+        let addresseeObj = {};
+        $(".addresses").each(function () {
+            addresseeObj = {
+                "new_address": $(this).find("input.address").val(),
+                "district": $(this).find("select.district").val(),
+            }
+            supplier.Addresses.push(addresseeObj);
+        });
+        //console.log(supplier)
+        $.ajax({
+            url: '/buys/save_supplier/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            cache: false,
+            data: {'supplier': JSON.stringify(supplier)},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (response.success) {
+                    toastr.success(response.message, '¡Bien hecho!');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                console.log(jqXhr);
+                toastr.error('Error', '¡Ocurrio un error!');
+            }
+        });
+    });
+
+
+</script>

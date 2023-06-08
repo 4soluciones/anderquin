@@ -1,0 +1,179 @@
+{% load static %}
+<div class="modal-dialog modal-dialog-centered " role="document">
+
+    <div class="modal-content">
+        <div id="modal-loader" class="overlay" style="display: none">
+            <i class="fas fa-3x fa-sync fa-spin"></i>
+        </div>
+        <div class="modal-header bg-light">
+            <h6 class="modal-title">REGISTRAR NUEVO CONTRATO</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <div class="modal-body p-2">
+            <div class="card">
+                <div class="card-body bg-light">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="row">
+                                <div class="col-lg-6 pr-0 pl-1">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="number_contract">Nº de Contrato:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-id-badge"></i>
+                                            </span>
+                                        </div>
+                                        <input type="text" class="form-control number-contract" id="number_contract"
+                                               name="number-contract" autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="mb-1 mt-1 font-weight-light" for="register_date">Fecha de
+                                        registro</label>
+                                    <input type="date" class="form-control" id="register_date"
+                                           name="register-name" value="{{ date_now }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12 pr-1 pl-1">
+                                    <label class="mb-1 mt-1 font-weight-light" for="client_id">Cliente:
+                                    </label>
+                                    <select id="client_id" name="client" class="form-control district">
+                                        <option value="0">Seleccionar</option>
+                                        {% for c in client_set %}
+                                            <option value="{{ c.id }}">{{ c.names|upper }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="d-flex pt-3">
+                                <hr class="my-auto flex-grow-1 bg-lightblue">
+                                <div class="px-2" style="font-size: .8375rem;">FECHAS DE ENTREGA</div>
+                                <hr class="my-auto flex-grow-1 bg-lightblue">
+                            </div>
+
+                            <div class="row dates main pt-2">
+                                <div class="col-sm-10 col-md-10 col-lg-10 pl-1 pr-2">
+                                    <input type="date" class="form-control date-quota" id="date-quota"
+                                           value="{{ date_now }}">
+                                </div>
+                                <div class="col-sm-2 col-md-2 col-lg-2 pl-0">
+                                    <button type="button" class="btn btn-outline-success btn-block"
+                                            id="new-date">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card -->
+            </div>
+        </div><!-- modal-body -->
+        <div class="modal-footer bg-light p-2">
+            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
+            &nbsp;
+            <button id="btn-save-contract" type="button" class="btn btn-primary font-weight-light">Registrar
+            </button>
+        </div>
+
+        <div class="mr-3 ml-0" style="
+                display: none;
+                position: fixed;
+                top: 8px;
+                left: 5px;
+                background: #bdd9f5;
+                opacity: 0.5;
+                width: 100%;
+                {#height: 46em;#}
+                !important;bottom: 6px;
+                padding-right: 65em;
+                padding-left: 55em;
+                padding-top: 22em;" id="loading">
+
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    loader = '<div class="container">' +
+        '<div class="row">' +
+        '<div class="col-md-12">' +
+        '<div class="loader">' +
+        '<p><strong><h4>Consultando datos...</h4></strong></p>' +
+        '<div class="loader-inner"></div>' +
+        '<div class="loader-inner"></div>' +
+        '<div class="loader-inner"></div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+
+    $(document).on('click', '#btn-save-contract', function (e) {
+        e.preventDefault();
+        let _number_contract = $('#number_contract').val();
+        let _register_date = $('#register_date').val();
+        let _client = $('#client_id').val();
+
+        if (_number_contract.length === 0) {
+            toastr.warning('¡Favor de ingresar el numero de contrato!', 'Error de Datos');
+            return false;
+        }
+        if (_register_date.length === 0) {
+            toastr.warning('¡Favor de seleccionar una fecha valida', 'Error de Datos!');
+            return false;
+        }
+        if (_client === '0') {
+            toastr.warning('¡Favor de seleccionar un cliente', 'Error de Datos!');
+            return false;
+        }
+
+        let contract = {
+            "number_contract": _number_contract,
+            'register_date': _register_date,
+            'client': _client,
+            "dates": []
+        };
+
+        let dateObj = {};
+        $(".dates").each(function () {
+            dateObj = {
+                "date_quota": $(this).find("input.date-quota").val(),
+            }
+            contract.dates.push(dateObj);
+        });
+
+        //console.log(contract)
+        $.ajax({
+            url: '/buys/save_contract/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            cache: false,
+            data: {'contract': JSON.stringify(contract)},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (response.success) {
+                    toastr.success(response.message, '¡Bien hecho!');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                console.log(jqXhr);
+                toastr.error('Error', '¡Ocurrio un error!');
+            }
+        });
+    });
+
+</script>

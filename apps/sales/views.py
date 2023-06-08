@@ -484,7 +484,7 @@ def client_save(request):
 
             client_address_obj = ClientAddress(
                 client=client_obj,
-                address=public_address,
+                address=public_address.upper(),
                 district=district_obj
             )
             client_address_obj.save()
@@ -498,13 +498,13 @@ def client_save(request):
 
                 client_address_obj = ClientAddress(
                     client=client_obj,
-                    address=new_address,
+                    address=new_address.upper(),
                     district=district_obj
                 )
                 client_address_obj.save()
 
         return JsonResponse({
-            'message': 'Cliente guardado',
+            'message': 'Cliente Registrado',
         }, status=HTTPStatus.OK)
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
 

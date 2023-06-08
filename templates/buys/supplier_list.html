@@ -6,16 +6,138 @@
 
 {% block body %}
 
-    <div class="container-fluid">
-        <div id="client-grid-list">{% include "buys/supplier_grid_list.html" %}</div>
-    </div>
+    <div class="container-fluid p-3 bg">
+        <div class="card p-2">
+            <div class="row">
+                <div class="col-lg-2 pt-3 ml-3">
+                    <button type="button" onclick="showModalView('modal_supplier_create')"
+                            class="btn btn-outline-success btn-sm"><i class="nav-icon fas fa-user-plus"></i>
+                        NUEVO PROVEEDOR
+                    </button>
+                </div>
+                <div class="col-lg-8 text-center pt-2">
+                    <h2 class="font-weight-bold"> LISTADO DE PROVEEDORES</h2>
+                </div>
+            </div>
 
+            <div class="card-body p-2">
+                <div id="client-grid-list">{% include "buys/supplier_grid_list.html" %}</div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modal-supplier-create" tabindex="-1" role="dialog"
+             aria-labelledby="ModalHelpTitle"
+             aria-hidden="true"></div>
+        <div class="modal fade" id="modal-supplier-update" tabindex="-1" role="dialog"
+             aria-labelledby="ModalHelpTitle"
+             aria-hidden="true"></div>
+    </div>
 {% endblock body %}
 
 {% block extrajs %}
 
     <script type="text/javascript">
 
+        function showModalView(route) {
+            $.ajax({
+                url: '/buys/' + route + '/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': 1},
+                success: function (response) {
+                    $('#modal-supplier-create').html(response.form);
+                    $('#modal-supplier-create').modal('show');
+                },
+                fail: function (response) {
+                    toastr.error('Error en la petición', '¡Mensaje!');
+                }
+            });
+        }
+
+        {#CREATE SUPPLIER#}
+        $(document).on('click', '#new-addressee', function () {
+            $(".addresses.main").after('<div class="row addresses">' +
+                '                       <div class="col-sm-8 col-md-8 col-lg-8 pr-1">' +
+                '                            <label for="address" class="mb-1 mt-2 font-weight-light">Dirección</label>' +
+                '                            <div class="input-group">' +
+                '                                <div class="input-group-prepend">' +
+                '                                   <span class="input-group-text">' + '<i class="fas fa-address-card"></i>' + '</span>' +
+                '                                </div>' +
+                '                                <input type="text" class="form-control address" id="address" autocomplete="off"' +
+                '                                    name="address">' +
+                '                            </div>' +
+                '                       </div>' +
+                '                       <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-2">' +
+                '                                <label class="mb-1 mt-2 font-weight-light" for="district2">Distrito</label>' +
+                '                             <select id="district2" name="district2" class="form-control district">' +
+                '                              <option value="0">Seleccionar</option>' +
+                '                                  {% for d in districts %}' +
+                    '                                     <option value="{{ d.id }}">{{ d.description }}</option>' +
+                    '                                   {% endfor %}' +
+                '                             </select>' +
+                '                            </div>' +
+                '                       <div class="col-sm-1 col-md-1 col-lg-1 pl-0">' +
+                '                             <label class="mb-1 mt-2 font-weight-light">&nbsp;</label>' +
+                '                                <button type="button" class="btn btn-outline-danger btn-block delete-row-address" >' +
+                '                                    <i class="fas fa-minus"></i>' +
+                '                                </button>' +
+                '                       </div>' +
+                '                     </div>');
+        });
+        $(document).on('click', '.delete-row-address', function () {
+            $(this).parent('div').parent('div').remove();
+        });
+
+        {#EDIT SUPPLIER#}
+        $(document).on('click', '.item-edit', function () {
+            let _pk = $(this).attr('pk');
+            $.ajax({
+                url: '/buys/modal_supplier_update/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': _pk},
+                success: function (response) {
+                    $('#modal-supplier-update').html(response.form);
+                    $('#modal-supplier-update').modal('show');
+                },
+                fail: function (response) {
+                    toastr.error('Error en la peticion', '¡Mensaje!');
+                }
+            });
+        });
+
+        $(document).on('click', '#new-addressee-update', function () {
+            $(".addresses-update.main-update").after('<div class="row addresses-update">' +
+                '                       <div class="col-sm-8 col-md-8 col-lg-8 pr-1">' +
+                '                            <label for="address-update" class="mb-1 mt-2 font-weight-light">Dirección</label>' +
+                '                            <div class="input-group">' +
+                '                                <div class="input-group-prepend">' +
+                '                                   <span class="input-group-text">' + '<i class="fas fa-address-card"></i>' + '</span>' +
+                '                                </div>' +
+                '                                <input type="text" class="form-control address-update" id="address-update" autocomplete="off"' +
+                '                                    name="address-update">' +
+                '                            </div>' +
+                '                       </div>' +
+                '                       <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-2">' +
+                '                                <label class="mb-1 mt-2 font-weight-light" for="district2-update">Distrito</label>' +
+                '                             <select id="district2-update" name="district2-update" class="form-control district-update">' +
+                '                              <option value="0">Seleccionar</option>' +
+                '                                  {% for d in districts %}' +
+                    '                                     <option value="{{ d.id }}">{{ d.description }}</option>' +
+                    '                                   {% endfor %}' +
+                '                             </select>' +
+                '                            </div>' +
+                '                       <div class="col-sm-1 col-md-1 col-lg-1 pl-0">' +
+                '                             <label class="mb-1 mt-2 font-weight-light">&nbsp;</label>' +
+                '                                <button type="button" class="btn btn-outline-danger btn-block delete-row-address-update" >' +
+                '                                    <i class="fas fa-minus"></i>' +
+                '                                </button>' +
+                '                       </div>' +
+                '                     </div>');
+        });
+        $(document).on('click', '.delete-row-address-update', function () {
+            $(this).parent('div').parent('div').remove();
+        });
 
     </script>
 {% endblock extrajs %}

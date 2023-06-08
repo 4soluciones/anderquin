@@ -1,30 +1,47 @@
 {% extends 'home.html' %}
 {% block title %}
-    Compras
+    Orden de Compra
 {% endblock title %}
 
 {% block body %}
     <div class="col-sm-12 col-sm-12 col-lg-12 pt-3 roboto-condensed-regular">
         <div class="card">
             <div class="card-header pt-0">
-                <div class="row" style="background: #1a77c8">
-                    <div class="col-sm-8 col-md-8 col-lg-8">
+                <div class="row"{% if contract_detail_obj %} style="background: #62a239" {% else %}
+                     style="background: #1a77c8"{% endif %}>
+                    <div class="col-sm-12 col-md-12 col-lg-12">
                         <div class="row p-2">
-                            <div class="col-sm-3 col-md-3 col-lg-3">
-                                <h4 class="montserrat text-white font-weight-bold mt-4 mb-0"><label>ORDEN DE
-                                    COMPRA:</label>
-                                </h4>
+                            <div class="col-sm-2 col-md-2 col-lg-2">
+                                {% if contract_detail_obj %}
+                                    <h4 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                                        <label>CONTRATO Nº: {{ contract_detail_obj.contract.contract_number }}</label>
+                                    </h4>
+                                    <input type="hidden"
+                                           class="form-control"
+                                           id="contract_detail_id" name="contract-detail"
+                                           value="{{ contract_detail_obj.id }}">
+                                {% else %}
+                                    <h4 class="montserrat text-white font-weight-bold mt-4 mb-0"><label>ORDEN DE
+                                        COMPRA:</label>
+                                    </h4>
+                                {% endif %}
                             </div>
+                            {% if contract_detail_obj %}
+                                <div class="col-sm-3 col-md-3 col-lg-3">
+                                    <h4 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                                        <label>FECHA DE ENTREGA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
+                                    </h4>
+                                </div>
+                            {% endif %}
 
                             <div class="col-sm-2 col-md-2 col-lg-2 mb-3">
-                                <button type="button" onclick="showModalView('new_provider')"
+                                <button type="button" onclick="showModalView('modal_supplier_create')"
                                         class="btn btn-sm btn-secondary btn-block mt-3 mb-0 col-sm-12 col-md-12 col-lg-12">
                                     Nuevo Proveedor
                                 </button>
-
                             </div>
 
-                            <div class="col-sm-4 col-md-4 col-lg-4 mt-3">
+                            <div class="col-sm-2 col-md-2 col-lg-2 mt-3">
                                 <form>
                                     <div class="form-group row ">
                                         <button type="button"
@@ -39,7 +56,7 @@
                                 </form>
                             </div>
 
-                            <div class="col-sm-3 col-md-3 col-lg-3">
+                            <div class="col-sm-2 col-md-2 col-lg-2">
                                 <div class="form-check mt-4">
                                     <input class="form-check-input check-dollar" type="checkbox" value=""
                                            id="check_dollar">
@@ -50,14 +67,11 @@
                             </div>
 
                         </div>
-
-
                     </div>
-                    <div class="col-sm-4 col-md-4 col-lg-4">
-                        <div class="row">
-
-                        </div>
-                    </div>
+                    {#                    <div class="col-sm-4 col-md-4 col-lg-4">#}
+                    {#                        <div class="row">#}
+                    {#                        </div>#}
+                    {#                    </div>#}
 
                 </div>
                 <div class="card-body p-0">
@@ -225,7 +239,6 @@
 
         $("#id_ruc_provider").attr('maxlength', 11);
 
-
         let array_units = [
             {% for u in unitmeasurement_obj %}
                 {
@@ -235,7 +248,6 @@
                 },
             {% endfor %}
         ];
-
 
         let textOption = ''
         {% for u in unitmeasurement_obj %}
@@ -251,7 +263,6 @@
                 $(".change-money").text('S/')
             }
         });
-
 
         $(document).on('click', '#btn-type-change', function (e) {
             let _input_type_change = $('#type_change')
@@ -362,7 +373,7 @@
                 }
             });
 
-        };
+        }
 
         function limper_form(request) {
             $('#id_fechacompra').val('');
@@ -481,7 +492,7 @@
                     "client_address_reference": $("#client_address_reference").val(),
                     "client_final_address": $("#client_final_address").val(),
                     "observations": $("#observations").val(),
-
+                    "contract_detail_id": $("#contract_detail_id").val(),
                     {#"Freight": [],#}
                     {#"Dues": [],#}
                 };
@@ -534,8 +545,8 @@
                             let purchase_id = response.pk
                             window.location.href = "/buys/print_pdf_purchase_order/" + purchase_id + "/";
                             setTimeout(() => {
-                                location.reload();
-                            }, 2000);
+                                window.open("/buys/buy_list/", '_self');
+                            }, 1000);
                         }
                     },
                     error: function (jqXhr, textStatus, xhr) {
@@ -914,6 +925,10 @@
                 _tr.find('td.item-price').attr('price-unit-with-discount', d4p.toFixed(2))
 
 
+
+
+
+
             {#console.log('en el if', d4p)#}
             } else {
                 d1 = amount - [(amount * $d1_val) / 100]
@@ -927,6 +942,10 @@
                 d4p = d3p - [(d3p * $d4_val) / 100]
 
                 _tr.find('td.item-price').attr('price-unit-with-discount', d4p.toFixed(2))
+
+
+
+
 
 
             {#console.log('fuera', d4p)#}

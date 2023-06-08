@@ -85,6 +85,7 @@ urlpatterns = [
 
     # NEW BUYS
     path('buy_list/', get_buy_list, name='buy_list'),
+    path('buy_list/<int:contract_detail>/', get_buy_list, name='buy_list'),
     path('get_address_by_client_id/', get_address_by_client_id, name='get_address_by_client_id'),
     path('get_product_by_criteria_table/', get_product_by_criteria_table, name='get_product_by_criteria_table'),
     path('get_quantity_minimum/', get_quantity_minimum, name='get_quantity_minimum'),
@@ -97,4 +98,13 @@ urlpatterns = [
     # PROVEEDORES
     path('suppliers/', supplier_list, name='supplier_list'),
     path('get_address_by_supplier_id/', get_address_by_supplier_id, name='get_address_by_supplier_id'),
+    path('modal_supplier_create/', modal_supplier_create, name='modal_supplier_create'),
+    path('save_supplier/', save_supplier, name='save_supplier'),
+    path('modal_supplier_update/', modal_supplier_update, name='modal_supplier_update'),
+    path('update_supplier/', update_supplier, name='update_supplier'),
+
+    # CONTRATOS
+    path('contracts/', contract_list, name='contract_list'),
+    path('modal_contract_create/', modal_contract_create, name='modal_contract_create'),
+    path('save_contract/', save_contract, name='save_contract'),
 ]

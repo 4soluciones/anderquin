@@ -1,0 +1,268 @@
+{% load static %}
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+
+    <div class="modal-content">
+        <div id="modal-loader" class="overlay" style="display: none">
+            <i class="fas fa-3x fa-sync fa-spin"></i>
+        </div>
+        <div class="modal-header">
+            <h6 class="modal-title">Actualización de Proveedor</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <input type="hidden" class="form-control" id="supplier-id" name="supplier-id" value="{{ supplier_obj.id }}">
+
+        <div class="modal-body p-2">
+            <div class="card">
+                <div class="card-body bg-light">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="row">
+                                <div class="col-lg-3">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="supplier_number">Ruc:</label>
+                                    <input type="text" class="form-control" id="supplier_number"
+                                           name="supplier-number" maxlength="11"
+                                           placeholder="RUC" value="{{ supplier_obj.ruc }}">
+                                </div>
+                                <div class="col-lg-9">
+                                    <label class="mb-1 mt-1 font-weight-light" for="business_name">Razon
+                                        Social:
+                                    </label>
+                                    <input type="text" class="form-control text-uppercase" id="business_name"
+                                           name="business-name" value="{{ supplier_obj.name }}">
+                                </div>
+                            </div>
+                            <div class="row dni">
+                                <div class="col-lg-3">
+                                    <label class="mb-1 mt-2 font-weight-light"
+                                           for="phone">Telefono</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                                        <span class="input-group-text"><i
+                                                                class="fas fa-phone"></i></span>
+                                        </div>
+                                        <input type="text" class="form-control"
+                                               id="phone" name="phone"
+                                               value="{{ supplier_obj.phone|default_if_none:"-" }}">
+                                    </div>
+                                </div>
+                                <div class="col-lg-5 pr-1">
+                                    <label class="mb-1 mt-2 font-weight-light" for="email">Correo</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                                        <span class="input-group-text"><i
+                                                                class="fas fa-envelope"></i></span>
+                                        </div>
+                                        <input type="email" class="form-control"
+                                               id="email" name="email"
+                                               value="{{ supplier_obj.email|default_if_none:"-" }}"
+                                        >
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 pl-1">
+                                    <label class="mb-1 mt-1 font-weight-light" for="contact_name">Persona
+                                        de Contacto:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-user-md"></i>
+                                            </span>
+                                        </div>
+                                        <input type="text" class="form-control text-uppercase" id="contact_name"
+                                               name="contact_name" {{ supplier_obj.contact_names|default_if_none:"-" }}>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row ruc d-none">
+                                <div class="col-lg-12">
+                                    <label class="mb-1 mt-1 font-weight-light" for="business_name">Razón
+                                        Social</label>
+                                    <input type="text" class="form-control" id="business_name"
+                                           name="business-name" placeholder="">
+                                </div>
+                            </div>
+                            {% for s in supplier_obj.supplieraddress_set.all %}
+                                {% if forloop.first %}
+                                    <div class="row addresses-update main-update">
+                                        <div class="col-sm-8 col-md-8 col-lg-8 pr-1">
+                                            <label class="mb-1 mt-2 font-weight-light" for="address">Dirección</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-address-card"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="text" class="form-control address-update"
+                                                       id="address-update"
+                                                       name="address-update" value="{{ s.address|upper }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-2">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="district-update">Distrito</label>
+                                            <select id="district-update" name="district-update"
+                                                    class="form-control district-update">
+                                                <option value="0">Seleccionar</option>
+                                                {% for d in districts %}
+                                                    {% if d.id == s.district.id %}
+                                                        <option selected value="{{ d.id }}">{{ d.description }}</option>
+                                                    {% else %}
+                                                        <option value="{{ d.id }}">{{ d.description }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="new-addressee-update">&nbsp;</label>
+                                            <button type="button" class="btn btn-outline-success btn-block"
+                                                    id="new-addressee-update">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="row addresses-update">
+                                        <div class="col-sm-8 col-md-8 col-lg-8 pr-1">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="address-update">Dirección</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-address-card"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="text" class="form-control address-update"
+                                                       id="address-update"
+                                                       name="address-update" value="{{ s.address|upper }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-2">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="district2-update">Distrito</label>
+                                            <select id="district2-update" name="district2-update"
+                                                    class="form-control district-update">
+                                                <option value="0">Seleccionar</option>
+                                                {% for d in districts %}
+                                                    {% if d.id == s.district.id %}
+                                                        <option selected value="{{ d.id }}">{{ d.description }}</option>
+                                                    {% else %}
+                                                        <option value="{{ d.id }}">{{ d.description }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="new-addressee-update">&nbsp;</label>
+                                            <button type="button"
+                                                    class="btn btn-outline-danger btn-block delete-row-address-update">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card -->
+            </div>
+        </div><!-- modal-body -->
+        <div class="modal-footer p-2">
+            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
+            &nbsp;
+            <button id="btn-edit-supplier" type="button" class="btn btn-primary font-weight-light">Actualizar
+            </button>
+        </div>
+
+        <div class="mr-3 ml-0" style="
+                display: none;
+                position: fixed;
+                top: 8px;
+                left: 5px;
+                background: #bdd9f5;
+                opacity: 0.5;
+                width: 100%;
+                {#height: 46em;#}
+                !important;bottom: 6px;
+                padding-right: 65em;
+                padding-left: 55em;
+                padding-top: 22em;" id="loading">
+
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+    $(document).on('click', '#btn-edit-supplier', function (e) {
+        e.preventDefault();
+
+        let _document_number = $('#supplier_number').val();
+        let _names = $('#business_name').val();
+        let _phone = $('#phone').val();
+        let _mail = $('#email').val();
+        let _contact_name = $('#contact_name').val();
+        let _address = $('#address-update').val();
+
+        if (_document_number.length !== 11) {
+            toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
+            return false;
+        }
+        if (_names.length === 0) {
+            toastr.warning('¡Favor de completar la Razon Social', 'Error de Datos!');
+            return false;
+        }
+        if (_address.length === 0) {
+            toastr.warning('¡Favor de completar una dirección', 'Error de Datos!');
+            return false;
+        }
+
+        let supplier = {
+            "supplier_id": $('#supplier-id').val(),
+            "document_number": _document_number,
+            'names': _names,
+            'phone': _phone,
+            'email': _mail,
+            'contact_name': _contact_name,
+            "Addresses": []
+        };
+
+        let addresseeObj = {};
+        $(".addresses-update").each(function () {
+            addresseeObj = {
+                "new_address": $(this).find("input.address-update").val(),
+                "district": $(this).find("select.district-update").val(),
+            }
+            supplier.Addresses.push(addresseeObj);
+        });
+        console.log(supplier)
+        $.ajax({
+            url: '/buys/update_supplier/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            cache: false,
+            data: {'supplier': JSON.stringify(supplier)},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (response.success) {
+                    toastr.success(response.message, '¡Bien hecho!');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                console.log(jqXhr);
+                toastr.error('Error', '¡Ocurrio un error!');
+            }
+        });
+    });
+
+
+</script>

@@ -227,9 +227,12 @@ def save_purchase(request):
         client_address_entity = data_purchase["client_final_address"]
 
         observations = str(data_purchase["observations"])
+        contract_detail_id = data_purchase["contract_detail_id"]
+        contract_detail_obj = None
+        if contract_detail_id:
+            contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail_id))
 
         user_id = request.user.id
-
         user_obj = User.objects.get(pk=int(user_id))
         subsidiary_obj = get_subsidiary_by_user(user_obj)
 
@@ -316,7 +319,8 @@ def save_purchase(request):
             delivery_address=delivery_address.upper(),
             delivery_choice=delivery_choice,
             observation=observations.upper(),
-            city=city.upper()
+            city=city.upper(),
+            contract_detail=contract_detail_obj
             # truck=truck_obj,
             # status=status,
             # type_bill=type_bill,
@@ -2396,7 +2400,11 @@ def get_purchases_by_provider_category(request):
 # -----------------------------------------------------------------------------------------------
 
 
-def get_buy_list(request):
+def get_buy_list(request, contract_detail=None):
+    contract_detail_obj = None
+    if contract_detail is not None:
+        contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail))
+        contract_obj = contract_detail_obj.contract
     supplier_obj = Supplier.objects.all()
     product_obj = Product.objects.all()
     unitmeasurement_obj = Unit.objects.all()
@@ -2412,6 +2420,7 @@ def get_buy_list(request):
         'supplier_set': Supplier.objects.all(),
         'client_set': Client.objects.all(),
         'subsidiary_set': Subsidiary.objects.all().order_by('id'),
+        'contract_detail_obj': contract_detail_obj,
     })
 
 
@@ -2428,7 +2437,7 @@ def get_address_by_supplier_id(request):
 
 def get_address_by_client_id(request):
     if request.method == 'GET':
-        client_id = request.GET.get('supplier_id', '')
+        client_id = request.GET.get('client_id', '')
         client_obj = Client.objects.get(id=int(client_id))
         client_address_set = ClientAddress.objects.filter(client=client_obj)
         return JsonResponse({
@@ -2689,4 +2698,186 @@ def supplier_list(request):
         return render(request, 'buys/supplier_list.html', {
             'formatdate': formatdate,
             'supplier_set': supplier_set,
+            'districts': District.objects.all().order_by('description'),
         })
+
+
+def modal_supplier_create(request):
+    if request.method == 'GET':
+        my_date = datetime.now()
+        date_now = my_date.strftime("%Y-%m-%d")
+
+        t = loader.get_template('buys/supplier_create.html')
+        c = ({
+            'date_now': date_now,
+            'districts': District.objects.all(),
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })
+
+
+def save_supplier(request):
+    if request.method == 'GET':
+        supplier_request = request.GET.get('supplier', '')
+        data_supplier = json.loads(supplier_request)
+
+        document_number = str(data_supplier["document_number"])
+        names = str(data_supplier["names"])
+        phone = str(data_supplier["phone"])
+        email = str(data_supplier["email"])
+        contact_name = str(data_supplier["contact_name"])
+
+        supplier_obj = Supplier(
+            name=names.upper(),
+            business_name=names.upper(),
+            ruc=document_number,
+            phone=phone,
+            email=email,
+            contact_names=contact_name.upper(),
+        )
+        supplier_obj.save()
+
+        for d in data_supplier['Addresses']:
+            new_address = str(d['new_address'])
+            district = str(d['district'])
+
+            district_obj = District.objects.get(id=district)
+
+            supplier_address_obj = SupplierAddress(
+                supplier=supplier_obj,
+                address=new_address.upper(),
+                district=district_obj
+            )
+            supplier_address_obj.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Proveedor Registrado',
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def modal_supplier_update(request):
+    if request.method == 'GET':
+        pk = request.GET.get('pk', '')
+        supplier_obj = None
+        if pk:
+            supplier_obj = Supplier.objects.get(id=int(pk))
+        t = loader.get_template('buys/supplier_update.html')
+        c = ({
+            'supplier_obj': supplier_obj,
+            'districts': District.objects.all(),
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })
+
+
+def update_supplier(request):
+    if request.method == 'GET':
+        supplier_request = request.GET.get('supplier', '')
+        data_supplier = json.loads(supplier_request)
+        supplier_id = str(data_supplier["supplier_id"])
+        document_number = str(data_supplier["document_number"])
+        names = str(data_supplier["names"])
+        phone = str(data_supplier["phone"])
+        email = str(data_supplier["email"])
+        contact_name = str(data_supplier["contact_name"])
+
+        if supplier_id:
+            supplier_obj = Supplier.objects.get(id=int(supplier_id))
+            supplier_obj.ruc = document_number
+            supplier_obj.names = names.upper()
+            supplier_obj.business_name = names.upper()
+            supplier_obj.phone = phone
+            supplier_obj.email = email
+            supplier_obj.contact_names = contact_name
+            supplier_obj.save()
+
+            supplier_to_delete = SupplierAddress.objects.filter(supplier=supplier_obj)
+            supplier_to_delete.delete()
+
+            for d in data_supplier['Addresses']:
+                new_address = str(d['new_address'])
+                district = str(d['district'])
+
+                district_obj = District.objects.get(id=district)
+
+                supplier_address_obj = SupplierAddress(
+                    supplier=supplier_obj,
+                    address=new_address.upper(),
+                    district=district_obj
+                )
+                supplier_address_obj.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Proveedor Actualizado correctamente',
+            }, status=HTTPStatus.OK)
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def contract_list(request):
+    if request.method == 'GET':
+        contract_set = Contract.objects.all()
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+
+        return render(request, 'buys/contract_list.html', {
+            'date_now': formatdate,
+            'contract_set': contract_set,
+        })
+
+
+def modal_contract_create(request):
+    if request.method == 'GET':
+        my_date = datetime.now()
+        date_now = my_date.strftime("%Y-%m-%d")
+
+        t = loader.get_template('buys/contract_create.html')
+        c = ({
+            'date_now': date_now,
+            'client_set': Client.objects.all()
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })
+
+
+def save_contract(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(pk=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+
+        contract_request = request.GET.get('contract', '')
+        data_contract = json.loads(contract_request)
+
+        number_contract = str(data_contract["number_contract"])
+        register_date = str(data_contract["register_date"])
+        client = data_contract["client"]
+
+        client_obj = Client.objects.get(id=int(client))
+
+        contract_obj = Contract(
+            contract_number=number_contract.upper(),
+            client=client_obj,
+            register_date=register_date,
+            subsidiary=subsidiary_obj,
+        )
+        contract_obj.save()
+
+        for c in data_contract['dates']:
+            date_quota = str(c['date_quota'])
+            contract_detail_obj = ContractDetail(
+                contract=contract_obj,
+                date=date_quota,
+            )
+            contract_detail_obj.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Contrato Registrado',
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})

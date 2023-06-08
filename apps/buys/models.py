@@ -86,6 +86,7 @@ class Purchase(models.Model):
     city = models.CharField('Ciudad', max_length=200, null=True, blank=True)
     observation = models.TextField('Observación', blank=True, null=True)
     oc_supplier = models.CharField('Referencia', max_length=100, blank=True, null=True)
+    contract_detail = models.ForeignKey('buys.ContractDetail', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
@@ -321,3 +322,37 @@ class RateRoutes(models.Model):
     class Meta:
         verbose_name = 'Ruta Tarifario'
         verbose_name_plural = 'Ruta Tarifarios'
+
+
+class Contract(models.Model):
+    STATUS_CHOICES = (('P', 'PENDIENTE'), ('C', 'COMPLETADO'), ('S', 'SUSPENDIDO'), ('A', 'ANULADO'))
+    id = models.AutoField(primary_key=True)
+    contract_number = models.CharField('Numero de Contrato', max_length=45, null=True, blank=True)
+    client = models.ForeignKey('sales.Client', on_delete=models.CASCADE, null=True, blank=True)
+    register_date = models.DateField('Fecha de Registro', null=True, blank=True)
+    photo = models.ImageField(upload_to='images/', default='images/images0.jpg', blank=True)
+    subsidiary = models.ForeignKey('hrm.Subsidiary', on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P', )
+
+    def __str__(self):
+        return str(self.contract_number)
+
+
+class ContractDetail(models.Model):
+    id = models.AutoField(primary_key=True)
+    contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateField('Fecha', null=True, blank=True)
+
+    def __str__(self):
+        return str(self.id)
+
+
+
+
+
+
+
+
+
+
+
