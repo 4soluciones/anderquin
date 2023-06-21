@@ -28,9 +28,9 @@
         <div class="modal fade" id="modal-contract-create" tabindex="-1" role="dialog"
              aria-labelledby="ModalHelpTitle"
              aria-hidden="true"></div>
-{#        <div class="modal fade" id="modal-contract-update" tabindex="-1" role="dialog"#}
-{#             aria-labelledby="ModalHelpTitle"#}
-{#             aria-hidden="true"></div>#}
+        {#        <div class="modal fade" id="modal-contract-update" tabindex="-1" role="dialog"#}
+        {#             aria-labelledby="ModalHelpTitle"#}
+        {#             aria-hidden="true"></div>#}
     </div>
 {% endblock body %}
 
@@ -54,18 +54,6 @@
             });
         }
 
-        $(document).on('click', '#new-date', function () {
-            $(".dates.main").after('<div class="row dates pt-2">' +
-                '                       <div class="col-sm-10 col-md-10 col-lg-10 pl-1 pr-2">' +
-                '                            <input type="date" class="form-control date-quota" id="date-quota" value="{{ date_now }}">' +
-                '                       </div>' +
-                '                       <div class="col-sm-2 col-md-2 col-lg-2 pl-0">' +
-                '                                <button type="button" class="btn btn-outline-danger btn-block delete-row-address" >' +
-                '                                    <i class="fas fa-minus"></i>' +
-                '                                </button>' +
-                '                       </div>' +
-                '                     </div>');
-        });
         $(document).on('click', '.delete-row-address', function () {
             $(this).parent('div').parent('div').remove();
         });
@@ -74,6 +62,123 @@
             let _detail_contract = $(this).attr('pk');
 
         });
+
+        function addItem(number) {
+
+            $(`#table-date-${number} > tbody`).append(
+                '<tr class="text-center">' +
+                '<td class="item-number align-middle">' + '</td>' +
+                '<td class="item-product align-middle text-center">' +
+                '<select id="product_id" class="form-control form-control-sm">' +
+                '<option value="0">Seleccione</option>' +
+                '{% for p in product_set %}'+
+                    '<option value="{{ p.id }}">{{ p.name }}</option>' +
+                    '{% endfor %}' +
+                '</select>' +
+                '</td>' +
+                '<td class="item-quantity align-middle text-center">' +
+                '<input type="text" class="form-control text-right quantity" placeholder="0.00" autocomplete="off">' +
+                '</td>' +
+                '<td class="align-middle">' +
+                '<button type="button" onclick="deleteItemTable(this, ' + number + ')" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' +
+                '</td>'
+            );
+            counter(number)
+        }
+
+        function counter(number) {
+            let l = 1;
+            $(`#details-table-date-${number} tr`).each(function () {
+                $(this).attr('i', l);
+                $(this).children('td:nth-child(1)').text(l);
+                l++;
+            });
+        }
+
+        function deleteItemTable(btn, number) {
+            let _tr = $(this).parent('td').parent('tr')
+            btn.parentNode.parentNode.remove();
+            counter(number);
+            calculateTotal(_tr)
+        }
+
+        $(document).on('keyup', '.quantity', function () {
+            let _tr = $(this).parent('td').parent('tr');
+            calculateTotal(_tr)
+        });
+
+        function calculateTotal(_tr) {
+            let sum_total = 0;
+            $('.dates-quotas td.item-quantity input.quantity').each(function () {
+                let quantity = Number($(this).val())
+                sum_total = sum_total + quantity
+            });
+            $("#total-quantity").val(sum_total.toFixed(2));
+        }
+
+        function addDates() {
+            let _nro_dates = $('#nro_dates')
+            if (_nro_dates.val().length === 0) {
+                toastr.warning('Favor de ingresar una cantidad primero', 'Error de llenado');
+                _nro_dates.focus();
+                return false;
+            }
+
+            for (let i = 0; i < _nro_dates.val(); i++) {
+                let _number = i + 1;
+                let _date_quota = '{{ date_now }}';
+                $('.dates-quotas').append(
+                    '<div class="card mb-2" style="border-color: #848d9f">' +
+                    '<div class="card-header pt-1 pb-1">' +
+                    '<div class="row">' +
+                    '<div class="col-sm-2 col-md-2 col-lg-2 text-left">' +
+                    '<label for="date-quota" class="mt-2 font-weight-bold">' + 'FECHA DE ENTREGA ' + _number + '</label>' +
+                    '</div>' +
+                    '<div class="col-sm-3 col-md-3 col-lg-3">' +
+                    '<input type="date" class="form-control date-quota text-center" id="date-quota" value="' + _date_quota + '">' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="card-body p-1">' +
+                    '<table id="table-date-' + _number + '" class="table table-hover table-sm align-content-center table-bordered mb-0">' +
+                    '<thead>' +
+                    '<tr class="text-center text-white" style="background: #1a77c8">' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Item' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 60%;">' + 'Producto' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 20%;">' + 'Cantidad' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + '</th>' +
+                    '</tr>' +
+                    '</thead>' +
+                    '<tbody id="details-table-date-' + _number + '" number="' + _number + '">' +
+                    '<tr class="text-center">' +
+                    '<td class="item-number align-middle text-center">1</td>' +
+                    '<td class="item-product align-middle text-center">' +
+                    '<label for="product_id" class="sr-only">Producto</label>' +
+                    '<select id="product_id" class="form-control form-control-sm">' +
+                    '<option value="0">Seleccione</option>' +
+                    '{% for p in product_set %}'+
+                        '<option value="{{ p.id }}">{{ p.name }}</option>' +
+                        '{% endfor %}' +
+                    '</select>' +
+                    '</td>' +
+                    '<td class="item-quantity align-middle text-center">' +
+                    '<input type="text" class="form-control text-right quantity" placeholder="0.00" autocomplete="off">' +
+                    '</td>' +
+                    '<td class="align-middle">' +
+                    '<button type="button" onclick="addItem(' + _number + ')" class="btn btn-outline-success btn-block">' +
+                    '<i class="fas fa-plus"></i>' +
+                    '</button>' +
+                    '</td>' +
+                    '</tr>' +
+                    '</tbody>' +
+                    '</table>' +
+                    '</div>' +
+                    '</div>'
+                );
+                _number++;
+            }
+        }
+
 
     </script>
 {% endblock extrajs %}

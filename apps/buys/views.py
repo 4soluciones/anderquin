@@ -2576,6 +2576,22 @@ def get_sunat(request):
             return response
         else:
             if type_document == '01':
+                type_name = 'DNI'
+                r = query_apis_net_dni_ruc(nro_document, type_name)
+
+                if r.get('numeroDocumento') == nro_document:
+                    paternal_name = r.get('apellidoPaterno')
+                    maternal_name = r.get('apellidoMaterno')
+                    nombres = r.get('nombres')
+                    result = nombres + ' ' + paternal_name + ' ' + maternal_name
+                    return JsonResponse({'result': result}, status=HTTPStatus.OK)
+                else:
+                    data = {'error': 'NO EXISTE RUC. REGISTRE MANUAL O CORREGIRLO'}
+                    response = JsonResponse(data)
+                    response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+                    return response
+
+            elif type_document == '06':
                 type_name = 'RUC'
                 r = query_apis_net_dni_ruc(nro_document, type_name)
 
@@ -2590,6 +2606,7 @@ def get_sunat(request):
                     response = JsonResponse(data)
                     response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
                     return response
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
 @csrf_exempt
@@ -2827,6 +2844,7 @@ def contract_list(request):
         return render(request, 'buys/contract_list.html', {
             'date_now': formatdate,
             'contract_set': contract_set,
+            'product_set': Product.objects.filter(is_enabled=True)
         })
 
 
@@ -2838,7 +2856,8 @@ def modal_contract_create(request):
         t = loader.get_template('buys/contract_create.html')
         c = ({
             'date_now': date_now,
-            'client_set': Client.objects.all()
+            'client_set': Client.objects.all(),
+            'product_set': Product.objects.filter(is_enabled=True)
         })
         return JsonResponse({
             'form': t.render(c, request),

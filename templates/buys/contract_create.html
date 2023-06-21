@@ -1,5 +1,5 @@
 {% load static %}
-<div class="modal-dialog modal-dialog-centered " role="document">
+<div class="modal-dialog modal-xl" role="document">
 
     <div class="modal-content">
         <div id="modal-loader" class="overlay" style="display: none">
@@ -17,9 +17,19 @@
                 <div class="card-body bg-light">
                     <div class="row">
                         <div class="col-lg-12">
-                            <div class="row">
-                                <div class="col-lg-6 pr-0 pl-1">
-                                    <label class="mb-1 mt-1 font-weight-light"
+                            <div class="row p-1">
+                                <div class="col-lg-8">
+                                    <label class="font-weight-light" for="client_id">Cliente:
+                                    </label>
+                                    <select id="client_id" name="client" class="form-control district">
+                                        <option value="0">Seleccionar</option>
+                                        {% for c in client_set %}
+                                            <option value="{{ c.id }}">{{ c.names|upper }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-lg-4 pr-0 pl-1">
+                                    <label class="font-weight-light"
                                            for="number_contract">Nº de Contrato:</label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
@@ -31,45 +41,134 @@
                                                name="number-contract" autocomplete="off">
                                     </div>
                                 </div>
-                                <div class="col-lg-6">
-                                    <label class="mb-1 mt-1 font-weight-light" for="register_date">Fecha de
+                            </div>
+                            <div class="row p-1">
+                                <div class="col-lg-3">
+                                    <label class="font-weight-light" for="register_date">Fecha de
                                         registro</label>
                                     <input type="date" class="form-control" id="register_date"
                                            name="register-name" value="{{ date_now }}">
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-12 pr-1 pl-1">
-                                    <label class="mb-1 mt-1 font-weight-light" for="client_id">Cliente:
-                                    </label>
-                                    <select id="client_id" name="client" class="form-control district">
-                                        <option value="0">Seleccionar</option>
-                                        {% for c in client_set %}
-                                            <option value="{{ c.id }}">{{ c.names|upper }}</option>
-                                        {% endfor %}
-                                    </select>
+                                <div class="col-sm-9 col-md-9 col-lg-9">
+                                    <label for="observations" class="">Observaciones:</label>
+                                    <input type="text" class="form-control" id="observations"
+                                           name="observations"
+                                           placeholder="OBSERVACIONES"
+                                           value="">
                                 </div>
                             </div>
-
-                            <div class="d-flex pt-3">
-                                <hr class="my-auto flex-grow-1 bg-lightblue">
-                                <div class="px-2" style="font-size: .8375rem;">FECHAS DE ENTREGA</div>
-                                <hr class="my-auto flex-grow-1 bg-lightblue">
-                            </div>
-
-                            <div class="row dates main pt-2">
-                                <div class="col-sm-10 col-md-10 col-lg-10 pl-1 pr-2">
-                                    <input type="date" class="form-control date-quota" id="date-quota"
-                                           value="{{ date_now }}">
+                            <div class="row p-1">
+                                <div class="col-sm-3 col-md-3 col-lg-3">
+                                    <label class="font-weight-light" for="nro_dates">Ingrese Nro de Fechas
+                                        de entrega:</label>
+                                    <input type="text" class="form-control form-control-sm text-center" id="nro_dates"
+                                           name="nro-dates" placeholder="0">
                                 </div>
-                                <div class="col-sm-2 col-md-2 col-lg-2 pl-0">
-                                    <button type="button" class="btn btn-outline-success btn-block"
-                                            id="new-date">
-                                        <i class="fas fa-plus"></i>
+                                <div class="col-sm-2 col-md-2 col-lg-2">
+                                    <label class="" for="btn-add-dates">&nbsp;</label>
+                                    <button type="button" id="btn-add-dates"
+                                            class="btn btn-sm btn-success btn-block" onclick="addDates()">Agregar Fechas
+                                    </button>
+                                </div>
+                                <div class="col-sm-2 col-md-2 col-lg-2">
+                                    <label class="" for="clean-dates">&nbsp;</label>
+                                    <button type="button" id="clean-dates"
+                                            class="btn btn-sm btn-danger btn-block">Limpiar
                                     </button>
                                 </div>
                             </div>
 
+                            <div class="d-flex pt-4 pb-3">
+                                <hr class="my-auto flex-grow-1 bg-primary border-dark">
+                                <div class="px-3 font-weight-bold" style="font-size: 1.1375rem;">FECHAS DE ENTREGA</div>
+                                <hr class="my-auto flex-grow-1 bg-primary border-dark">
+                            </div>
+
+                            <div class="row pt-2">
+                                <div class="col-sm-12 col-md-12 col-lg-12 dates-quotas">
+                                    {#                                    <div class="card mb-2" style="border-color: #848d9f">#}
+                                    {#                                        <div class="card-header pt-1 pb-1">#}
+                                    {#                                            <div class="row">#}
+                                    {#                                                <div class="col-sm-2 col-md-2 col-lg-2 text-left">#}
+                                    {#                                                    <label for="date-quota"#}
+                                    {#                                                           class="mt-2 font-weight-bold">FECHA DE ENTREGA 1#}
+                                    {#                                                    </label>#}
+                                    {#                                                </div>#}
+                                    {#                                                <div class="col-sm-3 col-md-3 col-lg-3">#}
+                                    {#                                                    <input type="date" class="form-control date-quota text-center"#}
+                                    {#                                                           id="date-quota"#}
+                                    {#                                                           value="{{ date_now }}">#}
+                                    {#                                                </div>#}
+                                    {#                                            </div>#}
+                                    {#                                        </div>#}
+                                    {#                                        <div class="card-body p-1">#}
+                                    {#                                            <table id="table-date-1"#}
+                                    {#                                                   class="table table-hover table-sm align-content-center table-bordered mb-0">#}
+                                    {#                                                <thead>#}
+                                    {#                                                <tr class="text-center text-white" style="background: #1a77c8">#}
+                                    {#                                                    <th scope="col" class="align-middle font-weight-normal"#}
+                                    {#                                                        style="width: 10%;">#}
+                                    {#                                                        Item#}
+                                    {#                                                    </th>#}
+                                    {#                                                    <th scope="col" class="align-middle font-weight-normal"#}
+                                    {#                                                        style="width: 60%;">#}
+                                    {#                                                        Producto#}
+                                    {#                                                    </th>#}
+                                    {#                                                    <th scope="col" class="align-middle font-weight-normal"#}
+                                    {#                                                        style="width: 20%;">#}
+                                    {#                                                        Cantidad#}
+                                    {#                                                    </th>#}
+                                    {#                                                    <th scope="col" class="align-middle font-weight-normal"#}
+                                    {#                                                        style="width: 10%;">#}
+                                    {#                                                    </th>#}
+                                    {#                                                </tr>#}
+                                    {#                                                </thead>#}
+                                    {#                                                <tbody id="details-table-date-1">#}
+                                    {#                                                <tr class="text-center">#}
+                                    {#                                                    <td class="item-number align-middle text-center">1</td>#}
+                                    {#                                                    <td class="item-date align-middle text-center">#}
+                                    {#                                                        <label for="product_id" class="sr-only">Producto</label>#}
+                                    {#                                                        <select id="product_id"#}
+                                    {#                                                                class="form-control form-control-sm">#}
+                                    {#                                                            <option value="0">Seleccione</option>#}
+                                    {#                                                            {% for p in product_set %}#}
+                                    {#                                                                <option value="{{ p.id }}">{{ p.name }}</option>#}
+                                    {#                                                            {% endfor %}#}
+                                    {#                                                        </select>#}
+                                    {#                                                    </td>#}
+                                    {#                                                    <td class="item-quantity align-middle text-center">#}
+                                    {#                                                        <input type="text"#}
+                                    {#                                                               class="form-control text-right quantity"#}
+                                    {#                                                               placeholder="0.00"#}
+                                    {#                                                               autocomplete="off">#}
+                                    {#                                                    </td>#}
+                                    {#                                                    <td class="align-middle">#}
+                                    {#                                                        <button type="button" onclick="addItem()"#}
+                                    {#                                                                class="btn btn-outline-success btn-block"><i#}
+                                    {#                                                                class="fas fa-plus"></i>#}
+                                    {#                                                        </button>#}
+                                    {#                                                    </td>#}
+                                    {#                                                </tr>#}
+                                    {#                                                </tbody>#}
+                                    {#                                            </table>#}
+                                    {#                                        </div>#}
+                                    {#                                    </div>#}
+                                </div>
+                            </div>
+                            <div class="row pt-2">
+                                <div class="col-sm-8 col-md-8 col-lg-8 text-right">
+                                    <h5>
+                                        <label class="font-weight-bold mt-2" for="total-quantity">
+                                            TOTAL CANTIDAD:
+                                        </label>
+                                    </h5>
+                                </div>
+                                <div class="col-sm-3 col-md-3 col-lg-3 totals">
+                                    <input type="text" class="form-control text-center font-weight-bold" id="total-quantity"
+                                           name="observations"
+                                           placeholder="0.00" readonly>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

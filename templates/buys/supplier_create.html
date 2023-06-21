@@ -19,13 +19,21 @@
                 <div class="card-body bg-light">
                     <div class="row">
                         <div class="col-lg-12">
+
                             <div class="row">
                                 <div class="col-lg-3">
                                     <label class="mb-1 mt-1 font-weight-light"
                                            for="supplier_number">Ruc:</label>
-                                    <input type="text" class="form-control" id="supplier_number"
-                                           name="supplier-number" maxlength="11"
-                                           placeholder="RUC">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="supplier_number"
+                                               name="supplier-number" maxlength="11"
+                                               placeholder="RUC">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-warning btn-sm" id="btn-nro-supplier" type="button">
+                                                <i class="fas fa-search fa-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-lg-9">
                                     <label class="mb-1 mt-1 font-weight-light" for="business_name">Razon
@@ -161,6 +169,76 @@
         '</div>';
 
 
+    $(document).on('click', '#btn-nro-supplier', async function (e) {
+
+            let _document_number = $('#supplier_number').val();
+            let _type_doc = '06';
+            await searchClient(_type_doc, _document_number).then((value) => {
+                $("#business_name").val(value.result);
+                $("#address").val(value.address);
+            }).catch((e) => {
+                toastr.error(e.responseJSON.error, 'Error de Datos');
+            })
+        });
+
+    $(document).on('keypress', '#supplier_number', async function (e) {
+
+        if (e.keyCode === 13) {
+            e.preventDefault()
+            $(this).trigger("enterKey");
+            let _document_number = $(this).val();
+            let _type_doc = '06';
+
+            await searchClient(_type_doc, _document_number).then((value) => {
+                $("#business_name").val(value.result);
+                $("#address").val(value.address);
+            }).catch((e) => {
+                toastr.error(e.responseJSON.error, 'Error de Datos');
+            })
+        }
+    });
+
+    function searchClient($type_document, $document_number) {
+
+        if ($type_document === '06' && $document_number.length !== 11) {
+            toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
+            return false;
+        }
+        /*if ($type_document === '01' && $document_number.length !== 8) {
+            toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
+            return false;
+        }*/
+        $('#loading').html(loader).show()
+
+        return new Promise((resolve, reject) => {
+           $.ajax({
+                url: '/buys/get_sunat/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {
+                    'nro_document': $document_number,
+                    'type': $type_document
+                },
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        resolve(response);
+                        $('#loading').hide();
+                    }
+                },
+                error: function (error) {
+                    reject(error)
+                    //console.log(reject);
+                    //console.log(reject(error))
+                    $('#loading').hide();
+                },
+            });
+        })
+    }
+
+
     $(document).on('click', '#btn-save-supplier', function (e) {
         e.preventDefault();
 
@@ -170,6 +248,7 @@
         let _mail = $('#email').val();
         let _contact_name = $('#contact_name').val();
         let _address = $('#address').val();
+        let _district = $('#district').val();
 
         if (_document_number.length !== 11) {
             toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
@@ -181,6 +260,10 @@
         }
         if (_address.length === 0) {
             toastr.warning('¡Favor de completar una dirección', 'Error de Datos!');
+            return false;
+        }
+        if (_district === '0') {
+            toastr.warning('¡Favor de seleccionar un Distrito', 'Error de Datos!');
             return false;
         }
 

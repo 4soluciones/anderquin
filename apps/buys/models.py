@@ -333,6 +333,7 @@ class Contract(models.Model):
     photo = models.ImageField(upload_to='images/', default='images/images0.jpg', blank=True)
     subsidiary = models.ForeignKey('hrm.Subsidiary', on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P', )
+    observation = models.TextField('Observación', blank=True, null=True)
 
     def __str__(self):
         return str(self.contract_number)
@@ -342,6 +343,7 @@ class ContractDetail(models.Model):
     id = models.AutoField(primary_key=True)
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True)
     date = models.DateField('Fecha', null=True, blank=True)
+    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return str(self.id)
