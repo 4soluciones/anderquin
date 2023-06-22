@@ -10,7 +10,7 @@
         <div class="card p-2">
             <div class="row">
                 <div class="col-lg-2 pt-3 ml-3">
-                    <button type="button" onclick="showModalView('modal_contract_create')"
+                    <button type="button" onclick="showModalCreate('modal_contract_create')"
                             class="btn btn-outline-success"><i class="fas fa-file-contract"></i>
                         NUEVO CONTRATO
                     </button>
@@ -38,7 +38,7 @@
 
     <script type="text/javascript">
 
-        function showModalView(route) {
+        function showModalCreate(route) {
             $.ajax({
                 url: '/buys/' + route + '/',
                 dataType: 'json',
@@ -69,7 +69,7 @@
                 '<tr class="text-center">' +
                 '<td class="item-number align-middle">' + '</td>' +
                 '<td class="item-product align-middle text-center">' +
-                '<select id="product_id" class="form-control form-control-sm">' +
+                '<select id="product_id" class="form-control form-control-sm product">' +
                 '<option value="0">Seleccione</option>' +
                 '{% for p in product_set %}'+
                     '<option value="{{ p.id }}">{{ p.name }}</option>' +
@@ -128,13 +128,14 @@
                 let _number = i + 1;
                 let _date_quota = '{{ date_now }}';
                 $('.dates-quotas').append(
-                    '<div class="card mb-2" style="border-color: #848d9f">' +
+                    '<div class="card mb-2 main-dates" style="border-color: #848d9f">' +
                     '<div class="card-header pt-1 pb-1">' +
                     '<div class="row">' +
-                    '<div class="col-sm-2 col-md-2 col-lg-2 text-left">' +
+                    '<div class="col-sm-2 col-md-2 col-lg-2 text-left item-number">' +
                     '<label for="date-quota" class="mt-2 font-weight-bold">' + 'FECHA DE ENTREGA ' + _number + '</label>' +
+                    '<input type=hidden class="number-quota" value="' + _number + '">' +
                     '</div>' +
-                    '<div class="col-sm-3 col-md-3 col-lg-3">' +
+                    '<div class="col-sm-3 col-md-3 col-lg-3 item-date-quota">' +
                     '<input type="date" class="form-control date-quota text-center" id="date-quota" value="' + _date_quota + '">' +
                     '</div>' +
                     '</div>' +
@@ -154,7 +155,7 @@
                     '<td class="item-number align-middle text-center">1</td>' +
                     '<td class="item-product align-middle text-center">' +
                     '<label for="product_id" class="sr-only">Producto</label>' +
-                    '<select id="product_id" class="form-control form-control-sm">' +
+                    '<select id="product_id" class="form-control form-control-sm product">' +
                     '<option value="0">Seleccione</option>' +
                     '{% for p in product_set %}'+
                         '<option value="{{ p.id }}">{{ p.name }}</option>' +
@@ -178,6 +179,13 @@
                 _number++;
             }
         }
+
+        $(document).on('click', '#clean-dates', function () {
+            $('.dates-quotas').empty();
+            $('#nro_dates').val('');
+            $('#nro_dates').focus();
+            $('#total-quantity').val('');
+        });
 
 
     </script>

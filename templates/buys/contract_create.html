@@ -221,6 +221,8 @@
         let _number_contract = $('#number_contract').val();
         let _register_date = $('#register_date').val();
         let _client = $('#client_id').val();
+        let _observations = $('#observations').val();
+        let _nro_dates = $('#nro_dates').val();
 
         if (_number_contract.length === 0) {
             toastr.warning('¡Favor de ingresar el numero de contrato!', 'Error de Datos');
@@ -234,22 +236,36 @@
             toastr.warning('¡Favor de seleccionar un cliente', 'Error de Datos!');
             return false;
         }
+        if (_nro_dates === '0') {
+            toastr.warning('¡Ingrese al menos una Fecha de entrega', 'Error de Datos!');
+            return false;
+        }
 
         let contract = {
             "number_contract": _number_contract,
             'register_date': _register_date,
             'client': _client,
+            'observation': _observations,
             "dates": []
         };
-
         let dateObj = {};
-        $(".dates").each(function () {
+        let itemObj = {};
+        $(".main-dates").each(function () {
+            let nro_quota = $(this).find("div.item-number input.number-quota").val()
             dateObj = {
-                "date_quota": $(this).find("input.date-quota").val(),
+                "nro_quota": nro_quota,
+                "date_quota": $(this).find("div.item-date-quota input.date-quota").val(),
+                "items": []
             }
+            $(`tbody#details-table-date-${nro_quota} tr`).each(function () {
+               itemObj = {
+                   "product": $(this).find("td.item-product select.product").val(),
+                   "quantity": $(this).find("td.item-quantity input.quantity").val(),
+               }
+               dateObj.items.push(itemObj)
+            });
             contract.dates.push(dateObj);
         });
-
         //console.log(contract)
         $.ajax({
             url: '/buys/save_contract/',

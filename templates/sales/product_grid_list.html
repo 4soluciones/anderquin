@@ -5,139 +5,163 @@
     <!-- <h2 class='mb-3'>Basic example</h2> -->
 
     <div class="card">
-
         <div class="card-header">
-            <label class="col-form-label col-form-label-lg">Productos</label>
-            <h6 class="card-subtitle text-muted">Edición - Inventario inicial - kardex - Presentaciones.</h6>
+            <h3><label class="col-form-label col-form-label-lg">LISTADO DE PRODUCTOS</label></h3>
+            {#            <h6 class="card-subtitle text-muted">Edición - Inventario inicial - kardex - Presentaciones.</h6>#}
         </div>
-
         <div class="card-body overflow-auto">
-<div class="container-fluid rem-120 p-0">
-    <div class="row bg-secondary text-white m-0">
-                <div class="col border py-3 d-flex justify-content-center align-items-center">#</div>
-                <div class="col border py-3 d-flex justify-content-center align-items-center table-warning text-dark">Nombre</div>
-{#                <div class="col border py-3 d-flex justify-content-center align-items-center">Subcategoria</div>#}
-                <div class="col border py-3 d-flex justify-content-center align-items-center">Categoria</div>
-                <div class="col-1 border py-3 d-flex justify-content-center align-items-center">Detalles</div>
-                <div class="col-3 border d-flex flex-column">
-
-                    <div class="row flex-fill">
-                        <div class="col d-flex justify-content-center align-items-center">Stock en sedes</div>
+            <div class="container-fluid rem-120 p-0">
+                <div class="row bg-secondary text-white m-0">
+                    <div class="col-1 border py-3 d-flex justify-content-center align-items-center">Codigo</div>
+                    <div class="col border py-3 d-flex justify-content-center align-items-center table-warning text-dark">
+                        Nombre
                     </div>
-                    <div class="row flex-fill">
-                        <div class="col-4 border-top d-flex justify-content-center align-items-center">Sede</div>
-                        <div class="col-4 border-left border-top d-flex justify-content-center align-items-center">Almacen</div>
-                        <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">Stock</div>
-                        <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">Kardex</div>
-                    </div>
-                </div>
-                <div class="col-2 border d-flex flex-column">
-                    <div class="row flex-fill">
-                        <div class="col d-flex justify-content-center align-items-center">Unidades</div>
-                    </div>
-                    <div class="row flex-fill">
-                        <div class="col-2 border-top d-flex justify-content-center align-items-center">Abrev.</div>
-                        <div class="col-4 border-left border-top d-flex justify-content-center align-items-center">Unidad</div>
-                        <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">P.C.U</div>
-                        <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">P.V.U</div>
-                        <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">C/Min</div>
-                    </div>
-                </div>
-                <div class="col-2 border d-flex flex-column">
-                    <div class="row flex-fill">
-                        <div class="col d-flex justify-content-center align-items-center">Insumos/Receta</div>
-                    </div>
-                    <div class="row flex-fill">
-                        <div class="col-3 border-top d-flex justify-content-center align-items-center">Prod.</div>
-                        <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">Cant.</div>
-                        <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">Unidad</div>
-                        <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">P.U</div>
-                    </div>
-                </div>
-                <div class="col-1 border py-3 d-flex justify-content-center align-items-center">UPDATE</div>
-            </div>
-</div>
-<div class="container-fluid table-like rem-120 p-0">
+                    {#                <div class="col border py-3 d-flex justify-content-center align-items-center">Subcategoria</div>#}
+                    <div class="col-1 border py-3 d-flex justify-content-center align-items-center">Categoria</div>
+                    <div class="col-1 border py-3 d-flex justify-content-center align-items-center">Detalles</div>
+                    <div class="col-3 border d-flex flex-column">
 
-            {% for product in products %}
-            <div class="row w-100 border-top border-dark m-0">
-                <div class="col border id d-flex justify-content-center align-items-center" data-sort-value="original-order">{{ product.id }}</div>
-                <div class="col border text-break search-field name d-flex justify-content-center align-items-center table-warning">{{ product.name }}</div>
-{#                <div class="col border text-break search-field subcategory d-flex justify-content-center align-items-center">{{ product.product_subcategory.name }}</div>#}
-                <div class="col border text-break search-field category d-flex justify-content-center align-items-center">{{ product.product_subcategory.product_category.name }}</div>
-                <div class="col-1 border details">
-                    <address class="text-left">
-                        <strong>Codigo: {{ product.code }}</strong><br>
-                        Stock Minimo: <i>{{ product.stock_min }}</i><br>
-                        Stock Maximo: <i>{{ product.stock_max }}</i><br>
-                        Familia, {{ product.product_family.name }}<br>
-                        Marca, {{ product.product_brand.name }}<br>
-                    </address>
-                </div>
-                <div class="col-3 border stock d-flex flex-column">
-
-                    {% for product_store in product.productstore_set.all %}
-                    <div class="row flex-fill">
-                        <div class="col-4 border-top d-flex justify-content-center align-items-center text-center">{{ product_store.subsidiary_store.subsidiary.name }}</div>
-                        <div class="col-4 border-left border-top d-flex justify-content-center align-items-center">{{ product_store.subsidiary_store.name }}</div>
-                        <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">{{ product_store.stock|safe }}{% if product.id == 9 %} ({{product_store.conversion_mml_g_stock|floatformat:2}} gl){% endif %}</div>
-                        <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">{{ product_store.last_remaining_quantity|default:"-"|safe }}</div>
-                    </div>
-                    {% endfor %}
-                </div>
-                <div class="col-2 border units d-flex flex-column">
-
-                    {% for product_detail in product.productdetail_set.all %}
-                    <div class="row flex-fill">
-                        <div class="col-2 border-top d-flex justify-content-center align-items-center">{{ product_detail.unit.name }}</div>
-                        <div class="col-4 border-left border-top d-flex justify-content-center align-items-center">{{ product_detail.unit.description }}</div>
-                        <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">{{ product_detail.price_purchase|safe }}</div>
-                        <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">{{ product_detail.price_sale|safe }}</div>
-                        <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">{{ product_detail.quantity_minimum|safe }}</div>
-                    </div>
-                    {% endfor %}
-                </div>
-                <div class="col-2 border recipes d-flex flex-column">
-
-
-                    {% for product_recipe in product.recipes.all %}
-                    <div class="row flex-fill">
-                        <div class="col-3 border-top d-flex justify-content-center align-items-center">{{ product_recipe.product_input.name }}</div>
-                        <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">{{ product_recipe.quantity|safe }}</div>
-                        <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">{{ product_recipe.unit.description }}</div>
-                        <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">{{ product_recipe.price|safe }}</div>
-                    </div>
-                    {% endfor %}
-
-                </div>
-                <div class="col-1 border update d-flex justify-content-center align-items-center">
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown"
-                                aria-haspopup="true" aria-expanded="false">
-                            Action
-                        </button>
-                        <div class="dropdown-menu bg-danger text-light">
-
-
-                            <a class="dropdown-item"
-                               onclick="showModalEdition('{% url 'sales:json_product_edit' product.id %}')">
-                                <i class="fas fa-edit"></i> Editar</a>
-                            <a class="dropdown-item quantity-on-hand" pk="{{ product.id }}">
-                                <i class="fas fa-sync-alt"></i> Inventario inicial (Cantidad a la mano)</a>
-                            <a class="dropdown-item get-kardex" pk="{{ product.id }}">
-                                <i class="fas fa-sync-alt"></i> Ver kardex</a>
-                            <a class="dropdown-item get-product-detail" pk="{{ product.id }}">
-                                <i class="fas fa-sync-alt"></i> Ver presentaciones</a>
-                            <a href="{% url 'sales:product_print_one' product.id %}" target="print"
-                               class="dropdown-item text-light"><span class="fa fa-print"></span> print</a>
-                            <a class="dropdown-item btn-product-recipe" pk="{{ product.id }}">
-                                <i class="fas fa-adjust"></i> Recetas</a>
+                        <div class="row flex-fill">
+                            <div class="col d-flex justify-content-center align-items-center">Stock en sedes</div>
+                        </div>
+                        <div class="row flex-fill">
+                            <div class="col-4 border-top d-flex justify-content-center align-items-center">Sede</div>
+                            <div class="col-4 border-left border-top d-flex justify-content-center align-items-center">
+                                Almacen
+                            </div>
+                            <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">
+                                Stock
+                            </div>
+                            <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">
+                                Kardex
+                            </div>
                         </div>
                     </div>
+                    <div class="col-2 border d-flex flex-column">
+                        <div class="row flex-fill">
+                            <div class="col d-flex justify-content-center align-items-center">Unidades</div>
+                        </div>
+                        <div class="row flex-fill">
+{#                            <div class="col-2 border-top d-flex justify-content-center align-items-center">Abrev.</div>#}
+                            <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">
+                                Unidad
+                            </div>
+                            <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">
+                                P.C.U
+                            </div>
+                            <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">
+                                P.V.U
+                            </div>
+                            <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">
+                                C/Min
+                            </div>
+                        </div>
+                    </div>
+{#                    <div class="col-2 border d-flex flex-column">#}
+{#                        <div class="row flex-fill">#}
+{#                            <div class="col d-flex justify-content-center align-items-center">Insumos/Receta</div>#}
+{#                        </div>#}
+{#                        <div class="row flex-fill">#}
+{#                            <div class="col-3 border-top d-flex justify-content-center align-items-center">Prod.</div>#}
+{#                            <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">#}
+{#                                Cant.#}
+{#                            </div>#}
+{#                            <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">#}
+{#                                Unidad#}
+{#                            </div>#}
+{#                            <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">#}
+{#                                P.U#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+                    <div class="col-1 border py-3 d-flex justify-content-center align-items-center">UPDATE</div>
                 </div>
             </div>
-            {% endfor %}
-</div>
+            <div class="container-fluid table-like rem-120 p-0">
+
+                {% for product in products %}
+                    <div class="row w-100 border-top border-dark m-0">
+                        <div class="col-1 border id d-flex justify-content-center align-items-center"
+                             data-sort-value="original-order">{{ product.code }}</div>
+                        <div class="col border text-break search-field name d-flex justify-content-center align-items-center table-warning font-weight-bold">{{ product.name }}</div>
+                        {#                <div class="col border text-break search-field subcategory d-flex justify-content-center align-items-center">{{ product.product_subcategory.name }}</div>#}
+                        <div class="col-1 border text-break search-field category d-flex justify-content-center align-items-center">{{ product.product_subcategory.product_category.name }}</div>
+                        <div class="col-1 border details">
+                            <address class="text-left">
+                                <strong>Codigo: {{ product.code }}</strong><br>
+                                Stock Minimo: <i>{{ product.stock_min }}</i><br>
+                                Stock Maximo: <i>{{ product.stock_max }}</i><br>
+                                Familia, {{ product.product_family.name }}<br>
+                                Marca, {{ product.product_brand.name }}<br>
+                            </address>
+                        </div>
+                        <div class="col-3 border stock d-flex flex-column">
+
+                            {% for product_store in product.productstore_set.all %}
+                                <div class="row flex-fill">
+                                    <div class="col-4 border-top d-flex justify-content-center align-items-center text-center">{{ product_store.subsidiary_store.subsidiary.name }}</div>
+                                    <div class="col-4 border-left border-top d-flex justify-content-center align-items-center">{{ product_store.subsidiary_store.name }}</div>
+                                    <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">
+                                        {{ product_store.stock|safe }}{% if product.id == 9 %} (
+                                            {{ product_store.conversion_mml_g_stock|floatformat:2 }}
+                                            gl){% endif %}</div>
+                                    <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">{{ product_store.last_remaining_quantity|default:"-"|safe }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-2 border units d-flex flex-column">
+
+                            {% for product_detail in product.productdetail_set.all %}
+                                <div class="row flex-fill">
+{#                                    <div class="col-2 border-top d-flex justify-content-center align-items-center">{{ product_detail.unit.name }}</div>#}
+                                    <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">{{ product_detail.unit.description }}</div>
+                                    <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">{{ product_detail.price_purchase|safe }}</div>
+                                    <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">{{ product_detail.price_sale|safe }}</div>
+                                    <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">{{ product_detail.quantity_minimum|safe }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+{#                        <div class="col-2 border recipes d-flex flex-column">#}
+{##}
+{##}
+{#                            {% for product_recipe in product.recipes.all %}#}
+{#                                <div class="row flex-fill">#}
+{#                                    <div class="col-3 border-top d-flex justify-content-center align-items-center">{{ product_recipe.product_input.name }}</div>#}
+{#                                    <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">{{ product_recipe.quantity|safe }}</div>#}
+{#                                    <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">{{ product_recipe.unit.description }}</div>#}
+{#                                    <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">{{ product_recipe.price|safe }}</div>#}
+{#                                </div>#}
+{#                            {% endfor %}#}
+{##}
+{#                        </div>#}
+                        <div class="col-1 border update d-flex justify-content-center align-items-center">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown"
+                                        aria-haspopup="true" aria-expanded="false">
+                                    Action
+                                </button>
+                                <div class="dropdown-menu bg-danger text-light">
+
+
+                                    <a class="dropdown-item"
+                                       onclick="showModalEdition('{% url 'sales:json_product_edit' product.id %}')">
+                                        <i class="fas fa-edit"></i> Editar</a>
+                                    <a class="dropdown-item quantity-on-hand" pk="{{ product.id }}">
+                                        <i class="fas fa-sync-alt"></i> Inventario inicial (Cantidad a la mano)</a>
+                                    <a class="dropdown-item get-kardex" pk="{{ product.id }}">
+                                        <i class="fas fa-sync-alt"></i> Ver kardex</a>
+                                    <a class="dropdown-item get-product-detail" pk="{{ product.id }}">
+                                        <i class="fas fa-sync-alt"></i> Ver presentaciones</a>
+{#                                    <a href="{% url 'sales:product_print_one' product.id %}" target="print"#}
+{#                                       class="dropdown-item text-light"><span class="fa fa-print"></span> print</a>#}
+{#                                    <a class="dropdown-item btn-product-recipe" pk="{{ product.id }}">#}
+{#                                        <i class="fas fa-adjust"></i> Recetas</a>#}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
 
         </div>
 

@@ -10,6 +10,7 @@
                     <th class="th-sm">Fecha de Registro</th>
                     <th class="th-sm">Fechas de Entrega</th>
                     <th class="th-sm">Status</th>
+                    <th class="th-sm">Observaciones</th>
                 </tr>
                 </thead>
                 <tbody style="font-size: 13px;">
@@ -20,11 +21,20 @@
                         <td class="align-middle">{{ c.client.names }}</td>
                         <td class="align-middle">{{ c.register_date|date:'d-m-Y' }}</td>
                         <td class="align-middle text-center">
-                            <table class="table table-bordered table-sm" style="background-color: #bfdecb">
+                            <table class="table table-bordered table-sm" style="background-color: #bfdecb; font-size: 11px">
+                                <thead>
+                                <tr class="text-center font-weight-bold text-uppercase bg-light align-middle">
+                                    <th class="th-sm" style="width: 5%">cuota</th>
+                                    <th class="th-sm" style="width: 10%">Fecha</th>
+                                    <th class="th-sm" style="width: 10%">O/C</th>
+                                    <th class="th-sm" style="width: 45%">Producto</th>
+                                    <th class="th-sm" style="width: 30%">Accion</th>
+                                </tr>
+                                </thead>
                                 <tbody>
                                 {% for d in c.contractdetail_set.all %}
                                     <tr class="text-center" pk="{{ c.id }}">
-                                        <td class="align-middle">{{ forloop.counter }}</td>
+                                        <td class="align-middle font-weight-bold">{{ d.nro_quota|default_if_none:'-' }}</td>
                                         <td class="align-middle font-weight-bold">
                                             <i class="fas fa-calendar-alt"></i> {{ d.date|date:'d-m-Y' }}
                                         </td>
@@ -32,8 +42,21 @@
                                             {% if d.purchase_set.all %}
                                                 <span class="font-weight-bold">{{ d.purchase_set.all.last.bill_number }}</span>
                                             {% else %}
-                                                 -
+                                                -
                                             {% endif %}
+                                        </td>
+                                        <td>
+                                            <table class="table table-borderless table-sm"
+                                                   style="background-color: #bfdecb">
+                                                <tbody>
+                                                {% for e in d.contractdetailitem_set.all %}
+                                                    <tr class="p-0 m-0">
+                                                        <td class="align-middle text-right p-0 m-0">{{ e.quantity|safe }}</td>
+                                                        <td class="align-middle text-center p-0 m-0">{{ e.product.name }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
                                         </td>
                                         <td class="align-middle">
                                             {% if d.purchase_set.all %}
@@ -45,12 +68,6 @@
                                                    href="{% url 'buys:buy_list' d.id %}">
                                                     <i class="fas fa-money-check-alt"></i> Generar Orden de Compra</a>
                                             {% endif %}
-
-                                            {#                                            <button type="button"#}
-                                            {#                                                    class="btn btn-warning btn-sm item-oc font-weight-bold"#}
-                                            {#                                                    pk="{{ d.id }}"><i class="fas fa-money-check-alt"></i> Generar Orden#}
-                                            {#                                                de compra#}
-                                            {#                                            </button>#}
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -58,6 +75,7 @@
                             </table>
                         </td>
                         <td class="align-middle">{{ c.get_status_display }}</td>
+                        <td class="align-middle">{{ c.observation|default_if_none:'-'|upper }}</td>
                         {#                        <td class="align-middle">#}
                         {#                            <button type="button" class="btn btn-warning btn-sm item-edit"#}
                         {#                                    pk="{{ c.id }}"><i class="fa fa-pencil-alt fa-1x"></i>#}

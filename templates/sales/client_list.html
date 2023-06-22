@@ -1,92 +1,100 @@
 {% extends 'home.html' %}
 
 {% block title %}
-    coronasoft.dev | Clientes
+    Clientes
 {% endblock title %}
 
 {% block body %}
     <div class="container-fluid">
-
-
-        <div id="client-grid-list">{% include "sales/client_grid_list.html" %}</div>
-
-    </div>
-
-
-    <div class="modal" id="modal-option" tabindex="-1" role="dialog">
-
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header pb-2 pt-2">
-                    <h5 class="modal-title">Elija una Opcion:</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+        <div class="card p-2">
+            <div class="row">
+                <div class="col-lg-2 pt-3 ml-3">
+                    <button type="button" onclick="showModalView('modal_client_create')"
+                            class="btn btn-outline-success btn-sm"><i class="nav-icon fas fa-user-plus"></i>
+                        NUEVO CLIENTE
                     </button>
                 </div>
-
-                {% include "sales/client_option.html" with document_types=document_types districts=districts %}
-
+                <div class="col-lg-8 text-center pt-2">
+                    <h2 class="font-weight-bold"> LISTADO DE CLIENTES</h2>
+                </div>
             </div>
-        </div>
 
-    </div>
-
-
-    <div class="modal" id="modal_client" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">REGISTRO DE UN NUEVO CLIENTE</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-                <form id="new-client-form" action="{% url 'sales:new_client' %}" method="POST">
-
-                    <div class="modal-body">
-                        {% include "sales/client_form.html" with document_types=document_types districts=districts %}
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Salir</button>
-                        {#                        <button type="submit" id="btn-save" class="btn btn-primary">Guardar Cambios</button>#}
-                        <button type="button" id="btn-save-client" class="btn btn-primary">Guardar Cambios</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="modal_client_associate" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Cliente asociado</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-                <form id="new-client-associate-form">
-                    {% csrf_token %}
-                    <div class="modal-body">
-                        {% include "sales/client_associate_form.html" with subsidiaries=subsidiaries %}
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Salir</button>
-                        <button type="button" id="btn-save-associate" class="btn btn-primary">Guardar Cambios</button>
-                    </div>
-                </form>
+            <div class="card-body p-2">
+                <div id="client-grid-list">{% include "sales/client_grid_list.html" %}</div>
             </div>
         </div>
     </div>
 
 
+    {#    <div class="modal" id="modal-option" tabindex="-1" role="dialog">#}
+    {##}
+    {#        <div class="modal-dialog modal-dialog-centered">#}
+    {#            <div class="modal-content">#}
+    {#                <div class="modal-header pb-2 pt-2">#}
+    {#                    <h5 class="modal-title">Elija una Opcion:</h5>#}
+    {#                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
+    {#                        <span aria-hidden="true">&times;</span>#}
+    {#                    </button>#}
+    {#                </div>#}
+    {#                {% include "sales/client_option.html" with document_types=document_types districts=districts %}#}
+    {#            </div>#}
+    {#        </div>#}
+    {##}
+    {#    </div>#}
 
 
+    {#    <div class="modal" id="modal_client" tabindex="-1" role="dialog">#}
+    {#        <div class="modal-dialog modal-lg">#}
+    {#            <div class="modal-content">#}
+    {#                <div class="modal-header">#}
+    {#                    <h5 class="modal-title">REGISTRO DE UN NUEVO CLIENTE</h5>#}
+    {#                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
+    {#                        <span aria-hidden="true">&times;</span>#}
+    {#                    </button>#}
+    {#                </div>#}
+    {##}
+    {#                <form id="new-client-form" action="{% url 'sales:new_client' %}" method="POST">#}
+    {#                    <div class="modal-body">#}
+    {#                        {% include "sales/client_form.html" %}#}
+    {#                    </div>#}
+    {##}
+    {#                    <div class="modal-footer">#}
+    {#                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Salir</button>#}
+    {#                        <button type="submit" id="btn-save" class="btn btn-primary">Guardar Cambios</button>#}
+    {#                        <button type="button" id="btn-save-client" class="btn btn-primary">Guardar Cambios</button>#}
+    {#                    </div>#}
+    {#                </form>#}
+    {#            </div>#}
+    {#        </div>#}
+    {#    </div>#}
 
+    {#    <div class="modal" id="modal_client_associate" tabindex="-1" role="dialog">#}
+    {#        <div class="modal-dialog">#}
+    {#            <div class="modal-content">#}
+    {#                <div class="modal-header">#}
+    {#                    <h5 class="modal-title">Cliente asociado</h5>#}
+    {#                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
+    {#                        <span aria-hidden="true">&times;</span>#}
+    {#                    </button>#}
+    {#                </div>#}
+    {##}
+    {#                <form id="new-client-associate-form">#}
+    {#                    {% csrf_token %}#}
+    {#                    <div class="modal-body">#}
+    {#                        {% include "sales/client_associate_form.html" with subsidiaries=subsidiaries %}#}
+    {#                    </div>#}
+    {##}
+    {#                    <div class="modal-footer">#}
+    {#                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Salir</button>#}
+    {#                        <button type="button" id="btn-save-associate" class="btn btn-primary">Guardar Cambios</button>#}
+    {#                    </div>#}
+    {#                </form>#}
+    {#            </div>#}
+    {#        </div>#}
+    {#    </div>#}
+    <div class="modal fade" id="modal-client-create" tabindex="-1" role="dialog"
+         aria-labelledby="ModalHelpTitle"
+         aria-hidden="true"></div>
 
 {% endblock body %}
 
@@ -128,6 +136,21 @@
             $(this).css("background-color", "#6c757d");
         });
 
+        function showModalView(route) {
+            $.ajax({
+                url: '/sales/' + route + '/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': 1},
+                success: function (response) {
+                    $('#modal-client-create').html(response.form);
+                    $('#modal-client-create').modal('show');
+                },
+                fail: function (response) {
+                    toastr.error('Error en la petición', '¡Mensaje!');
+                }
+            });
+        }
 
         $(document).on('click', '#btn-save-client', function (e) {
             e.preventDefault();
@@ -226,7 +249,7 @@
                         toastr.success(response.message, '¡Bien hecho!');
                         setTimeout(() => {
                             location.reload();
-                        }, 1000);
+                        }, 500);
                     }
                 },
                 error: function (jqXhr, textStatus, xhr) {
@@ -235,85 +258,6 @@
                 }
             });
         });
-
-
-        /*$("#new-client-form").submit(function (event) {
-
-            let _document_number = $('#document_number').val();
-            let _names = $('#names').val();
-            let _address = $('#address').val();
-            if (sessionStorage.getItem('document') === '01') {
-                if (_document_number.length !== 8) {
-                    toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
-                    return false;
-                }
-                if (_names.length === 0) {
-                    toastr.warning('¡Favor de completar los Nombres', 'Error de Datos!');
-                    return false;
-                }
-            } else {
-                if (sessionStorage.getItem('document') === '06') {
-                    if (_document_number.length !== 11) {
-                        toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
-                        return false;
-                    }
-                    if (_names.length === 0) {
-                        toastr.warning('¡Favor de completar la Razon Social', 'Error de Datos!');
-                        return false;
-                    }
-                    if (_address.length === 0) {
-                        toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
-                        return false;
-                    }
-                }
-                if (sessionStorage.getItem('document') === '00') {
-                    if (_document_number.length === 0) {
-                        toastr.warning('¡Favor de seleccionar un tipo!', 'Error de Datos');
-                        return false;
-                    }
-                    if (_names.length === 0) {
-                        toastr.warning('¡Favor de completar la Nombre o Razon Social', 'Error de Datos!');
-                        return false;
-                    }
-                    if (_address.length === 0) {
-                        toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
-                        return false;
-                    }
-                }
-            }
-            if ($('#id_type_client').val() === '0') {
-                toastr.warning('¡SELECCIONE EL TIPO DE CLIENTE!', 'Error de Datos!');
-                return false;
-            }
-            event.preventDefault();
-            let data = new FormData($('#new-client-form').get(0));
-            $("#btn-save").attr("disabled");
-            $.ajax({
-
-                url: $(this).attr('action'),
-                type: $(this).attr('method'),
-                data: data,
-                cache: false,
-                processData: false,
-                contentType: false,
-                success: function (response, textStatus, xhr) {
-                    if (response.success) {
-                        toastr.success(response.message, '¡Bien hecho!');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1000);
-                    }
-                },
-                error: function (jqXhr, textStatus, xhr) {
-                    console.log(jqXhr);
-                    toastr.error('Error', '¡Ocurrio un error!');
-                }
-            });//end ajax
-
-            $("#btn-save").removeAttr("disabled");
-            $('#modal_client').modal('hide');
-
-        }); //end submit*/
 
         $("#btn-save-associate").click(function (event) {
 

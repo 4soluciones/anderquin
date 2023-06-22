@@ -22,75 +22,103 @@
         </tr>
         </thead>
         <tbody id="details-table">
-
-        <tr class="" product="" unit_id="">
-            <td class="item-numero align-middle text-center">1</td>
-            <td class="align-middle text-left product-item-table">
-                {#                <div class="btn-group">#}
-                <input type="text"
-                       class="form-control text-uppercase product-table dropdown-toggle"
-                       data-toggle="dropdown" aria-expanded="false"
-                       placeholder="Ingrese producto...">
-                <div class="dropdown-menu"></div>
-                {#                </div>#}
-            </td>
-            {#            <td class="align-middle brand">#}
-            {#                <input type="text" class="form-control text-center text-uppercase brand-product" id="brand_id"#}
-            {#                       name="brand" readonly>#}
-            {#            </td>#}
-            <td class="align-middle unit">
-                {#                <input type="text" class="form-control text-center text-uppercase unit-product" id="unit_product_id"#}
-                {#                       name="unit-product" readonly>#}
-                <select class="form-control unit-product" id="id_unit_product" name="unit_product" required>
-                    <option value="0">Seleccione</option>
-                </select>
-            </td>
-            <td class="align-middle quantity-minimum">
-                <input type="text" class="form-control text-center quantity-minimum" readonly>
-            </td>
-            <td class="align-middle item-quantity">
-                <input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">
-            </td>
-            <td class="align-middle item-quantity-x-unit">
-                <input type="text" class="form-control text-center quantity-x-unit text-uppercase" readonly>
-            </td>
-            <td class="item-price text-right align-middle">
-                <div class="input-icon">
-                    <input type="text" class="form-control text-right text-uppercase price-unit-product"
-                           placeholder="0.00">
-                    <i class="change-money">S/</i>
-                </div>
-            </td>
-            {#            <td class="item-discount1 text-right align-middle">#}
-            {#                <input type="text" class="form-control text-right text-uppercase discount1" placeholder="0.00">#}
-            {#            </td>#}
-            {#            <td class="item-discount2 text-right align-middle">#}
-            {#                <input type="text" class="form-control text-right text-uppercase discount2" placeholder="0.00">#}
-            {#            </td>#}
-            {#            <td class="item-discount3 text-right align-middle">#}
-            {#                <input type="text" class="form-control text-right text-uppercase discount3" placeholder="0.00">#}
-            {#            </td>#}
-            {#            <td class="item-discount4 text-right align-middle">#}
-            {#                <input type="text" class="form-control text-right text-uppercase discount4" placeholder="0.00">#}
-            {#            </td>#}
-            <td class="item-total text-right align-middle total-row">
-                <div class="input-icon">
-                    <input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">
-                    <i class="change-money">S/</i>
-                </div>
-            </td>
-            {#            <td class="item-check text-center align-middle">#}
-            {#                <div class="form-check">#}
-            {#                    <input class="form-check-input position-static check-kardex" type="checkbox" value="" checked>#}
-            {#                </div>#}
-            {#            </td>#}
-            <td class="align-middle">
-        </tr>
-
+        {% if contract_detail_obj %}
+            {% for c in contract_dict %}
+                <tr class="" product="{{ c.product_id }}" unit_id="">
+                    <td class="item-numero align-middle text-center">{{ c.counter }}</td>
+                    <td class="align-middle text-left product-item-table">
+                        <input type="text"
+                               class="form-control text-uppercase product-table dropdown-toggle"
+                               data-toggle="dropdown" aria-expanded="false"
+                               placeholder="Ingrese producto..."
+                               value="{{ c.product_name }}"
+                               disabled>
+                        <div class="dropdown-menu"></div>
+                    </td>
+                    <td class="align-middle unit">
+                        <select class="form-control unit-product" id="id_unit_product" name="unit_product" required>
+                            <option value="0">Seleccione</option>
+                            {% for u in c.units %}
+                                <option value="{{ u.id }}">{{ u.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td class="align-middle quantity-minimum">
+                        <input type="text" class="form-control text-center quantity-minimum" readonly>
+                    </td>
+                    <td class="align-middle item-quantity">
+                        <input type="text"
+                               class="form-control text-center quantity-product text-uppercase"
+                               placeholder="0"
+                               value="{{ c.quantity|safe }}"
+                               readonly>
+                    </td>
+                    <td class="align-middle item-quantity-x-unit">
+                        <input type="text" class="form-control text-center quantity-x-unit text-uppercase" readonly>
+                    </td>
+                    <td class="item-price text-right align-middle">
+                        <div class="input-icon">
+                            <input type="text" class="form-control text-right text-uppercase price-unit-product"
+                                   placeholder="0.00">
+                            <i class="change-money">S/</i>
+                        </div>
+                    </td>
+                    <td class="item-total text-right align-middle total-row">
+                        <div class="input-icon">
+                            <input type="text" class="form-control text-right text-uppercase total-detail"
+                                   placeholder="0.00">
+                            <i class="change-money">S/</i>
+                        </div>
+                    </td>
+                    <td class="align-middle">
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr class="" product="" unit_id="">
+                <td class="item-numero align-middle text-center">1</td>
+                <td class="align-middle text-left product-item-table">
+                    <input type="text"
+                           class="form-control text-uppercase product-table dropdown-toggle"
+                           data-toggle="dropdown" aria-expanded="false"
+                           placeholder="Ingrese producto...">
+                    <div class="dropdown-menu"></div>
+                </td>
+                <td class="align-middle unit">
+                    <select class="form-control unit-product" id="id_unit_product" name="unit_product" required>
+                        <option value="0">Seleccione</option>
+                    </select>
+                </td>
+                <td class="align-middle quantity-minimum">
+                    <input type="text" class="form-control text-center quantity-minimum" readonly>
+                </td>
+                <td class="align-middle item-quantity">
+                    <input type="text"
+                           class="form-control text-center quantity-product text-uppercase"
+                           placeholder="0">
+                </td>
+                <td class="align-middle item-quantity-x-unit">
+                    <input type="text" class="form-control text-center quantity-x-unit text-uppercase" readonly>
+                </td>
+                <td class="item-price text-right align-middle">
+                    <div class="input-icon">
+                        <input type="text" class="form-control text-right text-uppercase price-unit-product"
+                               placeholder="0.00">
+                        <i class="change-money">S/</i>
+                    </div>
+                </td>
+                <td class="item-total text-right align-middle total-row">
+                    <div class="input-icon">
+                        <input type="text" class="form-control text-right text-uppercase total-detail"
+                               placeholder="0.00">
+                        <i class="change-money">S/</i>
+                    </div>
+                </td>
+                <td class="align-middle">
+            </tr>
+        {% endif %}
         </tbody>
 
         <tfoot id="details-table-foot">
-
         <tr>
             <td class="border-0" colspan="2"></td>
 

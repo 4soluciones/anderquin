@@ -2402,9 +2402,28 @@ def get_purchases_by_provider_category(request):
 
 def get_buy_list(request, contract_detail=None):
     contract_detail_obj = None
+    contract_detail_item_set = None
+    contract_dict = []
     if contract_detail is not None:
         contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail))
-        contract_obj = contract_detail_obj.contract
+        contract_detail_item_set = ContractDetailItem.objects.filter(contract_detail__id=contract_detail)
+        for counter, d in enumerate(contract_detail_item_set, start=1):
+            item_contract = {
+                'contract_detail_id': d.contract_detail.id,
+                'id': d.id,
+                'product_id': d.product.id,
+                'product_name': d.product.name,
+                'quantity': d.quantity,
+                'counter': counter,
+                'units': []
+            }
+            for u in Unit.objects.filter(productdetail__product__id=d.product.id).all():
+                item_units = {
+                    'id': u.id,
+                    'name': u.name,
+                }
+                item_contract.get('units').append(item_units)
+            contract_dict.append(item_contract)
     supplier_obj = Supplier.objects.all()
     product_obj = Product.objects.all()
     unitmeasurement_obj = Unit.objects.all()
@@ -2421,6 +2440,8 @@ def get_buy_list(request, contract_detail=None):
         'client_set': Client.objects.all(),
         'subsidiary_set': Subsidiary.objects.all().order_by('id'),
         'contract_detail_obj': contract_detail_obj,
+        'contract_detail_item_set': contract_detail_item_set,
+        'contract_dict': contract_dict,
     })
 
 
@@ -2874,6 +2895,7 @@ def save_contract(request):
         data_contract = json.loads(contract_request)
 
         number_contract = str(data_contract["number_contract"])
+        observation = str(data_contract["observation"])
         register_date = str(data_contract["register_date"])
         client = data_contract["client"]
 
@@ -2881,20 +2903,32 @@ def save_contract(request):
 
         contract_obj = Contract(
             contract_number=number_contract.upper(),
-            client=client_obj,
             register_date=register_date,
+            client=client_obj,
+            observation=observation,
             subsidiary=subsidiary_obj,
         )
         contract_obj.save()
 
         for c in data_contract['dates']:
             date_quota = str(c['date_quota'])
+            nro_quota = c['nro_quota']
             contract_detail_obj = ContractDetail(
                 contract=contract_obj,
+                nro_quota=nro_quota,
                 date=date_quota,
             )
             contract_detail_obj.save()
-
+            for i in c['items']:
+                product = i['product']
+                quantity = i['quantity']
+                product_obj = Product.objects.get(id=int(product))
+                contract_detail_item_obj = ContractDetailItem(
+                    quantity=quantity,
+                    product=product_obj,
+                    contract_detail=contract_detail_obj
+                )
+                contract_detail_item_obj.save()
         return JsonResponse({
             'success': True,
             'message': 'Contrato Registrado',

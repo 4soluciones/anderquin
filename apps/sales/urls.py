@@ -160,5 +160,6 @@ urlpatterns = [
 
     # CLIENT
     path('client_save/', login_required(client_save), name='client_save'),
+    path('modal_client_create/', login_required(modal_client_create), name='modal_client_create'),
 ]
 

@@ -122,8 +122,9 @@ class PurchaseDetail(models.Model):
     id = models.AutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.DecimalField('Cantidad comprada', max_digits=10, decimal_places=2, default=0)
+    quantity_entered = models.DecimalField('Cantidad Ingresada', max_digits=10, decimal_places=2, default=0)
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
-    price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=15, default=0)
+    price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=2, default=0)
 
     def __str__(self):
         return str(self.id)
@@ -342,12 +343,21 @@ class Contract(models.Model):
 class ContractDetail(models.Model):
     id = models.AutoField(primary_key=True)
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True)
+    nro_quota = models.CharField('Numero de Quota', max_length=45, null=True, blank=True)
     date = models.DateField('Fecha', null=True, blank=True)
-    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return str(self.id)
 
+
+class ContractDetailItem(models.Model):
+    id = models.AutoField(primary_key=True)
+    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    contract_detail = models.ForeignKey(ContractDetail, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.id)
 
 
 

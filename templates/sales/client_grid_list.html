@@ -1,74 +1,65 @@
 {% if clients %}
+    <div class="card-body p-2 table-responsive small">
+        <div class="table-responsive dataTables_wrapper">
+            <table id="client-data-grid" class="table table-bordered align-content-center w-100 h-100">
+                <thead>
+                <tr class="font-weight-bold text-uppercase bg-light">
+                    <th class="th-sm text-center">Nº</th>
+                    <th class="th-sm text-center">Codigo de Unidad Ejecutora</th>
+                    <th class="th-sm text-center">Nombre</th>
+                    <th class="th-sm text-center">Telefono</th>
+                    <th class="th-sm text-center">Tipo</th>
+                    <th class="th-sm text-center">Numero de Documento</th>
+                    <th class="th-sm text-center">Tipo de Cliente</th>
+                    <th class="th-sm text-center">Direccion</th>
+                    {#                        <th class="th-sm">Distrito</th>#}
+                    {#                        <th class="th-sm">Asociados</th>#}
+                    <th class="th-sm text-center">Email</th>
+                    <th class="th-sm text-center"><i class="fas fa-edit"></i></th>
+                </tr>
+                </thead>
+                <tbody style="font-size: 13px;">
+                {% for client in clients %}
+                    <tr class="text-center" pk="{{ client.id }}">
+                        <td class="align-middle">{{ forloop.counter }}</td>
+                        <td class="align-middle">{{ client.cod_siaf|default_if_none:"-"|default:"-" }}</td>
+                        <td class="align-middle">{{ client.names|upper }}</td>
+                        <td class="align-middle">{{ client.phone|default:"-" }}</td>
+                        <td class="align-middle">{{ client.clienttype_set.first.document_type.short_description }}</td>
+                        <td class="align-middle">{{ client.clienttype_set.first.document_number }}</td>
+                        <td class="align-middle font-weight-bold bg-light">{{ client.get_type_client_display|default:"-" }}</td>
 
-    <div class="card">
-        <div class="card-header p-2">
-            <a class="btn btn-outline-info mb-3 mt-3 btn-sm" data-toggle="modal"
-               data-target="#modal-option">
-                <i class="fas fa-user-plus"></i> &nbsp;NUEVO CLIENTE
-            </a>
-        </div>
-        <div class="card-body p-2 table-responsive small">
+                        <td class="align-middle text-left">
+                            {% for c in client.clientaddress_set.all %}
+                                {#                                    {{ client.clientaddress_set.first.address|upper|default_if_none:"-"|default:"-" }}#}
+                                <i class="fas fa-map-marker-alt"></i>
+                                {{ c.address|upper|default_if_none:"-"|default:"-" }}<br>
+                            {% endfor %}
+                        </td>
 
-            <div class="table-responsive dataTables_wrapper">
-                <table id="client-data-grid" class="table table-bordered align-content-center w-100 h-100">
-                    <thead>
-                    <tr class="text-center font-weight-bold text-uppercase bg-light">
-                        <th class="th-sm">Nº</th>
-                        <th class="th-sm">Siaf</th>
-                        <th class="th-sm">Nombre</th>
-                        <th class="th-sm">Telefono</th>
-                        <th class="th-sm">Tipo</th>
-                        <th class="th-sm">Numero de Documento</th>
-                        <th class="th-sm">Tipo de Cliente</th>
-                        <th class="th-sm">Direccion</th>
-                        {#                        <th class="th-sm">Distrito</th>#}
-{#                        <th class="th-sm">Asociados</th>#}
-                        <th class="th-sm">Email</th>
-                        <th class="th-sm"><i class="fas fa-edit"></i></th>
+                        {#                            <td class="align-middle">#}
+                        {#                                {% for associate in client.clientassociate_set.all %}#}
+                        {#                                    <button class="btn btn-sm btn-block btn-outline-primary">{{ associate.subsidiary.name }}</button>#}
+                        {#                                {% endfor %}#}
+                        {#                            </td>#}
+                        <td class="align-middle">{{ client.email|default:"-" }}</td>
+                        <td class="align-middle">
+                            <button type="button" class="btn btn-block btn-secondary client-edit"
+                                    pk="{{ client.id }}"><i class="fas fa-edit"></i>
+                            </button>
+                            {#                                <button type="button" class="btn btn-block btn-primary client-new-associate"#}
+                            {#                                        pk="{{ client.id }}">Asociar#}
+                            {#                                </button>#}
+                        </td>
+
                     </tr>
-                    </thead>
-                    <tbody style="font-size: 13px;">
-                    {% for client in clients %}
-                        <tr class="text-center" pk="{{ client.id }}">
-                            <td class="align-middle">{{ forloop.counter }}</td>
-                            <td class="align-middle">{{ client.cod_siaf|default_if_none:"-"|default:"-" }}</td>
-                            <td class="align-middle">{{ client.names|upper }}</td>
-                            <td class="align-middle">{{ client.phone|default:"-" }}</td>
-                            <td class="align-middle">{{ client.clienttype_set.first.document_type.short_description }}</td>
-                            <td class="align-middle">{{ client.clienttype_set.first.document_number }}</td>
-                            <td class="align-middle font-weight-bold bg-light">{{ client.get_type_client_display|default:"-" }}</td>
-
-                            <td class="align-middle text-left">
-                                {% for c in client.clientaddress_set.all %}
-{#                                    {{ client.clientaddress_set.first.address|upper|default_if_none:"-"|default:"-" }}#}
-                                    <i class="fas fa-map-marker-alt"></i> {{ c.address|upper|default_if_none:"-"|default:"-" }}<br>
-                                {% endfor %}
-                            </td>
-
-{#                            <td class="align-middle">#}
-{#                                {% for associate in client.clientassociate_set.all %}#}
-{#                                    <button class="btn btn-sm btn-block btn-outline-primary">{{ associate.subsidiary.name }}</button>#}
-{#                                {% endfor %}#}
-{#                            </td>#}
-                            <td class="align-middle">{{ client.email|default:"-" }}</td>
-                            <td class="align-middle">
-                                <button type="button" class="btn btn-block btn-secondary client-edit"
-                                        pk="{{ client.id }}"><i class="fas fa-edit"></i>
-                                </button>
-{#                                <button type="button" class="btn btn-block btn-primary client-new-associate"#}
-{#                                        pk="{{ client.id }}">Asociar#}
-{#                                </button>#}
-                            </td>
-
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 {% else %}
-    <h1>Lo sentimos, no hay registros.</h1>
+    <h1>Lo sentimos, no hay clientes registrados.</h1>
 {% endif %}
 
 

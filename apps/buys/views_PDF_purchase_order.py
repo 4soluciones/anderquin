@@ -39,6 +39,7 @@ COLOR_BLUE = colors.Color(red=(133.0 / 255), green=(180.0 / 255), blue=(242.0 / 
 
 styles = getSampleStyleSheet()
 styles.add(ParagraphStyle(name='Right', alignment=TA_RIGHT, leading=30, fontName='Square', fontSize=25))
+styles.add(ParagraphStyle(name='JustifyTitle', alignment=TA_CENTER, leading=30, fontName='Square-Bold', fontSize=25))
 styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY, leading=8, fontName='Square', fontSize=8))
 styles.add(ParagraphStyle(name='JustifySquare', alignment=TA_JUSTIFY, leading=12, fontName='Square', fontSize=8))
 styles.add(ParagraphStyle(name='LeftSquare', alignment=TA_LEFT, leading=12, fontName='Square', fontSize=13))
@@ -526,6 +527,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
 
     style_table_7 = [
         # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('BOX', (0, 0), (-1, -1), 2, colors.black),
         ('BOX', (0, 0), (1, -1), 2, colors.black),
         ('BOX', (-1, 0), (-1, -1), 2, colors.black),
@@ -555,9 +557,9 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     #     direccion = f'{reference_obj.address}'
 
     p7_7 = Paragraph(f'{purchase_obj.delivery_address}', styles["Left"])
-    p7_8 = Paragraph(f'{purchase_obj.city}', styles["Center"])
+    p7_8 = Paragraph(f'{purchase_obj.city}', styles["JustifyTitle"])
 
-    colwiths_table_7 = [_wt * 14 / 100, _wt * 1 / 100, _wt * 1 / 100, _wt * 70 / 100, _wt * 14 / 100]
+    colwiths_table_7 = [_wt * 14 / 100, _wt * 1 / 100, _wt * 1 / 100, _wt * 69 / 100, _wt * 15 / 100]
     rowwiths_table_7 = [inch * 1]
     ana_c7 = Table(
         [(p7_6, '', '', p7_7, p7_8)],
@@ -786,7 +788,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
                             leftMargin=ml,
                             topMargin=ms,
                             bottomMargin=mi,
-                            title='TICKET'
+                            title='Orden de Compra'
                             )
     doc.build(_dictionary)
     # doc.build(elements)
@@ -797,7 +799,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     #
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(ORDEN_COMPRA)
+    response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
 
     tomorrow = datetime.now() + timedelta(days=1)
     tomorrow = tomorrow.replace(hour=0, minute=0, second=0)

@@ -480,7 +480,7 @@ def client_save(request):
         if type_client == 'PU':
             public_address = str(data_client["publicAddress"])
             public_district = str(data_client["publicDistrict"])
-            district_obj = District.objects.get(id=int(public_district))
+            district_obj = District.objects.get(id=public_district)
 
             client_address_obj = ClientAddress(
                 client=client_obj,
@@ -504,6 +504,7 @@ def client_save(request):
                 client_address_obj.save()
 
         return JsonResponse({
+            'success': True,
             'message': 'Cliente Registrado',
         }, status=HTTPStatus.OK)
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
@@ -5809,3 +5810,20 @@ def save_quotation(request):
             'message': 'Cotización generada',
         }, status=HTTPStatus.OK)
 
+
+def modal_client_create(request):
+    if request.method == 'GET':
+        my_date = datetime.now()
+        date_now = my_date.strftime("%Y-%m-%d")
+
+        t = loader.get_template('sales/client_form.html')
+        c = ({
+            'date_now': date_now,
+            'districts': District.objects.all(),
+            'document_types': DocumentType.objects.all(),
+            'subsidiaries': Subsidiary.objects.all(),
+            'type_client': Client._meta.get_field('type_client').choices
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })
