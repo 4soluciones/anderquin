@@ -222,11 +222,11 @@ class Supplier(models.Model):
                       ('PE', 'PEAJES'),
                       ('O', 'OTROS'),)
     id = models.AutoField(primary_key=True)
-    name = models.CharField('Nombre', max_length=200, unique=True)
-    business_name = models.CharField('Razon social', max_length=45, null=True, blank=True)
+    name = models.CharField('Nombre', max_length=500, unique=True)
+    business_name = models.CharField('Razon social', max_length=500, null=True, blank=True)
     ruc = models.CharField('Ruc de la empresa', max_length=11, null=True, blank=True)
     phone = models.CharField('Telefono de la empresa', max_length=45, null=True, blank=True)
-    address = models.CharField('Dirección de la empresa', max_length=200, null=True, blank=True)
+    address = models.CharField('Dirección de la empresa', max_length=500, null=True, blank=True)
     email = models.EmailField('Email de la empresa', max_length=50, null=True, blank=True)
     contact_names = models.CharField('Nombres del contacto', max_length=45, null=True, blank=True)
     contact_surnames = models.CharField(
