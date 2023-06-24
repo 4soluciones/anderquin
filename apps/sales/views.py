@@ -126,6 +126,7 @@ class JsonProductCreate(CreateView):
             # use form.errors to add the error msg as a dictonary
             data['error'] = "form not valid!"
             data['form_invalid'] = form.errors
+            print(data['form_invalid'])
             # Por defecto, el primer parámetro de JsonResponse, debe ser una instancia dict.
             # Para pasar cualquier otro objeto serializable JSON, debe establecer el parámetro seguro en False.
             response = JsonResponse(data)
@@ -5827,3 +5828,93 @@ def modal_client_create(request):
         return JsonResponse({
             'form': t.render(c, request),
         })
+
+
+def modal_client_update(request):
+    if request.method == 'GET':
+        pk = request.GET.get('pk', '')
+        client_obj = None
+        if pk:
+            client_obj = Client.objects.get(id=int(pk))
+        t = loader.get_template('sales/client_update.html')
+        c = ({
+            'client_obj': client_obj,
+            'districts': District.objects.all(),
+            'type_client': Client._meta.get_field('type_client').choices,
+            'document_types': DocumentType.objects.all(),
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })
+
+
+def client_update(request):
+    if request.method == 'GET':
+        client_request = request.GET.get('client', '')
+        data_client = json.loads(client_request)
+        client_id = data_client["client_id"]
+        if client_id:
+
+            client_obj = Client.objects.get(id=int(client_id))
+            document_type = str(data_client["document_type"])
+            document_number = str(data_client["document_number"])
+            names = str(data_client["names"])
+            phone = str(data_client["phone"])
+            email = str(data_client["email"])
+            type_client = str(data_client["type_client"])
+            siaf = str(data_client["siaf"])
+
+            document_type_obj = DocumentType.objects.get(id=document_type)
+
+            client_obj.names = names.upper()
+            client_obj.phone = phone
+            client_obj.email = email
+            client_obj.cod_siaf = siaf
+            client_obj.type_client = type_client
+            client_obj.save()
+
+            client_type_obj = ClientType.objects.get(client=client_obj)
+            client_type_obj.document_type = document_type_obj
+            client_type_obj.document_number = document_number
+            client_type_obj.save()
+
+            client_to_delete = ClientAddress.objects.filter(client=client_obj)
+            client_to_delete.delete()
+
+            if type_client == 'PU':
+                public_address = str(data_client["publicAddress"])
+                public_district = str(data_client["publicDistrict"])
+                district_obj = District.objects.get(id=public_district)
+
+                client_address_obj = ClientAddress(
+                    client=client_obj,
+                    address=public_address.upper(),
+                    district=district_obj
+                )
+                client_address_obj.save()
+
+            elif type_client == 'PR':
+                for d in data_client['Addresses']:
+                    new_address = str(d['new_address'])
+                    district = str(d['district'])
+
+                    district_obj = District.objects.get(id=district)
+
+                    client_address_obj = ClientAddress(
+                        client=client_obj,
+                        address=new_address.upper(),
+                        district=district_obj
+                    )
+                    client_address_obj.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Cliente Actualizado',
+            }, status=HTTPStatus.OK)
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'No se encontro cliente, intente de nuevo',
+            }, status=HTTPStatus.OK)
+
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})

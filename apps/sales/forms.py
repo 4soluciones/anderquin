@@ -36,9 +36,9 @@ class FormProduct(forms.ModelForm):
         fields = ('name',
                   'observation', 'code', 'stock_min',
                   'stock_max', 'product_family', 'product_brand', 'photo',
-                  'barcode', 'valvule', 'product_subcategory', 'is_enabled',
-                  'is_supply', 'is_merchandise', 'is_epp', 'is_equipment',
-                  'is_machine', 'is_purchased', 'is_manufactured', 'is_imported', 'is_approved_by_osinergmin'
+                  'barcode', 'product_subcategory',
+                  'is_enabled', 'is_supply', 'is_merchandise',
+                  'is_purchased', 'is_manufactured',
                   )
         labels = {
             'name': 'Nombre',
@@ -50,18 +50,18 @@ class FormProduct(forms.ModelForm):
             'product_brand': 'Marca',
             'photo': 'Selecciona...',
             'barcode': 'Codigo de barras',
-            'valvule': 'Tipo de Valvula',
+            # 'valvule': 'Tipo de Valvula',
             'product_subcategory': 'Subcategoria',
             'is_enabled': 'Activo',
             'is_supply': 'Suministro',
             'is_merchandise': 'Mercancia',
-            'is_epp': 'EPP',
-            'is_equipment': 'Equipo',
-            'is_machine': 'Maquina',
+            # 'is_epp': 'EPP',
+            # 'is_equipment': 'Equipo',
+            # 'is_machine': 'Maquina',
             'is_purchased': 'Comprado',
             'is_manufactured': 'Fabricado',
-            'is_imported': 'Importado',
-            'is_approved_by_osinergmin': 'GLP',
+            # 'is_imported': 'Importado',
+            # 'is_approved_by_osinergmin': 'GLP',
         }
         widgets = {
             'name': forms.TextInput(
@@ -118,11 +118,11 @@ class FormProduct(forms.ModelForm):
                     'autocomplete': 'off',
                 }
             ),
-            'valvule': forms.Select(
-                attrs={
-                    'class': 'form-control form-control-sm',
-                }
-            ),
+            # 'valvule': forms.Select(
+            #     attrs={
+            #         'class': 'form-control form-control-sm',
+            #     }
+            # ),
 
             'product_subcategory': forms.Select(
                 attrs={
@@ -144,21 +144,21 @@ class FormProduct(forms.ModelForm):
                     'class': 'form-check-input',
                 }
             ),
-            'is_epp': forms.CheckboxInput(
-                attrs={
-                    'class': 'form-check-input',
-                }
-            ),
-            'is_equipment': forms.CheckboxInput(
-                attrs={
-                    'class': 'form-check-input',
-                }
-            ),
-            'is_machine': forms.CheckboxInput(
-                attrs={
-                    'class': 'form-check-input',
-                }
-            ),
+            # 'is_epp': forms.CheckboxInput(
+            #     attrs={
+            #         'class': 'form-check-input',
+            #     }
+            # ),
+            # 'is_equipment': forms.CheckboxInput(
+            #     attrs={
+            #         'class': 'form-check-input',
+            #     }
+            # ),
+            # 'is_machine': forms.CheckboxInput(
+            #     attrs={
+            #         'class': 'form-check-input',
+            #     }
+            # ),
             'is_purchased': forms.CheckboxInput(
                 attrs={
                     'class': 'form-check-input',
@@ -169,15 +169,15 @@ class FormProduct(forms.ModelForm):
                     'class': 'form-check-input',
                 }
             ),
-            'is_imported': forms.CheckboxInput(
-                attrs={
-                    'class': 'form-check-input',
-                }
-            ),
-            'is_approved_by_osinergmin': forms.CheckboxInput(
-                attrs={
-                    'class': 'form-check-input',
-                }
-            ),
+            # 'is_imported': forms.CheckboxInput(
+            #     attrs={
+            #         'class': 'form-check-input',
+            #     }
+            # ),
+            # 'is_approved_by_osinergmin': forms.CheckboxInput(
+            #     attrs={
+            #         'class': 'form-check-input',
+            #     }
+            # ),
 
         }

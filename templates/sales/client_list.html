@@ -95,6 +95,9 @@
     <div class="modal fade" id="modal-client-create" tabindex="-1" role="dialog"
          aria-labelledby="ModalHelpTitle"
          aria-hidden="true"></div>
+    <div class="modal fade" id="modal-client-update" tabindex="-1" role="dialog"
+         aria-labelledby="ModalHelpTitle"
+         aria-hidden="true"></div>
 
 {% endblock body %}
 
@@ -314,70 +317,18 @@
         });
 
         $(document).on('click', '.client-edit', function () {
-
-            $('#names').empty();
-            $('#phone').empty();
-            $('#email').empty();
-            $('#address').empty();
-            $('#reference').empty();
-            $('#document_number').empty();
-            $("#document_type").removeAttr("disabled");
-
-            let search = $(this).attr('pk');
+            let _pk = $(this).attr('pk');
             $.ajax({
-                url: '/sales/get_client/',
+                url: '/sales/modal_client_update/',
                 dataType: 'json',
                 type: 'GET',
-                data: {'pk': search},
+                data: {'pk': _pk},
                 success: function (response) {
-                    if (response.success) {
-
-                        $('#operation').val('U');
-
-                        let _client = JSON.parse(response['client_serialized']);
-                        let _client_address = JSON.parse(response['client_serialized_data_address']);
-                        let _client_type = JSON.parse(response['client_serialized_data_type']);
-                        //console.log(_client)
-
-                        if (response['client_serialized'] !== '[]') {
-                            $('#names').val(_client[0]['fields']['names']);
-                            $('#phone').val(_client[0]['fields']['phone']);
-                            $('#email').val(_client[0]['fields']['email']);
-                            $('#client_id').val(_client[0]['pk']);
-                            $('#id_type_client option[value]').removeAttr('selected');
-                            $('#id_type_client option[value="' + _client[0]['fields']['type_client'] + '"]').attr('selected', 'selected').trigger('change');
-                        }
-
-                        if (response['client_serialized_data_address'] !== '[]') {
-                            $('#address').val(_client_address[0]['fields']['address']);
-                            $('#reference').val(_client_address[0]['fields']['reference']);
-
-                            $('#id_district option[value]').removeAttr('selected');
-                            $('#id_district option[value="' + _client_address[0]['fields']['district'] + '"]').attr('selected', 'selected').trigger('change');
-                        }
-                        if (response['client_serialized_data_type'] !== '[]') {
-                            let _document = _client_type[0]['fields']['document_type']
-                            $('#document_number').val(_client_type[0]['fields']['document_number']);
-                            $('#document_type option[value="' + _document + '"]').attr('selected', 'selected');
-                            sessionStorage.setItem('document', _document);
-                            if (_document === '01') {
-                                $("#document_number").attr('maxlength', 8);
-                                $("#document_number").attr('size', 8);
-                            } else {
-                                if (_document === '06') {
-                                    $("#document_number").attr('maxlength', 11);
-                                    $("#document_number").attr('size', 11);
-                                }
-                            }
-
-                        }
-
-
-                        $('#modal_client').modal('show');
-                    }
+                    $('#modal-client-update').html(response.form);
+                    $('#modal-client-update').modal('show');
                 },
                 fail: function (response) {
-                    console.log(response);
+                    toastr.error('Error en la peticion', '¡Mensaje!');
                 }
             });
         });

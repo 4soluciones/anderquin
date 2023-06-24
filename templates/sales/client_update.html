@@ -1,0 +1,411 @@
+{% load static %}
+<div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+        <div id="modal-loader" class="overlay" style="display: none">
+            <i class="fas fa-3x fa-sync fa-spin"></i>
+        </div>
+        <div class="modal-header bg-light">
+            <h6 class="modal-title">ACTUALIZAR CLIENTE:</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <input type="hidden" class="form-control" id="client_id" name="client-id" value="{{ client_obj.id }}">
+
+        <div class="modal-body p-2">
+            <div class="card">
+                <div class="card-body bg-light">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="document_type">Documento:</label>
+                                    <select class="form-control" id="document_type" name="document_type">
+                                        {#                                        <option value="00">Seleccionar</option>#}
+                                        {% if client_obj.clienttype_set.last.document_type.id == '01' %}
+                                            <option selected value="01">DNI</option>
+                                            <option value="06">RUC</option>
+                                        {% elif client_obj.clienttype_set.last.document_type.id == '06' %}
+                                            <option selected value="06">RUC</option>
+                                            <option value="01">DNI</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="document_number">Numero de Documento:</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="document_number"
+                                               name="document_number" autocomplete="off"
+                                               placeholder=""
+                                               value="{{ client_obj.clienttype_set.last.document_number }}">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-warning btn-sm" id="btn-nro-client" type="button">
+                                                <i class="fas fa-search fa-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row dni">
+                                <div class="col-lg-12">
+                                    <label class="mb-1 mt-1 font-weight-light" for="names">Nombres / Razon
+                                        Social:</label>
+                                    <input type="text" class="form-control" id="names" autocomplete="off"
+                                           name="names" value="{{ client_obj.names }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <label class="mb-1 mt-2 font-weight-light" for="phone">Telefono:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-phone"></i>
+                                            </span>
+                                        </div>
+                                        <input type="text" class="form-control"
+                                               id="phone" name="phone" value="{{ client_obj.phone }}">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label for="email" class="mb-1 mt-2 font-weight-light">Correo:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-envelope"></i>
+                                            </span>
+                                        </div>
+                                        <input type="email" class="form-control"
+                                               placeholder="" id="email" name="email" value="{{ client_obj.email }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 col-md-6 col-lg-6">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="id_type_client">Tipo de cliente:</label>
+                                    <select class="form-control" id="id_type_client" name="type_client">
+                                        <option value="0">Seleccionar</option>
+                                        {% for t in type_client %}
+                                            {% if client_obj.type_client == t.0 %}
+                                                <option selected value="{{ t.0 }}">{{ t.1 }}</option>
+                                            {% else %}
+                                                <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-sm-6 col-md-6 col-lg-6 siaf d-none">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="cod_siaf">CODIGO DE UNIDAD EJECUTORA (SIAF):</label>
+                                    <input type="text" class="form-control" id="cod_siaf" name="siaf"
+                                           value="{{ client_obj.cod_siaf|default_if_none:'-' }}">
+                                </div>
+                                {#            <div class="col-sm-6 col-md-6 col-lg-6">#}
+                                {#                <label class="mb-1 mt-1 font-weight-light"#}
+                                {#                       for="id_district">Seleccione distrito</label>#}
+                                {#                <select id="id_district" name="id_district" class="form-control">#}
+                                {#                    <option value="0">Seleccionar</option>#}
+                                {#                    {% for district in districts %}#}
+                                {#                        <option value="{{ district.id }}">{{ district.description }}</option>#}
+                                {#                    {% endfor %}#}
+                                {#                </select>#}
+                                {#            </div>#}
+                            </div>
+                            {% if client_obj.type_client == 'PU' %}
+                                {% for d in client_obj.clientaddress_set.all %}
+                                    <div class="row public">
+                                        <div class="col-sm-9 col-md-9 col-lg-9 pr-0">
+                                            <label class="mb-1 mt-2 font-weight-light" for="address">Dirección de
+                                                Cliente:</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i
+                                                            class="fas fa-address-card"></i></span>
+                                                </div>
+                                                <input type="text" class="form-control" id="address" autocomplete="off"
+                                                       name="address" placeholder="Dirección" value="{{ d.address }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3 col-md-3 col-lg-3 pl-1">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="id_district">Seleccione distrito:</label>
+                                            <select id="id_district" name="id_district" class="form-control">
+                                                {#                                                <option value="0">Seleccionar</option>#}
+                                                {% if d.district.id == '200901' %}
+                                                    <option value="200901">JULIACA</option>
+                                                {% elif d.district.id == '200101' %}
+                                                    <option value="200101">PUNO</option>
+                                                {% elif d.district.id == '040101' %}
+                                                    <option value="040101">AREQUIPA</option>
+                                                {% elif d.district.id == '220101' %}
+                                                    <option value="220101">TACNA</option>
+                                                {% elif d.district.id == '070101' %}
+                                                    <option value="070101">CUSCO</option>
+                                                {% endif %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row private d-none main">
+                                        <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
+                                            <label class="mb-1 mt-2 font-weight-light" for="new_address">Dirección del
+                                                Cliente:</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i
+                                                            class="fas fa-address-card"></i></span>
+                                                </div>
+                                                <input type="text" class="form-control new-address" id="new_address"
+                                                       autocomplete="off"
+                                                       name="address" value="{{ d.address }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="id_district2">Seleccione distrito:</label>
+                                            <select id="id_district2" name="id_district2" class="form-control district">
+                                                <option value="0">Seleccionar</option>
+                                                <option value="200901">JULIACA</option>
+                                                <option value="200101">PUNO</option>
+                                                <option value="040101">AREQUIPA</option>
+                                                <option value="220101">TACNA</option>
+                                                <option value="070101">CUSCO</option>
+                                                {#                    {% for district in districts %}#}
+                                                {#                        <option value="{{ district.id }}">{{ district.description }}</option>#}
+                                                {#                    {% endfor %}#}
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="id-add-new-addressee">&nbsp;</label>
+                                            <button type="button" class="btn btn-outline-success btn-block"
+                                                    id="id-add-new-addressee">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% elif client_obj.type_client == 'PR' %}
+                                {% for d in client_obj.clientaddress_set.all %}
+                                    <div class="row private main">
+                                        <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
+                                            <label class="mb-1 mt-2 font-weight-light" for="new_address">Dirección del
+                                                Cliente:</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i
+                                                            class="fas fa-address-card"></i></span>
+                                                </div>
+                                                <input type="text" class="form-control new-address" id="new_address"
+                                                       autocomplete="off"
+                                                       name="address" value="{{ d.address }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="id_district2">Seleccione distrito:</label>
+                                            <select id="id_district2" name="id_district2" class="form-control district">
+                                                {% if d.district.id == '200901' %}
+                                                    <option value="200901">JULIACA</option>
+                                                {% elif d.district.id == '200101' %}
+                                                    <option value="200101">PUNO</option>
+                                                {% elif d.district.id == '040101' %}
+                                                    <option value="040101">AREQUIPA</option>
+                                                {% elif d.district.id == '220101' %}
+                                                    <option value="220101">TACNA</option>
+                                                {% elif d.district.id == '070101' %}
+                                                    <option value="070101">CUSCO</option>
+                                                {% endif %}
+                                                {#                    {% for district in districts %}#}
+                                                {#                        <option value="{{ district.id }}">{{ district.description }}</option>#}
+                                                {#                    {% endfor %}#}
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="id-add-new-addressee">&nbsp;</label>
+                                            <button type="button" class="btn btn-outline-success btn-block"
+                                                    id="id-add-new-addressee">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="row public d-none">
+                                        <div class="col-sm-9 col-md-9 col-lg-9 pr-0">
+                                            <label class="mb-1 mt-2 font-weight-light" for="address">Dirección de
+                                                Cliente:</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i
+                                                            class="fas fa-address-card"></i></span>
+                                                </div>
+                                                <input type="text" class="form-control" id="address" autocomplete="off"
+                                                       name="address" placeholder="Dirección" value="{{ d.address }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3 col-md-3 col-lg-3 pl-1">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="id_district">Seleccione distrito:</label>
+                                            <select id="id_district" name="id_district" class="form-control">
+                                                {#                                                <option value="0">Seleccionar</option>#}
+                                                {% if d.district.id == '200901' %}
+                                                    <option value="200901">JULIACA</option>
+                                                {% elif d.district.id == '200101' %}
+                                                    <option value="200101">PUNO</option>
+                                                {% elif d.district.id == '040101' %}
+                                                    <option value="040101">AREQUIPA</option>
+                                                {% elif d.district.id == '220101' %}
+                                                    <option value="220101">TACNA</option>
+                                                {% elif d.district.id == '070101' %}
+                                                    <option value="070101">CUSCO</option>
+                                                {% endif %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer bg-light p-2">
+            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
+            &nbsp;
+            <button id="btn-update-client" type="button" class="btn btn-primary font-weight-light">Registrar
+            </button>
+        </div>
+
+        <div class="mr-3 ml-0" style="
+                display: none;
+                position: fixed;
+                top: 8px;
+                left: 5px;
+                background: #bdd9f5;
+                opacity: 0.5;
+                width: 100%;
+                {#height: 46em;#}
+                !important;bottom: 6px;
+                padding-right: 65em;
+                padding-left: 55em;
+                padding-top: 22em;" id="loading">
+
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#id_type_client').trigger('change');
+
+    $(document).on('click', '#btn-update-client', function (e) {
+        e.preventDefault();
+
+        let _document_number = $('#document_number').val();
+        let _names = $('#names').val();
+        let _address = $('#address').val();
+        let _type_client = $('#id_type_client').val();
+        if (sessionStorage.getItem('document') === '01') {
+            if (_document_number.length !== 8) {
+                toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
+                return false;
+            }
+            if (_names.length === 0) {
+                toastr.warning('¡Favor de completar los Nombres', 'Error de Datos!');
+                return false;
+            }
+        } else {
+            if (sessionStorage.getItem('document') === '06') {
+                if (_document_number.length !== 11) {
+                    toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
+                    return false;
+                }
+                if (_names.length === 0) {
+                    toastr.warning('¡Favor de completar la Razon Social', 'Error de Datos!');
+                    return false;
+                }
+                /*if (_address.length === 0) {
+                    toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
+                    return false;
+                }*/
+            }
+            if (sessionStorage.getItem('document') === '00') {
+                if (_document_number.length === 0) {
+                    toastr.warning('¡Favor de seleccionar un tipo!', 'Error de Datos');
+                    return false;
+                }
+                if (_names.length === 0) {
+                    toastr.warning('¡Favor de completar la Nombre o Razon Social', 'Error de Datos!');
+                    return false;
+                }
+                /*if (_address.length === 0) {
+                    toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
+                    return false;
+                }*/
+            }
+        }
+        if (_type_client === '0') {
+            toastr.warning('¡SELECCIONE EL TIPO DE CLIENTE!', 'Error de Datos!');
+            return false;
+        }
+
+        let client = {
+            "document_type": $('#document_type').val(),
+            "document_number": _document_number,
+            'names': _names,
+            'phone': $('#phone').val(),
+            'email': $('#email').val(),
+            'type_client': _type_client,
+            'publicAddress': '',
+            'publicDistrict': '',
+            'siaf': $('#cod_siaf').val(),
+            'client_id': $('#client_id').val(),
+            "Addresses": []
+        };
+
+        if (_type_client === 'PU') {
+
+            client.publicAddress = $('#address').val();
+            client.publicDistrict = $('#id_district').val();
+
+        } else if (_type_client === 'PR') {
+            let addresseeObj = {};
+            $(".private").each(function () {
+                addresseeObj = {
+                    "new_address": $(this).find("input.new-address").val(),
+                    "district": $(this).find("select.district").val(),
+                }
+                client.Addresses.push(addresseeObj);
+            });
+        }
+        //console.log(client)
+        $.ajax({
+            url: '/sales/client_update/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            cache: false,
+            {#processData: false,#}
+            data: {'client': JSON.stringify(client)},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (response.success) {
+                    toastr.success(response.message, '¡Bien hecho!');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                console.log(jqXhr);
+                toastr.error('Error', '¡Ocurrio un error!');
+            }
+        });
+    });
+
+
+</script>

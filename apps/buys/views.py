@@ -2564,7 +2564,7 @@ def get_type_change(request):
                 money_change_obj.save()
 
             else:
-                data = {'error': 'NO EXISTE TIPO DE CAMBIO'}
+                data = {'error': 'NO SE OBTUVO TIPO DE CAMBIO, ACTUALICE E INTENTE DE NUEVO'}
                 response = JsonResponse(data)
                 response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
                 return response
@@ -2729,7 +2729,7 @@ def report_purchases_by_subsidiary(request):
 
 def supplier_list(request):
     if request.method == 'GET':
-        supplier_set = Supplier.objects.all()
+        supplier_set = Supplier.objects.all().order_by('id')
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
 
@@ -2934,3 +2934,18 @@ def save_contract(request):
             'message': 'Contrato Registrado',
         }, status=HTTPStatus.OK)
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def assign_store_modal(request):
+    if request.method == 'GET':
+        array_purchases = request.GET.get('array_purchases', '')
+        print(array_purchases)
+
+        t = loader.get_template('buys/assign_store_modal.html')
+        c = ({
+            'client_set': Client.objects.all(),
+            'product_set': Product.objects.filter(is_enabled=True)
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })

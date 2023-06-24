@@ -10,9 +10,9 @@
                 <div class="col-sm-8">
                     {{ form.name }}
                     {% for error in form.name.errors %}
-                    <div class="invalid-feedback">
-                        {{error}}
-                    </div>
+                        <div class="invalid-feedback">
+                            {{ error }}
+                        </div>
                     {% endfor %}
                 </div>
             </div>
@@ -43,15 +43,15 @@
                 <div class="col-sm-8">{{ form.product_brand }}</div>
             </div>
 
-{#            <div class="form-group row">#}
-{#                <label for="" class="col-sm-4 col-form-label">{{ form.barcode.label }}</label>#}
-{#                <div class="col-sm-8">{{ form.barcode }}</div>#}
-{#            </div>#}
+            {#            <div class="form-group row">#}
+            {#                <label for="" class="col-sm-4 col-form-label">{{ form.barcode.label }}</label>#}
+            {#                <div class="col-sm-8">{{ form.barcode }}</div>#}
+            {#            </div>#}
 
-{#            <div class="form-group row">#}
-{#                <label for="" class="col-sm-4 col-form-label">{{ form.valvule.label }}</label>#}
-{#                <div class="col-sm-8">{{ form.valvule }}</div>#}
-{#            </div>#}
+            {#            <div class="form-group row">#}
+            {#                <label for="" class="col-sm-4 col-form-label">{{ form.valvule.label }}</label>#}
+            {#                <div class="col-sm-8">{{ form.valvule }}</div>#}
+            {#            </div>#}
 
             <div class="form-group row">
                 <label for="" class="col-sm-4 col-form-label">{{ form.product_subcategory.label }}</label>
@@ -64,7 +64,6 @@
             </div>
 
 
-
         </div><!-- card-body -->
 
 
@@ -75,27 +74,32 @@
         <div class="card-body">
             <div class="text-center">
                 <label class="newbtn border rounded-lg">
-                    <img id="blah" class="img-thumbnail" src="{% if object %}{{ object.photo.url }}{% else %}http://placehold.it/120x120{% endif %}" >
-
+                    {#                    <img id="blah" class="img-thumbnail" src="{% if object %}{{ object.photo.url }}{% else %}http://placehold.it/120x120{% endif %}" >#}
+                    {% if object %}
+                        <img id="blah" class="img-thumbnail" src="{{ object.photo.url }}">
+                    {% else %}
+                        <img id="blah" class="img-thumbnail" src="/media/product/default-placeholder_GdlsVB9.png">
+                    {% endif %}
                 </label>
 
                 <div class="custom-file mt-3 mb-3">
-                  {{ form.photo }}
-                  <label class="custom-file-label" for="id_photo">{% if object %}{{ object.photo.url }}{% else %}{{ form.photo.label }}{% endif %}</label>
+                    {{ form.photo }}
+                    <label class="custom-file-label" for="id_photo">
+                        {% if object %}{{ object.photo.url }}{% else %}{{ form.photo.label }}{% endif %}</label>
                 </div>
 
             </div>
 
 
-{#            <div class="form-group row">#}
-{#                <div class="col-sm-2"></div>#}
-{#                <div class="col-sm-10">#}
-{#                    <div class="form-check">#}
-{#                        {{ form.is_supply }}#}
-{#                        <label class="form-check-label" for="id_is_supply">{{ form.is_supply.label }}</label>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
+            {#            <div class="form-group row">#}
+            {#                <div class="col-sm-2"></div>#}
+            {#                <div class="col-sm-10">#}
+            {#                    <div class="form-check">#}
+            {#                        {{ form.is_supply }}#}
+            {#                        <label class="form-check-label" for="id_is_supply">{{ form.is_supply.label }}</label>#}
+            {#                    </div>#}
+            {#                </div>#}
+            {#            </div>#}
 
 
             <div class="form-group row">
@@ -118,35 +122,35 @@
                 </div>
             </div>
 
-{#            <div class="form-group row">#}
-{#                <div class="col-sm-2"></div>#}
-{#                <div class="col-sm-10">#}
-{#                    <div class="form-check">#}
-{#                        {{ form.is_epp }}#}
-{#                        <label class="form-check-label" for="id_is_epp">{{ form.is_epp.label }}</label>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
+            {#            <div class="form-group row">#}
+            {#                <div class="col-sm-2"></div>#}
+            {#                <div class="col-sm-10">#}
+            {#                    <div class="form-check">#}
+            {#                        {{ form.is_epp }}#}
+            {#                        <label class="form-check-label" for="id_is_epp">{{ form.is_epp.label }}</label>#}
+            {#                    </div>#}
+            {#                </div>#}
+            {#            </div>#}
 
-{#            <div class="form-group row">#}
-{#                <div class="col-sm-2"></div>#}
-{#                <div class="col-sm-10">#}
-{#                    <div class="form-check">#}
-{#                        {{ form.is_equipment }}#}
-{#                        <label class="form-check-label" for="id_is_equipment">{{ form.is_equipment.label }}</label>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
+            {#            <div class="form-group row">#}
+            {#                <div class="col-sm-2"></div>#}
+            {#                <div class="col-sm-10">#}
+            {#                    <div class="form-check">#}
+            {#                        {{ form.is_equipment }}#}
+            {#                        <label class="form-check-label" for="id_is_equipment">{{ form.is_equipment.label }}</label>#}
+            {#                    </div>#}
+            {#                </div>#}
+            {#            </div>#}
 
-{#            <div class="form-group row">#}
-{#                <div class="col-sm-2"></div>#}
-{#                <div class="col-sm-10">#}
-{#                    <div class="form-check">#}
-{#                        {{ form.is_machine }}#}
-{#                        <label class="form-check-label" for="id_is_machine">{{ form.is_machine.label }}</label>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
+            {#            <div class="form-group row">#}
+            {#                <div class="col-sm-2"></div>#}
+            {#                <div class="col-sm-10">#}
+            {#                    <div class="form-check">#}
+            {#                        {{ form.is_machine }}#}
+            {#                        <label class="form-check-label" for="id_is_machine">{{ form.is_machine.label }}</label>#}
+            {#                    </div>#}
+            {#                </div>#}
+            {#            </div>#}
 
 
             <div class="form-group row">
@@ -160,53 +164,53 @@
             </div>
 
 
-{#            <div class="form-group row">#}
-{#                <div class="col-sm-2"></div>#}
-{#                <div class="col-sm-10">#}
-{#                    <div class="form-check">#}
-{#                        {{ form.is_manufactured }}#}
-{#                        <label class="form-check-label" for="id_is_manufactured">{{ form.is_manufactured.label }}</label>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{##}
-{##}
-{#            <div class="form-group row">#}
-{#                <div class="col-sm-2"></div>#}
-{#                <div class="col-sm-10">#}
-{#                    <div class="form-check">#}
-{#                        {{ form.is_imported }}#}
-{#                        <label class="form-check-label" for="id_is_imported">{{ form.is_imported.label }}</label>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
+            {#            <div class="form-group row">#}
+            {#                <div class="col-sm-2"></div>#}
+            {#                <div class="col-sm-10">#}
+            {#                    <div class="form-check">#}
+            {#                        {{ form.is_manufactured }}#}
+            {#                        <label class="form-check-label" for="id_is_manufactured">{{ form.is_manufactured.label }}</label>#}
+            {#                    </div>#}
+            {#                </div>#}
+            {#            </div>#}
+            {##}
+            {##}
+            {#            <div class="form-group row">#}
+            {#                <div class="col-sm-2"></div>#}
+            {#                <div class="col-sm-10">#}
+            {#                    <div class="form-check">#}
+            {#                        {{ form.is_imported }}#}
+            {#                        <label class="form-check-label" for="id_is_imported">{{ form.is_imported.label }}</label>#}
+            {#                    </div>#}
+            {#                </div>#}
+            {#            </div>#}
 
 
-{#            <div class="form-group row">#}
-{#                <div class="col-sm-2"></div>#}
-{#                <div class="col-sm-10">#}
-{#                    <div class="form-check">#}
-{#                        {{ form.is_approved_by_osinergmin }}#}
-{#                        <label class="form-check-label" for="id_is_imported">{{ form.is_approved_by_osinergmin.label }}</label>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-
+            {#            <div class="form-group row">#}
+            {#                <div class="col-sm-2"></div>#}
+            {#                <div class="col-sm-10">#}
+            {#                    <div class="form-check">#}
+            {#                        {{ form.is_approved_by_osinergmin }}#}
+            {#                        <label class="form-check-label" for="id_is_imported">{{ form.is_approved_by_osinergmin.label }}</label>#}
+            {#                    </div>#}
+            {#                </div>#}
+            {#            </div>#}
 
 
             <style>
 
-                #id_photo{
+                #id_photo {
                     /* display: none; */
                 }
 
-                .newbtn{
+                .newbtn {
                     cursor: pointer;
                 }
 
-                #blah{
-                    height:150px;
+                #blah {
+                    height: 150px;
                 }
+
                 .custom-file-label {
                     padding: 0.375rem 0.7rem;
                     color: #495057;

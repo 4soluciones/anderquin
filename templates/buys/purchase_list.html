@@ -1,92 +1,151 @@
 {% extends 'home.html' %}
 
 {% block title %}
-coronasoft.dev | Listado de compras
+    Listado de compras
 {% endblock title %}
 
 {% block body %}
 
-<!-- Content -->
-<div class="container-fluid">
+    <div class="container-fluid">
+        <div class="card border-info m-3">
+            <div class="card-header bg-info">
+                <h4 class="card-title text-center text-white">LISTA DE ORDENES DE COMPRAS</h4>
+            </div>
+            <div class="card-body pt-1 pb-1">
+                <div class="row p-1">
+                    <div class="col-sm-2">
+                        <button type="button"
+                                class="btn btn-success btn-block"
+                                id="btn-assign-store">INGRESAR A ALMACEN
+                            <span class="badge badge-light ">0</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body pt-1">
+                <div id="purchase-grid-list">{% include "buys/purchase_grid_list.html" %}</div>
+            </div>
+        </div>
+    </div>
 
-    <div id="purchase-grid-list" >{% include "buys/purchase_grid_list.html" %}</div>
+    <div class="modal fade" id="assignment" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle"
+         aria-hidden="true"></div>
 
-</div>
-
-<div class="modal fade" id="assignment" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
+    <div class="modal fade" id="modal-assign-store" tabindex="-1" role="dialog"
+         aria-labelledby="ModalHelpTitle"
+         aria-hidden="true"></div>
 
 
 {% endblock body %}
 
 {% block extrajs %}
 
-<script type="text/javascript">
+    <script type="text/javascript">
 
-    {#$('#puchase-data-grid').dataTable();#}
-    $('#puchase-data-grid').DataTable({
-        "language": {
-          "url": "//cdn.datatables.net/plug-ins/1.10.15/i18n/Spanish.json"
-        }
-    });
-    $(document).on('click', '.assignment-store', function () {
-        let search = $(this).attr('pk');
-        $.ajax({
-            url: '/buys/get_detail_purchase_store/',
-            dataType: 'json',
-            type: 'GET',
-            data: {'pk': search},
-
-            contentType: 'application/json;charset=UTF-8',
-            headers: {"X-CSRFToken": '{{ csrf_token }}'},
-            success: function (response, textStatus, xhr) {
-                        if (xhr.status == 200) {
-                            $('#assignment').html(response.form);
-                            $('#assignment').modal('show');
-
-                        }
-            },
-            error: function (jqXhr, textStatus, xhr) {
-                        $('#assignment').html(jqXhr.form);
-                        toastr.error(jqXhr.responseJSON.detalle, '¡MENSAJE!');
+        {#$('#puchase-data-grid').dataTable();#}
+        /*$('#puchase-data-grid').DataTable({
+            "language": {
+              "url": "//cdn.datatables.net/plug-ins/1.10.15/i18n/Spanish.json"
             }
+        });*/
+        $(document).on('click', '.assignment-store', function () {
+            let search = $(this).attr('pk');
+            $.ajax({
+                url: '/buys/get_detail_purchase_store/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': search},
 
-            /*
-            success: function (response) {
-                console.log(response);
-                if(response.success){
-                    $('#assignment').html(response.form);
-                    $('#assignment').modal('show');
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        $('#assignment').html(response.form);
+                        $('#assignment').modal('show');
+
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    $('#assignment').html(jqXhr.form);
+                    toastr.error(jqXhr.responseJSON.detalle, '¡MENSAJE!');
                 }
-            },
-            fail: function (response) {
-                console.log(response)
-                {#toastr.warning('NO CUENTA CON UN ALMACEN DE MERCADERIA');#}
-            }*/
-        });
-    });
-    /*Boton anular*/
-       //Boton  validar requerimiento
-     $(document).on('click', '.btn-annular', function () {
-         let search = $(this).attr('pk');
-         let mensaje = confirm("¿Esta seguro de anular la compra?");
-         if (mensaje) {
-             $.ajax({
-                 url: '/buys/update_state_annular_purchase/',
-                 dataType: 'json',
-                 type: 'GET',
-                 data: {'pk': search},
-                 success: function (response) {
-                      toastr.success(response.message, '¡COMPRA ANULADA CORRECTAMENTE!');
-                      setTimeout(() => {
-                                location.reload();
-                      }, 500);
-                 },
-                 fail: function (response) {
-                      toastr.success(response.message, '¡PROBLEMAS AL ANULAR LA COMPRA!');
-                 }
-             });
-         }
-     });
 
-</script>
+                /*
+                success: function (response) {
+                    console.log(response);
+                    if(response.success){
+                        $('#assignment').html(response.form);
+                        $('#assignment').modal('show');
+                    }
+                },
+                fail: function (response) {
+                    console.log(response)
+{#toastr.warning('NO CUENTA CON UN ALMACEN DE MERCADERIA');#}
+            }*/
+            });
+        });
+        /*Boton anular*/
+        //Boton  validar requerimiento
+        $(document).on('click', '.btn-annular', function () {
+            let search = $(this).attr('pk');
+            let mensaje = confirm("¿Esta seguro de anular la compra?");
+            if (mensaje) {
+                $.ajax({
+                    url: '/buys/update_state_annular_purchase/',
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'pk': search},
+                    success: function (response) {
+                        toastr.success(response.message, '¡COMPRA ANULADA CORRECTAMENTE!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    },
+                    fail: function (response) {
+                        toastr.error(response.message, '¡PROBLEMAS AL ANULAR LA COMPRA!');
+                    }
+                });
+            }
+        });
+
+        let count = 0;
+        let array_purchase_id = []
+
+        $(document).on('click', '.check-purchase', function () {
+            let _tr = $(this).parent('td').parent('tr');
+            let _purchase_id = _tr.attr("pk");
+            if (this.checked) {
+                count++;
+                array_purchase_id.push(_purchase_id)
+            } else {
+                count--;
+                array_purchase_id = array_purchase_id.filter(item => item !== _purchase_id);
+            }
+            console.log(array_purchase_id)
+            $('#btn-assign-store span.badge').text(count);
+        });
+
+        $(document).on('click', '#btn-assign-store', function () {
+            if (array_purchase_id.length === 0) {
+                toastr.warning('Favor de seleccionar al menos una ORDEN DE COMPRA', 'Error de Datos');
+                return false;
+            }
+            console.log(array_purchase_id)
+            $.ajax({
+                url: '/buys/assign_store_modal/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'array_purchases': JSON.stringify(array_purchase_id)},
+                success: function (response) {
+                    $('#modal-assign-store').html(response.form);
+                    $('#modal-assign-store').modal('show');
+                },
+                fail: function (response) {
+                    toastr.error('Error en la petición', '¡Mensaje!');
+                }
+            });
+
+        });
+
+    </script>
 {% endblock extrajs %}

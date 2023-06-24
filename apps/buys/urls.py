@@ -96,7 +96,7 @@ urlpatterns = [
     path('report_purchases_by_subsidiary/', report_purchases_by_subsidiary, name='report_purchases_by_subsidiary'),
 
     # PROVEEDORES
-    path('suppliers/', supplier_list, name='supplier_list'),
+    path('suppliers/', login_required(supplier_list), name='supplier_list'),
     path('get_address_by_supplier_id/', get_address_by_supplier_id, name='get_address_by_supplier_id'),
     path('modal_supplier_create/', modal_supplier_create, name='modal_supplier_create'),
     path('save_supplier/', save_supplier, name='save_supplier'),
@@ -107,4 +107,7 @@ urlpatterns = [
     path('contracts/', contract_list, name='contract_list'),
     path('modal_contract_create/', modal_contract_create, name='modal_contract_create'),
     path('save_contract/', save_contract, name='save_contract'),
+
+    # ASIGNAR ALMACEN
+    path('assign_store_modal/', assign_store_modal, name='assign_store_modal'),
 ]
