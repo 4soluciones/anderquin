@@ -171,15 +171,15 @@
 
     $(document).on('click', '#btn-nro-supplier', async function (e) {
 
-            let _document_number = $('#supplier_number').val();
-            let _type_doc = '06';
-            await searchSupplier(_type_doc, _document_number).then((value) => {
-                $("#business_name").val(value.result);
-                $("#address").val(value.address);
-            }).catch((e) => {
-                toastr.error(e.responseJSON.error, 'Error de Datos');
-            })
-        });
+        let _document_number = $('#supplier_number').val();
+        let _type_doc = '06';
+        await searchSupplier(_type_doc, _document_number).then((value) => {
+            $("#business_name").val(value.result);
+            $("#address").val(value.address);
+        }).catch((e) => {
+            toastr.error(e.responseJSON.error, 'Error de Datos');
+        })
+    });
 
     $(document).on('keypress', '#supplier_number', async function (e) {
 
@@ -192,6 +192,7 @@
             await searchSupplier(_type_doc, _document_number).then((value) => {
                 $("#business_name").val(value.result);
                 $("#address").val(value.address);
+                //$("supplier-id").val(value.id)
             }).catch((e) => {
                 toastr.error(e.responseJSON.error, 'Error de Datos');
             })
@@ -211,7 +212,7 @@
         $('#loading').html(loader).show()
 
         return new Promise((resolve, reject) => {
-           $.ajax({
+            $.ajax({
                 url: '/buys/get_sunat/',
                 async: true,
                 dataType: 'json', // for response
@@ -238,9 +239,18 @@
         })
     }
 
-
     $(document).on('click', '#btn-save-supplier', function (e) {
-        e.preventDefault();
+        if (old_timestamp == null || old_timestamp + 2000 < e.timeStamp) {
+            let _save = saveSupplier();
+            if (_save !== false) {
+                old_timestamp = e.timeStamp;
+                $(this).slideUp();
+            }
+        }
+    });
+
+
+    function saveSupplier() {
 
         let _document_number = $('#supplier_number').val();
         let _names = $('#business_name').val();
@@ -307,7 +317,7 @@
                 toastr.error('Error', '¡Ocurrio un error!');
             }
         });
-    });
+    }
 
 
 </script>

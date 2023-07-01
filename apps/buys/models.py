@@ -328,7 +328,7 @@ class RateRoutes(models.Model):
 class Contract(models.Model):
     STATUS_CHOICES = (('P', 'PENDIENTE'), ('C', 'COMPLETADO'), ('S', 'SUSPENDIDO'), ('A', 'ANULADO'))
     id = models.AutoField(primary_key=True)
-    contract_number = models.CharField('Numero de Contrato', max_length=45, null=True, blank=True)
+    contract_number = models.CharField('Numero de Contrato', max_length=200, null=True, blank=True)
     client = models.ForeignKey('sales.Client', on_delete=models.CASCADE, null=True, blank=True)
     register_date = models.DateField('Fecha de Registro', null=True, blank=True)
     photo = models.ImageField(upload_to='images/', default='images/images0.jpg', blank=True)
