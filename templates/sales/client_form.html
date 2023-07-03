@@ -11,7 +11,7 @@
             </button>
         </div>
 
-        <input type="hidden" class="form-control" id="supplier-id" name="supplier-id">
+        <input type="hidden" class="form-control" id="client_id" name="client-id">
 
         <div class="modal-body p-2">
             <div class="card">
@@ -238,6 +238,7 @@
         }
 
         await searchClient(_type_doc, _document_number).then((value) => {
+            $("#client_id").val(value.pk);
             $("#names").val(value.result);
             $("#address").val(value.address);
         }).catch((e) => {
@@ -267,6 +268,7 @@
             }
 
             await searchClient(_type_doc, _document_number).then((value) => {
+                $("#client_id").val(value.pk);
                 $("#names").val(value.result);
                 $("#address").val(value.address);
                 $("#new_address").val(value.address);
@@ -281,7 +283,7 @@
         $('#loading').html(loader).show()
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: '/buys/get_sunat/',
+                url: '/sales/get_api_client/',
                 async: true,
                 dataType: 'json', // for response
                 type: 'GET',

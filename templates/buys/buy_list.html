@@ -14,7 +14,7 @@
                             <div class="col-sm-2 col-md-2 col-lg-2">
                                 {% if contract_detail_obj %}
                                     <h5 class="montserrat text-white font-weight-bold mt-4 mb-0">
-                                        <label>CONTRATO Nº: {{ contract_detail_obj.contract.contract_number }}</label>
+                                        <label>{{ contract_detail_obj.contract.contract_number }}</label>
                                     </h5>
                                     <input type="hidden"
                                            class="form-control"
@@ -451,11 +451,12 @@
                 toastr.warning('Por favor, complete todo los campos!');
             }
         });
-        function checkUnit(){
+
+        function checkUnit() {
             let flag = false
             $('tbody#details-table tr').each(function () {
                 let _unit = $(this).find('td.unit select.unit-product').val()
-                if (_unit === '0'){
+                if (_unit === '0') {
                     flag = true
                 }
             });
@@ -473,7 +474,7 @@
                 toastr.warning('¡Selecione el proveedor!', 'Mensaje');
                 return false;
             }
-            if (checkUnit() === true){
+            if (checkUnit() === true) {
                 toastr.warning('¡Selecione el tipo de unidad en los productos!', 'Mensaje');
                 return false;
             }
@@ -484,6 +485,7 @@
                     "SupplierId": $('#supplier_id').val(),
                     "Date": $('#id_fechacompra').val(),
                     "Reference": $('#reference').val(),
+                    "Delivery_date": $('#delivery_date').val(),
                     "Type_Pay": $('#payment_type').val(),
                     "Pay_condition": $('#pay_condition').val(),
                     "Base_Total": Number(table_foot.find("td.foot-base input.total-foot-base").val()),
@@ -685,7 +687,6 @@
         });
 
 
-
         $(document).on('click', '.product-item', function (e) {
 
             let _product_id = $(this).attr('data-id');
@@ -723,7 +724,7 @@
                     data: {'ip': $product_id},
                     success: function (response) {
                         let units = JSON.parse(response['units']);
-                        console.log(units)
+                        //console.log(units)
                         units.forEach(
                             element =>
                                 _tr.find('td.unit input.unit-product').val(element[0])
@@ -736,16 +737,24 @@
         $(document).on('change', '.unit-product', async function (e) {
             let unit_id = $(this).val();
             let product_id = $(this).parent('td').parent('tr').attr('product')
+            let _quantity = Number($(this).parent('td').parent('tr').find('td.item-quantity input.quantity-product').val())
             let _tr = $(this).parent('td').parent('tr')
-            await getQuantityMinimumByProduct(product_id, unit_id, _tr)
+            await getQuantityMinimumByProduct(product_id, unit_id, _tr, _quantity)
+            /*if (_quantity_minimum !== 0){
+                let _q_x_u = _quantity / _quantity_minimum
+                console.log(_q_x_u)
+            }*/
             {#quantityMinimumXQuantity(_quantity, quantity_minimum, _tr)#}
             _tr.find('td.quantity-minimum input.quantity-minimum').val('')
+
         });
         //$('.unit-product').trigger('change')
+        let _quantity_minimum = 0
 
-        async function getQuantityMinimumByProduct(product_id, _unit, _tr) {
+        async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
 
             let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum')
+            let _input_cant_x_und = _tr.find('td.item-quantity-x-unit input.quantity-x-unit')
             _input_quantity_minimum.val('')
             if (product_id !== '0') {
                 $.ajax({
@@ -758,10 +767,17 @@
                         'unit_id': _unit
                     },
                     success: function (response) {
+                        let _quantity_minimum = Number(response.quantity_minimum).toFixed(2)
+                        if (_quantity_minimum && _quantity) {
+                            let _q_x_u = _quantity / _quantity_minimum
+                            {#console.log(Math.ceil(_q_x_u))#}
+                            _input_cant_x_und.val(Math.ceil(_q_x_u) + ' ' + response.unit_name)
+                        }
                         _input_quantity_minimum.val(response.quantity_minimum + 'UND')
                     },
                 });
             }
+
         }
 
         $(document).on('click', '#btn-add-new-detail', function () {
@@ -779,6 +795,7 @@
                 '<td class="align-middle text-left product-item-table">' +
                 '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
                 '               data-toggle="dropdown" aria-expanded="false" placeholder="Ingrese producto...">' + '<div class="dropdown-menu"></div>' + '</td>' +
+                '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">' + '</td>' +
                 {#'<td class="align-middle brand">' +#}
                 {#'<input type="text" class="form-control text-center text-uppercase brand-product" id="brand_id" name="brand" readonly>' + '</td>' +#}
                 '<td class="align-middle unit text-center">' +
@@ -790,7 +807,6 @@
                 '</td>' +
                 {#'<td class="align-middle unit">' +#}
                 {#'<input type="text" class="form-control text-center text-uppercase unit-product" readonly>' + '</td>' +#}
-                '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">' + '</td>' +
                 '<td class="align-middle item-quantity-x-unit">' + '<input type="text" class="form-control text-center quantity-x-unit text-uppercase" readonly>' + '</td>' +
                 '<td class="item-price text-right align-middle" price-unit-with-discount="">' + '<div class="input-icon">' +
                 '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +

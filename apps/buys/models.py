@@ -87,6 +87,7 @@ class Purchase(models.Model):
     observation = models.TextField('Observación', blank=True, null=True)
     oc_supplier = models.CharField('Referencia', max_length=100, blank=True, null=True)
     contract_detail = models.ForeignKey('buys.ContractDetail', on_delete=models.CASCADE, null=True, blank=True)
+    delivery_date = models.DateField('Fecha de entrega', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)

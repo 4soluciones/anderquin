@@ -560,6 +560,9 @@ def query_apis_net_dni_ruc(nro_doc, type_document):
             'apellidoMaterno': result.get('apellidoMaterno'),
             'nombres': result.get('nombres'),
             'direccion': result.get('direccion'),
+            'distrito': result.get('distrito'),
+            'provincia': result.get('provincia'),
+            'departamento': result.get('departamento'),
         }
     else:
         result = response.status_code

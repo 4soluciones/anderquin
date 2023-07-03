@@ -205,6 +205,7 @@ def save_purchase(request):
         supplier_id = str(data_purchase["SupplierId"])
         date = str(data_purchase["Date"])
         reference = str(data_purchase["Reference"])
+        date_delivery = str(data_purchase["Delivery_date"])
         type_pay = str(data_purchase["Type_Pay"])
         pay_condition = str(data_purchase["Pay_condition"])
         base_total = decimal.Decimal(data_purchase["Base_Total"])
@@ -320,7 +321,8 @@ def save_purchase(request):
             delivery_choice=delivery_choice,
             observation=observations.upper(),
             city=city.upper(),
-            contract_detail=contract_detail_obj
+            contract_detail=contract_detail_obj,
+            delivery_date=date_delivery
             # truck=truck_obj,
             # status=status,
             # type_bill=type_bill,
@@ -743,18 +745,25 @@ def get_quantity_minimum(request):
         quantity_minimum = ''
         price_sale = ''
         price_purchase = ''
+        unit_name = ''
         product_detail_set = ProductDetail.objects.filter(product__id=product_id, unit__id=unit_id)
         if product_detail_set.exists():
             product_detail_obj = product_detail_set.last()
             quantity_minimum = product_detail_obj.quantity_minimum
             price_sale = product_detail_obj.price_sale
             price_purchase = product_detail_obj.price_purchase
+            unit_name = product_detail_obj.unit.name
 
-        return JsonResponse({
-            'quantity_minimum': round(quantity_minimum, 0),
-            'price_sale': price_sale,
-            'price_purchase': price_purchase,
-        }, status=HTTPStatus.OK)
+            return JsonResponse({
+                'quantity_minimum': round(quantity_minimum, 0),
+                'price_sale': price_sale,
+                'price_purchase': price_purchase,
+                'unit_name': unit_name
+            }, status=HTTPStatus.OK)
+        else:
+            return JsonResponse({
+                'message': 'No existe unidades'
+            }, status=HTTPStatus.OK)
 
 
 def get_price_by_unit(request):
@@ -2413,6 +2422,7 @@ def get_buy_list(request, contract_detail=None):
                 'id': d.id,
                 'product_id': d.product.id,
                 'product_name': d.product.name,
+                'product_brand': d.product.product_brand.name,
                 'quantity': d.quantity,
                 'counter': counter,
                 'units': []
@@ -2619,8 +2629,11 @@ def get_sunat(request):
                 if r.get('numeroDocumento') == nro_document:
                     business_name = r.get('nombre')
                     address_business = r.get('direccion')
+                    district = r.get('distrito')
+                    province = r.get('provincia')
+                    dep_city = r.get('departamento')
                     result = business_name
-                    address = address_business
+                    address = address_business + ' - ' + district + ' - ' + province + ' - ' + dep_city
                     return JsonResponse({'result': result, 'address': address}, status=HTTPStatus.OK)
                 else:
                     data = {'error': 'NO EXISTE RUC. REGISTRE MANUAL O CORREGIRLO'}
@@ -2948,4 +2961,16 @@ def assign_store_modal(request):
         })
         return JsonResponse({
             'form': t.render(c, request),
+        })
+
+
+def bill_list(request):
+    if request.method == 'GET':
+        purchase_set = Purchase.objects.all().order_by('id')
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+
+        return render(request, 'buys/bill_list.html', {
+            'formatdate': formatdate,
+            'purchase_set': purchase_set,
         })

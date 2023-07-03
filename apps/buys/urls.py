@@ -110,4 +110,7 @@ urlpatterns = [
 
     # ASIGNAR ALMACEN
     path('assign_store_modal/', assign_store_modal, name='assign_store_modal'),
+
+    # BILL
+    path('bill/', login_required(bill_list), name='bill_list'),
 ]

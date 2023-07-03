@@ -99,15 +99,15 @@
             let _tr = $(this).parent('td').parent('tr')
             btn.parentNode.parentNode.remove();
             counter(number);
-            calculateTotal(_tr)
+            calculateTotal()
         }
 
         $(document).on('keyup', '.quantity', function () {
             let _tr = $(this).parent('td').parent('tr');
-            calculateTotal(_tr)
+            calculateTotal()
         });
 
-        function calculateTotal(_tr) {
+        function calculateTotal() {
             let sum_total = 0;
             $('.dates-quotas td.item-quantity input.quantity').each(function () {
                 let quantity = Number($(this).val())
@@ -116,17 +116,49 @@
             $("#total-quantity").val(sum_total.toFixed(2));
         }
 
+        let product_set = [
+            {% for p in product_set %}
+                [
+                    '{{ p.id }}',
+                    '{{ p.name }}'
+                ],
+            {% endfor %}
+        ]
+
         function addDates() {
-            let _nro_dates = $('#nro_dates')
+            let _nro_dates = $('#nro_dates');
+            let product = $('#product_add_id').val();
+            let _quantity = $('#quantity_add');
+            $('#btn-add-dates').addClass('disabled');
+
             if (_nro_dates.val().length === 0) {
-                toastr.warning('Favor de ingresar una cantidad primero', 'Error de llenado');
+                toastr.warning('Favor de ingresar una numero de fechas', 'Error de llenado');
                 _nro_dates.focus();
+                return false;
+            }
+            if (product === '0') {
+                toastr.warning('Favor de selecionar un producto', 'Error de llenado');
+                product.focus();
+                return false;
+            }
+            if (_quantity.val().length === 0) {
+                toastr.warning('Favor de ingresar una cantidad primero', 'Error de llenado');
+                _quantity.focus();
                 return false;
             }
 
             for (let i = 0; i < _nro_dates.val(); i++) {
                 let _number = i + 1;
                 let _date_quota = '{{ date_now }}';
+                let selectOptions = '';
+                for (let j = 0; j < product_set.length; j++) {
+                    let productId = product_set[j][0];
+                    if (productId === product) {
+                        selectOptions += '<option value="' + productId + '" selected>' + product_set[j][1] + '</option>';
+                    } else {
+                        selectOptions += '<option value="' + productId + '">' + product_set[j][1] + '</option>';
+                    }
+                }
                 $('.dates-quotas').append(
                     '<div class="card mb-2 main-dates" style="border-color: #848d9f">' +
                     '<div class="card-header pt-1 pb-1">' +
@@ -155,15 +187,11 @@
                     '<td class="item-number align-middle text-center">1</td>' +
                     '<td class="item-product align-middle text-center">' +
                     '<label for="product_id" class="sr-only">Producto</label>' +
-                    '<select id="product_id" class="form-control form-control-sm product">' +
-                    '<option value="0">Seleccione</option>' +
-                    '{% for p in product_set %}'+
-                        '<option value="{{ p.id }}">{{ p.name }}</option>' +
-                        '{% endfor %}' +
+                    '<select id="product_id" class="form-control form-control-sm product">' + selectOptions +
                     '</select>' +
                     '</td>' +
                     '<td class="item-quantity align-middle text-center">' +
-                    '<input type="text" class="form-control text-right quantity" placeholder="0.00" autocomplete="off">' +
+                    '<input type="text" class="form-control text-right quantity" placeholder="0.00" autocomplete="off" value="' + _quantity.val() + ' ">' +
                     '</td>' +
                     '<td class="align-middle">' +
                     '<button type="button" onclick="addItem(' + _number + ')" class="btn btn-outline-success btn-block">' +
@@ -178,6 +206,7 @@
                 );
                 _number++;
             }
+            calculateTotal()
         }
 
         $(document).on('click', '#clean-dates', function () {
@@ -185,6 +214,9 @@
             $('#nro_dates').val('');
             $('#nro_dates').focus();
             $('#total-quantity').val('');
+            $('#product_add_id').val('0');
+            $('#quantity_add').val('');
+            $('#btn-add-dates').removeClass('disabled');
         });
 
 

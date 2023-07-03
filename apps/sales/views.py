@@ -27,7 +27,7 @@ from django.template import loader
 from datetime import datetime, timedelta
 from django.db import DatabaseError, IntegrityError
 from django.core import serializers
-from apps.sales.views_SUNAT import send_bill_nubefact, send_receipt_nubefact
+from apps.sales.views_SUNAT import send_bill_nubefact, send_receipt_nubefact, query_apis_net_dni_ruc
 from apps.sales.number_to_letters import numero_a_letras, numero_a_moneda
 from django.utils import timezone
 from django.db.models import Min, Sum, Max, Q, F, Prefetch, Subquery, OuterRef, Value
@@ -452,6 +452,7 @@ def client_save(request):
         client_request = request.GET.get('client', '')
         data_client = json.loads(client_request)
 
+        client_id = str(data_client["client_id"])
         document_type = str(data_client["document_type"])
         document_number = str(data_client["document_number"])
         names = str(data_client["names"])
@@ -5918,3 +5919,103 @@ def client_update(request):
             }, status=HTTPStatus.OK)
 
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def get_api_client(request):
+    if request.method == 'GET':
+        document_number = request.GET.get('nro_document')
+        type_document = str(request.GET.get('type'))
+        result = ''
+        address = '-'
+        client_obj = None
+
+        client_set_search = Client.objects.filter(clienttype__document_type=type_document,
+                                                  clienttype__document_number=document_number)
+        if client_set_search.exists():
+            names = client_set_search.last().names
+            data = {
+                'error': 'EL ClIENTE: ' + str(names) + ' YA SE ENCUENTRA REGISTRADO'}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+
+        else:
+            if type_document == '01':
+                type_name = 'DNI'
+                r = query_apis_net_dni_ruc(document_number, type_name)
+                name = r.get('nombres')
+                paternal_name = r.get('apellidoPaterno')
+                maternal_name = r.get('apellidoMaterno')
+                if paternal_name is not None and len(paternal_name) > 0:
+
+                    result = name + ' ' + paternal_name + ' ' + maternal_name
+
+                    # if len(result.strip()) != 0:
+                    #     client_obj = Client(
+                    #         names=result.upper(),
+                    #     )
+                    #     client_obj.save()
+                    #
+                    #     document_type_obj = DocumentType.objects.get(id=type_document)
+                    #
+                    #     client_type_obj = ClientType(
+                    #         document_type=document_type_obj,
+                    #         document_number=document_number,
+                    #         client=client_obj
+                    #     )
+                    #     client_type_obj.save()
+
+                    # else:
+                    #     data = {'error': 'NO EXISTE DNI. REGISTRE MANUALMENTE'}
+                    #     response = JsonResponse(data)
+                    #     response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+                    #     return response
+                else:
+                    data = {
+                        'error': 'PROBLEMAS CON LA CONSULTA A LA RENIEC, FAVOR DE INTENTAR MAS TARDE O REGISTRE '
+                                 'MANUALMENTE'}
+                    response = JsonResponse(data)
+                    response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+                    return response
+
+            elif type_document == '06':
+                type_name = 'RUC'
+                r = query_apis_net_dni_ruc(document_number, type_name)
+
+                if r.get('numeroDocumento') == document_number:
+
+                    business_name = r.get('nombre')
+                    address_business = r.get('direccion')
+                    district = r.get('distrito')
+                    province = r.get('provincia')
+                    dep_city = r.get('departamento')
+                    result = business_name
+                    address = address_business + ' - ' + district + ' - ' + province + ' - ' + dep_city
+
+                    # client_obj = Client(
+                    #     names=result.upper(),
+                    # )
+                    # client_obj.save()
+                    #
+                    # document_type_obj = DocumentType.objects.get(id=type_document)
+                    #
+                    # client_type_obj = ClientType(
+                    #     document_type=document_type_obj,
+                    #     document_number=document_number,
+                    #     client=client_obj
+                    # )
+                    # client_type_obj.save()
+
+                else:
+                    data = {'error': 'NO EXISTE RUC. REGISTRE MANUAL O CORREGIRLO'}
+                    response = JsonResponse(data)
+                    response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+                    return response
+
+        return JsonResponse({
+            # 'pk': client_obj.id,
+            'result': result,
+            'address': address},
+            status=HTTPStatus.OK)
+
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)

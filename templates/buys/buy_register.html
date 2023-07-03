@@ -8,7 +8,7 @@
             {#                   placeholder="Ingrese RUC"#}
             {#                   size="11"#}
             {#                   value="" required>#}
-            <label>Proveedor</label>
+            <label for="supplier_id">Proveedor</label>
             <select id="supplier_id" name="supplier-id" class="form-control" required>
                 <option value="0">Seleccione</option>
                 {% for s in supplier_set %}
@@ -23,7 +23,7 @@
 
 
         <div class="col-sm-4 col-md-4 col-lg-4">
-            <label>Fecha</label>
+            <label for="id_fechacompra">Fecha</label>
             <input type="date" class="form-control" id="id_fechacompra"
                    name="fechacompra"
                    placeholder="Fecha compra"
@@ -68,16 +68,24 @@
         {#                   placeholder="Numero "#}
         {#                   value="" required>#}
         {#        </div>#}
-
-        <div class="col-sm-4 col-md-4 col-lg-4"><label>Referencia</label>
-            <input type="text" class="form-control" id="reference"
-                   name="reference" autocomplete="off"
-                   placeholder="Orden de compra - proveedor"
-                   value="" required>
-        </div>
-
+        {% if contract_detail_obj %}
+            <div class="col-sm-4 col-md-4 col-lg-4">
+                <label for="delivery_date">Fecha de entrega</label>
+                <input type="date" class="form-control" id="delivery_date"
+                       name="delivery-date"
+                       value="{{ contract_detail_obj.date|date:'Y-m-d' }}">
+            </div>
+        {% else %}
+            <div class="col-sm-4 col-md-4 col-lg-4">
+                <label for="reference">Referencia</label>
+                <input type="text" class="form-control" id="reference"
+                       name="reference" autocomplete="off"
+                       placeholder="Orden de compra - proveedor"
+                       value="" required>
+            </div>
+        {% endif %}
         <div class="col-sm-4 col-md-4 col-lg-4">
-            <label>Tipo de pago</label>
+            <label for="payment_type">Tipo de pago</label>
             <select id="payment_type" class="form-control text-uppercase">
                 <option value="0">Seleccione</option>
                 {% for item in choices_payments_purchase %}
@@ -86,7 +94,7 @@
             </select>
         </div>
         <div class="col-sm-4 col-md-4 col-lg-4">
-            <label>Condicion de pago:</label>
+            <label for="pay_condition">Condicion de pago:</label>
             <input type="text" class="form-control" id="pay_condition"
                    name="pay_condition" autocomplete="off"
                    placeholder=""
