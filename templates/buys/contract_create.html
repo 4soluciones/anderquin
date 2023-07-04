@@ -74,7 +74,8 @@
                                 </div>
                                 <div class="col-sm-2 col-md-2 col-lg-2">
                                     <label class="font-weight-light" for="quantity_add">Cantidad:</label>
-                                    <input type="text" class="form-control form-control-sm text-center" id="quantity_add"
+                                    <input type="text" class="form-control form-control-sm text-center"
+                                           id="quantity_add"
                                            name="quantity-add" placeholder="0">
                                 </div>
                                 <div class="col-sm-2 col-md-2 col-lg-2">
@@ -165,78 +166,13 @@
         '</div>';
 
     $(document).on('click', '#btn-save-contract', function (e) {
-        e.preventDefault();
-        let _number_contract = $('#number_contract').val();
-        let _register_date = $('#register_date').val();
-        let _client = $('#client_id').val();
-        let _observations = $('#observations').val();
-        let _nro_dates = $('#nro_dates').val();
-
-        if (_number_contract.length === 0) {
-            toastr.warning('¡Favor de ingresar el numero de contrato!', 'Error de Datos');
-            return false;
-        }
-        if (_register_date.length === 0) {
-            toastr.warning('¡Favor de seleccionar una fecha valida', 'Error de Datos!');
-            return false;
-        }
-        if (_client === '0') {
-            toastr.warning('¡Favor de seleccionar un cliente', 'Error de Datos!');
-            return false;
-        }
-        if (_nro_dates === '0') {
-            toastr.warning('¡Ingrese al menos una Fecha de entrega', 'Error de Datos!');
-            return false;
-        }
-
-        let contract = {
-            "number_contract": _number_contract,
-            'register_date': _register_date,
-            'client': _client,
-            'observation': _observations,
-            "dates": []
-        };
-        let dateObj = {};
-        let itemObj = {};
-        $(".main-dates").each(function () {
-            let nro_quota = $(this).find("div.item-number input.number-quota").val()
-            dateObj = {
-                "nro_quota": nro_quota,
-                "date_quota": $(this).find("div.item-date-quota input.date-quota").val(),
-                "items": []
+        if (old_timestamp == null || old_timestamp + 2000 < e.timeStamp) {
+            let _save = saveContract();
+            if (_save !== false) {
+                old_timestamp = e.timeStamp;
+                $(this).slideUp();
             }
-            $(`tbody#details-table-date-${nro_quota} tr`).each(function () {
-                itemObj = {
-                    "product": $(this).find("td.item-product select.product").val(),
-                    "quantity": $(this).find("td.item-quantity input.quantity").val(),
-                }
-                dateObj.items.push(itemObj)
-            });
-            contract.dates.push(dateObj);
-        });
-        //console.log(contract)
-        $.ajax({
-            url: '/buys/save_contract/',
-            async: true,
-            dataType: 'json',
-            type: 'GET',
-            cache: false,
-            data: {'contract': JSON.stringify(contract)},
-            contentType: 'application/json;charset=UTF-8',
-            headers: {"X-CSRFToken": '{{ csrf_token }}'},
-            success: function (response, textStatus, xhr) {
-                if (response.success) {
-                    toastr.success(response.message, '¡Bien hecho!');
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
-                }
-            },
-            error: function (jqXhr, textStatus, xhr) {
-                console.log(jqXhr);
-                toastr.error('Error', '¡Ocurrio un error!');
-            }
-        });
+        }
     });
 
 </script>
