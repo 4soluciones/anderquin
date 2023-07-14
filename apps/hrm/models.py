@@ -554,7 +554,7 @@ class Period(models.Model):
 class Subsidiary(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True)
-    business_name = models.CharField('Razon social', max_length=45, null=True, blank=True)
+    business_name = models.CharField('Razon social', max_length=200, null=True, blank=True)
     address = models.CharField(max_length=200, null=True, blank=True)
     district = models.ForeignKey(District, on_delete=models.SET_NULL, null=True, blank=True)
     contact_phone = models.CharField(max_length=45, null=True, blank=True)

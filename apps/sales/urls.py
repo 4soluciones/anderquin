@@ -5,7 +5,7 @@ from apps.buys.views import new_loan_payment_buys_approved
 from apps.sales.views import *
 from apps.sales.views_SUNAT import query_dni
 from apps.sales.views_PDF import product_print, kardex_glp_pdf, account_order_list_pdf, \
-    pdf_get_orders_for_status_account
+    pdf_get_orders_for_status_account, print_quotation
 from apps.sales.views_EXCEL import kardex_glp_excel
 urlpatterns = [
     path('', login_required(Home.as_view()), name='home'),
@@ -156,7 +156,10 @@ urlpatterns = [
 
     # QUOTATION
     path('quotation/', login_required(quotation_list), name='quotation_list'),
+    path('save_quotation/', login_required(save_quotation), name='save_quotation'),
     path('get_product_quotation/', login_required(get_product_quotation), name='get_product_quotation'),
+    path('get_clients_by_criteria/', login_required(get_clients_by_criteria), name='get_clients_by_criteria'),
+    path('print_quotation/<int:pk>/<str:t>/', print_quotation, name='print_quotation'),
 
     # CLIENT
     path('client_save/', login_required(client_save), name='client_save'),

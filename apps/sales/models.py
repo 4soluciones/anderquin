@@ -396,8 +396,10 @@ class ClientAssociate(models.Model):
 
 
 class Order(models.Model):
-    TYPE_CHOICES = (('V', 'VENTA'), ('C', 'COMPRA'), ('R', 'REPARTO'), ('E', 'ELECTRONICO'),)
+    TYPE_CHOICES = (('V', 'VENTA'), ('T', 'COTIZACION'), ('R', 'REPARTO'), ('E', 'ELECTRONICO'),)
+    TYPE_CHOICES_PAYMENT = (('E', 'Efectivo'), ('D', 'Deposito'), ('C', 'Credito'))
     STATUS_CHOICES = (('P', 'PENDIENTE'), ('C', 'COMPLETADO'), ('A', 'ANULADO'),)
+    HAS_ORDER_QUOTATION = (('S', 'SIN VENTA'), ('C', 'CON VENTA'), ('0', 'SOLO VENTA'))
     type = models.CharField('Tipo', max_length=1, choices=TYPE_CHOICES, default='C', )
     supplier = models.ForeignKey('Supplier', verbose_name='Proveedor',
                                  on_delete=models.SET_NULL, null=True, blank=True)
@@ -416,12 +418,21 @@ class Order(models.Model):
     discount = models.DecimalField('Descuento', max_digits=10, decimal_places=2, default=0)
     distribution_mobil = models.ForeignKey('comercial.DistributionMobil', on_delete=models.SET_NULL, null=True,
                                            blank=True)
-    correlative_sale = models.CharField(
-        verbose_name='Correlativo de Ventas', max_length=45, null=True, blank=True)
+    correlative = models.IntegerField('Correlativo', default=0)
     truck = models.ForeignKey('comercial.Truck', on_delete=models.SET_NULL, null=True,
                               blank=True)
     is_review = models.BooleanField('Revisado', default=False)
     subsidiary = models.ForeignKey('hrm.Subsidiary', on_delete=models.SET_NULL, null=True, blank=True)
+
+    validity_date = models.DateField('Fecha de validación hasta', null=True, blank=True)
+    date_completion = models.CharField('Tiempo de entrega', max_length=100, null=True, blank=True, default=0)
+    place_delivery = models.CharField('Lugar de entrega', max_length=300, null=True, blank=True, default=0)
+    observation = models.CharField('Observacion', max_length=500, null=True, blank=True, default=0)
+    way_to_pay_type = models.CharField('Tipo de pago', max_length=1, choices=TYPE_CHOICES_PAYMENT, default='E', )
+    has_quotation_order = models.CharField('Has Order Quotation', max_length=1, choices=HAS_ORDER_QUOTATION,
+                                           default='0')
+    order_sale_quotation = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
+                                             related_name="order_quotation")
 
     def __str__(self):
         return str(self.pk)

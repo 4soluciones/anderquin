@@ -5724,6 +5724,9 @@ def save_quotation(request):
         type_payment = (data_quotation["type_payment"])
         has_quotation_order = ''
 
+        user_id = request.user.id
+        user_obj = User.objects.get(pk=int(user_id))
+
         _date = str(data_quotation["Date"])
         client_address = str(data_quotation["Address"])
         client_id = str(data_quotation["Client"])
@@ -5747,8 +5750,8 @@ def save_quotation(request):
         user_subsidiary_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_subsidiary_obj)
 
-        user = int(data_quotation["userID"])
-        user_obj = User.objects.get(id=user)
+        # user = int(data_quotation["userID"])
+        # user_obj = User.objects.get(id=user)
 
         subsidiary_store_sales_obj = SubsidiaryStore.objects.get(
             subsidiary=subsidiary_obj, category='V')
@@ -5757,8 +5760,6 @@ def save_quotation(request):
         validity_date = (data_quotation["validity_date"])
         date_completion = (data_quotation["date_completion"])
         place_delivery = (data_quotation["place_delivery"])
-        type_quotation = (data_quotation["type_quotation"])
-        type_name_quotation = (data_quotation["name_type_quotation"])
         observation = (data_quotation["observation"])
 
         order_sale_quotation = None
@@ -5769,17 +5770,13 @@ def save_quotation(request):
             client=client_obj,
             user=user_obj,
             total=sale_total,
-            distribution_mobil=None,
-            truck=None,
             subsidiary_store=subsidiary_store_sales_obj,
             create_at=_date,
-            # correlative_sale=get_correlative_order(subsidiary_obj, 'T'),
+            correlative=get_correlative_order(subsidiary_obj, 'T'),
             subsidiary=subsidiary_obj,
             validity_date=validity_date,
             date_completion=date_completion,
             place_delivery=place_delivery,
-            type_quotation=type_quotation,
-            type_name_quotation=type_name_quotation,
             observation=observation,
             way_to_pay_type=type_payment,
             has_quotation_order='S',
@@ -5811,6 +5808,12 @@ def save_quotation(request):
             'id_sales': order_obj.id,
             'message': 'Cotización generada',
         }, status=HTTPStatus.OK)
+
+
+def get_correlative_order(subsidiary_obj=None, _type=None):
+    correlative = Order.objects.filter(subsidiary=subsidiary_obj, type=_type).aggregate(
+        r=Coalesce(Max('correlative_sale'), 0))
+    return str(correlative['r'] + 1)
 
 
 def modal_client_create(request):
@@ -6019,3 +6022,35 @@ def get_api_client(request):
             status=HTTPStatus.OK)
 
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_clients_by_criteria(request):
+    if request.method == 'GET':
+        client_list = []
+        value = request.GET.get('value', '').strip()
+        client_type_set = ClientType.objects.select_related('client').filter(client__names__icontains=value.upper())
+        client_dict = {}
+        address = ''
+        for ct in client_type_set:
+
+            document_type_obj = DocumentType.objects.get(id=ct.document_type_id)
+
+            if ct.client.clientaddress_set.last() is not None:
+                address = ct.client.clientaddress_set.last().address
+
+            client_dict = {
+                'client_id': ct.client.id,
+                'client_names': ct.client.names,
+                'client_document_number': ct.document_number,
+                'client_address': address,
+                'client_type_document': ct.document_type_id,
+                'client_type': document_type_obj.short_description,
+            }
+            client_list.append(client_dict)
+
+        return JsonResponse({
+            'client_list': client_list,
+            'client_count': len(client_dict),
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
