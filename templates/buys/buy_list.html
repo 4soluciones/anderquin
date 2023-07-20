@@ -24,6 +24,9 @@
                                     <h5 class="montserrat text-white font-weight-bold mt-4 mb-0"><label>ORDEN DE
                                         COMPRA:</label>
                                     </h5>
+                                    <input type="hidden"
+                                           id="contract_detail_id" name="contract-detail"
+                                           value="">
                                 {% endif %}
                             </div>
                             {% if contract_detail_obj %}
@@ -465,6 +468,20 @@
 
         $('#purchase-form').submit(function (event) {
             event.preventDefault();
+            let reference = $('#reference').val()
+            let _contract = $("#contract_detail_id")
+            let delivery_date = $('#delivery_date').val()
+            console.log(_contract.val())
+            if (_contract.val() !== '') {
+                reference = ''
+                if (delivery_date === '') {
+                    toastr.warning('¡Seleccione la fecha de entrega!', 'Mensaje');
+                    return false;
+                }
+            } else {
+                delivery_date = ''
+            }
+            console.log(delivery_date)
 
             if ($('#payment_type').val() === '0') {
                 toastr.warning('¡Selecione el tipo de pago!', 'Mensaje');
@@ -484,8 +501,8 @@
                 let Detail_purchase = {
                     "SupplierId": $('#supplier_id').val(),
                     "Date": $('#id_fechacompra').val(),
-                    "Reference": $('#reference').val(),
-                    "Delivery_date": $('#delivery_date').val(),
+                    "Reference": reference,
+                    "Delivery_date": delivery_date,
                     "Type_Pay": $('#payment_type').val(),
                     "Pay_condition": $('#pay_condition').val(),
                     "Base_Total": Number(table_foot.find("td.foot-base input.total-foot-base").val()),
@@ -508,7 +525,7 @@
                     "client_address_reference": $("#client_address_reference").val(),
                     "client_final_address": $("#client_final_address").val(),
                     "observations": $("#observations").val(),
-                    "contract_detail_id": $("#contract_detail_id").val(),
+                    "contract_detail_id": _contract.val(),
                 };
                 $("#id_detail_data_grid tbody#details-table tr").each(function () {
                     let detailObj = {
@@ -535,8 +552,8 @@
                             let purchase_id = response.pk
                             window.location.href = "/buys/print_pdf_purchase_order/" + purchase_id + "/";
                             setTimeout(() => {
-                                window.open("/buys/buy_list/", '_self');
-                            }, 1000);
+                                window.open("/buys/contracts/", '_self');
+                            }, 2000);
                         }
                     },
                     error: function (jqXhr, textStatus, xhr) {
@@ -770,10 +787,10 @@
                         let _quantity_minimum = Number(response.quantity_minimum).toFixed(2)
                         if (_quantity_minimum && _quantity) {
                             let _q_x_u = _quantity / _quantity_minimum
-                            {#console.log(Math.ceil(_q_x_u))#}
-                            _input_cant_x_und.val(Math.ceil(_q_x_u) + ' ' + response.unit_name)
+                            _input_cant_x_und.val(Math.ceil(_q_x_u))
+                            {#_input_cant_x_und.val(Math.ceil(_q_x_u))#}
                         }
-                        _input_quantity_minimum.val(response.quantity_minimum + 'UND')
+                        _input_quantity_minimum.val(response.quantity_minimum + ' UND')
                     },
                 });
             }
@@ -877,16 +894,18 @@
 
             let _tr = $(this).parent('div').parent('td').parent('tr')
             let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
+            let _quantity_x_und = Number(_tr.find('td.item-quantity-x-unit input.quantity-x-unit').val())
+
             let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
             let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
 
-            {#console.log("_quantity", _quantity)#}
-            {#console.log("_price_unit", _price_unit)#}
-            {#console.log("_total", _total)#}
+            console.log("_quantity_x_und", _quantity_x_und)
+            console.log("_price_unit", _price_unit)
+            console.log("_total", _total)
 
-            if (_quantity !== 0 && _price_unit !== 0) {
-                _total = _quantity * _price_unit
-                _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(2));
+            if (_quantity_x_und !== 0 && _price_unit !== 0) {
+                _total = _quantity_x_und * _price_unit
+                _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(4));
             }
             calculate_total(_tr)
             sum_table()
@@ -895,16 +914,14 @@
         function calculate_total(_tr) {
 
             let $quantity = Number(_tr.find('td.item-quantity input.quantity-product').val());
+            let $quantity_x_und = Number(_tr.find('td.item-quantity-x-unit input.quantity-x-unit').val())
             let $price_unit = Number(_tr.find('td.item-price input.price-unit-product').val());
-
             let $total = Number(_tr.find('td.total-row input.total-detail').val());
+            let amount
 
-            let d1, d2, d3, d4, d1p, d2p, d3p, d4p, amount, $totalTemp
+            amount = $quantity_x_und * $price_unit
 
-            $price_unit = Number(_tr.find('td.item-price input.price-unit-product').val());
-            amount = $quantity * $price_unit
-
-            _tr.find('td.total-row input.total-detail').val(amount.toFixed(2))
+            _tr.find('td.total-row input.total-detail').val(amount.toFixed(4))
 
         }
 
@@ -915,8 +932,6 @@
             let total_freight = 0;
             let total_document = 0;
             let _total;
-
-            total_freight = Number($("#id_freight_data_grid tbody#details-freight tr input#id_total_freight").val());
 
             $("#id_detail_data_grid tbody#details-table tr").each(function () {
                 let td_total = Number($(this).find("td.total-row input.total-detail").val());
@@ -929,20 +944,19 @@
                 base = sum_total / 1.18
                 igv = sum_total - base
                 _total = base + igv
-                total_document = _total + total_freight
+                total_document = _total
 
             } else {
                 base = sum_total
                 igv = sum_total * 0.18
                 _total = base + igv
-                total_document = _total + total_freight
+                total_document = _total
             }
 
-            $("#id_detail_data_grid tfoot tr input.total-foot-base").val(base.toFixed(2));
-            $("#id_detail_data_grid tfoot tr input.total-foot-igv").val(igv.toFixed(2));
-            $("#id_detail_data_grid tfoot tr input.total-foot-total").val(_total.toFixed(2));
-            $("#id_detail_data_grid tfoot tr input.total-foot-freight").val(total_freight.toFixed(2));
-            $("#id_detail_data_grid tfoot tr input.total-foot-document").val(total_document.toFixed(2));
+            $("#id_detail_data_grid tfoot tr input.total-foot-base").val(base.toFixed(4));
+            $("#id_detail_data_grid tfoot tr input.total-foot-igv").val(igv.toFixed(4));
+            $("#id_detail_data_grid tfoot tr input.total-foot-total").val(_total.toFixed(4));
+            $("#id_detail_data_grid tfoot tr input.total-foot-document").val(total_document.toFixed(4));
         }
 
         $(document).on('change', '#id_detail_data_grid tfoot tr input.check-igv', function (e) {
