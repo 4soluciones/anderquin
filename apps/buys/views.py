@@ -742,10 +742,6 @@ def get_quantity_minimum(request):
     if request.method == 'GET':
         product_id = request.GET.get('product_id', '')
         unit_id = request.GET.get('unit_id', '')
-        quantity_minimum = ''
-        price_sale = ''
-        price_purchase = ''
-        unit_name = ''
         product_detail_set = ProductDetail.objects.filter(product__id=product_id, unit__id=unit_id)
         if product_detail_set.exists():
             product_detail_obj = product_detail_set.last()

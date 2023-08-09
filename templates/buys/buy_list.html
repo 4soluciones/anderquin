@@ -770,8 +770,9 @@
 
         async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
 
-            let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum')
-            let _input_cant_x_und = _tr.find('td.item-quantity-x-unit input.quantity-x-unit')
+            let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum');
+            let _input_cant_x_und = _tr.find('td.item-quantity-x-unit input.quantity-x-unit');
+            let _price_unit_product = _tr.find('td.item-price input.price-unit-product');
             _input_quantity_minimum.val('')
             if (product_id !== '0') {
                 $.ajax({
@@ -787,10 +788,12 @@
                         let _quantity_minimum = Number(response.quantity_minimum).toFixed(2)
                         if (_quantity_minimum && _quantity) {
                             let _q_x_u = _quantity / _quantity_minimum
-                            _input_cant_x_und.val(Math.ceil(_q_x_u))
+                            _input_cant_x_und.val(_q_x_u.toFixed(2))
                             {#_input_cant_x_und.val(Math.ceil(_q_x_u))#}
                         }
-                        _input_quantity_minimum.val(response.quantity_minimum + ' UND')
+                        _input_quantity_minimum.val(response.quantity_minimum + ' UND');
+                        _price_unit_product.val(response.price_purchase);
+                        $('.price-unit-product').trigger('keyup');
                     },
                 });
             }
@@ -865,8 +868,8 @@
         });
 
         function quantityMinimumXQuantity(quantity, quantity_minimum, tr) {
-            let _quantity_x_quantity_minimum = quantity_minimum * quantity
-            tr.find('td.item-quantity-x-unit input.quantity-x-unit').val(_quantity_x_quantity_minimum + 'UND');
+            let _quantity_x_quantity_minimum = quantity / quantity_minimum
+            tr.find('td.item-quantity-x-unit input.quantity-x-unit').val(_quantity_x_quantity_minimum.toFixed(2));
         }
 
         $(document).on('keyup', '.quantity-product', function () {
@@ -877,15 +880,17 @@
             let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
             let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
 
-            {#console.log("_tr", _tr.find('td.item-price div.input-icon input.price-unit-product'))#}
-            {#console.log("_quantity", _quantity)#}
-            {#console.log("_price_unit", _price_unit)#}
-            {#console.log("_total", _total)#}
+            //console.log("_tr", _tr.find('td.item-price div.input-icon input.price-unit-product'))
+            //console.log("_quantity", _quantity)
+            //console.log("_price_unit", _price_unit)
+            //console.log("_total", _total)
+            //console.log("_quantity_minimum", _quantity_minimum)
             quantityMinimumXQuantity(_quantity, _quantity_minimum, _tr)
-            if (_quantity !== 0 && _price_unit !== 0) {
+
+            /*if (_quantity !== 0 && _price_unit !== 0) {
                 _total = _quantity * _price_unit
                 _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(2));
-            }
+            }*/
             calculate_total(_tr)
             sum_table()
         });
