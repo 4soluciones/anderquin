@@ -2970,3 +2970,56 @@ def bill_list(request):
             'formatdate': formatdate,
             'purchase_set': purchase_set,
         })
+
+
+def get_purchase_detail(request):
+    if request.method == 'GET':
+        purchase_id = request.GET.get('id', '')
+        detail_purchase_dict = []
+        detail_purchase_set = PurchaseDetail.objects.filter(purchase_id=purchase_id)
+        for d in detail_purchase_set:
+            detail_total = d.price_unit * d.quantity
+            item = {
+                'id': d.id,
+                'purchase_id': d.purchase.id,
+                'quantity': round(d.quantity, 2),
+                'price_unit': round(d.price_unit, 2),
+                'detail_total': '{:,}'.format(round(d.multiplicate(), 2)),
+                'unit_id': d.unit.id,
+                'unit_name': d.unit.name,
+                'product_id': d.product.id,
+                'product_name': d.product.name,
+                'product_code': d.product.code
+            }
+            detail_purchase_dict.append(item)
+
+        return JsonResponse({
+            'message': 'Agregado.',
+            'detail_purchase_dict': detail_purchase_dict
+        }, status=HTTPStatus.OK)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
