@@ -2999,27 +2999,66 @@ def get_purchase_detail(request):
         }, status=HTTPStatus.OK)
 
 
+def update_purchase(request, pk=None):
+    contract_detail_obj = None
+    contract_dict = []
+    purchase_detail_dict = []
+    purchase_obj = Purchase.objects.get(id=int(pk))
+    if purchase_obj.contract_detail is not None:
+        contract_detail_obj = ContractDetail.objects.get(id=int(purchase_obj.contract_detail.id))
+        contract_detail_item_set = ContractDetailItem.objects.filter(
+            contract_detail__id=purchase_obj.contract_detail.id)
+        # for counter, d in enumerate(contract_detail_item_set, start=1):
+        #     item_contract = {
+        #         'contract_detail_id': d.contract_detail.id,
+        #         'id': d.id,
+        #         'product_id': d.product.id,
+        #         'product_name': d.product.name,
+        #         'product_brand': d.product.product_brand.name,
+        #         'quantity': d.quantity,
+        #         'counter': counter,
+        #         'units': []
+        #     }
+        #     for u in Unit.objects.filter(productdetail__product__id=d.product.id).all():
+        #         item_units = {
+        #             'id': u.id,
+        #             'name': u.name,
+        #         }
+        #         item_contract.get('units').append(item_units)
+        #     contract_dict.append(item_contract)
 
+    for pd in purchase_obj.purchasedetail_set.all():
 
+        product_detail = ProductDetail.objects.get(product=pd.product, unit__id=pd.unit.id)
+        quantity_x_und = (pd.quantity / product_detail.quantity_minimum).quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_UP)
+        total_detail = (pd.price_unit * quantity_x_und).quantize(decimal.Decimal('0.0000'), rounding=decimal.ROUND_HALF_EVEN)
+        item = {
+            'id': pd.id,
+            'product_name': pd.product.name,
+            'quantity': pd.quantity,
+            'unit_id': pd.unit.id,
+            'unit_name': pd.unit.name,
+            'quantity_minimum': round(product_detail.quantity_minimum, 0),
+            'quantity_x_und': quantity_x_und,
+            'units': [],
+            'price_unit': pd.price_unit.quantize(decimal.Decimal('0.000000'), rounding=decimal.ROUND_HALF_EVEN),
+            'total_detail': total_detail
+        }
+        for u in Unit.objects.filter(productdetail__product__id=pd.product.id).all():
+            item_units = {
+                'id': u.id,
+                'name': u.name,
+            }
+            item.get('units').append(item_units)
+        purchase_detail_dict.append(item)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return render(request, 'buys/buy_list_edit.html', {
+        'purchase': purchase_obj,
+        'contract_detail_obj': contract_detail_obj,
+        'supplier_set': Supplier.objects.all(),
+        'choices_payments_purchase': Purchase._meta.get_field('payment_method').choices,
+        'client_set': Client.objects.all(),
+        'subsidiary_set': Subsidiary.objects.all().order_by('id'),
+        # 'contract_dict': contract_dict,
+        'purchase_detail_dict': purchase_detail_dict,
+    })

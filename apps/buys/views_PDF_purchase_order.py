@@ -443,8 +443,8 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     p4_7 = Paragraph(f'PRECIO UNIDAD', styles["Left"])
     p4_8 = Paragraph(f'SUB TOTAL', styles["Right"])
 
-    colwiths_table_4 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 40 / 100, _wt * 8 / 100, _wt * 10 / 100, _wt * 10 / 100,
-                        _wt * 10 / 100, _wt * 10 / 100]
+    colwiths_table_4 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 40 / 100, _wt * 8 / 100, _wt * 8 / 100, _wt * 10 / 100,
+                        _wt * 10 / 100, _wt * 12 / 100]
     rowwiths_table_4 = [inch * 1]
     ana_c4 = Table(
         [(p4_1, p4_2, p4_3, p4_4, p4_5, p4_6, p4_7, p4_8)],
@@ -469,6 +469,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         product = i.product
         product_detail_obj = ProductDetail.objects.get(product=product, unit=i.unit)
         cantidad_unidad = int(product_detail_obj.quantity_minimum)
+        quantity_x_und = (i.quantity / cantidad_unidad).quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_UP)
         num = f'{contador}'
         contador += 1
         cod = f'{product.code}'
@@ -478,7 +479,8 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         unidades = f'{int(i.quantity)}'
         p_und = f'{int(i.quantity / cantidad_unidad)}'
         precio_unidad = f'{round(i.price_unit, 6)}'
-        sub_total = round(i.multiplicate(), 2)
+        # sub_total = round(i.multiplicate(), 2)
+        sub_total = (i.price_unit * quantity_x_und).quantize(decimal.Decimal('0.0000'), rounding=decimal.ROUND_HALF_EVEN)
 
         total += sub_total
 
@@ -489,10 +491,10 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         p5_5 = Paragraph(f'{p_und}', styles["Left"])
         p5_6 = Paragraph(f'{unidades}', styles["Left"])
         p5_7 = Paragraph(f'{precio_unidad}', styles["Left"])
-        p5_8 = Paragraph(f'{sub_total}', styles["Right"])
+        p5_8 = Paragraph('{:,}'.format(sub_total), styles["Right"])
 
-        colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 40 / 100, _wt * 8 / 100, _wt * 10 / 100,
-                            _wt * 10 / 100, _wt * 10 / 100, _wt * 10 / 100]
+        colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 40 / 100, _wt * 8 / 100, _wt * 8 / 100,
+                            _wt * 10 / 100, _wt * 10 / 100, _wt * 12 / 100]
         rowwiths_table_5 = [inch * 0.5]
         ana_c5 = Table(
             [(p5_1, p5_2, p5_3, p5_4, p5_5, p5_6, p5_7, p5_8)],
@@ -799,7 +801,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     #
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
+    # response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
 
     tomorrow = datetime.now() + timedelta(days=1)
     tomorrow = tomorrow.replace(hour=0, minute=0, second=0)

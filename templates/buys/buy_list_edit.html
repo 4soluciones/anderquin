@@ -1,0 +1,1345 @@
+{% extends 'home.html' %}
+{% block title %}
+    Editar Compra
+{% endblock title %}
+
+{% block body %}
+    {% if purchase %}
+        <div class="col-sm-12 col-sm-12 col-lg-12 pt-3 roboto-condensed-regular">
+            <div class="card">
+                <div class="card-header pt-0">
+                    <div class="row"{% if contract_detail_obj %} style="background: #62a239" {% else %}
+                         style="background: #1a77c8"{% endif %}>
+                        <div class="col-sm-12 col-md-12 col-lg-12">
+                            <div class="row p-2">
+                                <div class="col-sm-3 col-md-3 col-lg-3 pr-0">
+                                    {% if contract_detail_obj %}
+                                        <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                                            <label><span
+                                                    class="text-danger">EDITAR:</span> {{ contract_detail_obj.contract.contract_number }}
+                                            </label>
+                                        </h6>
+                                        <input type="hidden"
+                                               class="form-control"
+                                               id="contract_detail_id" name="contract-detail"
+                                               value="{{ contract_detail_obj.id }}">
+                                        <input type="hidden" id="purchase_id" value="{{ purchase.id }}">
+                                    {% else %}
+                                        <h5 class="montserrat text-white font-weight-bold mt-4 mb-0"><label>EDITAR ORDEN
+                                            DE
+                                            COMPRA:</label>
+                                        </h5>
+                                    {% endif %}
+                                    {#                                    <h4 class="montserrat text-dark font-weight-bold mt-3 mb-0">#}
+                                    {#                                        <label>EDITAR COMPRA NRO:</label>#}
+                                    {#                                        <label>{{ purchase.bill_number }}</label>#}
+                                    {#                                </h4>#}
+
+                                </div>
+                                {% if contract_detail_obj %}
+                                    <div class="col-sm-2 col-md-2 col-lg-2">
+                                        <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                                            <label>FECHA DE ENTREGA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
+                                        </h6>
+                                    </div>
+                                {% endif %}
+                                <div class="col-sm-2 col-md-2 col-lg-2 mb-3">
+                                    <button type="button" onclick="showModalView('modal_supplier_create')"
+                                            class="btn btn-sm btn-secondary btn-block mt-3 mb-0 col-sm-12 col-md-12 col-lg-12">
+                                        Nuevo Proveedor
+                                    </button>
+                                </div>
+                                <div class="col-sm-2 col-md-2 col-lg-2">
+                                    <form>
+                                        <div class="form-group row mt-3">
+                                            <button type="button"
+                                                    class="col-sm-5 btn btn-sm btn-outline-secondary font-weight-bold border-0 text-dark btn-block p-1"
+                                                    id="btn-type-change">Tipo de Cambio:
+                                            </button>
+                                            <div class="col-sm-7">
+                                                <input type="text" class="form-control text-center font-weight-bold"
+                                                       id="type_change" readonly>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="col-sm-2 col-md-2 col-lg-2">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input check-dollar"
+                                               {% if purchase.check_dollar %}checked{% endif %} type="checkbox" value=""
+                                               id="check_dollar">
+                                        <label class="form-check-label text-dark font-weight-bold" for="check_dollar">
+                                            COMPRA EN DOLARES
+                                        </label>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="row border">
+                            <div class="col-sm-5 col-md-5 col-lg-5 pr-0">
+                                <div class="card">
+                                    <div class="card-header pb-1 pt-1">
+                                        <div class="row">
+                                            <div class="col-sm-9 col-md-9 col-lg-9 font-weight-bold">
+                                                DATOS DE LA ORDEN:
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body pt-1">
+                                        <form id="purchase-form" action="{% url 'buys:save_purchase' %}" method="POST">
+                                            {% csrf_token %}
+                                            <div class="row p-1">
+                                                <div class="col-sm-8 col-md-8 col-lg-8">
+                                                    <label for="supplier_id">Proveedor</label>
+                                                    <select id="supplier_id" name="supplier-id" class="form-control"
+                                                            required>
+                                                        <option value="0">Seleccione</option>
+                                                        {% for s in supplier_set %}
+                                                            {% if s.id == purchase.supplier.id %}
+                                                                <option selected
+                                                                        value="{{ s.id }}">{{ s.name|upper }}</option>
+                                                            {% else %}
+                                                                <option value="{{ s.id }}">{{ s.name|upper }}</option>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+
+                                                <div class="col-sm-4 col-md-4 col-lg-4">
+                                                    <label for="id_fechacompra">Fecha</label>
+                                                    <input type="date" class="form-control" id="id_fechacompra"
+                                                           name="fechacompra"
+                                                           placeholder="Fecha compra"
+                                                           value="{{ purchase.purchase_date|date:"Y-m-d" }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="row p-1">
+                                                {% if contract_detail_obj %}
+                                                    <div class="col-sm-4 col-md-4 col-lg-4">
+                                                        <label for="delivery_date">Fecha de entrega</label>
+                                                        <input type="date" class="form-control" id="delivery_date"
+                                                               name="delivery-date"
+                                                               value="{{ contract_detail_obj.date|date:'Y-m-d' }}">
+                                                    </div>
+                                                {% else %}
+                                                    <div class="col-sm-4 col-md-4 col-lg-4">
+                                                        <label for="reference">Referencia</label>
+                                                        <input type="text" class="form-control" id="reference"
+                                                               name="reference" autocomplete="off"
+                                                               placeholder="Orden de compra - proveedor"
+                                                               value="" required>
+                                                    </div>
+                                                {% endif %}
+                                                <div class="col-sm-4 col-md-4 col-lg-4">
+                                                    <label for="payment_type">Tipo de pago</label>
+                                                    <select id="payment_type" class="form-control text-uppercase">
+                                                        <option value="0">Seleccione</option>
+                                                        {% for item in choices_payments_purchase %}
+                                                            {% if item.0 == purchase.payment_method %}
+                                                                <option selected
+                                                                        value="{{ item.0 }}">{{ item.1 }}</option>
+                                                            {% else %}
+                                                                <option value="{{ item.0 }}">{{ item.1 }}</option>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-4 col-md-4 col-lg-4">
+                                                    <label for="pay_condition">Condicion de pago:</label>
+                                                    <input type="text" class="form-control" id="pay_condition"
+                                                           name="pay_condition" autocomplete="off"
+                                                           placeholder=""
+                                                           value="{{ purchase.payment_condition }}" required>
+
+                                                </div>
+                                                <div class="col-sm-2 col-md-2 col-lg-2 pr-1 pl-1 dues d-none">
+                                                    <label>Monto:</label>
+                                                    <div class="input-group">
+                                                        <input type="number" class="form-control text-right"
+                                                               placeholder="INGRESE MONTO"
+                                                               aria-label="Recipient's username"
+                                                               aria-describedby="add-dues" id="amount-due">
+                                                        <button class="btn btn-outline-success" type="button"
+                                                                id="add-dues">+
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row p-4">
+                                                <div class="col-sm-4 col-md-4 col-lg-4">
+                                                    <button type="button" id="btn-new"
+                                                            class="btn btn-sm btn-secondary btn-block p-1">Nuevo
+                                                    </button>
+                                                </div>
+
+                                                <div class="col-sm-4 col-md-4 col-lg-4">
+                                                    <button type="submit" id="btn-save"
+                                                            class="btn btn-sm btn-primary btn-block p-1">Guardar
+                                                    </button>
+                                                </div>
+
+                                                <div class="col-sm-4 col-md-4 col-lg-4">
+                                                    <button type="button" id="btn-add-new-detail"
+                                                            class="btn btn-sm btn-success btn-block">Agregar Detalle +
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-7 col-md-7 col-lg-7 pl-0">
+                                <div class="card">
+                                    <div class="card-header pb-1 pt-1">
+                                        <div class="row">
+                                            <div class="col-sm-9 col-md-9 col-lg-9 font-weight-bold">
+                                                REFERENCIA DE VENTA:
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body pt-1">
+                                        <div class="row p-1">
+                                            <div class="col-sm-6 col-md-6 col-lg-6">
+                                                <label for="client_reference_id">Referencia de Venta: (Cliente)</label>
+                                                <select id="client_reference_id" name="client_reference_id"
+                                                        class="form-control">
+                                                    <option value="0">Seleccione</option>
+                                                    {% for c in client_set %}
+                                                        {% if contract_detail_obj.contract.client.id == c.id %}
+                                                            <option style="background-color: #97e3a8" selected
+                                                                    value="{{ c.id }}"
+                                                                    type="{{ c.type_client }}">{{ c.names|upper }}
+                                                                | {{ c.get_type_client_display }}</option>
+                                                        {% else %}
+                                                            <option value="{{ c.id }}"
+                                                                    type="{{ c.type_client }}">{{ c.names|upper }}
+                                                                | {{ c.get_type_client_display }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+
+                                            </div>
+                                            <div class="col-sm-6 col-md-6 col-lg-6 client-final d-none">
+                                                <label for="client_final" class="text-primary">Referencia de Venta a la
+                                                    Entidad: (Cliente Final)</label>
+                                                <select id="client_final" name="client_final" class="form-control">
+                                                    <option value="0">Seleccione</option>
+                                                    {% for c in client_set %}
+                                                        <option value="{{ c.id }}">{{ c.names|upper }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row p-1">
+                                            <div class="col-sm-3 col-md-3 col-lg-3">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input class="custom-control-input" type="checkbox"
+                                                           id="check-subsidiary"
+                                                           {% if purchase.delivery_choice == 'S' %}checked{% endif %}>
+                                                    <label for="check-subsidiary" class="custom-control-label">Entrega
+                                                        en
+                                                        Anderquin</label>
+                                                </div>
+                                                {#        <label>Lugar de Entrega:</label>#}
+                                                <select id="address_subsidiary" name="address_subsidiary"
+                                                        class="form-control">
+                                                    <option value="0">Seleccione</option>
+                                                    {% for s in subsidiary_set %}
+                                                        {% if s.id == purchase.subsidiary.id %}
+                                                            <option selected
+                                                                    value="{{ s.id }}">{{ s.name|upper }}</option>
+                                                        {% else %}
+                                                            <option value="{{ s.id }}">{{ s.name|upper }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-3 col-md-3 col-lg-3">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input class="custom-control-input" type="checkbox"
+                                                           id="check-provider"
+                                                           {% if purchase.delivery_choice == 'P' %}checked{% endif %}>
+                                                    <label for="check-provider" class="custom-control-label">Entrega en
+                                                        Proveedor</label>
+                                                </div>
+                                                {#        <label>Lugar de Entrega:</label>#}
+                                                <select id="address_provider" name="address_provider"
+                                                        class="form-control" aria-label="...">
+                                                    {% if purchase.delivery_choice == 'P' %}
+                                                        <option value="0">{{ purchase.delivery_address }}</option>
+                                                    {% else %}
+                                                        <option value="0">Seleccione</option>
+                                                    {% endif %}
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-6 col-md-6 col-lg-6 delivery-client">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input class="custom-control-input" type="checkbox"
+                                                           id="check-client"
+                                                           {% if purchase.delivery_choice == 'CR' %}checked{% endif %}>
+                                                    <label for="check-client" class="custom-control-label">Entrega en
+                                                        Cliente</label>
+                                                </div>
+                                                <select id="client_address_reference" name="client_address_reference"
+                                                        class="form-control" aria-label="...">
+                                                    {% if purchase.delivery_choice == 'CR' %}
+                                                        <option value="0">{{ purchase.delivery_address }}</option>
+                                                    {% else %}
+                                                        <option value="0">Seleccione</option>
+                                                    {% endif %}
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-6 col-md-6 col-lg-6 delivery-client-final d-none">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input class="custom-control-input" type="checkbox"
+                                                           id="check-client-final"
+                                                           {% if purchase.delivery_choice == 'CP' %}checked{% endif %}>
+                                                    <label for="check-client-final"
+                                                           class="custom-control-label text-primary">Entrega en Cliente
+                                                        Final</label>
+                                                </div>
+                                                <select id="client_final_address" name="client_final_address"
+                                                        class="form-control" aria-label="...">
+                                                    {% if purchase.delivery_choice == 'CP' %}
+                                                        <option value="0">{{ purchase.delivery_address }}</option>
+                                                    {% else %}
+                                                        <option value="0">Seleccione</option>
+                                                    {% endif %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row p-1">
+                                            <div class="col-sm-12 col-md-12 col-lg-12">
+                                                <label for="observations" class="">Observaciones:</label>
+                                                <input type="text" class="form-control" id="observations"
+                                                       name="observations"
+                                                       placeholder="OBSERVACIONES"
+                                                       value="{{ purchase.observation|upper }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-sm-12 col-md-12 col-lg-12 pt-1 roboto-condensed-regular">
+            <div class="card">
+                <div class="card-body pt-2">
+                    <div class="table-responsive" id="render-table">
+                        <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
+                            <table id="id_detail_data_grid"
+                                   class="table table-hover table-sm align-content-center table-bordered mb-0"
+                                   cellspacing="0" style="width: 100%;">
+                                <thead>
+                                <tr class="text-center text-white" style="background: #1a77c8">
+                                    <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Nº</th>
+                                    <th scope="col" class="align-middle font-weight-normal" style="width: 40%;">
+                                        Descripción de Artículo
+                                    </th>
+                                    <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">
+                                        Cantidad
+                                    </th>
+                                    <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Unidad
+                                        Medida
+                                    </th>
+                                    <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Cant.
+                                        Min.
+                                    </th>
+                                    <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Cant. x
+                                        Und Med.
+                                    </th>
+                                    <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Valor
+                                        Unitario
+                                    </th>
+                                    <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">
+                                        Importe
+                                    </th>
+                                    <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">
+                                        Eliminar
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody id="details-table">
+                                {% for pd in purchase_detail_dict %}
+                                    <tr class="" product="{{ c.product_id }}" unit_id="">
+                                        <td class="item-numero align-middle text-center">{{ forloop.counter }}</td>
+                                        <td class="align-middle text-left product-item-table">
+                                            <input type="text"
+                                                   class="form-control text-uppercase product-table dropdown-toggle"
+                                                   data-toggle="dropdown" aria-expanded="false"
+                                                   placeholder="Ingrese producto..."
+                                                   value="{{ pd.product_name }}"
+                                                   {% if contract_detail_obj %}disabled{% endif %}>
+                                            <div class="dropdown-menu"></div>
+                                        </td>
+                                        <td class="align-middle item-quantity">
+                                            <input type="text"
+                                                   class="form-control text-center quantity-product text-uppercase"
+                                                   placeholder="0"
+                                                   value="{{ pd.quantity|safe|floatformat:0 }}">
+                                        </td>
+                                        <td class="align-middle unit">
+                                            <select class="form-control unit-product" id="id_unit_product"
+                                                    name="unit_product" required>
+                                                <option value="0">Seleccione</option>
+                                                {% for u in pd.units %}
+                                                    {% if u.id == pd.unit_id %}
+                                                        <option selected value="{{ u.id }}">{{ u.name }}</option>
+                                                    {% else %}
+                                                        <option value="{{ u.id }}">{{ u.name }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td class="align-middle quantity-minimum">
+                                            <input type="text" class="form-control text-center quantity-minimum"
+                                                   value="{{ pd.quantity_minimum }} UND"
+                                                   readonly>
+                                        </td>
+
+                                        <td class="align-middle item-quantity-x-unit">
+                                            <input type="text"
+                                                   value="{{ pd.quantity_x_und }}"
+                                                   class="form-control text-center quantity-x-unit text-uppercase">
+                                        </td>
+                                        <td class="item-price text-right align-middle">
+                                            <div class="input-icon">
+                                                <input type="text"
+                                                       class="form-control text-right text-uppercase price-unit-product"
+                                                       value="{{ pd.price_unit }}"
+                                                       placeholder="0.00">
+                                                <i class="change-money">S/</i>
+                                            </div>
+                                        </td>
+                                        <td class="item-total text-right align-middle total-row">
+                                            <div class="input-icon">
+                                                <input type="text"
+                                                       class="form-control text-right text-uppercase total-detail"
+                                                       value="{{ pd.total_detail }}"
+                                                       placeholder="0.00">
+                                                <i class="change-money">S/</i>
+                                            </div>
+                                        </td>
+                                        <td class="align-middle">
+                                    </tr>
+                                {% endfor %}
+
+{#                                {% if contract_detail_obj %}#}
+{#                                    {% for c in contract_dict %}#}
+{#                                        <tr class="" product="{{ c.product_id }}" unit_id="">#}
+{#                                            <td class="item-numero align-middle text-center">{{ c.counter }}</td>#}
+{#                                            <td class="align-middle text-left product-item-table">#}
+{#                                                <input type="text"#}
+{#                                                       class="form-control text-uppercase product-table dropdown-toggle"#}
+{#                                                       data-toggle="dropdown" aria-expanded="false"#}
+{#                                                       placeholder="Ingrese producto..."#}
+{#                                                       value="{{ c.product_name }}"#}
+{#                                                       disabled>#}
+{#                                                <div class="dropdown-menu"></div>#}
+{#                                            </td>#}
+{#                                            <td class="align-middle item-quantity">#}
+{#                                                <input type="text"#}
+{#                                                       class="form-control text-center quantity-product text-uppercase"#}
+{#                                                       placeholder="0"#}
+{#                                                       value="{{ c.quantity|safe|floatformat:0 }}">#}
+{#                                            </td>#}
+{#                                            <td class="align-middle unit">#}
+{#                                                <select class="form-control unit-product" id="id_unit_product"#}
+{#                                                        name="unit_product" required>#}
+{#                                                    <option value="0">Seleccione</option>#}
+{#                                                    {% for u in c.units %}#}
+{#                                                        <option value="{{ u.id }}">{{ u.name }}</option>#}
+{#                                                    {% endfor %}#}
+{#                                                </select>#}
+{#                                            </td>#}
+{#                                            <td class="align-middle quantity-minimum">#}
+{#                                                <input type="text" class="form-control text-center quantity-minimum"#}
+{#                                                       readonly>#}
+{#                                            </td>#}
+{##}
+{#                                            <td class="align-middle item-quantity-x-unit">#}
+{#                                                <input type="text"#}
+{#                                                       class="form-control text-center quantity-x-unit text-uppercase">#}
+{#                                            </td>#}
+{#                                            <td class="item-price text-right align-middle">#}
+{#                                                <div class="input-icon">#}
+{#                                                    <input type="text"#}
+{#                                                           class="form-control text-right text-uppercase price-unit-product"#}
+{#                                                           placeholder="0.00">#}
+{#                                                    <i class="change-money">S/</i>#}
+{#                                                </div>#}
+{#                                            </td>#}
+{#                                            <td class="item-total text-right align-middle total-row">#}
+{#                                                <div class="input-icon">#}
+{#                                                    <input type="text"#}
+{#                                                           class="form-control text-right text-uppercase total-detail"#}
+{#                                                           placeholder="0.00">#}
+{#                                                    <i class="change-money">S/</i>#}
+{#                                                </div>#}
+{#                                            </td>#}
+{#                                            <td class="align-middle">#}
+{#                                        </tr>#}
+{#                                    {% endfor %}#}
+{#                                {% else %}#}
+{#                                    <tr class="" product="" unit_id="">#}
+{#                                        <td class="item-numero align-middle text-center">1</td>#}
+{#                                        <td class="align-middle text-left product-item-table">#}
+{#                                            <input type="text"#}
+{#                                                   class="form-control text-uppercase product-table dropdown-toggle"#}
+{#                                                   data-toggle="dropdown" aria-expanded="false"#}
+{#                                                   placeholder="Ingrese producto...">#}
+{#                                            <div class="dropdown-menu"></div>#}
+{#                                        </td>#}
+{#                                        <td class="align-middle unit">#}
+{#                                            <select class="form-control unit-product" id="id_unit_product"#}
+{#                                                    name="unit_product" required>#}
+{#                                                <option value="0">Seleccione</option>#}
+{#                                            </select>#}
+{#                                        </td>#}
+{#                                        <td class="align-middle quantity-minimum">#}
+{#                                            <input type="text" class="form-control text-center quantity-minimum"#}
+{#                                                   readonly>#}
+{#                                        </td>#}
+{#                                        <td class="align-middle item-quantity">#}
+{#                                            <input type="text"#}
+{#                                                   class="form-control text-center quantity-product text-uppercase"#}
+{#                                                   placeholder="0">#}
+{#                                        </td>#}
+{#                                        <td class="align-middle item-quantity-x-unit">#}
+{#                                            <input type="text"#}
+{#                                                   class="form-control text-center quantity-x-unit text-uppercase"#}
+{#                                                   readonly>#}
+{#                                        </td>#}
+{#                                        <td class="item-price text-right align-middle">#}
+{#                                            <div class="input-icon">#}
+{#                                                <input type="text"#}
+{#                                                       class="form-control text-right text-uppercase price-unit-product"#}
+{#                                                       placeholder="0.00">#}
+{#                                                <i class="change-money">S/</i>#}
+{#                                            </div>#}
+{#                                        </td>#}
+{#                                        <td class="item-total text-right align-middle total-row">#}
+{#                                            <div class="input-icon">#}
+{#                                                <input type="text"#}
+{#                                                       class="form-control text-right text-uppercase total-detail"#}
+{#                                                       placeholder="0.00">#}
+{#                                                <i class="change-money">S/</i>#}
+{#                                            </div>#}
+{#                                        </td>#}
+{#                                        <td class="align-middle">#}
+{#                                    </tr>#}
+{#                                {% endif %}#}
+
+
+                                </tbody>
+
+                                <tfoot id="details-table-foot">
+
+                                <tr>
+                                    <td class="border-0" colspan="2"></td>
+
+                                    <td class="border td-table-foot" colspan="11">
+                                        <div class="form-check mt-5">
+                                            <input class="form-check-input check-igv"
+                                                   {% if purchase.check_igv %}checked{% endif %} type="checkbox"
+                                                   value=""
+                                                   id="check_igv">
+                                            <label class="form-check-label" for="check_igv">
+                                                INCLUYE IGV
+                                            </label>
+                                        </div>
+                                        <table class="table table-hover table-sm align-content-center table-bordered mt-3 "
+                                               cellspacing="0" style="width: 100%;" id="id_detail_data_foot">
+
+                                            <thead>
+                                            <tr class="text-center text-white" style="background: #1a77c8">
+                                                <th scope="col" class="align-middle font-weight-normal"
+                                                    style="width: 20%;">
+                                                    Base Imponible
+                                                </th>
+                                                <th scope="col" class="align-middle font-weight-normal"
+                                                    style="width: 20%;">
+                                                    IGV (18%)
+                                                </th>
+                                                <th scope="col" class="align-middle font-weight-normal"
+                                                    style="width: 20%;">
+                                                    Importe Total
+                                                </th>
+                                                <th scope="col" class="align-middle font-weight-normal"
+                                                    style="width: 20%;">
+                                                    Flete
+                                                </th>
+                                                <th scope="col" class="align-middle font-weight-normal"
+                                                    style="width: 20%;">
+                                                    Total Documento
+                                                </th>
+                                            <tbody id="table-detail-foot">
+                                            <tr class="text-center">
+                                                <td class="foot-base">
+                                                    <div class="input-icon">
+                                                        <input type="text"
+                                                               class="form-control text-right text-uppercase total-foot-base"
+                                                               placeholder="0.00"
+                                                               value="{{ purchase.base_total_purchase|floatformat:-2 }}">
+                                                        <i class="change-money">S/</i>
+                                                    </div>
+                                                </td>
+                                                <td class="foot-igv">
+                                                    <div class="input-icon">
+                                                        <input type="text"
+                                                               class="form-control text-right text-uppercase total-foot-igv"
+                                                               placeholder="0.00"
+                                                               value="{{ purchase.igv_total_purchase|floatformat:-2 }}">
+                                                        <i class="change-money">S/</i>
+                                                    </div>
+                                                </td>
+                                                <td class="foot-total">
+                                                    <div class="input-icon">
+                                                        <input type="text"
+                                                               class="form-control text-right text-uppercase total-foot-total"
+                                                               placeholder="0.00"
+                                                               value="{{ purchase.total_import|floatformat:-2 }}">
+                                                        <i class="change-money">S/</i>
+                                                    </div>
+                                                </td>
+                                                <td class="foot-freight">
+                                                    <div class="input-icon">
+                                                        <input type="text"
+                                                               class="form-control text-right text-uppercase total-foot-freight"
+                                                               placeholder="0.00"
+                                                               value="{{ purchase.total_freight|floatformat:-2 }}">
+                                                        <i class="change-money">S/</i>
+                                                    </div>
+                                                </td>
+                                                <td class="foot-document">
+                                                    <div class="input-icon">
+                                                        <input type="text"
+                                                               class="form-control dollar text-right text-uppercase total-foot-document"
+                                                               placeholder="0.00"
+                                                               value="{{ purchase.total_purchase|floatformat:-2 }}">
+                                                        <i class="change-money">S/</i>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="card-body">
+            <div id="product-grid-list"></div>
+        </div>
+        <div class="modal fade bd-example-modal-lg" id="add-modal" tabindex="-1" role="dialog"
+             aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
+
+
+        <div class="mr-3 ml-0" style="
+                display: none;
+                position: absolute;
+                top: 83px;
+                left: 0px;
+                background: #e9ecef;
+                opacity: 0.5;
+                width: 100%;
+                {#height: 46em;#}
+                !important;bottom: 560px;
+                padding-right: 65em;
+                padding-top: 2em;" id="loading-666">
+
+        </div>
+    {% else %}
+        <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+            <strong>Atencion!</strong> No existe la compra, favor de regresar y revisar de nuevo
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+    {% endif %}
+
+    <style>
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon > i {
+        {#content: "$";#} position: absolute;
+            display: block;
+            transform: translate(0, -50%);
+            top: 50%;
+            pointer-events: none;
+            width: 25px;
+            text-align: center;
+            font-style: normal;
+        }
+
+        .input-icon > input {
+            padding-left: 25px;
+            padding-right: 8px;
+        }
+
+        .input-icon-right > i {
+            right: 0;
+        }
+
+        .input-icon-right > input {
+            padding-left: 0;
+            padding-right: 25px;
+            text-align: right;
+        }
+    </style>
+
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p><strong>Cargando Reniec/Sunat...</strong></p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        $("#id_ruc_provider").attr('maxlength', 11);
+
+        $(document).ready(function () {
+            let _check = $("#check_dollar")
+            if (_check.is(':checked')) {
+                $(".change-money").text('$')
+            } else {
+                $(".change-money").text('S/')
+            }
+        });
+
+        $(document).on('click', '#check_dollar', function (e) {
+            let _check = $(this);
+            if (_check.is(':checked')) {
+                $(".change-money").text('$')
+            } else {
+                $(".change-money").text('S/')
+            }
+        });
+
+        $(document).on('click', '#btn-type-change', function (e) {
+            let _input_type_change = $('#type_change')
+
+            $.ajax({
+                url: '/buys/get_type_change/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        _input_type_change.val('$' + response.buy);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, 'Mensaje');
+                    } else {
+                        if (textStatus === 'timeout') {
+                            toastr.error('Failed from timeout', 'Mensaje');
+                        } else {
+                            console.log(" STATUS: " + xhr + " " + textStatus);
+                        }
+                    }
+                },
+            });
+            return false;
+        });
+
+
+        $("#btn-type-change").trigger('click');
+
+        $(document).on('keypress', '#id_ruc_provider', function (e) {
+
+            if (e.keyCode === 13) {
+
+                e.preventDefault()
+
+                $(this).trigger("enterKey");
+                let _ruc = $(this).val();
+                let _provider = $('#id_provider')
+
+                $('#loading-666').html(loader).show()
+
+                $.ajax({
+                    url: '/buys/get_provider_by_ruc/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {
+                        'ruc': _ruc,
+                    },
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡Bien hecho!');
+                            {#console.log(response)#}
+                            _provider.val(response.result);
+                            _provider.attr('provider', response.pk);
+                            $('#loading-666').hide();
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        if (jqXhr.status === 500) {
+                            toastr.error(jqXhr.responseJSON.error, 'Mensaje');
+                        } else {
+                            if (textStatus === 'timeout') {
+                                toastr.error('Failed from timeout', 'Mensaje');
+                            } else {
+                                console.log(" STATUS: " + xhr + " " + textStatus);
+                            }
+                        }
+                        $('#loading-666').hide();
+                    },
+                });
+                return false;
+            }
+        });
+
+        $(document).on('focusin', '.product-table', function (e) {
+            // $(this).parent('td').find('div.dropdown-menu').removeClass('show')
+            $(this).parent('td').find('div.dropdown-menu').css({
+                'background-color': 'transparent',
+                'border': 'transparent',
+                {#'margin-top': '10px'#}
+            })
+            $(this).val(' ');
+            $('#id_unit_product').val('0')
+        });
+
+        $(document).on('keypress', '.product-table', function (e) {
+
+            $(this).parent('td').find('div.dropdown-menu').empty()
+
+            if (e.keyCode === 13) {
+
+                e.preventDefault()
+
+                $(this).trigger("enterKey");
+                let _product_name = $(this).val();
+                // let _td = $(this).parent('div.btn-group').parent('td')
+                let _td = $(this).parent('td')
+                let _menu = _td.find('.dropdown-menu')
+
+                if (_product_name.length > 3) {
+
+                    $.ajax({
+                        url: '/buys/get_product_by_criteria_table/',
+                        async: true,
+                        dataType: 'json', // for response
+                        type: 'GET',
+                        data: {
+                            'value': _product_name,
+                        },
+                        contentType: 'application/json;charset=UTF-8',
+                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                        success: function (response, textStatus, xhr) {
+                            if (xhr.status === 200) {
+                                let list = response.productList;
+                                _menu.css({'background-color': '#fff', 'border': '1px solid rgba(0,0,0,.15)'})
+                                for (let i = 0; i < list.length; i++) {
+                                    _menu.append(`<a class="dropdown-item product-item" unit_name="${list[i].unit}" brand="${list[i].brand}" unit_id="${list[i].unit_id}" href="#" data-id="${list[i].id}">${list[i].name} - ${list[i].brand}</a>`)
+                                }
+                            }
+                        },
+                        error: function (jqXhr, textStatus, xhr) {
+                            if (jqXhr.status === 500) {
+                                toastr.error(jqXhr.responseJSON.error, 'Mensaje');
+                            } else {
+                                if (textStatus === 'timeout') {
+                                    toastr.error('Failed from timeout', 'Mensaje');
+                                } else {
+                                    console.log(" STATUS: " + xhr + " " + textStatus);
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    toastr.warning('Para la busqueda ingrese minimo 3 caracteres', 'Error de llenado');
+                    return false;
+                }
+            }
+        });
+
+        $(document).on('click', '.product-item', function (e) {
+
+            let _product_id = $(this).attr('data-id');
+            let _unit_id = $(this).attr('unit_id');
+            let _product_name = $(this).text();
+            let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
+            let _td = $(this).parent('div.dropdown-menu').parent('td')
+            let _select = _td.find('select.unit-product')
+            let _brand_product = $(this).attr('brand')
+            let _unit_product = $(this).attr('unit_name')
+            //$('.product-table').val(_product_name)
+
+            _tr.attr('product', _product_id)
+            _tr.attr('pd_id', NaN)
+            _td.find('input.product-table').val(_product_name)
+            _tr.find('td.brand input.brand-product').val(_brand_product)
+            _tr.find('td.unit input.unit-product').val(_unit_product)
+
+            _tr.attr('unit_id', _unit_id)
+            {#get_units_by_product(_product_id, _tr)#}
+
+            $(this).parent('div.dropdown-menu').empty()
+            $(this).parent('div.dropdown-menu').addClass('hide')
+        });
+
+        function get_units_by_product($product_id, _tr) {
+
+            let _select = _tr.find('td.unit #id_unit_product').val()
+            if ($product_id !== '0') {
+                $.ajax({
+                    url: '/buys/get_units_by_product/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'ip': $product_id},
+                    success: function (response) {
+                        let units = JSON.parse(response['units']);
+                        {#console.log(units)#}
+                        units.forEach(
+                            element =>
+                                _tr.find('td.unit input.unit-product').val(element[0])
+                        )
+                    },
+                });
+            }
+        }
+
+        $(document).on('click', '#btn-add-new-detail', function () {
+
+            let _check = $("#check_dollar");
+            let _val_money = 'S/'
+
+            if (_check.is(':checked')) {
+                _val_money = '$'
+            }
+
+            $('#id_detail_data_grid > tbody').append(
+                '<tr class="text-center">' +
+                '<td class="item-numero align-middle">' + '</td>' +
+                '<td class="align-middle text-left product-item-table">' +
+                '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
+                '               data-toggle="dropdown" aria-expanded="false" placeholder="Ingrese producto...">' + '<div class="dropdown-menu"></div>' + '</td>' +
+                '<td class="align-middle brand">' +
+                '<input type="text" class="form-control text-center text-uppercase brand-product" id="brand_id" name="brand" readonly>' + '</td>' +
+                '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">' + '</td>' +
+                /*'<td class="align-middle unit">' +
+                '<select class="form-control unit-product" id="id_unit_product" name="unit_product" required>' +
+                '<option value="0"> Seleccione</option>'+ textOption + '</td>' +*/
+                '<td class="align-middle unit">' +
+                '<input type="text" class="form-control text-center text-uppercase unit-product" readonly>' + '</td>' +
+                '<td class="item-price text-right align-middle" price-unit-with-discount="">' + '<div class="input-icon">' +
+                '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
+                '<td class="item-discount1 text-right align-middle">' +
+                '<input type="text" class="form-control text-right text-uppercase discount1" placeholder="0.00">' + '</td>' +
+                '<td class="item-discount2 text-right align-middle">' +
+                '<input type="text" class="form-control text-right text-uppercase discount2" placeholder="0.00">' + '</td>' +
+                '<td class="item-discount3 text-right align-middle">' +
+                '<input type="text" class="form-control text-right text-uppercase discount3" placeholder="0.00">' + '</td>' +
+                '<td class="item-discount4 text-right align-middle">' +
+                '<input type="text" class="form-control text-right text-uppercase discount4" placeholder="0.00">' + '</td>' +
+                '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
+                '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
+                '<td class="item-check text-center align-middle">' +
+                '<div class="form-check">' + '<input class="form-check-input position-static check-kardex" type="checkbox" value="" checked> ' + '</div>' +
+                '</td>' +
+                '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem2(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                '</tr>');
+            counterStrike2()
+        });
+
+        $(document).on('keyup', '#id_total_freight', function () {
+            sum_table()
+        });
+        $(document).on('keyup', '.total-detail', function () {
+            let _tr = $(this).parent('div').parent('td').parent('tr')
+            {#let _tr = $("#id_detail_data_grid tbody#details-table tr")#}
+            let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
+            let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
+            {#console.log('_total', _total)#}
+            {#console.log('_quantity', _quantity)#}
+            let price_unit = _total / _quantity
+            {#console.log(price_unit)#}
+
+            _tr.find('td.item-price div.input-icon input.price-unit-product').val(Number(price_unit).toFixed(2));
+            calculate_total(_tr)
+            sum_table()
+        });
+
+        $(document).on('keyup', '.quantity-product', function () {
+
+            let _tr = $(this).parent('td').parent('tr')
+            let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
+            let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
+            let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
+
+            {#console.log("_tr", _tr.find('td.item-price div.input-icon input.price-unit-product'))#}
+            {#console.log("_quantity", _quantity)#}
+            {#console.log("_price_unit", _price_unit)#}
+            {#console.log("_total", _total)#}
+
+            if (_quantity !== 0 && _price_unit !== 0) {
+                _total = _quantity * _price_unit
+                _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(2));
+            }
+            calculate_total(_tr)
+            sum_table()
+        });
+
+        $(document).on('keyup', '.price-unit-product', function () {
+
+            let _tr = $(this).parent('div').parent('td').parent('tr')
+            let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
+            let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
+            let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
+
+            {#console.log("_quantity", _quantity)#}
+            {#console.log("_price_unit", _price_unit)#}
+            {#console.log("_total", _total)#}
+
+            if (_quantity !== 0 && _price_unit !== 0) {
+                _total = _quantity * _price_unit
+                _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(2));
+            }
+            calculate_total(_tr)
+            sum_table()
+        });
+
+        $(document).on('input', '.discount1, .discount2, .discount3, .discount4', function (e) {
+
+            let _tr = $(this).parent('td').parent('tr')
+            calculate_total(_tr)
+            sum_table()
+        });
+
+        function calculate_total(_tr) {
+
+            let $quantity = Number(_tr.find('td.item-quantity input.quantity-product').val());
+            let $price_unit = Number(_tr.find('td.item-price input.price-unit-product').val());
+            // let $price_unit;
+            let $d1_val = Number(_tr.find('td.item-discount1 input.discount1').val());
+            let $d2_val = Number(_tr.find('td.item-discount2 input.discount2').val());
+            let $d3_val = Number(_tr.find('td.item-discount3 input.discount3').val());
+            let $d4_val = Number(_tr.find('td.item-discount4 input.discount4').val());
+            let $total = Number(_tr.find('td.total-row input.total-detail').val());
+
+            let d1, d2, d3, d4, d1p, d2p, d3p, d4p, amount, $totalTemp
+
+            $price_unit = Number(_tr.find('td.item-price input.price-unit-product').val());
+            amount = $quantity * $price_unit
+
+            if ($d1_val === 0 && $d2_val === 0 && $d3_val === 0 && $d4_val === 0) {
+                d1 = amount - [(amount * $d1_val) / 100]
+                d2 = d1 - [(d1 * $d2_val) / 100]
+                d3 = d2 - [(d2 * $d3_val) / 100]
+                d4 = d3 - [(d3 * $d4_val) / 100]
+
+                d1p = $price_unit - [($price_unit * $d1_val) / 100]
+                d2p = d1p - [(d1p * $d2_val) / 100]
+                d3p = d2p - [(d2p * $d3_val) / 100]
+                d4p = d3p - [(d3p * $d4_val) / 100]
+
+                _tr.find('td.item-price').attr('price-unit-with-discount', d4p.toFixed(2))
+                {#console.log('en el if', d4p)#}
+            } else {
+                d1 = amount - [(amount * $d1_val) / 100]
+                d2 = d1 - [(d1 * $d2_val) / 100]
+                d3 = d2 - [(d2 * $d3_val) / 100]
+                d4 = d3 - [(d3 * $d4_val) / 100]
+
+                d1p = $price_unit - [($price_unit * $d1_val) / 100]
+                d2p = d1p - [(d1p * $d2_val) / 100]
+                d3p = d2p - [(d2p * $d3_val) / 100]
+                d4p = d3p - [(d3p * $d4_val) / 100]
+
+                _tr.find('td.item-price').attr('price-unit-with-discount', d4p.toFixed(2))
+                {#console.log('fuera', d4p)#}
+
+                _tr.find('td.total-row input.total-detail').val(d4.toFixed(2))
+            }
+
+        }
+
+        function sum_table() {
+            let igv = 0;
+            let base = 0;
+            let sum_total = 0;
+            let total_freight = 0;
+            let total_document = 0;
+            let _total;
+
+            total_freight = Number($("#id_freight_data_grid tbody#details-freight tr td.total-freight input#id_total_freight").val());
+
+            $("#id_detail_data_grid tbody#details-table tr").each(function () {
+                let td_total = Number($(this).find("td.total-row input.total-detail").val().replace(',', '.'));
+                sum_total = sum_total + td_total
+            });
+
+            let _check_igv = $("#id_detail_data_grid tfoot tr input.check-igv")
+
+            if (_check_igv.is(':checked')) {
+                base = sum_total / 1.18
+                igv = sum_total - base
+                _total = base + igv
+                total_document = _total + total_freight
+
+            } else {
+                base = sum_total
+                igv = sum_total * 0.18
+                _total = base + igv
+                total_document = _total + total_freight
+            }
+
+            $("#id_detail_data_grid tfoot tr input.total-foot-base").val(base.toFixed(2));
+            $("#id_detail_data_grid tfoot tr input.total-foot-igv").val(igv.toFixed(2));
+            $("#id_detail_data_grid tfoot tr input.total-foot-total").val(_total.toFixed(2));
+            $("#id_detail_data_grid tfoot tr input.total-foot-freight").val(total_freight.toFixed(2));
+            $("#id_detail_data_grid tfoot tr input.total-foot-document").val(total_document.toFixed(2));
+        }
+
+        $(document).on('change', '#id_detail_data_grid tfoot tr input.check-igv', function (e) {
+            sum_table()
+        });
+
+        function deleteItem($id) {
+            let rows = $('#details-table').find("tr[product=" + $id + "]");
+            let detail_id = parseInt(rows.attr('pd_id'));
+            counterStrike2();
+            if (!isNaN(detail_id)) {
+                deleteProduct(detail_id);
+            }
+            $('#details-table').find("tr[product=" + $id + "]").remove();
+        }
+
+        function counterStrike2() {
+            let l = 1;
+            $('#details-table tr').each(function () {
+                $(this).attr('i', l);
+                $(this).children('td:nth-child(1)').text(l);
+                l++;
+            });
+        }
+
+        function deleteItem2(btn) {
+            btn.parentNode.parentNode.remove();
+            counterStrike2();
+        }
+
+        function deleteProduct(detail_id) {
+
+            $.ajax({
+                url: '/buys/delete_item_product_buy/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'detail_id': detail_id},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        {#toastr.success(response.message, '¡Mensaje!');#}
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.error, '¡ERROR!');
+                }
+            });
+        }
+
+        $(document).on('change', '#payment_type', function (e) {
+            let type_pay = $(this).val();
+            if (type_pay === 'L') {
+                $('.dues').removeClass('d-none');
+                $('.table-dues').removeClass('d-none');
+                {#$('#modal-debs').modal('show');#}
+            } else {
+                $('.dues').addClass('d-none');
+                $('.table-dues').addClass('d-none');
+                {#$("#details-dues").empty();#}
+            }
+        });
+
+        $("#payment_type").trigger('change');
+
+        function counterStrikedebs() {
+            let l = 1;
+            $('#details-dues tr').each(function () {
+                $(this).attr('i', l);
+                $(this).children('td:nth-child(1)').text(l);
+                l++;
+            });
+        }
+
+        function deleteDues(btn, $due_id) {
+
+            if (!isNaN($due_id)) {
+                deleteDue($due_id)
+            }
+            btn.parentNode.parentNode.remove();
+            counterStrikedebs();
+        }
+
+        function deleteDue(due_id) {
+
+            $.ajax({
+                url: '/buys/delete_item_due/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'due_id': due_id},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        {#toastr.success(response.message, '¡Mensaje!');#}
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.error, '¡ERROR!');
+                }
+            });
+        }
+
+        $(document).on('click', '#add-dues', function (e) {
+
+            let _amount_due = $('#amount-due').val();
+
+            $('#id_debs_grid > tbody').append(
+                '<tr class="text-center" due_id="NaN">' +
+                '<td class="align-middle text-center due-count">' + '</td>' +
+                '<td class="align-middle text-center amount-due">' + 'S/ ' + _amount_due + '</td>' +
+                '<td class="align-middle"> ' + '<button type="button" onclick="deleteDues(this)" class="btn btn-danger delete-detail" style="font-size: 0.6em"><i class="fa fa-trash" style="font-size: 1.5em"></i></button>' + '</td>' +
+                '</tr>'
+            );
+            counterStrikedebs()
+            $('#amount-due').val('');
+
+        });
+
+        $('#purchase-form').submit(function (event) {
+            event.preventDefault();
+
+            if ($("#id_detail_data_grid tbody#details-table tr").length > 0 && $('.product-table').val() !== '') {
+                let table_foot = $("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("#id_detail_data_foot tbody#table-detail-foot tr")
+                let Detail_purchase = {
+                    "Invoice": $('#id_factura').val(),
+                    "PurchaseId": $('#purchase_id').val(),
+                    "ProviderId": $('#id_provider').attr("provider"),
+                    "Date": $('#id_fechacompra').val(),
+                    "Type_Bill": $('#id_type_bill').val(),
+                    "Type_Pay": $('#payment_type').val(),
+                    "Base_Total": Number(table_foot.find("td.foot-base input.total-foot-base").val().replace(',', '.')),
+                    "Igv_Total": Number(table_foot.find("td.foot-igv input.total-foot-igv").val().replace(',', '.')),
+                    "Import_Total": Number(table_foot.find("td.foot-total input.total-foot-total").val().replace(',', '.')),
+                    "TotalFreight": Number(table_foot.find("td.foot-freight input.total-foot-freight").val().replace(',', '.')),
+                    "Total_Document": Number(table_foot.find("td.foot-document input.total-foot-document").val().replace(',', '.')),
+                    "Check_Igv": ($("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("div.form-check input.check-igv").is(':checked')) ? 1 : 0,
+                    "Check_Dollar": ($("#check_dollar").is(':checked')) ? 1 : 0,
+                    "Details": [],
+                    "Freight": [],
+                    "Dues": [],
+                };
+                $("#id_detail_data_grid tbody#details-table tr").each(function () {
+                    let detailObj = {
+                        "ProductDetail": $(this).attr('pd_id'),
+                        "Product": $(this).attr('product'),
+                        "Quantity": $(this).find("td.item-quantity input.quantity-product").val(),
+                        "Unit": $(this).attr('unit_id'),
+                        "Price": Number($(this).find("td.item-price input.price-unit-product").val().replace(',', '.')),
+                        "Price_Unit_Discount": Number($(this).find("td.item-price").attr("price-unit-with-discount").replace(',', '.')),
+                        "Dto1": Number($(this).find("td.item-discount1 input.discount1").val().replace(',', '.')),
+                        "Dto2": Number($(this).find("td.item-discount2 input.discount2").val().replace(',', '.')),
+                        "Dto3": Number($(this).find("td.item-discount3 input.discount3").val().replace(',', '.')),
+                        "Dto4": Number($(this).find("td.item-discount4 input.discount4").val().replace(',', '.')),
+                        "Total": Number($(this).find("td.item-total input.total-detail").val().replace(',', '.')),
+                        "Check_kardex": ($(this).find("td.item-check div.form-check input.check-kardex").is(':checked')) ? 1 : 0,
+                    };
+                    Detail_purchase.Details.push(detailObj);
+                });
+                $("#id_freight_data_grid tbody#details-freight tr").each(function () {
+                    let detailFreight = {
+                        "DocumentFreight": $(this).find("td.document-freight input.document-freight-input").val(),
+                        "SerialFreight": $(this).find("td.serial-freight input.serial-freight-input").val(),
+                        "NumberFreight": $(this).find("td.number-freight input.number-freight-input").val(),
+                        "DateFreight": $(this).find("td.date-freight input.date-freight-input").val(),
+                        "TotalFreight": Number($(this).find("td.total-freight input.total-freight-input").val()),
+                    }
+                    Detail_purchase.Freight.push(detailFreight);
+                });
+                $("#id_debs_grid tbody#details-dues tr").each(function () {
+                    let dataDues = {
+                        "amountId": $(this).attr('due_id'),
+                        "amountDue": $(this).find("td.amount-due").text().replace('S/ ', ''),
+                    }
+                    Detail_purchase.Dues.push(dataDues)
+
+                });
+                {#console.log(JSON.stringify(Detail_purchase))#}
+
+                $.ajax({
+                    url: '/buys/save_update_purchase/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {
+                        'purchase': JSON.stringify(Detail_purchase),
+                        'purchase_id': $('#purchase_id').val(),
+                    },
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡COMPRA ACTUALIZADA CORRECTAMENTE!');
+                            setTimeout(() => {
+                                window.open("/buys/get_purchase_list/", '_self');
+                            }, 1000);
+
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        toastr.error("ERROR. ", '¡INCONCEBIBLE!');
+                    }
+                });
+
+            } else {
+                toastr.warning("PARA REALIZAR LA COMPRA AGREGUE AL MENOS UN PRODUCTO. ", '¡ADVERTENCIA!');
+                return false;
+            }
+        });
+
+    </script>
+
+{% endblock extrajs %}

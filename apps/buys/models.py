@@ -125,7 +125,7 @@ class PurchaseDetail(models.Model):
     quantity = models.DecimalField('Cantidad comprada', max_digits=10, decimal_places=4, default=0)
     quantity_entered = models.DecimalField('Cantidad Ingresada', max_digits=10, decimal_places=4, default=0)
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
-    price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=4, default=0)
+    price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
 
     def __str__(self):
         return str(self.id)
