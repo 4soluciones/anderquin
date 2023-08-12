@@ -36,6 +36,10 @@ def purchase_form(request):
     unitmeasurement_obj = Unit.objects.all()
     entity_reference_set = EntityReference.objects.all()
     cities = City.objects.all()
+    user_id = request.user.id
+    user_obj = User.objects.get(pk=int(user_id))
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+
     # truck_set = Truck.objects.all()
     return render(request, 'buys/purchase_form.html', {
         # 'form': form_obj,
@@ -182,6 +186,22 @@ def get_entities(request):
 #         }, status=HTTPStatus.OK)
 
 
+def get_correlative_by_subsidiary(subsidiary_obj=None):
+    search = Purchase.objects.filter(subsidiary=subsidiary_obj)
+    if search.exists():
+        purchase_obj = search.last()
+        correlative = purchase_obj.correlative
+        if correlative:
+            new_correlative = correlative + 1
+            result = new_correlative
+        else:
+            result = 1
+    else:
+        result = 1
+
+    return result
+
+
 @csrf_exempt
 def save_purchase(request):
     if request.method == 'GET':
@@ -205,7 +225,10 @@ def save_purchase(request):
         supplier_id = str(data_purchase["SupplierId"])
         date = str(data_purchase["Date"])
         reference = str(data_purchase["Reference"])
-        date_delivery = str(data_purchase["Delivery_date"])
+        date_delivery = str(data_purchase["Date"])
+        if str(data_purchase["Delivery_date"]):
+            date_delivery = str(data_purchase["Delivery_date"])
+        print(date_delivery)
         type_pay = str(data_purchase["Type_Pay"])
         pay_condition = str(data_purchase["Pay_condition"])
         base_total = decimal.Decimal(data_purchase["Base_Total"])
@@ -306,12 +329,17 @@ def save_purchase(request):
                 delivery_address = client_address_entity_obj.address
                 city = client_address_entity_obj.district.description
 
+        correlative = int(data_purchase["correlative"])
+
+        # _correlative = get_correlative_by_subsidiary(subsidiary_obj=subsidiary_obj)
+        _bill_number = f'OC-{datetime.now().year}-{str(correlative).zfill(4)}'
+
         purchase_obj = Purchase(
             supplier=supplier_obj,
             purchase_date=date,
             user=user_obj,
             subsidiary=subsidiary_obj,
-            bill_number=reference,
+            bill_number=_bill_number,
             payment_method=type_pay,
             payment_condition=pay_condition,
             currency_type=currency_type,
@@ -322,7 +350,8 @@ def save_purchase(request):
             observation=observations.upper(),
             city=city.upper(),
             contract_detail=contract_detail_obj,
-            delivery_date=date_delivery
+            delivery_date=date_delivery,
+            correlative=correlative
             # truck=truck_obj,
             # status=status,
             # type_bill=type_bill,
@@ -333,8 +362,8 @@ def save_purchase(request):
             # oc_supplier=supplier_order
         )
         purchase_obj.save()
-        purchase_obj.bill_number = f'OC-{datetime.now().year}-{str(purchase_obj.id).zfill(5)}'
-        purchase_obj.save()
+        # purchase_obj.bill_number = f'OC-{datetime.now().year}-{str(purchase_obj.id).zfill(5)}'
+        # purchase_obj.save()
         # if reference_id:
         #     reference_obj = EntityReference.objects.get(id=int(reference_id))
         #
@@ -2406,6 +2435,10 @@ def get_purchases_by_provider_category(request):
 
 
 def get_buy_list(request, contract_detail=None):
+    user_id = request.user.id
+    user_obj = User.objects.get(id=user_id)
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+
     contract_detail_obj = None
     contract_detail_item_set = None
     contract_dict = []
@@ -2435,6 +2468,7 @@ def get_buy_list(request, contract_detail=None):
     unitmeasurement_obj = Unit.objects.all()
     my_date = datetime.now()
     formatdate = my_date.strftime("%Y-%m-%d")
+    correlative = get_correlative_by_subsidiary(subsidiary_obj)
     return render(request, 'buys/buy_list.html', {
         'supplier_obj': supplier_obj,
         'unitmeasurement_obj': unitmeasurement_obj,
@@ -2448,6 +2482,7 @@ def get_buy_list(request, contract_detail=None):
         'contract_detail_obj': contract_detail_obj,
         'contract_detail_item_set': contract_detail_item_set,
         'contract_dict': contract_dict,
+        'correlative': str(correlative).zfill(4)
     })
 
 
