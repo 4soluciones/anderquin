@@ -115,4 +115,5 @@ urlpatterns = [
     # BILL
     path('bill/', login_required(bill_list), name='bill_list'),
     path('get_purchase_detail/', login_required(get_purchase_detail), name='get_purchase_detail'),
+    path('get_purchases_by_client/', login_required(get_purchases_by_client), name='get_purchases_by_client'),
 ]

@@ -2,9 +2,9 @@
 
     <div class="table-responsive">
         <table id="puchase-data-grid"
-               class="table table-primary align-content-center table-bordered table-sm">
+               class="table table-primary align-content-center table-bordered table-sm" style="font-size: 11px">
             <thead>
-            <tr class="text-center bg-info text-white text-uppercase" style="height: 20px">
+            <tr class="text-center bg-info text-white text-uppercase">
                 {#                        <th>#</th>#}
                 <th class="th-sm" style="width: 3%"><i class="fas fa-check"></i></th>
                 {#                        <th class="th-sm" style="width: 5%">Contrato</th>#}
@@ -15,7 +15,8 @@
                 <th class="th-sm" style="width: 18%">Cliente Referido</th>
                 <th class="th-sm" style="width: 19%">Direccion de entrega</th>
                 <th class="th-sm" style="width: 5%">Usuario</th>
-                <th class="th-sm" style="width: 8%">Estado</th>
+                {#                <th class="th-sm" style="width: 8%">Estado</th>#}
+                <th class="th-sm" style="width: 8%">O/C</th>
                 <th class="th-sm" style="width: 5%">Accion</th>
             </tr>
             </thead>
@@ -41,8 +42,13 @@
                     <td>{{ p.client_reference_entity.names|default:'-'|default_if_none:'-' }}</td>
                     <td class="text-left">{{ p.delivery_address|default:'-'|default_if_none:'-'|upper }}</td>
                     <td>{{ p.user.worker_set.last.employee.names }}</td>
-                    <td class="font-weight-bold {% if p.status == 'S' %} text-danger {% else %} text-success
-                            {% endif %} bg-white">{{ p.get_status_display }}</td>
+                    {#                    <td class="font-weight-bold {% if p.status == 'S' %} text-danger {% else %} text-success#}
+                    {#                            {% endif %} bg-white">{{ p.get_status_display }}</td>#}
+                    <td>
+                        <a class="btn btn-sm btn-secondary font-weight-light"
+                           href="{% url 'buys:print_pdf_purchase_order' p.id %}">
+                            <i class="fas fa-eye"></i> Ver Orden</a>
+                    </td>
                     <td class="p-1">
                         <div class="btn-group">
                             <button type="button" class="btn btn-success  dropdown-toggle"
@@ -65,14 +71,14 @@
             <tfoot>
             <tr class="text-center bg-info text-white" style="height: 20px">
                 {#                        <th>#</th>#}
-                <th class="th-sm" style="width: 5%"><i class="fas fa-check"></i></th>
+                <th class="th-sm" style="width: 3%"><i class="fas fa-check"></i></th>
                 {#                        <th class="th-sm" style="width: 5%">Contrato</th>#}
                 <th class="th-sm" style="width: 15%">Proveedor</th>
                 <th class="th-sm" style="width: 9%">Orden de Compra</th>
                 {#                        <th class="th-sm" style="width: 7%">Fecha compra</th>#}
                 <th class="th-sm" style="width: 18%">Cliente</th>
                 <th class="th-sm" style="width: 18%">Cliente Referido</th>
-                <th class="th-sm" style="width: 17%">Direccion de entrega</th>
+                <th class="th-sm" style="width: 19%">Direccion de entrega</th>
                 <th class="th-sm" style="width: 5%">Usuario</th>
                 <th class="th-sm" style="width: 8%">Estado</th>
                 <th class="th-sm" style="width: 5%">Accion</th>

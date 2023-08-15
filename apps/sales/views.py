@@ -6045,6 +6045,7 @@ def get_clients_by_criteria(request):
                 'client_address': address,
                 'client_type_document': ct.document_type_id,
                 'client_type': document_type_obj.short_description,
+                'client_siaf': ct.client.cod_siaf
             }
             client_list.append(client_dict)
 

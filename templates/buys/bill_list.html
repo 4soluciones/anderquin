@@ -28,86 +28,151 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body pt-1">
+                <div class="card-body pt-1 pb-0">
                     <div class="row p-1">
-                        <div class="col-sm-12 col-md-12 col-lg-12">
-                            <div class="row p-1">
-                                <div class="col-sm-2 col-md-2 col-lg-2">
-                                    <label for="id_fechacompra">Fecha</label>
-                                    <input type="date" class="form-control" id="id_fechacompra"
-                                           name="fechacompra"
-                                           placeholder="Fecha compra"
-                                           value="{{ formatdate }}" required>
+                        <div class="col-sm-7 col-md-7 col-lg-7 pl-0">
+                            <div class="card-body pt-1 border pb-0 bg-light ">
+                                <div class="card header mb-1 border-0 text-left font-weight-bold">
+                                    Busqueda de Cliente:
+                                </div>
+                                <div class="row m-2">
+                                    <div class="col-2 pr-0 pl-0">
+                                        <label class="form-check-label mt-2" for="radio1">
+                                            Nombres/Razón Social:
+                                        </label>
+                                    </div>
+                                    <div class="col-7 pl-0">
+                                        <input type="text"
+                                               class="form-control text-uppercase client-search dropdown-toggle"
+                                               data-toggle="dropdown" aria-expanded="false" aria-label="..."
+                                               placeholder="Ingrese cliente y presione enter...">
+                                        <div class="dropdown-menu"></div>
+                                        <input type="hidden"
+                                               id="client_id"
+                                               name="client_id">
+                                    </div>
+                                    <div class="col-3">
+                                        <button type="button"
+                                                onclick="showModalView('modal_client_create')"
+                                                class="btn btn-sm btn-block btn-outline-info"><i
+                                                class="nav-icon fas fa-user-plus"></i>
+                                            NUEVO CLIENTE
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="row pl-1 pr-3 pt-1 pb-3 mb-2">
+                                    <div class="col-md-1 text-uppercase small pr-0">
+                                        <label for="client_siaf" class="font-weight-bold">SIAF</label>
+                                        <input type="text"
+                                               class="form-control form-control-sm text-center"
+                                               id="client_siaf"
+                                               name="client_siaf" readonly>
+                                    </div>
+                                    <div class="col-md-5 text-uppercase small pl-1 pr-1">
+                                        <label for="client_name" class="font-weight-bold">Cliente
+                                            - Nombres/Razón social:</label>
+                                        <input type="text"
+                                               class="form-control form-control-sm text-uppercase"
+                                               id="client_name"
+                                               name="client_name" readonly>
+                                    </div>
+                                    <div class="col-md-6 text-uppercase small pl-1 pr-0">
+                                        <label for="client_address" class="font-weight-bold">Dirección:</label>
+                                        <input type="text"
+                                               class="form-control form-control-sm text-uppercase"
+                                               id="client_address"
+                                               name="client_address">
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="card-body pt-1 border pb-0 bg-light">
+                                <div class="row p-1">
+                                    <div class="col-sm-3 col-md-3 col-lg-3">
+                                        <label for="order_date" class="font-weight-bold">Fecha de pedido:</label>
+                                        <input type="date" class="form-control"
+                                               id="order_date"
+                                               name="order_date"
+                                               value="{{ formatdate }}" required>
+                                    </div>
+                                    <div class="col-sm-3 col-md-3 col-lg-3">
+                                        <label for="number_date" class="font-weight-bold">Nro de pedido:</label>
+                                        <input type="text" class="form-control" id="number_date"
+                                               name="number_date">
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <div class="form-group">
+                                            <label for="purchase" class="font-weight-bold">Ordenes de Compra
+                                                (Cliente):</label>
+                                            <select class="select2 purchase" multiple="multiple" id="purchase"
+                                                    data-placeholder="Seleccionar una O/C"
+                                                    style="width: 100%">
+                                                {#                                                {% for p in purchase_set %}#}
+                                                {#                                                    <option pk="{{ p.id }}">{{ p.bill_number }}</option>#}
+                                                {#                                                {% endfor %}#}
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="row p-1">
-                                <div class="col-sm-2 col-md-2 col-lg-2">
-                                    <label for="delivery_date">Ruc</label>
-                                    <input type="text" class="form-control" id="delivery_date"
-                                           name="delivery-date"
-                                           value="">
+                        </div>
+                        <div class="col-sm-5 col-md-5 col-lg-5 pl-0">
+                            <div class="card-body pt-3 border pb-3  bg-light ">
+                                <div class="card header mb-2 border-0 text-left font-weight-bold">
+                                    Datos:
                                 </div>
-                                <div class="col-sm-4 col-md-4 col-lg-4">
-                                    <label for="delivery_date">Cliente</label>
-                                    <input type="text" class="form-control" id="delivery_date"
-                                           name="delivery-date"
-                                           value="">
-                                </div>
-                                <div class="col-sm-6 col-md-6 col-lg-6">
-                                    <label for="delivery_date">Direccion</label>
-                                    <input type="text" class="form-control" id="delivery_date"
-                                           name="delivery-date"
-                                           value="">
-                                </div>
-                            </div>
-                            <div class="row p-1">
-                                <div class="col-sm-2 col-md-2 col-lg-2">
-                                    <label for="delivery_date">Fecha de pedido</label>
-                                    <input type="date" class="form-control" id="id_fechacompra"
-                                           name="fechacompra"
-                                           placeholder="Fecha compra"
-                                           value="{{ formatdate }}" required>
-                                </div>
-                                <div class="col-sm-2 col-md-2 col-lg-2">
-                                    <label for="delivery_date">Nro de pedido</label>
-                                    <input type="text" class="form-control" id="delivery_date"
-                                           name="delivery-date"
-                                           value="">
-                                </div>
-                                <div class="col-sm-4 col-md-4 col-lg-4">
-                                    <div class="form-group">
-                                        <label for="purchases">Multiple</label>
-                                        <select class="select2 purchase" multiple="multiple"
-                                                data-placeholder="Select a State"
-                                                style="width: 100%;">
-                                            {% for p in purchase_set %}
-                                                <option pk="{{ p.id }}">{{ p.bill_number }}</option>
+                                <div class="row p-3">
+                                    <div class="col-sm-3 col-md-3 col-lg-3">
+                                        <label for="id_date_issue" class="font-weight-bold">Fecha de emisión:</label>
+                                        <input type="date" class="form-control" id="id_date_issue"
+                                               name="date_issue"
+                                               value="{{ formatdate }}" required>
+                                    </div>
+                                    <div class="col-sm-3 col-md-3 col-lg-3">
+                                        <label for="pay_condition" class="font-weight-bold">Condición de pago:</label>
+                                        <input type="text" class="form-control" id="pay_condition"
+                                               placeholder="Nro de días"
+                                               name="pay_condition-date">
+                                    </div>
+                                    <div class="col-sm-3 col-md-3 col-lg-3">
+                                        <label for="due_date" class="font-weight-bold">Fecha de
+                                            vencimiento:</label>
+                                        <input type="date" class="form-control" id="due_date"
+                                               name="due_date"
+                                               value="{{ formatdate }}" required>
+                                    </div>
+                                    <div class="col-sm-3 col-md-3 col-lg-3 text-left align-middle ">
+                                        <label for="user_id" class="font-weight-bold">Vendedor:</label>
+                                        <select id="user_id" name="user"
+                                                class="form-control"
+                                                aria-selected="Text input with radio button">
+                                            <option selected value="0">Seleccione...</option>
+                                            {% for u in users %}
+                                                <option value="{{ u.id }}">{{ u|upper }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    {#                                    <label for="delivery_date">Nº O/C</label>#}
-                                    {#                                    <input type="text" class="form-control" id="delivery_date"#}
-                                    {#                                           name="delivery-date"#}
-                                    {#                                           value="">#}
                                 </div>
-                                {#                                <div class="col-sm-2 col-md-2 col-lg-2">#}
-                                {#                                    <label for="delivery_date">Oficina</label>#}
-                                {#                                    <input type="text" class="form-control" id="delivery_date"#}
-                                {#                                           name="delivery-date"#}
-                                {#                                           value="">#}
-                                {#                                </div>#}
-                                {#                                <div class="col-sm-2 col-md-2 col-lg-2">#}
-                                {#                                    <label for="delivery_date">Area</label>#}
-                                {#                                    <input type="text" class="form-control" id="delivery_date"#}
-                                {#                                           name="delivery-date"#}
-                                {#                                           value="">#}
-                                {#                                </div>#}
-                                {#                                <div class="col-sm-2 col-md-2 col-lg-2">#}
-                                {#                                    <label for="delivery_date">Zona Transporte</label>#}
-                                {#                                    <input type="text" class="form-control" id="delivery_date"#}
-                                {#                                           name="delivery-date"#}
-                                {#                                           value="">#}
-                                {#                                </div>#}
+                            </div>
+                            <div class="card-body pt-2 border pb-4 bg-light ">
+                                <div class="row p-3">
+                                    <div class="col-sm-4 col-md-4 col-lg-4">
+                                        <button type="button" id="btn-save-bill"
+                                                class="btn btn-success btn-sm text-uppercase text-center col-sm-12 col-md-12 col-lg-12">
+                                            <i class="fas fa-save"></i> Guardar
+                                        </button>
+                                    </div>
+                                    <div class="col-sm-4 col-md-4 col-lg-4">
+                                        <button type="button" id="btn-new"
+                                                class="btn btn-sm btn-secondary btn-block p-1">Nuevo
+                                        </button>
+                                    </div>
+                                    <div class="col-sm-4 col-md-4 col-lg-4">
+                                        <button type="button" id="btn-add-new-detail"
+                                                class="btn btn-sm btn-success btn-block">Agregar Detalle +
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -200,13 +265,129 @@
 
 {% block extrajs %}
     <script type="text/javascript">
-        $('.select2').select2()
 
+        $(document).on('focusin', '.client-search', function (e) {
+            $(this).val(' ');
+            $('#client_id').val('');
+            $('#client_name').val('');
+            $('#client_address').val('');
+            $('#client_siaf').val('');
+            $('#purchase').empty();
+            $(this).parent('div').find('div.dropdown-menu').css({
+                'background-color': 'transparent',
+                'border': 'transparent',
+            })
+        });
+
+        $(document).on('keypress', '.client-search', function (e) {
+
+            $(this).parent('div').find('div.dropdown-menu').empty()
+
+            if (e.keyCode === 13) {
+
+                e.preventDefault()
+
+                $(this).trigger("enterKey");
+                let _client_name = $(this).val();
+                let _menu = $(this).parent('div').find('div.dropdown-menu')
+
+                if (_client_name.length > 3) {
+
+                    $.ajax({
+                        url: '/sales/get_clients_by_criteria/',
+                        async: true,
+                        dataType: 'json', // for response
+                        type: 'GET',
+                        data: {
+                            'value': _client_name,
+                        },
+                        contentType: 'application/json;charset=UTF-8',
+                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                        success: function (response, textStatus, xhr) {
+                            if (xhr.status === 200) {
+                                let list = response.client_list;
+                                _menu.css({'background-color': '#fff', 'border': '1px solid rgba(0,0,0,.15)'})
+                                for (let i = 0; i < list.length; i++) {
+                                    _menu.append(`<a class="dropdown-item client-item" client_name="${list[i].client_names}" client_siaf="${list[i].client_siaf}" client_document_number="${list[i].client_document_number}" client_address="${list[i].client_address}" client_type_document="${list[i].client_type_document}" href="#" data-id="${list[i].client_id}">cliente: ${list[i].client_names} - RUC: ${list[i].client_document_number}</a>`)
+                                }
+                            }
+                        },
+                        error: function (jqXhr, textStatus, xhr) {
+                            if (jqXhr.status === 500) {
+                                toastr.error(jqXhr.responseJSON.error, 'Mensaje');
+                            } else {
+                                if (textStatus === 'timeout') {
+                                    toastr.error('Failed from timeout', 'Mensaje');
+                                } else {
+                                    console.log(" STATUS: " + xhr + " " + textStatus);
+                                }
+                            }
+                        }
+                    });
+                } else {
+
+                    toastr.warning('Para la busqueda ingrese minimo 3 caracteres', 'Error de llenado');
+                    return false;
+                }
+            }
+        });
+
+        $(document).on('click', '.client-item', function (e) {
+
+            let _client_id = $(this).attr('data-id');
+            let _client_address = $(this).attr('client_address');
+            let _client_name = $(this).attr('client_name');
+            let _client_siaf = $(this).attr('client_siaf');
+            let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
+            let _td = $(this).parent('div.dropdown-menu').parent('td')
+            let _client_type_document = $(this).attr('client_type_document')
+            let _client_document_number = $(this).attr('client_document_number')
+
+            $('#document_type_sender').val(_client_type_document);
+            $('#document_type_sender').trigger('change');
+
+            $('#client_name').val(_client_name);
+            $('#client_address').val(_client_address);
+            $('#client_siaf').val(_client_siaf);
+            $("#client_id").val(_client_id);
+            $(".client-search").val(_client_name);
+
+            $(this).parent('div.dropdown-menu').empty()
+            $(this).parent('div.dropdown-menu').addClass('hide')
+            get_purchases_by_client(_client_id)
+        });
+
+        function get_purchases_by_client(client_id) {
+            let _select = $('#purchase')
+            $.ajax({
+                url: '/buys/get_purchases_by_client/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'client_id': client_id},
+                success: function (response) {
+                    _select.empty();
+                    let _purchase_set = JSON.parse(response['purchase_set']);
+                    //console.log(_purchase_set)
+                    if (response['purchase_set'] !== '[]') {
+                        for (let i = 0; i < _purchase_set.length; i++) {
+                            let option = $('<option>').val(_purchase_set[i]['pk']).text(_purchase_set[i]['fields']['bill_number'].toUpperCase());
+                            _select.append(option);
+                        }
+                    }
+                },
+            });
+
+        }
+        $(document).ready(function(){
+            $('.select2').select2()
+        });
 
         $(document).on('select2:select', '.select2.purchase', function (e) {
 
             //var selectedValue = e.params.data.id;
-            let purchase_id = e.params.data.element.attributes.pk.nodeValue
+            //let purchase_id = e.params.data.element.attributes.pk.nodeValue
+            let purchase_id = e.params.data.id
             let tbody = $('tbody#details-purchase-table');
             $.ajax({
                 url: '/buys/get_purchase_detail/',
@@ -226,13 +407,16 @@
                                     let _new_quantity = Number(d[i].quantity) + Number(_quantity.val());
                                     let _new_detail_total = (Number(d[i].detail_total.replace(',', '')) + Number(_detail_total.val().replace(',', ''))).toFixed(2)
                                     _quantity.val(_new_quantity);
-                                    _detail_total.val(parseFloat(_new_detail_total).toLocaleString('es-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                                    _detail_total.val(parseFloat(_new_detail_total).toLocaleString('es-US', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }));
                                 }
                             });
 
                         } else {
                             tbody.append(
-                                '<tr detail_id="' + d[i].id + '" product_id="'+ d[i].product_id +'">' +
+                                '<tr detail_id="' + d[i].id + '" product_id="' + d[i].product_id + '">' +
                                 '<td class="align-middle text-center item-code">' +
                                 '<input type="text" class="form-control text-center text-uppercase code" value="' + d[i].product_code + '">' + '</td>' +
                                 '<td class="align-middle text-center item-quantity">' +

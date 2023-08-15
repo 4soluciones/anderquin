@@ -1,3 +1,4 @@
+from django.db.models.functions import Coalesce
 from django.shortcuts import render
 import decimal
 import json
@@ -6,7 +7,7 @@ from http import HTTPStatus
 
 from django.contrib.auth.models import User
 from django.core import serializers
-from django.db.models import Q, Sum, F, Prefetch, Subquery, OuterRef
+from django.db.models import Q, Sum, F, Prefetch, Subquery, OuterRef, Max
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.template import loader
@@ -187,19 +188,25 @@ def get_entities(request):
 
 
 def get_correlative_by_subsidiary(subsidiary_obj=None):
-    search = Purchase.objects.filter(subsidiary=subsidiary_obj)
-    if search.exists():
-        purchase_obj = search.last()
-        correlative = purchase_obj.correlative
-        if correlative:
-            new_correlative = correlative + 1
-            result = new_correlative
-        else:
-            result = 1
-    else:
-        result = 1
 
-    return result
+    number = Purchase.objects.filter(subsidiary=subsidiary_obj).aggregate(
+        r=Coalesce(Max('correlative'), 0)).get('r')
+    return number + 1
+
+
+    # search = Purchase.objects.filter(subsidiary=subsidiary_obj)
+    # if search.exists():
+    #     purchase_obj = search.last()
+    #     correlative = purchase_obj.correlative
+    #     if correlative:
+    #         new_correlative = correlative + 1
+    #         result = new_correlative
+    #     else:
+    #         result = 1
+    # else:
+    #     result = 1
+
+    # return result
 
 
 @csrf_exempt
@@ -3000,10 +3007,12 @@ def bill_list(request):
         purchase_set = Purchase.objects.all().order_by('id')
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
+        users = User.objects.all()
 
         return render(request, 'buys/bill_list.html', {
             'formatdate': formatdate,
             'purchase_set': purchase_set,
+            'users': users,
         })
 
 
@@ -3097,3 +3106,23 @@ def update_purchase(request, pk=None):
         # 'contract_dict': contract_dict,
         'purchase_detail_dict': purchase_detail_dict,
     })
+
+
+def get_purchases_by_client(request):
+    if request.method == 'GET':
+        client_id = request.GET.get('client_id')
+        purchase_set = Purchase.objects.filter(client_reference__id=client_id)
+        return JsonResponse({
+            'purchase_set': serializers.serialize('json', purchase_set),
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+
