@@ -497,7 +497,7 @@
                 delivery_date = ''
             }
 
-            console.log(delivery_date)
+            //console.log(delivery_date)
 
             if ($('#payment_type').val() === '0') {
                 toastr.warning('¡Selecione el tipo de pago!', 'Mensaje');
@@ -645,13 +645,18 @@
         }
 
         $(document).on('focusin', '.product-table', function (e) {
-            // $(this).parent('td').find('div.dropdown-menu').removeClass('show')
+            let _tr = $(this).parent('td').parent('tr')
+            $(this).val(' ');
+            let _select = _tr.find('td.unit select.unit-product');
+            _select.empty();
+            let option = $('<option>').val(0).text('Seleccione');
+            _select.append(option);
             $(this).parent('td').find('div.dropdown-menu').css({
                 'background-color': 'transparent',
                 'border': 'transparent',
                 {#'margin-top': '10px'#}
             })
-            $(this).val(' ');
+
             //$('#id_unit_product').val('0')
         });
 
@@ -691,13 +696,15 @@
                                 let list = response.productList;
                                 _menu.css({'background-color': '#fff', 'border': '1px solid rgba(0,0,0,.15)'})
                                 for (let i = 0; i < list.length; i++) {
-                                    _menu.append(`<a class="dropdown-item product-item" brand="${list[i].brand}" href="#" data-id="${list[i].id}">${list[i].name} - ${list[i].brand}</a>`)
+                                    let unit_dict = JSON.stringify(list[i].unit_dict)
+                                    //console.log(JSON.stringify(list[i].unit_dict, null, 2))
+                                    _menu.append(`<a class="dropdown-item product-item" unit='${unit_dict}'  brand="${list[i].brand}" href="#" data-id="${list[i].id}">${list[i].name} - ${list[i].brand}</a>`)
                                 }
-                                _select_unit.append($('<option>').text('Seleccione'));
+                                /*_select_unit.append($('<option>').text('Seleccione'));
                                 for (let i = 0; i < _unit_dict.length; i++) {
                                     let option = $('<option>').val(_unit_dict[i].unit_id).text(_unit_dict[i].unit_name);
                                     _select_unit.append(option);
-                                }
+                                }*/
 
                             }
                         },
@@ -724,7 +731,8 @@
         $(document).on('click', '.product-item', function (e) {
 
             let _product_id = $(this).attr('data-id');
-            let _unit_id = $(this).attr('unit_id');
+            //let _unit_id = $(this).attr('unit_id');
+            let _unit_dict = $(this).attr('unit');
             let _product_name = $(this).text();
             let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
             let _td = $(this).parent('div.dropdown-menu').parent('td')
@@ -732,9 +740,16 @@
             let _brand_product = $(this).attr('brand')
             let _unit_product = $(this).attr('unit_name')
             //$('.product-table').val(_product_name)
+            let _select_unit = _tr.find('td.unit select.unit-product');
 
             _tr.attr('product', _product_id)
             _td.find('input.product-table').val(_product_name)
+            _select_unit.append($('<option>').text('Seleccione'));
+            let units = JSON.parse(_unit_dict)
+            for (let i = 0; i < units.length; i++) {
+                let option = $('<option>').val(units[i].unit_id).text(units[i].unit_name);
+                _select_unit.append(option);
+            }
             {#_tr.find('td.brand input.brand-product').val(_brand_product)#}
             {#_tr.find('td.unit input.unit-product').val(_unit_product)#}
 
@@ -902,7 +917,10 @@
             //console.log("_price_unit", _price_unit)
             //console.log("_total", _total)
             //console.log("_quantity_minimum", _quantity_minimum)
-            quantityMinimumXQuantity(_quantity, _quantity_minimum, _tr)
+            if (_quantity_minimum !== 0) {
+                quantityMinimumXQuantity(_quantity, _quantity_minimum, _tr)
+            }
+
 
             /*if (_quantity !== 0 && _price_unit !== 0) {
                 _total = _quantity * _price_unit
@@ -921,9 +939,9 @@
             let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
             let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
 
-            console.log("_quantity_x_und", _quantity_x_und)
-            console.log("_price_unit", _price_unit)
-            console.log("_total", _total)
+            //console.log("_quantity_x_und", _quantity_x_und)
+            //console.log("_price_unit", _price_unit)
+            //console.log("_total", _total)
 
             if (_quantity_x_und !== 0 && _price_unit !== 0) {
                 _total = _quantity_x_und * _price_unit

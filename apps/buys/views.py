@@ -188,11 +188,9 @@ def get_entities(request):
 
 
 def get_correlative_by_subsidiary(subsidiary_obj=None):
-
     number = Purchase.objects.filter(subsidiary=subsidiary_obj).aggregate(
         r=Coalesce(Max('correlative'), 0)).get('r')
     return number + 1
-
 
     # search = Purchase.objects.filter(subsidiary=subsidiary_obj)
     # if search.exists():
@@ -3028,7 +3026,7 @@ def get_purchase_detail(request):
                 'purchase_id': d.purchase.id,
                 'quantity': round(d.quantity, 2),
                 'price_unit': round(d.price_unit, 2),
-                'detail_total': '{:,}'.format(round(d.multiplicate(), 2)),
+                'detail_total': round(d.multiplicate(), 2),
                 'unit_id': d.unit.id,
                 'unit_name': d.unit.name,
                 'product_id': d.product.id,
@@ -3074,8 +3072,10 @@ def update_purchase(request, pk=None):
     for pd in purchase_obj.purchasedetail_set.all():
 
         product_detail = ProductDetail.objects.get(product=pd.product, unit__id=pd.unit.id)
-        quantity_x_und = (pd.quantity / product_detail.quantity_minimum).quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_UP)
-        total_detail = (pd.price_unit * quantity_x_und).quantize(decimal.Decimal('0.0000'), rounding=decimal.ROUND_HALF_EVEN)
+        quantity_x_und = (pd.quantity / product_detail.quantity_minimum).quantize(decimal.Decimal('0.00'),
+                                                                                  rounding=decimal.ROUND_UP)
+        total_detail = (pd.price_unit * quantity_x_und).quantize(decimal.Decimal('0.0000'),
+                                                                 rounding=decimal.ROUND_HALF_EVEN)
         item = {
             'id': pd.id,
             'product_name': pd.product.name,
@@ -3111,18 +3111,59 @@ def update_purchase(request, pk=None):
 def get_purchases_by_client(request):
     if request.method == 'GET':
         client_id = request.GET.get('client_id')
-        purchase_set = Purchase.objects.filter(client_reference__id=client_id)
+        purchase_set = Purchase.objects.filter(client_reference__id=client_id).order_by('id')
         return JsonResponse({
             'purchase_set': serializers.serialize('json', purchase_set),
         }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
+def save_bill(request):
+    if request.method == 'GET':
+        bill_request = request.GET.get('bill', '')
+        data_bill = json.loads(bill_request)
+        client_id = data_bill["ClientID"]
+        order_date = str(data_bill["OrderDate"])
+        number_order = str(data_bill["NumberOrder"])
+        purchases = data_bill["Purchases"]
+        issue_date = str(data_bill["IssueDate"])
+        pay_condition = str(data_bill["PayCondition"])
+        due_date = str(data_bill["DueDate"])
+        user_id = int(data_bill["User"])
 
+        user_obj = User.objects.get(id=int(user_id))
+        client_obj = Client.objects.get(id=int(client_id))
+        purchase_set = Purchase.objects.filter(id__in=purchases)
 
+        bill_obj = Bill(
+            client=client_obj,
+            order_date=order_date,
+            order_number=number_order,
+            issue_date=issue_date,
+            pay_condition=pay_condition,
+            due_date=due_date,
+            user=user_obj
+        )
+        bill_obj.save()
+        bill_obj.purchase.add(*purchase_set)
 
+        for d in data_bill['Details']:
+            quantity = decimal.Decimal(d['Quantity'])
+            price_unit = decimal.Decimal(d['PriceUnit'])
+            unit_id = int(d["UnitID"])
+            product_id = int(d["Product"])
+            unit_obj = Unit.objects.get(id=int(unit_id))
+            product_obj = Product.objects.get(id=int(product_id))
+            bill_detail_obj = BillDetail(
+                quantity=quantity,
+                product=product_obj,
+                unit=unit_obj,
+                price_unit=price_unit,
+                bill=bill_obj
+            )
+            bill_detail_obj.save()
 
-
-
-
-
+        return JsonResponse({
+            'pk': bill_obj.id,
+            'message': 'FACTURA REGISTRADA CORRECTAMENTE.',
+        }, status=HTTPStatus.OK)

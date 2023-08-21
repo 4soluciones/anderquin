@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from apps.buys.views import *
 from apps.buys.views_PDF import kardex_glp_pdf, print_requirement
 
-from apps.buys.views_PDF_purchase_order import print_pdf
+from apps.buys.views_PDF_purchase_order import print_pdf, print_pdf_bill
 
 urlpatterns = [
     path('', login_required(Home.as_view()), name='home'),
@@ -116,4 +116,6 @@ urlpatterns = [
     path('bill/', login_required(bill_list), name='bill_list'),
     path('get_purchase_detail/', login_required(get_purchase_detail), name='get_purchase_detail'),
     path('get_purchases_by_client/', login_required(get_purchases_by_client), name='get_purchases_by_client'),
+    path('save_bill/', login_required(save_bill), name='save_bill'),
+    path('print_pdf_bill/<int:pk>/', print_pdf_bill, name='print_pdf_bill'),
 ]

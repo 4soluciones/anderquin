@@ -35,13 +35,13 @@
                                 <div class="card header mb-1 border-0 text-left font-weight-bold">
                                     Busqueda de Cliente:
                                 </div>
-                                <div class="row m-2">
+                                <div class="row m-0 mb-2">
                                     <div class="col-2 pr-0 pl-0">
                                         <label class="form-check-label mt-2" for="radio1">
                                             Nombres/Razón Social:
                                         </label>
                                     </div>
-                                    <div class="col-7 pl-0">
+                                    <div class="col-10 pr-0 pl-0">
                                         <input type="text"
                                                class="form-control text-uppercase client-search dropdown-toggle"
                                                data-toggle="dropdown" aria-expanded="false" aria-label="..."
@@ -51,14 +51,14 @@
                                                id="client_id"
                                                name="client_id">
                                     </div>
-                                    <div class="col-3">
-                                        <button type="button"
-                                                onclick="showModalView('modal_client_create')"
-                                                class="btn btn-sm btn-block btn-outline-info"><i
-                                                class="nav-icon fas fa-user-plus"></i>
-                                            NUEVO CLIENTE
-                                        </button>
-                                    </div>
+                                    {#                                    <div class="col-3">#}
+                                    {#                                        <button type="button"#}
+                                    {#                                                onclick="showModalView('modal_client_create')"#}
+                                    {#                                                class="btn btn-sm btn-block btn-outline-info"><i#}
+                                    {#                                                class="nav-icon fas fa-user-plus"></i>#}
+                                    {#                                            NUEVO CLIENTE#}
+                                    {#                                        </button>#}
+                                    {#                                    </div>#}
                                 </div>
                                 <div class="row pl-1 pr-3 pt-1 pb-3 mb-2">
                                     <div class="col-md-1 text-uppercase small pr-0">
@@ -97,8 +97,8 @@
                                     </div>
                                     <div class="col-sm-3 col-md-3 col-lg-3">
                                         <label for="number_date" class="font-weight-bold">Nro de pedido:</label>
-                                        <input type="text" class="form-control" id="number_date"
-                                               name="number_date">
+                                        <input type="text" class="form-control" id="number_order"
+                                               name="number_order">
                                     </div>
                                     <div class="col-sm-6 col-md-6 col-lg-6">
                                         <div class="form-group">
@@ -130,7 +130,7 @@
                                     </div>
                                     <div class="col-sm-3 col-md-3 col-lg-3">
                                         <label for="pay_condition" class="font-weight-bold">Condición de pago:</label>
-                                        <input type="text" class="form-control" id="pay_condition"
+                                        <input type="number" class="form-control" id="pay_condition"
                                                placeholder="Nro de días"
                                                name="pay_condition-date">
                                     </div>
@@ -157,7 +157,7 @@
                             <div class="card-body pt-2 border pb-4 bg-light ">
                                 <div class="row p-3">
                                     <div class="col-sm-4 col-md-4 col-lg-4">
-                                        <button type="button" id="btn-save-bill"
+                                        <button type="button" id="btn-save-bill" onclick="saveBill()"
                                                 class="btn btn-success btn-sm text-uppercase text-center col-sm-12 col-md-12 col-lg-12">
                                             <i class="fas fa-save"></i> Guardar
                                         </button>
@@ -250,6 +250,60 @@
                                 {#                                    </td>#}
                                 {#                                </tr>#}
                                 </tbody>
+                                <tfoot id="details-table-foot">
+                                <tr>
+                                    <td class="border-0" colspan="4"></td>
+                                    <td class="border td-table-foot" colspan="11">
+                                        <div class="form-check mt-5">
+                                            <input class="form-check-input check-igv" type="checkbox" checked
+                                                   id="check_igv">
+                                            <label class="form-check-label" for="check_igv">
+                                                INCLUYE IGV
+                                            </label>
+                                        </div>
+                                        <table class="table table-hover table-sm align-content-center table-bordered mt-3 table-foot"
+                                               style="width: 100%;" id="id_detail_data_foot">
+
+                                            <thead>
+                                            <tr class="text-center text-white" style="background: #19800f">
+                                                <th scope="col" class="align-middle font-weight-normal"
+                                                    style="width: 35%;">Base Imponible
+                                                </th>
+                                                <th scope="col" class="align-middle font-weight-normal"
+                                                    style="width: 30%;">IGV (18%)
+                                                </th>
+                                                <th scope="col" class="align-middle font-weight-normal"
+                                                    style="width: 35%;">Importe Total
+                                                </th>
+                                            <tbody id="table-detail-foot">
+                                            <tr class="text-center">
+                                                <td class="foot-base">
+                                                    <div class="input-icon">
+                                                        <input type="text"
+                                                               class="form-control text-right text-uppercase total-foot-base"
+                                                               placeholder="0.00"><i class="change-money">S/</i>
+                                                    </div>
+                                                </td>
+                                                <td class="foot-igv">
+                                                    <div class="input-icon">
+                                                        <input type="text"
+                                                               class="form-control text-right text-uppercase total-foot-igv"
+                                                               placeholder="0.00"><i class="change-money">S/</i>
+                                                    </div>
+                                                </td>
+                                                <td class="foot-total">
+                                                    <div class="input-icon">
+                                                        <input type="text"
+                                                               class="form-control text-right text-uppercase total-foot-total"
+                                                               placeholder="0.00"><i class="change-money">S/</i>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </div>
@@ -258,6 +312,40 @@
             </div>
         </div>
     </div>
+
+    <style>
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon > i {
+        {#content: "$";#} position: absolute;
+            display: block;
+            transform: translate(0, -50%);
+            top: 50%;
+            pointer-events: none;
+            width: 25px;
+            text-align: center;
+            font-style: normal;
+        }
+
+        .input-icon > input {
+            padding-left: 25px;
+            padding-right: 8px;
+        }
+
+        .input-icon-right > i {
+            right: 0;
+        }
+
+        .input-icon-right > input {
+            padding-left: 0;
+            padding-right: 25px;
+            text-align: right;
+        }
+
+    </style>
 
 
 {% endblock body %}
@@ -268,15 +356,16 @@
 
         $(document).on('focusin', '.client-search', function (e) {
             $(this).val(' ');
+            $(this).parent('div').find('div.dropdown-menu').css({
+                'background-color': 'transparent',
+                'border': 'transparent',
+            })
             $('#client_id').val('');
             $('#client_name').val('');
             $('#client_address').val('');
             $('#client_siaf').val('');
             $('#purchase').empty();
-            $(this).parent('div').find('div.dropdown-menu').css({
-                'background-color': 'transparent',
-                'border': 'transparent',
-            })
+
         });
 
         $(document).on('keypress', '.client-search', function (e) {
@@ -379,7 +468,8 @@
             });
 
         }
-        $(document).ready(function(){
+
+        $(document).ready(function () {
             $('.select2').select2()
         });
 
@@ -399,55 +489,208 @@
                     for (let i = 0; i < d.length; i++) {
                         let product_id = d[i].product_id;
                         if (tbody.find('tr').length > 0) {
+                            let _tr = ''
                             tbody.find('tr').each(function () {
-                                let _tr = $(this);
-                                if (Number(product_id) === Number(_tr.attr("product_id"))) {
-                                    let _quantity = _tr.find('td.item-quantity input.quantity');
-                                    let _detail_total = _tr.find('td.item-detail-total input.detail-total');
-                                    let _new_quantity = Number(d[i].quantity) + Number(_quantity.val());
-                                    let _new_detail_total = (Number(d[i].detail_total.replace(',', '')) + Number(_detail_total.val().replace(',', ''))).toFixed(2)
-                                    _quantity.val(_new_quantity);
-                                    _detail_total.val(parseFloat(_new_detail_total).toLocaleString('es-US', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    }));
+                                if (Number(product_id) === Number($(this).attr("product"))) {
+                                    _tr = $(this);
                                 }
                             });
+                            if (_tr !== '') {
+                                let _quantity = _tr.find('td.item-quantity input.quantity');
+                                let _detail_total = _tr.find('td.item-detail-total input.detail-total');
+                                let _new_quantity = (Number(d[i].quantity) + Number(_quantity.val())).toFixed(2);
+                                let _new_detail_total = (Number(d[i].detail_total.replace(',', '')) + Number(_detail_total.val().replace(',', ''))).toFixed(2)
+                                _quantity.val(_new_quantity);
+                                _detail_total.val(parseFloat(_new_detail_total))
+                                /*.toLocaleString('es-US', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }));*/
+                            } else {
+                                addDetail(d[i].id, d[i].product_id, d[i].product_code, d[i].quantity, d[i].unit_id, d[i].unit_name, d[i].product_name, d[i].price_unit, d[i].detail_total)
+                            }
 
                         } else {
-                            tbody.append(
-                                '<tr detail_id="' + d[i].id + '" product_id="' + d[i].product_id + '">' +
-                                '<td class="align-middle text-center item-code">' +
-                                '<input type="text" class="form-control text-center text-uppercase code" value="' + d[i].product_code + '">' + '</td>' +
-                                '<td class="align-middle text-center item-quantity">' +
-                                '<input type="text" class="form-control text-center text-uppercase quantity" value="' + d[i].quantity + '">' + '</td>' +
-                                '<td class="align-middle text-center item-unit">' +
-                                '<input type="text" class="form-control text-center text-uppercase unit" value="' + d[i].unit_name + '">' + '</td>' +
-                                '<td class="align-middle text-center item-name">' +
-                                '<input type="text" class="form-control text-center text-uppercase name" value="' + d[i].product_name + '">' + '</td>' +
-                                '<td class="align-middle text-center item-price-unit">' +
-                                '<input type="text" class="form-control text-center text-uppercase price-unit" value="' + d[i].price_unit + '">' + '</td>' +
-                                '<td class="align-middle text-center item-price-list">' +
-                                '<input type="text" class="form-control text-center text-uppercase price-list" value="0.00">' + '</td>' +
-                                '<td class="align-middle text-center item-discount">' +
-                                '<input type="text" class="form-control text-center text-uppercase discount" value="0.00">' + '</td>' +
-                                '<td class="align-middle text-center item-detail-total">' +
-                                '<input type="text" class="form-control text-center text-uppercase detail-total" value="' + d[i].detail_total + '">' + '</td>' +
-                                '<td class="align-middle text-center"> ' +
-                                '<button type="button" onclick="deleteItem2(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
-                                '</tr>'
-                            )
+                            addDetail(d[i].id, d[i].product_id, d[i].product_code, d[i].quantity, d[i].unit_id, d[i].unit_name, d[i].product_name, d[i].price_unit, d[i].detail_total)
                         }
-
                     }
+                    sumTable()
                 },
                 fail: function (response) {
                     toastr.error('Error en la peticion', '¡Mensaje!');
                 }
             });
-
-
         });
+
+        function addDetail(detail_id, product_id, product_code, quantity, unit_id, unit_name, product_name, price_unit, detail_total) {
+            let tbody = $('tbody#details-purchase-table');
+            tbody.append(
+                '<tr detail="' + detail_id + '" product="' + product_id + '" unit="' + unit_id + '">' +
+                '<td class="align-middle text-center item-code">' +
+                '<input type="text" class="form-control text-center text-uppercase code" value="' + product_code + '">' + '</td>' +
+                '<td class="align-middle text-center item-quantity">' +
+                '<input type="text" class="form-control text-center text-uppercase quantity" value="' + quantity + '">' + '</td>' +
+                '<td class="align-middle text-center item-unit">' +
+                '<input type="text" class="form-control text-center text-uppercase unit" value="' + unit_name + '">' + '</td>' +
+                '<td class="align-middle text-center item-name">' +
+                '<input type="text" class="form-control text-center text-uppercase name" value="' + product_name + '">' + '</td>' +
+                '<td class="align-middle text-center item-price-unit">' +
+                '<input type="text" class="form-control text-center text-uppercase price-unit" value="' + price_unit + '">' + '</td>' +
+                '<td class="align-middle text-center item-price-list">' +
+                '<input type="text" class="form-control text-center text-uppercase price-list" value="0.00">' + '</td>' +
+                '<td class="align-middle text-center item-discount">' +
+                '<input type="text" class="form-control text-center text-uppercase discount" value="0.00">' + '</td>' +
+                '<td class="align-middle text-center item-detail-total">' +
+                '<input type="text" class="form-control text-center text-uppercase detail-total" value="' + detail_total + '">' + '</td>' +
+                '<td class="align-middle text-center"> ' +
+                '<button type="button" onclick="deleteItem2(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                '</tr>'
+            )
+        }
+
+        $(document).on('change', '#pay_condition', function () {
+
+            let _days = $(this).val();
+            let _due_date = $('#due_date');
+            let _current_date = new Date()
+            if (_days > 0) {
+                let str_date_due_date = stringToDate(_due_date.val());
+                let $new_date = addDays(str_date_due_date, _days);
+                _due_date.val(formatDate($new_date));
+            } else {
+                _due_date.val(formatDate(_current_date));
+            }
+        });
+
+        function stringToDate(dateString) {
+            const [year, month, day] = dateString.split('-').map(num => parseInt(num));
+            return new Date(year, month - 1, day);
+        }
+
+        function formatDate(date) {
+            let day = String(date.getDate()).padStart(2, '0');
+            let month = String(date.getMonth() + 1).padStart(2, '0');
+            let year = date.getFullYear();
+            return `${year}-${month}-${day}`;
+        }
+
+        function addDays(date, days) {
+            let newDate = new Date(date);
+            newDate.setDate(newDate.getDate() + parseInt(days));
+            return newDate;
+        }
+
+        function sumTable() {
+            let igv = 0;
+            let base = 0;
+            let sum_total = 0;
+            let total;
+            $('tbody#details-purchase-table tr').each(function () {
+                let td_total = Number($(this).find("td.item-detail-total input.detail-total").val());
+                sum_total += td_total
+            });
+            base = sum_total
+            igv = sum_total * 0.18
+            total = base + igv
+
+            $("#id_table_details tfoot tr input.total-foot-base").val(base.toFixed(4));
+            $("#id_table_details tfoot tr input.total-foot-igv").val(igv.toFixed(4));
+            $("#id_table_details tfoot tr input.total-foot-total").val(total.toFixed(4));
+            $("#id_table_details tfoot tr input.total-foot-document").val(total.toFixed(4));
+
+        }
+
+        function saveBill() {
+
+            let client_id = $('#client_id');
+            let client_name = $('.client_search');
+            let order_date = $('#order_date');
+            let number_order = $('#number_order');
+            let purchase = $('#purchase');
+            let date_issue = $('#id_date_issue');
+            let pay_condition = $('#pay_condition');
+            let due_date = $('#due_date');
+            let user_id = $('#user_id');
+
+            if (client_id.val() === '') {
+                toastr.warning('Error al seleccionar cliente, Intentar de nuevo', 'Error de llenado');
+                return false;
+            }
+            if (client_name.val() === '') {
+                toastr.warning('El cliente no puede estar vacio', 'Error de llenado');
+                client_name.focus();
+                return false;
+            }
+            if (number_order.val() === '') {
+                toastr.warning('Especifique el Numero de pedido', 'Error de llenado');
+                number_order.focus();
+                return false;
+            }
+            if (pay_condition.val() === '') {
+                toastr.warning('Ingrese la condicion de pago', 'Error de llenado');
+                pay_condition.focus();
+                return false;
+            }
+            if (user_id.val() === '0') {
+                toastr.warning('Seleccione un Vendedor', 'Error de llenado');
+                user_id.focus();
+                return false;
+            }
+            if ($("#id_table_details tbody#details-purchase-table tr").length > 0) {
+                let table_foot = $("#id_table_details tfoot#details-table-foot tr td.td-table-foot").find("#id_detail_data_foot tbody#table-detail-foot tr")
+                let OrderBill = {
+                    "ClientID": client_id.val(),
+                    "OrderDate": order_date.val(),
+                    "NumberOrder": number_order.val(),
+                    "Purchases": purchase.val(),
+                    "IssueDate": date_issue.val(),
+                    "PayCondition": pay_condition.val(),
+                    "DueDate": due_date.val(),
+                    "User": user_id.val(),
+                    "TotalBase": Number(table_foot.find("td.foot-base input.total-foot-base").val()),
+                    "TotalIgv": Number(table_foot.find("td.foot-igv input.total-foot-igv").val()),
+                    "TotalImport": Number(table_foot.find("td.foot-total input.total-foot-total").val()),
+                    "Details": []
+                }
+                $('tbody#details-purchase-table tr').each(function () {
+                    let detailObj = {
+                        "Product": $(this).attr('product'),
+                        "Quantity": $(this).find("td.item-quantity input.quantity").val(),
+                        "UnitID": $(this).attr('unit'),
+                        "PriceUnit": $(this).find("td.item-price-unit input.price-unit").val(),
+                        "Total": $(this).find("td.item-detail-total input.detail-total").val()
+                    }
+                    OrderBill.Details.push(detailObj)
+                });
+                console.log(OrderBill)
+                $.ajax({
+                    url: '/buys/save_bill/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {'bill': JSON.stringify(OrderBill)},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡Factura Registrada Correctamente!');
+                            let bill_id = response.pk
+                            window.location.href = "/buys/print_pdf_bill/" + bill_id + "/";
+                            /*setTimeout(() => {
+                            }, 2000);*/
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        toastr.error("ERROR. ", '¡INCONCEBIBLE!');
+                    }
+                });
+
+            } else {
+                toastr.warning("PARA REALIZAR LA FACTURA AGREGUE AL MENOS UN PRODUCTO. ", '¡ADVERTENCIA!');
+                return false;
+            }
+
+        }
 
 
     </script>
