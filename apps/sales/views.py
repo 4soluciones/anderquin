@@ -459,7 +459,9 @@ def client_save(request):
         phone = str(data_client["phone"])
         email = str(data_client["email"])
         type_client = str(data_client["type_client"])
-        siaf = str(data_client["siaf"])
+        siaf = None
+        if str(data_client["siaf"]) != '':
+            siaf = str(data_client["siaf"])
 
         document_type_obj = DocumentType.objects.get(id=document_type)
 
