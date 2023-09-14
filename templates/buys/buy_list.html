@@ -11,29 +11,30 @@
                      style="background: #1a77c8"{% endif %}>
                     <div class="col-sm-12 col-md-12 col-lg-12">
                         <div class="row p-2">
-                            <div class="col-sm-2 col-md-2 col-lg-2 pr-0">
+                            <div class="col-sm-4 col-md-4 col-lg-4 pr-0">
                                 <input type="hidden"
                                        class="form-control"
                                        id="contract_detail_id" name="contract-detail"
                                        value="{{ contract_detail_obj.id }}">
                                 {% if contract_detail_obj %}
                                     <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
-                                        <label>{{ contract_detail_obj.contract.contract_number }}</label>
+                                        <label>{{ contract_detail_obj.contract.contract_number }} -
+                                            FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
                                     </h6>
                                 {% else %}
-                                    <h5 class="montserrat text-white font-weight-bold mt-4 mb-0"><label>ORDEN DE
+                                    <h6 class="montserrat text-white font-weight-bold mt-4 mb-0"><label>ORDEN DE
                                         COMPRA:</label>
-                                    </h5>
+                                    </h6>
 
                                 {% endif %}
                             </div>
-                            {% if contract_detail_obj %}
-                                <div class="col-sm-2 col-md-2 col-lg-2">
-                                    <h5 class="montserrat text-white font-weight-bold mt-4 mb-0">
-                                        <label>FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
-                                    </h5>
-                                </div>
-                            {% endif %}
+                            {#                            {% if contract_detail_obj %}#}
+                            {#                                <div class="col-sm-2 col-md-2 col-lg-2">#}
+                            {#                                    <h5 class="montserrat text-white font-weight-bold mt-4 mb-0">#}
+                            {#                                        <label>FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>#}
+                            {#                                    </h5>#}
+                            {#                                </div>#}
+                            {#                            {% endif %}#}
 
                             <div class="col-sm-2 col-md-2 col-lg-2 mb-3">
                                 <button type="button" onclick="showModalView('modal_supplier_create')"
@@ -57,7 +58,7 @@
                                 </form>
                             </div>
 
-                            <div class="col-sm-4 col-md-4 col-lg-4">
+                            <div class="col-sm-2 col-md-2 col-lg-2">
                                 <div class="form-check mt-4">
                                     <input class="form-check-input check-dollar" type="checkbox" value=""
                                            id="check_dollar">
@@ -427,7 +428,7 @@
                 }
             }
         })
-        $("#id_add").click(function () {
+        /*$("#id_add").click(function () {
 
             let id_product = $('#id_producto').val();
             let name_product = $('#id_producto option:selected').text();
@@ -469,7 +470,7 @@
                 {#toastr.succes('info messages');#}
                 toastr.warning('Por favor, complete todo los campos!');
             }
-        });
+        });*/
 
         function checkUnit() {
             let flag = false
@@ -665,6 +666,7 @@
 
             $(this).parent('td').find('div.dropdown-menu').empty();
             let _select_unit = $(this).parent('td').parent('tr').find('td.unit select.unit-product');
+            let _select_quantity_unit = $(this).parent('td').parent('tr').find('td.item-quantity-x-unit select.quantity-unit');
 
             if (e.keyCode === 13) {
 
@@ -691,6 +693,7 @@
                         success: function (response, textStatus, xhr) {
                             if (xhr.status === 200) {
                                 _select_unit.empty()
+                                _select_quantity_unit.empty()
                                 //console.log(response.productList[0].unit_dict)
                                 let _unit_dict = response.productList[0].unit_dict
                                 let list = response.productList;
@@ -731,31 +734,25 @@
         $(document).on('click', '.product-item', function (e) {
 
             let _product_id = $(this).attr('data-id');
-            //let _unit_id = $(this).attr('unit_id');
             let _unit_dict = $(this).attr('unit');
             let _product_name = $(this).text();
             let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
             let _td = $(this).parent('div.dropdown-menu').parent('td')
-            let _select = _td.find('select.unit-product')
-            let _brand_product = $(this).attr('brand')
-            let _unit_product = $(this).attr('unit_name')
-            //$('.product-table').val(_product_name)
             let _select_unit = _tr.find('td.unit select.unit-product');
+            let _select_unit_quantity = _tr.find('td.item-quantity-x-unit select.quantity-unit');
+            _tr.attr('product', _product_id);
+            _td.find('input.product-table').val(_product_name);
+            _select_unit.append($('<option>').val(0).text('Seleccione'));
+            _select_unit_quantity.append($('<option>').val(0).text('Seleccione'));
+            let units = JSON.parse(_unit_dict);
 
-            _tr.attr('product', _product_id)
-            _td.find('input.product-table').val(_product_name)
-            _select_unit.append($('<option>').text('Seleccione'));
-            let units = JSON.parse(_unit_dict)
             for (let i = 0; i < units.length; i++) {
                 let option = $('<option>').val(units[i].unit_id).text(units[i].unit_name);
+                let option2 = $('<option>').val(units[i].unit_id).text(units[i].unit_name);
+
                 _select_unit.append(option);
+                _select_unit_quantity.append(option2);
             }
-            {#_tr.find('td.brand input.brand-product').val(_brand_product)#}
-            {#_tr.find('td.unit input.unit-product').val(_unit_product)#}
-
-            {#_tr.attr('unit_id', _unit_id)#}
-
-            {#get_units_by_product(_product_id, _tr)#}
 
             $(this).parent('div.dropdown-menu').empty()
             $(this).parent('div.dropdown-menu').addClass('hide')
@@ -783,25 +780,36 @@
             }
         }
 
+        let flag_function = false;
+
         $(document).on('change', '.unit-product', async function (e) {
             let unit_id = $(this).val();
             let product_id = $(this).parent('td').parent('tr').attr('product')
             let _quantity = Number($(this).parent('td').parent('tr').find('td.item-quantity input.quantity-product').val())
             let _tr = $(this).parent('td').parent('tr')
-            await getQuantityMinimumByProduct(product_id, unit_id, _tr, _quantity)
-            /*if (_quantity_minimum !== 0){
-                let _q_x_u = _quantity / _quantity_minimum
-                console.log(_q_x_u)
-            }*/
-            {#quantityMinimumXQuantity(_quantity, quantity_minimum, _tr)#}
-            _tr.find('td.quantity-minimum input.quantity-minimum').val('')
+            let _select_quantity_unit = _tr.find('td.item-quantity-x-unit select.quantity-unit');
+            if (unit_id !== '0') {
+                await getQuantityMinimumByProduct(product_id, unit_id, _tr, _quantity)
+                {#if (!flag_function) {#}
+                if (unit_id === '1') { /*optimizar*/
+                    _select_quantity_unit.val('1').change();
+                }
+                {#flag_function = true;#}
+                {# }#}
+            } else {
+                toastr.warning('Seleccione una unidad valida', 'Error de llenado');
+                $(this).val(1).change();
+                return false;
+            }
+
+            //_tr.find('td.quantity-minimum input.quantity-minimum').val('');
 
         });
+
         //$('.unit-product').trigger('change')
         let _quantity_minimum = 0
 
         async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
-
             let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum');
             let _input_cant_x_und = _tr.find('td.item-quantity-x-unit input.quantity-x-unit');
             let _price_unit_product = _tr.find('td.item-price input.price-unit-product');
@@ -819,7 +827,7 @@
                     success: function (response) {
                         let _quantity_minimum = Number(response.quantity_minimum).toFixed(2)
                         if (_quantity_minimum && _quantity) {
-                            let _q_x_u = _quantity / _quantity_minimum
+                            let _q_x_u = _quantity * _quantity_minimum
                             _input_cant_x_und.val(_q_x_u.toFixed(2))
                             {#_input_cant_x_und.val(Math.ceil(_q_x_u))#}
                         }
@@ -829,8 +837,65 @@
                     },
                 });
             }
-
         }
+
+        $(document).on('change', '.quantity-unit', async function (e) {
+            let unit_id = $(this).val();
+            if (unit_id !== '0') {
+                let _input_quantity_x_unit = $(this).closest('td').find('input.quantity-x-unit');
+                {#let product_id = $(this).parent('div').parent('div.row').parent('td').parent('tr').attr('product')#}
+                let product_id = $(this).closest('td').parent('tr').attr('product')
+                let _quantity = Number($(this).closest('td').parent('tr').find('td.item-quantity input.quantity-product').val())
+                let _tr = $(this).closest('td').parent('tr')
+                //let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum');
+                let quantity_minimum = await getQuantityMinimum2(product_id, unit_id).then(e => {
+                    return e
+                });
+                let new_quantity_x_unit = _quantity / quantity_minimum;
+                _input_quantity_x_unit.val(new_quantity_x_unit.toFixed(2));
+            }
+            else {
+                toastr.warning('Seleccione una unidad valida', 'Error de llenado');
+                $(this).val(1).change();
+                return false;
+            }
+
+        });
+
+        function getQuantityMinimum2(product_id, _unit) {
+            if (product_id !== '' && product_id !== '0') {
+                return new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: '/buys/get_quantity_minimum/',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        data: {
+                            'product_id': product_id,
+                            'unit_id': _unit
+                        },
+                        success: function (data) {
+                            resolve(data.quantity_minimum)
+                        },
+                        fail: function (err) {
+                            toastr.error('Error en la peticion, Contactar con Sistemas', '¡Mensaje!');
+                            reject(err)
+                        }
+                    });
+                })
+            }
+        }
+
+        $(document).on('keyup', '.quantity-x-unit', function () {
+            let _val = $(this).val()
+            let _tr = $(this).closest('td').parent('tr');
+            let _quantity_minimum = $(this).closest('td').find('select.quantity-unit option:selected').attr('qm');
+            let _input_quantity = $(this).closest('td').parent('tr').find('td.item-quantity input.quantity-product');
+            let _new_quantity = _val * _quantity_minimum
+            _input_quantity.val(_new_quantity)
+            calculate_total(_tr)
+            sum_table()
+        });
 
         $(document).on('click', '#btn-add-new-detail', function () {
 
@@ -848,33 +913,31 @@
                 '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
                 '               data-toggle="dropdown" aria-expanded="false" placeholder="Ingrese producto...">' + '<div class="dropdown-menu"></div>' + '</td>' +
                 '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">' + '</td>' +
-                {#'<td class="align-middle brand">' +#}
-                {#'<input type="text" class="form-control text-center text-uppercase brand-product" id="brand_id" name="brand" readonly>' + '</td>' +#}
                 '<td class="align-middle unit text-center">' +
-                '<select class="form-control unit-product" id="id_unit_product" name="unit_product" required>' +
-                '<option value="0">Seleccione</option>' +
+                '<select class="form-control unit-product text-center" id="id_unit_product" name="unit_product" required>' +
+                '<option disabled value="0">Seleccione</option>' +
                 '</td>' +
                 '<td class="align-middle quantity-minimum text-center">' +
                 '<input type="text" class="form-control text-center quantity-minimum" readonly>' +
                 '</td>' +
-                {#'<td class="align-middle unit">' +#}
-                {#'<input type="text" class="form-control text-center text-uppercase unit-product" readonly>' + '</td>' +#}
-                '<td class="align-middle item-quantity-x-unit">' + '<input type="text" class="form-control text-center quantity-x-unit text-uppercase" readonly>' + '</td>' +
+                '<td class="align-middle item-quantity-x-unit" style="background-color: #bde7e2">' +
+                '<div class="row">' +
+                '<div class="col-sm-3 text-center pr-0">' +
+                '<label class="mt-2">Ver en:</label>' +
+                '</div>' +
+                '<div class="col-sm-3 pr-0 pl-0 mt-1">' +
+                '<select class="form-control quantity-unit pl-0 pr-0 text-center" aria-label="..." style="font-size: 0.7585em; background-color: #bde7e2">' +
+                '<option value="0">Seleccione</option>' +
+                '</select>' +
+                '</div>' +
+                '<div class="col-sm-6 pl-1">' +
+                '<input type="text" aria-label="..." class="form-control text-center quantity-x-unit text-uppercase" readonly style="background-color: #bde7e2">' +
+                '</div>' +
+                '</td>' +
                 '<td class="item-price text-right align-middle" price-unit-with-discount="">' + '<div class="input-icon">' +
                 '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
-                {#'<td class="item-discount1 text-right align-middle">' +#}
-                {#'<input type="text" class="form-control text-right text-uppercase discount1" placeholder="0.00">' + '</td>' +#}
-                {#'<td class="item-discount2 text-right align-middle">' +#}
-                {#'<input type="text" class="form-control text-right text-uppercase discount2" placeholder="0.00">' + '</td>' +#}
-                {#'<td class="item-discount3 text-right align-middle">' +#}
-                {#'<input type="text" class="form-control text-right text-uppercase discount3" placeholder="0.00">' + '</td>' +#}
-                {#'<td class="item-discount4 text-right align-middle">' +#}
-                {#'<input type="text" class="form-control text-right text-uppercase discount4" placeholder="0.00">' + '</td>' +#}
                 '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
                 '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
-                {#'<td class="item-check text-center align-middle">' +#}
-                {#'<div class="form-check">' + '<input class="form-check-input position-static check-kardex" type="checkbox" value="" checked> ' + '</div>' +#}
-                {#'</td>' +#}
                 '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem2(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
                 '</tr>');
             counterStrike2()
@@ -900,7 +963,7 @@
         });
 
         function quantityMinimumXQuantity(quantity, quantity_minimum, tr) {
-            let _quantity_x_quantity_minimum = quantity / quantity_minimum
+            let _quantity_x_quantity_minimum = quantity * quantity_minimum
             tr.find('td.item-quantity-x-unit input.quantity-x-unit').val(_quantity_x_quantity_minimum.toFixed(2));
         }
 
@@ -943,8 +1006,8 @@
             //console.log("_price_unit", _price_unit)
             //console.log("_total", _total)
 
-            if (_quantity_x_und !== 0 && _price_unit !== 0) {
-                _total = _quantity_x_und * _price_unit
+            if (_quantity !== 0 && _price_unit !== 0) {
+                _total = _quantity * _price_unit
                 _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(4));
             }
             calculate_total(_tr)
@@ -959,7 +1022,7 @@
             let $total = Number(_tr.find('td.total-row input.total-detail').val());
             let amount
 
-            amount = $quantity_x_und * $price_unit
+            amount = $quantity * $price_unit
 
             _tr.find('td.total-row input.total-detail').val(amount.toFixed(4))
 

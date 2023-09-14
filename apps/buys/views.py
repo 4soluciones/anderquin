@@ -2461,10 +2461,13 @@ def get_buy_list(request, contract_detail=None):
                 'counter': counter,
                 'units': []
             }
-            for u in Unit.objects.filter(productdetail__product__id=d.product.id).all():
+            # for u in Unit.objects.filter(productdetail__product__id=d.product.id).all():
+            for pd in ProductDetail.objects.filter(product_id=d.product.id).all():
                 item_units = {
-                    'id': u.id,
-                    'name': u.name,
+                    'id': pd.id,
+                    'unit_id': pd.unit.id,
+                    'unit_name': pd.unit.name,
+                    'quantity_minimum': round(pd.quantity_minimum, 0),
                 }
                 item_contract.get('units').append(item_units)
             contract_dict.append(item_contract)

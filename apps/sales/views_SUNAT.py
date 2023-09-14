@@ -506,7 +506,7 @@ def query_apis_net_money(date_now):
     url = 'https://api.apis.net.pe/v1/tipo-cambio-sunat?fecha={}'.format(date_now)
     headers = {
         "Content-Type": 'application/json',
-        'authorization': 'Bearer apis-token-1630.zr4D15urrg7xtcwzwBfRhqjhEtNIReWU',
+        'authorization': 'Bearer apis-token-5453.4I3HhSqKHJBWk0qpnTBCJGhi5qmoYJgF',
     }
 
     r = requests.get(url, headers=headers)
