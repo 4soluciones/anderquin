@@ -338,6 +338,7 @@ class Contract(models.Model):
     subsidiary = models.ForeignKey('hrm.Subsidiary', on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P', )
     observation = models.TextField('Observación', blank=True, null=True)
+    user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return str(self.contract_number)
@@ -356,6 +357,7 @@ class ContractDetail(models.Model):
 class ContractDetailItem(models.Model):
     id = models.AutoField(primary_key=True)
     quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
+    price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     contract_detail = models.ForeignKey(ContractDetail, on_delete=models.CASCADE, null=True, blank=True)
 

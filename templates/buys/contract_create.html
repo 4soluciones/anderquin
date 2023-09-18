@@ -18,17 +18,28 @@
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="row p-1">
-                                <div class="col-lg-8">
-                                    <label class="font-weight-light" for="client_id">Cliente:
-                                    </label>
-                                    <select id="client_id" name="client" class="form-control district">
-                                        <option value="0">Seleccionar</option>
-                                        {% for c in client_set %}
-                                            <option value="{{ c.id }}">{{ c.names|upper }}</option>
-                                        {% endfor %}
-                                    </select>
+                                {#                                <div class="col-lg-8">#}
+                                {#                                    <label class="font-weight-light" for="client_id">Cliente:#}
+                                {#                                    </label>#}
+                                {#                                    <select id="client_id" name="client" class="form-control district">#}
+                                {#                                        <option value="0">Seleccionar</option>#}
+                                {#                                        {% for c in client_set %}#}
+                                {#                                            <option value="{{ c.id }}">{{ c.names|upper }}</option>#}
+                                {#                                        {% endfor %}#}
+                                {#                                    </select>#}
+                                {#                                </div>#}
+                                <div class="col-8">
+                                    <label class="font-weight-light" for="client_id">Cliente:</label>
+                                    <input type="text" aria-label="..."
+                                           class="form-control form-control-sm text-uppercase client-table dropdown-toggle"
+                                           data-toggle="dropdown" aria-expanded="false"
+                                           placeholder="Ingrese cliente y presione enter...">
+                                    <div class="dropdown-menu"></div>
+                                    <input type="hidden"
+                                           id="client_id"
+                                           name="client">
                                 </div>
-                                <div class="col-lg-4 pr-0 pl-1">
+                                <div class="col-lg-4 pl-1">
                                     <label class="font-weight-light"
                                            for="number_contract">Nº de Contrato:</label>
                                     <div class="input-group">
@@ -37,7 +48,8 @@
                                                 <i class="fas fa-id-badge"></i>
                                             </span>
                                         </div>
-                                        <input type="text" class="form-control number-contract" id="number_contract"
+                                        <input type="text" class="form-control form-control-sm number-contract"
+                                               id="number_contract"
                                                name="number-contract" autocomplete="off">
                                     </div>
                                 </div>
@@ -46,20 +58,28 @@
                                 <div class="col-lg-3">
                                     <label class="font-weight-light" for="register_date">Fecha de
                                         registro</label>
-                                    <input type="date" class="form-control" id="register_date"
+                                    <input type="date" class="form-control form-control-sm" id="register_date"
                                            name="register-name" value="{{ date_now }}">
                                 </div>
-                                <div class="col-sm-9 col-md-9 col-lg-9">
+                                <div class="col-sm-6 col-md-6 col-lg-6">
                                     <label for="observations" class="">Observaciones:</label>
-                                    <input type="text" class="form-control" id="observations"
+                                    <input type="text" class="form-control form-control-sm" id="observations"
                                            name="observations"
-                                           placeholder="OBSERVACIONES"
-                                           value="">
+                                           placeholder="...">
+                                </div>
+                                <div class="col-sm-3 col-md-3 col-lg-3">
+                                    <label for="user_id">Vendedor:</label>
+                                    <select id="user_id" name="user" class="form-control form-control-sm">
+                                        <option selected disabled value="0">Seleccione..</option>
+                                        {% for u in user_set %}
+                                            <option value="{{ u.id }}">{{ u.username }}</option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
                             </div>
                             <div class="row p-1">
-                                <div class="col-sm-1 col-md-1 col-lg-1">
-                                    <label class="font-weight-light" for="nro_dates">Fechas:</label>
+                                <div class="col-sm-1 col-md-1 col-lg-1 pr-0">
+                                    <label class="font-weight-light" for="nro_dates">Nº entregas:</label>
                                     <input type="text" class="form-control form-control-sm text-center" id="nro_dates"
                                            name="nro-dates" placeholder="0">
                                 </div>
@@ -72,11 +92,23 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <div class="col-sm-2 col-md-2 col-lg-2">
-                                    <label class="font-weight-light" for="quantity_add">Cantidad:</label>
-                                    <input type="text" class="form-control form-control-sm text-center"
+                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">
+                                    <label class="font-weight-light" for="quantity_add">Cantidad</label>
+                                    <input type="text" class="form-control form-control-sm text-right"
                                            id="quantity_add"
-                                           name="quantity-add" placeholder="0">
+                                           name="quantity-add" placeholder="0.00">
+                                </div>
+                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">
+                                    <label class="font-weight-light" for="price_unit">Precio Unit.</label>
+                                    <input type="text" class="form-control form-control-sm text-right"
+                                           id="price_unit"
+                                           name="price-unit-add" placeholder="0.00">
+                                </div>
+                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">
+                                    <label class="font-weight-light" for="total">Total</label>
+                                    <input type="text" class="form-control form-control-sm text-right"
+                                           id="total"
+                                           name="total-add" placeholder="0.00">
                                 </div>
                                 <div class="col-sm-2 col-md-2 col-lg-2">
                                     <label class="" for="btn-add-dates">&nbsp;</label>
@@ -104,19 +136,50 @@
                                 </div>
                             </div>
                             <div class="row pt-2">
-                                <div class="col-sm-8 col-md-8 col-lg-8 text-right">
-                                    <h5>
-                                        <label class="font-weight-bold mt-2" for="total-quantity">
-                                            TOTAL CANTIDAD:
-                                        </label>
-                                    </h5>
-                                </div>
-                                <div class="col-sm-3 col-md-3 col-lg-3 totals">
-                                    <input type="text" class="form-control text-center font-weight-bold"
-                                           id="total-quantity"
-                                           name="observations"
-                                           placeholder="0.00" readonly>
-                                </div>
+                                <table id="table-totals" class="table table-sm align-content-center">
+                                    <thead>
+                                    <tr>
+                                        <th style="width: 10%;"></th>
+                                        <th style="width: 50%;"></th>
+                                        <th style="width: 10%;"></th>
+                                        <th style="width: 10%;"></th>
+                                        <th style="width: 10%;"></th>
+                                        <th style="width: 10%;"></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr class="">
+                                        <td class="align-middle text-right font-weight-bold" colspan="2">
+                                            TOTAL CANTIDAD
+                                        </td>
+                                        <td class="align-middle">
+                                            <input type="text" class="form-control text-center font-weight-bold"
+                                                   id="total-quantity" aria-label="..."
+                                                   placeholder="0.00" readonly>
+                                        </td>
+                                        <td class="text-center align-middle text-right font-weight-bold">
+                                            TOTAL MONTO
+                                        </td>
+                                        <td class="align-middle" style="width: 10%">
+                                            <input type="text" class="form-control text-center font-weight-bold"
+                                                   id="total-amount" aria-label="..."
+                                                   placeholder="0.00" readonly>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                {#                                <div class="col-sm-8 col-md-8 col-lg-8 text-right">#}
+                                {#                                    <h5>#}
+                                {#                                        <label class="font-weight-bold mt-2" for="total-quantity">#}
+                                {#                                            TOTAL CANTIDAD:#}
+                                {#                                        </label>#}
+                                {#                                    </h5>#}
+                                {#                                </div>#}
+                                {#                                <div class="col-sm-3 col-md-3 col-lg-3 totals">#}
+                                {#                                    <input type="text" class="form-control text-center font-weight-bold"#}
+                                {#                                           id="total-quantity"#}
+                                {#                                           placeholder="0.00" readonly>#}
+                                {#                                </div>#}
                             </div>
                         </div>
                     </div>
@@ -174,5 +237,24 @@
             }
         }
     });
+
+
+    $(document).on('keyup', '#quantity_add', function (e) {
+        calculateTotalHeader();
+    });
+    $(document).on('keyup', '#price_unit', function (e) {
+        calculateTotalHeader();
+    });
+
+    function calculateTotalHeader() {
+        let _new_total = 0
+        let quantity = Number($('#quantity_add').val());
+        let price_unit = Number($('#price_unit').val());
+        let _total = $('#total');
+
+        _new_total = quantity * price_unit
+        _total.val(_new_total.toFixed(2));
+
+    }
 
 </script>

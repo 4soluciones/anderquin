@@ -492,7 +492,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         p_und = f'{int(i.quantity / cantidad_unidad)}'
         precio_unidad = f'{round(i.price_unit, 6)}'
         # sub_total = round(i.multiplicate(), 2)
-        sub_total = (i.price_unit * quantity_x_und).quantize(decimal.Decimal('0.0000'),
+        sub_total = (i.price_unit * i.quantity).quantize(decimal.Decimal('0.00'),
                                                              rounding=decimal.ROUND_HALF_EVEN)
 
         total += sub_total
@@ -625,12 +625,16 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
 
         # addressEntity_obj = reference_obj.entity_address.all().first()
 
+        client_address = '-'
+        if client_reference.clientaddress_set.exists():
+            client_address = client_reference.clientaddress_set.last().address.upper()
+
         p9_1 = Paragraph(f'Razón Social: ', styles["Right"])
         p9_2 = Paragraph(f'{client_reference.names.upper()}', styles["Left"])
         p9_3 = Paragraph(f'RUC: ', styles["Right"])
         p9_4 = Paragraph(f'{client_reference.clienttype_set.last().document_number}', styles["Left"])
         p9_5 = Paragraph(f'Dirección: ', styles["Right"])
-        p9_6 = Paragraph(f'{client_reference.clientaddress_set.last().address.upper()}', styles["Left"])
+        p9_6 = Paragraph(f'{client_address}', styles["Left"])
         p9_7 = Paragraph(f'Referencia: ', styles["Right"])
         # p9_8 = Paragraph(f'{purchase_obj.oc_supplier}', styles["Left"])
         p9_8 = Paragraph(f'{"-"}', styles["Left"])
@@ -814,7 +818,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     #
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
+    # response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
 
     tomorrow = datetime.now() + timedelta(days=1)
     tomorrow = tomorrow.replace(hour=0, minute=0, second=0)

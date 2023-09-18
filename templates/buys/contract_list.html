@@ -10,7 +10,7 @@
         <div class="card p-2">
             <div class="row">
                 <div class="col-lg-2 pt-3 ml-3">
-                    <button type="button" onclick="showModalCreate('modal_contract_create')"
+                    <button type="button" onclick="showModalCreateContract('modal_contract_create')"
                             class="btn btn-outline-success"><i class="fas fa-file-contract"></i>
                         NUEVO CONTRATO
                     </button>
@@ -38,7 +38,6 @@
 
     <script type="text/javascript">
 
-
         let old_timestamp = null;
 
         let today = new Date();
@@ -51,7 +50,7 @@
         today = dd + '/' + mm + '/' + yyyy + ' ' + hh + ':' + mn;
 
 
-        function showModalCreate(route) {
+        function showModalCreateContract(route) {
             $.ajax({
                 url: '/buys/' + route + '/',
                 dataType: 'json',
@@ -76,7 +75,7 @@
 
         });
 
-        function addItem(number) {
+        function addItem(number, _price_unit) {
 
             $(`#table-date-${number} > tbody`).append(
                 '<tr class="text-center">' +
@@ -91,6 +90,12 @@
                 '</td>' +
                 '<td class="item-quantity align-middle text-center">' +
                 '<input type="text" class="form-control text-right quantity" placeholder="0.00" autocomplete="off">' +
+                '</td>' +
+                '<td class="item-price-unit align-middle text-center">' +
+                '<input type="text" class="form-control text-right price-unit" placeholder="0.00" autocomplete="off" value="' + _price_unit + ' ">' +
+                '</td>' +
+                '<td class="item-amount align-middle text-center">' +
+                '<input type="text" class="form-control text-right amount" placeholder="0.00" autocomplete="off">' +
                 '</td>' +
                 '<td class="align-middle">' +
                 '<button type="button" onclick="deleteItemTable(this, ' + number + ')" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' +
@@ -121,13 +126,29 @@
         });
 
         function calculateTotal() {
-            let sum_total = 0;
+            let sum_quantity = 0;
+            let sum_amount = 0;
             $('.dates-quotas td.item-quantity input.quantity').each(function () {
                 let quantity = Number($(this).val())
-                sum_total = sum_total + quantity
+                sum_quantity = sum_quantity + quantity
             });
-            $("#total-quantity").val(sum_total.toFixed(2));
+            $('.dates-quotas td.item-amount input.amount').each(function () {
+                let amount = Number($(this).val())
+                sum_amount = sum_amount + amount
+            });
+            $("#total-quantity").val(sum_quantity.toFixed(2));
+            $("#total-amount").val(sum_amount.toFixed(2));
         }
+
+        $(document).on('keyup', '.quantity', function () {
+            let _tr = $(this).parent('td').parent('tr');
+            let _quantity_row = Number($(this).val());
+            let _price_unit_row = Number(_tr.find('td.item-price-unit input.price-unit').val());
+            let _amount = _tr.find('td.item-amount input.amount');
+            let _new_amount = _quantity_row * _price_unit_row
+            _amount.val(_new_amount.toFixed(2))
+            calculateTotal()
+        });
 
         let product_set = [
             {% for p in product_set %}
@@ -142,21 +163,25 @@
             let _nro_dates = $('#nro_dates');
             let product = $('#product_add_id').val();
             let _quantity = $('#quantity_add');
-            $('#btn-add-dates').addClass('disabled');
+            let _price_unit = $('#price_unit');
+            let _btn_add = $('#btn-add-dates');
+            _btn_add.attr('disabled', true);
 
             if (_nro_dates.val().length === 0) {
                 toastr.warning('Favor de ingresar una numero de fechas', 'Error de llenado');
                 _nro_dates.focus();
+                _btn_add.removeAttr('disabled');
                 return false;
             }
             if (product === '0') {
                 toastr.warning('Favor de selecionar un producto', 'Error de llenado');
-                product.focus();
+                _btn_add.removeAttr('disabled');
                 return false;
             }
             if (_quantity.val().length === 0) {
                 toastr.warning('Favor de ingresar una cantidad primero', 'Error de llenado');
                 _quantity.focus();
+                _btn_add.removeAttr('disabled');
                 return false;
             }
 
@@ -190,8 +215,10 @@
                     '<thead>' +
                     '<tr class="text-center text-white" style="background: #1a77c8">' +
                     '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Item' + '</th>' +
-                    '<th scope="col" class="align-middle font-weight-normal" style="width: 60%;">' + 'Producto' + '</th>' +
-                    '<th scope="col" class="align-middle font-weight-normal" style="width: 20%;">' + 'Cantidad' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 50%;">' + 'Producto' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Cantidad' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'P. U.' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Monto' + '</th>' +
                     '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + '</th>' +
                     '</tr>' +
                     '</thead>' +
@@ -206,8 +233,14 @@
                     '<td class="item-quantity align-middle text-center">' +
                     '<input type="text" class="form-control text-right quantity" placeholder="0.00" autocomplete="off" value="' + _quantity.val() + ' ">' +
                     '</td>' +
+                    '<td class="item-price-unit align-middle text-center">' +
+                    '<input type="text" class="form-control text-right price-unit" placeholder="0.00" autocomplete="off" value="' + _price_unit.val() + ' ">' +
+                    '</td>' +
+                    '<td class="item-amount align-middle text-center">' +
+                    '<input type="text" class="form-control text-right amount" placeholder="0.00" autocomplete="off">' +
+                    '</td>' +
                     '<td class="align-middle">' +
-                    '<button type="button" onclick="addItem(' + _number + ')" class="btn btn-outline-success btn-block">' +
+                    '<button type="button" onclick="addItem(' + _number + ', ' + _price_unit.val() + ')" class="btn btn-outline-success btn-block">' +
                     '<i class="fas fa-plus"></i>' +
                     '</button>' +
                     '</td>' +
@@ -229,7 +262,9 @@
             $('#total-quantity').val('');
             $('#product_add_id').val('0');
             $('#quantity_add').val('');
-            $('#btn-add-dates').removeClass('disabled');
+            $('#price_unit').val('');
+            $('#total').val('');
+            $('#btn-add-dates').removeAttr('disabled');
         });
 
 
@@ -239,6 +274,7 @@
             let _client = $('#client_id').val();
             let _observations = $('#observations').val();
             let _nro_dates = $('#nro_dates').val();
+            let _user = $('#user_id').val();
 
             if (_number_contract.length === 0) {
                 toastr.warning('¡Favor de ingresar el numero de contrato!', 'Error de Datos');
@@ -248,12 +284,16 @@
                 toastr.warning('¡Favor de seleccionar una fecha valida', 'Error de Datos!');
                 return false;
             }
-            if (_client === '0') {
+            if (_client === '') {
                 toastr.warning('¡Favor de seleccionar un cliente', 'Error de Datos!');
                 return false;
             }
             if (_nro_dates === '0') {
                 toastr.warning('¡Ingrese al menos una Fecha de entrega', 'Error de Datos!');
+                return false;
+            }
+            if (_user === '0') {
+                toastr.warning('¡Favor de seleccionar el vendedor', 'Error de Datos!');
                 return false;
             }
 
@@ -262,6 +302,7 @@
                 'register_date': _register_date,
                 'client': _client,
                 'observation': _observations,
+                'user': _user,
                 "dates": []
             };
             let dateObj = {};
@@ -277,6 +318,7 @@
                     itemObj = {
                         "product": $(this).find("td.item-product select.product").val(),
                         "quantity": $(this).find("td.item-quantity input.quantity").val(),
+                        "price_unit": $(this).find("td.item-price-unit input.price-unit").val(),
                     }
                     dateObj.items.push(itemObj)
                 });
@@ -306,6 +348,97 @@
                 }
             });
         }
+
+        $(document).on('focusin', '.client-table', function (e) {
+            $(this).parent('div').find('div.dropdown-menu').css({
+                'background-color': 'transparent',
+                'border': 'transparent',
+            })
+            $(this).val(' ');
+            $('#id_unit_product').val('0')
+            $('#id_sender').val('');
+            $('#id-nro-document-sender').val('');
+            $('#id_address').val('');
+            $('#document_type_sender').val('0');
+            $('#document_type_sender').trigger('change');
+        });
+
+        $(document).on('keypress', '.client-table', function (e) {
+
+            $(this).parent('div').find('div.dropdown-menu').empty()
+
+            if (e.keyCode === 13) {
+
+                e.preventDefault()
+
+                $(this).trigger("enterKey");
+                let _client_name = $(this).val();
+                {#let _td = $(this).parent('td')#}
+                let _menu = $(this).parent('div').find('div.dropdown-menu')
+
+                if (_client_name.length > 3) {
+
+                    $.ajax({
+                        url: '/sales/get_clients_by_criteria/',
+                        async: true,
+                        dataType: 'json', // for response
+                        type: 'GET',
+                        data: {
+                            'value': _client_name,
+                        },
+                        contentType: 'application/json;charset=UTF-8',
+                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                        success: function (response, textStatus, xhr) {
+                            if (xhr.status === 200) {
+                                let list = response.client_list;
+                                _menu.css({'background-color': '#fff', 'border': '1px solid rgba(0,0,0,.15)'})
+                                for (let i = 0; i < list.length; i++) {
+                                    _menu.append(`<a class="dropdown-item client-item" client_name="${list[i].client_names}" client_document_number="${list[i].client_document_number}" client_address="${list[i].client_address}" client_type_document="${list[i].client_type_document}" href="#" data-id="${list[i].client_id}">cliente: ${list[i].client_names} - RUC: ${list[i].client_document_number}</a>`)
+                                }
+                            }
+                        },
+                        error: function (jqXhr, textStatus, xhr) {
+                            if (jqXhr.status === 500) {
+                                toastr.error(jqXhr.responseJSON.error, 'Mensaje');
+                            } else {
+                                if (textStatus === 'timeout') {
+                                    toastr.error('Failed from timeout', 'Mensaje');
+                                } else {
+                                    console.log(" STATUS: " + xhr + " " + textStatus);
+                                }
+                            }
+                        }
+                    });
+                } else {
+
+                    toastr.warning('Para la busqueda ingrese minimo 3 caracteres', 'Error de llenado');
+                    return false;
+                }
+            }
+        });
+
+        $(document).on('click', '.client-item', function (e) {
+
+            let _client_id = $(this).attr('data-id');
+            let _client_address = $(this).attr('client_address');
+            let _client_name = $(this).attr('client_name');
+            let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
+            let _td = $(this).parent('div.dropdown-menu').parent('td')
+            let _client_type_document = $(this).attr('client_type_document')
+            let _client_document_number = $(this).attr('client_document_number')
+
+            $('#document_type_sender').val(_client_type_document);
+            $('#document_type_sender').trigger('change');
+
+            $('#id_sender').val(_client_name);
+            $('#id_address').val(_client_address);
+            $("#id-nro-document-sender").val(_client_document_number);
+            $("#client_id").val(_client_id);
+            $(".client-table").val(_client_name);
+
+            $(this).parent('div.dropdown-menu').empty()
+            $(this).parent('div.dropdown-menu').addClass('hide')
+        });
 
 
     </script>

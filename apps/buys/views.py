@@ -311,12 +311,12 @@ def save_purchase(request):
             delivery_choice = 'S'
             city = subsidiary_address_obj.district.description
         elif check_provider == '1':
-            address_provider_set = AddressSupplier.objects.filter(supplier__id=int(address_provider))
+            address_provider_set = SupplierAddress.objects.filter(id=int(address_provider))
             delivery_choice = 'P'
             if address_provider_set.exists():
                 address_provider_obj = address_provider_set.last()
                 delivery_address = address_provider_obj.address
-                city = address_provider_obj.city.name
+                city = address_provider_obj.district.description
 
         elif check_client_reference == '1':
             client_address_referencer_set = ClientAddress.objects.filter(id=int(client_address_reference))
@@ -579,7 +579,7 @@ def get_purchase_list(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
-    purchases = Purchase.objects.filter(subsidiary=subsidiary_obj, status='S')
+    purchases = Purchase.objects.filter(status='S')
     return render(request, 'buys/purchase_list.html', {
         'purchases': purchases
     })
@@ -2930,7 +2930,8 @@ def modal_contract_create(request):
         c = ({
             'date_now': date_now,
             'client_set': Client.objects.all(),
-            'product_set': Product.objects.filter(is_enabled=True)
+            'product_set': Product.objects.filter(is_enabled=True),
+            'user_set': User.objects.filter(is_active=True, is_superuser=False)
         })
         return JsonResponse({
             'form': t.render(c, request),
@@ -2950,14 +2951,17 @@ def save_contract(request):
         observation = str(data_contract["observation"])
         register_date = str(data_contract["register_date"])
         client = data_contract["client"]
+        user_log = data_contract["user"]
 
         client_obj = Client.objects.get(id=int(client))
+        user_log_obj = User.objects.get(id=int(user_log))
 
         contract_obj = Contract(
             contract_number=number_contract.upper(),
             register_date=register_date,
             client=client_obj,
             observation=observation,
+            user=user_log_obj,
             subsidiary=subsidiary_obj,
         )
         contract_obj.save()
@@ -2974,11 +2978,13 @@ def save_contract(request):
             for i in c['items']:
                 product = i['product']
                 quantity = i['quantity']
+                price_unit = decimal.Decimal(i['price_unit'])
                 product_obj = Product.objects.get(id=int(product))
                 contract_detail_item_obj = ContractDetailItem(
                     quantity=quantity,
                     product=product_obj,
-                    contract_detail=contract_detail_obj
+                    contract_detail=contract_detail_obj,
+                    price_unit=price_unit
                 )
                 contract_detail_item_obj.save()
         return JsonResponse({
