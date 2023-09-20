@@ -186,6 +186,9 @@
             }
 
             for (let i = 0; i < _nro_dates.val(); i++) {
+
+                let _quantity_add = Number(_quantity.val()) / Number(_nro_dates.val());
+
                 let _number = i + 1;
                 let _date_quota = '{{ date_now }}';
                 let selectOptions = '';
@@ -231,7 +234,7 @@
                     '</select>' +
                     '</td>' +
                     '<td class="item-quantity align-middle text-center">' +
-                    '<input type="text" class="form-control text-right quantity" placeholder="0.00" autocomplete="off" value="' + _quantity.val() + ' ">' +
+                    '<input type="text" class="form-control text-right quantity" placeholder="0.00" autocomplete="off" value="' + _quantity_add.toFixed(2) + ' ">' +
                     '</td>' +
                     '<td class="item-price-unit align-middle text-center">' +
                     '<input type="text" class="form-control text-right price-unit" placeholder="0.00" autocomplete="off" value="' + _price_unit.val() + ' ">' +
@@ -341,11 +344,17 @@
                             location.reload();
                         }, 1000);
                     }
+                    else {
+                        //console.log(response)
+                        toastr.error(response.message, 'Error');
+                        $('#btn-save-contract').slideDown();
+                    }
                 },
-                error: function (jqXhr, textStatus, xhr) {
+                /*error: function (jqXhr, textStatus, xhr, responses) {
+                    console.log(responses)
                     console.log(jqXhr);
                     toastr.error('Error', '¡Ocurrio un error!');
-                }
+                }*/
             });
         }
 

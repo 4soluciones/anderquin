@@ -489,7 +489,6 @@
             let _contract = $("#contract_detail_id")
             let delivery_date = $('#delivery_date').val()
             if (_contract.val() !== '') {
-                reference = ''
                 if (delivery_date === '') {
                     toastr.warning('¡Seleccione la fecha de entrega!', 'Mensaje');
                     return false;
@@ -569,9 +568,17 @@
                             toastr.success(response.message, '¡COMPRA REGISTRADA CORRECTAMENTE!');
                             let purchase_id = response.pk
                             window.location.href = "/buys/print_pdf_purchase_order/" + purchase_id + "/";
-                            setTimeout(() => {
-                                window.open("/buys/contracts/", '_self');
-                            }, 2000);
+                            if (response.contract) {
+                                console.log("contract")
+                                /*setTimeout(() => {
+                                    window.open("/buys/contracts/", '_self');
+                                }, 2000);*/
+                            } else {
+                                console.log("Order")
+                                /*setTimeout(() => {
+                                    location.reload();
+                                }, 2000);*/
+                            }
                         }
                     },
                     error: function (jqXhr, textStatus, xhr) {
@@ -739,19 +746,20 @@
             let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
             let _td = $(this).parent('div.dropdown-menu').parent('td')
             let _select_unit = _tr.find('td.unit select.unit-product');
-            let _select_unit_quantity = _tr.find('td.item-quantity-x-unit select.quantity-unit');
+            //let _select_unit_quantity = _tr.find('td.item-quantity-x-unit select.quantity-unit');
             _tr.attr('product', _product_id);
             _td.find('input.product-table').val(_product_name);
             _select_unit.append($('<option>').val(0).text('Seleccione'));
-            _select_unit_quantity.append($('<option>').val(0).text('Seleccione'));
+            //_select_unit_quantity.append($('<option>').val(0).text('Seleccione'));
             let units = JSON.parse(_unit_dict);
-
+            //console.log(units)
             for (let i = 0; i < units.length; i++) {
-                let option = $('<option>').val(units[i].unit_id).text(units[i].unit_name);
-                let option2 = $('<option>').val(units[i].unit_id).text(units[i].unit_name);
+                let _quantity_minimum = Number(units[i].quantity_minimum).toFixed(0);
+                let option = $('<option>').val(units[i].unit_id).text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')');
+                //let option2 = $('<option>').val(units[i].unit_id).text(units[i].unit_name);
 
                 _select_unit.append(option);
-                _select_unit_quantity.append(option2);
+                //_select_unit_quantity.append(option2);
             }
 
             $(this).parent('div.dropdown-menu').empty()
@@ -802,16 +810,29 @@
                 return false;
             }
 
-            //_tr.find('td.quantity-minimum input.quantity-minimum').val('');
+        });
 
+        $(document).on('keyup', '.quantity-minimum-val', async function (e) {
+            let _tr = $(this).parent('td').parent('tr');
+            //let product_id = _tr.attr('product');
+            //let unit_id = _tr.find('td.unit select.unit-product').val();
+            let _quantity_minimum = _tr.find('td.unit select.unit-product option:selected').attr('qm');
+            /*let _quantity_minimum = await getQuantityMinimum2(product_id, unit_id).then(e => {
+                    return e
+                });*/
+            let _val = $(this).val();
+            let _quantity = _tr.find('td.item-quantity input.quantity-product');
+            let _new_quantity = _val * _quantity_minimum
+            _quantity.val(_new_quantity);
+            $('.quantity-product').trigger('keyup');
         });
 
         //$('.unit-product').trigger('change')
         let _quantity_minimum = 0
 
         async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
-            let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum');
-            let _input_cant_x_und = _tr.find('td.item-quantity-x-unit input.quantity-x-unit');
+            let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum-val');
+            //let _input_cant_x_und = _tr.find('td.item-quantity-x-unit input.quantity-x-unit');
             let _price_unit_product = _tr.find('td.item-price input.price-unit-product');
             _input_quantity_minimum.val('')
             if (product_id !== '0') {
@@ -827,11 +848,12 @@
                     success: function (response) {
                         let _quantity_minimum = Number(response.quantity_minimum).toFixed(2)
                         if (_quantity_minimum && _quantity) {
-                            let _q_x_u = _quantity * _quantity_minimum
-                            _input_cant_x_und.val(_q_x_u.toFixed(2))
+                            let _q_x_u = _quantity / _quantity_minimum
+                            //_input_cant_x_und.val(_q_x_u.toFixed(2))
+                            _input_quantity_minimum.val(_q_x_u.toFixed(2))
                             {#_input_cant_x_und.val(Math.ceil(_q_x_u))#}
                         }
-                        _input_quantity_minimum.val(response.quantity_minimum + ' UND');
+                        //_input_quantity_minimum.val(response.quantity_minimum + ' UND');
                         _price_unit_product.val(response.price_purchase);
                         $('.price-unit-product').trigger('keyup');
                     },
@@ -847,14 +869,13 @@
                 let product_id = $(this).closest('td').parent('tr').attr('product')
                 let _quantity = Number($(this).closest('td').parent('tr').find('td.item-quantity input.quantity-product').val())
                 let _tr = $(this).closest('td').parent('tr')
-                //let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum');
+
                 let quantity_minimum = await getQuantityMinimum2(product_id, unit_id).then(e => {
                     return e
                 });
                 let new_quantity_x_unit = _quantity / quantity_minimum;
                 _input_quantity_x_unit.val(new_quantity_x_unit.toFixed(2));
-            }
-            else {
+            } else {
                 toastr.warning('Seleccione una unidad valida', 'Error de llenado');
                 $(this).val(1).change();
                 return false;
@@ -971,7 +992,7 @@
 
             let _tr = $(this).parent('td').parent('tr')
             let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
-            let _quantity_minimum = Number((_tr.find('td.quantity-minimum input.quantity-minimum').val()).replace('UND', ''))
+            let _quantity_minimum = Number((_tr.find('td.quantity-minimum input.quantity-minimum-val').val()).replace('UND', ''))
             let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
             let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
 

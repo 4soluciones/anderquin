@@ -213,6 +213,8 @@ def save_purchase(request):
         purchase_request = request.GET.get('purchase', '')
         # print(purchase_request)
         data_purchase = json.loads(purchase_request)
+        my_date = datetime.now()
+        date_now = my_date.strftime("%Y-%m-%d")
         # print(data_purchase)
 
         # provider_id = str(data_purchase["ProviderId"])
@@ -228,12 +230,11 @@ def save_purchase(request):
         # supplier_order = data_purchase["supplier_order"]
 
         supplier_id = str(data_purchase["SupplierId"])
-        date = str(data_purchase["Date"])
         reference = str(data_purchase["Reference"])
         date_delivery = str(data_purchase["Date"])
         if str(data_purchase["Delivery_date"]):
             date_delivery = str(data_purchase["Delivery_date"])
-        print(date_delivery)
+        # print(date_delivery)
         type_pay = str(data_purchase["Type_Pay"])
         pay_condition = str(data_purchase["Pay_condition"])
         base_total = decimal.Decimal(data_purchase["Base_Total"])
@@ -258,8 +259,12 @@ def save_purchase(request):
         observations = str(data_purchase["observations"])
         contract_detail_id = data_purchase["contract_detail_id"]
         contract_detail_obj = None
+        contract_detail_id = ''
+        date = date_now
         if contract_detail_id:
+            date = str(data_purchase["Date"])
             contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail_id))
+            contract_detail_id = contract_detail_obj.id
 
         user_id = request.user.id
         user_obj = User.objects.get(pk=int(user_id))
@@ -356,7 +361,8 @@ def save_purchase(request):
             city=city.upper(),
             contract_detail=contract_detail_obj,
             delivery_date=date_delivery,
-            correlative=correlative
+            correlative=correlative,
+            reference=reference
             # truck=truck_obj,
             # status=status,
             # type_bill=type_bill,
@@ -405,7 +411,7 @@ def save_purchase(request):
         return JsonResponse({
             'pk': purchase_obj.id,
             'message': 'COMPRA REGISTRADA CORRECTAMENTE.',
-
+            'contract': contract_detail_id
         }, status=HTTPStatus.OK)
 
 
@@ -2940,20 +2946,28 @@ def modal_contract_create(request):
 
 def save_contract(request):
     if request.method == 'GET':
+        contract_request = request.GET.get('contract', '')
+        data_contract = json.loads(contract_request)
+
+        client = data_contract["client"]
+        number_contract = str(data_contract["number_contract"])
+        client_obj = Client.objects.get(id=int(client))
+
+        contract_set = Contract.objects.filter(client=client_obj, contract_number=number_contract)
+        if contract_set.exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'EL CONTRATO, YA SE ENCUENTRA REGISTRADO'
+            }, status=HTTPStatus.OK)
+
         user_id = request.user.id
         user_obj = User.objects.get(pk=int(user_id))
         subsidiary_obj = get_subsidiary_by_user(user_obj)
 
-        contract_request = request.GET.get('contract', '')
-        data_contract = json.loads(contract_request)
-
-        number_contract = str(data_contract["number_contract"])
         observation = str(data_contract["observation"])
         register_date = str(data_contract["register_date"])
-        client = data_contract["client"]
         user_log = data_contract["user"]
 
-        client_obj = Client.objects.get(id=int(client))
         user_log_obj = User.objects.get(id=int(user_log))
 
         contract_obj = Contract(

@@ -74,6 +74,8 @@ styles.add(ParagraphStyle(name='Center-ng', alignment=TA_CENTER, leading=10, fon
 styles.add(
     ParagraphStyle(name='Left', alignment=TA_LEFT, leading=30, fontName='Square', fontSize=25, textColor=colors.black))
 styles.add(
+    ParagraphStyle(name='CenterSquare', alignment=TA_CENTER, leading=30, fontName='Square', fontSize=25, textColor=colors.black))
+styles.add(
     ParagraphStyle(name='Left-Simple', alignment=TA_LEFT, leading=15, fontName='Square', fontSize=15,
                    textColor=colors.black))
 styles.add(ParagraphStyle(name='Left-name', alignment=TA_LEFT, leading=8, fontName='Square-Bold', fontSize=8,
@@ -443,23 +445,26 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     style_table_4 = [
         ('BOX', (0, 0), (-1, -1), 2, colors.black),
         ('BACKGROUND', (0, 0), (-1, -1), COLOR_BLUE),
-        ('VALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+        ('ALIGNMENT', (0, 0), (-1, 0), 'CENTER'),
     ]
 
-    p4_1 = Paragraph(f'N°', styles["Left"])
+    p4_1 = Paragraph(f'N°', styles["CenterSquare"])
     p4_2 = Paragraph(f'COD', styles["Left"])
-    p4_3 = Paragraph(f'DESCRIPCION', styles["Left"])
-    p4_4 = Paragraph(f'UM', styles["Left"])
-    p4_5 = Paragraph(f'P/Und', styles["Left"])
-    p4_6 = Paragraph(f'UNIDADES', styles["Left"])
-    p4_7 = Paragraph(f'PRECIO UNIDAD', styles["Left"])
-    p4_8 = Paragraph(f'SUB TOTAL', styles["Right"])
+    p4_3 = Paragraph(f'DESCRIPCIÓN', styles["Left"])
+    p4_4 = Paragraph(f'CANTIDAD', styles["CenterSquare"])
+    # p4_4 = Paragraph(f'UM', styles["Left"])
+    p4_5 = Paragraph(f'U. M.', styles["CenterSquare"])
+    # p4_5 = Paragraph(f'P/Und', styles["Left"])
+    # p4_6 = Paragraph(f'UNIDADES', styles["Left"])
+    p4_6 = Paragraph(f'PRECIO UNIT.', styles["Left"])
+    p4_7 = Paragraph(f'SUB TOTAL', styles["Right"])
 
-    colwiths_table_4 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 40 / 100, _wt * 8 / 100, _wt * 8 / 100, _wt * 10 / 100,
-                        _wt * 10 / 100, _wt * 12 / 100]
+    colwiths_table_4 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 39 / 100, _wt * 10 / 100, _wt * 15 / 100,
+                        _wt * 12 / 100, _wt * 12 / 100]
     rowwiths_table_4 = [inch * 1]
     ana_c4 = Table(
-        [(p4_1, p4_2, p4_3, p4_4, p4_5, p4_6, p4_7, p4_8)],
+        [(p4_1, p4_2, p4_3, p4_4, p4_5, p4_6, p4_7)],
         colWidths=colwiths_table_4, rowHeights=rowwiths_table_4)
     ana_c4.setStyle(TableStyle(style_table_4))
 
@@ -472,12 +477,13 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     total = 0
     contador = 1
     # for i in range(products):
+    style_table_5 = [
+        ('BOX', (0, 0), (-1, -1), 2, colors.black),
+        ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
+        ('ALIGNMENT', (0, 0), (-1, 0), 'CENTER'),
+        # ('GRID', (0, 0), (-1, -1), 0.9, colors.red),
+    ]
     for i in purchase_detail.all():
-        style_table_5 = [
-            ('BOX', (0, 0), (-1, -1), 2, colors.black),
-            # ('BACKGROUND', (0, 0), (-1, -1), COLOR_BLUE),
-        ]
-
         product = i.product
         product_detail_obj = ProductDetail.objects.get(product=product, unit=i.unit)
         cantidad_unidad = int(product_detail_obj.quantity_minimum)
@@ -486,9 +492,9 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         contador += 1
         cod = f'{product.code}'
         descripcion = f'{product.name}'
-        um = f'{i.unit.name}x{cantidad_unidad}'
+        um = f'{i.unit.description}({cantidad_unidad}UND)'
 
-        unidades = f'{int(i.quantity)}'
+        quantity = f'{int(i.quantity)}'
         p_und = f'{int(i.quantity / cantidad_unidad)}'
         precio_unidad = f'{round(i.price_unit, 6)}'
         # sub_total = round(i.multiplicate(), 2)
@@ -497,20 +503,20 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
 
         total += sub_total
 
-        p5_1 = Paragraph(num, styles["Left"])
+        p5_1 = Paragraph(num, styles["CenterSquare"])
         p5_2 = Paragraph(cod, styles["Left"])
         p5_3 = Paragraph(descripcion, styles["Left"])
-        p5_4 = Paragraph(um, styles["Left"])
-        p5_5 = Paragraph(f'{p_und}', styles["Left"])
-        p5_6 = Paragraph(f'{unidades}', styles["Left"])
+        p5_6 = Paragraph(f'{quantity}', styles["CenterSquare"])
+        p5_4 = Paragraph(um, styles["CenterSquare"])
+        # p5_5 = Paragraph(f'{p_und}', styles["Left"])
         p5_7 = Paragraph(f'{precio_unidad}', styles["Left"])
         p5_8 = Paragraph('{:,}'.format(sub_total), styles["Right"])
 
-        colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 40 / 100, _wt * 8 / 100, _wt * 8 / 100,
-                            _wt * 10 / 100, _wt * 10 / 100, _wt * 12 / 100]
+        colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 39 / 100, _wt * 10 / 100, _wt * 15 / 100,
+                            _wt * 12 / 100, _wt * 12 / 100]
         rowwiths_table_5 = [inch * 0.5]
         ana_c5 = Table(
-            [(p5_1, p5_2, p5_3, p5_4, p5_5, p5_6, p5_7, p5_8)],
+            [(p5_1, p5_2, p5_3, p5_6, p5_4, p5_7, p5_8)],
             colWidths=colwiths_table_5, rowHeights=rowwiths_table_5)
         ana_c5.setStyle(TableStyle(style_table_5))
 
@@ -522,10 +528,11 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         ('BOX', (0, 0), (-1, -1), 2, colors.black),
         # ('BACKGROUND', (0, 0), (-1, -1), COLOR_BLUE),
     ]
+    str_total = '{:,}'.format(total)
     if currency_type:
-        p6_1 = Paragraph(f'TOTAL: $. {total}', styles["Right"])
+        p6_1 = Paragraph(f'TOTAL: $ {str_total}', styles["Right"])
     else:
-        p6_1 = Paragraph(f'TOTAL: S/. {total}', styles["Right"])
+        p6_1 = Paragraph(f'TOTAL: S/ {str_total}', styles["Right"])
 
     colwiths_table_6 = [_wt * 100 / 100]
     rowwiths_table_6 = [inch * 0.5]
@@ -637,7 +644,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         p9_6 = Paragraph(f'{client_address}', styles["Left"])
         p9_7 = Paragraph(f'Referencia: ', styles["Right"])
         # p9_8 = Paragraph(f'{purchase_obj.oc_supplier}', styles["Left"])
-        p9_8 = Paragraph(f'{"-"}', styles["Left"])
+        p9_8 = Paragraph(f'{purchase_obj.reference}', styles["Left"])
 
         colwiths_table_9 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
         rowwiths_table_9 = [inch * 0.5, inch * 0.5, inch * 0.75, inch * 0.5]
@@ -818,7 +825,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     #
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
+    # response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
 
     tomorrow = datetime.now() + timedelta(days=1)
     tomorrow = tomorrow.replace(hour=0, minute=0, second=0)
