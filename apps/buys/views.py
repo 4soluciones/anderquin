@@ -3097,11 +3097,13 @@ def update_purchase(request, pk=None):
         product_detail = ProductDetail.objects.get(product=pd.product, unit__id=pd.unit.id)
         quantity_x_und = (pd.quantity / product_detail.quantity_minimum).quantize(decimal.Decimal('0.00'),
                                                                                   rounding=decimal.ROUND_UP)
-        total_detail = (pd.price_unit * quantity_x_und).quantize(decimal.Decimal('0.0000'),
-                                                                 rounding=decimal.ROUND_HALF_EVEN)
+        total_detail = (pd.price_unit * pd.quantity).quantize(decimal.Decimal('0.0000'),
+                                                              rounding=decimal.ROUND_HALF_EVEN)
         item = {
             'id': pd.id,
+            'product_id': pd.product.id,
             'product_name': pd.product.name,
+            'product_brand': pd.product.product_brand.name,
             'quantity': pd.quantity,
             'unit_id': pd.unit.id,
             'unit_name': pd.unit.name,
@@ -3111,14 +3113,15 @@ def update_purchase(request, pk=None):
             'price_unit': pd.price_unit.quantize(decimal.Decimal('0.000000'), rounding=decimal.ROUND_HALF_EVEN),
             'total_detail': total_detail
         }
-        for u in Unit.objects.filter(productdetail__product__id=pd.product.id).all():
+        for u in ProductDetail.objects.filter(product_id=pd.product.id):
             item_units = {
-                'id': u.id,
-                'name': u.name,
+                'id': u.unit.id,
+                'name': u.unit.name,
+                'quantity_minimum': round(u.quantity_minimum, 0),
             }
             item.get('units').append(item_units)
         purchase_detail_dict.append(item)
-
+    # print(purchase_detail_dict)
     return render(request, 'buys/buy_list_edit.html', {
         'purchase': purchase_obj,
         'contract_detail_obj': contract_detail_obj,
@@ -3190,3 +3193,170 @@ def save_bill(request):
             'pk': bill_obj.id,
             'message': 'FACTURA REGISTRADA CORRECTAMENTE.',
         }, status=HTTPStatus.OK)
+
+
+def save_update_purchase(request):
+    if request.method == 'GET':
+        my_date = datetime.now()
+        date_now = my_date.strftime("%Y-%m-%d")
+        user_id = request.user.id
+        user_obj = User.objects.get(pk=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        purchase_obj = None
+        purchase_request = request.GET.get('purchase', '')
+        data_purchase = json.loads(purchase_request)
+        supplier_id = str(data_purchase["SupplierId"])
+        date = str(data_purchase["Date"])
+        reference = str(data_purchase["Reference"])
+        date_delivery = str(data_purchase["Date"])
+        if str(data_purchase["Delivery_date"]):
+            date_delivery = str(data_purchase["Delivery_date"])
+        type_pay = str(data_purchase["Type_Pay"])
+        pay_condition = str(data_purchase["Pay_condition"])
+        base_total = decimal.Decimal(data_purchase["Base_Total"])
+        igv_total = decimal.Decimal(data_purchase["Igv_Total"])
+        total = decimal.Decimal(data_purchase["Import_Total"])
+        check_igv = str(data_purchase["Check_Igv"])
+        check_dollar = str(data_purchase["Check_Dollar"])
+        client_reference = int(data_purchase["client_reference_id"])
+        client_entity = int(data_purchase["client_final"])
+
+        check_subsidiary = str(data_purchase["check-subsidiary"])
+        check_provider = str(data_purchase["check-provider"])
+        check_client_reference = data_purchase["check-client"]
+        check_client_entity = str(data_purchase["check-client-final"])
+
+        address_subsidiary = data_purchase["address_subsidiary"]
+        address_provider = data_purchase["address_provider"]
+        client_address_reference = data_purchase["client_address_reference"]
+        client_address_entity = data_purchase["client_final_address"]
+
+        observations = str(data_purchase["observations"])
+        contract_detail_obj = None
+        contract_detail_id = ''
+        date = date_now
+        if contract_detail_id:
+            date = str(data_purchase["Date"])
+            contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail_id))
+            contract_detail_id = contract_detail_obj.id
+        supplier_obj = Supplier.objects.get(id=int(supplier_id))
+
+        currency_type = 'S'
+        if check_dollar == '1':
+            currency_type = 'D'
+        client_reference_obj = None
+        delivery_choice = ''
+        city = ''
+
+        if client_reference:
+            client_reference_obj = Client.objects.get(id=int(client_reference))
+        client_entity_obj = None
+        if client_entity:
+            client_entity_obj = Client.objects.get(id=int(client_entity))
+        delivery_address = ''
+        if check_subsidiary == '1':
+            subsidiary_address_obj = Subsidiary.objects.get(id=int(address_subsidiary))
+            delivery_address = subsidiary_address_obj.address
+            delivery_choice = 'S'
+            city = subsidiary_address_obj.district.description
+        elif check_provider == '1':
+            address_provider_set = SupplierAddress.objects.filter(id=int(address_provider))
+            delivery_choice = 'P'
+            if address_provider_set.exists():
+                address_provider_obj = address_provider_set.last()
+                delivery_address = address_provider_obj.address
+                city = address_provider_obj.district.description
+
+        elif check_client_reference == '1':
+            client_address_referencer_set = ClientAddress.objects.filter(id=int(client_address_reference))
+            delivery_choice = 'CR'
+            if client_address_referencer_set.exists():
+                client_address_referencer_obj = client_address_referencer_set.last()
+                delivery_address = client_address_referencer_obj.address
+                city = client_address_referencer_obj.district.description
+
+        elif check_client_entity == '1':
+            client_address_entity_set = ClientAddress.objects.filter(id=int(client_address_entity))
+            delivery_choice = 'CP'
+            if client_address_entity_set.exists():
+                client_address_entity_obj = client_address_entity_set.last()
+                delivery_address = client_address_entity_obj.address
+                city = client_address_entity_obj.district.description
+
+        correlative = int(data_purchase["correlative"])
+        _bill_number = f'OC-{datetime.now().year}-{str(correlative).zfill(4)}'
+        try:
+            purchase_id = request.GET.get('purchase_id', '')
+            purchase_obj = Purchase.objects.get(id=purchase_id)
+        except Purchase.DoesNotExist:
+            purchase_id = 0
+
+        if purchase_id == 0:
+            data = {'error': 'NO EXISTE COMPRA'}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+        else:
+            purchase_obj.supplier = supplier_obj
+            purchase_obj.purchase_date = date
+            purchase_obj.user = user_obj
+            purchase_obj.subsidiary = subsidiary_obj
+            purchase_obj.bill_number = _bill_number
+            purchase_obj.payment_method = type_pay
+            purchase_obj.payment_condition = pay_condition
+            purchase_obj.currency_type = currency_type
+            purchase_obj.client_reference = client_reference_obj
+            purchase_obj.client_reference_entity = client_entity_obj
+            purchase_obj.delivery_address = delivery_address.upper()
+            purchase_obj.delivery_choice = delivery_choice
+            purchase_obj.observation = observations.upper()
+            purchase_obj.city = city.upper()
+            purchase_obj.contract_detail = contract_detail_obj
+            purchase_obj.delivery_date = date_delivery
+            purchase_obj.correlative = correlative
+            purchase_obj.reference = reference
+            purchase_obj.save()
+
+            for detail in data_purchase['Details']:
+                product_id = int(detail['Product'])
+                product_obj = Product.objects.get(id=product_id)
+                unit_id = int(detail['Unit'])
+                unit_obj = Unit.objects.get(id=unit_id)
+                quantity = str(detail['Quantity'])
+                price = decimal.Decimal(detail['Price'])
+
+                if detail['ProductDetail'] != 'NaN':
+                    product_detail_id = int(detail['ProductDetail'])
+                    purchase_detail_obj = PurchaseDetail.objects.get(id=product_detail_id)
+
+                    purchase_detail_obj.purchase = purchase_obj
+                    purchase_detail_obj.product = product_obj
+                    purchase_detail_obj.quantity = quantity
+                    purchase_detail_obj.unit = unit_obj
+                    purchase_detail_obj.price_unit = price
+                    purchase_detail_obj.save()
+
+                else:
+                    new_purchase_detail_obj = PurchaseDetail(
+                        purchase=purchase_obj,
+                        product=product_obj,
+                        quantity=quantity,
+                        unit=unit_obj,
+                        price_unit=price
+                    )
+                    new_purchase_detail_obj.save()
+
+        return JsonResponse({
+            'pk': purchase_obj.id,
+            'message': 'COMPRA ACTUALIZADA CORRECTAMENTE.',
+            'contract': contract_detail_id
+        }, status=HTTPStatus.OK)
+
+
+
+
+
+
+
+
+

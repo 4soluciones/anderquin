@@ -1,4 +1,5 @@
 {% extends 'home.html' %}
+{% load app_filters %}
 {% block title %}
     Editar Compra
 {% endblock title %}
@@ -12,48 +13,42 @@
                          style="background: #1a77c8"{% endif %}>
                         <div class="col-sm-12 col-md-12 col-lg-12">
                             <div class="row p-2">
-                                <div class="col-sm-3 col-md-3 col-lg-3 pr-0">
+                                <div class="col-sm-4 col-md-4 col-lg-4 pr-0">
+                                    <input type="hidden" id="contract_detail_id" name="contract-detail"
+                                           value="{{ contract_detail_obj.id }}">
+                                    <input type="hidden" id="purchase_id" value="{{ purchase.id }}">
                                     {% if contract_detail_obj %}
                                         <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
                                             <label><span
-                                                    class="text-danger">EDITAR:</span> {{ contract_detail_obj.contract.contract_number }}
+                                                    class="text-danger">EDITAR:</span> {{ contract_detail_obj.contract.contract_number }}-
+                                                FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}
                                             </label>
                                         </h6>
-                                        <input type="hidden"
-                                               class="form-control"
-                                               id="contract_detail_id" name="contract-detail"
-                                               value="{{ contract_detail_obj.id }}">
-                                        <input type="hidden" id="purchase_id" value="{{ purchase.id }}">
                                     {% else %}
-                                        <h5 class="montserrat text-white font-weight-bold mt-4 mb-0"><label>EDITAR ORDEN
-                                            DE
-                                            COMPRA:</label>
+                                        <h5 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                                            <label>EDITAR ORDEN DE COMPRA:</label>
                                         </h5>
                                     {% endif %}
-                                    {#                                    <h4 class="montserrat text-dark font-weight-bold mt-3 mb-0">#}
-                                    {#                                        <label>EDITAR COMPRA NRO:</label>#}
-                                    {#                                        <label>{{ purchase.bill_number }}</label>#}
-                                    {#                                </h4>#}
 
                                 </div>
-                                {% if contract_detail_obj %}
-                                    <div class="col-sm-2 col-md-2 col-lg-2">
-                                        <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
-                                            <label>FECHA DE ENTREGA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
-                                        </h6>
-                                    </div>
-                                {% endif %}
+                                {#                                {% if contract_detail_obj %}#}
+                                {#                                    <div class="col-sm-2 col-md-2 col-lg-2">#}
+                                {#                                        <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">#}
+                                {#                                            <label>FECHA DE ENTREGA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>#}
+                                {#                                        </h6>#}
+                                {#                                    </div>#}
+                                {#                                {% endif %}#}
                                 <div class="col-sm-2 col-md-2 col-lg-2 mb-3">
                                     <button type="button" onclick="showModalView('modal_supplier_create')"
                                             class="btn btn-sm btn-secondary btn-block mt-3 mb-0 col-sm-12 col-md-12 col-lg-12">
                                         Nuevo Proveedor
                                     </button>
                                 </div>
-                                <div class="col-sm-2 col-md-2 col-lg-2">
+                                <div class="col-sm-2 col-md-2 col-lg-2 mt-3">
                                     <form>
-                                        <div class="form-group row mt-3">
+                                        <div class="form-group row">
                                             <button type="button"
-                                                    class="col-sm-5 btn btn-sm btn-outline-secondary font-weight-bold border-0 text-dark btn-block p-1"
+                                                    class="col-sm-5 btn btn-sm btn-outline-secondary border-0 text-white btn-block p-1"
                                                     id="btn-type-change">Tipo de Cambio:
                                             </button>
                                             <div class="col-sm-7">
@@ -68,11 +63,29 @@
                                         <input class="form-check-input check-dollar"
                                                {% if purchase.check_dollar %}checked{% endif %} type="checkbox" value=""
                                                id="check_dollar">
-                                        <label class="form-check-label text-dark font-weight-bold" for="check_dollar">
+                                        <label class="form-check-label text-white" for="check_dollar">
                                             COMPRA EN DOLARES
                                         </label>
                                     </div>
-
+                                </div>
+                                <div class="col-sm-2 col-md-2 col-lg-2 mt-3">
+                                    <form>
+                                        <div class="form-group row ">
+                                            <label for="correlative"
+                                                   class="col-sm-5 border-0 text-white pt-2 text-right pr-0">Correlativo:</label>
+                                            <div class="col-sm-7">
+                                                <div class="input-group ">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text font-weight-bold">OC-2023</span>
+                                                    </div>
+                                                    <input type="text"
+                                                           class="form-control text-center font-weight-bold"
+                                                           id="correlative" value="{{ purchase.correlative|zfill:4 }}"
+                                                           autocomplete="off">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -108,7 +121,14 @@
                                                     </select>
                                                 </div>
 
-                                                <div class="col-sm-4 col-md-4 col-lg-4">
+                                                <div class="col-sm-4 col-md-4 col-lg-4 {% if contract_detail_obj is None %}d-none{% endif %}">
+                                                    <label for="delivery_date">Fecha de entrega</label>
+                                                    <input type="date" class="form-control" id="delivery_date"
+                                                           name="delivery-date"
+                                                           value="{{ contract_detail_obj.date|date:'Y-m-d' }}">
+                                                </div>
+
+                                                <div class="col-sm-4 col-md-4 col-lg-4 {% if contract_detail_obj %}d-none{% endif %}">
                                                     <label for="id_fechacompra">Fecha</label>
                                                     <input type="date" class="form-control" id="id_fechacompra"
                                                            name="fechacompra"
@@ -116,23 +136,16 @@
                                                            value="{{ purchase.purchase_date|date:"Y-m-d" }}" required>
                                                 </div>
                                             </div>
+
                                             <div class="row p-1">
-                                                {% if contract_detail_obj %}
-                                                    <div class="col-sm-4 col-md-4 col-lg-4">
-                                                        <label for="delivery_date">Fecha de entrega</label>
-                                                        <input type="date" class="form-control" id="delivery_date"
-                                                               name="delivery-date"
-                                                               value="{{ contract_detail_obj.date|date:'Y-m-d' }}">
-                                                    </div>
-                                                {% else %}
-                                                    <div class="col-sm-4 col-md-4 col-lg-4">
-                                                        <label for="reference">Referencia</label>
-                                                        <input type="text" class="form-control" id="reference"
-                                                               name="reference" autocomplete="off"
-                                                               placeholder="Orden de compra - proveedor"
-                                                               value="" required>
-                                                    </div>
-                                                {% endif %}
+                                                <div class="col-sm-4 col-md-4 col-lg-4">
+                                                    <label for="reference">Referencia</label>
+                                                    <input type="text" class="form-control" id="reference"
+                                                           name="reference" autocomplete="off"
+                                                           placeholder="Orden de compra - proveedor"
+                                                           value="{{ purchase.reference|default_if_none:'' }}" required>
+                                                </div>
+
                                                 <div class="col-sm-4 col-md-4 col-lg-4">
                                                     <label for="payment_type">Tipo de pago</label>
                                                     <select id="payment_type" class="form-control text-uppercase">
@@ -168,6 +181,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+
                                             <div class="row p-4">
                                                 <div class="col-sm-4 col-md-4 col-lg-4">
                                                     <button type="button" id="btn-new"
@@ -206,9 +220,9 @@
                                                 <label for="client_reference_id">Referencia de Venta: (Cliente)</label>
                                                 <select id="client_reference_id" name="client_reference_id"
                                                         class="form-control">
-                                                    <option value="0">Seleccione</option>
+                                                    <option disabled value="0">Seleccione</option>
                                                     {% for c in client_set %}
-                                                        {% if contract_detail_obj.contract.client.id == c.id %}
+                                                        {% if purchase.client_reference.id == c.id %}
                                                             <option style="background-color: #97e3a8" selected
                                                                     value="{{ c.id }}"
                                                                     type="{{ c.type_client }}">{{ c.names|upper }}
@@ -222,13 +236,17 @@
                                                 </select>
 
                                             </div>
-                                            <div class="col-sm-6 col-md-6 col-lg-6 client-final d-none">
+                                            <div class="col-sm-6 col-md-6 col-lg-6 client-final {% if purchase.client_reference.type_client == 'PU' %}d-none{% endif %}">
                                                 <label for="client_final" class="text-primary">Referencia de Venta a la
                                                     Entidad: (Cliente Final)</label>
                                                 <select id="client_final" name="client_final" class="form-control">
-                                                    <option value="0">Seleccione</option>
+                                                    <option selected value="0">Seleccione</option>
                                                     {% for c in client_set %}
-                                                        <option value="{{ c.id }}">{{ c.names|upper }}</option>
+                                                        {% if purchase.client_reference_entity.id == c.id %}
+                                                            <option selected value="{{ c.id }}">{{ c.names|upper }}</option>
+                                                        {% else %}
+                                                            <option value="{{ c.id }}">{{ c.names|upper }}</option>
+                                                        {% endif %}
                                                     {% endfor %}
                                                 </select>
                                             </div>
@@ -278,8 +296,7 @@
                                             <div class="col-sm-6 col-md-6 col-lg-6 delivery-client">
                                                 <div class="custom-control custom-checkbox">
                                                     <input class="custom-control-input" type="checkbox"
-                                                           id="check-client"
-                                                           {% if purchase.delivery_choice == 'CR' %}checked{% endif %}>
+                                                           id="check-client" {% if purchase.delivery_choice == 'CR' %}checked{% endif %}>
                                                     <label for="check-client" class="custom-control-label">Entrega en
                                                         Cliente</label>
                                                 </div>
@@ -347,15 +364,15 @@
                                     <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">
                                         Cantidad
                                     </th>
-                                    <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Unidad
+                                    <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Unidad
                                         Medida
                                     </th>
-                                    <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Cant.
-                                        Min.
+                                    <th scope="col" class="align-middle font-weight-normal"
+                                        style="width: 10%; background-color: #518d86">Cant. / U. M.
                                     </th>
-                                    <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Cant. x
-                                        Und Med.
-                                    </th>
+                                    {#                                    <th scope="col" class="align-middle font-weight-normal" style="width: 18%;">Cant. x#}
+                                    {#                                        Und Med.#}
+                                    {#                                    </th>#}
                                     <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Valor
                                         Unitario
                                     </th>
@@ -369,14 +386,14 @@
                                 </thead>
                                 <tbody id="details-table">
                                 {% for pd in purchase_detail_dict %}
-                                    <tr class="" product="{{ c.product_id }}" unit_id="">
+                                    <tr class="" product="{{ pd.product_id }}" pd_id="{{ pd.id }}">
                                         <td class="item-numero align-middle text-center">{{ forloop.counter }}</td>
                                         <td class="align-middle text-left product-item-table">
                                             <input type="text"
                                                    class="form-control text-uppercase product-table dropdown-toggle"
                                                    data-toggle="dropdown" aria-expanded="false"
                                                    placeholder="Ingrese producto..."
-                                                   value="{{ pd.product_name }}"
+                                                   value="{{ pd.product_name }} - {{ pd.product_brand }}"
                                                    {% if contract_detail_obj %}disabled{% endif %}>
                                             <div class="dropdown-menu"></div>
                                         </td>
@@ -387,34 +404,40 @@
                                                    value="{{ pd.quantity|safe|floatformat:0 }}">
                                         </td>
                                         <td class="align-middle unit">
-                                            <select class="form-control unit-product" id="id_unit_product"
+                                            <select class="form-control unit-product text-center" id="id_unit_product"
                                                     name="unit_product" required>
                                                 <option value="0">Seleccione</option>
                                                 {% for u in pd.units %}
                                                     {% if u.id == pd.unit_id %}
-                                                        <option selected value="{{ u.id }}">{{ u.name }}</option>
+                                                        <option selected value="{{ u.id }}"
+                                                                qm="{{ u.quantity_minimum }}">{{ u.name }}
+                                                            ({{ u.quantity_minimum }}UND)
+                                                        </option>
                                                     {% else %}
-                                                        <option value="{{ u.id }}">{{ u.name }}</option>
+                                                        <option value="{{ u.id }}"
+                                                                qm="{{ u.quantity_minimum }}">{{ u.name }}
+                                                            ({{ u.quantity_minimum }}UND)
+                                                        </option>
                                                     {% endif %}
                                                 {% endfor %}
                                             </select>
                                         </td>
                                         <td class="align-middle quantity-minimum">
-                                            <input type="text" class="form-control text-center quantity-minimum"
-                                                   value="{{ pd.quantity_minimum }} UND"
+                                            <input type="text" class="form-control text-center quantity-minimum-val"
+                                                   value="{{ pd.quantity_x_und|safe }}"
                                                    readonly>
                                         </td>
 
-                                        <td class="align-middle item-quantity-x-unit">
-                                            <input type="text"
-                                                   value="{{ pd.quantity_x_und }}"
-                                                   class="form-control text-center quantity-x-unit text-uppercase">
-                                        </td>
+                                        {#                                        <td class="align-middle item-quantity-x-unit">#}
+                                        {#                                            <input type="text"#}
+                                        {#                                                   value="{{ pd.quantity_x_und }}"#}
+                                        {#                                                   class="form-control text-center quantity-x-unit text-uppercase">#}
+                                        {#                                        </td>#}
                                         <td class="item-price text-right align-middle">
                                             <div class="input-icon">
                                                 <input type="text"
                                                        class="form-control text-right text-uppercase price-unit-product"
-                                                       value="{{ pd.price_unit }}"
+                                                       value="{{ pd.price_unit|safe }}"
                                                        placeholder="0.00">
                                                 <i class="change-money">S/</i>
                                             </div>
@@ -423,12 +446,16 @@
                                             <div class="input-icon">
                                                 <input type="text"
                                                        class="form-control text-right text-uppercase total-detail"
-                                                       value="{{ pd.total_detail }}"
+                                                       value="{{ pd.total_detail|safe }}"
                                                        placeholder="0.00">
                                                 <i class="change-money">S/</i>
                                             </div>
                                         </td>
-                                        <td class="align-middle">
+                                        <td class="align-middle text-center">
+                                            <button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </td>
                                     </tr>
                                 {% endfor %}
 
@@ -453,15 +480,15 @@
                                             <thead>
                                             <tr class="text-center text-white" style="background: #1a77c8">
                                                 <th scope="col" class="align-middle font-weight-normal"
-                                                    style="width: 20%;">
+                                                    style="width: 35%;">
                                                     Base Imponible
                                                 </th>
                                                 <th scope="col" class="align-middle font-weight-normal"
-                                                    style="width: 20%;">
+                                                    style="width: 30%;">
                                                     IGV (18%)
                                                 </th>
                                                 <th scope="col" class="align-middle font-weight-normal"
-                                                    style="width: 20%;">
+                                                    style="width: 35%;">
                                                     Importe Total
                                                 </th>
                                             <tbody id="table-detail-foot">
@@ -471,7 +498,7 @@
                                                         <input type="text"
                                                                class="form-control text-right text-uppercase total-foot-base"
                                                                placeholder="0.00"
-                                                               value="{{ purchase.base_total_purchase|floatformat:-2 }}">
+                                                               value="{{ purchase.base_total_purchase|safe }}">
                                                         <i class="change-money">S/</i>
                                                     </div>
                                                 </td>
@@ -480,7 +507,7 @@
                                                         <input type="text"
                                                                class="form-control text-right text-uppercase total-foot-igv"
                                                                placeholder="0.00"
-                                                               value="{{ purchase.igv_total_purchase|floatformat:-2 }}">
+                                                               value="{{ purchase.igv_total_purchase|safe }}">
                                                         <i class="change-money">S/</i>
                                                     </div>
                                                 </td>
@@ -489,7 +516,7 @@
                                                         <input type="text"
                                                                class="form-control text-right text-uppercase total-foot-total"
                                                                placeholder="0.00"
-                                                               value="{{ purchase.total|floatformat:-2 }}">
+                                                               value="{{ purchase.total|safe }}">
                                                         <i class="change-money">S/</i>
                                                     </div>
                                                 </td>
@@ -513,7 +540,6 @@
         </div>
         <div class="modal fade bd-example-modal-lg" id="add-modal" tabindex="-1" role="dialog"
              aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
-
 
         <div class="mr-3 ml-0" style="
                 display: none;
@@ -641,7 +667,6 @@
             return false;
         });
 
-
         $("#btn-type-change").trigger('click');
 
         $(document).on('keypress', '#id_ruc_provider', function (e) {
@@ -691,6 +716,23 @@
                 return false;
             }
         });
+
+        $("#btn-new").click(function () {
+            setTimeout(() => {
+                window.open("/buys/buy_list/", '_self');
+            }, 1000);
+        });
+
+        function checkUnit() {
+            let flag = false
+            $('tbody#details-table tr').each(function () {
+                let _unit = $(this).find('td.unit select.unit-product').val()
+                if (_unit === '0') {
+                    flag = true
+                }
+            });
+            return flag
+        }
 
         $(document).on('focusin', '.product-table', function (e) {
             // $(this).parent('td').find('div.dropdown-menu').removeClass('show')
@@ -764,19 +806,23 @@
             let _product_name = $(this).text();
             let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
             let _td = $(this).parent('div.dropdown-menu').parent('td')
-            let _select = _td.find('select.unit-product')
-            let _brand_product = $(this).attr('brand')
-            let _unit_product = $(this).attr('unit_name')
-            //$('.product-table').val(_product_name)
-
-            _tr.attr('product', _product_id)
+            let _select_unit = _tr.find('td.unit select.unit-product');
+            //let _select_unit_quantity = _tr.find('td.item-quantity-x-unit select.quantity-unit');
+            _tr.attr('product', _product_id);
             _tr.attr('pd_id', NaN)
-            _td.find('input.product-table').val(_product_name)
-            _tr.find('td.brand input.brand-product').val(_brand_product)
-            _tr.find('td.unit input.unit-product').val(_unit_product)
+            _td.find('input.product-table').val(_product_name);
+            _select_unit.append($('<option>').val(0).text('Seleccione'));
+            //_select_unit_quantity.append($('<option>').val(0).text('Seleccione'));
+            let units = JSON.parse(_unit_dict);
+            //console.log(units)
+            for (let i = 0; i < units.length; i++) {
+                let _quantity_minimum = Number(units[i].quantity_minimum).toFixed(0);
+                let option = $('<option>').val(units[i].unit_id).text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')');
+                //let option2 = $('<option>').val(units[i].unit_id).text(units[i].unit_name);
 
-            _tr.attr('unit_id', _unit_id)
-            {#get_units_by_product(_product_id, _tr)#}
+                _select_unit.append(option);
+                //_select_unit_quantity.append(option2);
+            }
 
             $(this).parent('div.dropdown-menu').empty()
             $(this).parent('div.dropdown-menu').addClass('hide')
@@ -804,6 +850,131 @@
             }
         }
 
+        $(document).on('change', '.unit-product', async function (e) {
+            let unit_id = $(this).val();
+            let product_id = $(this).parent('td').parent('tr').attr('product')
+            let _quantity = Number($(this).parent('td').parent('tr').find('td.item-quantity input.quantity-product').val())
+            let _tr = $(this).parent('td').parent('tr')
+            let _select_quantity_unit = _tr.find('td.item-quantity-x-unit select.quantity-unit');
+            if (unit_id !== '0') {
+                await getQuantityMinimumByProduct(product_id, unit_id, _tr, _quantity)
+                {#if (!flag_function) {#}
+                if (unit_id === '1') { /*optimizar*/
+                    _select_quantity_unit.val('1').change();
+                }
+                {#flag_function = true;#}
+                {# }#}
+            } else {
+                toastr.warning('Seleccione una unidad valida', 'Error de llenado');
+                $(this).val(1).change();
+                return false;
+            }
+
+        });
+
+        $(document).on('keyup', '.quantity-minimum-val', async function (e) {
+            let _tr = $(this).parent('td').parent('tr');
+            //let product_id = _tr.attr('product');
+            //let unit_id = _tr.find('td.unit select.unit-product').val();
+            let _quantity_minimum = _tr.find('td.unit select.unit-product option:selected').attr('qm');
+            /*let _quantity_minimum = await getQuantityMinimum2(product_id, unit_id).then(e => {
+                    return e
+                });*/
+            let _val = $(this).val();
+            let _quantity = _tr.find('td.item-quantity input.quantity-product');
+            let _new_quantity = _val * _quantity_minimum
+            _quantity.val(_new_quantity);
+            $('.quantity-product').trigger('keyup');
+        });
+
+        async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
+            let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum-val');
+            //let _input_cant_x_und = _tr.find('td.item-quantity-x-unit input.quantity-x-unit');
+            let _price_unit_product = _tr.find('td.item-price input.price-unit-product');
+            _input_quantity_minimum.val('')
+            if (product_id !== '0') {
+                $.ajax({
+                    url: '/buys/get_quantity_minimum/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {
+                        'product_id': product_id,
+                        'unit_id': _unit
+                    },
+                    success: function (response) {
+                        let _quantity_minimum = Number(response.quantity_minimum).toFixed(2)
+                        if (_quantity_minimum && _quantity) {
+                            let _q_x_u = _quantity / _quantity_minimum
+                            //_input_cant_x_und.val(_q_x_u.toFixed(2))
+                            _input_quantity_minimum.val(_q_x_u.toFixed(2))
+                            {#_input_cant_x_und.val(Math.ceil(_q_x_u))#}
+                        }
+                        //_input_quantity_minimum.val(response.quantity_minimum + ' UND');
+                        _price_unit_product.val(response.price_purchase);
+                        $('.price-unit-product').trigger('keyup');
+                    },
+                });
+            }
+        }
+
+        $(document).on('change', '.quantity-unit', async function (e) {
+            let unit_id = $(this).val();
+            if (unit_id !== '0') {
+                let _input_quantity_x_unit = $(this).closest('td').find('input.quantity-x-unit');
+                {#let product_id = $(this).parent('div').parent('div.row').parent('td').parent('tr').attr('product')#}
+                let product_id = $(this).closest('td').parent('tr').attr('product')
+                let _quantity = Number($(this).closest('td').parent('tr').find('td.item-quantity input.quantity-product').val())
+                let _tr = $(this).closest('td').parent('tr')
+
+                let quantity_minimum = await getQuantityMinimum2(product_id, unit_id).then(e => {
+                    return e
+                });
+                let new_quantity_x_unit = _quantity / quantity_minimum;
+                _input_quantity_x_unit.val(new_quantity_x_unit.toFixed(2));
+            } else {
+                toastr.warning('Seleccione una unidad valida', 'Error de llenado');
+                $(this).val(1).change();
+                return false;
+            }
+
+        });
+
+        function getQuantityMinimum2(product_id, _unit) {
+            if (product_id !== '' && product_id !== '0') {
+                return new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: '/buys/get_quantity_minimum/',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        data: {
+                            'product_id': product_id,
+                            'unit_id': _unit
+                        },
+                        success: function (data) {
+                            resolve(data.quantity_minimum)
+                        },
+                        fail: function (err) {
+                            toastr.error('Error en la peticion, Contactar con Sistemas', '¡Mensaje!');
+                            reject(err)
+                        }
+                    });
+                })
+            }
+        }
+
+        $(document).on('keyup', '.quantity-x-unit', function () {
+            let _val = $(this).val()
+            let _tr = $(this).closest('td').parent('tr');
+            let _quantity_minimum = $(this).closest('td').find('select.quantity-unit option:selected').attr('qm');
+            let _input_quantity = $(this).closest('td').parent('tr').find('td.item-quantity input.quantity-product');
+            let _new_quantity = _val * _quantity_minimum
+            _input_quantity.val(_new_quantity)
+            calculate_total(_tr)
+            sum_table()
+        });
+
         $(document).on('click', '#btn-add-new-detail', function () {
 
             let _check = $("#check_dollar");
@@ -819,37 +990,37 @@
                 '<td class="align-middle text-left product-item-table">' +
                 '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
                 '               data-toggle="dropdown" aria-expanded="false" placeholder="Ingrese producto...">' + '<div class="dropdown-menu"></div>' + '</td>' +
-                '<td class="align-middle brand">' +
-                '<input type="text" class="form-control text-center text-uppercase brand-product" id="brand_id" name="brand" readonly>' + '</td>' +
                 '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">' + '</td>' +
-                /*'<td class="align-middle unit">' +
-                '<select class="form-control unit-product" id="id_unit_product" name="unit_product" required>' +
-                '<option value="0"> Seleccione</option>'+ textOption + '</td>' +*/
-                '<td class="align-middle unit">' +
-                '<input type="text" class="form-control text-center text-uppercase unit-product" readonly>' + '</td>' +
+                '<td class="align-middle unit text-center">' +
+                '<select class="form-control unit-product text-center" id="id_unit_product" name="unit_product" required>' +
+                '<option disabled value="0">Seleccione</option>' +
+                '</td>' +
+                '<td class="align-middle quantity-minimum text-center">' +
+                '<input type="text" class="form-control text-center quantity-minimum-val" readonly>' +
+                '</td>' +
+                /*'<td class="align-middle item-quantity-x-unit" style="background-color: #bde7e2">' +
+                '<div class="row">' +
+                '<div class="col-sm-3 text-center pr-0">' +
+                '<label class="mt-2">Ver en:</label>' +
+                '</div>' +
+                '<div class="col-sm-3 pr-0 pl-0 mt-1">' +
+                '<select class="form-control quantity-unit pl-0 pr-0 text-center" aria-label="..." style="font-size: 0.7585em; background-color: #bde7e2">' +
+                '<option value="0">Seleccione</option>' +
+                '</select>' +
+                '</div>' +
+                '<div class="col-sm-6 pl-1">' +
+                '<input type="text" aria-label="..." class="form-control text-center quantity-x-unit text-uppercase" readonly style="background-color: #bde7e2">' +
+                '</div>' +
+                '</td>' +*/
                 '<td class="item-price text-right align-middle" price-unit-with-discount="">' + '<div class="input-icon">' +
                 '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
-                '<td class="item-discount1 text-right align-middle">' +
-                '<input type="text" class="form-control text-right text-uppercase discount1" placeholder="0.00">' + '</td>' +
-                '<td class="item-discount2 text-right align-middle">' +
-                '<input type="text" class="form-control text-right text-uppercase discount2" placeholder="0.00">' + '</td>' +
-                '<td class="item-discount3 text-right align-middle">' +
-                '<input type="text" class="form-control text-right text-uppercase discount3" placeholder="0.00">' + '</td>' +
-                '<td class="item-discount4 text-right align-middle">' +
-                '<input type="text" class="form-control text-right text-uppercase discount4" placeholder="0.00">' + '</td>' +
                 '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
                 '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
-                '<td class="item-check text-center align-middle">' +
-                '<div class="form-check">' + '<input class="form-check-input position-static check-kardex" type="checkbox" value="" checked> ' + '</div>' +
-                '</td>' +
-                '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem2(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
                 '</tr>');
             counterStrike2()
         });
 
-        $(document).on('keyup', '#id_total_freight', function () {
-            sum_table()
-        });
         $(document).on('keyup', '.total-detail', function () {
             let _tr = $(this).parent('div').parent('td').parent('tr')
             {#let _tr = $("#id_detail_data_grid tbody#details-table tr")#}
@@ -865,11 +1036,17 @@
             sum_table()
         });
 
+        function quantityMinimumXQuantity(quantity, quantity_minimum, tr) {
+            let _quantity_x_quantity_minimum = quantity * quantity_minimum
+            tr.find('td.item-quantity-x-unit input.quantity-x-unit').val(_quantity_x_quantity_minimum.toFixed(2));
+        }
+
         $(document).on('keyup', '.quantity-product', function () {
 
             let _tr = $(this).parent('td').parent('tr')
             let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
             let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
+            let _quantity_minimum = Number((_tr.find('td.quantity-minimum input.quantity-minimum-val').val()))
             let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
 
             {#console.log("_tr", _tr.find('td.item-price div.input-icon input.price-unit-product'))#}
@@ -877,10 +1054,14 @@
             {#console.log("_price_unit", _price_unit)#}
             {#console.log("_total", _total)#}
 
-            if (_quantity !== 0 && _price_unit !== 0) {
+            if (_quantity_minimum !== 0 && _quantity_minimum !== '') {
+                quantityMinimumXQuantity(_quantity, _quantity_minimum, _tr)
+            }
+
+            /*if (_quantity !== 0 && _price_unit !== 0) {
                 _total = _quantity * _price_unit
                 _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(2));
-            }
+            }*/
             calculate_total(_tr)
             sum_table()
         });
@@ -904,58 +1085,17 @@
             sum_table()
         });
 
-        $(document).on('input', '.discount1, .discount2, .discount3, .discount4', function (e) {
-
-            let _tr = $(this).parent('td').parent('tr')
-            calculate_total(_tr)
-            sum_table()
-        });
-
         function calculate_total(_tr) {
 
             let $quantity = Number(_tr.find('td.item-quantity input.quantity-product').val());
+            let $quantity_x_und = Number(_tr.find('td.item-quantity-x-unit input.quantity-x-unit').val())
             let $price_unit = Number(_tr.find('td.item-price input.price-unit-product').val());
-            // let $price_unit;
-            let $d1_val = Number(_tr.find('td.item-discount1 input.discount1').val());
-            let $d2_val = Number(_tr.find('td.item-discount2 input.discount2').val());
-            let $d3_val = Number(_tr.find('td.item-discount3 input.discount3').val());
-            let $d4_val = Number(_tr.find('td.item-discount4 input.discount4').val());
             let $total = Number(_tr.find('td.total-row input.total-detail').val());
+            let amount
 
-            let d1, d2, d3, d4, d1p, d2p, d3p, d4p, amount, $totalTemp
-
-            $price_unit = Number(_tr.find('td.item-price input.price-unit-product').val());
             amount = $quantity * $price_unit
 
-            if ($d1_val === 0 && $d2_val === 0 && $d3_val === 0 && $d4_val === 0) {
-                d1 = amount - [(amount * $d1_val) / 100]
-                d2 = d1 - [(d1 * $d2_val) / 100]
-                d3 = d2 - [(d2 * $d3_val) / 100]
-                d4 = d3 - [(d3 * $d4_val) / 100]
-
-                d1p = $price_unit - [($price_unit * $d1_val) / 100]
-                d2p = d1p - [(d1p * $d2_val) / 100]
-                d3p = d2p - [(d2p * $d3_val) / 100]
-                d4p = d3p - [(d3p * $d4_val) / 100]
-
-                _tr.find('td.item-price').attr('price-unit-with-discount', d4p.toFixed(2))
-                {#console.log('en el if', d4p)#}
-            } else {
-                d1 = amount - [(amount * $d1_val) / 100]
-                d2 = d1 - [(d1 * $d2_val) / 100]
-                d3 = d2 - [(d2 * $d3_val) / 100]
-                d4 = d3 - [(d3 * $d4_val) / 100]
-
-                d1p = $price_unit - [($price_unit * $d1_val) / 100]
-                d2p = d1p - [(d1p * $d2_val) / 100]
-                d3p = d2p - [(d2p * $d3_val) / 100]
-                d4p = d3p - [(d3p * $d4_val) / 100]
-
-                _tr.find('td.item-price').attr('price-unit-with-discount', d4p.toFixed(2))
-                {#console.log('fuera', d4p)#}
-
-                _tr.find('td.total-row input.total-detail').val(d4.toFixed(2))
-            }
+            _tr.find('td.total-row input.total-detail').val(amount.toFixed(4))
 
         }
 
@@ -967,10 +1107,8 @@
             let total_document = 0;
             let _total;
 
-            total_freight = Number($("#id_freight_data_grid tbody#details-freight tr td.total-freight input#id_total_freight").val());
-
             $("#id_detail_data_grid tbody#details-table tr").each(function () {
-                let td_total = Number($(this).find("td.total-row input.total-detail").val().replace(',', '.'));
+                let td_total = Number($(this).find("td.total-row input.total-detail").val());
                 sum_total = sum_total + td_total
             });
 
@@ -980,20 +1118,19 @@
                 base = sum_total / 1.18
                 igv = sum_total - base
                 _total = base + igv
-                total_document = _total + total_freight
+                total_document = _total
 
             } else {
                 base = sum_total
                 igv = sum_total * 0.18
                 _total = base + igv
-                total_document = _total + total_freight
+                total_document = _total
             }
 
-            $("#id_detail_data_grid tfoot tr input.total-foot-base").val(base.toFixed(2));
-            $("#id_detail_data_grid tfoot tr input.total-foot-igv").val(igv.toFixed(2));
-            $("#id_detail_data_grid tfoot tr input.total-foot-total").val(_total.toFixed(2));
-            $("#id_detail_data_grid tfoot tr input.total-foot-freight").val(total_freight.toFixed(2));
-            $("#id_detail_data_grid tfoot tr input.total-foot-document").val(total_document.toFixed(2));
+            $("#id_detail_data_grid tfoot tr input.total-foot-base").val(base.toFixed(4));
+            $("#id_detail_data_grid tfoot tr input.total-foot-igv").val(igv.toFixed(4));
+            $("#id_detail_data_grid tfoot tr input.total-foot-total").val(_total.toFixed(4));
+            $("#id_detail_data_grid tfoot tr input.total-foot-document").val(total_document.toFixed(4));
         }
 
         $(document).on('change', '#id_detail_data_grid tfoot tr input.check-igv', function (e) {
@@ -1060,7 +1197,7 @@
 
         $("#payment_type").trigger('change');
 
-        function counterStrikedebs() {
+        /*function counterStrikedebs() {
             let l = 1;
             $('#details-dues tr').each(function () {
                 $(this).attr('i', l);
@@ -1097,9 +1234,9 @@
                     toastr.error(jqXhr.responseJSON.error, '¡ERROR!');
                 }
             });
-        }
+        }*/
 
-        $(document).on('click', '#add-dues', function (e) {
+        /*$(document).on('click', '#add-dues', function (e) {
 
             let _amount_due = $('#amount-due').val();
 
@@ -1113,68 +1250,80 @@
             counterStrikedebs()
             $('#amount-due').val('');
 
-        });
+        });*/
 
         $('#purchase-form').submit(function (event) {
             event.preventDefault();
+            let reference = $('#reference').val()
+            let _contract = $("#contract_detail_id")
+            let delivery_date = $('#delivery_date').val()
+            if (_contract.val() !== '') {
+                if (delivery_date === '') {
+                    toastr.warning('¡Seleccione la fecha de entrega!', 'Mensaje');
+                    return false;
+                }
+            } else {
+                delivery_date = ''
+            }
+
+            if ($('#payment_type').val() === '0') {
+                toastr.warning('¡Selecione el tipo de pago!', 'Mensaje');
+                return false;
+            }
+            if ($('#supplier_id').val() === '0') {
+                toastr.warning('¡Selecione el proveedor!', 'Mensaje');
+                return false;
+            }
+            if (checkUnit() === true) {
+                toastr.warning('¡Selecione el tipo de unidad en los productos!', 'Mensaje');
+                return false;
+            }
 
             if ($("#id_detail_data_grid tbody#details-table tr").length > 0 && $('.product-table').val() !== '') {
                 let table_foot = $("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("#id_detail_data_foot tbody#table-detail-foot tr")
                 let Detail_purchase = {
-                    "Invoice": $('#id_factura').val(),
                     "PurchaseId": $('#purchase_id').val(),
-                    "ProviderId": $('#id_provider').attr("provider"),
+                    "SupplierId": $('#supplier_id').val(),
                     "Date": $('#id_fechacompra').val(),
-                    "Type_Bill": $('#id_type_bill').val(),
+                    "Reference": reference,
+                    "Delivery_date": delivery_date,
                     "Type_Pay": $('#payment_type').val(),
+                    "Pay_condition": $('#pay_condition').val(),
                     "Base_Total": Number(table_foot.find("td.foot-base input.total-foot-base").val().replace(',', '.')),
                     "Igv_Total": Number(table_foot.find("td.foot-igv input.total-foot-igv").val().replace(',', '.')),
                     "Import_Total": Number(table_foot.find("td.foot-total input.total-foot-total").val().replace(',', '.')),
-                    "TotalFreight": Number(table_foot.find("td.foot-freight input.total-foot-freight").val().replace(',', '.')),
-                    "Total_Document": Number(table_foot.find("td.foot-document input.total-foot-document").val().replace(',', '.')),
                     "Check_Igv": ($("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("div.form-check input.check-igv").is(':checked')) ? 1 : 0,
                     "Check_Dollar": ($("#check_dollar").is(':checked')) ? 1 : 0,
                     "Details": [],
-                    "Freight": [],
-                    "Dues": [],
+
+                    "client_reference_id": $('#client_reference_id').val(),
+                    "client_final": $('#client_final').val(),
+
+                    "check-subsidiary": ($("#check-subsidiary").is(':checked')) ? 1 : 0,
+                    "check-provider": ($("#check-provider").is(':checked')) ? 1 : 0,
+                    "check-client-final": ($("#check-client-final").is(':checked')) ? 1 : 0,
+                    "check-client": ($("#check-client").is(':checked')) ? 1 : 0,
+
+                    "address_subsidiary": $("#address_subsidiary").val(),
+                    "address_provider": $("#address_provider").val(),
+                    "client_address_reference": $("#client_address_reference").val(),
+                    "client_final_address": $("#client_final_address").val(),
+                    "observations": $("#observations").val(),
+                    "contract_detail_id": _contract.val(),
+                    "correlative": $('#correlative').val()
                 };
                 $("#id_detail_data_grid tbody#details-table tr").each(function () {
                     let detailObj = {
                         "ProductDetail": $(this).attr('pd_id'),
                         "Product": $(this).attr('product'),
+                        "Unit": $(this).find("td.unit select.unit-product").val(),
                         "Quantity": $(this).find("td.item-quantity input.quantity-product").val(),
-                        "Unit": $(this).attr('unit_id'),
-                        "Price": Number($(this).find("td.item-price input.price-unit-product").val().replace(',', '.')),
-                        "Price_Unit_Discount": Number($(this).find("td.item-price").attr("price-unit-with-discount").replace(',', '.')),
-                        "Dto1": Number($(this).find("td.item-discount1 input.discount1").val().replace(',', '.')),
-                        "Dto2": Number($(this).find("td.item-discount2 input.discount2").val().replace(',', '.')),
-                        "Dto3": Number($(this).find("td.item-discount3 input.discount3").val().replace(',', '.')),
-                        "Dto4": Number($(this).find("td.item-discount4 input.discount4").val().replace(',', '.')),
-                        "Total": Number($(this).find("td.item-total input.total-detail").val().replace(',', '.')),
-                        "Check_kardex": ($(this).find("td.item-check div.form-check input.check-kardex").is(':checked')) ? 1 : 0,
+                        "Price": Number($(this).find("td.item-price input.price-unit-product").val()),
+                        "Total": Number($(this).find("td.item-total input.total-detail").val()),
                     };
                     Detail_purchase.Details.push(detailObj);
                 });
-                $("#id_freight_data_grid tbody#details-freight tr").each(function () {
-                    let detailFreight = {
-                        "DocumentFreight": $(this).find("td.document-freight input.document-freight-input").val(),
-                        "SerialFreight": $(this).find("td.serial-freight input.serial-freight-input").val(),
-                        "NumberFreight": $(this).find("td.number-freight input.number-freight-input").val(),
-                        "DateFreight": $(this).find("td.date-freight input.date-freight-input").val(),
-                        "TotalFreight": Number($(this).find("td.total-freight input.total-freight-input").val()),
-                    }
-                    Detail_purchase.Freight.push(detailFreight);
-                });
-                $("#id_debs_grid tbody#details-dues tr").each(function () {
-                    let dataDues = {
-                        "amountId": $(this).attr('due_id'),
-                        "amountDue": $(this).find("td.amount-due").text().replace('S/ ', ''),
-                    }
-                    Detail_purchase.Dues.push(dataDues)
-
-                });
                 {#console.log(JSON.stringify(Detail_purchase))#}
-
                 $.ajax({
                     url: '/buys/save_update_purchase/',
                     async: true,
@@ -1189,10 +1338,19 @@
                     success: function (response, textStatus, xhr) {
                         if (xhr.status === 200) {
                             toastr.success(response.message, '¡COMPRA ACTUALIZADA CORRECTAMENTE!');
-                            setTimeout(() => {
+                            let purchase_id = response.pk
+                            window.location.href = "/buys/print_pdf_purchase_order/" + purchase_id + "/";
+                            if (response.contract) {
+                                //console.log("contract")
+                                setTimeout(() => {
+                                    window.open("/buys/contracts/", '_self');
+                                }, 2000);
+                            } else {
+                                //console.log("Order")
+                                setTimeout(() => {
                                 window.open("/buys/get_purchase_list/", '_self');
-                            }, 1000);
-
+                                }, 1000);
+                            }
                         }
                     },
                     error: function (jqXhr, textStatus, xhr) {
@@ -1203,6 +1361,120 @@
             } else {
                 toastr.warning("PARA REALIZAR LA COMPRA AGREGUE AL MENOS UN PRODUCTO. ", '¡ADVERTENCIA!');
                 return false;
+            }
+        });
+
+        function getAddress(client_id, _select) {
+            $.ajax({
+                url: '/buys/get_address_by_client_id/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'client_id': client_id},
+                success: function (response) {
+                    _select.empty();
+                    let _client_address = JSON.parse(response['client_address_set']);
+                    //console.log(_client_address)
+                    _select.append($('<option>').val("0").text('Seleccione'));
+                    if (response['client_address_set'] !== '[]') {
+                        for (let i = 0; i < _client_address.length; i++) {
+                            let option = $('<option>').val(_client_address[i]['pk']).text(_client_address[i]['fields']['address'].toUpperCase());
+                            _select.append(option);
+                        }
+                    }
+                },
+            });
+        }
+
+        $(document).on('change', '#client_reference_id', function (e) {
+            let client_id = $(this).val();
+            let _select = $('#client_address_reference')
+
+            if (client_id !== '0') {
+                let type_client = $('#client_reference_id option:selected').attr("type");
+                if (type_client === 'PR') {
+                    $('#client_final').val("0");
+                    $('#client_final_address').val("0");
+                    $('.client-final').removeClass('d-none');
+                    $('.delivery-client-final').removeClass('d-none');
+                    $('.delivery-client').addClass('d-none');
+
+                } else {
+                    $('.client-final').addClass('d-none');
+                    $('#client_final_address').val("0");
+                    $('.delivery-client-final').addClass('d-none');
+                    $('.delivery-client').removeClass('d-none');
+                    getAddress(client_id, _select)
+                }
+
+            } else {
+                toastr.warning('Seleccione un cliente valido', 'Error de llenado');
+                return false;
+            }
+        });
+
+        $(document).on('change', '#client_final', function (e) {
+            let client_id = $(this).val();
+            let _select = $('#client_final_address');
+            getAddress(client_id, _select);
+        });
+
+        $(document).on('change', '#check-subsidiary', function (e) {
+            if ($(this).is(":checked")) {
+                $(this).attr("checked");
+                $('#check-provider').prop('checked', false);
+                $('#check-client').prop('checked', false);
+                $('#check-client-final').prop('checked', false);
+            }
+        });
+        $(document).on('change', '#check-provider', function (e) {
+            if ($(this).is(":checked")) {
+                $(this).attr("checked");
+                $('#check-subsidiary').prop('checked', false);
+                $('#check-client').prop('checked', false);
+                $('#check-client-final').prop('checked', false);
+            }
+        });
+        $(document).on('change', '#check-client', function (e) {
+            if ($(this).is(":checked")) {
+                $(this).attr("checked");
+                $('#check-subsidiary').prop('checked', false);
+                $('#check-provider').prop('checked', false);
+                $('#check-client-final').prop('checked', false);
+            }
+        });
+        $(document).on('change', '#check-client-final', function (e) {
+            if ($(this).is(":checked")) {
+                $(this).attr("checked");
+                $('#check-subsidiary').prop('checked', false);
+                $('#check-provider').prop('checked', false);
+                $('#check-client').prop('checked', false);
+            }
+        });
+
+        $(document).on('change', '#supplier_id', function (e) {
+            let supplier_id = $(this).val();
+            let _select = $('#address_provider');
+            if (supplier_id !== '0') {
+                $.ajax({
+                    url: '/buys/get_address_by_supplier_id/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'supplier_id': supplier_id},
+                    success: function (response) {
+                        _select.empty();
+                        let _supplier_address = JSON.parse(response['supplier_address_set']);
+                        //console.log(_supplier_address)
+                        _select.append($('<option>').val("0").text('Seleccione'));
+                        if (response['client_address_set'] !== '[]') {
+                            for (let i = 0; i < _supplier_address.length; i++) {
+                                let option = $('<option>').val(_supplier_address[i]['pk']).text(_supplier_address[i]['fields']['address'].toUpperCase());
+                                _select.append(option);
+                            }
+                        }
+                    },
+                });
             }
         });
 

@@ -12,9 +12,7 @@
                     <div class="col-sm-12 col-md-12 col-lg-12">
                         <div class="row p-2">
                             <div class="col-sm-4 col-md-4 col-lg-4 pr-0">
-                                <input type="hidden"
-                                       class="form-control"
-                                       id="contract_detail_id" name="contract-detail"
+                                <input type="hidden" id="contract_detail_id" name="contract-detail"
                                        value="{{ contract_detail_obj.id }}">
                                 {% if contract_detail_obj %}
                                     <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
@@ -22,10 +20,9 @@
                                             FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
                                     </h6>
                                 {% else %}
-                                    <h6 class="montserrat text-white font-weight-bold mt-4 mb-0"><label>ORDEN DE
-                                        COMPRA:</label>
+                                    <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                                        <label>ORDEN DE COMPRA:</label>
                                     </h6>
-
                                 {% endif %}
                             </div>
                             {#                            {% if contract_detail_obj %}#}
@@ -45,7 +42,7 @@
 
                             <div class="col-sm-2 col-md-2 col-lg-2 mt-3">
                                 <form>
-                                    <div class="form-group row ">
+                                    <div class="form-group row">
                                         <button type="button"
                                                 class="col-sm-5 btn btn-sm btn-outline-secondary border-0 text-white btn-block p-1"
                                                 id="btn-type-change">Tipo de Cambio:
@@ -142,24 +139,6 @@
             </div>
         </div>
     </div>
-
-
-    <div class="modal fade" id="modal-updetail" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle"
-         aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle">DETALLE DE LA COMPRA</h5>
-                    <button type="button" class="close" onclick="limper()" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                {#                {% include "buys/buy_modal_detail.html" %}#}
-
-            </div>
-        </div>
-    </div>
-
 
     <div class="card-body">
         <div id="product-grid-list"></div>
@@ -259,21 +238,6 @@
 
         $("#id_ruc_provider").attr('maxlength', 11);
 
-        let array_units = [
-            {% for u in unitmeasurement_obj %}
-                {
-                    'id': '{{ u.id }}',
-                    'description': '{{ u.description }}'.trim(),
-
-                },
-            {% endfor %}
-        ];
-
-        let textOption = ''
-        {% for u in unitmeasurement_obj %}
-            textOption += `<option value="{{ u.id }}">{{ u.name }}</option>`
-        {% endfor %}
-
 
         $(document).on('click', '#check_dollar', function (e) {
             let _check = $(this);
@@ -319,6 +283,7 @@
             });
             return false;
         });
+
         $("#btn-type-change").trigger('click');
 
         $(document).on('keypress', '#id_ruc_provider', function (e) {
@@ -368,14 +333,10 @@
             }
         });
 
-        $('#id_proveedor').select2({
-            theme: 'bootstrap4',
-        });
-        {#$('#id_producto').select2({#}
-        {#    theme: 'bootstrap4',#}
-        {# });#}
         $("#btn-new").click(function () {
-            limper_form();
+            setTimeout(() => {
+                location.reload()
+            }, 1000);
         });
 
         function showModalView(ruta) {
@@ -394,83 +355,6 @@
             });
 
         }
-
-        function limper_form(request) {
-            $('#id_fechacompra').val('');
-            $("#id_factura").val('');
-            $('#id_proveedor option').removeAttr('selected');
-            $('#id_proveedor option:first').attr('selected', 'selected');
-            $('#id_proveedor').trigger('change');
-            $('#id_detail_data_grid tbody#details').empty();
-        };
-
-        function limper(request) {
-            $('#id_cantidad').val('');
-            $('#id_preciounitario').val('');
-            $('#id_import').val('');
-            $('#id_producto option').removeAttr('selected');
-            $('#id_producto option:first').attr('selected', 'selected');
-            $('#id_producto').trigger('change');
-            $("#id_unidad").empty().append('<option>Seleccione</option>');
-
-            {#$('#id_producto option[value=0]').attr('selected','selected');#}
-            {#$('#id_unidad option[value=0]').attr('selected','selected');#}
-        };
-        $('#id_import').keyup(function () {
-            let _total = parseFloat($(this).val());
-            if (_total !== '') {
-                let _item_quantity = parseFloat($('#id_cantidad').val());
-                let _item_price = _total / _item_quantity;
-                if (isNaN(_item_price)) {
-                    $('#id_preciounitario').val('');
-                } else {
-                    $('#id_preciounitario').val(parseFloat(_item_price).toFixed(2));
-                }
-            }
-        })
-        /*$("#id_add").click(function () {
-
-            let id_product = $('#id_producto').val();
-            let name_product = $('#id_producto option:selected').text();
-            let quantity = parseFloat($('#id_cantidad').val());
-            let id_unit = $('#id_unidad').val();
-            let name_unit = $('#id_unidad option:selected').text();
-            let price_unit = parseFloat($('#id_preciounitario').val());
-            let total_ = parseFloat($('#id_import').val());
-            let discount1 = parseFloat($('#id_discount_1').val());
-            let discount2 = parseFloat($('#id_discount_2').val());
-            let discount3 = parseFloat($('#id_discount_3').val());
-            let discount4 = parseFloat($('#id_discount_4').val());
-            if (id_product > 0 && quantity > 0 && id_unit > 0 && price_unit > 0) {
-                if ($("#id_detail_data_grid tr[product=" + id_product + "]").length) {
-                    toastr.warning('El producto ya se encuentra agregado.!');
-                    return false;
-                }
-                $('#id_detail_data_grid').append(
-                    '<tr class="text-center" product="' + id_product + '">' +
-                    '<td class="item-numero align-middle">' + '</td>' +
-                    '<td class="align-middle text-left">' + name_product + '</td>' +
-                    '<td class="item-quantity align-middle">' + quantity.toFixed(2) + '</td>' +
-                    '<td class="item-unit align-middle" pu="' + id_unit + '">' + name_unit + '</td>' +
-                    '<td class="item-price text-right align-middle">' + price_unit.toFixed(2) + '</td>' +
-                    '<td class="item-discount1 text-right align-middle">' + discount1.toFixed(2) + '</td>' +
-                    '<td class="item-discount2 text-right align-middle">' + discount2.toFixed(2) + '</td>' +
-                    '<td class="item-discount3 text-right align-middle">' + discount3.toFixed(2) + '</td>' +
-                    '<td class="item-discount4 text-right align-middle">' + discount4.toFixed(2) + '</td>' +
-                    '<td class="text-right align-middle">' + total_.toFixed(2) + '</td>' +
-                    '<td class="text-center align-middle">' + '<div class="form-check"> <input class="form-check-input position-static" type="checkbox" value="" id="id_check_kardex"></div>' + '</td>' +
-                    '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem(' + id_product + ')" class="btn btn-success delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
-                    '</tr>'
-                );
-                //$index++;
-                limper()
-                counterStrike()
-                toastr.info('Producto agregado correctamente');
-            } else {
-                {#toastr.succes('info messages');#}
-                toastr.warning('Por favor, complete todo los campos!');
-            }
-        });*/
 
         function checkUnit() {
             let flag = false
@@ -496,8 +380,6 @@
             } else {
                 delivery_date = ''
             }
-
-            //console.log(delivery_date)
 
             if ($('#payment_type').val() === '0') {
                 toastr.warning('¡Selecione el tipo de pago!', 'Mensaje');
@@ -569,15 +451,15 @@
                             let purchase_id = response.pk
                             window.location.href = "/buys/print_pdf_purchase_order/" + purchase_id + "/";
                             if (response.contract) {
-                                console.log("contract")
-                                /*setTimeout(() => {
+                                //console.log("contract")
+                                setTimeout(() => {
                                     window.open("/buys/contracts/", '_self');
-                                }, 2000);*/
+                                }, 2000);
                             } else {
-                                console.log("Order")
-                                /*setTimeout(() => {
+                                //console.log("Order")
+                                setTimeout(() => {
                                     location.reload();
-                                }, 2000);*/
+                                }, 2000);
                             }
                         }
                     },
@@ -592,57 +474,12 @@
             }
         });
 
-
-        $('#id_producto').change(function () {
-            //recupera el id_dela opcion seleccionada
-            let _search = $(this).val();
-            //vacia el combo-borra opciones
-            $('#id_unidad').empty();
-            if ($('#id_producto').val() !== '0') {
-                $.ajax({
-                    url: '/buys/get_units_by_product/',
-                    async: true,
-                    dataType: 'json',
-                    type: 'GET',
-                    //mando  id del producto del combo
-                    data: {'ip': _search},
-                    // si va bien retorna la data
-                    success: function (response) {
-                        //le da formato array
-                        let units = JSON.parse(response['units']);
-                        units.forEach(
-                            element =>
-                                $('#id_unidad').append(
-                                    '<option value="' + element['pk'] + '">' + element['fields']['description'] + '</option>')
-                        )
-                    },
-                });
-            }
-        })
-
-        //Bonton eliminar fila
-        function deleteItem($id) {
-            $('#details').find("tr[i=" + $id + "]").remove();
+        function deleteItem(btn) {
+            btn.parentNode.parentNode.remove();
             counterStrike();
         }
 
-        function deleteItem2(btn) {
-            btn.parentNode.parentNode.remove();
-            counterStrike2();
-        }
-
-        // reasigna numero de fila a los detalles
         function counterStrike() {
-            let l = 1;
-            $('#details tr').each(function () {
-                $(this).attr('i', l);
-                $(this).children('td:nth-child(1)').text(l);
-                l++;
-            });
-
-        }
-
-        function counterStrike2() {
             let l = 1;
             $('#details-table tr').each(function () {
                 $(this).attr('i', l);
@@ -664,10 +501,8 @@
                 'border': 'transparent',
                 {#'margin-top': '10px'#}
             })
-
             //$('#id_unit_product').val('0')
         });
-
 
         $(document).on('keypress', '.product-table', function (e) {
 
@@ -939,9 +774,9 @@
                 '<option disabled value="0">Seleccione</option>' +
                 '</td>' +
                 '<td class="align-middle quantity-minimum text-center">' +
-                '<input type="text" class="form-control text-center quantity-minimum" readonly>' +
+                '<input type="text" class="form-control text-center quantity-minimum-val" readonly>' +
                 '</td>' +
-                '<td class="align-middle item-quantity-x-unit" style="background-color: #bde7e2">' +
+                /*'<td class="align-middle item-quantity-x-unit" style="background-color: #bde7e2">' +
                 '<div class="row">' +
                 '<div class="col-sm-3 text-center pr-0">' +
                 '<label class="mt-2">Ver en:</label>' +
@@ -954,18 +789,14 @@
                 '<div class="col-sm-6 pl-1">' +
                 '<input type="text" aria-label="..." class="form-control text-center quantity-x-unit text-uppercase" readonly style="background-color: #bde7e2">' +
                 '</div>' +
-                '</td>' +
+                '</td>' +*/
                 '<td class="item-price text-right align-middle" price-unit-with-discount="">' + '<div class="input-icon">' +
                 '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
                 '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
                 '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
-                '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem2(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                '<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
                 '</tr>');
-            counterStrike2()
-        });
-
-        $(document).on('keyup', '#id_total_freight', function () {
-            sum_table()
+            counterStrike()
         });
 
         $(document).on('keyup', '.total-detail', function () {
@@ -1004,8 +835,6 @@
             if (_quantity_minimum !== 0) {
                 quantityMinimumXQuantity(_quantity, _quantity_minimum, _tr)
             }
-
-
             /*if (_quantity !== 0 && _price_unit !== 0) {
                 _total = _quantity * _price_unit
                 _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(2));
@@ -1101,7 +930,7 @@
             }
         });
 
-        $(document).on('click', '#add-dues', function (e) {
+        /*$(document).on('click', '#add-dues', function (e) {
 
             let _amount_due = $('#amount-due').val();
 
@@ -1130,7 +959,7 @@
         function deletedues(btn) {
             btn.parentNode.parentNode.remove();
             counterStrikedebs();
-        }
+        }*/
 
         function getAddress(client_id, _select) {
             $.ajax({

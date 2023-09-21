@@ -1,3 +1,5 @@
+import decimal
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Sum
@@ -91,6 +93,7 @@ class Purchase(models.Model):
     delivery_date = models.DateField('Fecha de entrega', null=True, blank=True)
     correlative = models.IntegerField('Correlativo', null=True, blank=True)
     reference = models.CharField('Referencia', max_length=100, blank=True, null=True)
+    check_igv = models.BooleanField('Habilitado IGV', default=True)
 
     def __str__(self):
         return str(self.id)
@@ -118,7 +121,24 @@ class Purchase(models.Model):
         purchase_detail_set = PurchaseDetail.objects.filter(purchase__id=self.id)
         for pd in purchase_detail_set:
             response = response + (pd.quantity * pd.price_unit)
-        return response
+        return round(response, 4)
+
+    def base_total_purchase(self):
+        response = 0
+        purchase_detail_set = PurchaseDetail.objects.filter(purchase__id=self.id)
+        for pd in purchase_detail_set:
+            response = response + (pd.quantity * pd.price_unit)
+        base_total = round(response / decimal.Decimal(1.18), 4)
+        return round(base_total, 4)
+
+    def igv_total_purchase(self):
+        response = 0
+        purchase_detail_set = PurchaseDetail.objects.filter(purchase__id=self.id)
+        for pd in purchase_detail_set:
+            response = response + (pd.quantity * pd.price_unit)
+        base_total = round(response / decimal.Decimal(1.18), 4)
+        igv = response - base_total
+        return round(igv, 4)
 
 
 class PurchaseDetail(models.Model):
