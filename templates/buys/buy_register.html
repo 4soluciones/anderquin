@@ -2,25 +2,14 @@
     {% csrf_token %}
     <div class="row p-1">
         <div class="col-sm-8 col-md-8 col-lg-8">
-            {#            <label>RUC</label>#}
-            {#            <input type="text" class="form-control text-uppercase" id="id_ruc_provider"#}
-            {#                   name="ruc_provider"#}
-            {#                   placeholder="Ingrese RUC"#}
-            {#                   size="11"#}
-            {#                   value="" required>#}
             <label for="supplier_id">Proveedor</label>
             <select id="supplier_id" name="supplier-id" class="form-control" required>
                 <option value="0">Seleccione</option>
                 {% for s in supplier_set %}
                     <option value="{{ s.id }}">{{ s.name|upper }}</option>
                 {% endfor %}
-                {#                <option value="T">TICKET</option>#}
-                {#                <option value="B">BOLETA</option>#}
-                {#                <option selected value="F">FACTURA</option>#}
             </select>
-
         </div>
-
 
         <div class="col-sm-4 col-md-4 col-lg-4 {% if contract_detail_obj is None %}d-none{% endif %}">
             <label for="delivery_date">Fecha de entrega</label>
@@ -41,7 +30,7 @@
     <div class="row p-1">
         <div class="col-sm-4 col-md-4 col-lg-4">
             <label for="reference">Referencia</label>
-            <input type="text" class="form-control" id="reference"
+            <input type="text" class="form-control text-uppercase" id="reference"
                    name="reference" autocomplete="off"
                    placeholder="O/C"
                    value="" required>

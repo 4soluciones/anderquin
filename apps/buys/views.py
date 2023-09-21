@@ -235,7 +235,7 @@ def save_purchase(request):
 
         check_subsidiary = str(data_purchase["check-subsidiary"])
         check_provider = str(data_purchase["check-provider"])
-        check_client_reference = data_purchase["check-client"]
+        check_client_reference = str(data_purchase["check-client"])
         check_client_entity = str(data_purchase["check-client-final"])
 
         address_subsidiary = data_purchase["address_subsidiary"]
@@ -244,13 +244,13 @@ def save_purchase(request):
         client_address_entity = data_purchase["client_final_address"]
 
         observations = str(data_purchase["observations"])
-        contract_detail_id = data_purchase["contract_detail_id"]
+        contract_detail = data_purchase["contract_detail_id"]
         contract_detail_obj = None
         contract_detail_id = ''
         date = date_now
-        if contract_detail_id:
+        if contract_detail:
             date = str(data_purchase["Date"])
-            contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail_id))
+            contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail))
             contract_detail_id = contract_detail_obj.id
 
         user_id = request.user.id

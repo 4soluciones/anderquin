@@ -236,9 +236,6 @@
             '</div>' +
             '</div>';
 
-        $("#id_ruc_provider").attr('maxlength', 11);
-
-
         $(document).on('click', '#check_dollar', function (e) {
             let _check = $(this);
             if (_check.is(':checked')) {
@@ -286,50 +283,9 @@
 
         $("#btn-type-change").trigger('click');
 
-        $(document).on('keypress', '#id_ruc_provider', function (e) {
-
-            if (e.keyCode === 13) {
-
-                e.preventDefault()
-                $(this).trigger("enterKey");
-                let _ruc = $(this).val();
-                let _provider = $('#id_provider')
-
-                $('#loading-666').html(loader).show()
-
-                $.ajax({
-                    url: '/buys/get_provider_by_ruc/',
-                    async: true,
-                    dataType: 'json', // for response
-                    type: 'GET',
-                    data: {
-                        'ruc': _ruc,
-                    },
-                    contentType: 'application/json;charset=UTF-8',
-                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                    success: function (response, textStatus, xhr) {
-                        if (xhr.status === 200) {
-                            toastr.success(response.message, '¡Bien hecho!');
-                            console.log(response)
-                            _provider.val(response.result);
-                            _provider.attr('provider', response.pk);
-                            $('#loading-666').hide();
-                        }
-                    },
-                    error: function (jqXhr, textStatus, xhr) {
-                        if (jqXhr.status === 500) {
-                            toastr.error(jqXhr.responseJSON.error, 'Mensaje');
-                        } else {
-                            if (textStatus === 'timeout') {
-                                toastr.error('Failed from timeout', 'Mensaje');
-                            } else {
-                                console.log(" STATUS: " + xhr + " " + textStatus);
-                            }
-                        }
-                        $('#loading-666').hide();
-                    },
-                });
-                return false;
+        $(document).ready(function () {
+            if ($('#contract_detail_id').val() !== '') {
+                $('#client_reference_id').trigger('change');
             }
         });
 
@@ -436,7 +392,7 @@
                     };
                     Detail_purchase.Details.push(detailObj);
                 });
-
+                console.log(Detail_purchase)
                 $.ajax({
                     url: '/buys/save_purchase/',
                     async: true,
@@ -848,7 +804,7 @@
             let _tr = $(this).parent('div').parent('td').parent('tr')
             let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
             let _quantity_x_und = Number(_tr.find('td.item-quantity-x-unit input.quantity-x-unit').val())
-
+            let _quantity_minimum = Number(_tr.find('td.quantity-minimum input.quantity-minimum-val').val())
             let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
             let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
 
@@ -857,7 +813,7 @@
             //console.log("_total", _total)
 
             if (_quantity !== 0 && _price_unit !== 0) {
-                _total = _quantity * _price_unit
+                _total = _quantity_minimum * _price_unit
                 _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(4));
             }
             calculate_total(_tr)
@@ -868,11 +824,12 @@
 
             let $quantity = Number(_tr.find('td.item-quantity input.quantity-product').val());
             let $quantity_x_und = Number(_tr.find('td.item-quantity-x-unit input.quantity-x-unit').val())
+            let $quantity_minimum = Number(_tr.find('td.quantity-minimum input.quantity-minimum-val').val())
             let $price_unit = Number(_tr.find('td.item-price input.price-unit-product').val());
             let $total = Number(_tr.find('td.total-row input.total-detail').val());
             let amount
 
-            amount = $quantity * $price_unit
+            amount = $quantity_minimum * $price_unit
 
             _tr.find('td.total-row input.total-detail').val(amount.toFixed(4))
 

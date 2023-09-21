@@ -86,8 +86,8 @@
                             <div class="row">
                                 <div class="col-sm-6 col-md-6 col-lg-6">
                                     <label class="mb-1 mt-1 font-weight-light"
-                                           for="id_type_client">Tipo de cliente:</label>
-                                    <select class="form-control" id="id_type_client" name="type_client">
+                                           for="id_type_client_update">Tipo de cliente:</label>
+                                    <select class="form-control" id="id_type_client_update" name="type_client">
                                         <option value="0">Seleccionar</option>
                                         {% for t in type_client %}
                                             {% if client_obj.type_client == t.0 %}
@@ -98,7 +98,7 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <div class="col-sm-6 col-md-6 col-lg-6 siaf d-none">
+                                <div class="col-sm-6 col-md-6 col-lg-6 siaf-update d-none">
                                     <label class="mb-1 mt-1 font-weight-light"
                                            for="cod_siaf">CODIGO DE UNIDAD EJECUTORA (SIAF):</label>
                                     <input type="text" class="form-control" id="cod_siaf" name="siaf"
@@ -116,8 +116,85 @@
                                 {#            </div>#}
                             </div>
                             {% if client_obj.type_client == 'PU' %}
-                                {% for d in client_obj.clientaddress_set.all %}
-                                    <div class="row public">
+                                {% if client_obj.clientaddress.set %}
+                                    {% for d in client_obj.clientaddress_set.all %}
+                                        <div class="row public-update">
+                                            <div class="col-sm-9 col-md-9 col-lg-9 pr-0">
+                                                <label class="mb-1 mt-2 font-weight-light" for="address">Dirección de
+                                                    Cliente:</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i
+                                                            class="fas fa-address-card"></i></span>
+                                                    </div>
+                                                    <input type="text" class="form-control" id="address"
+                                                           autocomplete="off"
+                                                           name="address" placeholder="Dirección"
+                                                           value="{{ d.address }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3 col-md-3 col-lg-3 pl-1">
+                                                <label class="mb-1 mt-2 font-weight-light"
+                                                       for="id_district">Seleccione distrito:</label>
+                                                <select id="id_district" name="id_district" class="form-control">
+                                                    {#                                                <option value="0">Seleccionar</option>#}
+                                                    {% if d.district.id == '200901' %}
+                                                        <option value="200901">JULIACA</option>
+                                                    {% elif d.district.id == '200101' %}
+                                                        <option value="200101">PUNO</option>
+                                                    {% elif d.district.id == '040101' %}
+                                                        <option value="040101">AREQUIPA</option>
+                                                    {% elif d.district.id == '220101' %}
+                                                        <option value="220101">TACNA</option>
+                                                    {% elif d.district.id == '070101' %}
+                                                        <option value="070101">CUSCO</option>
+                                                    {% endif %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row private-update d-none main">
+                                            <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
+                                                <label class="mb-1 mt-2 font-weight-light" for="new_address">Dirección
+                                                    del
+                                                    Cliente:</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i
+                                                            class="fas fa-address-card"></i></span>
+                                                    </div>
+                                                    <input type="text" class="form-control new-address" id="new_address"
+                                                           autocomplete="off"
+                                                           name="address" value="{{ d.address }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
+                                                <label class="mb-1 mt-2 font-weight-light"
+                                                       for="id_district2">Seleccione distrito:</label>
+                                                <select id="id_district2" name="id_district2"
+                                                        class="form-control district">
+                                                    <option value="0">Seleccionar</option>
+                                                    <option value="200901">JULIACA</option>
+                                                    <option value="200101">PUNO</option>
+                                                    <option value="040101">AREQUIPA</option>
+                                                    <option value="220101">TACNA</option>
+                                                    <option value="070101">CUSCO</option>
+                                                    {#                    {% for district in districts %}#}
+                                                    {#                        <option value="{{ district.id }}">{{ district.description }}</option>#}
+                                                    {#                    {% endfor %}#}
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
+                                                <label class="mb-1 mt-2 font-weight-light"
+                                                       for="id-add-new-addressee">&nbsp;</label>
+                                                <button type="button" class="btn btn-outline-success btn-block"
+                                                        id="id-add-new-addressee">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="row public-update">
                                         <div class="col-sm-9 col-md-9 col-lg-9 pr-0">
                                             <label class="mb-1 mt-2 font-weight-light" for="address">Dirección de
                                                 Cliente:</label>
@@ -127,70 +204,23 @@
                                                             class="fas fa-address-card"></i></span>
                                                 </div>
                                                 <input type="text" class="form-control" id="address" autocomplete="off"
-                                                       name="address" placeholder="Dirección" value="{{ d.address }}">
+                                                       name="address" placeholder="Dirección" value="">
                                             </div>
                                         </div>
                                         <div class="col-sm-3 col-md-3 col-lg-3 pl-1">
                                             <label class="mb-1 mt-2 font-weight-light"
                                                    for="id_district">Seleccione distrito:</label>
                                             <select id="id_district" name="id_district" class="form-control">
-                                                {#                                                <option value="0">Seleccionar</option>#}
-                                                {% if d.district.id == '200901' %}
-                                                    <option value="200901">JULIACA</option>
-                                                {% elif d.district.id == '200101' %}
-                                                    <option value="200101">PUNO</option>
-                                                {% elif d.district.id == '040101' %}
-                                                    <option value="040101">AREQUIPA</option>
-                                                {% elif d.district.id == '220101' %}
-                                                    <option value="220101">TACNA</option>
-                                                {% elif d.district.id == '070101' %}
-                                                    <option value="070101">CUSCO</option>
-                                                {% endif %}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row private d-none main">
-                                        <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
-                                            <label class="mb-1 mt-2 font-weight-light" for="new_address">Dirección del
-                                                Cliente:</label>
-                                            <div class="input-group">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text"><i
-                                                            class="fas fa-address-card"></i></span>
-                                                </div>
-                                                <input type="text" class="form-control new-address" id="new_address"
-                                                       autocomplete="off"
-                                                       name="address" value="{{ d.address }}">
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
-                                            <label class="mb-1 mt-2 font-weight-light"
-                                                   for="id_district2">Seleccione distrito:</label>
-                                            <select id="id_district2" name="id_district2" class="form-control district">
-                                                <option value="0">Seleccionar</option>
+                                                <option selected disabled value="0">Seleccionar</option>
                                                 <option value="200901">JULIACA</option>
                                                 <option value="200101">PUNO</option>
                                                 <option value="040101">AREQUIPA</option>
                                                 <option value="220101">TACNA</option>
                                                 <option value="070101">CUSCO</option>
-                                                {#                    {% for district in districts %}#}
-                                                {#                        <option value="{{ district.id }}">{{ district.description }}</option>#}
-                                                {#                    {% endfor %}#}
                                             </select>
                                         </div>
-                                        <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
-                                            <label class="mb-1 mt-2 font-weight-light"
-                                                   for="id-add-new-addressee">&nbsp;</label>
-                                            <button type="button" class="btn btn-outline-success btn-block"
-                                                    id="id-add-new-addressee">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-                                        </div>
                                     </div>
-                                {% endfor %}
-                            {% elif client_obj.type_client == 'PR' %}
-                                {% for d in client_obj.clientaddress_set.all %}
-                                    <div class="row private main">
+                                    <div class="row private-update d-none main">
                                         <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
                                             <label class="mb-1 mt-2 font-weight-light" for="new_address">Dirección del
                                                 Cliente:</label>
@@ -201,27 +231,19 @@
                                                 </div>
                                                 <input type="text" class="form-control new-address" id="new_address"
                                                        autocomplete="off"
-                                                       name="address" value="{{ d.address }}">
+                                                       name="address" value="">
                                             </div>
                                         </div>
                                         <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
                                             <label class="mb-1 mt-2 font-weight-light"
                                                    for="id_district2">Seleccione distrito:</label>
                                             <select id="id_district2" name="id_district2" class="form-control district">
-                                                {% if d.district.id == '200901' %}
-                                                    <option value="200901">JULIACA</option>
-                                                {% elif d.district.id == '200101' %}
-                                                    <option value="200101">PUNO</option>
-                                                {% elif d.district.id == '040101' %}
-                                                    <option value="040101">AREQUIPA</option>
-                                                {% elif d.district.id == '220101' %}
-                                                    <option value="220101">TACNA</option>
-                                                {% elif d.district.id == '070101' %}
-                                                    <option value="070101">CUSCO</option>
-                                                {% endif %}
-                                                {#                    {% for district in districts %}#}
-                                                {#                        <option value="{{ district.id }}">{{ district.description }}</option>#}
-                                                {#                    {% endfor %}#}
+                                                <option selected disabled value="0">Seleccionar</option>
+                                                <option value="200901">JULIACA</option>
+                                                <option value="200101">PUNO</option>
+                                                <option value="040101">AREQUIPA</option>
+                                                <option value="220101">TACNA</option>
+                                                <option value="070101">CUSCO</option>
                                             </select>
                                         </div>
                                         <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
@@ -233,7 +255,92 @@
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="row public d-none">
+                                {% endif %}
+                            {% elif client_obj.type_client == 'PR' %}
+                                {% if client_obj.clientaddress.set %}
+                                    {% for d in client_obj.clientaddress_set.all %}
+                                        <div class="row private-update main">
+                                            <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
+                                                <label class="mb-1 mt-2 font-weight-light" for="new_address">Dirección
+                                                    del
+                                                    Cliente:</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i
+                                                            class="fas fa-address-card"></i></span>
+                                                    </div>
+                                                    <input type="text" class="form-control new-address" id="new_address"
+                                                           autocomplete="off"
+                                                           name="address" value="{{ d.address }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
+                                                <label class="mb-1 mt-2 font-weight-light"
+                                                       for="id_district2">Seleccione distrito:</label>
+                                                <select id="id_district2" name="id_district2"
+                                                        class="form-control district">
+                                                    {% if d.district.id == '200901' %}
+                                                        <option value="200901">JULIACA</option>
+                                                    {% elif d.district.id == '200101' %}
+                                                        <option value="200101">PUNO</option>
+                                                    {% elif d.district.id == '040101' %}
+                                                        <option value="040101">AREQUIPA</option>
+                                                    {% elif d.district.id == '220101' %}
+                                                        <option value="220101">TACNA</option>
+                                                    {% elif d.district.id == '070101' %}
+                                                        <option value="070101">CUSCO</option>
+                                                    {% endif %}
+                                                    {#                    {% for district in districts %}#}
+                                                    {#                        <option value="{{ district.id }}">{{ district.description }}</option>#}
+                                                    {#                    {% endfor %}#}
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
+                                                <label class="mb-1 mt-2 font-weight-light"
+                                                       for="id-add-new-addressee">&nbsp;</label>
+                                                <button type="button" class="btn btn-outline-success btn-block"
+                                                        id="id-add-new-addressee">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="row public-update d-none">
+                                            <div class="col-sm-9 col-md-9 col-lg-9 pr-0">
+                                                <label class="mb-1 mt-2 font-weight-light" for="address">Dirección de
+                                                    Cliente:</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i
+                                                            class="fas fa-address-card"></i></span>
+                                                    </div>
+                                                    <input type="text" class="form-control" id="address"
+                                                           autocomplete="off"
+                                                           name="address" placeholder="Dirección"
+                                                           value="{{ d.address }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3 col-md-3 col-lg-3 pl-1">
+                                                <label class="mb-1 mt-2 font-weight-light"
+                                                       for="id_district">Seleccione distrito:</label>
+                                                <select id="id_district" name="id_district" class="form-control">
+                                                    {#                                                <option value="0">Seleccionar</option>#}
+                                                    {% if d.district.id == '200901' %}
+                                                        <option value="200901">JULIACA</option>
+                                                    {% elif d.district.id == '200101' %}
+                                                        <option value="200101">PUNO</option>
+                                                    {% elif d.district.id == '040101' %}
+                                                        <option value="040101">AREQUIPA</option>
+                                                    {% elif d.district.id == '220101' %}
+                                                        <option value="220101">TACNA</option>
+                                                    {% elif d.district.id == '070101' %}
+                                                        <option value="070101">CUSCO</option>
+                                                    {% endif %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="row public-update">
                                         <div class="col-sm-9 col-md-9 col-lg-9 pr-0">
                                             <label class="mb-1 mt-2 font-weight-light" for="address">Dirección de
                                                 Cliente:</label>
@@ -243,29 +350,59 @@
                                                             class="fas fa-address-card"></i></span>
                                                 </div>
                                                 <input type="text" class="form-control" id="address" autocomplete="off"
-                                                       name="address" placeholder="Dirección" value="{{ d.address }}">
+                                                       name="address" placeholder="Dirección" value="">
                                             </div>
                                         </div>
                                         <div class="col-sm-3 col-md-3 col-lg-3 pl-1">
                                             <label class="mb-1 mt-2 font-weight-light"
                                                    for="id_district">Seleccione distrito:</label>
                                             <select id="id_district" name="id_district" class="form-control">
-                                                {#                                                <option value="0">Seleccionar</option>#}
-                                                {% if d.district.id == '200901' %}
-                                                    <option value="200901">JULIACA</option>
-                                                {% elif d.district.id == '200101' %}
-                                                    <option value="200101">PUNO</option>
-                                                {% elif d.district.id == '040101' %}
-                                                    <option value="040101">AREQUIPA</option>
-                                                {% elif d.district.id == '220101' %}
-                                                    <option value="220101">TACNA</option>
-                                                {% elif d.district.id == '070101' %}
-                                                    <option value="070101">CUSCO</option>
-                                                {% endif %}
+                                                <option selected disabled value="0">Seleccionar</option>
+                                                <option value="200901">JULIACA</option>
+                                                <option value="200101">PUNO</option>
+                                                <option value="040101">AREQUIPA</option>
+                                                <option value="220101">TACNA</option>
+                                                <option value="070101">CUSCO</option>
                                             </select>
                                         </div>
                                     </div>
-                                {% endfor %}
+                                    <div class="row private-update d-none main">
+                                        <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
+                                            <label class="mb-1 mt-2 font-weight-light" for="new_address">Dirección del
+                                                Cliente:</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i
+                                                            class="fas fa-address-card"></i></span>
+                                                </div>
+                                                <input type="text" class="form-control new-address" id="new_address"
+                                                       autocomplete="off"
+                                                       name="address" value="">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="id_district2">Seleccione distrito:</label>
+                                            <select id="id_district2" name="id_district2" class="form-control district">
+                                                <option selected disabled value="0">Seleccionar</option>
+                                                <option value="200901">JULIACA</option>
+                                                <option value="200101">PUNO</option>
+                                                <option value="040101">AREQUIPA</option>
+                                                <option value="220101">TACNA</option>
+                                                <option value="070101">CUSCO</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
+                                            <label class="mb-1 mt-2 font-weight-light"
+                                                   for="id-add-new-addressee">&nbsp;</label>
+                                            <button type="button" class="btn btn-outline-success btn-block"
+                                                    id="id-add-new-addressee">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
                             {% endif %}
                         </div>
                     </div>
@@ -299,7 +436,7 @@
 </div>
 
 <script type="text/javascript">
-    $('#id_type_client').trigger('change');
+    $('#id_type_client_update').trigger('change');
 
     $(document).on('click', '#btn-update-client', function (e) {
         e.preventDefault();
@@ -307,7 +444,7 @@
         let _document_number = $('#document_number').val();
         let _names = $('#names').val();
         let _address = $('#address').val();
-        let _type_client = $('#id_type_client').val();
+        let _type_client = $('#id_type_client_update').val();
         if (sessionStorage.getItem('document') === '01') {
             if (_document_number.length !== 8) {
                 toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
@@ -373,10 +510,11 @@
 
         } else if (_type_client === 'PR') {
             let addresseeObj = {};
-            $(".private").each(function () {
+            $(".private-update").each(function () {
+                let _district = $(this).find("select.district");
                 addresseeObj = {
                     "new_address": $(this).find("input.new-address").val(),
-                    "district": $(this).find("select.district").val(),
+                    "district": _district.val(),
                 }
                 client.Addresses.push(addresseeObj);
             });
@@ -405,6 +543,24 @@
                 toastr.error('Error', '¡Ocurrio un error!');
             }
         });
+    });
+
+    $(document).on('change', '#id_type_client_update', function () {
+        console.log("entro")
+        let _type = $(this).val();
+        if (_type === 'PU') {
+            $('.public-update').removeClass('d-none');
+            $('.private-update').addClass('d-none');
+            $('.siaf-update').removeClass('d-none');
+        } else if (_type === 'PR') {
+            $('.public-update').addClass('d-none');
+            $('.private-update').removeClass('d-none');
+            $('.siaf-update').addClass('d-none');
+        } else {
+            $('.public-update').addClass('d-none');
+            $('.private-update').addClass('d-none');
+            $('.siaf-update').addClass('d-none');
+        }
     });
 
 

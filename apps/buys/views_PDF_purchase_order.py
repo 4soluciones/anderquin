@@ -445,6 +445,8 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     style_table_4 = [
         ('BOX', (0, 0), (-1, -1), 2, colors.black),
         ('BACKGROUND', (0, 0), (-1, -1), COLOR_BLUE),
+        # ('BACKGROUND', (0, 0), (4, 0), COLOR_BLUE),
+        # ('BACKGROUND', (5, 0), (7, 0), colors.lightgreen),
         ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
         ('ALIGNMENT', (0, 0), (-1, 0), 'CENTER'),
     ]
@@ -455,16 +457,16 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     p4_4 = Paragraph(f'CANTIDAD', styles["CenterSquare"])
     # p4_4 = Paragraph(f'UM', styles["Left"])
     p4_5 = Paragraph(f'U. M.', styles["CenterSquare"])
-    # p4_5 = Paragraph(f'P/Und', styles["Left"])
+    p4_6 = Paragraph(f'CANT./U. M.', styles["Left"])
     # p4_6 = Paragraph(f'UNIDADES', styles["Left"])
-    p4_6 = Paragraph(f'PRECIO UNIT.', styles["Left"])
-    p4_7 = Paragraph(f'SUB TOTAL', styles["Right"])
+    p4_7 = Paragraph(f'PRECIO UNIT.', styles["Left"])
+    p4_8 = Paragraph(f'SUB TOTAL', styles["Right"])
 
-    colwiths_table_4 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 39 / 100, _wt * 10 / 100, _wt * 15 / 100,
-                        _wt * 12 / 100, _wt * 12 / 100]
+    colwiths_table_4 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 30 / 100, _wt * 11 / 100, _wt * 15 / 100, _wt * 10 / 100,
+                        _wt * 11 / 100, _wt * 11 / 100]
     rowwiths_table_4 = [inch * 1]
     ana_c4 = Table(
-        [(p4_1, p4_2, p4_3, p4_4, p4_5, p4_6, p4_7)],
+        [(p4_1, p4_2, p4_3, p4_4, p4_5, p4_6, p4_7, p4_8)],
         colWidths=colwiths_table_4, rowHeights=rowwiths_table_4)
     ana_c4.setStyle(TableStyle(style_table_4))
 
@@ -486,37 +488,36 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     for i in purchase_detail.all():
         product = i.product
         product_detail_obj = ProductDetail.objects.get(product=product, unit=i.unit)
-        cantidad_unidad = int(product_detail_obj.quantity_minimum)
-        quantity_x_und = (i.quantity / cantidad_unidad).quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_UP)
+        quantity_minimum = product_detail_obj.quantity_minimum
+
+        # quantity_x_und = (i.quantity / cantidad_unidad).quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_UP)
         num = f'{contador}'
         contador += 1
         cod = f'{product.code}'
-        descripcion = f'{product.name}'
-        um = f'{i.unit.description}({cantidad_unidad}UND)'
+        description = f'{product.name}'
+        um = f'{i.unit.description}({int(quantity_minimum)}UND)'
 
         quantity = f'{int(i.quantity)}'
-        p_und = f'{int(i.quantity / cantidad_unidad)}'
-        precio_unidad = f'{round(i.price_unit, 6)}'
-        # sub_total = round(i.multiplicate(), 2)
-        sub_total = (i.price_unit * i.quantity).quantize(decimal.Decimal('0.00'),
-                                                             rounding=decimal.ROUND_HALF_EVEN)
+        quantity_und = decimal.Decimal(i.quantity / quantity_minimum)
+        price_unit = f'{round(i.price_unit, 6)}'
+        sub_total = (i.price_unit * quantity_und).quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_EVEN)
 
         total += sub_total
 
         p5_1 = Paragraph(num, styles["CenterSquare"])
         p5_2 = Paragraph(cod, styles["Left"])
-        p5_3 = Paragraph(descripcion, styles["Left"])
-        p5_6 = Paragraph(f'{quantity}', styles["CenterSquare"])
+        p5_3 = Paragraph(description, styles["Left"])
         p5_4 = Paragraph(um, styles["CenterSquare"])
-        # p5_5 = Paragraph(f'{p_und}', styles["Left"])
-        p5_7 = Paragraph(f'{precio_unidad}', styles["Left"])
+        p5_5 = Paragraph(f'{int(quantity_und)}', styles["CenterSquare"])
+        p5_6 = Paragraph(f'{quantity}', styles["CenterSquare"])
+        p5_7 = Paragraph(f'{price_unit}', styles["Left"])
         p5_8 = Paragraph('{:,}'.format(sub_total), styles["Right"])
 
-        colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 39 / 100, _wt * 10 / 100, _wt * 15 / 100,
-                            _wt * 12 / 100, _wt * 12 / 100]
+        colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 30 / 100, _wt * 11 / 100, _wt * 15 / 100, _wt * 10 / 100,
+                            _wt * 11 / 100, _wt * 11 / 100]
         rowwiths_table_5 = [inch * 0.5]
         ana_c5 = Table(
-            [(p5_1, p5_2, p5_3, p5_6, p5_4, p5_7, p5_8)],
+            [(p5_1, p5_2, p5_3, p5_6, p5_4, p5_5, p5_7, p5_8)],
             colWidths=colwiths_table_5, rowHeights=rowwiths_table_5)
         ana_c5.setStyle(TableStyle(style_table_5))
 
@@ -650,23 +651,23 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         p9_8 = Paragraph(f'{purchase_obj.reference.upper()}', styles["Left"])
         p9_9 = Paragraph(f'Código SIAF: ', styles["Right"])
         p9_10 = Paragraph(f'{siaf}', styles["Left"])
+        p9_11 = Paragraph(f'Fecha de Entrega: ', styles["Right"])
+        p9_12 = Paragraph(f'{purchase_obj.delivery_date.strftime("%d/%m/%Y")}', styles["Left"])
 
         colwiths_table_9 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
-        rowwiths_table_9 = [inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.75, inch * 0.5]
+        rowwiths_table_9 = [inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.75, inch * 0.5, inch * 0.75]
         ana_c9 = Table(
             [(p9_1, '', p9_2)] +
             [(p9_3, '', p9_4)] +
             [(p9_9, '', p9_10)] +
             [(p9_5, '', p9_6)] +
-            [(p9_7, '', p9_8)],
+            [(p9_7, '', p9_8)] +
+            [(p9_11, '', p9_12)],
             colWidths=colwiths_table_9, rowHeights=rowwiths_table_9)
         ana_c9.setStyle(TableStyle(style_table_9))
 
         _dictionary.append(Spacer(width=8, height=16))
         _dictionary.append(ana_c9)
-
-        # **************************************************************************************************************** #
-        # **************************************************************************************************************** #
 
         # ********************* if ********************* #
         if purchase_obj.client_reference_entity:
@@ -831,7 +832,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     #
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
+    # response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
 
     tomorrow = datetime.now() + timedelta(days=1)
     tomorrow = tomorrow.replace(hour=0, minute=0, second=0)
