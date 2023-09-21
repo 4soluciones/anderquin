@@ -633,8 +633,11 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         # addressEntity_obj = reference_obj.entity_address.all().first()
 
         client_address = '-'
+        siaf = '-'
         if client_reference.clientaddress_set.exists():
             client_address = client_reference.clientaddress_set.last().address.upper()
+        if purchase_obj.client_reference.cod_siaf:
+            siaf = purchase_obj.client_reference.cod_siaf
 
         p9_1 = Paragraph(f'Razón Social: ', styles["Right"])
         p9_2 = Paragraph(f'{client_reference.names.upper()}', styles["Left"])
@@ -644,13 +647,16 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         p9_6 = Paragraph(f'{client_address}', styles["Left"])
         p9_7 = Paragraph(f'Referencia: ', styles["Right"])
         # p9_8 = Paragraph(f'{purchase_obj.oc_supplier}', styles["Left"])
-        p9_8 = Paragraph(f'{purchase_obj.reference}', styles["Left"])
+        p9_8 = Paragraph(f'{purchase_obj.reference.upper()}', styles["Left"])
+        p9_9 = Paragraph(f'Código SIAF: ', styles["Right"])
+        p9_10 = Paragraph(f'{siaf}', styles["Left"])
 
         colwiths_table_9 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
-        rowwiths_table_9 = [inch * 0.5, inch * 0.5, inch * 0.75, inch * 0.5]
+        rowwiths_table_9 = [inch * 0.5, inch * 0.5, inch * 0.5, inch * 0.75, inch * 0.5]
         ana_c9 = Table(
             [(p9_1, '', p9_2)] +
             [(p9_3, '', p9_4)] +
+            [(p9_9, '', p9_10)] +
             [(p9_5, '', p9_6)] +
             [(p9_7, '', p9_8)],
             colWidths=colwiths_table_9, rowHeights=rowwiths_table_9)
@@ -825,7 +831,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     #
 
     response = HttpResponse(content_type='application/pdf')
-    # response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
+    response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
 
     tomorrow = datetime.now() + timedelta(days=1)
     tomorrow = tomorrow.replace(hour=0, minute=0, second=0)

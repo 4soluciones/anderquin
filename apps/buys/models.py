@@ -62,7 +62,6 @@ class Purchase(models.Model):
     TYPE_CHOICES = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'),)
     CURRENCY_TYPE_CHOICES = (('S', 'SOL'), ('D', 'DOLAR'),)
     PAYMENT_METHOD_CHOICES = (('CO', 'CONTADO'), ('CR', 'CREDITO'),)
-    # DELIVERY_CHOICES = (('A', 'Anderquin'), ('P', 'Proveedor'))
     id = models.AutoField(primary_key=True)
     supplier = models.ForeignKey(Supplier, verbose_name='Proveedor', on_delete=models.CASCADE, null=True, blank=True)
     purchase_date = models.DateField('Fecha compra', null=True, blank=True)
@@ -70,11 +69,8 @@ class Purchase(models.Model):
     user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, null=True, blank=True)
     subsidiary = models.ForeignKey(Subsidiary, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='S')
-    # truck = models.ForeignKey(Truck, on_delete=models.SET_NULL, null=True, blank=True)
     type_bill = models.CharField('Tipo de comprobante', max_length=1, choices=TYPE_CHOICES, default='T')
     delivery_choice = models.CharField('Entrega a', max_length=2, choices=TYPE_CHOICES, default='S')
-    ###################
-
     currency_type = models.CharField('Tipo de moneda', max_length=1, choices=CURRENCY_TYPE_CHOICES, default='S')
     client_reference = models.ForeignKey('sales.Client', verbose_name='Cliente de venta', on_delete=models.CASCADE,
                                          null=True, blank=True)
@@ -83,17 +79,20 @@ class Purchase(models.Model):
                                                 null=True, blank=True, related_name='client_entity')
     payment_method = models.CharField('Método de Pago', max_length=2, choices=PAYMENT_METHOD_CHOICES, default='CO')
     payment_condition = models.CharField('Condicion de Pago', max_length=255, null=True, blank=True)
-    money_change = models.ForeignKey(MoneyChange, verbose_name='Cambio de Moneda', on_delete=models.CASCADE, null=True,
-                                     blank=True)
     delivery_address = models.CharField('Direccion de envio', max_length=200, null=True, blank=True)
     city = models.CharField('Ciudad', max_length=200, null=True, blank=True)
     observation = models.TextField('Observación', blank=True, null=True)
-    oc_supplier = models.CharField('Referencia', max_length=100, blank=True, null=True)
     contract_detail = models.ForeignKey('buys.ContractDetail', on_delete=models.CASCADE, null=True, blank=True)
     delivery_date = models.DateField('Fecha de entrega', null=True, blank=True)
     correlative = models.IntegerField('Correlativo', null=True, blank=True)
     reference = models.CharField('Referencia', max_length=100, blank=True, null=True)
     check_igv = models.BooleanField('Habilitado IGV', default=True)
+    delivery_subsidiary = models.ForeignKey(Subsidiary, on_delete=models.SET_NULL, null=True, blank=True,
+                                            related_name='delivery_subsidiary')
+    delivery_supplier = models.ForeignKey('sales.SupplierAddress', on_delete=models.CASCADE, null=True, blank=True)
+    delivery_client = models.ForeignKey('sales.ClientAddress', on_delete=models.CASCADE, null=True, blank=True)
+    # delivery_client_final = models.ForeignKey('sales.Client', on_delete=models.CASCADE, null=True, blank=True,
+    #                                           related_name='delivery_client_final')
 
     def __str__(self):
         return str(self.id)

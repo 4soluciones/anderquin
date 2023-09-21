@@ -18,15 +18,12 @@
                                            value="{{ contract_detail_obj.id }}">
                                     <input type="hidden" id="purchase_id" value="{{ purchase.id }}">
                                     {% if contract_detail_obj %}
-                                        <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
-                                            <label><span
-                                                    class="text-danger">EDITAR:</span> {{ contract_detail_obj.contract.contract_number }}-
-                                                FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}
-                                            </label>
+                                        <h6 class="text-white font-weight-bold mt-4 mb-0 text-warning">
+                                            EDITAR: {{ contract_detail_obj.contract.contract_number }} - FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}
                                         </h6>
                                     {% else %}
-                                        <h5 class="montserrat text-white font-weight-bold mt-4 mb-0">
-                                            <label>EDITAR ORDEN DE COMPRA:</label>
+                                        <h5 class="text-white font-weight-bold mt-4 mb-0 text-warning">
+                                            <label>EDITAR ORDEN DE COMPRA: {{ purchase.bill_number }}</label>
                                         </h5>
                                     {% endif %}
 
@@ -140,9 +137,9 @@
                                             <div class="row p-1">
                                                 <div class="col-sm-4 col-md-4 col-lg-4">
                                                     <label for="reference">Referencia</label>
-                                                    <input type="text" class="form-control" id="reference"
+                                                    <input type="text" class="form-control text-uppercase" id="reference"
                                                            name="reference" autocomplete="off"
-                                                           placeholder="Orden de compra - proveedor"
+                                                           placeholder="O/C"
                                                            value="{{ purchase.reference|default_if_none:'' }}" required>
                                                 </div>
 
@@ -263,12 +260,11 @@
                                                 </div>
                                                 {#        <label>Lugar de Entrega:</label>#}
                                                 <select id="address_subsidiary" name="address_subsidiary"
-                                                        class="form-control">
+                                                        class="form-control" aria-label="...">
                                                     <option value="0">Seleccione</option>
                                                     {% for s in subsidiary_set %}
-                                                        {% if s.id == purchase.subsidiary.id %}
-                                                            <option selected
-                                                                    value="{{ s.id }}">{{ s.name|upper }}</option>
+                                                        {% if s.id == purchase.delivery_subsidiary.id %}
+                                                            <option selected value="{{ s.id }}">{{ s.address }}</option>
                                                         {% else %}
                                                             <option value="{{ s.id }}">{{ s.name|upper }}</option>
                                                         {% endif %}
@@ -283,14 +279,16 @@
                                                     <label for="check-provider" class="custom-control-label">Entrega en
                                                         Proveedor</label>
                                                 </div>
-                                                {#        <label>Lugar de Entrega:</label>#}
                                                 <select id="address_provider" name="address_provider"
                                                         class="form-control" aria-label="...">
-                                                    {% if purchase.delivery_choice == 'P' %}
-                                                        <option value="0">{{ purchase.delivery_address }}</option>
-                                                    {% else %}
-                                                        <option value="0">Seleccione</option>
-                                                    {% endif %}
+                                                    <option selected disabled value="0">Seleccione</option>
+                                                    {% for s in supplier_address_set %}
+                                                        {% if s.id == purchase.delivery_supplier.id %}
+                                                            <option selected value="{{ s.id }}">{{ s.address }}</option>
+                                                        {% else %}
+                                                            <option value="{{ s.id }}">{{ s.address }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
                                                 </select>
                                             </div>
                                             <div class="col-sm-6 col-md-6 col-lg-6 delivery-client">
@@ -302,14 +300,18 @@
                                                 </div>
                                                 <select id="client_address_reference" name="client_address_reference"
                                                         class="form-control" aria-label="...">
-                                                    {% if purchase.delivery_choice == 'CR' %}
-                                                        <option value="0">{{ purchase.delivery_address }}</option>
-                                                    {% else %}
-                                                        <option value="0">Seleccione</option>
-                                                    {% endif %}
+                                                    <option selected disabled value="0">Seleccione</option>
+                                                    {% for c in client_reference_address_set %}
+                                                        {% if c.id == purchase.delivery_client.id %}
+                                                            <option selected
+                                                                    value="{{ c.id }}">{{ c.address }}</option>
+                                                        {% else %}
+                                                            <option value="{{ c.id }}">{{ c.address }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
                                                 </select>
                                             </div>
-                                            <div class="col-sm-6 col-md-6 col-lg-6 delivery-client-final d-none">
+                                            <div class="col-sm-6 col-md-6 col-lg-6 delivery-client-final {% if purchase.client_reference.type_client == 'PU' %}d-none{% endif %}">
                                                 <div class="custom-control custom-checkbox">
                                                     <input class="custom-control-input" type="checkbox"
                                                            id="check-client-final"
@@ -320,11 +322,15 @@
                                                 </div>
                                                 <select id="client_final_address" name="client_final_address"
                                                         class="form-control" aria-label="...">
-                                                    {% if purchase.delivery_choice == 'CP' %}
-                                                        <option value="0">{{ purchase.delivery_address }}</option>
-                                                    {% else %}
-                                                        <option value="0">Seleccione</option>
-                                                    {% endif %}
+                                                    <option selected disabled value="0">Seleccione</option>
+                                                    {% for c in client_reference_entity_address_set %}
+                                                        {% if c.id == purchase.delivery_client.id %}
+                                                            <option selected
+                                                                    value="{{ c.id }}">{{ c.address }}</option>
+                                                        {% else %}
+                                                            <option value="{{ c.id }}">{{ c.address }}</option>
+                                                        {% endif %}
+                                                    {% endfor %}
                                                 </select>
                                             </div>
                                         </div>
@@ -616,9 +622,8 @@
             '</div>' +
             '</div>';
 
-        $("#id_ruc_provider").attr('maxlength', 11);
-
         $(document).ready(function () {
+            //$('#supplier_id').trigger('change');
             let _check = $("#check_dollar")
             if (_check.is(':checked')) {
                 $(".change-money").text('$')
@@ -668,54 +673,6 @@
         });
 
         $("#btn-type-change").trigger('click');
-
-        $(document).on('keypress', '#id_ruc_provider', function (e) {
-
-            if (e.keyCode === 13) {
-
-                e.preventDefault()
-
-                $(this).trigger("enterKey");
-                let _ruc = $(this).val();
-                let _provider = $('#id_provider')
-
-                $('#loading-666').html(loader).show()
-
-                $.ajax({
-                    url: '/buys/get_provider_by_ruc/',
-                    async: true,
-                    dataType: 'json', // for response
-                    type: 'GET',
-                    data: {
-                        'ruc': _ruc,
-                    },
-                    contentType: 'application/json;charset=UTF-8',
-                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                    success: function (response, textStatus, xhr) {
-                        if (xhr.status === 200) {
-                            toastr.success(response.message, '¡Bien hecho!');
-                            {#console.log(response)#}
-                            _provider.val(response.result);
-                            _provider.attr('provider', response.pk);
-                            $('#loading-666').hide();
-                        }
-                    },
-                    error: function (jqXhr, textStatus, xhr) {
-                        if (jqXhr.status === 500) {
-                            toastr.error(jqXhr.responseJSON.error, 'Mensaje');
-                        } else {
-                            if (textStatus === 'timeout') {
-                                toastr.error('Failed from timeout', 'Mensaje');
-                            } else {
-                                console.log(" STATUS: " + xhr + " " + textStatus);
-                            }
-                        }
-                        $('#loading-666').hide();
-                    },
-                });
-                return false;
-            }
-        });
 
         $("#btn-new").click(function () {
             setTimeout(() => {
@@ -1477,6 +1434,7 @@
                 });
             }
         });
+
 
     </script>
 
