@@ -2399,9 +2399,32 @@ def get_buy_list(request, contract_detail=None):
     contract_detail_obj = None
     contract_detail_item_set = None
     contract_dict = []
+    client = []
     if contract_detail is not None:
         contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail))
         contract_detail_item_set = ContractDetailItem.objects.filter(contract_detail__id=contract_detail)
+        client_reference_set = Client.objects.filter(id=contract_detail_obj.contract.client.id)
+
+        for c in client_reference_set:
+            client_address_set = c.clientaddress_set.all()
+            if client_address_set.exists():
+                address_dict = [{
+                    'id': cd.id,
+                    'address': cd.address,
+                    'district': cd.district.description,
+                } for cd in client_address_set]
+            else:
+                address_dict = []
+
+            client.append({
+                'id': c.id,
+                'names': c.names,
+                'type_client_display': c.get_type_client_display(),
+                'type_client': c.type_client,
+                'number': c.clienttype_set.last().document_number,
+                'address': address_dict
+            })
+
         for counter, d in enumerate(contract_detail_item_set, start=1):
             item_contract = {
                 'contract_detail_id': d.contract_detail.id,
@@ -2425,21 +2448,22 @@ def get_buy_list(request, contract_detail=None):
             contract_dict.append(item_contract)
     supplier_obj = Supplier.objects.all()
     product_obj = Product.objects.all()
-    unitmeasurement_obj = Unit.objects.all()
+    # unitmeasurement_obj = Unit.objects.all()
     my_date = datetime.now()
     formatdate = my_date.strftime("%Y-%m-%d")
     correlative = get_correlative_by_subsidiary(subsidiary_obj)
     return render(request, 'buys/buy_list.html', {
         'supplier_obj': supplier_obj,
-        'unitmeasurement_obj': unitmeasurement_obj,
+        # 'unitmeasurement_obj': unitmeasurement_obj,
         'product_obj': product_obj,
-        'choices_payments': TransactionPayment._meta.get_field('type').choices,
+        # 'choices_payments': TransactionPayment._meta.get_field('type').choices,
         'choices_payments_purchase': Purchase._meta.get_field('payment_method').choices,
         'formatdate': formatdate,
         'supplier_set': Supplier.objects.all(),
         'client_set': Client.objects.all(),
         'subsidiary_set': Subsidiary.objects.all().order_by('id'),
         'contract_detail_obj': contract_detail_obj,
+        'client': json.dumps(client),
         'contract_detail_item_set': contract_detail_item_set,
         'contract_dict': contract_dict,
         'correlative': str(correlative).zfill(4)
@@ -3021,7 +3045,8 @@ def update_purchase(request, pk=None):
     if purchase_obj.client_reference:
         client_reference_address_set = ClientAddress.objects.filter(client__id=purchase_obj.client_reference.id)
     if purchase_obj.client_reference_entity:
-        client_reference_entity_address_set = ClientAddress.objects.filter(client__id=purchase_obj.client_reference_entity.id)
+        client_reference_entity_address_set = ClientAddress.objects.filter(
+            client__id=purchase_obj.client_reference_entity.id)
 
     if purchase_obj.contract_detail is not None:
         contract_detail_obj = ContractDetail.objects.get(id=int(purchase_obj.contract_detail.id))
@@ -3296,10 +3321,34 @@ def save_update_purchase(request):
         }, status=HTTPStatus.OK)
 
 
+def get_client(request):
+    if request.method == 'GET':
+        search = request.GET.get('search')
+        client = []
+        if search:
+            client_set = Client.objects.filter(names__icontains=search)
+            for c in client_set:
+                client_address_set = c.clientaddress_set.all()
+                if client_address_set.exists():
+                    address_dict = [{
+                        'id': cd.id,
+                        'address': cd.address,
+                        'district': cd.district.description,
+                        'reference': cd.reference
+                    } for cd in client_address_set]
+                else:
+                    address_dict = []
 
+                client.append({
+                    'id': c.id,
+                    'names': c.names,
+                    'type_client_display': c.get_type_client_display(),
+                    'type_client': c.type_client,
+                    'number': c.clienttype_set.last().document_number,
+                    'address': address_dict
+                })
 
-
-
-
-
-
+        return JsonResponse({
+            'status': True,
+            'client': client
+        })

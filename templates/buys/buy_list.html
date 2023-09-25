@@ -285,7 +285,15 @@
 
         $(document).ready(function () {
             if ($('#contract_detail_id').val() !== '') {
-                $('#client_reference_id').trigger('change');
+                //let client_set = {{ client|safe }};
+                let client = {
+                    names: {{ client|safe }}[0].names,
+                    id: {{ client|safe }}[0].id,
+                    type_client: {{ client|safe }}[0].type_client,
+                    address: {{ client|safe }}[0].address
+                };
+                //console.log(client)
+                handleClientSubmit(client)
             }
         });
 
@@ -887,37 +895,6 @@
             }
         });
 
-        /*$(document).on('click', '#add-dues', function (e) {
-
-            let _amount_due = $('#amount-due').val();
-
-
-            $('#id_debs_grid > tbody').append(
-                '<tr class="text-center">' +
-                '<td class="align-middle text-center due-count">' + '</td>' +
-                '<td class="align-middle text-center amount-due">' + 'S/ ' + _amount_due + '</td>' +
-                '<td class="align-middle"> ' + '<button type="button" onclick="deletedues(this)" class="btn btn-danger delete-detail" style="font-size: 0.6em"><i class="fa fa-trash" style="font-size: 1.5em"></i></button>' + '</td>' +
-                '</tr>'
-            );
-            counterStrikedebs()
-            $('#amount-due').val('');
-
-        });
-
-        function counterStrikedebs() {
-            let l = 1;
-            $('#details-dues tr').each(function () {
-                $(this).attr('i', l);
-                $(this).children('td:nth-child(1)').text(l);
-                l++;
-            });
-        }
-
-        function deletedues(btn) {
-            btn.parentNode.parentNode.remove();
-            counterStrikedebs();
-        }*/
-
         function getAddress(client_id, _select) {
             $.ajax({
                 url: '/buys/get_address_by_client_id/',
@@ -940,7 +917,7 @@
             });
         }
 
-        $(document).on('change', '#client_reference_id', function (e) {
+        /*$(document).on('change', '#client_reference_id', function (e) {
             let client_id = $(this).val();
             let _select = $('#client_address_reference')
 
@@ -965,7 +942,7 @@
                 toastr.warning('Seleccione un cliente valido', 'Error de llenado');
                 return false;
             }
-        });
+        });*/
 
         $(document).on('change', '#client_final', function (e) {
             let client_id = $(this).val();
@@ -1031,6 +1008,80 @@
                 });
             }
         });
+
+        new Autocomplete('#autocomplete-client', {
+            search: input => {
+                const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
+
+                return new Promise(resolve => {
+                    if (input.length < 3) {
+                        //$('#person-number').val('')
+                        //$('#order-number').val('')
+                        return resolve([])
+                    }
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            resolve(data.client)
+                        })
+                })
+            },
+            renderResult: (result, props) => {
+                let group = ''
+                if (result.index % 3 === 0) {
+                    group = '<li class="group">Group</li>'
+                }
+                return `
+                ${group}
+                <li ${props}>
+                 <div class="h6" style="font-family: roboto_condensed_regular">
+                    ${result.names}
+                 </div>
+                 <div class="wiki-snippet text-black">
+                    Tipo: ${result.type_client_display}
+                  </div>
+                </li>
+                `
+            },
+            getResultValue: result => result.names,
+            onSubmit: handleClientSubmit
+        })
+
+        async function handleClientSubmit(result) {
+            if (result) {
+                let client_id = result.id;
+                let _select = $('#client_address_reference');
+                let type_client = result.type_client;
+                $('#client_reference_id').val(client_id);
+                if (type_client === 'PR') {
+                    $('#client_final').val("0");
+                    $('#client_final_address').val("0");
+                    $('.client-final').removeClass('d-none');
+                    $('.delivery-client-final').removeClass('d-none');
+                    $('.delivery-client').addClass('d-none');
+
+                } else {
+                    $('.client-final').addClass('d-none');
+                    $('#client_final_address').val("0");
+                    $('.delivery-client-final').addClass('d-none');
+                    $('.delivery-client').removeClass('d-none');
+                    //await getAddress(client_id, _select)
+                    _select.empty();
+                    let _client_address = result.address;
+                    //console.log("_result", result)
+                    _select.append($('<option>').val("0").text('Seleccione'));
+                    if (_client_address !== '[]') {
+                        for (let i = 0; i < _client_address.length; i++) {
+                            let option = $('<option>').val(_client_address[i]['id']).text(_client_address[i]['address'].toUpperCase());
+                            _select.append(option);
+                        }
+                    }
+                }
+            } else {
+                toastr.warning('Seleccione un cliente valido', 'Error de llenado');
+                return false;
+            }
+        }
 
     </script>
 

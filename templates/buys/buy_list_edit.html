@@ -188,7 +188,7 @@
 
                                                 <div class="col-sm-4 col-md-4 col-lg-4">
                                                     <button type="submit" id="btn-save"
-                                                            class="btn btn-sm btn-primary btn-block p-1">Guardar
+                                                            class="btn btn-sm btn-warning btn-block p-1">Actualizar
                                                     </button>
                                                 </div>
 
@@ -215,22 +215,35 @@
                                         <div class="row p-1">
                                             <div class="col-sm-6 col-md-6 col-lg-6">
                                                 <label for="client_reference_id">Referencia de Venta: (Cliente)</label>
-                                                <select id="client_reference_id" name="client_reference_id"
-                                                        class="form-control">
-                                                    <option disabled value="0">Seleccione</option>
-                                                    {% for c in client_set %}
-                                                        {% if purchase.client_reference.id == c.id %}
-                                                            <option style="background-color: #97e3a8" selected
-                                                                    value="{{ c.id }}"
-                                                                    type="{{ c.type_client }}">{{ c.names|upper }}
-                                                                | {{ c.get_type_client_display }}</option>
-                                                        {% else %}
-                                                            <option value="{{ c.id }}"
-                                                                    type="{{ c.type_client }}">{{ c.names|upper }}
-                                                                | {{ c.get_type_client_display }}</option>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </select>
+                                                <div id="autocomplete-client" class="autocomplete">
+                                                    <input class="form-control autocomplete-input"
+                                                           type="text"
+                                                           id="person-names"
+                                                           name="person-names"
+                                                           maxlength="200"
+                                                           autocomplete="off"
+                                                           value="{{ purchase.client_reference.names }}"
+                                                           placeholder="Buscar Cliente..."/>
+                                                    <ul class="autocomplete-result-list"></ul>
+                                                </div>
+                                                <input type="hidden" id="client_reference_id"
+                                                       name="client_reference" value="{{ purchase.client_reference.id }}">
+{#                                                <select id="client_reference_id" name="client_reference_id"#}
+{#                                                        class="form-control">#}
+{#                                                    <option disabled value="0">Seleccione</option>#}
+{#                                                    {% for c in client_set %}#}
+{#                                                        {% if purchase.client_reference.id == c.id %}#}
+{#                                                            <option style="background-color: #97e3a8" selected#}
+{#                                                                    value="{{ c.id }}"#}
+{#                                                                    type="{{ c.type_client }}">{{ c.names|upper }}#}
+{#                                                                | {{ c.get_type_client_display }}</option>#}
+{#                                                        {% else %}#}
+{#                                                            <option value="{{ c.id }}"#}
+{#                                                                    type="{{ c.type_client }}">{{ c.names|upper }}#}
+{#                                                                | {{ c.get_type_client_display }}</option>#}
+{#                                                        {% endif %}#}
+{#                                                    {% endfor %}#}
+{#                                                </select>#}
 
                                             </div>
                                             <div class="col-sm-6 col-md-6 col-lg-6 client-final {% if purchase.client_reference.type_client == 'PU' %}d-none{% endif %}">
@@ -1434,6 +1447,79 @@
                 });
             }
         });
+
+        new Autocomplete('#autocomplete-client', {
+            search: input => {
+                const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
+
+                return new Promise(resolve => {
+                    if (input.length < 3) {
+                        //$('#person-number').val('')
+                        //$('#order-number').val('')
+                        return resolve([])
+                    }
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            resolve(data.client)
+                        })
+                })
+            },
+            renderResult: (result, props) => {
+                let group = ''
+                if (result.index % 3 === 0) {
+                    group = '<li class="group">Group</li>'
+                }
+                return `
+                ${group}
+                <li ${props}>
+                 <div class="h6" style="font-family: roboto_condensed_regular">
+                    ${result.names}
+                 </div>
+                 <div class="wiki-snippet text-black">
+                    Tipo: ${result.type_client_display}
+                  </div>
+                </li>
+                `
+            },
+            getResultValue: result => result.names,
+            onSubmit: handleClientSubmit
+        })
+        async function handleClientSubmit(result) {
+            if (result) {
+                let client_id = result.id;
+                let _select = $('#client_address_reference');
+                let type_client = result.type_client;
+                $('#client_reference_id').val(client_id);
+                if (type_client === 'PR') {
+                    $('#client_final').val("0");
+                    $('#client_final_address').val("0");
+                    $('.client-final').removeClass('d-none');
+                    $('.delivery-client-final').removeClass('d-none');
+                    $('.delivery-client').addClass('d-none');
+
+                } else {
+                    $('.client-final').addClass('d-none');
+                    $('#client_final_address').val("0");
+                    $('.delivery-client-final').addClass('d-none');
+                    $('.delivery-client').removeClass('d-none');
+                    //await getAddress(client_id, _select)
+                    _select.empty();
+                    let _client_address = result.address;
+                    //console.log("_result", result)
+                    _select.append($('<option>').val("0").text('Seleccione'));
+                    if (_client_address !== '[]') {
+                        for (let i = 0; i < _client_address.length; i++) {
+                            let option = $('<option>').val(_client_address[i]['id']).text(_client_address[i]['address'].toUpperCase());
+                            _select.append(option);
+                        }
+                    }
+                }
+            } else {
+                toastr.warning('Seleccione un cliente valido', 'Error de llenado');
+                return false;
+            }
+        }
 
 
     </script>

@@ -119,4 +119,7 @@ urlpatterns = [
     path('get_purchases_by_client/', login_required(get_purchases_by_client), name='get_purchases_by_client'),
     path('save_bill/', login_required(save_bill), name='save_bill'),
     path('print_pdf_bill/<int:pk>/', print_pdf_bill, name='print_pdf_bill'),
+
+    # GET CLIENT
+    path('get_client/', login_required(get_client), name='get_client'),
 ]

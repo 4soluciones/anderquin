@@ -1,18 +1,30 @@
 <div class="row p-1">
     <div class="col-sm-6 col-md-6 col-lg-6">
-        <label for="client_reference_id">Referencia de Venta: (Cliente)</label>
-        <select id="client_reference_id" name="client_reference_id" class="form-control">
-            <option value="0">Seleccione</option>
-            {% for c in client_set %}
-                {% if contract_detail_obj.contract.client.id == c.id %}
-                    <option style="background-color: #97e3a8" selected value="{{ c.id }}" type="{{ c.type_client }}">{{ c.names|upper }}
-                        | {{ c.get_type_client_display }}</option>
-                {% else %}
-                    <option value="{{ c.id }}" type="{{ c.type_client }}">{{ c.names|upper }}
-                        | {{ c.get_type_client_display }}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
+        <label for="person-names">Referencia de Venta: (Cliente)</label>
+        <div id="autocomplete-client" class="autocomplete">
+            <input class="form-control autocomplete-input"
+                   type="text"
+                   id="person-names"
+                   name="person-names"
+                   maxlength="200"
+                   autocomplete="off"
+                   value="{{ contract_detail_obj.contract.client.names }}"
+                   placeholder="Buscar Cliente..."/>
+            <ul class="autocomplete-result-list"></ul>
+        </div>
+        <input type="hidden" id="client_reference_id" name="client_reference" value="">
+        {#        <select id="client_reference_id" name="client_reference_id" class="form-control">#}
+        {#            <option value="0">Seleccione</option>#}
+        {#            {% for c in client_set %}#}
+        {#                {% if contract_detail_obj.contract.client.id == c.id %}#}
+        {#                    <option style="background-color: #97e3a8" selected value="{{ c.id }}" type="{{ c.type_client }}">{{ c.names|upper }}#}
+        {#                        | {{ c.get_type_client_display }}</option>#}
+        {#                {% else %}#}
+        {#                    <option value="{{ c.id }}" type="{{ c.type_client }}">{{ c.names|upper }}#}
+        {#                        | {{ c.get_type_client_display }}</option>#}
+        {#                {% endif %}#}
+        {#            {% endfor %}#}
+        {#        </select>#}
 
     </div>
     <div class="col-sm-6 col-md-6 col-lg-6 client-final d-none">
