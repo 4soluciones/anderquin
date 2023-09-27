@@ -6,17 +6,19 @@
             <thead>
             <tr class="text-center bg-info text-white text-uppercase">
                 {#                        <th>#</th>#}
-                <th class="th-sm" style="width: 3%"><i class="fas fa-check"></i></th>
+{#                <th class="th-sm" style="width: 3%"><i class="fas fa-check"></i></th>#}
                 {#                        <th class="th-sm" style="width: 5%">Contrato</th>#}
-                <th class="th-sm" style="width: 15%">Proveedor</th>
-                <th class="th-sm" style="width: 9%">Orden de Compra</th>
+                <th class="th-sm" style="width: 5%">Fecha</th>
+                <th class="th-sm" style="width: 5%">O/C</th>
+                <th class="th-sm" style="width: 2%">Nº</th>
+                <th class="th-sm" style="width: 16%">Proveedor</th>
                 {#                        <th class="th-sm" style="width: 7%">Fecha compra</th>#}
-                <th class="th-sm" style="width: 18%">Cliente</th>
-                <th class="th-sm" style="width: 18%">Cliente Referido</th>
-                <th class="th-sm" style="width: 19%">Direccion de entrega</th>
+                <th class="th-sm" style="width: 20%">Cliente</th>
+                <th class="th-sm" style="width: 19%">Cliente Referido</th>
+                <th class="th-sm" style="width: 20%">Direccion de entrega</th>
                 <th class="th-sm" style="width: 5%">Usuario</th>
                 {#                <th class="th-sm" style="width: 8%">Estado</th>#}
-                <th class="th-sm" style="width: 8%">O/C</th>
+                <th class="th-sm" style="width: 3%"><i class="fas fa-print"></i></th>
                 <th class="th-sm" style="width: 5%">Accion</th>
             </tr>
             </thead>
@@ -24,30 +26,30 @@
             {% for p in purchases %}
                 <tr class="text-center" pk="{{ p.id }}">
                     {#                            <td>{{ p.id }}</td>#}
-                    <td>
-                        <input type="checkbox"
-                               class="requirement align-middle check-purchase"
-                               style=" transform: scale(1.4)">
-                    </td>
+{#                    <td>#}
+{#                        <input type="checkbox"#}
+{#                               class="requirement align-middle check-purchase"#}
+{#                               style=" transform: scale(1.4)">#}
+{#                    </td>#}
                     {#                            <td>{{ p.contract_detail.contract.contract_number|default:'-' }}</td>#}
-                    <td class="">{{ p.supplier.name }}</td>
-                    <td class="text-left">
-                        <i class="fas fa-file-invoice"></i><span
-                            class="font-weight-bold"> {{ p.bill_number }}</span><br>
-                        <i class="fas fa-calendar-alt"
-                           style="color: #9b9260;"></i> {{ p.purchase_date|date:'d-m-Y' }}<br>
+                    <td class="align-middle font-weight-bold">
+                        <i class="fas fa-calendar-alt" style="color: #9b9260;"></i> {{ p.purchase_date|date:'d-m-Y' }}</td>
+                    <td class="align-middle text-center">
+                        <span class="font-weight-bold"> {{ p.bill_number }}</span><br>
                     </td>
+                    <td class="align-middle text-center">{{ p.correlative|default_if_none:'-' }}</td>
+                    <td class="align-middle text-center">{{ p.supplier.name }}</td>
                     {#                            <td>{{ p.purchase_date|date:'d-m-Y' }}</td>#}
-                    <td>{{ p.client_reference.names|upper }}</td>
-                    <td>{{ p.client_reference_entity.names|default:'-'|default_if_none:'-' }}</td>
-                    <td class="text-left">{{ p.delivery_address|default:'-'|default_if_none:'-'|upper }}</td>
-                    <td>{{ p.user.worker_set.last.employee.names }}</td>
+                    <td class="align-middle text-center">{{ p.client_reference.names|upper }}</td>
+                    <td class="align-middle text-center">{{ p.client_reference_entity.names|default:'-'|default_if_none:'-' }}</td>
+                    <td class="align-middle text-left">{{ p.delivery_address|default:'-'|default_if_none:'-'|upper }}</td>
+                    <td>{{ p.user.worker_set.last.employee.names|upper }}</td>
                     {#                    <td class="font-weight-bold {% if p.status == 'S' %} text-danger {% else %} text-success#}
                     {#                            {% endif %} bg-white">{{ p.get_status_display }}</td>#}
                     <td>
-                        <a class="btn btn-sm btn-secondary font-weight-light"
+                        <a class="btn btn-sm btn-warning font-weight-light"
                            href="{% url 'buys:print_pdf_purchase_order' p.id %}">
-                            <i class="fas fa-eye"></i> Ver Orden</a>
+                            <i class="fas fa-print"></i></a>
                     </td>
                     <td class="p-1">
                         <div class="btn-group">
@@ -56,8 +58,8 @@
                                 <i class="fas fa-filter"></i>
                             </button>
                             <div class="dropdown-menu bg-secondary text-white font-italic">
-                                <a class="dropdown-item assignment-store" pk="{{ p.id }}"><i
-                                        class="fas fa-save pr-1"></i> Asignar / Ver </a>
+{#                                <a class="dropdown-item assignment-store" pk="{{ p.id }}"><i#}
+{#                                        class="fas fa-save pr-1"></i> Asignar / Ver </a>#}
                                 <a class="dropdown-item btn-update" pk="{{ p.id }}"><i
                                         class="fas fa-edit pr-1"></i> Editar </a>
                                 <a class="dropdown-item btn-annular" pk="{{ p.id }}"><i
@@ -69,18 +71,21 @@
             {% endfor %}
             </tbody>
             <tfoot>
-            <tr class="text-center bg-info text-white" style="height: 20px">
+            <tr class="text-center bg-info text-white text-uppercase">
                 {#                        <th>#</th>#}
-                <th class="th-sm" style="width: 3%"><i class="fas fa-check"></i></th>
+{#                <th class="th-sm" style="width: 3%"><i class="fas fa-check"></i></th>#}
                 {#                        <th class="th-sm" style="width: 5%">Contrato</th>#}
+                <th class="th-sm" style="width: 5%">Fecha</th>
+                <th class="th-sm" style="width: 5%">O/C</th>
+                <th class="th-sm" style="width: 2%">Nº</th>
                 <th class="th-sm" style="width: 15%">Proveedor</th>
-                <th class="th-sm" style="width: 9%">Orden de Compra</th>
                 {#                        <th class="th-sm" style="width: 7%">Fecha compra</th>#}
                 <th class="th-sm" style="width: 18%">Cliente</th>
                 <th class="th-sm" style="width: 18%">Cliente Referido</th>
                 <th class="th-sm" style="width: 19%">Direccion de entrega</th>
-                <th class="th-sm" style="width: 5%">Usuario</th>
-                <th class="th-sm" style="width: 8%">Estado</th>
+                <th class="th-sm" style="width: 5%">USUARIO</th>
+                {#                <th class="th-sm" style="width: 8%">Estado</th>#}
+                <th class="th-sm" style="width: 3%"><i class="fas fa-print"></i></th>
                 <th class="th-sm" style="width: 5%">Accion</th>
             </tr>
             </tfoot>

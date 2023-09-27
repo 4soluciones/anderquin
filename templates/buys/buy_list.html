@@ -9,9 +9,9 @@
             <div class="card-header pt-0">
                 <div class="row"{% if contract_detail_obj %} style="background: #62a239" {% else %}
                      style="background: #1a77c8"{% endif %}>
-                    <div class="col-sm-12 col-md-12 col-lg-12">
+                    <div class="col-sm-12 col-md-12 col-lg-12" style="font-size: 12px">
                         <div class="row p-2">
-                            <div class="col-sm-4 col-md-4 col-lg-4 pr-0">
+                            <div class="col-sm-3 col-md-3 col-lg-3 pr-0">
                                 <input type="hidden" id="contract_detail_id" name="contract-detail"
                                        value="{{ contract_detail_obj.id }}">
                                 {% if contract_detail_obj %}
@@ -64,17 +64,17 @@
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-sm-2 col-md-2 col-lg-2 mt-3">
+                            <div class="col-sm-3 col-md-3 col-lg-3 mt-3">
                                 <form>
-                                    <div class="form-group row ">
+                                    <div class="form-group row">
                                         <label for="correlative"
                                                class="col-sm-5 border-0 text-white pt-2 text-right pr-0">Correlativo:</label>
                                         <div class="col-sm-7">
-                                            <div class="input-group ">
+                                            <div class="input-group">
                                                 <div class="input-group-prepend">
-                                                    <span class="input-group-text font-weight-bold">OC-2023</span>
+                                                    <span class="input-group-text font-weight-bold" style="font-size: 11px">OC-2023</span>
                                                 </div>
-                                                <input type="text"
+                                                <input type="text" style="font-size: 12px"
                                                        class="form-control text-center font-weight-bold"
                                                        id="correlative" value="{{ correlative }}" autocomplete="off">
                                             </div>
@@ -554,7 +554,11 @@
             //console.log(units)
             for (let i = 0; i < units.length; i++) {
                 let _quantity_minimum = Number(units[i].quantity_minimum).toFixed(0);
-                let option = $('<option>').val(units[i].unit_id).text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')');
+                {#let option = $('<option>').val(units[i].unit_id).text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')');#}
+                let option = $('<option>')
+                                .val(units[i].unit_id)
+                                .text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')')
+                                .attr('qm', _quantity_minimum);
                 //let option2 = $('<option>').val(units[i].unit_id).text(units[i].unit_name);
 
                 _select_unit.append(option);
@@ -778,26 +782,26 @@
             sum_table()
         });
 
-        function quantityMinimumXQuantity(quantity, quantity_minimum, tr) {
-            let _quantity_x_quantity_minimum = quantity * quantity_minimum
-            tr.find('td.item-quantity-x-unit input.quantity-x-unit').val(_quantity_x_quantity_minimum.toFixed(2));
+        function quantityDivideUnit(quantity, quantity_minimum, tr) {
+            let _quantity_quantity_minimum = quantity / quantity_minimum
+            tr.find('td.quantity-minimum input.quantity-minimum-val').val(_quantity_quantity_minimum.toFixed(2));
         }
 
         $(document).on('keyup', '.quantity-product', function () {
 
             let _tr = $(this).parent('td').parent('tr')
             let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
-            let _quantity_minimum = Number((_tr.find('td.quantity-minimum input.quantity-minimum-val').val()).replace('UND', ''))
-            let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
-            let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
+            let _quantity_minimum = Number((_tr.find('td.unit select.unit-product option:selected').attr("qm")))
+            //let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
+            //let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
 
             //console.log("_tr", _tr.find('td.item-price div.input-icon input.price-unit-product'))
             //console.log("_quantity", _quantity)
-            //console.log("_price_unit", _price_unit)
-            //console.log("_total", _total)
+            {#console.log("_price_unit", _price_unit)#}
+            {#console.log("_total", _total)#}
             //console.log("_quantity_minimum", _quantity_minimum)
-            if (_quantity_minimum !== 0) {
-                quantityMinimumXQuantity(_quantity, _quantity_minimum, _tr)
+            if (!isNaN(_quantity_minimum)) {
+                quantityDivideUnit(_quantity, _quantity_minimum, _tr)
             }
             /*if (_quantity !== 0 && _price_unit !== 0) {
                 _total = _quantity * _price_unit
