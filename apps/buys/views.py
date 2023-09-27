@@ -3333,7 +3333,7 @@ def get_client(request):
                     address_dict = [{
                         'id': cd.id,
                         'address': cd.address,
-                        'district': cd.district.description,
+                        'district': cd.district.description if cd.district else '-',
                         'reference': cd.reference
                     } for cd in client_address_set]
                 else:
