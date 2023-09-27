@@ -72,7 +72,8 @@
                                         <div class="col-sm-7">
                                             <div class="input-group">
                                                 <div class="input-group-prepend">
-                                                    <span class="input-group-text font-weight-bold" style="font-size: 11px">OC-2023</span>
+                                                    <span class="input-group-text font-weight-bold"
+                                                          style="font-size: 11px">OC-2023</span>
                                                 </div>
                                                 <input type="text" style="font-size: 12px"
                                                        class="form-control text-center font-weight-bold"
@@ -556,9 +557,9 @@
                 let _quantity_minimum = Number(units[i].quantity_minimum).toFixed(0);
                 {#let option = $('<option>').val(units[i].unit_id).text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')');#}
                 let option = $('<option>')
-                                .val(units[i].unit_id)
-                                .text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')')
-                                .attr('qm', _quantity_minimum);
+                    .val(units[i].unit_id)
+                    .text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')')
+                    .attr('qm', _quantity_minimum);
                 //let option2 = $('<option>').val(units[i].unit_id).text(units[i].unit_name);
 
                 _select_unit.append(option);
@@ -899,8 +900,17 @@
             }
         });
 
-        function getAddress(client_id, _select) {
-            $.ajax({
+        function getAddress(client_id, _client_address) {
+            let _select = $('#client_final_address');
+            _select.empty();
+            _select.append($('<option>').val("0").text('Seleccione'));
+            if (_client_address !== '[]') {
+                for (let i = 0; i < _client_address.length; i++) {
+                    let option = $('<option>').val(_client_address[i]['id']).text(_client_address[i]['address'].toUpperCase());
+                    _select.append(option);
+                }
+            }
+            /*$.ajax({
                 url: '/buys/get_address_by_client_id/',
                 async: true,
                 dataType: 'json',
@@ -918,7 +928,7 @@
                         }
                     }
                 },
-            });
+            });*/
         }
 
         /*$(document).on('change', '#client_reference_id', function (e) {
@@ -1056,9 +1066,11 @@
                 let client_id = result.id;
                 let _select = $('#client_address_reference');
                 let type_client = result.type_client;
+                let _client_address = result.address;
                 $('#client_reference_id').val(client_id);
+                $('#client_final').val('');
+                $('#person-final-names').val("");
                 if (type_client === 'PR') {
-                    $('#client_final').val("0");
                     $('#client_final_address').val("0");
                     $('.client-final').removeClass('d-none');
                     $('.delivery-client-final').removeClass('d-none');
@@ -1069,9 +1081,8 @@
                     $('#client_final_address').val("0");
                     $('.delivery-client-final').addClass('d-none');
                     $('.delivery-client').removeClass('d-none');
-                    //await getAddress(client_id, _select)
+                    //await getAddress(client_id, _client_address)
                     _select.empty();
-                    let _client_address = result.address;
                     //console.log("_result", result)
                     _select.append($('<option>').val("0").text('Seleccione'));
                     if (_client_address !== '[]') {
@@ -1086,6 +1097,57 @@
                 return false;
             }
         }
+
+        new Autocomplete('#autocomplete-client-final', {
+            search: input => {
+                const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
+
+                return new Promise(resolve => {
+                    if (input.length < 3) {
+                        return resolve([])
+                    }
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            resolve(data.client)
+                        })
+                })
+            },
+            renderResult: (result, props) => {
+                let group = ''
+                if (result.index % 3 === 0) {
+                    group = '<li class="group">Group</li>'
+                }
+                return `
+                ${group}
+                <li ${props}>
+                 <div class="h6" style="font-family: roboto_condensed_regular">
+                    ${result.names}
+                 </div>
+                 <div class="wiki-snippet text-black">
+                    Tipo: ${result.type_client_display}
+                  </div>
+                </li>
+                `
+            },
+            getResultValue: result => result.names,
+            onSubmit: result => {
+                if (result) {
+                    let client_id = result.id;
+                    let _client_address = result.address;
+                    let _select = $('#client_final_address');
+                    $('#client_final').val(client_id);
+                    _select.empty();
+                    _select.append($('<option>').val("0").text('Seleccione'));
+                    if (_client_address !== '[]') {
+                        for (let i = 0; i < _client_address.length; i++) {
+                            let option = $('<option>').val(_client_address[i]['id']).text(_client_address[i]['address'].toUpperCase());
+                            _select.append(option);
+                        }
+                    }
+                }
+            }
+        })
 
     </script>
 

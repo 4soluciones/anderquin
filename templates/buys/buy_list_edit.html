@@ -19,7 +19,8 @@
                                     <input type="hidden" id="purchase_id" value="{{ purchase.id }}">
                                     {% if contract_detail_obj %}
                                         <h6 class="text-white font-weight-bold mt-4 mb-0 text-warning">
-                                            EDITAR: {{ contract_detail_obj.contract.contract_number }} - FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}
+                                            EDITAR: {{ contract_detail_obj.contract.contract_number }} -
+                                            FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}
                                         </h6>
                                     {% else %}
                                         <h5 class="text-white font-weight-bold mt-4 mb-0 text-warning">
@@ -137,7 +138,8 @@
                                             <div class="row p-1">
                                                 <div class="col-sm-4 col-md-4 col-lg-4">
                                                     <label for="reference">Referencia</label>
-                                                    <input type="text" class="form-control text-uppercase" id="reference"
+                                                    <input type="text" class="form-control text-uppercase"
+                                                           id="reference"
                                                            name="reference" autocomplete="off"
                                                            placeholder="O/C"
                                                            value="{{ purchase.reference|default_if_none:'' }}" required>
@@ -227,38 +229,53 @@
                                                     <ul class="autocomplete-result-list"></ul>
                                                 </div>
                                                 <input type="hidden" id="client_reference_id"
-                                                       name="client_reference" value="{{ purchase.client_reference.id }}">
-{#                                                <select id="client_reference_id" name="client_reference_id"#}
-{#                                                        class="form-control">#}
-{#                                                    <option disabled value="0">Seleccione</option>#}
-{#                                                    {% for c in client_set %}#}
-{#                                                        {% if purchase.client_reference.id == c.id %}#}
-{#                                                            <option style="background-color: #97e3a8" selected#}
-{#                                                                    value="{{ c.id }}"#}
-{#                                                                    type="{{ c.type_client }}">{{ c.names|upper }}#}
-{#                                                                | {{ c.get_type_client_display }}</option>#}
-{#                                                        {% else %}#}
-{#                                                            <option value="{{ c.id }}"#}
-{#                                                                    type="{{ c.type_client }}">{{ c.names|upper }}#}
-{#                                                                | {{ c.get_type_client_display }}</option>#}
-{#                                                        {% endif %}#}
-{#                                                    {% endfor %}#}
-{#                                                </select>#}
+                                                       name="client_reference"
+                                                       value="{{ purchase.client_reference.id }}">
+                                                {#                                                <select id="client_reference_id" name="client_reference_id"#}
+                                                {#                                                        class="form-control">#}
+                                                {#                                                    <option disabled value="0">Seleccione</option>#}
+                                                {#                                                    {% for c in client_set %}#}
+                                                {#                                                        {% if purchase.client_reference.id == c.id %}#}
+                                                {#                                                            <option style="background-color: #97e3a8" selected#}
+                                                {#                                                                    value="{{ c.id }}"#}
+                                                {#                                                                    type="{{ c.type_client }}">{{ c.names|upper }}#}
+                                                {#                                                                | {{ c.get_type_client_display }}</option>#}
+                                                {#                                                        {% else %}#}
+                                                {#                                                            <option value="{{ c.id }}"#}
+                                                {#                                                                    type="{{ c.type_client }}">{{ c.names|upper }}#}
+                                                {#                                                                | {{ c.get_type_client_display }}</option>#}
+                                                {#                                                        {% endif %}#}
+                                                {#                                                    {% endfor %}#}
+                                                {#                                                </select>#}
 
                                             </div>
                                             <div class="col-sm-6 col-md-6 col-lg-6 client-final {% if purchase.client_reference.type_client == 'PU' %}d-none{% endif %}">
-                                                <label for="client_final" class="text-primary">Referencia de Venta a la
+                                                <label for="person-final-names" class="text-primary">Referencia de Venta a la
                                                     Entidad: (Cliente Final)</label>
-                                                <select id="client_final" name="client_final" class="form-control">
-                                                    <option selected value="0">Seleccione</option>
-                                                    {% for c in client_set %}
-                                                        {% if purchase.client_reference_entity.id == c.id %}
-                                                            <option selected value="{{ c.id }}">{{ c.names|upper }}</option>
-                                                        {% else %}
-                                                            <option value="{{ c.id }}">{{ c.names|upper }}</option>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </select>
+                                                <div id="autocomplete-client-final" class="autocomplete">
+                                                    <input class="form-control autocomplete-input"
+                                                           type="text"
+                                                           id="person-final-names"
+                                                           name="person-final-names"
+                                                           maxlength="200"
+                                                           autocomplete="off"
+                                                           value="{{ purchase.client_reference_entity.names }}"
+                                                           placeholder="Buscar Cliente..."/>
+                                                    <ul class="autocomplete-result-list"></ul>
+                                                </div>
+                                                <input type="hidden" id="client_final"
+                                                       name="client_final"
+                                                       value="{{ purchase.client_reference_entity.id }}">
+                                                {#                                                <select id="client_final" name="client_final" class="form-control">#}
+                                                {#                                                    <option selected value="0">Seleccione</option>#}
+                                                {#                                                    {% for c in client_set %}#}
+                                                {#                                                        {% if purchase.client_reference_entity.id == c.id %}#}
+                                                {#                                                            <option selected value="{{ c.id }}">{{ c.names|upper }}</option>#}
+                                                {#                                                        {% else %}#}
+                                                {#                                                            <option value="{{ c.id }}">{{ c.names|upper }}</option>#}
+                                                {#                                                        {% endif %}#}
+                                                {#                                                    {% endfor %}#}
+                                                {#                                                </select>#}
                                             </div>
                                         </div>
                                         <div class="row p-1">
@@ -304,10 +321,11 @@
                                                     {% endfor %}
                                                 </select>
                                             </div>
-                                            <div class="col-sm-6 col-md-6 col-lg-6 delivery-client">
+                                            <div class="col-sm-6 col-md-6 col-lg-6 delivery-client {% if purchase.client_reference.type_client == 'PR' %}d-none{% endif %}">
                                                 <div class="custom-control custom-checkbox">
                                                     <input class="custom-control-input" type="checkbox"
-                                                           id="check-client" {% if purchase.delivery_choice == 'CR' %}checked{% endif %}>
+                                                           id="check-client"
+                                                           {% if purchase.delivery_choice == 'CR' %}checked{% endif %}>
                                                     <label for="check-client" class="custom-control-label">Entrega en
                                                         Cliente</label>
                                                 </div>
@@ -471,7 +489,8 @@
                                             </div>
                                         </td>
                                         <td class="align-middle text-center">
-                                            <button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail">
+                                            <button type="button" onclick="deleteItem(this)"
+                                                    class="btn btn-danger delete-detail">
                                                 <i class="fa fa-trash"></i>
                                             </button>
                                         </td>
@@ -1318,7 +1337,7 @@
                             } else {
                                 //console.log("Order")
                                 setTimeout(() => {
-                                window.open("/buys/get_purchase_list/", '_self');
+                                    window.open("/buys/get_purchase_list/", '_self');
                                 }, 1000);
                             }
                         }
@@ -1383,11 +1402,11 @@
             }
         });
 
-        $(document).on('change', '#client_final', function (e) {
+        /*$(document).on('change', '#client_final', function (e) {
             let client_id = $(this).val();
             let _select = $('#client_final_address');
             getAddress(client_id, _select);
-        });
+        });*/
 
         $(document).on('change', '#check-subsidiary', function (e) {
             if ($(this).is(":checked")) {
@@ -1485,6 +1504,7 @@
             getResultValue: result => result.names,
             onSubmit: handleClientSubmit
         })
+
         async function handleClientSubmit(result) {
             if (result) {
                 let client_id = result.id;
@@ -1520,6 +1540,57 @@
                 return false;
             }
         }
+
+        new Autocomplete('#autocomplete-client-final', {
+            search: input => {
+                const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
+
+                return new Promise(resolve => {
+                    if (input.length < 3) {
+                        return resolve([])
+                    }
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            resolve(data.client)
+                        })
+                })
+            },
+            renderResult: (result, props) => {
+                let group = ''
+                if (result.index % 3 === 0) {
+                    group = '<li class="group">Group</li>'
+                }
+                return `
+                ${group}
+                <li ${props}>
+                 <div class="h6" style="font-family: roboto_condensed_regular">
+                    ${result.names}
+                 </div>
+                 <div class="wiki-snippet text-black">
+                    Tipo: ${result.type_client_display}
+                  </div>
+                </li>
+                `
+            },
+            getResultValue: result => result.names,
+            onSubmit: result => {
+                if (result) {
+                    let client_id = result.id;
+                    let _client_address = result.address;
+                    let _select = $('#client_final_address');
+                    $('#client_final').val(client_id);
+                    _select.empty();
+                    _select.append($('<option>').val("0").text('Seleccione'));
+                    if (_client_address !== '[]') {
+                        for (let i = 0; i < _client_address.length; i++) {
+                            let option = $('<option>').val(_client_address[i]['id']).text(_client_address[i]['address'].toUpperCase());
+                            _select.append(option);
+                        }
+                    }
+                }
+            }
+        })
 
 
     </script>

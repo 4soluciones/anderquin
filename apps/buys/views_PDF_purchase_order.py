@@ -508,7 +508,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         p5_2 = Paragraph(cod, styles["Left"])
         p5_3 = Paragraph(description, styles["Left"])
         p5_4 = Paragraph(um, styles["CenterSquare"])
-        p5_5 = Paragraph(f'{int(quantity_und)}', styles["CenterSquare"])
+        p5_5 = Paragraph(f'{round(quantity_und, 2)}', styles["CenterSquare"])
         p5_6 = Paragraph(f'{quantity}', styles["CenterSquare"])
         p5_7 = Paragraph(f'{price_unit}', styles["Left"])
         p5_8 = Paragraph('{:,}'.format(sub_total), styles["Right"])
@@ -693,6 +693,8 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
             style_table_11 = [
                 # ('GRID', (0, 0), (-1, -1), 1, colors.black),
                 ('BOX', (0, 0), (-1, -1), 2, colors.black),
+                # ('BACKGROUND', (0, 2), (0, 2), COLOR_BLUE),
+                ('VALIGN', (0, 2), (0, 2), 'TOP'),
                 # ('BOX', (0, 4), (-1, -1), 2, colors.black),
                 # ('BOX', (-1, -4), (-1, -1), 2, colors.black),
                 # ('BOX', (0, 0), (0, -1), 2, colors.black),
@@ -717,12 +719,12 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
             # p10_6 = Paragraph(f'Referencia: ', styles["Right"])
 
             colwiths_table_11 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
-            rowwiths_table_11 = [inch * 0.5, inch * 0.5, inch * 0.5]
+            # rowwiths_table_11 = [inch * 0.5, inch * 0.5, inch * 0.5]
             ana_c11 = Table(
                 [(p11_1, '', p11_2)] +
                 [(p11_3, '', p11_4)] +
                 [(p11_5, '', p11_6)],
-                colWidths=colwiths_table_11, rowHeights=rowwiths_table_11)
+                colWidths=colwiths_table_11)
             ana_c11.setStyle(TableStyle(style_table_11))
 
             _dictionary.append(Spacer(width=8, height=16))
