@@ -109,6 +109,7 @@ urlpatterns = [
     path('contracts/', contract_list, name='contract_list'),
     path('modal_contract_create/', modal_contract_create, name='modal_contract_create'),
     path('save_contract/', save_contract, name='save_contract'),
+    path('modal_update_contract/', modal_update_contract, name='modal_update_contract'),
 
     # ASIGNAR ALMACEN
     path('assign_store_modal/', assign_store_modal, name='assign_store_modal'),

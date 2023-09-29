@@ -231,7 +231,7 @@ def save_purchase(request):
         check_dollar = str(data_purchase["Check_Dollar"])
 
         client_reference = int(data_purchase["client_reference_id"])
-        client_entity = int(data_purchase["client_final"])
+        client_entity = data_purchase["client_final"]
 
         check_subsidiary = str(data_purchase["check-subsidiary"])
         check_provider = str(data_purchase["check-provider"])
@@ -2976,6 +2976,25 @@ def save_contract(request):
             'message': 'Contrato Registrado',
         }, status=HTTPStatus.OK)
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def modal_update_contract(request):
+    if request.method == 'GET':
+        my_date = datetime.now()
+        date_now = my_date.strftime("%Y-%m-%d")
+        pk = int(request.GET.get('pk', ''))
+        contract_obj = Contract.objects.get(id=pk)
+        t = loader.get_template('buys/contract_update.html')
+        c = ({
+            'date_now': date_now,
+            'client_set': Client.objects.all(),
+            'product_set': Product.objects.filter(is_enabled=True),
+            'user_set': User.objects.filter(is_active=True, is_superuser=False),
+            'contract_obj': contract_obj
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })
 
 
 def assign_store_modal(request):

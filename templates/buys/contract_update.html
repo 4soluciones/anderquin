@@ -1,0 +1,283 @@
+{% load static %}
+<div class="modal-dialog modal-xl" role="document">
+
+    <div class="modal-content">
+        <div id="modal-loader" class="overlay" style="display: none">
+            <i class="fas fa-3x fa-sync fa-spin"></i>
+        </div>
+        <div class="modal-header bg-warning">
+            <h6 class="modal-title font-weight-bold text-danger">EDITAR: {{ contract_obj.contract_number }}</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <div class="modal-body p-2">
+            <div class="card">
+                <div class="card-body bg-light">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="row p-1">
+                                <div class="col-9">
+                                    <label class="font-weight-light" for="client_id">Cliente:</label>
+                                    <input type="text" aria-label="..."
+                                           class="form-control form-control-sm text-uppercase client-table dropdown-toggle"
+                                           data-toggle="dropdown" aria-expanded="false"
+                                           value="{{ contract_obj.client }}"
+                                           placeholder="Ingrese cliente y presione enter...">
+                                    <div class="dropdown-menu"></div>
+                                    <input type="hidden"
+                                           value="{{ contract_obj.client.id }}"
+                                           id="client_id"
+                                           name="client">
+                                </div>
+                                <div class="col-lg-3">
+                                    <label class="font-weight-light"
+                                           for="number_contract">Nº de Contrato:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-id-badge"></i>
+                                            </span>
+                                        </div>
+                                        <input type="text" class="form-control form-control-sm number-contract"
+                                               id="number_contract"
+                                               value="{{ contract_obj.contract_number }}"
+                                               name="number-contract" autocomplete="off">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row p-1">
+                                <div class="col-lg-3">
+                                    <label class="font-weight-light" for="register_date">Fecha de
+                                        registro</label>
+                                    <input type="date" class="form-control form-control-sm" id="register_date"
+                                           name="register-name" value="{{ contract_obj.register_date|date:'Y-m-d' }}">
+                                </div>
+                                <div class="col-sm-6 col-md-6 col-lg-6">
+                                    <label for="observations" class="">Observaciones:</label>
+                                    <input type="text" class="form-control form-control-sm" id="observations"
+                                           name="observations"
+                                           value="{{ contract_obj.observation }}"
+                                           placeholder="...">
+                                </div>
+                                <div class="col-sm-3 col-md-3 col-lg-3">
+                                    <label for="user_id">Vendedor:</label>
+                                    <select id="user_id" name="user" class="form-control form-control-sm">
+                                        <option selected disabled value="0">Seleccione..</option>
+                                        {% for u in user_set %}
+                                            {% if u.id == contract_obj.user.id %}
+                                                <option selected value="{{ u.id }}">{{ u.username|upper }}</option>
+                                            {% else %}
+                                                <option value="{{ u.id }}">{{ u.username|upper }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row p-1">
+                                <div class="col-sm-1 col-md-1 col-lg-1 pr-0">
+                                    <label class="font-weight-light" for="nro_dates">Nº entregas:</label>
+                                    <input type="text" class="form-control form-control-sm text-center" id="nro_dates"
+                                           value=""
+                                           name="nro-dates" placeholder="-">
+                                </div>
+                                <div class="col-sm-4 col-md-4 col-lg-4">
+                                    <label class="font-weight-light" for="product_add_id">Producto:</label>
+                                    <select id="product_add_id" class="form-control form-control-sm">' +
+                                        <option value="0">Seleccione</option>
+                                        {% for p in product_set %}
+                                            <option value="{{ p.id }}">{{ p.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">
+                                    <label class="font-weight-light" for="quantity_add">Cantidad</label>
+                                    <input type="text" class="form-control form-control-sm text-right"
+                                           id="quantity_add"
+                                           name="quantity-add" placeholder="0.00">
+                                </div>
+                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">
+                                    <label class="font-weight-light" for="price_unit">Precio Unit.</label>
+                                    <input type="text" class="form-control form-control-sm text-right"
+                                           id="price_unit"
+                                           name="price-unit-add" placeholder="0.00">
+                                </div>
+                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">
+                                    <label class="font-weight-light" for="total">Total</label>
+                                    <input type="text" class="form-control form-control-sm text-right"
+                                           id="total"
+                                           name="total-add" placeholder="0.00">
+                                </div>
+                                <div class="col-sm-2 col-md-2 col-lg-2">
+                                    <label class="" for="btn-add-dates">&nbsp;</label>
+                                    <button type="button" id="btn-add-dates"
+                                            class="btn btn-sm btn-success btn-block" onclick="addDates()">Agregar Fechas
+                                    </button>
+                                </div>
+                                <div class="col-sm-2 col-md-2 col-lg-2">
+                                    <label class="" for="clean-dates">&nbsp;</label>
+                                    <button type="button" id="clean-dates"
+                                            class="btn btn-sm btn-danger btn-block">Limpiar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="d-flex pt-4 pb-3">
+                                <hr class="my-auto flex-grow-1 bg-primary border-dark">
+                                <div class="px-3 font-weight-bold" style="font-size: 1.1375rem;">FECHAS DE ENTREGA</div>
+                                <hr class="my-auto flex-grow-1 bg-primary border-dark">
+                            </div>
+
+                            <div class="row pt-2">
+                                <div class="col-sm-12 col-md-12 col-lg-12 dates-quotas">
+                                    {% for c in contract_obj.contractdetail_set.all %}
+                                        {% for cd in c.contractdetailitem_set.all %}
+                                            <div class="card mb-2 main-dates" style="border-color: #848d9f">
+                                                <div class="card-header pt-1 pb-1">
+                                                    <div class="row">
+                                                        <div class="col-sm-2 col-md-2 col-lg-2 text-left item-number">
+                                                            <label for="date-quota" class="mt-2 font-weight-bold"> FECHA
+                                                                DE ENTREGA {{ c.nro_quota }} </label>
+                                                            <input type=hidden class="number-quota" value="{{ c.nro_quota }}">
+                                                        </div>
+                                                        <div class="col-sm-3 col-md-3 col-lg-3 item-date-quota">
+                                                            <input type="date"
+                                                                   class="form-control date-quota text-center"
+                                                                   id="date-quota" value="{{ c.date|date:'Y-m-d' }}">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body p-1">
+                                                    <table id="table-date-{{ c.nro_quota }}"
+                                                           class="table table-hover table-sm align-content-center table-bordered mb-0">
+                                                        <thead>
+                                                        <tr class="text-center text-white" style="background: #1a77c8">
+                                                            <th scope="col" class="align-middle font-weight-normal"
+                                                                style="width: 10%;">Item
+                                                            </th>
+                                                            <th scope="col" class="align-middle font-weight-normal"
+                                                                style="width: 50%;">Producto
+                                                            </th>
+                                                            <th scope="col" class="align-middle font-weight-normal"
+                                                                style="width: 10%;">Cantidad
+                                                            </th>
+                                                            <th scope="col" class="align-middle font-weight-normal"
+                                                                style="width: 10%;">P. U.
+                                                            </th>
+                                                            <th scope="col" class="align-middle font-weight-normal"
+                                                                style="width: 10%;">Monto
+                                                            </th>
+                                                            <th scope="col" class="align-middle font-weight-normal"
+                                                                style="width: 10%;"></th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody id="details-table-date-{{ c.nro_quota }}" number="{{ c.nro_quota }}">
+                                                        <tr class="text-center">
+                                                            <td class="item-number align-middle text-center">1</td>
+                                                            <td class="item-product align-middle text-center">
+                                                                <label for="product_id" class="sr-only">Producto</label>
+                                                                <select id="product_id" class="form-control form-control-sm product">
+                                                                    {% for p in product_set %}
+                                                                        {% if p.id == cd.product.id %}
+                                                                            <option value="{{ p.id }}" selected>{{ p.name }}</option>
+                                                                        {% else %}
+                                                                            <option value="{{ p.id }}">{{ p.name }}</option>
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </td>
+                                                            <td class="item-quantity align-middle text-center">
+                                                                <input type="text"
+                                                                       class="form-control text-right quantity"
+                                                                       autocomplete="off" value="{{ cd.quantity|safe }}">
+                                                            </td>
+                                                            <td class="item-price-unit align-middle text-center">
+                                                                <input type="text"
+                                                                       class="form-control text-right price-unit"
+                                                                       value="{{ cd.price_unit|safe }}"
+                                                                       autocomplete="off">
+                                                            </td>
+                                                            <td class="item-amount align-middle text-center">
+                                                                <input type="text"
+                                                                       class="form-control text-right amount"
+                                                                       placeholder="0.00" autocomplete="off">
+                                                            </td>
+                                                            <td class="align-middle">
+                                                                <button type="button" onclick="addItem()"
+                                                                        class="btn btn-outline-success btn-block"><i
+                                                                        class="fas fa-plus"></i></button>
+                                                            </td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="row pt-2">
+                                <table id="table-totals" class="table table-sm align-content-center">
+                                    <thead>
+                                    <tr>
+                                        <th style="width: 10%;"></th>
+                                        <th style="width: 50%;"></th>
+                                        <th style="width: 10%;"></th>
+                                        <th style="width: 10%;"></th>
+                                        <th style="width: 10%;"></th>
+                                        <th style="width: 10%;"></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr class="">
+                                        <td class="align-middle text-right font-weight-bold" colspan="2">
+                                            TOTAL CANTIDAD
+                                        </td>
+                                        <td class="align-middle">
+                                            <input type="text" class="form-control text-center font-weight-bold"
+                                                   id="total-quantity" aria-label="..."
+                                                   placeholder="0.00" readonly>
+                                        </td>
+                                        <td class="text-center align-middle text-right font-weight-bold">
+                                            TOTAL MONTO
+                                        </td>
+                                        <td class="align-middle" style="width: 10%">
+                                            <input type="text" class="form-control text-center font-weight-bold"
+                                                   id="total-amount" aria-label="..."
+                                                   placeholder="0.00" readonly>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card -->
+            </div>
+        </div><!-- modal-body -->
+        <div class="modal-footer bg-light p-2">
+            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
+            &nbsp;
+            <button id="btn-save-contract" type="button" class="btn btn-primary font-weight-light">Registrar
+            </button>
+        </div>
+
+        <div class="mr-3 ml-0" style="
+                display: none;
+                position: fixed;
+                top: 8px;
+                left: 5px;
+                background: #bdd9f5;
+                opacity: 0.5;
+                width: 100%;
+                {#height: 46em;#}
+                !important;bottom: 6px;
+                padding-right: 65em;
+                padding-left: 55em;
+                padding-top: 22em;" id="loading">
+
+        </div>
+    </div>
+</div>

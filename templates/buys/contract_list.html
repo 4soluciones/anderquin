@@ -28,9 +28,9 @@
         <div class="modal fade" id="modal-contract-create" tabindex="-1" role="dialog"
              aria-labelledby="ModalHelpTitle"
              aria-hidden="true"></div>
-        {#        <div class="modal fade" id="modal-contract-update" tabindex="-1" role="dialog"#}
-        {#             aria-labelledby="ModalHelpTitle"#}
-        {#             aria-hidden="true"></div>#}
+        <div class="modal fade" id="modal-contract-update" tabindex="-1" role="dialog"
+             aria-labelledby="ModalHelpTitle"
+             aria-hidden="true"></div>
     </div>
 {% endblock body %}
 
@@ -65,6 +65,24 @@
                 }
             });
         }
+
+        $(document).on('click', '.btn-edit-contract', function () {
+            let _pk = $(this).attr('pk');
+            $.ajax({
+                url: '/buys/modal_update_contract/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': _pk},
+                success: function (response) {
+                    $('#modal-contract-update').html(response.form);
+                    $('#modal-contract-update').modal('show');
+                },
+                fail: function (response) {
+                    toastr.error('Error en la peticion', '¡Mensaje!');
+                }
+            });
+
+        });
 
         $(document).on('click', '.delete-row-address', function () {
             $(this).parent('div').parent('div').remove();
