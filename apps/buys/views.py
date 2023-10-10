@@ -3199,7 +3199,7 @@ def save_update_purchase(request):
         check_igv = str(data_purchase["Check_Igv"])
         check_dollar = str(data_purchase["Check_Dollar"])
         client_reference = int(data_purchase["client_reference_id"])
-        client_entity = int(data_purchase["client_final"])
+        client_entity = data_purchase["client_final"]
 
         check_subsidiary = str(data_purchase["check-subsidiary"])
         check_provider = str(data_purchase["check-provider"])
