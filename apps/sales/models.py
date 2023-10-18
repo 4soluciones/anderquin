@@ -345,7 +345,7 @@ class Client(models.Model):
     phone = models.CharField('Telefono', max_length=9, null=True, blank=True)
     email = models.EmailField('Correo electronico', max_length=50, null=True, blank=True)
     type_client = models.CharField('Tipo de Cliente', max_length=2, choices=TYPE_CHOICES, default='PU')
-    cod_siaf = models.CharField(max_length=45, null=True, blank=True, unique=True)
+    cod_siaf = models.CharField(max_length=45, null=True, blank=True)
 
     def __str__(self):
         return self.names
