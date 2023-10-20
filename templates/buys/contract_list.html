@@ -31,6 +31,8 @@
         <div class="modal fade" id="modal-contract-update" tabindex="-1" role="dialog"
              aria-labelledby="ModalHelpTitle"
              aria-hidden="true"></div>
+        <div class="modal fade" id="modal-guide" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle"
+             aria-hidden="true"></div>
     </div>
 {% endblock body %}
 
@@ -466,6 +468,23 @@
             $(this).parent('div.dropdown-menu').empty()
             $(this).parent('div.dropdown-menu').addClass('hide')
         });
+
+        function showModalView(route) {
+            $('#modal-guide').empty();
+            $.ajax({
+                url: '/buys/' + route + '/',
+                dataType: 'json',
+                type: 'GET',
+                data: {},
+                success: function (response) {
+                    $('#modal-guide').html(response.form);
+                    $('#modal-guide').modal('show');
+                },
+                fail: function (response) {
+                    toastr.error('Ocurrio un problema al mostrar el formulario', '¡Mensaje!');
+                }
+            });
+        }
 
 
     </script>

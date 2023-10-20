@@ -123,4 +123,7 @@ urlpatterns = [
 
     # GET CLIENT
     path('get_client/', login_required(get_client), name='get_client'),
+
+    # GUIDE
+    path('modal_new_guide/', login_required(modal_new_guide), name='modal_new_guide'),
 ]

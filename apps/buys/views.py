@@ -20,6 +20,7 @@ from apps.sales.views import kardex_input, kardex_ouput, kardex_initial, calcula
     save_loan_payment_in_cash_flow, Client, ClientAddress, ClientType, ClientAssociate
 from .models import *
 from .views_PDF_purchase_order import query_apis_net_money
+from ..comercial.models import GuideMotive
 from ..sales.models import Product, Unit, Supplier, SubsidiaryStore, ProductStore, ProductDetail, Kardex, Cash, \
     CashFlow, TransactionPayment, AddressSupplier, SupplierAddress
 from ..sales.views_SUNAT import query_apis_net_dni_ruc
@@ -3370,4 +3371,34 @@ def get_client(request):
         return JsonResponse({
             'status': True,
             'client': client
+        })
+
+
+def modal_new_guide(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(id=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+        truck_set = Truck.objects.all()
+        # pilot_set = Driver.objects.all()
+        motive_set = GuideMotive.objects.filter(type='S')
+        district_set = District.objects.all()
+        client_set = Client.objects.filter(clienttype__document_type_id='06')
+        subsidiary_set = Subsidiary.objects.all()
+        t = loader.get_template('buys/model_new_guide.html')
+        c = ({
+            'truck_set': truck_set,
+            # 'pilot_set': pilot_set,
+            'date': formatdate,
+            'motive_set': motive_set,
+            'district_set': district_set,
+            'client_set': client_set,
+            'subsidiary_obj': subsidiary_obj,
+            'subsidiary_set': subsidiary_set,
+        })
+        return JsonResponse({
+            'success': True,
+            'form': t.render(c, request),
         })

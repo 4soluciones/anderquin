@@ -22,18 +22,21 @@
                         <td class="align-middle font-weight-bold">
                             <button class="btn btn-sm btn-edit-contract mb-1" pk="{{ c.id }}">
                                 <i class="fas fa-edit fa-xs" style="color: #ffc107;"></i>
-                            </button>{{ c.contract_number }}</td>
+                            </button>
+                            {{ c.contract_number }}</td>
                         <td class="align-middle">{{ c.client.names }}</td>
                         <td class="align-middle">{{ c.register_date|date:'d-m-Y' }}</td>
                         <td class="align-middle text-center">
-                            <table class="table table-bordered table-sm" style="background-color: #bfdecb; font-size: 11px">
+                            <table class="table table-bordered table-sm"
+                                   style="background-color: #bfdecb; font-size: 11px">
                                 <thead>
                                 <tr class="text-center font-weight-bold text-uppercase bg-light align-middle">
-                                    <th class="th-sm" style="width: 5%">cuota</th>
+                                    <th class="th-sm" style="width: 5%">#</th>
                                     <th class="th-sm" style="width: 10%">Fecha</th>
-                                    <th class="th-sm" style="width: 10%">O/C</th>
-                                    <th class="th-sm" style="width: 45%">Producto</th>
-                                    <th class="th-sm" style="width: 30%">Accion</th>
+                                    {#                                    <th class="th-sm" style="width: 10%">O/C</th>#}
+                                    <th class="th-sm" style="width: 55%">Producto</th>
+                                    <th class="th-sm" style="width: 15%">Orden de Compra</th>
+                                    <th class="th-sm" style="width: 15%">Guia de remision</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -43,13 +46,13 @@
                                         <td class="align-middle font-weight-bold">
                                             <i class="fas fa-calendar-alt"></i> {{ d.date|date:'d-m-Y' }}
                                         </td>
-                                        <td class="align-middle">
-                                            {% if d.purchase_set.all %}
-                                                <span class="font-weight-bold">{{ d.purchase_set.all.last.bill_number }}</span>
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
+                                        {#                                        <td class="align-middle">#}
+                                        {#                                            {% if d.purchase_set.all %}#}
+                                        {#                                                <span class="font-weight-bold">{{ d.purchase_set.all.last.bill_number }}</span>#}
+                                        {#                                            {% else %}#}
+                                        {#                                                -#}
+                                        {#                                            {% endif %}#}
+                                        {#                                        </td>#}
                                         <td>
                                             <table class="table table-borderless table-sm"
                                                    style="background-color: #bfdecb">
@@ -65,14 +68,26 @@
                                         </td>
                                         <td class="align-middle">
                                             {% if d.purchase_set.all %}
+                                                {#                                                {% if d.purchase_set.all %}#}
+                                                {#                                                    <span class="font-weight-bold">{{ d.purchase_set.all.last.bill_number }}</span>#}
+                                                {#                                                {% else %}#}
+                                                {#                                                    -#}
+                                                {#                                                {% endif %}#}
                                                 <a class="btn btn-sm btn-success font-weight-light"
                                                    href="{% url 'buys:print_pdf_purchase_order' d.purchase_set.all.last.id %}">
-                                                    <i class="fas fa-eye"></i> Ver Orden</a>
+                                                    {{ d.purchase_set.all.last.bill_number }}</a>
+
                                             {% else %}
                                                 <a class="btn btn-sm btn-warning font-weight-light"
                                                    href="{% url 'buys:buy_list' d.id %}">
-                                                    <i class="fas fa-money-check-alt"></i> Generar Orden de Compra</a>
+                                                    <i class="fas fa-money-check-alt"></i> Generar O/C</a>
                                             {% endif %}
+                                        </td>
+                                        <td class="align-middle">
+                                            <button type="button" class="btn-sm btn-primary" id="btn-new-guide"
+                                                    onclick="showModalView('modal_new_guide')">
+                                                <i class="fas fa-search-dollar"></i> Nueva Guia
+                                            </button>
                                         </td>
                                     </tr>
                                 {% endfor %}

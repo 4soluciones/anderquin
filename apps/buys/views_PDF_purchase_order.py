@@ -628,8 +628,9 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
             # ('SPAN', (1, 4), (1, 5)),
 
         ]
-
-        # reference_obj = purchase_obj.reference
+        reference = ''
+        if purchase_obj.reference:
+            reference = purchase_obj.reference.upper()
 
         # addressEntity_obj = reference_obj.entity_address.all().first()
 
@@ -648,7 +649,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         p9_6 = Paragraph(f'{client_address}', styles["Left"])
         p9_7 = Paragraph(f'Referencia: ', styles["Right"])
         # p9_8 = Paragraph(f'{purchase_obj.oc_supplier}', styles["Left"])
-        p9_8 = Paragraph(f'{purchase_obj.reference.upper()}', styles["Left"])
+        p9_8 = Paragraph(f'{reference}', styles["Left"])
         p9_9 = Paragraph(f'Código SIAF: ', styles["Right"])
         p9_10 = Paragraph(f'{siaf}', styles["Left"])
         p9_11 = Paragraph(f'Fecha de Entrega: ', styles["Right"])

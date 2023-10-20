@@ -1,0 +1,365 @@
+<div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    <div class="modal-content">
+        <div class="modal-header" style="background-color: rgb(21,99,181);">
+            <h6 class="modal-title  text-white roboto-condensed-regular">GUIA DE REMISION ELECTRONICA</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="card-body bg-light p-0">
+                <div class="d-flex">
+                    <hr class="my-auto flex-grow-1 bg-lightblue">
+                    <div class="px-2 font-weight-bold" style="font-size: .8375rem;">CLIENTE</div>
+                    <hr class="my-auto flex-grow-1 bg-lightblue">
+                </div>
+                <div class="row col-md-12 mb-3 mt-2 m-0 p-0">
+                    <div class="col-md-12">
+                        {#                        <label for="client" class="text-primary">Cliente</label>#}
+                        <select class="form-control" id="client" aria-label="..."
+                                name="client">
+                            <option selected disabled value="0">Seleccione un cliente..</option>
+                            {% for c in client_set %}
+                                <option value="{{ c.id }}">{{ c.names }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <hr class="my-auto flex-grow-1 bg-lightblue">
+                    <div class="px-2 font-weight-bold" style="font-size: .8375rem;">DATOS DE LA GUIA</div>
+                    <hr class="my-auto flex-grow-1 bg-lightblue">
+                </div>
+                <div class="row col-md-12 mt-3 pr-0">
+                    <div class="col-md-3">
+                        <label for="document-transport" class="text-primary">Número de Documento (Transportista)</label>
+                        <input type="text"
+                               class="form-control" name="document-transport" id="document-transport"
+                               placeholder="Nº documento" required
+                               value="" maxlength="200">
+                    </div>
+                    <div class="col-md-9">
+                        <label for="name-transport" class="text-primary">Razón Social (Transportista)</label>
+                        <input type="text"
+                               class="form-control" name="name-transport" id="name-transport"
+                               placeholder="Transportista.." required
+                               value="" maxlength="500">
+                    </div>
+                </div>
+                <div class="row col-md-12 mt-1 pr-0">
+                    <div class="col-md-3">
+                        <label for="id-date-issue" class="text-primary">Fecha Emision</label>
+                        <input type="date"
+                               class="form-control" name="id-date-issue" id="id-date-issue"
+                               placeholder="" required
+                               value="{{ date }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="origin" class="text-primary">Ubigeo Origen</label>
+                        <select class="form-control" id="origin"
+                                name="origin">
+                            <option selected disabled value="0">Seleccione</option>
+                            {% for d in district_set %}
+                                {% if subsidiary_obj.district.id == d.id %}
+                                    <option selected value="{{ d.id }}">{{ d.description }}</option>
+                                {% else %}
+                                    <option value="{{ d.id }}">{{ d.description }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-primary">Direccion de partida</label>
+                        <input type="text"
+                               class="form-control" name="id-address-origin" id="id-address-origin"
+                               placeholder="" required
+                               value="{{ subsidiary_obj.address }}" maxlength="200">
+                    </div>
+                </div>
+                <div class="row col-md-12 mt-1 pr-0">
+                    <div class="col-md-3">
+                        <label for="id-date-transfer" class="text-primary">Fecha Traslado</label>
+                        <input type="date"
+                               class="form-control" name="id-date-transfer" id="id-date-transfer"
+                               placeholder="" required
+                               value="{{ date }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="destiny" class="text-primary">Ubigeo Destino</label>
+                        <select class="form-control combo" id="destiny"
+                                name="destiny">
+                            <option value="0">Seleccione</option>
+                            {% for d in district_set %}
+                                <option value="{{ d.id }}">{{ d.description }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id-address-destination" class="text-primary">Direccion de destino</label>
+                        <input type="text"
+                               class="form-control" name="id-address-destination" id="id-address-destination"
+                               placeholder="" required
+                               value="" maxlength="200">
+                    </div>
+                </div>
+                <div class="row col-md-12 mt-1 pr-0">
+                    <div class="col-md-3">
+                        <label for="transport-modality" class="text-primary">Modalidad de transporte</label>
+                        <select class="form-control" id="transport-modality"
+                                name="transport-modality">
+                            <option selected disabled value="0">Seleccione</option>
+                            <option value="1">PUBLICO</option>
+                            <option value="2">PRIVADO</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="weight" class="text-primary">Peso</label>
+                        <input type="text"
+                               class="form-control" name="weight" id="weight"
+                               placeholder="" required
+                               value="" maxlength="20">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id-motive" class="text-primary">Motivo Traslado</label>
+                        <select class="form-control combo" id="id-motive"
+                                name="id-motive">
+                            <option selected disabled value="0">Seleccione</option>
+                            {% for m in motive_set %}
+                                <option value="{{ m.id }}">{{ m.description }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row col-md-12 mt-1 pr-0">
+                    <div class="col-md-3">
+                        <label for="plate" class="text-primary">Vehiculo (Placa)</label>
+                        <input type="text"
+                               class="form-control" name="plate" id="plate"
+                               placeholder="" required
+                               value="" maxlength="20">
+{#                        <select class="form-control" id="id-truck"#}
+{#                                name="id-truck">#}
+{#                            <option value="0">Seleccione</option>#}
+{#                            {% for t in truck_set %}#}
+{#                                <option value="{{ t.id }}">{{ t.license_plate }}</option>#}
+{#                            {% endfor %}#}
+{#                        </select>#}
+                    </div>
+                    <div class="col-md-3">
+                        <label for="weight" class="text-primary">Numero Bultos</label>
+                        <input type="text"
+                               class="form-control" name="id-package" id="id-package"
+                               placeholder="" required
+                               value="" maxlength="20">
+                    </div>
+                    <div class="col-md-6 align-self-center">
+                        <label for="id_observation" class="text-primary">Observaciones</label>
+                        <textarea class="form-control rounded-0" id="id_observation" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="row col-md-12 mb-3 mt-1 pr-0">
+                    <div class="col-md-3">
+                        <label for="document-driver" class="text-primary">DNI (Conductor)</label>
+                        <input type="text"
+                               class="form-control" name="document-driver" id="document-driver"
+                               placeholder="" required
+                               value="" maxlength="20">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="license-driver" class="text-primary">Nro Licencia (Conductor)</label>
+                        <input type="text"
+                               class="form-control" name="license-driver" id="license-driver"
+                               placeholder="" required
+                               value="" maxlength="20">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="names-driver" class="text-primary">Nombres y Apellidos (Conductor)</label>
+                        <input type="text"
+                               class="form-control" name="names-driver" id="names-driver"
+                               placeholder="" required
+                               value="" maxlength="20">
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <hr class="my-auto flex-grow-1 bg-lightblue">
+                    <div class="px-2 font-weight-bold" style="font-size: .8375rem;">DETALLE DE LA GUIA</div>
+                    <hr class="my-auto flex-grow-1 bg-lightblue">
+                </div>
+                <div class="row m-1 mt-2">
+                    <div class="col-sm-12 p-1">
+                        <div class="card col-sm-12 p-0">
+                            <table class="table-hover table-sm table-bordered" id="id-table-detail-guide"
+                                   style="width: 100%;">
+                                <thead class="text-uppercase small text-center">
+                                <tr class="text-white" style="background: #0783d6">
+                                    <th scope="col" class="font-weight-normal" style="width: 10%;">Nº</th>
+                                    <th scope="col" class="font-weight-normal" style="width: 50%;">Descripcion</th>
+                                    <th scope="col" class="font-weight-normal" style="width: 15%;">Cantidad</th>
+                                    <th scope="col" class="font-weight-normal" style="width: 15%;">Unidad</th>
+                                    <th scope="col" class="font-weight-normal" style="width: 10%;">
+                                        Eliminar
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody id="new-guide-details">
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="card col-sm-12  mt-2">
+                            <div class="card-body">
+                                <div class="row col-sm-12 col-md-12 m-0 p-0">
+                                    <div class="col-sm-5 col-md-5 p-0 align-self-center">
+                                        <button id="btn-add-detail" class="btn btn-sm btn-success" type="button"
+                                                onclick="AddDetailsGuide('',0,0)">
+                                            Agregar detalle <span class="fas fa-shopping-cart"></span>
+                                        </button>
+                                    </div>
+                                    <div class="col-sm-7 col-md-7">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer p-1">
+                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" id="btn-close">Cerrar
+                </button>
+                &nbsp;
+                <button id="save-new-guide" type="button" class="btn btn-sm btn-success"
+                        service="{{ service_obj.id }}">
+                    Registrar guia remision
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('.combo').select2({
+        theme: 'bootstrap4',
+    });
+    $('#client').select2({
+        theme: 'bootstrap4',
+    });
+    $("#save-new-guide").click(function () {
+        if ($('#id-date-issue').val() === '') {
+            toastr.warning('Seleccione correctamente la fecha de emision')
+            return false
+        }
+        if ($('#id-date-transfer').val() === '') {
+            toastr.warning('Seleccione correctamente la fecha de traslado')
+            return false
+        }
+        if ($('#id-motive').val() === '' || $('#id-motive').val() === '0') {
+            toastr.warning('Seleccione correctamente el motivo de traslado')
+            return false
+        }
+        if ($('#id-truck').val() === '' || $('#id-truck').val() === '0') {
+            toastr.warning('Seleccione correctamente el vehiculo')
+            return false
+        }
+        if ($('#id-pilot').val() === '' || $('#id-pilot').val() === '0') {
+            toastr.warning('Seleccione correctamente el conductor')
+            return false
+        }
+        if ($('#id-ubigee-origin').val() === '' || $('#id-ubigee-origin').val() === '0') {
+            toastr.warning('Seleccione correctamente el ubigeo de origen')
+            return false
+        }
+        if ($('#id-ubigee-destination').val() === '' || $('#id-ubigee-destination').val() === '0') {
+            toastr.warning('Seleccione correctamente el ubigeo de destino')
+            return false
+        }
+        if ($('#id-address-origin').val() === '') {
+            toastr.warning('Seleccione correctamente la direccion de origen')
+            return false
+        }
+        if ($('#id-address-destination').val() === '') {
+            toastr.warning('Seleccione correctamente la direccion de destino')
+            return false
+        }
+        if ($('#id-client-n').val() === '' || $('#id-client-n').val() === '0') {
+            toastr.warning('Seleccione correctamente el cliente')
+            return false
+        }
+        if (hasRowDetails() == false) {
+            toastr.warning('La guia de remision necesita especificar el detalle', 'Mensaje');
+            return false;
+        }
+        let guide = {
+            "DetailGuide": [],
+            "date-issue": $('#id-date-issue').val(),
+            "date-transfer": $('#id-date-transfer').val(),
+            "motive": $('#id-motive').val(),
+            "truck": $('#id-truck').val(),
+            "pilot": $('#id-pilot').val(),
+            "ubigee-origin": $('#id-ubigee-origin').val(),
+            "ubigee-destination": $('#id-ubigee-destination').val(),
+            "address-origin": $('#id-address-origin').val(),
+            "address-destination": $('#id-address-destination').val(),
+            "client": $('#id-client-n').val(),
+            "observation": $('#id_observation').val(),
+            "weight": $('#id-weight').val(),
+            "package": $('#id-package').val(),
+            "service": 0,
+        };
+        let params = true
+        $("#new-guide-details tr").each(function () {
+            let description = $(this).find("td.item-description input.description").val();
+            if (description === '') {
+                toastr.warning('Ingrese la descripcion porfavor');
+                params = false
+            }
+            let _quantity_sent = $(this).find("td.item-quantity-sent input.quantity-sent").val();
+            let _price = 0
+            if (_quantity_sent === '' || _quantity_sent <= 0) {
+                toastr.warning('Ingrese un valor valido en la cantidad enviada');
+                params = false
+            }
+            let unit_pk = $(this).find("td.item-unit select.unit").val();
+            if (unit_pk === '' || unit_pk === '0') {
+                toastr.warning('No se selecciono la unidad de medida correctamente');
+                params = false
+            }
+            let detail_guide = {
+                "Description": description,
+                "Quantity-requested": parseFloat('0.00').toFixed(2),
+                "Quantity-sent": parseFloat(_quantity_sent).toFixed(2),
+                "Unit": unit_pk,
+                "detail_service": 0,
+                "Price": parseFloat(_price),
+            };
+            guide.DetailGuide.push(detail_guide);
+        });
+        if (params) {
+            $.ajax({
+                url: '/sales/create_guide_service/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'guide': JSON.stringify(guide)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status == 200) {
+                        if (response.success) {
+                            toastr.success(response.message, '¡Mensaje!');
+                            window.open(response.sunat_pdf, '_blank');
+                            $('#btn-close').trigger('click');
+                        } else {
+                            toastr.success(response.message, '¡Mensaje!');
+                        }
+
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.error, '¡ERROR DE SUNAT!');
+                }
+            });
+        }
+    })
+
+</script>
