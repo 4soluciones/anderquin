@@ -14,7 +14,7 @@ urlpatterns = [
     path('programming_list/', login_required(ProgrammingList.as_view()), name='programming_list'),
     path('programming_create/', login_required(ProgrammingCreate.as_view()), name='programming_create'),
     path('new_programming/', new_programming, name='new_programming'),
-    path('new_guide/', new_guide, name='new_guide'),
+
     path('get_programming_guide/', get_programming_guide, name='get_programming_guide'),
     path('get_programming/', get_programming, name='get_programming'),
     path('update_programming/', update_programming, name='update_programming'),
@@ -106,5 +106,10 @@ urlpatterns = [
     path('list_output_distribution/', login_required(get_output_distributions), name='list_output_distribution'),
     path('report_guide_by_plate/', login_required(report_guide_by_plate), name='report_guide_by_plate'),
     path('report_guides_by_plate_grid/', login_required(report_guides_by_plate_grid), name='report_guides_by_plate_grid'),
+
+    # NEW GUIDE
+    path('new_guide/<int:contract_detail>/', new_guide, name='new_guide'),
+    path('modal_guide_origin/', modal_guide_origin, name='modal_guide_origin'),
+    path('modal_guide_destiny/', modal_guide_destiny, name='modal_guide_destiny'),
 
 ]

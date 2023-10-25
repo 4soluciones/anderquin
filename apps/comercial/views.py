@@ -5,13 +5,13 @@ from django.shortcuts import render
 from django.views.generic import View, TemplateView, UpdateView, CreateView
 from django.views.decorators.csrf import csrf_exempt
 from .models import *
-from apps.hrm.models import Subsidiary, Employee
+from apps.hrm.models import Subsidiary, Employee, District, Department, Province
 from django.http import JsonResponse
 from .forms import *
 from django.urls import reverse_lazy
 from apps.sales.models import Product, SubsidiaryStore, ProductStore, ProductDetail, ProductRecipe, \
     ProductSubcategory, ProductSupplier, \
-    TransactionPayment, Order, LoanPayment
+    TransactionPayment, Order, LoanPayment, ClientAddress
 from apps.sales.views import kardex_ouput, kardex_input, kardex_initial, calculate_minimum_unit, Supplier
 from apps.hrm.models import Subsidiary
 import json
@@ -25,7 +25,7 @@ from django.core import serializers
 from datetime import date
 # Create your views here.
 from .. import sales
-from ..buys.models import Purchase
+from ..buys.models import Purchase, ContractDetail, ContractDetailItem
 from ..hrm.views import get_subsidiary_by_user
 
 
@@ -404,16 +404,154 @@ def get_programmings(need_rendering, subsidiary_obj=None):
 
 # ----------------------------------------Guide------------------------------------
 
-def new_guide(request):
+def new_guide(request, contract_detail=None):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
-    form_obj = FormGuide()
-    programmings = Programming.objects.filter(status__in=['P'], subsidiary=subsidiary_obj).order_by('id')
+
+    contract_detail_obj = None
+    contract_detail_item_set = None
+    contract_dict = []
+    client = []
+    if contract_detail is not None:
+        contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail))
+        contract_detail_item_set = ContractDetailItem.objects.filter(contract_detail__id=contract_detail)
+        client_reference_set = Client.objects.filter(id=contract_detail_obj.contract.client.id)
+
+        for c in client_reference_set:
+            client_address_set = c.clientaddress_set.all()
+            if client_address_set.exists():
+                address_dict = [{
+                    'id': cd.id,
+                    'address': cd.address,
+                    'district': cd.district.description,
+                } for cd in client_address_set]
+            else:
+                address_dict = []
+
+            client.append({
+                'id': c.id,
+                'names': c.names,
+                'type_client_display': c.get_type_client_display(),
+                'type_client': c.type_client,
+                'number': c.clienttype_set.last().document_number,
+                'address': address_dict
+            })
+
+        for counter, d in enumerate(contract_detail_item_set, start=1):
+            item_contract = {
+                'contract_detail_id': d.contract_detail.id,
+                'id': d.id,
+                'product_id': d.product.id,
+                'product_name': d.product.name,
+                'product_brand': d.product.product_brand.name,
+                'quantity': d.quantity,
+                'counter': counter,
+                'units': []
+            }
+            for pd in ProductDetail.objects.filter(product_id=d.product.id).all():
+                item_units = {
+                    'id': pd.id,
+                    'unit_id': pd.unit.id,
+                    'unit_name': pd.unit.name,
+                    'quantity_minimum': round(pd.quantity_minimum, 0),
+                }
+                item_contract.get('units').append(item_units)
+            contract_dict.append(item_contract)
+    supplier_obj = Supplier.objects.all()
+    product_obj = Product.objects.all()
+    my_date = datetime.now()
+    formatdate = my_date.strftime("%Y-%m-%d")
+    motive_set = GuideMotive.objects.filter(type='S')
+
     return render(request, 'comercial/guide.html', {
-        'form': form_obj,
-        'programmings': programmings
+        'supplier_obj': supplier_obj,
+        'product_obj': product_obj,
+        # 'choices_payments': TransactionPayment._meta.get_field('type').choices,
+        'choices_payments_purchase': Purchase._meta.get_field('payment_method').choices,
+        'formatdate': formatdate,
+        'supplier_set': Supplier.objects.all(),
+        'client_set': Client.objects.all(),
+        'subsidiary_set': Subsidiary.objects.all().order_by('id'),
+        'contract_detail_obj': contract_detail_obj,
+        'client': json.dumps(client),
+        'contract_detail_item_set': contract_detail_item_set,
+        'contract_dict': contract_dict,
+        'motive_set': motive_set,
     })
+
+
+def modal_guide_origin(request):
+    if request.method == 'GET':
+        client_id = request.GET.get('client')
+        user_id = request.user.id
+        user_obj = User.objects.get(id=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        client_address_set = ClientAddress.objects.filter(client_id=client_id)
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+        truck_set = Truck.objects.all()
+        # pilot_set = Driver.objects.all()
+        motive_set = GuideMotive.objects.filter(type='S')
+        subsidiary_set = Subsidiary.objects.all()
+        t = loader.get_template('comercial/modal_guide_origin.html')
+        c = ({
+            'truck_set': truck_set,
+            # 'pilot_set': pilot_set,
+            'date': formatdate,
+            'motive_set': motive_set,
+            'department_set': Department.objects.all(),
+            'province_set': Province.objects.all(),
+            'district_set': District.objects.all(),
+            'subsidiary_obj': subsidiary_obj,
+            'subsidiary_set': subsidiary_set,
+            'client_address_set': client_address_set,
+        })
+        return JsonResponse({
+            'success': True,
+            'form': t.render(c, request),
+        })
+    else:
+        return JsonResponse({
+            'success': False,
+            'message': 'No se puedo obtener el Contrato, Actualice'
+        }, status=HTTPStatus.OK)
+
+
+def modal_guide_destiny(request):
+    if request.method == 'GET':
+        client_id = request.GET.get('client')
+        user_id = request.user.id
+        user_obj = User.objects.get(id=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+        client_address_set = ClientAddress.objects.filter(client_id=client_id)
+        truck_set = Truck.objects.all()
+        # pilot_set = Driver.objects.all()
+        motive_set = GuideMotive.objects.filter(type='S')
+        district_set = District.objects.all()
+        subsidiary_set = Subsidiary.objects.all()
+        t = loader.get_template('comercial/modal_guide_destiny.html')
+        c = ({
+            'truck_set': truck_set,
+            # 'pilot_set': pilot_set,
+            'date': formatdate,
+            'motive_set': motive_set,
+            'district_set': district_set,
+            'subsidiary_obj': subsidiary_obj,
+            'subsidiary_set': subsidiary_set,
+            'client_address_set': client_address_set,
+        })
+        return JsonResponse({
+            'success': True,
+            'form': t.render(c, request),
+        })
+    else:
+        return JsonResponse({
+            'success': False,
+            'message': 'No se puedo obtener el Contrato, Actualice'
+        }, status=HTTPStatus.OK)
 
 
 def get_programming_guide(request):

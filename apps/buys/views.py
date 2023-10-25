@@ -3376,29 +3376,36 @@ def get_client(request):
 
 def modal_new_guide(request):
     if request.method == 'GET':
-        user_id = request.user.id
-        user_obj = User.objects.get(id=int(user_id))
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        my_date = datetime.now()
-        formatdate = my_date.strftime("%Y-%m-%d")
-        truck_set = Truck.objects.all()
-        # pilot_set = Driver.objects.all()
-        motive_set = GuideMotive.objects.filter(type='S')
-        district_set = District.objects.all()
-        client_set = Client.objects.filter(clienttype__document_type_id='06')
-        subsidiary_set = Subsidiary.objects.all()
-        t = loader.get_template('buys/model_new_guide.html')
-        c = ({
-            'truck_set': truck_set,
-            # 'pilot_set': pilot_set,
-            'date': formatdate,
-            'motive_set': motive_set,
-            'district_set': district_set,
-            'client_set': client_set,
-            'subsidiary_obj': subsidiary_obj,
-            'subsidiary_set': subsidiary_set,
-        })
-        return JsonResponse({
-            'success': True,
-            'form': t.render(c, request),
-        })
+        contract_id = request.GET.get('contract_id')
+        if contract_id:
+            user_id = request.user.id
+            user_obj = User.objects.get(id=int(user_id))
+            subsidiary_obj = get_subsidiary_by_user(user_obj)
+            contract_obj = Contract.objects.get(id=int(contract_id))
+            my_date = datetime.now()
+            formatdate = my_date.strftime("%Y-%m-%d")
+            truck_set = Truck.objects.all()
+            # pilot_set = Driver.objects.all()
+            motive_set = GuideMotive.objects.filter(type='S')
+            district_set = District.objects.all()
+            subsidiary_set = Subsidiary.objects.all()
+            t = loader.get_template('buys/model_new_guide.html')
+            c = ({
+                'truck_set': truck_set,
+                # 'pilot_set': pilot_set,
+                'date': formatdate,
+                'motive_set': motive_set,
+                'district_set': district_set,
+                'subsidiary_obj': subsidiary_obj,
+                'subsidiary_set': subsidiary_set,
+                'contract_obj': contract_obj
+            })
+            return JsonResponse({
+                'success': True,
+                'form': t.render(c, request),
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'No se puedo obtener el Contrato, Actualice'
+            }, status=HTTPStatus.OK)
