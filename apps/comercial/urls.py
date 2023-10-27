@@ -111,5 +111,6 @@ urlpatterns = [
     path('new_guide/<int:contract_detail>/', new_guide, name='new_guide'),
     path('modal_guide_origin/', modal_guide_origin, name='modal_guide_origin'),
     path('modal_guide_destiny/', modal_guide_destiny, name='modal_guide_destiny'),
+    path('modal_guide_carrier/', modal_guide_carrier, name='modal_guide_carrier'),
 
 ]

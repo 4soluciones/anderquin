@@ -64,7 +64,7 @@
             <div class="row col-md-12 mt-3 pr-0">
                 <div class="col-md-2">
                     <label for="btn-add-origin" class="text-primary mb-3">Agrega el punto de partida</label>
-                    <button id="btn-add-origin" class="btn btn-sm btn-block btn-success" type="button"
+                    <button id="btn-add-origin" class="btn btn-sm btn-block btn-primary" type="button"
                             onclick="AddOrigin('modal_guide_origin')">
                         <i class="fas fa-plus"></i> Agregar
                     </button>
@@ -85,7 +85,7 @@
             <div class="row col-md-12 mt-3 pr-0">
                 <div class="col-md-2">
                     <label for="btn-add-origin" class="text-primary mb-3">Agrega el punto de llegada</label>
-                    <button id="btn-add-origin" class="btn btn-sm btn-block btn-success" type="button"
+                    <button id="btn-add-origin" class="btn btn-sm btn-block btn-primary" type="button"
                             onclick="AddDestiny('modal_guide_destiny', {{ contract_detail_obj.contract.client.id }})">
                         <i class="fas fa-plus"></i> Agregar
                     </button>
@@ -105,7 +105,7 @@
             </div>
             <div class="row col-md-12 mt-3 pr-0">
                 <div class="col-md-2">
-                    <label for="transport-modality" class="text-primary">Modalidad de transporte</label>
+                    <label for="transport-modality" class="text-primary">Modalidad de Transporte</label>
                     <select class="form-control" id="transport-modality"
                             name="transport-modality">
                         <option selected disabled value="0">Seleccione</option>
@@ -113,15 +113,22 @@
                         <option value="2">PRIVADO</option>
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label for="transport-modality" class="text-primary">Agregar Transportista</label>
+                    <button id="btn-add-origin" class="btn btn-sm btn-block btn-success" type="button"
+                            onclick="AddCarrier('modal_guide_carrier')">
+                        <i class="fas fa-plus"></i> Agregar
+                    </button>
+                </div>
 
                 <div class="col-md-2">
                     <label for="document-transport" class="text-primary">Número de Documento (Transportista)</label>
                     <input type="text"
                            class="form-control" name="document-transport" id="document-transport"
-                           placeholder="" required
+                           placeholder="" disabled
                            value="" maxlength="200">
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-6">
                     <label for="name-transport" class="text-primary">Razón Social (Transportista)</label>
                     <input type="text"
                            class="form-control" name="name-transport" id="name-transport"
@@ -134,87 +141,32 @@
                     <label for="plate" class="text-primary">Vehiculo (Placa)</label>
                     <input type="text"
                            class="form-control" name="plate" id="plate"
-                           placeholder="" required
+                           placeholder="" disabled
                            value="" maxlength="20">
                 </div>
                 <div class="col-md-2">
                     <label for="document-driver" class="text-primary">DNI (Conductor)</label>
                     <input type="text"
                            class="form-control" name="document-driver" id="document-driver"
-                           placeholder="" required
+                           placeholder="" disabled
                            value="" maxlength="20">
                 </div>
                 <div class="col-md-2">
                     <label for="license-driver" class="text-primary">Nro Licencia (Conductor)</label>
                     <input type="text"
                            class="form-control" name="license-driver" id="license-driver"
-                           placeholder="" required
+                           placeholder="" disabled
                            value="" maxlength="20">
                 </div>
                 <div class="col-md-6">
                     <label for="names-driver" class="text-primary">Nombres y Apellidos (Conductor)</label>
                     <input type="text"
                            class="form-control" name="names-driver" id="names-driver"
-                           placeholder="" required
+                           placeholder="" disabled
                            value="" maxlength="20">
                 </div>
             </div>
-            {#            <div class="row col-md-12 mt-1 pr-0">#}
-            {#                <div class="col-md-3">#}
-            {#                    <label for="id-date-issue" class="text-primary">Fecha Emision</label>#}
-            {#                    <input type="date"#}
-            {#                           class="form-control" name="id-date-issue" id="id-date-issue"#}
-            {#                           placeholder="" required#}
-            {#                           value="{{ date }}">#}
-            {#                </div>#}
-            {#                <div class="col-md-3">#}
-            {#                    <label for="origin" class="text-primary">Ubigeo Origen</label>#}
-            {#                    <select class="form-control" id="origin"#}
-            {#                            name="origin">#}
-            {#                        <option selected disabled value="0">Seleccione</option>#}
-            {#                        {% for d in district_set %}#}
-            {#                            {% if subsidiary_obj.district.id == d.id %}#}
-            {#                                <option selected value="{{ d.id }}">{{ d.description }}</option>#}
-            {#                            {% else %}#}
-            {#                                <option value="{{ d.id }}">{{ d.description }}</option>#}
-            {#                            {% endif %}#}
-            {#                        {% endfor %}#}
-            {#                    </select>#}
-            {#                </div>#}
-            {#                <div class="col-md-6">#}
-            {#                    <label for="id-address-origin" class="text-primary">Direccion de partida</label>#}
-            {#                    <input type="text"#}
-            {#                           class="form-control" name="id-address-origin" id="id-address-origin"#}
-            {#                           placeholder="" required#}
-            {#                           value="{{ subsidiary_obj.address }}" maxlength="200">#}
-            {#                </div>#}
-            {#            </div>#}
-            {#            <div class="row col-md-12 mt-1 pr-0">#}
-            {#                <div class="col-md-3">#}
-            {#                    <label for="id-date-transfer" class="text-primary">Fecha Traslado</label>#}
-            {#                    <input type="date"#}
-            {#                           class="form-control" name="id-date-transfer" id="id-date-transfer"#}
-            {#                           placeholder="" required#}
-            {#                           value="{{ date }}">#}
-            {#                </div>#}
-            {#                <div class="col-md-3">#}
-            {#                    <label for="destiny" class="text-primary">Ubigeo Destino</label>#}
-            {#                    <select class="form-control combo" id="destiny"#}
-            {#                            name="destiny">#}
-            {#                        <option value="0">Seleccione</option>#}
-            {#                        {% for d in district_set %}#}
-            {#                            <option value="{{ d.id }}">{{ d.description }}</option>#}
-            {#                        {% endfor %}#}
-            {#                    </select>#}
-            {#                </div>#}
-            {#                <div class="col-md-6">#}
-            {#                    <label for="id-address-destination" class="text-primary">Direccion de destino</label>#}
-            {#                    <input type="text"#}
-            {#                           class="form-control" name="id-address-destination" id="id-address-destination"#}
-            {#                           placeholder="" required#}
-            {#                           value="" maxlength="200">#}
-            {#                </div>#}
-            {#            </div>#}
+
             <div class="row col-md-12 mt-1 pr-0">
                 <div class="col-md-2">
                     <label for="weight" class="text-primary">Peso bruto total (KGM)</label>
@@ -305,6 +257,8 @@
          aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
     <div class="modal fade" id="modal-destiny" data-backdrop="static" data-keyboard="false" tabindex="-1"
          aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
+    <div class="modal fade" id="modal-carrier" data-backdrop="static" data-keyboard="false" tabindex="-1"
+         aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
 
 {% endblock body %}
 
@@ -338,6 +292,24 @@
                 success: function (response) {
                     $('#modal-destiny').html(response.form);
                     $('#modal-destiny').modal('show');
+                },
+                fail: function (response) {
+                    toastr.error('Ocurrio un problema al mostrar el formulario', '¡Mensaje!');
+                }
+            });
+
+        }
+
+        function AddCarrier(route) {
+            $('#modal-carrier').empty();
+            $.ajax({
+                url: '/comercial/' + route + '/',
+                dataType: 'json',
+                type: 'GET',
+                data: {},
+                success: function (response) {
+                    $('#modal-carrier').html(response.form);
+                    $('#modal-carrier').modal('show');
                 },
                 fail: function (response) {
                     toastr.error('Ocurrio un problema al mostrar el formulario', '¡Mensaje!');

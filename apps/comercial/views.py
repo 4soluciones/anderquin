@@ -555,6 +555,30 @@ def modal_guide_destiny(request):
         }, status=HTTPStatus.OK)
 
 
+def modal_guide_carrier(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(id=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        truck_set = Truck.objects.all()
+        owner_set = Owner.objects.all()
+        t = loader.get_template('comercial/modal_guide_carrier.html')
+        c = ({
+            'truck_set': truck_set,
+            'subsidiary_obj': subsidiary_obj,
+            'owner_set': owner_set,
+        })
+        return JsonResponse({
+            'success': True,
+            'form': t.render(c, request),
+        })
+    else:
+        return JsonResponse({
+            'success': False,
+            'message': 'No se puedo obtener el Contrato, Actualice'
+        }, status=HTTPStatus.OK)
+
+
 def get_programming_guide(request):
     if request.method == 'GET':
         id_programming = request.GET.get('programming', '')
