@@ -65,46 +65,42 @@
                 <div class="col-md-2">
                     <label for="btn-add-origin" class="text-primary mb-3">Agrega el punto de partida</label>
                     <button id="btn-add-origin" class="btn btn-sm btn-block btn-success" type="button"
-                            onclick="AddOrigin('modal_guide_origin', {{ contract_detail_obj.contract.client.id }})">
+                            onclick="AddOrigin('modal_guide_origin')">
                         <i class="fas fa-plus"></i> Agregar
                     </button>
                 </div>
                 <div class="col-md-2">
-                    <label for="name-transport" class="text-primary mb-3">Ubigeo Origen</label>
+                    <label for="location-origin" class="text-primary mb-3">Ubigeo Origen</label>
                     <input type="text"
-                           class="form-control" name="name-transport" id="name-transport"
-                           placeholder="" disabled
-                           value="" maxlength="500">
+                           class="form-control" name="location-origin" id="location-origin"
+                           placeholder="" disabled value="" >
                 </div>
                 <div class="col-md-8">
-                    <label for="name-transport" class="text-primary mb-3">Direccion de partida</label>
+                    <label for="origin-address" class="text-primary mb-3">Direccion de partida</label>
                     <input type="text"
-                           class="form-control" name="name-transport" id="name-transport"
-                           placeholder="" disabled
-                           value="" maxlength="500">
+                           class="form-control" name="origin-address" id="origin-address"
+                           placeholder="" disabled value="">
                 </div>
             </div>
             <div class="row col-md-12 mt-3 pr-0">
                 <div class="col-md-2">
                     <label for="btn-add-origin" class="text-primary mb-3">Agrega el punto de llegada</label>
                     <button id="btn-add-origin" class="btn btn-sm btn-block btn-success" type="button"
-                            onclick="AddDestiny('modal_guide_destiny')">
+                            onclick="AddDestiny('modal_guide_destiny', {{ contract_detail_obj.contract.client.id }})">
                         <i class="fas fa-plus"></i> Agregar
                     </button>
                 </div>
                 <div class="col-md-2">
-                    <label for="name-transport" class="text-primary mb-3">Ubigeo Origen</label>
+                    <label for="location-destiny" class="text-primary mb-3">Ubigeo Destino</label>
                     <input type="text"
-                           class="form-control" name="name-transport" id="name-transport"
-                           placeholder="" disabled
-                           value="" maxlength="500">
+                           class="form-control" name="location-destiny" id="location-destiny"
+                           placeholder="" disabled value="">
                 </div>
                 <div class="col-md-8">
-                    <label for="name-transport" class="text-primary mb-3">Direccion de partida</label>
+                    <label for="destiny-address" class="text-primary mb-3">Direccion de Destino</label>
                     <input type="text"
-                           class="form-control" name="name-transport" id="name-transport"
-                           placeholder="" disabled
-                           value="" maxlength="500">
+                           class="form-control" name="destiny-address" id="destiny-address"
+                           placeholder="" disabled value="">
                 </div>
             </div>
             <div class="row col-md-12 mt-3 pr-0">
@@ -315,13 +311,13 @@
 {% block extrajs %}
     <script type="text/javascript">
 
-        function AddOrigin(route, client) {
+        function AddOrigin(route) {
             $('#modal-origin').empty();
             $.ajax({
                 url: '/comercial/' + route + '/',
                 dataType: 'json',
                 type: 'GET',
-                data: {'client': client},
+                data: {},
                 success: function (response) {
                     $('#modal-origin').html(response.form);
                     $('#modal-origin').modal('show');
@@ -332,13 +328,13 @@
             });
         }
 
-        function AddDestiny(route) {
+        function AddDestiny(route, client) {
             $('#modal-destiny').empty();
             $.ajax({
                 url: '/comercial/' + route + '/',
                 dataType: 'json',
                 type: 'GET',
-                data: {},
+                data: {'client': client},
                 success: function (response) {
                     $('#modal-destiny').html(response.form);
                     $('#modal-destiny').modal('show');

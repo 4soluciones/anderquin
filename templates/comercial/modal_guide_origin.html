@@ -34,19 +34,23 @@
                             <th class="th-sm" style="width: 45%">Domicilio</th>
                         </tr>
                         </thead>
-                        <tbody style="font-size: 13px;">
-                        {% for ca in client_address_set %}
-                            <tr class="text-left" pk="{{ ca.id }}">
-                                <td class="align-middle">
+                        <tbody id="body-origin-address" style="font-size: 13px;">
+                        {% for s in subsidiary_set %}
+                            <tr class="text-left" pk="{{ s.id }}">
+                                <td class="align-middle item-check">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="radio1"
+                                        <input class="form-check-input check-address" type="radio" name="radio1"
                                                id="address-selected">
                                         <label for="address-selected" class="form-check-label"></label>
                                     </div>
                                 </td>
-                                <td class="align-middle">DOMICILIO FISCAL</td>
-                                <td class="align-middle">{{ ca.district.id }}</td>
-                                <td class="align-middle">{{ ca.address }}</td>
+                                <td class="align-middle">
+                                    {% if s.is_main %}
+                                        DOMICILIO FISCAL
+                                    {% endif %}
+                                </td>
+                                <td class="align-middle item-location">{{ s.district.id }}</td>
+                                <td class="align-middle item-address">{{ s.address }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -98,11 +102,10 @@
                 </div>
                 <div class="row mt-2">
                     <div class="col-md-12">
-                        <label for="document-transport" class="font-weight-bold">Dirección detallada</label>
+                        <label for="other-address-origin" class="font-weight-bold">Dirección detallada</label>
                         <input type="text"
-                               class="form-control text-uppercase" name="document-transport" id="document-transport"
-                               placeholder="Direccion" required
-                               value="" maxlength="200">
+                               class="form-control text-uppercase" name="other-address-origin" id="other-address-origin"
+                               placeholder="Direccion" autocomplete="off">
                     </div>
                 </div>
             </div>
@@ -111,12 +114,12 @@
         <div class="modal-footer">
             {#                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" id="btn-close">Cerrar#}
             {#                </button>                &nbsp;#}
-            <button id="save-new-guide" type="button" class="btn btn-block btn-outline-success">
+            <button id="save-new-guide" type="button" onclick="addAddressOrigin()"
+                    class="btn btn-block btn-outline-success">
                 Agregar
             </button>
         </div>
     </div>
-</div>
 </div>
 
 <style>
@@ -140,6 +143,11 @@
     });
     $('#third-client-address').change(function () {
         if ($(this).is(":checked")) {
+            $('#body-origin-address tr td.item-check input.check-address').each(function () {
+                if ($(this).is(":checked")) {
+                    $(this).prop("checked", false);
+                }
+            });
             $('.content-client-address').addClass('d-none');
             $('.content-third-client-address').removeClass('d-none');
             $('.content-other-address').addClass('d-none');
@@ -147,11 +155,89 @@
     });
     $('#other-address').change(function () {
         if ($(this).is(":checked")) {
+            $('#body-origin-address tr td.item-check input.check-address').each(function () {
+                if ($(this).is(":checked")) {
+                    $(this).prop("checked", false);
+                }
+            });
             $('.content-client-address').addClass('d-none');
             $('.content-third-client-address').addClass('d-none');
             $('.content-other-address').removeClass('d-none');
         }
     });
+
+    function checkTableOrigin() {
+        let check = false;
+        $('#body-origin-address tr td.item-check input.check-address').each(function () {
+            if ($(this).is(":checked")) {
+                check = true;
+            }
+        });
+        return check;
+    }
+
+
+    function addAddressOrigin() {
+
+        let _location = ''
+        let _address = ''
+
+        if ($('#client-address').is(":checked")) {
+
+            if (checkTableOrigin() === false) {
+                toastr.warning('SELECCIONE UN ESTABLECIMIENTO', 'Mensaje');
+                return false;
+            }
+            $('#body-origin-address tr td.item-check input.check-address').each(function () {
+                if ($(this).is(":checked")) {
+                    let tr = $(this).closest('tr');
+                    _location = tr.find('td.item-location').text();
+                    _address = tr.find('td.item-address').text();
+                }
+            });
+
+        } else if ($('#third-client-address').is(":checked")) {
+            console.log("third")
+        } else if ($('#other-address').is(":checked")) {
+            let _department = $('#department');
+            let _province = $('#province');
+            let _district = $('#district');
+            let _other_address_origin = $('#other-address-origin');
+
+            if (_department.val() === null) {
+                toastr.warning('SELECCIONE DEPARTAMENTO', 'Mensaje');
+                _department.focus();
+                return false;
+            }
+            if (_province.val() === null) {
+                toastr.warning('SELECCIONE PROVINCIA', 'Mensaje');
+                _province.focus();
+                return false;
+            }
+            if (_district.val() === null) {
+                toastr.warning('SELECCIONE DISTRITO', 'Mensaje');
+                _district.focus();
+                return false;
+            }
+            if (_district.val() === null) {
+                toastr.warning('SELECCIONE DISTRITO', 'Mensaje');
+                _district.focus();
+                return false;
+            }
+            if (_other_address_origin.val() === "") {
+                toastr.warning('ESCRIBA UNA DIRECCIÓN', 'Mensaje');
+                _district.focus();
+                return false;
+            }
+            _location = _district.val();
+            _address = _other_address_origin.val();
+        }
+
+        $('#location-origin').val(_location);
+        $('#origin-address').val(_address.toUpperCase());
+        $('#modal-origin').modal('hide');
+
+    }
 
 
 </script>

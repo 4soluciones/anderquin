@@ -483,17 +483,15 @@ def new_guide(request, contract_detail=None):
 
 def modal_guide_origin(request):
     if request.method == 'GET':
-        client_id = request.GET.get('client')
         user_id = request.user.id
         user_obj = User.objects.get(id=int(user_id))
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        client_address_set = ClientAddress.objects.filter(client_id=client_id)
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
         truck_set = Truck.objects.all()
         # pilot_set = Driver.objects.all()
         motive_set = GuideMotive.objects.filter(type='S')
-        subsidiary_set = Subsidiary.objects.all()
+        subsidiary_set = Subsidiary.objects.all().order_by('serial')
         t = loader.get_template('comercial/modal_guide_origin.html')
         c = ({
             'truck_set': truck_set,
@@ -505,7 +503,6 @@ def modal_guide_origin(request):
             'district_set': District.objects.all(),
             'subsidiary_obj': subsidiary_obj,
             'subsidiary_set': subsidiary_set,
-            'client_address_set': client_address_set,
         })
         return JsonResponse({
             'success': True,
@@ -526,6 +523,7 @@ def modal_guide_destiny(request):
         subsidiary_obj = get_subsidiary_by_user(user_obj)
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
+        client_obj = Client.objects.get(id=int(client_id))
         client_address_set = ClientAddress.objects.filter(client_id=client_id)
         truck_set = Truck.objects.all()
         # pilot_set = Driver.objects.all()
@@ -538,9 +536,12 @@ def modal_guide_destiny(request):
             # 'pilot_set': pilot_set,
             'date': formatdate,
             'motive_set': motive_set,
-            'district_set': district_set,
             'subsidiary_obj': subsidiary_obj,
             'subsidiary_set': subsidiary_set,
+            'department_set': Department.objects.all(),
+            'province_set': Province.objects.all(),
+            'district_set': District.objects.all(),
+            'client_obj': client_obj,
             'client_address_set': client_address_set,
         })
         return JsonResponse({

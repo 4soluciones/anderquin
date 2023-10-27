@@ -1,38 +1,150 @@
-<div class="modal-dialog modal-lg" role="document">
+<div class="modal-dialog custom-position modal-lg" role="document">
     <div class="modal-content">
         <div class="modal-header" style="background-color: rgb(21,99,181);">
-            <div class="card-body p-2">
-                <div class="row">
-                    <div class="col-sm-3">
-                        <h6 class="modal-title text-white roboto-condensed-regular pt-1">GUIA DE REMISION
-                            ELECTRÓNICA</h6>
+            <h6 class="modal-title text-white roboto-condensed-regular pt-1">PUNTO DE LLEGADA</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body pb-0">
+            <div class="card-body pb-0">
+                <div class="custom-control custom-radio mb-1">
+                    <input class="custom-control-input" type="radio" id="third-client-address-destiny"
+                           name="customRadio" checked="">
+                    <label for="third-client-address-destiny" class="custom-control-label">Establecimiento de un tercero
+                        inscrito en el RUC</label>
+                </div>
+                <div class="custom-control custom-radio mb-1">
+                    <input class="custom-control-input" type="radio" id="other-address-destiny" name="customRadio">
+                    <label for="other-address-destiny" class="custom-control-label">Otra dirección</label>
+                </div>
+            </div>
+            <div class="card-body content-third-client-address-destiny">
+                <div class="row mt-1 mb-3">
+                    <div class="col-md-3">
+                        <label for="nro-document" class="font-weight-bold">Número de RUC:</label>
                     </div>
-                    <div class="col-sm-8 text-center">
-                        <div class="card bg-dark">
-                            <h5 class="modal-title text-white roboto-condensed-regular">{{ contract_obj.client.names }}</h5>
-                        </div>
+                    <div class="col-md-4">
+                        <input type="text"
+                               class="form-control text-uppercase" name="nro-document" id="nro-document"
+                               value="{{ client_obj.clienttype_set.last.document_number }}">
                     </div>
-                    <div class="col-sm-1">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                </div>
+
+                <label class="font-weight-bold mt-2">Seleccione un establecimiento:</label>
+                <div class="table-responsive">
+                    <table id="destiny-address" class="table table-bordered">
+                        <thead>
+                        <tr class="text-left font-weight-bold" style="background-color: #e5e5e5">
+                            <th class="th-sm" style="width: 5%"></th>
+                            <th class="th-sm" style="width: 20%">Tipo</th>
+                            <th class="th-sm" style="width: 30%">Ubigeo</th>
+                            <th class="th-sm" style="width: 45%">Domicilio</th>
+                        </tr>
+                        </thead>
+                        <tbody style="font-size: 13px;">
+                        {% for c in client_address_set %}
+                            <tr class="text-left" pk="{{ s.id }}">
+                                <td class="align-middle">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="radio1"
+                                               id="address-selected">
+                                        <label for="address-selected" class="form-check-label"></label>
+                                    </div>
+                                </td>
+                                <td class="align-middle">DOMICILIO FISCAL</td>
+                                <td class="align-middle">{{ c.district.id }}</td>
+                                <td class="align-middle">{{ c.address }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-body content-other-address-destiny d-none">
+                <label class="font-weight-bold">Ingrese una dirección:</label>
+                <div class="row mt-1">
+                    <div class="col-md-6">
+                        <label for="department-destiny" class="font-weight-bold">Departamento</label>
+                        <select class="form-control combo" id="department-destiny"
+                                name="department">
+                            <option selected disabled value="0">Seleccione</option>
+                            {% for d in department_set %}
+                                <option value="{{ d.id }}">{{ d.description }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="province-destiny" class="font-weight-bold">Provincia</label>
+                        <select class="form-control combo" id="province-destiny"
+                                name="province">
+                            <option selected disabled value="0">Seleccione</option>
+                            {% for p in province_set %}
+                                <option value="{{ p.id }}">{{ p.description }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <label for="district-destiny" class="font-weight-bold">Distrito</label>
+                        <select class="form-control combo" id="district-destiny"
+                                name="district">
+                            <option selected disabled value="0">Seleccione</option>
+                            {% for d in district_set %}
+                                <option value="{{ d.id }}">{{ d.description }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label for="document-transport" class="font-weight-bold">Dirección detallada</label>
+                        <input type="text"
+                               class="form-control text-uppercase"
+                               name="document-transport-destiny" id="document-transport-destiny"
+                               placeholder="Direccion" required
+                               value="" maxlength="200">
                     </div>
                 </div>
             </div>
         </div>
-        <div class="modal-body">
-            <div class="card-body bg-light p-0">
-                data
-            </div>
-            <div class="modal-footer p-1">
-                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" id="btn-close">Cerrar
-                </button>
-                &nbsp;
-                <button id="save-new-guide" type="button" class="btn btn-sm btn-success"
-                        service="{{ service_obj.id }}">
-                    Registrar guia remision
-                </button>
-            </div>
+
+        <div class="modal-footer">
+            {#                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" id="btn-close">Cerrar#}
+            {#                </button>                &nbsp;#}
+            <button id="save-new-guide" type="button" class="btn btn-block btn-outline-success">
+                Agregar
+            </button>
         </div>
     </div>
 </div>
+
+
+<style>
+    .modal-dialog.custom-position {
+        margin-top: 10%;
+    }
+</style>
+
+<script type="text/javascript">
+
+    $('.combo').select2({
+        theme: 'bootstrap4',
+    });
+
+    $('#third-client-address-destiny').change(function () {
+        if ($(this).is(":checked")) {
+            $('.content-third-client-address-destiny').removeClass('d-none');
+            $('.content-other-address-destiny').addClass('d-none');
+        }
+    });
+    $('#other-address-destiny').change(function () {
+        if ($(this).is(":checked")) {
+            $('.content-third-client-address-destiny').addClass('d-none');
+            $('.content-other-address-destiny').removeClass('d-none');
+        }
+    });
+
+
+</script>
