@@ -9,37 +9,52 @@
         <div class="modal-body pb-0">
             <div class="card-body content-other-address p-1">
                 <div class="row">
-                    <div class="col-md-6">
-                        <label for="department" class="font-weight-bold">Transportista</label>
-                        <select class="form-control combo" id="department"
-                                name="department">
-                            <option selected disabled value="0">Seleccione</option>
+                    <div class="col-md-4">
+                        <label for="carrier" class="font-weight-bold">Seleccione transportista</label>
+                        <select class="form-control combo" id="carrier"
+                                name="carrier">
+                            <option selected disabled value="0">Seleccione..</option>
                             {% for o in owner_set %}
                                 <option value="{{ o.id }}">{{ o.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="col-md-8">
+                        <label for="carrier_name" class="font-weight-bold">Razon Social</label>
+                        <input type="text"
+                               class="form-control" name="carrier-name" id="carrier_name" disabled>
+                        <input type="hidden" name="carrier-name" id="carrier_document">
+                        <input type="hidden" name="carrier-id" id="carrier_id">
+                    </div>
                 </div>
                 <div class="row mt-2">
-                    <div class="col-md-6">
-                        <label for="district" class="font-weight-bold">Vehiculo</label>
-                        <select class="form-control combo" id="district"
-                                name="district">
-                            <option selected disabled value="0">Seleccione</option>
-                            {% for d in district_set %}
-                                <option value="{{ d.id }}">{{ d.description }}</option>
-                            {% endfor %}
+                    <div class="col-md-4">
+                        <label for="vehicle" class="font-weight-bold">Seleccione Vehiculo</label>
+                        <select class="form-control combo" id="vehicle"
+                                name="vehicle">
+                            <option selected disabled value="0">Seleccione..</option>
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label for="district" class="font-weight-bold">Conductor</label>
-                        <select class="form-control combo" id="district"
-                                name="district">
-                            <option selected disabled value="0">Seleccione</option>
-                            {% for d in district_set %}
-                                <option value="{{ d.id }}">{{ d.description }}</option>
-                            {% endfor %}
+                    <div class="col-md-4">
+                        <label for="license_plate" class="font-weight-bold">Placa</label>
+                        <input type="text"
+                               class="form-control" name="license_plate" id="license_plate" disabled>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-4">
+                        <label for="driver" class="font-weight-bold">Seleccione Conductor</label>
+                        <select class="form-control combo" id="driver"
+                                name="driver">
+                            <option selected disabled value="0">Seleccione..</option>
                         </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label for="driver_name" class="font-weight-bold">Datos del Conductor</label>
+                        <input type="text"
+                               class="form-control" name="driver-name" id="driver_name" disabled>
+                        <input type="hidden" id="driver_document">
+                        <input type="hidden" id="driver_license">
                     </div>
                 </div>
             </div>
@@ -48,9 +63,9 @@
         <div class="modal-footer">
             {#                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" id="btn-close">Cerrar#}
             {#                </button>                &nbsp;#}
-            <button id="save-new-guide" type="button" onclick="addAddressOrigin()"
+            <button id="add-carrier-guide" type="button" onclick="addCarrierGuide()"
                     class="btn btn-block btn-outline-success">
-                Agregar
+                Agregar transportista
             </button>
         </div>
     </div>
@@ -64,6 +79,123 @@
 
 <script type="text/javascript">
 
+    $('#carrier').change(function (e) {
+        let _carrier = $(this).val();
+        let _carrier_name = $('#carrier_name');
+        let _carrier_document = $('#carrier_document');
+        let _carrier_id = $('#carrier_id');
+        let _select_vehicle = $('#vehicle');
+        $.ajax({
+            url: '/comercial/get_vehicle_by_carrier/',
+            async: true,
+            dataType: 'json', // for response
+            type: 'GET',
+            data: {'id': _carrier,},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response) {
+                if (response.success) {
+                    _select_vehicle.empty();
+                    let truck = JSON.parse(response['truck']);
+                    _select_vehicle.append($('<option>').val("0").text('Seleccione..'));
+                    if (response['truck'] !== '[]') {
+                        for (let i = 0; i < truck.length; i++) {
+                            let option = $('<option>').val(truck[i]['pk']).text(truck[i]['fields']['license_plate'].toUpperCase());
+                            _select_vehicle.append(option);
+                        }
+                    }
+                    _carrier_name.val(response.carrier_name)
+                    _carrier_document.val(response.carrier_document)
+                    _carrier_id.val(response.carrier_id)
+                }
+            },
+            fail: function (response) {
+                console.log(response);
+            },
+        });
+    });
+
+    $('#vehicle').change(function (e) {
+        let _vehicle = $(this).val();
+        let _select_driver = $('#driver');
+        let _plate = $('#license_plate');
+        if (_vehicle !== 0) {
+            $.ajax({
+                url: '/comercial/get_plate_by_vehicle/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'id': _vehicle,},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response) {
+                    if (response.success) {
+                        _select_driver.empty();
+                        let _truck_associate = response['truck_associate_dict']
+                        _select_driver.append($('<option>').val("0").text('Seleccione..'));
+                        if (_truck_associate !== '[]') {
+                            for (let i = 0; i < _truck_associate.length; i++) {
+                                let option = $('<option>').val(_truck_associate[i]['driver_id']).text(_truck_associate[i]['driver_name'].toUpperCase()).attr('dni', _truck_associate[i]['driver_document']).attr('license', _truck_associate[i]['driver_license']);
+                                _select_driver.append(option);
+                            }
+                        }
+                        _plate.val(response.license_plate);
+                    }
+                },
+                fail: function (response) {
+                    console.log(response);
+                },
+            });
+        }
+    });
+    $('#driver').change(function (e) {
+        let _driver = $(this).val();
+        let _driver_name = $('#driver option:selected').text();
+        let _driver_dni = $('#driver option:selected').attr('dni');
+        let _driver_license = $('#driver option:selected').attr('license');
+        $('#driver_name').val(_driver_name);
+        $('#driver_document').val(_driver_dni);
+        $('#driver_license').val(_driver_license);
+    });
+
+    function addCarrierGuide() {
+        let _carrier = $('#carrier');
+        let _vehicle = $('#vehicle');
+        let _driver = $('#driver');
+
+        let _carrier_name = $('#carrier_name').val();
+        let _carrier_document = $('#carrier_document').val();
+        let _carrier_id = $('#carrier_id').val();
+        let _license_plate = $('#license_plate').val();
+        let _driver_name = $('#driver_name').val();
+        let _driver_document = $('#driver_document').val();
+        let _driver_license = $('#driver_license').val();
+
+        if (_carrier.val() === null) {
+            toastr.warning('SELECCIONE UN TRANSPORTISTA', 'Mensaje');
+            _carrier.focus();
+            return false;
+        }
+        if (_vehicle.val() === null) {
+            toastr.warning('SELECCIONE UN VEHICULO', 'Mensaje');
+            _carrier.focus();
+            return false;
+        }
+        if (_driver.val() === null) {
+            toastr.warning('SELECCIONE UN CONDUCTOR', 'Mensaje');
+            _carrier.focus();
+            return false;
+        }
+
+        $('#document-transport').val(_carrier_document);
+        $('#name-transport').val(_carrier_name);
+        $('#plate').val(_license_plate);
+        $('#document-driver').val(_driver_document);
+        $('#license-driver').val(_driver_license);
+        $('#names-driver').val(_driver_name);
+        $('#modal-carrier').modal('hide');
+
+    }
 
 
 </script>

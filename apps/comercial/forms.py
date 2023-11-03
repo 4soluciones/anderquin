@@ -21,7 +21,7 @@ class FormTruck(forms.ModelForm):
             'chassis': 'chasis',
             'color': 'color',
             'fuel_type': 'Tipo de Combustible',
-            'owner': 'Dueño',
+            'owner': 'Transportista',
             'condition_owner': 'Condicion de Propiedad',
             # 'subsidiary': 'Sucursal',
         }
@@ -167,7 +167,7 @@ class FormTowing(forms.ModelForm):
             'denomination': 'Denominacion',
             'towing_model': 'Modelo de Furgon',
             'towing_type': 'Tipo de Furgon',
-            'owner': 'Dueño',
+            'owner': 'Transportista',
             'condition_owner': 'Condicion de Propiedad',
 
         }

@@ -112,6 +112,8 @@ urlpatterns = [
     path('modal_guide_origin/', modal_guide_origin, name='modal_guide_origin'),
     path('modal_guide_destiny/', modal_guide_destiny, name='modal_guide_destiny'),
     path('modal_guide_carrier/', modal_guide_carrier, name='modal_guide_carrier'),
+    path('get_vehicle_by_carrier/', get_vehicle_by_carrier, name='get_vehicle_by_carrier'),
+    path('get_plate_by_vehicle/', get_plate_by_vehicle, name='get_plate_by_vehicle'),
 
     # CREATE CARRIER
     path('modal_new_carrier/', modal_new_carrier, name='modal_new_carrier'),
@@ -122,5 +124,6 @@ urlpatterns = [
     # CREATE DRIVER
     path('modal_new_driver/', modal_new_driver, name='modal_new_driver'),
     path('create_driver/', create_driver, name='create_driver'),
+    path('new_pilot_associate/', new_pilot_associate, name='new_pilot_associate'),
 
 ]

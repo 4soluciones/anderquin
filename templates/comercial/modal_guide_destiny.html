@@ -42,19 +42,19 @@
                             <th class="th-sm" style="width: 45%">Domicilio</th>
                         </tr>
                         </thead>
-                        <tbody style="font-size: 13px;">
+                        <tbody id="body-destiny-address" style="font-size: 13px;">
                         {% for c in client_address_set %}
                             <tr class="text-left" pk="{{ s.id }}">
-                                <td class="align-middle">
+                                <td class="align-middle item-check">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="radio1"
+                                        <input class="form-check-input check-address-destiny" type="radio" name="radio1"
                                                id="address-selected">
                                         <label for="address-selected" class="form-check-label"></label>
                                     </div>
                                 </td>
                                 <td class="align-middle">DOMICILIO FISCAL</td>
-                                <td class="align-middle">{{ c.district.id }}</td>
-                                <td class="align-middle">{{ c.address }}</td>
+                                <td class="align-middle item-location-destiny">{{ c.district.id }}</td>
+                                <td class="align-middle item-address-destiny">{{ c.address }}</td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -102,7 +102,7 @@
                         <label for="document-transport" class="font-weight-bold">Dirección detallada</label>
                         <input type="text"
                                class="form-control text-uppercase"
-                               name="document-transport-destiny" id="document-transport-destiny"
+                               name="other-address-destiny" id="other-address-destiny"
                                placeholder="Direccion" required
                                value="" maxlength="200">
                     </div>
@@ -113,7 +113,8 @@
         <div class="modal-footer">
             {#                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" id="btn-close">Cerrar#}
             {#                </button>                &nbsp;#}
-            <button id="save-new-guide" type="button" class="btn btn-block btn-outline-success">
+            <button id="save-new-guide" type="button" onclick="addAddressDestiny()"
+                    class="btn btn-block btn-outline-success">
                 Agregar
             </button>
         </div>
@@ -145,6 +146,76 @@
             $('.content-other-address-destiny').removeClass('d-none');
         }
     });
+
+    function checkTableDestiny() {
+        let check = false;
+        $('#body-destiny-address tr td.item-check input.check-address-destiny').each(function () {
+            if ($(this).is(":checked")) {
+                check = true;
+            }
+        });
+        return check;
+    }
+
+    function addAddressDestiny() {
+
+        let _location = ''
+        let _address = ''
+
+        if ($('#third-client-address-destiny').is(":checked")) {
+
+            if (checkTableDestiny() === false) {
+                toastr.warning('SELECCIONE UN ESTABLECIMIENTO', 'Mensaje');
+                return false;
+            }
+            $('#body-destiny-address tr td.item-check input.check-address-destiny').each(function () {
+                if ($(this).is(":checked")) {
+                    let tr = $(this).closest('tr');
+                    _location = tr.find('td.item-location-destiny').text();
+                    _address = tr.find('td.item-address-destiny').text();
+                }
+            });
+
+        } else if ($('#other-address-destiny').is(":checked")) {
+            let _department = $('#department-destiny');
+            let _province = $('#province-destiny');
+            let _district = $('#district-destiny');
+            let _other_address_origin = $('#other-address-destiny');
+
+            if (_department.val() === null) {
+                toastr.warning('SELECCIONE DEPARTAMENTO', 'Mensaje');
+                _department.focus();
+                return false;
+            }
+            if (_province.val() === null) {
+                toastr.warning('SELECCIONE PROVINCIA', 'Mensaje');
+                _province.focus();
+                return false;
+            }
+            if (_district.val() === null) {
+                toastr.warning('SELECCIONE DISTRITO', 'Mensaje');
+                _district.focus();
+                return false;
+            }
+            if (_district.val() === null) {
+                toastr.warning('SELECCIONE DISTRITO', 'Mensaje');
+                _district.focus();
+                return false;
+            }
+            if (_other_address_origin.val() === "") {
+                toastr.warning('ESCRIBA UNA DIRECCIÓN', 'Mensaje');
+                _district.focus();
+                return false;
+            }
+            _location = _district.val();
+            _address = _other_address_origin.val();
+        }
+
+        $('#location-destiny').val(_location);
+        $('#destiny-address').val(_address.toUpperCase());
+        $('#modal-destiny').modal('hide');
+
+    }
 
 
 </script>

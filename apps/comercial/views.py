@@ -2751,3 +2751,71 @@ def create_driver(request):
                 'success': False,
                 'message': 'Ingrese un Conductor'
             }, status=HTTPStatus.OK)
+
+
+def new_pilot_associate(request):
+    data = dict()
+    if request.method == 'GET':
+        id = request.GET.get('truck_id')
+        associates = request.GET.get('associates', '')
+        _arr = []
+        if associates != '[]':
+            str1 = associates.replace(']', '').replace('[', '')
+            _arr = str1.replace('"', '').split(",")
+            truck_obj = Truck.objects.get(id=int(id))
+            associated_set = TruckAssociate.objects.filter(truck=truck_obj)
+            associated_set.delete()
+            for a in _arr:
+                driver_obj = Driver.objects.get(id=int(a))
+                truck_associate_obj = TruckAssociate(truck=truck_obj, driver=driver_obj)
+                truck_associate_obj.save()
+        else:
+            data['error'] = "Ingrese valores validos."
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+
+        return JsonResponse({'success': True, 'message': 'El conductor se asocio correctamente.'})
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def get_vehicle_by_carrier(request):
+    if request.method == 'GET':
+        pk = request.GET.get('id', '')
+        owner_obj = Owner.objects.get(id=pk)
+        truck_set = Truck.objects.filter(owner_id=pk)
+        truck_serialized_data = serializers.serialize('json', truck_set)
+        return JsonResponse({
+            'success': True,
+            'truck': truck_serialized_data,
+            'carrier_name': owner_obj.name,
+            'carrier_document': owner_obj.ruc,
+            'carrier_id': owner_obj.id,
+        })
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def get_plate_by_vehicle(request):
+    if request.method == 'GET':
+        pk = request.GET.get('id', '')
+        vehicle_obj = Truck.objects.get(id=pk)
+        truck_associate_set = TruckAssociate.objects.filter(truck_id=pk)
+        truck_associate_dict = []
+        for t in truck_associate_set:
+            item = {
+                'id': t.id,
+                'plate_id': t.truck.id,
+                'plate_name': t.truck.license_plate,
+                'driver_id': t.driver.id,
+                'driver_document': t.driver.document_driver,
+                'driver_license': t.driver.n_license,
+                'driver_name': t.driver.names.upper()
+            }
+            truck_associate_dict.append(item)
+
+        return JsonResponse({
+            'success': True,
+            'truck_associate_dict': truck_associate_dict,
+            'license_plate': vehicle_obj.license_plate.upper(),
+        })
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
