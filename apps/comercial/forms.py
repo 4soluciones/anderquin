@@ -5,27 +5,25 @@ from .models import *
 class FormTruck(forms.ModelForm):
     class Meta:
         model = Truck
-        fields = ['license_plate', 'num_axle', 'year', 'truck_model', 'drive_type', 'weight', 'contact_phone',
-                  'certificate', 'serial', 'engine', 'chassis', 'color', 'fuel_type', 'owner', 'condition_owner',
-                  'subsidiary', ]
+        fields = ['license_plate', 'num_axle', 'year', 'truck_model', 'drive_type', 'contact_phone',
+                  'certificate', 'engine', 'chassis', 'color', 'fuel_type', 'owner', 'condition_owner']
         labels = {
             'license_plate': 'Placa',
             'num_axle': 'N de Ejes',
             'year': 'Año de Fabricacion',
             'truck_model': 'Modelos de Tracto',
             'drive_type': 'Tipo de Unidad',
-            'weight': 'Capacidad de Carga',
+            # 'weight': 'Capacidad de Carga',
             'contact_phone': 'Telefono de contacto',
             'certificate': 'Certificado',
-            'serial': 'serie',
+            # 'serial': 'serie',
             'engine': 'motor',
-            'chassis': 'chassis',
+            'chassis': 'chasis',
             'color': 'color',
             'fuel_type': 'Tipo de Combustible',
             'owner': 'Dueño',
             'condition_owner': 'Condicion de Propiedad',
-            'subsidiary': 'Sucursal',
-
+            # 'subsidiary': 'Sucursal',
         }
 
         widgets = {
@@ -49,7 +47,6 @@ class FormTruck(forms.ModelForm):
                 attrs={
                     'class': 'form-control',
                     'placeholder': 'Ingrese  Año',
-                    'required': 'true',
                     'type': 'number',
                     'autocomplete': 'off',
                 }
@@ -70,13 +67,13 @@ class FormTruck(forms.ModelForm):
 
                 }
             ),
-            'weight': forms.TextInput(
-                attrs={
-                    'class': 'form-control',
-                    'placeholder': 'Ingrese Peso',
-                    'autocomplete': 'off',
-                }
-            ),
+            # 'weight': forms.TextInput(
+            #     attrs={
+            #         'class': 'form-control',
+            #         'placeholder': 'Ingrese Peso',
+            #         'autocomplete': 'off',
+            #     }
+            # ),
             'contact_phone': forms.TextInput(
                 attrs={
                     'class': 'form-control',
@@ -91,13 +88,13 @@ class FormTruck(forms.ModelForm):
                     'autocomplete': 'off',
                 }
             ),
-            'serial': forms.TextInput(
-                attrs={
-                    'class': 'form-control',
-                    'placeholder': 'Ingrese serial',
-                    'autocomplete': 'off',
-                }
-            ),
+            # 'serial': forms.TextInput(
+            #     attrs={
+            #         'class': 'form-control',
+            #         'placeholder': 'Ingrese serial',
+            #         'autocomplete': 'off',
+            #     }
+            # ),
 
             'engine': forms.TextInput(
                 attrs={
@@ -132,6 +129,7 @@ class FormTruck(forms.ModelForm):
                 attrs={
                     'class': 'form-control',
                     'placeholder': 'Selectione Dueño',
+                    'required': 'true',
                     # 'aria-describedby': 'serieHelpInline',
 
                 }
@@ -144,14 +142,14 @@ class FormTruck(forms.ModelForm):
 
                 }
             ),
-            'subsidiary': forms.Select(
-                attrs={
-                    'class': 'form-control',
-                    'placeholder': 'Seleccione',
-                    # 'aria-describedby': 'serieHelpInline',
-
-                }
-            ),
+            # 'subsidiary': forms.Select(
+            #     attrs={
+            #         'class': 'form-control',
+            #         'placeholder': 'Seleccione',
+            #         # 'aria-describedby': 'serieHelpInline',
+            #
+            #     }
+            # ),
         }
 
 

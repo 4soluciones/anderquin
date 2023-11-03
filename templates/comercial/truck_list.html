@@ -1,6 +1,6 @@
 {% extends 'home.html' %}
 {% block title %}
-    coronasoft.dev | Datos del Tracto
+    Vehiculos
 {% endblock title %}
 
 {% block body %}
@@ -8,40 +8,59 @@
     <div class="container-fluid">
 
         <a class="btn btn-outline-info mb-3 mt-3" href="{% url 'comercial:truck_create' %}">
-            <i class="fas fa-user-plus"></i> &nbsp;NUEVO TRACTO
+            <i class="fas fa-truck"></i> &nbsp;NUEVO VEHICULO
         </a>
+        <a class="btn btn-outline-warning mb-3 mt-3" type="button" onclick="AddNewCarrier('modal_new_carrier')">
+            <i class="fas fa-plus"></i> &nbsp;NUEVO TRANSPORTISTA
+        </a>
+        <a class="btn btn-outline-secondary mb-3 mt-3" type="button" onclick="AddNewDriver('modal_new_driver')">
+            <i class="fas fa-plus"></i> &nbsp;NUEVO CONDUCTOR
+        </a>
+
         {% if trucks %}
 
             <div class="card">
-
                 <div class="card-header">
-                    <h5 class="card-title">Lista de tractos</h5>
-                    <h6 class="card-subtitle text-muted">Highly flexible tool that many advanced features to any HTML
-                        table.</h6>
+                    <h5 class="card-title">Lista de Vehiculos</h5>
+                    <h6 class="card-subtitle text-muted"></h6>
                 </div>
-
                 <div class="card-body">
-
-                    <div class="table-responsive dataTables_wrapper ">
-                        <table id="truck-data-grid" class="table table-bordered" cellspacing="0" width="100%">
+                    <div class="table-responsive montserrat">
+                        <table id="truck-data-grid" class="table table-bordered table-striped text-uppercase small"
+                               cellspacing="0" width="100%">
                             <thead>
-                            <tr class="text-center">
-                                <th>#</th>
-                                <th class="th-sm">Placa</th>
-                                <th class="th-sm">Modelo</th>
-                                <th class="th-sm">Telefono de Contactos</th>
-                                <th class="th-sm">Editar</th>
+                            <tr class="text-center text-white bg-primary">
+                                <th class="th-sm align-middle">#</th>
+                                <th class="th-sm align-middle">Placa</th>
+                                <th class="th-sm align-middle">Marca</th>
+                                <th class="th-sm align-middle">Modelo</th>
+                                {#                                <th class="th-sm align-middle">Tipo de Plano</th>#}
+                                <th class="th-sm align-middle">Conductor</th>
+                                <th class="th-sm align-middle">Tipo de Unidad</th>
+                                <th class="th-sm align-middle">Transportista</th>
+                                <th class="th-sm align-middle"><i class="fas fa-cog fa-spin"></i></th>
                             </tr>
                             </thead>
                             <tbody>
                             {% for truck in trucks %}
                                 <tr class="text-center">
-                                    <td>{{ truck.id }}</td>
-                                    <td>{{ truck.license_plate }}</td>
-                                    <td>{{ truck.truck_model }}</td>
-                                    <td>{{ truck.contact_phone }}</td>
-                                    <td>
-                                        <a href="{% url 'comercial:truck_update' truck.id %}" class="btn btn-outline-info">Editar</a>
+                                    <td class="align-middle">{{ forloop.counter }}</td>
+                                    <td class="align-middle">{{ truck.license_plate }}</td>
+                                    <td class="align-middle">{{ truck.truck_model.truck_brand.name }}</td>
+                                    <td class="align-middle">{{ truck.truck_model }}</td>
+                                    {#                                    <td class="align-middle">{{ truck.plan.name }}</td>#}
+                                    <td class="align-middle">
+                                        {% for associate in truck.truckassociate_set.all %}
+                                            <button class="btn btn-sm btn-block btn-outline-primary">{{ associate.employee.full_name }}</button>
+                                        {% endfor %}
+                                        {#                                    </td>#}
+                                    <td class="align-middle">{{ truck.get_drive_type_display }}</td>
+                                    <td class="align-middle">{{ truck.owner }}</td>
+                                    <td class="align-middle">
+                                        <a href="{% url 'comercial:truck_update' truck.id %}" class="btn btn-link"><i
+                                                class="fas fa-pen fa-sm"></i></a>
+                                        <button type="button" class="btn btn-link pilot-to-associate"
+                                                pk="{{ truck.id }}"><i class="fas fa-object-ungroup fa-sm"></i></button>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -50,9 +69,13 @@
                             <tr class="text-center">
                                 <th>#</th>
                                 <th class="th-sm">Placa</th>
+                                <th class="th-sm">Marca</th>
                                 <th class="th-sm">Modelo</th>
-                                <th class="th-sm">Telefono de Contactos</th>
-                                <th class="th-sm">Editar</th>
+                                {#                                <th class="th-sm">Tipo de Plano</th>#}
+                                <th class="th-sm">Conductor</th>
+                                <th class="th-sm">Tipo de Unidad</th>
+                                <th class="th-sm">Transportista</th>
+                                <th class="th-sm"><i class="fas fa-cog fa-spin"></i></th>
                             </tr>
                             </tfoot>
                         </table>
@@ -60,8 +83,52 @@
                 </div>
             </div>
         {% else %}
-            <h1>No existen tractos registrados</h1>
+            <h1>No existen vehiculos registrados</h1>
         {% endif %}
+    </div>
+
+    <div class="modal fade" id="modal-new-carrier" data-backdrop="static" data-keyboard="false" tabindex="-1"
+         aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
+
+    <div class="modal" id="modal_pilot_associate" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Conductor asociado</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <form id="new-pilot-associate-form">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="tc_license_plate">Nombres</label>
+                            <input type="text" class="form-control" name="tc_license_plate" id="tc_license_plate">
+                        </div>
+
+                        <input type="hidden" id="tc_truck_id" name="tc_truck_id" value="0">
+
+                        <div class="form-group">
+                            <label for="driver_id">Asociar conductor</label>
+                            <select id="driver_id" name="driver" class="form-control" multiple="multiple">
+                                <option value="0">SELECCIONAR</option>
+                                {% for d in driver_set %}
+                                    <option value="{{ d.id }}">{{ d.names|upper }}</option>
+                                {% endfor %}
+                            </select>
+
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Salir</button>
+                        <button type="button" id="btn-save-associate" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
 {% endblock body %}
@@ -69,5 +136,113 @@
 {% block extrajs %}
     <script type="text/javascript">
         $('#truck-data-grid').dataTable();
+
+        function AddNewCarrier(route) {
+            $('#modal-new-carrier').empty();
+            $.ajax({
+                url: '/comercial/' + route + '/',
+                dataType: 'json',
+                type: 'GET',
+                data: {},
+                success: function (response) {
+                    $('#modal-new-carrier').html(response.form);
+                    $('#modal-new-carrier').modal('show');
+                },
+                fail: function (response) {
+                    toastr.error('Ocurrio un problema al mostrar el formulario', '¡Mensaje!');
+                }
+            });
+
+        }
+
+        function AddNewDriver(route) {
+            $('#modal-new-carrier').empty();
+            $.ajax({
+                url: '/comercial/' + route + '/',
+                dataType: 'json',
+                type: 'GET',
+                data: {},
+                success: function (response) {
+                    $('#modal-new-carrier').html(response.form);
+                    $('#modal-new-carrier').modal('show');
+                },
+                fail: function (response) {
+                    toastr.error('Ocurrio un problema al mostrar el formulario', '¡Mensaje!');
+                }
+            });
+
+        }
+
+        $('.pilot-to-associate').click(function (event) {
+
+            $('#tc_license_plate').empty();
+
+            let search = $(this).attr('pk');
+
+            $.ajax({
+                url: '/comercial/get_truck/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': search},
+                success: function (response) {
+                    if (response.success) {
+                        let _truck = JSON.parse(response['truck_serialized']);
+                        if (response['truck_serialized'] !== '[]') {
+                            $('#tc_license_plate').val(_truck[0]['fields']['license_plate']);
+                            $('#tc_truck_id').val(_truck[0]['pk']);
+                        }
+                        $('#modal_pilot_associate').modal('show');
+                    }
+                },
+                fail: function (response) {
+                    console.log(response);
+                }
+            });
+        });
+        $('#driver_id').select2();
+
+        $("#btn-save-associate").click(function (event) {
+
+            let _license_plate = $('#tc_license_plate').val();
+            let _truck_id = $('#tc_truck_id').val();
+            let _associates = $('#id_associate').val();
+            event.preventDefault();
+            console.log(_truck_id);
+            console.log(_associates);
+            $("#btn-save-associate").attr("disabled");
+
+            $.ajax({
+
+                url: '/comercial/new_pilot_associate/',
+                type: 'GET',
+                async: true,
+                dataType: 'json', // for response
+                data: {
+                    'truck_id': _truck_id,
+                    'license_plate': _license_plate,
+                    'associates': JSON.stringify(_associates),
+                },
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+
+                    if (response.success) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    }
+
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    console.log(jqXhr);
+                    toastr.error(jqXhr.responseJSON.error, '¡Ocurrio un error!');
+                }
+            });//end ajax
+            $("#btn-save-associate").removeAttr("disabled");
+            $('#modal_pilot_associate').modal('hide');
+        }); //end submit
+
+
     </script>
 {% endblock extrajs %}

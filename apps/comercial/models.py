@@ -81,6 +81,25 @@ class Truck(models.Model):
         verbose_name_plural = 'Tractos'
 
 
+class Driver(models.Model):
+    LICENSE_TYPE_CHOICES = (
+        ('1', 'A-I'), ('2', 'A-IIB'), ('3', 'A-IIIC'), ('4', 'A-IIIB'), ('5', 'A-IVA'), ('6', 'A-IIA'),
+        ('7', 'A-IIIA'), ('8', 'B-I'), ('9', 'B-IIA'), ('10', 'B-IIB'), ('11', 'B-IIC'), ('12', 'SIN LICENCIA'),)
+    id = models.AutoField(primary_key=True)
+    names = models.CharField(max_length=40, null=True, blank=True)
+    birthdate = models.DateField('Fecha de nacimiento', null=True, blank=True)
+    document_driver = models.CharField(max_length=12, null=True, blank=True)
+    n_license = models.CharField(max_length=12, null=True, blank=True)
+    license_type = models.CharField('Tipo de licencia', max_length=2,
+                                    choices=LICENSE_TYPE_CHOICES, default='12', )
+    license_expiration_date = models.DateField(
+        'Fecha de expiracion de licencia', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.names
+
+
 class TowingBrand(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField('Nombre', max_length=45, unique=True)

@@ -27,6 +27,7 @@ from datetime import date
 from .. import sales
 from ..buys.models import Purchase, ContractDetail, ContractDetailItem
 from ..hrm.views import get_subsidiary_by_user
+from ..sales.views_SUNAT import query_apis_net_dni_ruc
 
 
 class Index(TemplateView):
@@ -42,11 +43,12 @@ class TruckList(View):
     template_name = 'comercial/truck_list.html'
 
     def get_queryset(self):
-        return self.model.objects.all()
+        return self.model.objects.all().order_by('id')
 
     def get_context_data(self, **kwargs):
         contexto = {}
         contexto['trucks'] = self.get_queryset()  # agregamos la consulta al contexto
+        contexto['driver_set'] = Driver.objects.all()
         contexto['form'] = self.form_class
         return contexto
 
@@ -1482,7 +1484,7 @@ def distribution_mobil_save(request):
         }
         distribution_obj = DistributionMobil.objects.create(**new_distribution)
         distribution_obj.save()
-        status=''
+        status = ''
         for detail in data_distribution['Details']:
             quantity = decimal.Decimal(detail['Quantity'])
             quantity_total = decimal.Decimal(detail['Quantity_total'])
@@ -1794,7 +1796,8 @@ def output_distribution(request):
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
         subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='V').first()
-        products_set = Product.objects.filter(productstore__subsidiary_store=subsidiary_store_obj).exclude(id__in=[5, 4])
+        products_set = Product.objects.filter(productstore__subsidiary_store=subsidiary_store_obj).exclude(
+            id__in=[5, 4])
         t = loader.get_template('comercial/distribution_output.html')
         c = ({
             'truck_set': trucks_set,
@@ -2598,3 +2601,153 @@ def get_output_distributions(request):
             return render(request, 'comercial/report_quantity_output_distribution.html', {
                 'date_now': date_now,
             })
+
+
+def modal_new_carrier(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(id=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+        t = loader.get_template('comercial/modal_new_carrier.html')
+        c = ({
+            'date': formatdate,
+            'subsidiary_obj': subsidiary_obj,
+        })
+        return JsonResponse({
+            'success': True,
+            'form': t.render(c, request),
+        })
+    else:
+        return JsonResponse({
+            'success': False,
+            'message': 'Problemas con el formulario'
+        }, status=HTTPStatus.OK)
+
+
+def get_carrier_api(request):
+    if request.method == 'GET':
+        nro_document = request.GET.get('nro_document', '')
+        type_document = str(request.GET.get('type', ''))
+        owner_obj_search = Owner.objects.filter(ruc=nro_document)
+        if owner_obj_search.exists():
+            names = owner_obj_search.last().name
+            data = {
+                'error': 'EL PROVEEDOR ' + str(names) + ' YA SE ENCUENTRA REGISTRADO'}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+        else:
+            if type_document == '06':
+                type_name = 'RUC'
+                r = query_apis_net_dni_ruc(nro_document, type_name)
+
+                if r.get('numeroDocumento') == nro_document:
+                    business_name = r.get('nombre')
+                    address_business = r.get('direccion')
+                    district = r.get('distrito')
+                    province = r.get('provincia')
+                    dep_city = r.get('departamento')
+                    result = business_name
+                    address = address_business + ' - ' + district + ' - ' + province + ' - ' + dep_city
+                    return JsonResponse({'result': result, 'address': address}, status=HTTPStatus.OK)
+                else:
+                    data = {'error': 'NO EXISTE RUC. REGISTRE MANUAL O CORREGIRLO'}
+                    response = JsonResponse(data)
+                    response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+                    return response
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def create_carrier(request):
+    if request.method == 'POST':
+        document_number = str(request.POST.get('document_number', ''))
+        name_transport = str(request.POST.get('name-transport', ''))
+        address_transport = str(request.POST.get('address-transport', ''))
+
+        if document_number and name_transport:
+
+            owner_obj = Owner(
+                name=name_transport,
+                ruc=document_number,
+                address=address_transport
+            )
+            owner_obj.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Transportista Registrado correctamente',
+            }, status=HTTPStatus.OK)
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Ingrese un transportista'
+            }, status=HTTPStatus.OK)
+
+
+def get_truck(request):
+    if request.method == 'GET':
+        pk = request.GET.get('pk', '')
+
+        truck_set = Truck.objects.filter(id=pk)
+        truck_serialized_data = serializers.serialize('json', truck_set)
+        return JsonResponse({
+            'success': True,
+            'truck_serialized': truck_serialized_data,
+        })
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def modal_new_driver(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(id=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+        t = loader.get_template('comercial/modal_new_driver.html')
+        c = ({
+            'date': formatdate,
+            'subsidiary_obj': subsidiary_obj,
+            'license_type': Driver._meta.get_field('license_type').choices
+        })
+        return JsonResponse({
+            'success': True,
+            'form': t.render(c, request),
+        })
+    else:
+        return JsonResponse({
+            'success': False,
+            'message': 'Problemas con el formulario'
+        }, status=HTTPStatus.OK)
+
+
+def create_driver(request):
+    if request.method == 'POST':
+        document_driver = str(request.POST.get('document-driver', ''))
+        name_driver = str(request.POST.get('name-driver', ''))
+        license_number = str(request.POST.get('license-number', ''))
+        license_type = str(request.POST.get('license-type', ''))
+        expiration_date = str(request.POST.get('expiration-date', ''))
+
+        if document_driver and name_driver:
+
+            driver_obj = Driver(
+                names=name_driver.upper(),
+                document_driver=document_driver,
+                n_license=license_number,
+                license_type=license_type,
+                license_expiration_date=expiration_date
+            )
+            driver_obj.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Transportista Registrado correctamente',
+            }, status=HTTPStatus.OK)
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Ingrese un Conductor'
+            }, status=HTTPStatus.OK)

@@ -1,0 +1,194 @@
+<div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    <div class="modal-content">
+        <div class="modal-header" style="background-color: rgb(21,99,181);">
+            <div class="card-body p-2">
+                <h6 class="modal-title text-white roboto-condensed-regular pt-1">REGISTRAR NUEVO TRANSPORTISTA</h6>
+            </div>
+        </div>
+        <form id="form-carrier" action="{% url 'comercial:create_carrier' %}"
+              method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="card-body bg-light 0">
+                    <div class="row mt-3">
+                        <div class="col-md-3">
+                            <label for="document-transport" class="text-primary">Número de Documento
+                                (Transportista)</label>
+                            <div class="input-group">
+                                <input type="text"
+                                       class="form-control"
+                                       placeholder="Documento"
+                                       aria-label="Search"
+                                       aria-describedby="basic-addon2"
+                                       id="document_number" autocomplete="off"
+                                       name="document_number" maxlength="20">
+                                <div class="input-group-append">
+                                    <button class="btn btn-secondary btn-sm" id="search"
+                                            type="button">
+                                        <i class="fas fa-search fa-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <label for="name-transport" class="text-primary">Razón Social (Transportista)</label>
+                            <input type="text"
+                                   class="form-control" name="name-transport" id="name-transport"
+                                   required placeholder="Razon Social / Nombres"
+                                   value="" maxlength="500">
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <label for="id-address-transport" class="text-primary">Direccion de Transportista</label>
+                            <input type="text" placeholder="Direccion"
+                                   class="form-control" name="address-transport" id="id-address-transport"
+                                   required maxlength="500">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" id="btn-close">Cerrar
+                    </button> &nbsp;
+                    <button id="save-new-carrier" type="submit" class="btn btn-sm btn-success">
+                        Registrar Transportista
+                    </button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mr-3 ml-0" style="
+        display: none;
+        position: fixed;
+        top: 8px;
+        left: 5px;
+        background: #bdd9f5;
+        opacity: 0.5;
+        width: 100%;
+        {#height: 46em;#}
+        !important;bottom: 6px;
+        padding-right: 65em;
+        padding-left: 55em;
+        padding-top: 22em;" id="loading">
+
+</div>
+
+<script type="text/javascript">
+
+    loader = '<div class="container">' +
+        '<div class="row">' +
+        '<div class="col-md-12">' +
+        '<div class="loader">' +
+        '<p><strong><h4>Consultando datos...</h4></strong></p>' +
+        '<div class="loader-inner"></div>' +
+        '<div class="loader-inner"></div>' +
+        '<div class="loader-inner"></div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+
+
+    $('#form-carrier').submit(function (event) {
+        event.preventDefault();
+        let data = new FormData($('#form-carrier').get(0));
+
+        if ($('#document_number').val() === "") {
+            toastr.warning("COMPLETAR EL NUMERO DE DOCUMENTO", 'Mensaje');
+            return false;
+        }
+        if ($('#name-transport').val() === "") {
+            toastr.warning("COMPLETAR EL LA RAZON SOCIAL / NOMBRE", 'Mensaje');
+            return false;
+        }
+        if ($('#id-address-origin').val() === "") {
+            toastr.warning("COMPLETAR LA DIRECCION", 'Mensaje');
+            return false;
+        }
+
+        $.ajax({
+            url: $(this).attr('action'),
+            type: $(this).attr('method'),
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function (response) {
+                toastr.error('Ocurrio un problema al registrar');
+            }
+        });
+    });
+
+    $('#document_number').keypress(async function (e) {
+
+        if (e.keyCode === 13) {
+            e.preventDefault()
+            $(this).trigger("enterKey");
+            let _document_number = $(this).val();
+            let _type_doc = '06'
+
+            if (_type_doc === '06' && _document_number.length !== 11) {
+                toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
+                return false;
+            }
+
+            await searchCarrier(_type_doc, _document_number).then((value) => {
+                //$("#client_id").val(value.pk);
+                $("#name-transport").val(value.result);
+                $("#id-address-transport").val(value.address);
+            }).catch((e) => {
+                toastr.error(e.responseJSON.error, 'Error de Datos');
+                $("#name-transport").val("");
+                $("#id-address-transport").val("");
+            })
+        }
+    });
+
+    function searchCarrier($type_document, $document_number) {
+
+        $('#loading').html(loader).show()
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: '/comercial/get_carrier_api/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {
+                    'nro_document': $document_number,
+                    'type': $type_document
+                },
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        resolve(response);
+                        $('#loading').hide();
+                    }
+                },
+                error: function (error) {
+                    reject(error)
+                    //console.log(reject);
+                    //console.log(reject(error))
+                    $('#loading').hide();
+                },
+            });
+        })
+    }
+
+</script>
+

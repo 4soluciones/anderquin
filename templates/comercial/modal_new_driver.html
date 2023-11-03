@@ -1,0 +1,134 @@
+<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+        <div class="modal-header" style="background-color: rgb(21,99,181);">
+            <div class="card-body p-2">
+                <h6 class="modal-title text-white roboto-condensed-regular pt-1">REGISTRAR NUEVO CONDUCTOR</h6>
+            </div>
+        </div>
+        <form id="form-driver" action="{% url 'comercial:create_driver' %}"
+              method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="card-body bg-light">
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <label for="document_driver" class="text-primary">Número de DNI</label>
+                            <input type="text"
+                                   class="form-control" name="document-driver" id="document_driver"
+                                   required placeholder="DNI"
+                                   value="" maxlength="500">
+
+                            {#                            <div class="input-group">#}
+                            {#                                <input type="text"#}
+                            {#                                       class="form-control"#}
+                            {#                                       placeholder="Documento"#}
+                            {#                                       aria-label="Search"#}
+                            {#                                       aria-describedby="basic-addon2"#}
+                            {#                                       id="document_number" autocomplete="off"#}
+                            {#                                       name="document_number" maxlength="20">#}
+                            {#                                <div class="input-group-append">#}
+                            {#                                    <button class="btn btn-secondary btn-sm" id="search"#}
+                            {#                                            type="button">#}
+                            {#                                        <i class="fas fa-search fa-sm"></i>#}
+                            {#                                    </button>#}
+                            {#                                </div>#}
+                            {#                            </div>#}
+                        </div>
+                        <div class="col-md-8">
+                            <label for="name_driver" class="text-primary">Nombres</label>
+                            <input type="text"
+                                   class="form-control text-uppercase" name="name-driver" id="name_driver"
+                                   required placeholder="Nombres"
+                                   value="" maxlength="500">
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-4">
+                            <label for="license_number" class="text-primary">Número de Licencia</label>
+                            <input type="text"
+                                   class="form-control text-uppercase" name="license-number" id="license_number"
+                                   required placeholder="Licencia"
+                                   value="" maxlength="500">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="license_type" class="text-primary">Tipo de Licencia</label>
+                            <select class="form-control text-center" id="license_type"
+                                    name="license-type">
+                                {% for l in license_type %}
+                                    {% if l.0 == '12' %}
+                                        <option selected value="{{ l.0 }}">{{ l.1 }}</option>
+                                    {% else %}
+                                        <option value="{{ l.0 }}">{{ l.1 }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="expiration_date" class="text-primary">Fecha de expiracion</label>
+                            <input type="date"
+                                   class="form-control" name="expiration-date" id="expiration_date"
+                                   value="{{ date }}">
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" id="btn-close">Cerrar
+                    </button> &nbsp;
+                    <button id="save-new-carrier" type="submit" class="btn btn-sm btn-success">
+                        Registrar Conductor
+                    </button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    $('#form-driver').submit(function (event) {
+        event.preventDefault();
+        let data = new FormData($('#form-driver').get(0));
+
+        if ($('#document_driver').val() === "") {
+            toastr.warning("COMPLETAR EL NUMERO DE DNI", 'Mensaje');
+            return false;
+        }
+        if ($('#name_driver').val() === "") {
+            toastr.warning("COMPLETAR LOS NOMBRES", 'Mensaje');
+            return false;
+        }
+        if ($('#license_number').val() === "") {
+            toastr.warning("COMPLETAR EL NUMERO DE LICENCIA", 'Mensaje');
+            return false;
+        }
+
+        $.ajax({
+            url: $(this).attr('action'),
+            type: $(this).attr('method'),
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function (response) {
+                toastr.error('Ocurrio un problema al registrar');
+            }
+        });
+    });
+
+
+</script>
+

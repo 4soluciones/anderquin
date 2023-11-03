@@ -113,4 +113,14 @@ urlpatterns = [
     path('modal_guide_destiny/', modal_guide_destiny, name='modal_guide_destiny'),
     path('modal_guide_carrier/', modal_guide_carrier, name='modal_guide_carrier'),
 
+    # CREATE CARRIER
+    path('modal_new_carrier/', modal_new_carrier, name='modal_new_carrier'),
+    path('create_carrier/', create_carrier, name='create_carrier'),
+    path('get_carrier_api/', get_carrier_api, name='get_carrier_api'),
+    path('get_truck/', get_truck, name='get_truck'),
+
+    # CREATE DRIVER
+    path('modal_new_driver/', modal_new_driver, name='modal_new_driver'),
+    path('create_driver/', create_driver, name='create_driver'),
+
 ]
