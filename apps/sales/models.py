@@ -341,7 +341,7 @@ class RequirementDetail(models.Model):
 class Client(models.Model):
     TYPE_CHOICES = (('PU', 'PUBLICO'), ('PR', 'PRIVADO'))
     id = models.AutoField(primary_key=True)
-    names = models.CharField(max_length=200, null=True, blank=True, unique=True)
+    names = models.CharField(max_length=200, null=True, blank=True)
     phone = models.CharField('Telefono', max_length=9, null=True, blank=True)
     email = models.EmailField('Correo electronico', max_length=50, null=True, blank=True)
     type_client = models.CharField('Tipo de Cliente', max_length=2, choices=TYPE_CHOICES, default='PU')
