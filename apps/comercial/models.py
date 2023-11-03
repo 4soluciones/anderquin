@@ -100,6 +100,20 @@ class Driver(models.Model):
         return self.names
 
 
+class TruckAssociate(models.Model):
+    id = models.AutoField(primary_key=True)
+    truck = models.ForeignKey('Truck', on_delete=models.CASCADE)
+    driver = models.ForeignKey('Driver', verbose_name='Piloto Asociado', on_delete=models.SET_NULL, null=True,
+                               blank=True)
+
+    def __str__(self):
+        return str(self.id)
+
+    class Meta:
+        verbose_name = 'Pilotos Asociado'
+        verbose_name_plural = 'Pilotos Asociados'
+
+
 class TowingBrand(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField('Nombre', max_length=45, unique=True)
