@@ -142,17 +142,29 @@
                                                             Nombres/Razón Social:
                                                         </label>
                                                     </div>
-                                                    <div class="col-7 pl-0">
-                                                        <input type="text"
-                                                               class="form-control text-uppercase client-table dropdown-toggle"
-                                                               data-toggle="dropdown" aria-expanded="false"
-                                                               placeholder="Ingrese cliente y presione enter...">
-                                                        <div class="dropdown-menu"></div>
-                                                        <input type="hidden"
-                                                               class="form-control form-control-sm text-uppercase"
-                                                               id="id-client-sender"
-                                                               name="id-client-sender"
-                                                               placeholder="">
+                                                    <div class="col-7 pl-0 mt-0">
+                                                        <div id="autocomplete-client" class="autocomplete">
+                                                            <input class="form-control form-control-sm autocomplete-input"
+                                                                   type="text"
+                                                                   id="person-names"
+                                                                   name="person-names"
+                                                                   maxlength="200"
+                                                                   autocomplete="off"
+                                                                   placeholder="Buscar Cliente..."/>
+                                                            <ul class="autocomplete-result-list"></ul>
+                                                        </div>
+                                                        <input type="hidden" id="id-client-sender"
+                                                               name="id-client-sender" value="">
+                                                        {#                                                        <input type="text"#}
+                                                        {#                                                               class="form-control text-uppercase client-table dropdown-toggle"#}
+                                                        {#                                                               data-toggle="dropdown" aria-expanded="false"#}
+                                                        {#                                                               placeholder="Ingrese cliente y presione enter...">#}
+                                                        {#                                                        <div class="dropdown-menu"></div>#}
+                                                        {#                                                        <input type="hidden"#}
+                                                        {#                                                               class="form-control form-control-sm text-uppercase"#}
+                                                        {#                                                               id="id-client-sender"#}
+                                                        {#                                                               name="id-client-sender"#}
+                                                        {#                                                               placeholder="">#}
                                                     </div>
                                                     <div class="col-3">
                                                         {#                                                        <button type="button" class="btn btn-sm btn-block btn-outline-info"#}
@@ -1207,7 +1219,7 @@
                 return false;
             }
 
-            if ($('#id_date_completion').val() === '' || $('#id_place_delivery').val() === '' ||  $('#id_observation').val() === '') {
+            if ($('#id_date_completion').val() === '' || $('#id_place_delivery').val() === '' || $('#id_observation').val() === '') {
                 toastr.warning('Complete los campos de la cotización');
                 return false;
             }
@@ -1693,6 +1705,59 @@
                     toastr.error('Error en la petición', '¡Mensaje!');
                 }
             });
+        }
+
+        new Autocomplete('#autocomplete-client', {
+            search: input => {
+                const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
+
+                return new Promise(resolve => {
+                    if (input.length < 3) {
+                        //$('#person-number').val('')
+                        //$('#order-number').val('')
+                        return resolve([])
+                    }
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            resolve(data.client)
+                        })
+                })
+            },
+            renderResult: (result, props) => {
+                let group = ''
+                if (result.index % 3 === 0) {
+                    group = '<li class="group">Group</li>'
+                }
+                return `
+                ${group}
+                <li ${props}>
+                 <div class="h6" style="font-family: roboto_condensed_regular">
+                    ${result.names}
+                 </div>
+                 <div class="wiki-snippet text-black">
+                    Tipo: ${result.type_client_display}
+                  </div>
+                </li>
+                `
+            },
+            getResultValue: result => result.names,
+            onSubmit: handleClientSubmit
+        })
+
+        async function handleClientSubmit(result) {
+            if (result) {
+                let client_id = result.id;
+                let type_client = result.type_client;
+                let _address_dict = result.address;
+                $('#id-client-sender').val(client_id);
+                $('#id_sender').val(result.names);
+                $('#id_address').val(result.last_address);
+
+            } else {
+                toastr.warning('Seleccione un cliente valido', 'Error de llenado');
+                return false;
+            }
         }
 
 

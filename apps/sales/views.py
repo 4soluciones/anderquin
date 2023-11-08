@@ -5814,7 +5814,7 @@ def save_quotation(request):
 
 def get_correlative_order(subsidiary_obj=None, _type=None):
     correlative = Order.objects.filter(subsidiary=subsidiary_obj, type=_type).aggregate(
-        r=Coalesce(Max('correlative_sale'), 0))
+        r=Coalesce(Max('correlative'), 0))
     return str(correlative['r'] + 1)
 
 
