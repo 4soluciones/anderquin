@@ -6059,3 +6059,95 @@ def get_clients_by_criteria(request):
         }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
+
+def get_sales_quotation_by_subsidiary(request):
+    if request.method == 'GET':
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+        return render(request, 'sales/order_quotation_list.html', {'formatdate': formatdate, })
+    elif request.method == 'POST':
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        if subsidiary_obj is not None:
+            orders = Order.objects.filter(subsidiary=subsidiary_obj, type='T').exclude(status='A')
+            start_date = str(request.POST.get('start-date'))
+            end_date = str(request.POST.get('end-date'))
+
+            if start_date == end_date:
+                orders = orders.filter(create_at__date=start_date)
+            else:
+                orders = orders.filter(create_at__date__range=[start_date, end_date])
+            if orders:
+                return JsonResponse({
+                    'grid': get_dict_order_quotation(orders),
+                }, status=HTTPStatus.OK)
+            else:
+                data = {'error': "No hay operaciones registradas"}
+                response = JsonResponse(data)
+                response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+                return response
+
+        else:
+            data = {'error': "No hay sucursal"}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+
+
+def get_dict_order_quotation(order_set):
+    dictionary = []
+    sum_orders = 0
+
+    for o in order_set:
+        _order_detail = o.orderdetail_set.all()
+        order_sale_quotation = ''
+
+        if o.order_sale_quotation is not None:
+            order_sale_quotation = o.order_sale_quotation.id
+
+        order = {
+            'id': o.id,
+            'status': o.get_status_display(),
+            'client': o.client,
+            'client_nro': o.client.clienttype_set.first().document_number,
+            'user': o.user,
+            'total': o.total,
+            'subsidiary': o.subsidiary.name,
+            'create_at': o.create_at,
+            'serial': o.subsidiary.serial,
+            'correlative_sale': o.correlative,
+            'validity_date': o.validity_date,
+            'date_completion': o.date_completion,
+            'place_delivery': o.place_delivery,
+            # 'type_quotation': o.get_type_quotation_display(),
+            # 'type_name_quotation': o.type_name_quotation,
+            'observation': o.observation,
+            'way_to_pay_type': o.get_way_to_pay_type_display(),
+            'order_sale_quotation': order_sale_quotation,
+            'type': o.get_type_display(),
+            'has_quotation_order': o.has_quotation_order,
+            'order_detail_set': [],
+            'details': _order_detail.count()
+        }
+        sum_orders = sum_orders + o.total
+
+        for d in _order_detail:
+            order_detail = {
+                'id': d.id,
+                'product': d.product.name,
+                'unit': d.unit.name,
+                'quantity_sold': d.quantity_sold,
+                'price_unit': d.price_unit,
+                'multiply': d.multiply
+            }
+            order.get('order_detail_set').append(order_detail)
+
+        dictionary.append(order)
+
+    tpl = loader.get_template('sales/order_quotation_grid_list.html')
+    context = ({
+        'dictionary': dictionary,
+        'sum_orders': sum_orders,
+    })
+    return tpl.render(context)

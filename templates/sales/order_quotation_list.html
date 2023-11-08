@@ -1,0 +1,93 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    lista de Cotizaciones
+{% endblock title %}
+
+{% block body %}
+
+    <div class="row mr-3 ml-0 mt-2">
+        <div class="col-sm-12 p-0">
+            <div class="card">
+                <div class="card-body text-center font-weight-bolder pb-1">
+                    <h2>LISTADO DE COTIZACIONES</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+
+        <div class="card-header text-left mt-2 mb-1 p-1">
+            <form id="search-form" method="POST">
+                {% csrf_token %}
+                <div class="form-inline mt-0 mb-0 p-0">
+
+
+                    <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>
+                    <input type="date" class="form-control my-1 mr-sm-2"
+                           id="id-start-date"
+                           name="start-date"
+                           value="{{ formatdate }}">
+
+                    <label class="my-1 mr-2" for="id-end-date">Fecha final</label>
+                    <input type="date" class="form-control my-1 mr-sm-2"
+                           id="id-end-date"
+                           name="end-date"
+                           value="{{ formatdate }}">
+
+                    <button type="submit" class="btn btn-success my-1 ml-2" id="btn-search">
+                        <i class="fas fa-search-dollar"></i> Buscar
+                    </button>
+
+
+                </div>
+            </form>
+
+        </div>
+        <div class="table-responsive" id="table-order-quotation"></div>
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p>Cargando...</p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        $('#search-form').submit(function (event) {
+            event.preventDefault();
+            let _data = new FormData($('#search-form').get(0));
+            $.ajax({
+                url: '/sales/get_sales_quotation_by_subsidiary/',
+                type: "POST",
+                data: _data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        $('#table-order-quotation').html(response.grid);
+                        toastr.info(response['message'], '¡Bien hecho!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    }
+                }
+            });
+        });
+
+
+    </script>
+{% endblock extrajs %}

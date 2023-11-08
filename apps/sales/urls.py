@@ -168,5 +168,8 @@ urlpatterns = [
     path('client_update/', login_required(client_update), name='client_update'),
     path('get_api_client/', login_required(get_api_client), name='get_api_client'),
 
+    # List quotation
+    path('get_sales_quotation_by_subsidiary/', login_required(get_sales_quotation_by_subsidiary), name='get_sales_quotation_by_subsidiary'),
+
 ]
 

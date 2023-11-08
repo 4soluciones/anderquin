@@ -355,7 +355,7 @@ def print_quotation(request, pk=None, t=None):
     tbl2_col2 = [
         ['Fecha Emisión: ', Paragraph(order_obj.create_at.strftime("%d-%m-%Y"), styles['Left_Square'])],
         ['Fecha Vencimiento: ', Paragraph(order_obj.validity_date.strftime("%d-%m-%Y"), styles['Left_Square'])],
-        ['Vendedor: ', Paragraph(order_obj.user.username.upper(), styles['Left_Square'])],
+        # ['Vendedor: ', Paragraph(order_obj.user.username.upper(), styles['Left_Square'])],
         # ['Moneda: ', Paragraph(order_obj.get_coin_display(), styles['Left_Square'])],
         ['Cond. Venta: ', Paragraph(str(payment.upper()), styles['Left_Square'])],
         ['Plazo: ', Paragraph(str(order_obj.date_completion) + ' dia(s)', styles['Left_Square'])],
@@ -408,6 +408,7 @@ def print_quotation(request, pk=None, t=None):
         # ('ALIGNMENT', (3, 0), (3, -1), 'CENTER'),  # four column
         # ('ALIGNMENT', (4, 0), (4, -1), 'CENTER'),  # five column
         ('ALIGNMENT', (3, 0), (3, -1), 'CENTER'),  # three column
+        ('ALIGNMENT', (4, 0), (4, -1), 'CENTER'),  # three column
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # first column
         ('RIGHTPADDING', (3, 0), (3, -1), 10),  # first column
         ('BOTTOMPADDING', (0, 0), (-1, -1), 4),  # all columns
@@ -438,15 +439,14 @@ def print_quotation(request, pk=None, t=None):
             _code = str(detail.product.code.zfill(6))
 
         count = count + 1
-        _product_plus_brand = Paragraph(str(detail.commentary.upper()) + ' - ' + str(detail.product.product_brand.name),
-                                        styles["Justify_Square"])
+        _product_plus_brand = Paragraph(str(detail.commentary.upper()), styles["Justify_Square"])
         # _product_name = Paragraph(str(detail.product.name), styles["Justify_Square"])
         _quantity = str(decimal.Decimal(round(detail.quantity_sold, 2)))
         _unit = str(detail.unit.name)
         _price_unit = round(decimal.Decimal(detail.price_unit) * decimal.Decimal(1.18), 2)
         _total = round(detail.quantity_sold * decimal.Decimal(detail.price_unit), 2)
 
-        detail_rows.append((count, _code, _product_plus_brand, _quantity, _unit, detail.price_unit, _total))
+        detail_rows.append((count, _code, _product_plus_brand, _quantity, _unit, detail.price_unit, '{:,}'.format(_total)))
         total += _total
 
     detail_body = Table(detail_rows,
@@ -474,12 +474,12 @@ def print_quotation(request, pk=None, t=None):
          Paragraph('CODIGO DE CUENTA INTERBANCARIO', styles['Center_Newgot_1'])],
 
         [Paragraph('CUENTAS BCP', styles['Center_Newgot_1']),
-         Paragraph('SOLES', styles['Center-text']), Paragraph('215-2023417-0-71', styles['Center-text']),
-         Paragraph('002-215-002023417071-28', styles['Center-text'])],
+         Paragraph('SOLES', styles['Center-text']), Paragraph('405-2663807-0-48', styles['Center-text']),
+         Paragraph('002-405-002663807048-97', styles['Center-text'])],
 
-        [Paragraph('CUENTAS BCP', styles['Center_Newgot_1']),
-         Paragraph('SOLES', styles['Center-text']), Paragraph('215-9844079-0-56', styles['Center-text']),
-         Paragraph('002-215-009844079056-20', styles['Center-text'])],
+        # [Paragraph('CUENTAS BCP', styles['Center_Newgot_1']),
+        #  Paragraph('SOLES', styles['Center-text']), Paragraph('215-9844079-0-56', styles['Center-text']),
+        #  Paragraph('002-215-009844079056-20', styles['Center-text'])],
         #
         # [Paragraph('CUENTA BBVA', styles['Center_Newgot_1']),
         #  Paragraph('SOLES', styles['Left-text']), Paragraph('0011 0418 0100018341 16', styles['Left-text']),
@@ -491,7 +491,7 @@ def print_quotation(request, pk=None, t=None):
     ]
     t_bank = Table(table_bank, colWidths=[_bts * 7 / 100, _bts * 7 / 100, _bts * 24 / 100, _bts * 24 / 100])
     style_bank = [
-        ('SPAN', (0, 1), (0, 2)),
+        # ('SPAN', (0, 1), (0, 2)),
         # ('SPAN', (0, 3), (0, 4)),
         ('RIGHTPADDING', (0, 0), (-1, -1), 0),
         ('LEFTPADDING', (0, 0), (-1, -1), 3),
@@ -520,7 +520,7 @@ def print_quotation(request, pk=None, t=None):
         # ('GRID', (0, 0), (-1, -1), 0.5, colors.blue),
     ]
     total_col_1.setStyle(TableStyle(style_table_col1))
-    money = 'S/.'
+    money = 'S/'
     # if order_obj.coin == 'S':
     #     money = 'S/.'
     # elif order_obj.coin == 'D':
@@ -528,20 +528,20 @@ def print_quotation(request, pk=None, t=None):
 
     total_col2 = [
         [Paragraph('VALOR DE VENTA:', styles["Justify_Newgot"]),
-         Paragraph(money + ' ' + str(round(valor_venta, 2)), styles["Right_Newgot"])],
+         Paragraph(money + ' ' + str('{:,}'.format(round(valor_venta, 2))), styles["Right_Newgot"])],
         # [Paragraph(_text, styles["Justify_Newgot"]),
         #  Paragraph(money + ' ' + str(round(_discount, 3)), styles["Right_Newgot"])],
         # [Paragraph('OPERACION GRAVADAS', styles["Justify_Newgot"]),
         #  Paragraph(money + ' ' + str(round(sub_total - _discount, 3)), styles["Right_Newgot"])],
         [Paragraph('I.G.V(18%):', styles["Justify_Newgot"]),
-         Paragraph(money + ' ' + str(round(igv, 2)), styles["Right_Newgot"])],
+         Paragraph(money + ' ' + str('{:,}'.format(round(igv, 2))), styles["Right_Newgot"])],
         [Paragraph('IMPORTE TOTAL:', styles["Justify_Newgot"]),
-         Paragraph(money + ' ' + str(round(valor_venta + igv, 2)), styles["Right_Newgot"])],
+         Paragraph(money + ' ' + str('{:,}'.format(round(valor_venta + igv, 2))), styles["Right_Newgot"])],
     ]
-    total_col_2 = Table(total_col2, colWidths=[_bts * 19 / 100, _bts * 14 / 100])
+    total_col_2 = Table(total_col2, colWidths=[_bts * 14 / 100, _bts * 19 / 100])
 
     style_table_col2 = [
-        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        # ('RIGHTPADDING', (0, 0), (-1, -1), 10),
         ('TOPPADDING', (0, 0), (-1, -1), 10),
         ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
