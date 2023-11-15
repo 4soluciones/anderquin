@@ -9,14 +9,12 @@
         <div class="card-header pt-0">
             <div class="row">
                 <div class="col-sm-4 col-md-4 col-lg-4 mb-0" style="background: #1a77c8">
-                    <button id="add-carrier-guide" type="button" onclick="saveGuide()"
-                            class="btn btn-warning btn-lg mt-3">
-                        Emitir Guía
-                    </button>
-                    <button id="add-carrier-guide" type="button" onclick="newGuide()"
-                            class="btn btn-secondary btn-lg mt-3">
-                        Nuevo
-                    </button>
+                    <input type="hidden" id="contract_detail_id" name="contract-detail"
+                                       value="{{ contract_detail_obj.id }}">
+                    <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                        <label>{{ contract_detail_obj.contract.contract_number }} -
+                            FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
+                    </h6>
                 </div>
                 <div class="col-sm-4 col-md-4 col-lg-4 text-black-50" style="background: #1a77c8">
                     <table class="table table-bordered mt-1 mb-1" style="background: #ffffff">
@@ -29,7 +27,12 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="col-sm-4 col-md-4 col-lg-4 mb-0" style="background: #1a77c8"></div>
+                <div class="col-sm-4 col-md-4 col-lg-4 p-3" style="background: #1a77c8">
+                    <div class="btn-group btn-block" role="group" aria-label="Basic example">
+                        <button type="button" class="btn btn-success m-1" onclick="saveGuide()">EMITIR GUÍA</button>
+                        <button type="button" class="btn btn-secondary m-1">NUEVO</button>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="card-body bg-light p-0">
@@ -339,6 +342,7 @@
 
         function saveGuide() {
 
+            let _contract_detail = $("#contract_detail_id").val()
             let _issue = $('#issue').val();
             let _transfer = $('#transfer').val();
             let _motive = $('#id_motive').val();
@@ -361,6 +365,7 @@
 
             let Guide = {
                 "Details": [],
+                "contract_detail": _contract_detail,
                 "issue_date": _issue,
                 "transfer_date": _transfer,
                 "motive": _motive,
@@ -398,8 +403,8 @@
                 success: function (response, textStatus, xhr) {
                     if (xhr.status === 200) {
                         toastr.success(response.message, '¡Guía Registrada Correctamente!');
-                        /*let purchase_id = response.pk
-                        window.location.href = "/buys/print_pdf_purchase_order/" + purchase_id + "/";
+                        let guide_id = response.pk
+                        window.location.href = "/comercial/guide/" + guide_id + "/";
                         if (response.contract) {
                             //console.log("contract")
                             setTimeout(() => {
@@ -410,7 +415,7 @@
                             setTimeout(() => {
                                 location.reload();
                             }, 2000);
-                        }*/
+                        }
                     }
                 },
                 error: function (jqXhr, textStatus, xhr) {

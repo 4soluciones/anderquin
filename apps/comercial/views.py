@@ -1,6 +1,7 @@
 import decimal
 from http import HTTPStatus
 from django.db.models import Q, Max, F, Prefetch
+from django.db.models.functions import Coalesce
 from django.shortcuts import render
 from django.views.generic import View, TemplateView, UpdateView, CreateView
 from django.views.decorators.csrf import csrf_exempt
@@ -2833,6 +2834,8 @@ def save_guide(request):
         guide_request = request.GET.get('guide', '')
         data_guide = json.loads(guide_request)
 
+        contract_detail = data_guide["contract_detail"]
+
         issue_date = data_guide["issue_date"]
         transfer_date = data_guide["transfer_date"]
         client = data_guide["client"]
@@ -2854,6 +2857,10 @@ def save_guide(request):
         n_package = data_guide["n_package"]
         observations = data_guide["observations"]
 
+        contract_detail_obj = None
+        if contract_detail:
+            contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail))
+
         client_obj = None
         motive_obj = None
         carrier_obj = None
@@ -2871,6 +2878,8 @@ def save_guide(request):
             driver_obj = Driver.objects.get(id=int(driver))
 
         guide_obj = Guide(
+            serial='T001',
+            correlative=get_correlative_guide_by_subsidiary(subsidiary_obj),
             date_issue=issue_date,
             transfer_date=transfer_date,
             client=client_obj,
@@ -2887,7 +2896,8 @@ def save_guide(request):
             package=n_package,
             observation=observations,
             user=user_obj,
-            subsidiary=subsidiary_obj
+            subsidiary=subsidiary_obj,
+            contract_detail=contract_detail_obj
         )
         guide_obj.save()
 
@@ -2902,7 +2912,24 @@ def save_guide(request):
         return JsonResponse({
             'pk': guide_obj.id,
             'message': 'Guia Registrada',
+            'contract': guide_obj.contract_detail.id,
         }, status=HTTPStatus.OK)
+
+
+def get_correlative_guide_by_subsidiary(subsidiary_obj=None):
+    search = Guide.objects.filter(subsidiary=subsidiary_obj)
+    if search.exists():
+        guide_obj = search.last()
+        correlative = int(guide_obj.correlative)
+        if correlative:
+            new_correlative = correlative + 1
+            result = new_correlative
+        else:
+            result = 1
+    else:
+        result = 1
+
+    return result
 
 
 

@@ -293,6 +293,7 @@ class Guide(models.Model):
     package = models.DecimalField('Bulto', max_digits=30, decimal_places=4, default=0)
     date_issue = models.DateTimeField(null=True, blank=True)
     transfer_date = models.DateTimeField(null=True, blank=True)
+    contract_detail = models.ForeignKey('buys.ContractDetail', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return str(self.serial) + "-" + str(self.correlative)

@@ -1769,20 +1769,12 @@ def guide(request, pk=None):
                             leftMargin=ml,
                             topMargin=ms,
                             bottomMargin=mi,
-                            title=document_number
+                            title=str(guide_obj.serial) + '-' + str(guide_obj.correlative)
                             )
     pdf = []
-    # pdf.append(I)
-    # pdf.append(Spacer(1, 3))
-    # pdf.append(Paragraph(title_business.upper().replace("\n", "<br />"), styles["CenterNewgotBold"]))
-    # pdf.append(Paragraph(line, styles["CenterNewgotBold"]))
     pdf.append(document_header)
     pdf.append(DrawInvoice(count_row=counter))
-    # pdf.append(Paragraph(document_type, styles["CenterNewgotBoldGuideNumber"]))
-    # pdf.append(Spacer(1, 3))
-    # pdf.append(Paragraph(document_number, styles["CenterNewgotBoldGuideNumber"]))
     pdf.append(Spacer(1, 5))
-    # pdf.append(Paragraph(line, styles["CenterNewgotBold"]))
     pdf.append(pdf_person)
     pdf.append(pdf_transfer)
     pdf.append(pdf_address)
@@ -1791,19 +1783,15 @@ def guide(request, pk=None):
     pdf.append(pdf_header)
     pdf.append(pdf_detail)
     pdf.append(Spacer(1, 5))
-    # pdf.append(Paragraph(line, styles["CenterNewgotBold"]))
     pdf.append(Paragraph(pdf_observation.upper(), styles["narrow_justify_observation"]))
     pdf.append(Paragraph(line, styles["CenterNewgotBold"]))
     pdf.append(Spacer(1, 7))
     pdf.append(qr_table)
-    # pdf.append(Paragraph(pdf_link_uno, styles["LeftNewgotBold"]))
-    # pdf.append(Paragraph(pdf_link_dos, styles["LeftNewgotBold"]))
-    # pdf.append(Paragraph(pdf_link_tres, styles["LeftNewgotBold"]))
-    # pdf.append(Paragraph(line, styles["CenterNewgotBold"]))
     pdf.append(Spacer(1, 2))
     pdf.append(Paragraph("www.4soluciones.net", styles["CenterNewgotBold"]))
     doc.build(pdf)
     response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(str('Guia:') + str(guide_obj.serial) + str(guide_obj.correlative))
     response.write(buff.getvalue())
     buff.close()
     return response
