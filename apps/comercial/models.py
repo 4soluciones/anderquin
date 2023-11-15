@@ -264,61 +264,38 @@ class GuideMotive(models.Model):
 class Guide(models.Model):
     STATUS_CHOICES = (('1', 'En transito'), ('2', 'Aprobada'), ('3', 'Entregada'), ('4', 'Anulada'), ('5', 'Extraido'),)
     DOCUMENT_TYPE_ATTACHED_CHOICES = (
-        ('G', 'Guias de remision'), ('F', 'Factura'), ('P', 'Orden de produccion'), ('T', 'Transferencia de almacen'),
+        ('G', 'Guia de remision'), ('F', 'Factura'), ('P', 'Orden de produccion'), ('T', 'Transferencia de almacen'),
         ('O', 'Otro'))
+    MODALITY_TRANSPORT_CHOICES = (('1', 'PUBLICO'), ('2', 'PRIVADO'))
     id = models.AutoField(primary_key=True)
     serial = models.CharField('Serie', max_length=10, null=True, blank=True)
-    code = models.CharField('Codigo', max_length=20, null=True, blank=True)
-    document_number = models.CharField('Numero de Documento', max_length=20, null=True, blank=True)
+    correlative = models.CharField('Correlativo', max_length=20, null=True, blank=True)
     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='1', )
     document_type_attached = models.CharField('Tipo documento', max_length=1, choices=DOCUMENT_TYPE_ATTACHED_CHOICES,
                                               default='G', )
-    minimal_cost = models.DecimalField('Costo minimo', max_digits=10, decimal_places=2, default=0)
     observation = models.CharField(max_length=500, null=True, blank=True)
     client = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True, blank=True)
     user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    programming = models.ForeignKey('Programming', on_delete=models.SET_NULL, null=True, blank=True)
     guide_motive = models.ForeignKey('GuideMotive', on_delete=models.SET_NULL, null=True, blank=True)
     subsidiary = models.ForeignKey(Subsidiary, verbose_name='Sede', on_delete=models.SET_NULL, null=True, blank=True)
+    origin = models.CharField('Ubigeo Origen', max_length=10, null=True, blank=True)
+    origin_address = models.CharField('Direccion Origen', max_length=200, null=True, blank=True)
+    destiny = models.CharField('Ubigeo Destino', max_length=10, null=True, blank=True)
+    destiny_address = models.CharField('Direccion Destino', max_length=200, null=True, blank=True)
+    modality_transport = models.CharField('Modalidad de transporte guia', max_length=1,
+                                          choices=MODALITY_TRANSPORT_CHOICES, default='1')
+    carrier = models.ForeignKey(Owner, on_delete=models.SET_NULL, null=True, blank=True)
+    vehicle = models.ForeignKey(Truck, on_delete=models.SET_NULL, null=True, blank=True)
+    driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True)
+    weight = models.DecimalField('Peso', max_digits=30, decimal_places=4, default=0)
+    package = models.DecimalField('Bulto', max_digits=30, decimal_places=4, default=0)
+    date_issue = models.DateTimeField(null=True, blank=True)
+    transfer_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.serial) + "-" + str(self.code)
-
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        if not self.code:
-            c = Guide.objects.filter(subsidiary=self.subsidiary,
-                                     document_type_attached=self.document_type_attached,
-                                     guide_motive=self.guide_motive).last()
-            if c:
-                character = str(c.code[5:])
-                number_without_character = str(c.code[:5])
-                character_code = ord(character)
-
-                counter = 0
-                for i in range(0, len(number_without_character) - 1):
-                    if number_without_character[i:i + 1] != '0':
-                        break
-                    if number_without_character[i:i + 1] == '0':
-                        counter += 1
-
-                numeric_value = int(number_without_character[counter:])
-
-                if numeric_value == 99999:
-                    new_numeric_value = 1
-                    character_code += 1
-                    character = chr(character_code)
-                else:
-                    new_numeric_value = numeric_value + 1
-
-                result = '0' * (len(number_without_character) - len(str(new_numeric_value))) + \
-                         str(new_numeric_value) + str(character)
-
-                self.code = result
-            else:
-                self.code = '00000A'
-        super(Guide, self).save(force_insert, force_update, using, update_fields)
+        return str(self.serial) + "-" + str(self.correlative)
 
     def get_origin(self):
         origin_set = Route.objects.filter(guide__id=self.id, type='O')
@@ -374,22 +351,16 @@ class Guide(models.Model):
 
 
 class GuideDetail(models.Model):
-    TYPE_CHOICES = (('1', 'VACIO(S)'), ('2', 'LLENO(S)'), ('3', 'MALOGRADO(S)'), ('4', 'VACIO(S) MALOGRADO(S)'),)
     id = models.AutoField(primary_key=True)
     guide = models.ForeignKey('Guide', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    type = models.CharField('Estado', max_length=1, choices=TYPE_CHOICES, default='1', )
-    quantity_request = models.DecimalField('Cantidad pedida', max_digits=10, decimal_places=2, default=0)
-    quantity_sent = models.DecimalField('Cantidad enviada', max_digits=10, decimal_places=2, default=0)
-    quantity = models.DecimalField('Cantidad recibida', max_digits=10, decimal_places=2, default=0)
-    unit_measure = models.ForeignKey(Unit, on_delete=models.CASCADE)
-    weight = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    # quantity_request = models.DecimalField('Cantidad pedida', max_digits=10, decimal_places=2, default=0)
+    # quantity_sent = models.DecimalField('Cantidad enviada', max_digits=10, decimal_places=2, default=0)
+    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.guide.code + " - " + str(self.product.name)
-
-    def multiply(self):
-        return self.quantity_sent * self.product.calculate_minimum_price_sale()
+        return str(self.id)
 
     class Meta:
         verbose_name = 'Detalle guia'

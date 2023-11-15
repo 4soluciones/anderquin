@@ -353,11 +353,9 @@ class FormProgramming(forms.ModelForm):
 class FormGuide(forms.ModelForm):
     class Meta:
         model = Guide
-        fields = ['serial', 'code', 'status', 'minimal_cost', 'observation', 'client']
+        fields = ['serial', 'status', 'observation', 'client']
         labels = {'serial': 'Serie',
-                  'code': 'Codigo',
                   'status': 'Estado',
-                  'minimal_cost': 'Costo minimo',
                   'observation': 'Observaciones',
                   'client': 'Cliente',
                   }

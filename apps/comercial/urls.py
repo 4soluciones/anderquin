@@ -1,7 +1,8 @@
 from django.urls import path
 from django.contrib.auth.decorators import login_required
 from apps.comercial.views import *
-from apps.comercial.views_PDF import guide_print, print_programming_guide, get_input_note, get_output_note, print_ticket
+from apps.comercial.views_PDF import guide_print, print_programming_guide, get_input_note, get_output_note, \
+    print_ticket, guide
 
 urlpatterns = [
     path('', login_required(Index.as_view()), name='index'),
@@ -114,6 +115,8 @@ urlpatterns = [
     path('modal_guide_carrier/', modal_guide_carrier, name='modal_guide_carrier'),
     path('get_vehicle_by_carrier/', get_vehicle_by_carrier, name='get_vehicle_by_carrier'),
     path('get_plate_by_vehicle/', get_plate_by_vehicle, name='get_plate_by_vehicle'),
+    path('save_guide/', save_guide, name='save_guide'),
+    path('guide/<int:pk>/', login_required(guide), name='guide'),
 
     # CREATE CARRIER
     path('modal_new_carrier/', modal_new_carrier, name='modal_new_carrier'),

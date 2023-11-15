@@ -34,8 +34,15 @@
         </div>
         <div class="card-body bg-light p-0">
             <div class="row col-md-12 mb-3 mt-2 m-0 p-0">
-                <div class="col-md-12">
-
+                <div class="col-md-2">
+                    <label for="issue" class="text-primary">Fecha Emisión</label>
+                    <input class="form-control" type="date" value="{{ date_now }}" id="issue"
+                           name="issue" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="transfer" class="text-primary">Fecha Traslado</label>
+                    <input class="form-control" type="date" value="{{ date_now }}" id="transfer"
+                           name="transfer" required>
                 </div>
             </div>
             {#            <div class="d-flex">#}
@@ -45,8 +52,8 @@
             {#            </div>#}
             <div class="row col-md-12 mt-3 pr-0">
                 <div class="col-md-2">
-                    <label for="id-motive" class="text-primary">Motivo de Traslado</label>
-                    <select class="form-control combo" id="id-motive"
+                    <label for="id_motive" class="text-primary">Motivo de Traslado</label>
+                    <select class="form-control combo" id="id_motive"
                             name="id-motive">
                         <option selected disabled value="0">Seleccione</option>
                         {% for m in motive_set %}
@@ -61,7 +68,7 @@
                            required
                            value="{{ contract_detail_obj.contract.client.clienttype_set.last.document_number }}"
                            maxlength="200">
-                    <input type="hidden" value="{{ contract_detail_obj.contract.client.id }}">
+                    <input type="hidden" id="client_id" value="{{ contract_detail_obj.contract.client.id }}">
                 </div>
                 <div class="col-md-8">
                     <label for="name-client" class="text-primary">Razón Social (Destinatario)</label>
@@ -136,6 +143,7 @@
                            class="form-control" name="document-transport" id="document-transport"
                            placeholder="" disabled
                            value="" maxlength="200">
+                    <input type="hidden" id="guide_carrier_id">
                 </div>
                 <div class="col-md-6">
                     <label for="name-transport" class="text-primary">Razón Social (Transportista)</label>
@@ -152,6 +160,7 @@
                            class="form-control" name="plate" id="plate"
                            placeholder="" disabled
                            value="" maxlength="20">
+                    <input type="hidden" id="guide_vehicle_id">
                 </div>
                 <div class="col-md-2">
                     <label for="document-driver" class="text-primary">DNI (Conductor)</label>
@@ -159,6 +168,7 @@
                            class="form-control" name="document-driver" id="document-driver"
                            placeholder="" disabled
                            value="" maxlength="20">
+                    <input type="hidden" id="driver_id">
                 </div>
                 <div class="col-md-2">
                     <label for="license-driver" class="text-primary">Nro Licencia (Conductor)</label>
@@ -194,7 +204,7 @@
                 <div class="col-md-8 align-self-center">
                     <label for="id_observation" class="text-primary">Observaciones</label>
                     <input type="text"
-                           class="form-control" name="id-package" id="id-package"
+                           class="form-control" name="id-observation" id="id_observation"
                            placeholder="" required
                            value="" maxlength="20">
                 </div>
@@ -219,7 +229,7 @@
                                 {#                                <th scope="col" class="font-weight-normal" style="width: 10%;">Eliminar</th>#}
                             </tr>
                             </thead>
-                            <tbody id="new-guide-details">
+                            <tbody id="guide-details">
                             {% if contract_detail_obj %}
                                 {% for c in contract_dict %}
                                     <tr class="" product="{{ c.product_id }}" unit_id="">
@@ -327,9 +337,86 @@
 
         }
 
-        function saveGuide(route) {
+        function saveGuide() {
 
+            let _issue = $('#issue').val();
+            let _transfer = $('#transfer').val();
+            let _motive = $('#id_motive').val();
+            let _client = $('#client_id').val();
 
+            let _origin = $('#location-origin').val();
+            let _origin_address = $('#origin-address').val();
+            let _destiny = $('#location-destiny').val();
+            let _destiny_address = $('#destiny-address').val();
+
+            let _transport_modality = $('#transport-modality').val();
+
+            let _carrier = $('#guide_carrier_id').val();
+            let _vehicle_id = $('#guide_vehicle_id').val();
+            let _driver_id = $('#driver_id').val();
+
+            let _weight = $('#weight').val();
+            let _n_package = $('#id-package').val();
+            let _observations = $('#id_observation').val();
+
+            let Guide = {
+                "Details": [],
+                "issue_date": _issue,
+                "transfer_date": _transfer,
+                "motive": _motive,
+                "client": _client,
+                "origin": _origin,
+                "origin_address": _origin_address,
+                "destiny": _destiny,
+                "destiny_address": _destiny_address,
+                "transport_modality": _transport_modality,
+                "carrier": _carrier,
+                "vehicle": _vehicle_id,
+                "driver": _driver_id,
+                "weight": _weight,
+                "n_package": _n_package,
+                "observations": _observations,
+            }
+
+            $("#id-table-detail-guide tbody#guide-details tr").each(function () {
+                let detailObj = {
+                    "Product": $(this).attr('product'),
+                    "Quantity": $(this).find("td.item-quantity input.quantity-product").val(),
+                    "Unit": $(this).find("td.unit select.unit-product").val(),
+                };
+                Guide.Details.push(detailObj);
+            });
+            //console.log(Guide)
+            $.ajax({
+                url: '/comercial/save_guide/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'guide': JSON.stringify(Guide)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response.message, '¡Guía Registrada Correctamente!');
+                        /*let purchase_id = response.pk
+                        window.location.href = "/buys/print_pdf_purchase_order/" + purchase_id + "/";
+                        if (response.contract) {
+                            //console.log("contract")
+                            setTimeout(() => {
+                                window.open("/buys/contracts/", '_self');
+                            }, 2000);
+                        } else {
+                            //console.log("Order")
+                            setTimeout(() => {
+                                location.reload();
+                            }, 2000);
+                        }*/
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error("ERROR. ", '¡INCONCEBIBLE!');
+                }
+            });
 
         }
 

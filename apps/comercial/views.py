@@ -410,6 +410,8 @@ def new_guide(request, contract_detail=None):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
+    my_date = datetime.now()
+    date_now = my_date.strftime("%Y-%m-%d")
 
     contract_detail_obj = None
     contract_detail_item_set = None
@@ -480,6 +482,7 @@ def new_guide(request, contract_detail=None):
         'contract_detail_item_set': contract_detail_item_set,
         'contract_dict': contract_dict,
         'motive_set': motive_set,
+        'date_now': date_now,
     })
 
 
@@ -657,7 +660,7 @@ def create_guide(request):
         new_guide = {
             'serial': serial,
             'code': code,
-            'minimal_cost': minimal_cost,
+            # 'minimal_cost': minimal_cost,
             'user': user_obj,
             'programming': programming_obj,
         }
@@ -759,7 +762,7 @@ def get_dict_programming_guides_queries(programmings_set):
                     'id': g.id,
                     'serial': g.serial,
                     'code': g.code,
-                    'minimal_cost': g.minimal_cost,
+                    # 'minimal_cost': g.minimal_cost,
                     'status': g.status,
                     'counter': counter,
                     'detail_guide': []
@@ -1073,7 +1076,7 @@ def create_output_transfer(request):
             serial=subsidiary_obj.serial,
             document_number=document_number,
             document_type_attached=document_type_attached,
-            minimal_cost=total,
+            # minimal_cost=total,
             observation=observation.strip(),
             user=user_obj,
             guide_motive=motive_obj,
@@ -1258,7 +1261,7 @@ def create_input_transfer(request):
             serial=subsidiary_obj.serial,
             document_number=document_number,
             document_type_attached=document_type_attached,
-            minimal_cost=total,
+            # minimal_cost=total,
             observation=observation.strip(),
             user=user_obj,
             guide_motive=motive_obj,
@@ -2819,3 +2822,103 @@ def get_plate_by_vehicle(request):
             'license_plate': vehicle_obj.license_plate.upper(),
         })
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def save_guide(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(id=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+
+        guide_request = request.GET.get('guide', '')
+        data_guide = json.loads(guide_request)
+
+        issue_date = data_guide["issue_date"]
+        transfer_date = data_guide["transfer_date"]
+        client = data_guide["client"]
+        motive = data_guide["motive"]
+
+        origin = data_guide["origin"]
+        origin_address = data_guide["origin_address"]
+
+        destiny = data_guide["destiny"]
+        destiny_address = data_guide["destiny_address"]
+
+        modality_transport = data_guide["transport_modality"]
+
+        carrier = data_guide["carrier"]
+        vehicle = data_guide["vehicle"]
+        driver = data_guide["driver"]
+
+        weight = data_guide["weight"]
+        n_package = data_guide["n_package"]
+        observations = data_guide["observations"]
+
+        client_obj = None
+        motive_obj = None
+        carrier_obj = None
+        vehicle_obj = None
+        driver_obj = None
+        if client:
+            client_obj = Client.objects.get(id=int(client))
+
+        if motive:
+            motive_obj = GuideMotive.objects.get(id=int(motive))
+
+        if carrier and vehicle and driver:
+            carrier_obj = Owner.objects.get(id=int(carrier))
+            vehicle_obj = Truck.objects.get(id=int(vehicle))
+            driver_obj = Driver.objects.get(id=int(driver))
+
+        guide_obj = Guide(
+            date_issue=issue_date,
+            transfer_date=transfer_date,
+            client=client_obj,
+            guide_motive=motive_obj,
+            origin=origin,
+            origin_address=origin_address,
+            destiny=destiny,
+            destiny_address=destiny_address,
+            modality_transport=modality_transport,
+            carrier=carrier_obj,
+            vehicle=vehicle_obj,
+            driver=driver_obj,
+            weight=weight,
+            package=n_package,
+            observation=observations,
+            user=user_obj,
+            subsidiary=subsidiary_obj
+        )
+        guide_obj.save()
+
+        for detail in data_guide['Details']:
+            product_id = int(detail['Product'])
+            product_obj = Product.objects.get(id=product_id)
+            quantity = decimal.Decimal(detail['Quantity'])
+            unit_id = int(detail['Unit'])
+            unit_obj = Unit.objects.get(id=unit_id)
+            GuideDetail.objects.create(guide=guide_obj, product=product_obj, quantity=quantity, unit=unit_obj)
+
+        return JsonResponse({
+            'pk': guide_obj.id,
+            'message': 'Guia Registrada',
+        }, status=HTTPStatus.OK)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
