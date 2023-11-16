@@ -34,7 +34,7 @@
                             {#                            {% endif %}#}
 
                             <div class="col-sm-2 col-md-2 col-lg-2 mb-3">
-                                <button type="button" onclick="showModalView('modal_supplier_create')"
+                                <button type="button" onclick="showModalViewSupplier('modal_supplier_create')"
                                         class="btn btn-sm btn-secondary btn-block mt-3 mb-0 col-sm-12 col-md-12 col-lg-12">
                                     Nuevo Proveedor
                                 </button>
@@ -304,7 +304,7 @@
             }, 1000);
         });
 
-        function showModalView(ruta) {
+        function showModalViewSupplier(ruta) {
             $.ajax({
                 url: '/buys/' + ruta + '/',
                 dataType: 'json',
@@ -332,11 +332,21 @@
             return flag
         }
 
+        function hasRowBuysDetails() {
+            var _response = false;
+            if ($("#details-table tr").attr("product").length > 0) {
+                _response = true;
+            }
+            return _response;
+        }
+
         $('#purchase-form').submit(function (event) {
             event.preventDefault();
-            let reference = $('#reference').val()
-            let _contract = $("#contract_detail_id")
-            let delivery_date = $('#delivery_date').val()
+            let reference = $('#reference').val();
+            let _contract = $("#contract_detail_id");
+            let delivery_date = $('#delivery_date').val();
+            let _payment_type = $('#payment_type').val();
+            let _supplier = $('#supplier_id').val();
             if (_contract.val() !== '') {
                 if (delivery_date === '') {
                     toastr.warning('¡Seleccione la fecha de entrega!', 'Mensaje');
@@ -346,27 +356,31 @@
                 delivery_date = ''
             }
 
-            if ($('#payment_type').val() === '0') {
+            if (_payment_type === '0') {
                 toastr.warning('¡Selecione el tipo de pago!', 'Mensaje');
                 return false;
             }
-            if ($('#supplier_id').val() === '0') {
+            if (_supplier === '0') {
                 toastr.warning('¡Selecione el proveedor!', 'Mensaje');
+                return false;
+            }
+            console.log(hasRowBuysDetails)
+            if (hasRowBuysDetails() === false) {
+                toastr.warning('¡Seleccione los productos!', 'Mensaje');
                 return false;
             }
             if (checkUnit() === true) {
                 toastr.warning('¡Selecione el tipo de unidad en los productos!', 'Mensaje');
                 return false;
             }
-
             if ($("#id_detail_data_grid tbody#details-table tr").length > 0 && $('.product-table').val() !== '') {
                 let table_foot = $("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("#id_detail_data_foot tbody#table-detail-foot tr")
                 let Detail_purchase = {
-                    "SupplierId": $('#supplier_id').val(),
+                    "SupplierId": _supplier,
                     "Date": $('#id_fechacompra').val(),
                     "Reference": reference,
                     "Delivery_date": delivery_date,
-                    "Type_Pay": $('#payment_type').val(),
+                    "Type_Pay": _payment_type,
                     "Pay_condition": $('#pay_condition').val(),
                     "Base_Total": Number(table_foot.find("td.foot-base input.total-foot-base").val()),
                     "Igv_Total": Number(table_foot.find("td.foot-igv input.total-foot-igv").val()),
@@ -401,15 +415,18 @@
                     };
                     Detail_purchase.Details.push(detailObj);
                 });
-                console.log(Detail_purchase)
-                $.ajax({
+                //console.log(Detail_purchase)
+                /*$.ajax({
                     url: '/buys/save_purchase/',
                     async: true,
                     dataType: 'json', // for response
                     type: 'GET',
                     data: {'purchase': JSON.stringify(Detail_purchase)},
                     contentType: 'application/json;charset=UTF-8',
-                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    headers: {"X-CSRFToken": '
+
+
+                {{ csrf_token }}'},
                     success: function (response, textStatus, xhr) {
                         if (xhr.status === 200) {
                             toastr.success(response.message, '¡COMPRA REGISTRADA CORRECTAMENTE!');
@@ -431,7 +448,7 @@
                     error: function (jqXhr, textStatus, xhr) {
                         toastr.error("ERROR. ", '¡INCONCEBIBLE!');
                     }
-                });
+                });*/
 
             } else {
                 toastr.warning("PARA REALIZAR LA COMPRA AGREGUE AL MENOS UN PRODUCTO. ", '¡ADVERTENCIA!');
@@ -592,8 +609,6 @@
             }
         }
 
-        let flag_function = false;
-
         $(document).on('change', '.unit-product', async function (e) {
             let unit_id = $(this).val();
             let product_id = $(this).parent('td').parent('tr').attr('product')
@@ -602,12 +617,9 @@
             let _select_quantity_unit = _tr.find('td.item-quantity-x-unit select.quantity-unit');
             if (unit_id !== '0') {
                 await getQuantityMinimumByProduct(product_id, unit_id, _tr, _quantity)
-                {#if (!flag_function) {#}
                 if (unit_id === '1') { /*optimizar*/
                     _select_quantity_unit.val('1').change();
                 }
-                {#flag_function = true;#}
-                {# }#}
             } else {
                 toastr.warning('Seleccione una unidad valida', 'Error de llenado');
                 $(this).val(1).change();
@@ -630,9 +642,6 @@
             _quantity.val(_new_quantity);
             $('.quantity-product').trigger('keyup');
         });
-
-        //$('.unit-product').trigger('change')
-        let _quantity_minimum = 0
 
         async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
             let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum-val');

@@ -10,7 +10,7 @@
             <div class="row">
                 <div class="col-sm-4 col-md-4 col-lg-4 mb-0" style="background: #1a77c8">
                     <input type="hidden" id="contract_detail_id" name="contract-detail"
-                                       value="{{ contract_detail_obj.id }}">
+                           value="{{ contract_detail_obj.id }}">
                     <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
                         <label>{{ contract_detail_obj.contract.contract_number }} -
                             FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
@@ -340,6 +340,17 @@
 
         }
 
+        function checkUnitGuide() {
+            let flag = false
+            $('tbody#guide-details tr').each(function () {
+                let _unit = $(this).find('td.unit select.unit-product').val()
+                if (_unit === '0') {
+                    flag = true
+                }
+            });
+            return flag
+        }
+
         function saveGuide() {
 
             let _contract_detail = $("#contract_detail_id").val()
@@ -362,6 +373,39 @@
             let _weight = $('#weight').val();
             let _n_package = $('#id-package').val();
             let _observations = $('#id_observation').val();
+
+            if (_motive === null) {
+                toastr.warning('¡Seleccione Motivo de Traslado!', 'Mensaje');
+                return false;
+            }
+            if (_origin === '' && _origin_address === '') {
+                toastr.warning('¡Agregue el Origen!', 'Mensaje');
+                return false;
+            }
+            if (_destiny === '' && _destiny_address === '') {
+                toastr.warning('¡Agregue el Destino!', 'Mensaje');
+                return false;
+            }
+            if (_transport_modality === null) {
+                toastr.warning('¡Seleccione la modalidad de Transporte!', 'Mensaje');
+                return false;
+            }
+            if (_carrier === '') {
+                toastr.warning('¡Agregue un Transportista!', 'Mensaje');
+                return false;
+            }
+            if (_weight === '') {
+                toastr.warning('¡Agregue el Peso Total!', 'Mensaje');
+                return false;
+            }
+            if (_n_package === '') {
+                toastr.warning('¡Agregue la cantidad de bultos!', 'Mensaje');
+                return false;
+            }
+            if (checkUnitGuide() === true) {
+                toastr.warning('¡Selecione el tipo de unidad en los productos!', 'Mensaje');
+                return false;
+            }
 
             let Guide = {
                 "Details": [],
