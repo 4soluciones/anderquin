@@ -347,6 +347,10 @@
             let delivery_date = $('#delivery_date').val();
             let _payment_type = $('#payment_type').val();
             let _supplier = $('#supplier_id').val();
+            let _type_client_reference = $('#type_client_reference').val();
+            let _client_reference = $('#client_reference_id').val();
+            let _client_final = $('#client_final').val();
+
             if (_contract.val() !== '') {
                 if (delivery_date === '') {
                     toastr.warning('¡Seleccione la fecha de entrega!', 'Mensaje');
@@ -364,7 +368,6 @@
                 toastr.warning('¡Selecione el proveedor!', 'Mensaje');
                 return false;
             }
-            console.log(hasRowBuysDetails)
             if (hasRowBuysDetails() === false) {
                 toastr.warning('¡Seleccione los productos!', 'Mensaje');
                 return false;
@@ -373,6 +376,41 @@
                 toastr.warning('¡Selecione el tipo de unidad en los productos!', 'Mensaje');
                 return false;
             }
+            if (_client_reference === '') {
+                toastr.warning('¡SELECCIONE AL CLIENTE!', 'Mensaje');
+                return false;
+            }
+            if (_type_client_reference === 'PR') {
+                if (_client_final === '') {
+                    toastr.warning('¡SELECCIONE CLIENTE FINAL!', 'Mensaje');
+                    return false;
+                }
+                if ($('#check-client-final').prop('checked')) {
+                    if ($('#client_final_address').val() === '0') {
+                        toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA DEL CLIENTE FINAL!', 'Mensaje');
+                        return false;
+                    }
+                }
+            }
+            if ($('#check-subsidiary').prop('checked')) {
+                if ($('#address_subsidiary').val() === '0') {
+                    toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA EN LA SUCURSAL!', 'Mensaje');
+                    return false;
+                }
+            }
+            if ($('#check-provider').prop('checked')) {
+                if ($('#address_provider').val() === '0') {
+                    toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA DEL PROVEEDOR!', 'Mensaje');
+                    return false;
+                }
+            }
+            if ($('#check-client').prop('checked')) {
+                if ($('#client_address_reference').val() === '0') {
+                    toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA DEL CLIENTE!', 'Mensaje');
+                    return false;
+                }
+            }
+
             if ($("#id_detail_data_grid tbody#details-table tr").length > 0 && $('.product-table').val() !== '') {
                 let table_foot = $("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("#id_detail_data_foot tbody#table-detail-foot tr")
                 let Detail_purchase = {
@@ -389,8 +427,8 @@
                     "Check_Dollar": ($("#check_dollar").is(':checked')) ? 1 : 0,
                     "Details": [],
 
-                    "client_reference_id": $('#client_reference_id').val(),
-                    "client_final": $('#client_final').val(),
+                    "client_reference_id": _client_reference,
+                    "client_final": _client_final,
 
                     "check-subsidiary": ($("#check-subsidiary").is(':checked')) ? 1 : 0,
                     "check-provider": ($("#check-provider").is(':checked')) ? 1 : 0,
@@ -1074,6 +1112,7 @@
                 let type_client = result.type_client;
                 let _client_address = result.address;
                 $('#client_reference_id').val(client_id);
+                $('#type_client_reference').val(type_client);
                 $('#client_final').val('');
                 $('#person-final-names').val("");
                 if (type_client === 'PR') {
