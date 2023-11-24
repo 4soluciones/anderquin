@@ -6,6 +6,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
+        <input type="hidden" id="client_id" value="{{ client_obj.id }}">
         <div class="modal-body pb-0">
             <div class="card-body pb-0">
                 <div class="custom-control custom-radio mb-1">
@@ -99,10 +100,10 @@
                 </div>
                 <div class="row mt-2">
                     <div class="col-md-12">
-                        <label for="document-transport" class="font-weight-bold">Dirección detallada</label>
+                        <label for="new-address-destiny-text" class="font-weight-bold">Dirección detallada</label>
                         <input type="text"
                                class="form-control text-uppercase"
-                               name="other-address-destiny" id="other-address-destiny"
+                               name="new-address-destiny-text" id="new-address-destiny-text"
                                placeholder="Direccion" required
                                value="" maxlength="200">
                     </div>
@@ -180,7 +181,7 @@
             let _department = $('#department-destiny');
             let _province = $('#province-destiny');
             let _district = $('#district-destiny');
-            let _other_address_origin = $('#other-address-destiny');
+            let _other_address_origin = $('#new-address-destiny-text');
 
             if (_department.val() === null) {
                 toastr.warning('SELECCIONE DEPARTAMENTO', 'Mensaje');
@@ -214,6 +215,40 @@
         $('#location-destiny').val(_location);
         $('#destiny-address').val(_address.toUpperCase());
         $('#modal-destiny').modal('hide');
+
+        saveNewAddressClient()
+
+    }
+
+    function saveNewAddressClient() {
+        let _client_id = $('#client_id').val();
+        let _department_destiny = $('#department-destiny').val();
+        let _province_destiny = $('#province-destiny').val();
+        let _district_destiny = $('#district-destiny').val();
+        let _new_address = $('#new-address-destiny-text').val();
+        $.ajax({
+            url: '/comercial/save_new_address_client/',
+            async: true,
+            dataType: 'json', // for response
+            type: 'GET',
+            data: {
+                'client_id': _client_id,
+                'department_destiny': _department_destiny,
+                'province_destiny': _province_destiny,
+                'district_destiny': _district_destiny,
+                'new_address': _new_address,
+            },
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (xhr.status === 200) {
+
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                toastr.error("ERROR. ", '¡INCONCEBIBLE!');
+            }
+        });
 
     }
 

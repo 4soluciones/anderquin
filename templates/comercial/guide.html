@@ -9,12 +9,18 @@
         <div class="card-header pt-0">
             <div class="row">
                 <div class="col-sm-4 col-md-4 col-lg-4 mb-0" style="background: #1a77c8">
-                    <input type="hidden" id="contract_detail_id" name="contract-detail"
-                           value="{{ contract_detail_obj.id }}">
-                    <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
-                        <label>{{ contract_detail_obj.contract.contract_number }} -
-                            FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
-                    </h6>
+                    {% if contract_detail_obj %}
+                        <input type="hidden" id="contract_detail_id" name="contract-detail"
+                               value="{{ contract_detail_obj.id }}">
+                        <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                            <label>{{ contract_detail_obj.contract.contract_number }} -
+                                FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
+                        </h6>
+                    {% else %}
+                        <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                            <label>GUÍA DE REMISIÓN REMITENTE:</label>
+                        </h6>
+                    {% endif %}
                 </div>
                 <div class="col-sm-4 col-md-4 col-lg-4 text-black-50" style="background: #1a77c8">
                     <table class="table table-bordered mt-1 mb-1" style="background: #ffffff">
@@ -65,13 +71,28 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label for="document-client" class="text-primary">RUC (Destinatario)</label>
-                    <input type="text"
-                           class="form-control" name="document-client" id="document-client" disabled
-                           required
-                           value="{{ contract_detail_obj.contract.client.clienttype_set.last.document_number }}"
-                           maxlength="200">
                     <input type="hidden" id="client_id" value="{{ contract_detail_obj.contract.client.id }}">
+                    {% if contract_detail_obj %}
+                        <label for="document-client" class="text-primary">RUC (Destinatario)</label>
+                        <input type="text"
+                               class="form-control" name="document-client" id="document-client" disabled
+                               required
+                               value="{{ contract_detail_obj.contract.client.clienttype_set.last.document_number }}"
+                               maxlength="200">
+                    {% else %}
+                        <label for="person-names">RUC (Destinatario)</label>
+                        <div id="autocomplete-client" class="autocomplete">
+                            <input class="form-control autocomplete-input"
+                                   type="text"
+                                   id="person-names"
+                                   name="person-names"
+                                   maxlength="200"
+                                   autocomplete="off"
+                                   value=""
+                                   placeholder="Buscar Cliente..."/>
+                            <ul class="autocomplete-result-list"></ul>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="col-md-8">
                     <label for="name-client" class="text-primary">Razón Social (Destinatario)</label>
@@ -105,7 +126,7 @@
                 <div class="col-md-2">
                     <label for="btn-add-origin" class="text-primary mb-3">Agrega el punto de llegada</label>
                     <button id="btn-add-origin" class="btn btn-sm btn-block btn-primary" type="button"
-                            onclick="AddDestiny('modal_guide_destiny', {{ contract_detail_obj.contract.client.id }})">
+                            onclick="AddDestiny('modal_guide_destiny')">
                         <i class="fas fa-plus"></i> Agregar
                     </button>
                 </div>
@@ -287,6 +308,57 @@
 {% block extrajs %}
     <script type="text/javascript">
 
+        new Autocomplete('#autocomplete-client', {
+            search: input => {
+                const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
+
+                return new Promise(resolve => {
+                    if (input.length < 3) {
+                        //$('#person-number').val('')
+                        //$('#order-number').val('')
+                        return resolve([])
+                    }
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            resolve(data.client)
+                        })
+                })
+            },
+            renderResult: (result, props) => {
+                let group = ''
+                if (result.index % 3 === 0) {
+                    group = '<li class="group">Group</li>'
+                }
+                return `
+                ${group}
+                <li ${props}>
+                 <div class="h6" style="font-family: roboto_condensed_regular">
+                    ${result.names}
+                 </div>
+                 <div class="wiki-snippet text-black">
+                    RUC: ${result.number_document}
+                  </div>
+                </li>
+                `
+            },
+            getResultValue: result => result.number_document,
+            onSubmit: handleClientSubmitGuide
+        })
+
+        async function handleClientSubmitGuide(result) {
+            if (result) {
+                let client_id = result.id;
+                let _client_names = result.names
+                let _client_address = result.address;
+                $('#client_id').val(client_id);
+                $('#name-client').val(_client_names);
+            } else {
+                toastr.warning('Seleccione un cliente valido', 'Error de llenado');
+                return false;
+            }
+        }
+
         function AddOrigin(route) {
             $('#modal-origin').empty();
             $.ajax({
@@ -304,22 +376,28 @@
             });
         }
 
-        function AddDestiny(route, client) {
-            $('#modal-destiny').empty();
-            $.ajax({
-                url: '/comercial/' + route + '/',
-                dataType: 'json',
-                type: 'GET',
-                data: {'client': client},
-                success: function (response) {
-                    $('#modal-destiny').html(response.form);
-                    $('#modal-destiny').modal('show');
-                },
-                fail: function (response) {
-                    toastr.error('Ocurrio un problema al mostrar el formulario', '¡Mensaje!');
-                }
-            });
-
+        function AddDestiny(route) {
+            let client = $('#client_id').val();
+            if (client !== '') {
+                $('#modal-destiny').empty();
+                $.ajax({
+                    url: '/comercial/' + route + '/',
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'client': client},
+                    success: function (response) {
+                        $('#modal-destiny').html(response.form);
+                        $('#modal-destiny').modal('show');
+                    },
+                    fail: function (response) {
+                        toastr.error('Ocurrio un problema al mostrar el formulario', '¡Mensaje!');
+                    }
+                });
+            }
+            else {
+                toastr.warning('Primero Seleccione el Destinatario', '¡Mensaje!');
+                return false;
+            }
         }
 
         function AddCarrier(route) {

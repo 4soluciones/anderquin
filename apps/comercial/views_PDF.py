@@ -32,7 +32,7 @@ PAGE_WIDTH = defaultPageSize[0]
 styles = getSampleStyleSheet()
 styles.add(ParagraphStyle(name='Right', alignment=TA_RIGHT, leading=8, fontName='Square', fontSize=8))
 styles.add(ParagraphStyle(name='Title1', alignment=TA_JUSTIFY, leading=8, fontName='Helvetica', fontSize=12))
-styles.add(ParagraphStyle(name='Left-text', alignment=TA_LEFT, leading=8, fontName='Square', fontSize=8))
+styles.add(ParagraphStyle(name='Left-text', alignment=TA_LEFT, leading=12, fontName='Square', fontSize=8))
 styles.add(ParagraphStyle(name='Left_Square', alignment=TA_LEFT, leading=10, fontName='Square', fontSize=10))
 styles.add(ParagraphStyle(name='Justify_Square', alignment=TA_JUSTIFY, leading=10, fontName='Square', fontSize=10))
 styles.add(
@@ -67,6 +67,7 @@ styles.add(
     ParagraphStyle(name='Justify_Square_Bold', alignment=TA_JUSTIFY, leading=5, fontName='Square-Bold', fontSize=10))
 styles.add(ParagraphStyle(name='Center', alignment=TA_CENTER, leading=8, fontName='Square', fontSize=8))
 styles.add(ParagraphStyle(name='Center_a4', alignment=TA_CENTER, leading=12, fontName='Square', fontSize=12))
+styles.add(ParagraphStyle(name='Left_square_title', alignment=TA_LEFT, leading=12, fontName='Square', fontSize=6))
 styles.add(ParagraphStyle(name='Justify_a4', alignment=TA_JUSTIFY, leading=12, fontName='Square', fontSize=12))
 styles.add(
     ParagraphStyle(name='Center-Dotcirful', alignment=TA_CENTER, leading=12, fontName='Dotcirful-Regular', fontSize=10))
@@ -87,23 +88,31 @@ styles.add(ParagraphStyle(name='narrow_center', alignment=TA_CENTER, leading=10,
 styles.add(ParagraphStyle(name='narrow_center_pie', alignment=TA_CENTER, leading=8, fontName='Narrow', fontSize=8))
 styles.add(ParagraphStyle(name='narrow_left', alignment=TA_LEFT, leading=12, fontName='Narrow', fontSize=10))
 styles.add(ParagraphStyle(name='narrow_a_justify', alignment=TA_JUSTIFY, leading=10, fontName='Narrow-a', fontSize=9))
+styles.add(ParagraphStyle(name='narrow_a_left_foot', alignment=TA_LEFT, leading=10, fontName='Narrow-a', fontSize=6))
+styles.add(ParagraphStyle(name='narrow_a_center', alignment=TA_CENTER, leading=10, fontName='Narrow-a', fontSize=9))
 styles.add(
     ParagraphStyle(name='narrow_b_justify', alignment=TA_JUSTIFY, leading=11, fontName='Narrow-b',
                    fontSize=10))
 styles.add(
     ParagraphStyle(name='narrow_b_tittle_justify', alignment=TA_JUSTIFY, leading=12, fontName='Narrow-b', fontSize=12))
+styles.add(
+    ParagraphStyle(name='narrow_b_normal_justify', alignment=TA_JUSTIFY, leading=10, fontName='Narrow-b', fontSize=8))
 styles.add(ParagraphStyle(name='narrow_b_left', alignment=TA_LEFT, leading=9, fontName='Narrow-b', fontSize=8))
 styles.add(ParagraphStyle(name='narrow_c_justify', alignment=TA_JUSTIFY, leading=10, fontName='Narrow-c', fontSize=10))
 styles.add(ParagraphStyle(name='narrow_d_justify', alignment=TA_JUSTIFY, leading=10, fontName='Narrow-d', fontSize=10))
 style = styles["Normal"]
 styles.add(ParagraphStyle(name='CenterNewgotBoldGuideNumber', alignment=TA_CENTER, leading=11, fontName='Newgot',
                           fontSize=11))
+styles.add(ParagraphStyle(name='CenterNewgotTitle', alignment=TA_CENTER, leading=14, fontName='Newgot',
+                          fontSize=14))
+styles.add(ParagraphStyle(name='resort_left', alignment=TA_LEFT, leading=11, fontName='All-Star-Resort',
+                          fontSize=16, textColor=black))
 
 style = styles["Normal"]
 
 reportlab.rl_config.TTFSearchPath.append(str(settings.BASE_DIR) + '/static/fonts')
 pdfmetrics.registerFont(TTFont('Narrow', 'Arial Narrow.ttf'))
-# pdfmetrics.registerFont(TTFont('Narrow-a', 'ARIALN.TTF'))
+pdfmetrics.registerFont(TTFont('Narrow-a', 'ARIALN.TTF'))
 pdfmetrics.registerFont(TTFont('Narrow-b', 'ARIALNB.TTF'))
 pdfmetrics.registerFont(TTFont('Narrow-c', 'Arialnbi.ttf'))
 pdfmetrics.registerFont(TTFont('Narrow-d', 'ARIALNI.TTF'))
@@ -125,6 +134,7 @@ pdfmetrics.registerFont(TTFont('Kg-Primary-Dots', 'KgPrimaryDots-Pl0E.ttf'))
 pdfmetrics.registerFont(TTFont('Dot-line', 'Dotline-LA7g.ttf'))
 pdfmetrics.registerFont(TTFont('Dot-line-Light', 'DotlineLight-XXeo.ttf'))
 pdfmetrics.registerFont(TTFont('Jd-Lcd-Rounded', 'JdLcdRoundedRegular-vXwE.ttf'))
+pdfmetrics.registerFont(TTFont('All-Star-Resort', 'All Star Resort.ttf'))
 
 logo = "static/assests/img/logo-anderquin.png"
 
@@ -568,7 +578,6 @@ def myFirstPage(request):
 
 
 def print_programming_guide(request, pk=None, guide=None):
-
     # A5
 
     ml = 1 * cm
@@ -613,8 +622,8 @@ def print_programming_guide(request, pk=None, guide=None):
     logo = "apps/dishes/static/assets/avatar/LOGOVJ.png"
     glp = "apps/dishes/static/assets/avatar/VJglp20.png"
 
-    canvas.drawImage(logo, ml, mi + 350 - 105, mask='auto', width=96/2, height=102/2)
-    canvas.drawImage(glp, ml + 260, mi + 350 - 110, mask='auto', width=150/2.2, height=150/2.2)
+    canvas.drawImage(logo, ml, mi + 350 - 105, mask='auto', width=96 / 2, height=102 / 2)
+    canvas.drawImage(glp, ml + 260, mi + 350 - 110, mask='auto', width=150 / 2.2, height=150 / 2.2)
     # Dates
     canvas.setFillColor(white)
     canvas.roundRect(ml, mi + 210, 140, 20, 4, stroke=1, fill=1)
@@ -992,7 +1001,6 @@ def print_programming_guide(request, pk=None, guide=None):
 
 
 def get_input_note(self, pk=None):
-
     # Register Fonts
     # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     reportlab.rl_config.TTFSearchPath.append(str(settings.BASE_DIR) + '/static/fonts')
@@ -1012,7 +1020,7 @@ def get_input_note(self, pk=None):
                '', '', 'TOTAL S/', str(guide_obj.minimal_cost))
     # t = Table([colspan_headings] + [headings] + all_details + [footer1] + [footer2])
     t = Table([colspan_headings] + [headings] + all_details + [footer1] + [footer2],
-              colWidths=[0.5*inch, 0.8*inch, 1.6*inch, 0.8*inch, 0.8*inch, 0.8*inch, 0.8*inch])
+              colWidths=[0.5 * inch, 0.8 * inch, 1.6 * inch, 0.8 * inch, 0.8 * inch, 0.8 * inch, 0.8 * inch])
 
     t.setStyle(TableStyle(
         [
@@ -1294,8 +1302,7 @@ class OutputGetContext(Flowable):
 
 
 def NumTomonth(shortMonth):
-
-    return{
+    return {
         1: "Enero",
         2: "Febrero",
         3: "Marzo",
@@ -1312,7 +1319,6 @@ def NumTomonth(shortMonth):
 
 
 def print_ticket(request, pk=None):
-
     reportlab.rl_config.TTFSearchPath.append(str(settings.BASE_DIR) + '/static/fonts')
     pdfmetrics.registerFont(TTFont('Square', 'sqr721bc.ttf'))
     pdfmetrics.registerFont(TTFont('Newgot', 'newgotbc.ttf'))
@@ -1331,7 +1337,6 @@ def print_ticket(request, pk=None):
             ('FONTNAME', (0, 1), (0, -1), 'Square'),
             ('FONTSIZE', (0, 0), (0, -1), 12),
 
-
             # ('LINEBELOW', (0, 0), (-1, 0), 1, colors.darkblue),
             # ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey)
         ]
@@ -1344,7 +1349,8 @@ def print_ticket(request, pk=None):
                     str(fuel_programming_obj.unit_fuel.name))
     tpl_license_plate = ('PLACA', str(fuel_programming_obj.programming.truck.license_plate))
     tpl_pilot = ('CONDUCTOR', str(fuel_programming_obj.programming.get_pilot().names) + ' ' + str(
-        fuel_programming_obj.programming.get_pilot().paternal_last_name) + ' ' + str(fuel_programming_obj.programming.get_pilot().maternal_last_name))
+        fuel_programming_obj.programming.get_pilot().paternal_last_name) + ' ' + str(
+        fuel_programming_obj.programming.get_pilot().maternal_last_name))
     tpl_route = ('RUTA', str(fuel_programming_obj.programming.get_route()))
     tpl_client = ('PRECIO', 'S/. ' + str(round(fuel_programming_obj.price_fuel, 2)),
                   'IMPORTE', 'S/. ' + str(round(fuel_programming_obj.amount(), 2)))
@@ -1435,7 +1441,6 @@ class OutputGetTicket(Flowable):
         return (self.width, self.height)
 
     def draw(self):
-
         fuel_programming_obj = self.fuel_programming_obj
 
         canvas = self.canv  # El atributo que permite dibujar en canvas
@@ -1475,7 +1480,7 @@ def get_qr(table):
     width = bounds[2] - bounds[0]
     height = bounds[3] - bounds[1]
     drawing = Drawing(
-        3.5 * cm, 3.5 * cm, transform=[3.5 * cm / width, 0, 0, 3.5 * cm / height, 0, 0])
+        2.5 * cm, 2.5 * cm, transform=[2.5 * cm / width, 0, 0, 2.5 * cm / height, 0, 0])
     drawing.add(qr_code)
 
     return drawing
@@ -1511,113 +1516,160 @@ def guide(request, pk=None):
     w = 8.3 * inch - 0.25 * inch - 0.25 * inch
     guide_obj = Guide.objects.get(id=pk)
     subsidiary_obj = guide_obj.subsidiary
+    client = guide_obj.contract_detail.contract.client.names
+    client_type_document = guide_obj.contract_detail.contract.client.clienttype_set.last().document_type.short_description
+    client_document_number = guide_obj.contract_detail.contract.client.clienttype_set.last().document_number
+    client_address = guide_obj.contract_detail.contract.client.clientaddress_set.last().address
     client_obj = guide_obj.client
     # title_business = str(subsidiary_obj.name) + '\n' + str(subsidiary_obj.business_name) + '\n' + str(
     #     subsidiary_obj.address) + '\n RUC ' + str(
     #     subsidiary_obj.ruc)
     date = utc_to_local(guide_obj.date_issue)
     date_transfer = utc_to_local(guide_obj.transfer_date)
-    document_type = str(guide_obj.get_document_type_attached_display()).upper()
+    document_type = 'GUÍA DE REMISIÓN ELECTRÓNICA REMITENTE'
     document_number = (str(guide_obj.serial) + '-' + str(guide_obj.correlative).zfill(
         7 - len(str(guide_obj.correlative)))).upper()
     line = '__________________________________________________________________________________________________________________________'
     I = Image(logo)
-    I.drawHeight = 3.0 * inch / 2.9
-    I.drawWidth = 3.0 * inch / 2.9
-    # ------------------------------------------------------------------
-    business_center = [
-        [Paragraph(str(subsidiary_obj.business_name), styles["narrow_b_tittle_justify"])],
-        [Paragraph(str(subsidiary_obj.address), styles["narrow_b_justify"])],
-        # [Paragraph('Correo: ' + str(subsidiary_obj.email), styles['narrow_b_justify'])],
-        [Paragraph('Telefono: ' + str(subsidiary_obj.phone), styles['narrow_b_justify'])],
+    I.drawHeight = 1.1 * inch / 2.9
+    I.drawWidth = 1.1 * inch / 2.9
+
+    header_left_table = [
+        [I, 'ANDERQUIN E.I.R.L.'],
+        [Paragraph('JR. CARABAYA NRO. 443 (AL FRENTE DE LA PLAZA MANCO CAPAC) PUNO - SAN ROMAN - JULIACA',
+                   styles["Left_square_title"]), '']
     ]
-    T = Table(business_center)
-    title_style = [
-        # ('GRID', (0, 3), (0, 3), 0.9, colors.red),
+    header_l = Table(header_left_table, colWidths=[w * 6 / 100, w * 64 / 100])
+
+    left_header_style = [
+        # ('GRID', (0, 0), (-1, -1), 0.9, colors.black),
         # ('TEXTCOLOR', (0, 0), (-1, -1), colors.red)
-        ('FONTNAME', (0, 0), (-1, -1), 'Narrow-b'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('FONTNAME', (0, 0), (-1, -1), 'All-Star-Resort'),
+        ('FONTSIZE', (0, 0), (-1, -1), 20),
+        ('TEXTCOLOR', (0, 0), (1, 0), colors.black),
+        ('LEFTPADDING', (1, 0), (1, 0), 2),
+        ('BOTTOMPADDING', (1, 0), (1, 0), 11),
+        ('TOPPADDING', (0, 1), (1, 1), 0),
+        ('SPAN', (0, 1), (1, 1))
     ]
-    T.setStyle(TableStyle(title_style))
+    header_l.setStyle(TableStyle(left_header_style))
+
+    # ------------------------------------------------------------------
+    # business_center = [
+    #     [Paragraph(str(subsidiary_obj.business_name), styles["narrow_b_tittle_justify"])],
+    #     [Paragraph(str(subsidiary_obj.address), styles["narrow_b_justify"])],
+    #     # [Paragraph('Correo: ' + str(subsidiary_obj.email), styles['narrow_b_justify'])],
+    #     [Paragraph('Telefono: ' + str(subsidiary_obj.phone), styles['narrow_b_justify'])],
+    # ]
+    # T = Table(business_center)
+    # title_style = [
+    #     # ('GRID', (0, 3), (0, 3), 0.9, colors.red),
+    #     # ('TEXTCOLOR', (0, 0), (-1, -1), colors.red)
+    #     ('FONTNAME', (0, 0), (-1, -1), 'Narrow-b'),
+    #     ('FONTSIZE', (0, 0), (-1, -1), 10),
+    #     ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+    # ]
+    # T.setStyle(TableStyle(title_style))
 
     business_right = [
-        ['RUC ' + str(subsidiary_obj.ruc)],
-        [document_type],
+        [Paragraph('R.U.C. Nº ' + str(subsidiary_obj.ruc), styles["narrow_a_center"])],
+        [Paragraph(document_type, styles["CenterNewgotTitle"])],
         [document_number],
     ]
-    D = Table(business_right)
+    D = Table(business_right, rowHeights=[inch * 0.35, inch * 0.35,  inch * 0.35])
     document_style = [
-        # ('GRID', (0, 0), (-1, -1), 0.9, colors.red),
+        # ('GRID', (0, 0), (-1, -1), 0.9, colors.black),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('ALIGNMENT', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, -1), 'Newgot'),
         ('FONTSIZE', (0, 0), (-1, -1), 13),
-        ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 9),
-        ('SPAN', (0, 0), (0, 0))
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        # ('SPAN', (0, 0), (0, 0))
     ]
     D.setStyle(TableStyle(document_style))
     H = [
-        [I, T, D],
+        [header_l, D]
     ]
-    document_header = Table(H, colWidths=[w * 20 / 100, w * 60 / 100, w * 20 / 100])
+    document_header = Table(H, colWidths=[w * 70 / 100, w * 30 / 100])
     header_style = [
-        # ('GRID', (0, 0), (-1, -1), 0.9, colors.blue),  # all columns
+        ('GRID', (1, 0), (1, 0), 0.9, colors.black),  # all columns
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # all columns
-        ('ALIGNMENT', (0, 0), (-1, -1), 'CENTER'),  # first column
+        ('ALIGNMENT', (0, 0), (0, 0), 'LEFT'),  # first column
+        ('ALIGNMENT', (1, 0), (1, 0), 'CENTER'),  # first column
         ('SPAN', (0, 0), (0, 0)),  # first row
         # ('LINEBELOW', (0, -1), (-1, -1), 0.5, purple, 1, None, None, 4, 1),
-        ('BACKGROUND', (2, 0), (-1, 1), HexColor('#0362BB')),  # Establecer el color de fondo de la segunda fila
+        # ('BACKGROUND', (0, 0), (-1, 1), HexColor('#0362BB')),  # Establecer el color de fondo de la segunda fila
         # ('LINEBEFORE', (1, 0), (-1, -1), 0.1, colors.grey),
         # Establezca el color de la línea izquierda de la tabla en
     ]
     document_header.setStyle(TableStyle(header_style))
     # ------------------------------------------------------------------
     pdf_person = Table(
-        [('DESTINATARIO', '')] +
-        [(client_obj.clienttype_set.last().document_type.short_description + ' EMPRESA:', client_obj.clienttype_set.last().document_number)] +
-        [('DENOMINACIÓN: ', Paragraph(client_obj.names.upper(), styles["Left-text"]))],
-        colWidths=[w * 22 / 100, w * 78 / 100])
+        [('Fecha de Emisión', ': ' + str(date.strftime("%d/%m/%Y")), 'Doc. Relacionado', 'Nº O/C', 'Doc. Referencia', '')] +
+        [('Destinatario', ': ' + client, '', '', 'Doc. Identidad', ': ' + client_type_document + ' ' + client_document_number)] +
+        [('Dirección', ': ' + client_address.title(), '', '', '', '')] +
+        [('Ref. Llegada', '', '', '', '', '')],
+        colWidths=[w * 15 / 100, w * 10 / 100, w * 20 / 100, w * 20 / 100, w * 17 / 100, w * 18 / 100],
+        rowHeights=[inch * 0.18, inch * 0.15,  inch * 0.15, inch * 0.18])
     style_person = [
-        ('FONTNAME', (0, 0), (-1, -1), 'Square'),  # all columns
-        ('FONTNAME', (0, 0), (-1, 0), 'Ticketing'),  # all columns
-        ('FONTSIZE', (0, 0), (-1, 0), 10),  # all columns
+        # ('GRID', (0, 0), (-1, -1), 0.9, colors.black),
+        ('FONTNAME', (0, 0), (-1, -1), 'Narrow-b'),  # all columns
+        ('FONTNAME', (1, 0), (1, 3), 'Narrow-a'),  # all columns
+        ('FONTNAME', (5, 0), (5, 2), 'Narrow-a'),  # all columns
+        ('SPAN', (1, 1), (3, 1)),
+        ('SPAN', (1, 2), (5, 2)),
+        ('SPAN', (1, 3), (5, 3)),
+        # ('FONTNAME', (0, 0), (-1, 0), 'Ticketing'),  # all columns
         ('FONTSIZE', (0, 0), (-1, -1), 8),  # all columns
+        ('FONTSIZE', (1, 0), (1, 3), 6),  # all columns
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # all columns
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 1),  # all columns
-        ('BOTTOMPADDING', (1, 2), (1, 2), 5),  # all columns
-        ('LEFTPADDING', (0, 0), (0, -1), 2),  # first column
-        ('LEFTPADDING', (1, 0), (1, -1), 2),  # first column
+        ('TOPPADDING', (0, 0), (-1, -1), 5),  # all columns
+        # ('BOTTOMPADDING', (0, 0), (-1, -1), 2),  # all columns
+        ('TOPPADDING', (1, 0), (1, 0), 5),  # all columns
+        # ('BOTTOMPADDING', (1, 2), (1, 2), 5),  # all columns
+        # ('LEFTPADDING', (0, 0), (0, -1), 2),  # first column
+        # ('LEFTPADDING', (1, 0), (1, -1), 2),  # first column
         ('ALIGNMENT', (1, 0), (1, -1), 'LEFT'),  # second column
-        ('BACKGROUND', (0, 0), (-1, 0), HexColor('#0362BB')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        # ('BACKGROUND', (1, 2), (5, 2), HexColor('#0362BB')),
+        # ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('BOX', (0, 0), (-1, -1), 0.9, colors.black)
     ]
     pdf_person.setStyle(TableStyle(style_person))
     # ----------------------------------------------------------------
     pdf_transfer = Table(
-        [('DATOS DEL TRASLADO', '')] +
-        [('FECHA EMISIÓN:', date.strftime("%d/%m/%Y"))] +
-        [('FECHA INICIO DE TRASLADO: ', date_transfer.strftime("%d/%m/%Y"))] +
-        [('MOTIVO DE TRASLADO: ', guide_obj.guide_motive.description.upper())] +
-        [('MODALIDAD DE TRANSPORTE: ', 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
-        [('PESO BRUTO TOTAL (KGM): ', round(decimal.Decimal(guide_obj.weight), 2))] +
-        [('NÚMERO DE BULTOS: ', round(decimal.Decimal(guide_obj.package), 0))],
-        colWidths=[w * 22 / 100, w * 78 / 100])
+        [('Fecha Inicio traslado', ': ' + date_transfer.strftime("%d/%m/%Y"), 'Observaciones', '')] +
+        [(Paragraph('Fecha Entrega bienes al transportista', styles["narrow_b_normal_justify"]), ': ' + date_transfer.strftime("%d/%m/%Y"), '')] +
+        [('Motivo de traslado: ', ': ' + guide_obj.guide_motive.description.upper(), '', '', '', '', 'Modalidad Traslado', ': ' + 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
+        [('Transportista: ', ': ' + guide_obj.carrier.name.upper(), '', '', '', '', 'RUC', ': ' + guide_obj.carrier.ruc)] +
+        [('Placa:', ': ' + guide_obj.vehicle.license_plate.upper(), 'Marca', '', 'CIMTC', '', 'Lic. Conducir', ': ' + str(guide_obj.driver.n_license))],
+        # [('FECHA INICIO DE TRASLADO: ', date_transfer.strftime("%d/%m/%Y"))] +
+        # [('MODALIDAD DE TRANSPORTE: ', 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
+        # [('PESO BRUTO TOTAL (KGM): ', round(decimal.Decimal(guide_obj.weight), 2))] +
+        # [('NÚMERO DE BULTOS: ', round(decimal.Decimal(guide_obj.package), 0))],
+        colWidths=[w * 15 / 100, w * 10 / 100, w * 10 / 100, w * 15 / 100, w * 10 / 100, w * 10 / 100,
+                   w * 13 / 100, w * 17 / 100],
+        rowHeights=[inch * 0.18, inch * 0.27,  inch * 0.18, inch * 0.18, inch * 0.18])
     style_transfer = [
-        ('FONTNAME', (0, 0), (-1, -1), 'Square'),  # all columns
-        ('FONTNAME', (0, 0), (-1, 0), 'Ticketing'),  # all columns
-        ('FONTSIZE', (0, 0), (-1, 0), 10),  # all columns
+        # ('GRID', (0, 0), (-1, -1), 0.9, colors.black),
+        ('FONTNAME', (0, 0), (-1, -1), 'Narrow-b'),  # all columns
+        ('FONTNAME', (1, 0), (1, 4), 'Narrow-a'),
+        ('FONTNAME', (3, 0), (3, 4), 'Narrow-a'),
+        ('FONTNAME', (7, 0), (7, 4), 'Narrow-a'),
+        # ('FONTNAME', (0, 0), (-1, 0), 'Ticketing'),  # all columns
         ('FONTSIZE', (0, 0), (-1, -1), 8),  # all columns
+        ('FONTSIZE', (1, 0), (1, 4), 6),  # all columns
+        ('FONTSIZE', (7, 0), (7, 4), 6),  # all columns
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # all columns
-        ('LEFTPADDING', (0, 0), (-1, -1), 2),  # first column
+        # ('LEFTPADDING', (0, 0), (-1, -1), 2),  # first column
         ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),  # second column
-        ('TOPPADDING', (0, 0), (-1, -1), 0),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), -2),
-        ('BACKGROUND', (0, 0), (-1, 0), HexColor('#0362BB')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('TOPPADDING', (0, 0), (-1, 0), 2),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 1),
+        ('BOX', (0, 0), (-1, -1), 0.9, colors.black)
+        # ('TOPPADDING', (0, 0), (-1, -1), 0),
+        # ('BOTTOMPADDING', (0, 0), (-1, -1), -2),
+        # ('BACKGROUND', (0, 0), (-1, 0), HexColor('#0362BB')),
+        # ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        # ('TOPPADDING', (0, 0), (-1, 0), 2),
+        # ('BOTTOMPADDING', (0, 0), (-1, 0), 1),
         # ('GRID', (0, 0), (-1, -1), 0.5, HexColor('#0362BB')),  # all columns
     ]
     pdf_transfer.setStyle(TableStyle(style_transfer))
@@ -1626,66 +1678,71 @@ def guide(request, pk=None):
     row_origin = '(' + str(guide_obj.origin) + ')' + ' - ' + str(guide_obj.origin_address.upper())
     row_destiny = '(' + str(guide_obj.destiny) + ')' + ' - ' + str(guide_obj.destiny_address.upper())
     pdf_address = Table(
-        [('DATOS DEL PUNTO DE PARTIDA Y PUNTO DE LLEGADA', '')] +
-        [('PUNTO DE PARTIDA:', Paragraph(row_origin, styles["Left-text"]))] +
-        [('PUNTO DE LLEGADA: ', Paragraph(row_destiny, styles["Left-text"]))],
-        colWidths=[w * 22 / 100, w * 78 / 100])
+        [('Punto de partida', ': ' + str(guide_obj.origin_address.title()), 'Ubigeo', ': ' + guide_obj.origin)] +
+        [('Punto de Llegada', ': ' + str(guide_obj.destiny_address.title()), 'Ubigeo', ': ' + guide_obj.destiny)],
+        colWidths=[w * 15 / 100, w * 60 / 100, w * 15 / 100, w * 10 / 100],
+        rowHeights=[inch * 0.18, inch * 0.18])
     style_address = [
-        ('FONTNAME', (0, 0), (-1, -1), 'Square'),  # all columns
-        ('FONTNAME', (0, 0), (-1, 0), 'Ticketing'),  # all columns
-        ('FONTSIZE', (0, 0), (-1, 0), 10),  # all columns
+        # ('GRID', (0, 0), (-1, -1), 0.9, colors.black),
+        ('FONTNAME', (0, 0), (-1, -1), 'Narrow-b'),  # all columns
+        ('FONTNAME', (1, 0), (1, 1), 'Narrow-a'),
+        ('FONTNAME', (3, 0), (3, 1), 'Narrow-a'),
+        # ('FONTNAME', (0, 0), (-1, 0), 'Ticketing'),  # all columns
         ('FONTSIZE', (0, 0), (-1, -1), 8),  # all columns
+        ('FONTSIZE', (1, 0), (1, 1), 7),
+        ('FONTSIZE', (3, 0), (3, 1), 7),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # all columns
-        ('LEFTPADDING', (0, 0), (-1, -1), 2),  # first column
-        ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),  # second column
-        ('TOPPADDING', (0, 0), (-1, -1), 2),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
-        ('BACKGROUND', (0, 0), (-1, 0), HexColor('#0362BB')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('BOX', (0, 0), (-1, -1), 0.9, colors.black)
+        # ('LEFTPADDING', (0, 0), (-1, -1), 2),  # first column
+        # ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),  # second column
+        # ('TOPPADDING', (0, 0), (-1, -1), 2),
+        # ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+        # ('BACKGROUND', (0, 0), (-1, 0), HexColor('#0362BB')),
+        # ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         # ('GRID', (0, 0), (-1, -1), 0.5, HexColor('#0362BB')),  # all columns
     ]
     pdf_address.setStyle(TableStyle(style_address))
     # ----------------------------------------------------------------
     # ----------------------------------------------------------------
-    pdf_transportation = Table(
-        [('DATOS DEL TRANSPORTE', '')] +
-        [('TRANSPORTISTA:', Paragraph(guide_obj.carrier.name.upper(), styles["Left-text"]))] +
-        [('VEHÍCULO: ', Paragraph(guide_obj.vehicle.license_plate.upper(), styles["Left-text"]))] +
-        [('CONDUCTOR: ',
-          Paragraph('DNI: ' + str(guide_obj.driver.document_driver) + ' - ' + 'NRO LICENCIA: ' + str(
-              guide_obj.driver.n_license) + ' - ' + str(guide_obj.driver.names.upper()),
-                    styles["Left-text"]))],
-        colWidths=[w * 22 / 100, w * 78 / 100])
-    style_transportation = [
-        ('FONTNAME', (0, 0), (-1, -1), 'Square'),  # all columns
-        ('FONTNAME', (0, 0), (-1, 0), 'Ticketing'),  # all columns
-        ('FONTSIZE', (0, 0), (-1, 0), 10),  # all columns
-        ('FONTSIZE', (0, 0), (-1, -1), 8),  # all columns
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # all columns
-        ('LEFTPADDING', (0, 0), (-1, -1), 2),  # first column
-        ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),  # second column
-        ('TOPPADDING', (0, 0), (-1, -1), 0),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-        ('BACKGROUND', (0, 0), (-1, 0), HexColor('#0362BB')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        # ('GRID', (0, 0), (-1, -1), 0.5, HexColor('#0362BB')),  # all columns
-    ]
-    pdf_transportation.setStyle(TableStyle(style_transportation))
+    # pdf_transportation = Table(
+    #     [('DATOS DEL TRANSPORTE', '')] +
+    #     [('TRANSPORTISTA:', Paragraph(guide_obj.carrier.name.upper(), styles["Left-text"]))] +
+    #     [('VEHÍCULO: ', Paragraph(guide_obj.vehicle.license_plate.upper(), styles["Left-text"]))] +
+    #     [('CONDUCTOR: ',
+    #       Paragraph('DNI: ' + str(guide_obj.driver.document_driver) + ' - ' + 'NRO LICENCIA: ' + str(
+    #           guide_obj.driver.n_license) + ' - ' + str(guide_obj.driver.names.upper()),
+    #                 styles["Left-text"]))],
+    #     colWidths=[w * 22 / 100, w * 78 / 100])
+    # style_transportation = [
+    #     ('FONTNAME', (0, 0), (-1, -1), 'Square'),  # all columns
+    #     ('FONTNAME', (0, 0), (-1, 0), 'Ticketing'),  # all columns
+    #     ('FONTSIZE', (0, 0), (-1, 0), 10),  # all columns
+    #     ('FONTSIZE', (0, 0), (-1, -1), 8),  # all columns
+    #     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # all columns
+    #     ('LEFTPADDING', (0, 0), (-1, -1), 2),  # first column
+    #     ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),  # second column
+    #     ('TOPPADDING', (0, 0), (-1, -1), 0),
+    #     ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+    #     ('BACKGROUND', (0, 0), (-1, 0), HexColor('#0362BB')),
+    #     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+    #     # ('GRID', (0, 0), (-1, -1), 0.5, HexColor('#0362BB')),  # all columns
+    # ]
+    # pdf_transportation.setStyle(TableStyle(style_transportation))
     # ----------------------------------------------------------------
     style_header = [
-        ('FONTNAME', (0, 0), (-1, -1), 'Ticketing'),  # all columns
-        ('FONTSIZE', (0, 0), (-1, -1), 9),  # all columns
-        ('GRID', (0, 0), (-1, -1), 0.5, HexColor('#0362BB')),  # all columns
-        ('BACKGROUND', (0, 0), (-1, 1), HexColor('#0362BB')),
-        ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 1),  # all columns
-        ('TOPPADDING', (0, 0), (-1, -1), 1),  # all columns
+        ('FONTNAME', (0, 0), (-1, -1), 'Narrow-b'),  # all columns
+        ('FONTSIZE', (0, 0), (-1, -1), 8),  # all columns
+        ('GRID', (0, 0), (-1, -1), 0.9, colors.black),  # all columns
+        # ('BACKGROUND', (0, 0), (-1, 1), HexColor('#0362BB')),
+        # ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
+        # ('BOTTOMPADDING', (0, 0), (-1, -1), 1),  # all columns
+        # ('TOPPADDING', (0, 0), (-1, -1), 1),  # all columns
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # all columns
         ('ALIGNMENT', (0, 0), (-1, -1), 'CENTER'),
     ]
     pdf_header = Table(
-        [('CODIGO', 'DESCRIPCIÓN', 'U/M', 'CANTIDAD')],
-        colWidths=[w * 8 / 100, w * 70 / 100, w * 10 / 100, w * 12 / 100]
+        [('Código', 'Cantidad', 'Unidad', 'Descripción', 'Peso')],
+        colWidths=[w * 8 / 100, w * 8 / 100, w * 8 / 100, w * 66 / 100, w * 10 / 100]
     )
     pdf_header.setStyle(TableStyle(style_header))
     # -------------------------------------------------------------------
@@ -1696,67 +1753,119 @@ def guide(request, pk=None):
         code = str(d.product.code)
         unit = str(d.unit.description)
         quantity = round(decimal.Decimal(d.quantity), 2)
-        row.append((code, product, unit, str(quantity)))
+        weight = str(round(decimal.Decimal(guide_obj.weight), 2))
+        row.append((code, quantity, unit, product, str(weight) + ' ' + 'KGM'))
     if len(row) <= 0:
-        row.append(('', '', '', ''))
-    pdf_detail = Table(row, colWidths=[w * 8 / 100, w * 70 / 100, w * 10 / 100, w * 12 / 100])
-    style_detail = [
-        ('FONTNAME', (0, 0), (-1, -1), 'Square'),
-        ('FONTSIZE', (0, 0), (-1, -1), 8),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 3),
-        ('TOPPADDING', (1, 0), (1, -1), -1),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
-        ('ALIGNMENT', (0, 0), (-1, -1), 'CENTER'),
-        ('ALIGNMENT', (1, 0), (1, -1), 'LEFT'),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 2),
-        ('LEFTPADDING', (0, 0), (-1, -1), 2),
-        ('GRID', (0, 0), (-1, -1), 0.5, HexColor('#9E9E9E')),
+        row.append(('', '', '', '', ''))
+    pdf_detail = Table(row, colWidths=[w * 8 / 100, w * 8 / 100, w * 8 / 100, w * 66 / 100, w * 10 / 100])
+
+    unique_row = [
+        ['', '', '', '', ''],
+        [pdf_detail],
+        ['', '', '', 'Peso total:', str(round(decimal.Decimal(guide_obj.weight), 2)) + ' ' + 'KGM'],
     ]
-    pdf_detail.setStyle(TableStyle(style_detail))
+    unique_row_table = Table(unique_row, colWidths=[w * 8 / 100, w * 8 / 100, w * 8 / 100, w * 66 / 100, w * 10 / 100],
+                             rowHeights=[inch * 0.00, w * 50 / 100, inch * 0.25])
+
+    style_detail_2 = [
+        ('FONTNAME', (0, 0), (-1, -1), 'Narrow-a'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('ALIGNMENT', (0, 0), (-1, -1), 'CENTER'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), -5),
+        # ('GRID', (0, 0), (-1, -1), 0.9, colors.red),
+        # ('BACKGROUND', (0, 0), (-1, -1), colors.pink),
+    ]
+    style_detail = [
+        ('FONTNAME', (0, 0), (-1, -1), 'Narrow-a'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        # ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        # ('SPAN', (0, 1), (4, 1)),
+        ('SPAN', (0, 1), (0, 2)),
+        ('SPAN', (1, 1), (1, 2)),
+        ('SPAN', (2, 1), (2, 2)),
+        # ('SPAN', (3, 2), (3, 1)),
+        ('BACKGROUND', (3, 2), (3, 1), HexColor('#0362BB')),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        # ('TOPPADDING', (1, 0), (1, -1), -1),
+        # ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        # ('ALIGNMENT', (0, 0), (-1, -1), 'CENTER'),
+        ('ALIGNMENT', (3, 2), (3, 2), 'RIGHT'),
+        ('ALIGNMENT', (4, 2), (4, 2), 'RIGHT'),
+        ('VALIGN', (3, 2), (3, 2), 'MIDDLE'),
+        ('VALIGN', (4, 2), (4, 2), 'MIDDLE'),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (3, 2), (3, 2), 3),
+        ('RIGHTPADDING', (4, 2), (4, 2), 8),
+        ('BOTTOMPADDING', (3, 2), (3, 2), -8),
+        ('BOTTOMPADDING', (4, 2), (4, 2), -8),
+        ('GRID', (0, 0), (-1, -1), 0.9, colors.black),
+        # ('GRID', (3, 2), (3, 2), 0.9, colors.white),
+        ('LINEABOVE', (3, 2), (3, 2), 1.8, colors.white),
+        ('LINEABOVE', (4, 2), (4, 2), 1.8, colors.white),
+        ('BOX', (2, 1), (2, 2), 0.9, colors.black),
+        ('BOX', (4, 1), (4, 2), 0.9, colors.black)
+    ]
+    pdf_detail.setStyle(TableStyle(style_detail_2))
+    unique_row_table.setStyle(TableStyle(style_detail))
     # ----------------------------------------------------------------------------------------------
     pdf_observation = 'OBSERVACIÓN: ' + str(guide_obj.observation)
     # -----------------------------------------------------------------------------------------------
     # ----------------------------------------------------------------------------------------------
     code_qr = 'https://4soluciones.pse.pe/20600854535'
 
+    # qr_left = [
+    #     [Paragraph('Representación impresa de la GUIA REMITENTE ELECTRÓNICA, para ver el documento visita',
+    #                styles["narrow_left"])],
+    #     [Paragraph('https://4soluciones.pse.pe/' + str(subsidiary_obj.ruc), styles["narrow_left"])],
+    #     [Paragraph(
+    #         'Emitido mediante un PROVEEDOR Autorizado por la SUNAT mediante Resolución de Intendencia No.034-005-0005315',
+    #         styles["narrow_left"])],
+    #     [Paragraph('', styles["narrow_left"])],
+    #     [Paragraph('', styles["narrow_left"])],
+    # ]
     qr_left = [
-        [Paragraph('Representación impresa de la GUIA REMITENTE ELECTRÓNICA, para ver el documento visita',
-                   styles["narrow_left"])],
-        [Paragraph('https://4soluciones.pse.pe/' + str(subsidiary_obj.ruc), styles["narrow_left"])],
-        [Paragraph(
-            'Emitido mediante un PROVEEDOR Autorizado por la SUNAT mediante Resolución de Intendencia No.034-005-0005315',
-            styles["narrow_left"])],
-        [Paragraph('', styles["narrow_left"])],
-        [Paragraph('', styles["narrow_left"])],
+        ['Ind. transbordo programado  : NO'],
+        ['Ind. traslado vehiculos de categ. M1 o L : NO'],
+        ['Ind. retorno vehi. con envases o embalajes vacíos  : NO'],
+        ['Ind. retorno vehiculo vacio  : NO'],
     ]
 
     # pdf_link_uno = 'Representación impresa de la ' + str(
     #     guide_obj.get_add_display()).upper() + ' REMITENTE ELECTRÓNICA, para ver el documento visita'
     # pdf_link_dos = 'https://4soluciones.pse.pe/20600854535'
-    # pdf_link_tres = 'Emitido mediante un PROVEEDOR Autorizado por la SUNAT mediante Resolución de Intendencia No.034-005-0005315'
+    pdf_footer = Paragraph('Representación impresa de la Guía de Remisión Electrónica, para ver el documento visita https://4soluciones.pse.pe/20604193053', styles["narrow_a_left_foot"])
+    pdf_link_tres = Paragraph('Autorizado mediante Resolución No.034-005-0005315-SUNAT', styles["narrow_a_left_foot"])
+    footer = [
+        [pdf_footer, pdf_link_tres]
+    ]
+    table_footer = Table(footer, colWidths=[w * 60 / 100, w * 40 / 100])
+
     # -----------------------------------------------------------------------------------------------
-    qr_l = Table(qr_left, colWidths=[w * 80 / 100])
+    qr_l = Table(qr_left, colWidths=[w * 40 / 100], rowHeights=[inch * 0.15, inch * 0.15, inch * 0.15, inch * 0.15])
 
     style_qr1 = [
-        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        ('FONTNAME', (0, 0), (-1, -1), 'Square'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        # ('RIGHTPADDING', (0, 0), (-1, -1), 10),
         ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),
         # ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        # ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
     ]
     qr_l.setStyle(TableStyle(style_qr1))
 
     qr_row = [
-        [qr_l, get_qr(code_qr)],
+        [get_qr(code_qr), '', qr_l],
     ]
-    qr_table = Table(qr_row, colWidths=[w * 80 / 100, w * 20 / 100])
+    qr_table = Table(qr_row, colWidths=[w * 16 / 100, w * 44 / 100, w * 40 / 100])
     style_qr = [
-        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        # ('RIGHTPADDING', (0, 0), (-1, -1), 10),
         ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),
         ('GRID', (0, 0), (-1, -1), 0.9, colors.black),
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        # ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
     ]
     qr_table.setStyle(TableStyle(style_qr))
 
@@ -1773,22 +1882,27 @@ def guide(request, pk=None):
                             )
     pdf = []
     pdf.append(document_header)
-    pdf.append(DrawInvoice(count_row=counter))
+    # pdf.append(DrawInvoice(count_row=counter))
     pdf.append(Spacer(1, 5))
     pdf.append(pdf_person)
-    pdf.append(pdf_transfer)
-    pdf.append(pdf_address)
-    pdf.append(pdf_transportation)
-    pdf.append(Spacer(1, 3))
-    pdf.append(pdf_header)
-    pdf.append(pdf_detail)
     pdf.append(Spacer(1, 5))
-    pdf.append(Paragraph(pdf_observation.upper(), styles["narrow_justify_observation"]))
-    pdf.append(Paragraph(line, styles["CenterNewgotBold"]))
-    pdf.append(Spacer(1, 7))
+    pdf.append(pdf_transfer)
+    pdf.append(Spacer(1, 5))
+    pdf.append(pdf_address)
+    pdf.append(Spacer(1, 5))
+    # pdf.append(pdf_transportation)
+    # pdf.append(Spacer(1, 3))
+    pdf.append(pdf_header)
+    # pdf.append(pdf_detail)
+    pdf.append(unique_row_table)
+    pdf.append(Spacer(1, 5))
+    # pdf.append(Paragraph(pdf_observation.upper(), styles["narrow_justify_observation"]))
+    # pdf.append(Paragraph(line, styles["CenterNewgotBold"]))
+    # pdf.append(Spacer(1, 7))
     pdf.append(qr_table)
     pdf.append(Spacer(1, 2))
-    pdf.append(Paragraph("www.4soluciones.net", styles["CenterNewgotBold"]))
+    pdf.append(table_footer)
+    # pdf.append(Paragraph("www.4soluciones.net", styles["CenterNewgotBold"]))
     doc.build(pdf)
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(str('Guia:') + str(guide_obj.serial) + str(guide_obj.correlative))

@@ -561,6 +561,23 @@ def modal_guide_destiny(request):
         }, status=HTTPStatus.OK)
 
 
+def save_new_address_client(request):
+    if request.method == 'GET':
+        client_id = request.GET.get('client_id')
+        # department_destiny = request.GET.get('department_destiny')
+        # province_destiny = request.GET.get('province_destiny')
+        district_destiny = request.GET.get('district_destiny')
+        new_address = request.GET.get('new_address')
+        if client_id:
+            client_obj = Client.objects.get(id=int(client_id))
+            district_obj = District.objects.get(id=int(district_destiny))
+            ClientAddress.objects.create(client=client_obj, address=new_address.upper(), district=district_obj)
+
+            return JsonResponse({
+                'success': False,
+            })
+
+
 def modal_guide_carrier(request):
     if request.method == 'GET':
         user_id = request.user.id

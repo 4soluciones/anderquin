@@ -130,6 +130,7 @@ class Product(models.Model):
     is_imported = models.BooleanField('Importado', default=False)
     is_enabled = models.BooleanField('Habilitado', default=True)
     is_approved_by_osinergmin = models.BooleanField('Es aprobado por osinergmin', default=False)
+    weight = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return str(self.name) + " - " + str(self.code)

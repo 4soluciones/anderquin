@@ -3364,7 +3364,7 @@ def get_client(request):
                     'names': c.names,
                     'type_client_display': c.get_type_client_display(),
                     'type_client': c.type_client,
-                    'number': c.clienttype_set.last().document_number,
+                    'number_document': c.clienttype_set.last().document_number,
                     'address': address_dict,
                     'last_address': c.clientaddress_set.last().address if c.clientaddress_set.last() else '-'
                 })

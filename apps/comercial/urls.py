@@ -109,9 +109,11 @@ urlpatterns = [
     path('report_guides_by_plate_grid/', login_required(report_guides_by_plate_grid), name='report_guides_by_plate_grid'),
 
     # NEW GUIDE
+    path('get_guide', login_required(new_guide), name='new_guide'),
     path('new_guide/<int:contract_detail>/', new_guide, name='new_guide'),
     path('modal_guide_origin/', modal_guide_origin, name='modal_guide_origin'),
     path('modal_guide_destiny/', modal_guide_destiny, name='modal_guide_destiny'),
+    path('save_new_address_client/', save_new_address_client, name='save_new_address_client'),
     path('modal_guide_carrier/', modal_guide_carrier, name='modal_guide_carrier'),
     path('get_vehicle_by_carrier/', get_vehicle_by_carrier, name='get_vehicle_by_carrier'),
     path('get_plate_by_vehicle/', get_plate_by_vehicle, name='get_plate_by_vehicle'),
