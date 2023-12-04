@@ -49,7 +49,7 @@
                                         DOMICILIO FISCAL
                                     {% endif %}
                                 </td>
-                                <td class="align-middle item-location">{{ s.district.id }}</td>
+                                <td class="align-middle item-location">{{ s.district.ubigeo }}</td>
                                 <td class="align-middle item-address">{{ s.address }}</td>
                             </tr>
                         {% endfor %}
@@ -68,21 +68,21 @@
                 <label class="font-weight-bold">Ingrese una dirección:</label>
                 <div class="row mt-1">
                     <div class="col-md-6">
-                        <label for="department" class="font-weight-bold">Departamento</label>
-                        <select class="form-control combo" id="department"
-                                name="department">
-                            <option selected disabled value="0">Seleccione</option>
-                            {% for d in department_set %}
+                        <label for="department_origin" class="font-weight-bold">Departamento</label>
+                        <select class="form-control combo" id="department_origin" name="department_origin"
+                                onchange="loadProvinces()">
+                            <option selected disabled value="0">Seleccione Departamento..</option>
+                            {% for d in department %}
                                 <option value="{{ d.id }}">{{ d.description }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label for="province" class="font-weight-bold">Provincia</label>
-                        <select class="form-control combo" id="province"
-                                name="province">
-                            <option selected disabled value="0">Seleccione</option>
-                            {% for p in province_set %}
+                        <label for="province_origin" class="font-weight-bold">Provincia</label>
+                        <select class="form-control combo" id="province_origin"
+                                onchange="loadDistricts()" disabled>
+                            <option selected disabled value="0">Seleccione Provincia..</option>
+                            {% for p in province %}
                                 <option value="{{ p.id }}">{{ p.description }}</option>
                             {% endfor %}
                         </select>
@@ -90,12 +90,12 @@
                 </div>
                 <div class="row mt-2">
                     <div class="col-md-6">
-                        <label for="district" class="font-weight-bold">Distrito</label>
-                        <select class="form-control combo" id="district"
-                                name="district">
-                            <option selected disabled value="0">Seleccione</option>
-                            {% for d in district_set %}
-                                <option value="{{ d.id }}">{{ d.description }}</option>
+                        <label for="district_origin" class="font-weight-bold">Distrito</label>
+                        <select class="form-control combo" id="district_origin"
+                                name="district" disabled>
+                            <option selected disabled value="0">Seleccione Distrito..</option>
+                            {% for d in district %}
+                                <option value="{{ d.id }}" ub="{{ d.ubigeo }}">{{ d.description }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -176,7 +176,6 @@
         return check;
     }
 
-
     function addAddressOrigin() {
 
         let _location = ''
@@ -199,9 +198,9 @@
         } else if ($('#third-client-address').is(":checked")) {
             console.log("third")
         } else if ($('#other-address').is(":checked")) {
-            let _department = $('#department');
-            let _province = $('#province');
-            let _district = $('#district');
+            let _department = $('#department_origin');
+            let _province = $('#province_origin');
+            let _district = $('#district_origin');
             let _other_address_origin = $('#other-address-origin');
 
             if (_department.val() === null) {
@@ -229,14 +228,98 @@
                 _district.focus();
                 return false;
             }
-            _location = _district.val();
+            //_location = _district.val();
             _address = _other_address_origin.val();
+
         }
 
-        $('#location-origin').val(_location);
-        $('#origin-address').val(_address.toUpperCase());
-        $('#modal-origin').modal('hide');
+         $('#location-origin').val(ubigeo_origin);
+         $('#origin-address').val(_address.toUpperCase());
+         $('#modal-origin').modal('hide');
+    }
 
+    $('#district_origin').on('change', function () {
+        let option_district_selected = $(this).find('option:selected');
+        ubigeo_origin = option_district_selected.attr('ub');
+        //console.log(ubigeo_origin);
+    });
+
+    var province_set = [
+        {% for e in province %}
+            [
+                '{{ e.id }}',
+                '{{ e.description }}',
+                '{{ e.department_id }}'
+            ],
+        {% endfor %}
+    ]
+    var district_set = [
+        {% for e in district %}
+            [
+                '{{ e.id }}',
+                '{{ e.description }}',
+                '{{ e.province_id }}',
+                '{{ e.ubigeo }}'
+            ],
+        {% endfor %}
+    ]
+
+    function loadProvinces() {
+        var departmentSelect = document.getElementById("department_origin");
+        var provinceSelect = document.getElementById("province_origin");
+        var districtSelect = document.getElementById("district_origin");
+
+        var dep_select = departmentSelect.value;
+
+        // Filtrar las provincias que corresponden al departamento seleccionado
+        var provinceFilter = province_set.filter(function (province) {
+            return province[2] === dep_select;
+        });
+
+        // Limpiar el select de provincias
+        provinceSelect.innerHTML = "<option value=''>Seleccione Provincia..</option>";
+        provinceSelect.disabled = true;
+        districtSelect.innerHTML = "<option value=''>Seleccione Distrito..</option>";
+        districtSelect.disabled = true;
+
+        // Agregar las opciones de provincias
+        if (provinceFilter.length > 0) {
+            for (var i = 0; i < provinceFilter.length; i++) {
+                var option = document.createElement("option");
+                option.text = provinceFilter[i][1];
+                option.value = provinceFilter[i][0];
+                provinceSelect.appendChild(option);
+            }
+            provinceSelect.disabled = false;
+        }
+    }
+
+    function loadDistricts() {
+        var provinceSelect = document.getElementById("province_origin");
+        var districtSelect = document.getElementById("district_origin");
+
+        var prov_select = provinceSelect.value;
+
+        // Filtrar los distritos que corresponden a la provincia seleccionada
+        var districtFilter = district_set.filter(function (district) {
+            return district[2] === prov_select;
+        });
+
+        // Limpiar el select de distritos
+        districtSelect.innerHTML = "<option value=''>Seleccione Distrito..</option>";
+        districtSelect.disabled = true;
+
+        // Agregar las opciones de distritos
+        if (districtFilter.length > 0) {
+            for (var i = 0; i < districtFilter.length; i++) {
+                var option = document.createElement("option");
+                option.value = districtFilter[i][0];
+                option.text = districtFilter[i][1];
+                option.setAttribute('ub', districtFilter[i][3]);
+                districtSelect.appendChild(option);
+            }
+            districtSelect.disabled = false;
+        }
     }
 
 

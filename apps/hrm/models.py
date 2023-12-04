@@ -82,6 +82,7 @@ class Department(models.Model):
 class Province(models.Model):
     id = models.CharField(primary_key=True, max_length=4)
     description = models.CharField(max_length=200, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.description
@@ -94,6 +95,8 @@ class Province(models.Model):
 class District(models.Model):
     id = models.CharField(primary_key=True, max_length=6)
     description = models.CharField(max_length=200, null=True, blank=True)
+    province = models.ForeignKey(Province, on_delete=models.CASCADE, null=True, blank=True)
+    ubigeo = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
         return self.description

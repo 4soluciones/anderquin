@@ -54,7 +54,7 @@
                                     </div>
                                 </td>
                                 <td class="align-middle">DOMICILIO FISCAL</td>
-                                <td class="align-middle item-location-destiny">{{ c.district.id }}</td>
+                                <td class="align-middle item-location-destiny">{{ c.district.ubigeo|default_if_none:'-' }}</td>
                                 <td class="align-middle item-address-destiny">{{ c.address }}</td>
                             </tr>
                         {% endfor %}
@@ -66,21 +66,21 @@
                 <label class="font-weight-bold">Ingrese una dirección:</label>
                 <div class="row mt-1">
                     <div class="col-md-6">
-                        <label for="department-destiny" class="font-weight-bold">Departamento</label>
-                        <select class="form-control combo" id="department-destiny"
-                                name="department">
-                            <option selected disabled value="0">Seleccione</option>
-                            {% for d in department_set %}
+                        <label for="department_destiny" class="font-weight-bold">Departamento</label>
+                        <select class="form-control combo" id="department_destiny" name="department_destiny"
+                                onchange="loadProvincesDestiny()">
+                            <option selected disabled value="0">Seleccione Departamento..</option>
+                            {% for d in department %}
                                 <option value="{{ d.id }}">{{ d.description }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label for="province-destiny" class="font-weight-bold">Provincia</label>
-                        <select class="form-control combo" id="province-destiny"
-                                name="province">
-                            <option selected disabled value="0">Seleccione</option>
-                            {% for p in province_set %}
+                        <label for="province_destiny" class="font-weight-bold">Provincia</label>
+                        <select class="form-control combo" id="province_destiny"
+                                onchange="loadDistrictsDestiny()" disabled>
+                            <option selected disabled value="0">Seleccione Provincia..</option>
+                            {% for p in province %}
                                 <option value="{{ p.id }}">{{ p.description }}</option>
                             {% endfor %}
                         </select>
@@ -88,12 +88,12 @@
                 </div>
                 <div class="row mt-2">
                     <div class="col-md-6">
-                        <label for="district-destiny" class="font-weight-bold">Distrito</label>
-                        <select class="form-control combo" id="district-destiny"
-                                name="district">
-                            <option selected disabled value="0">Seleccione</option>
-                            {% for d in district_set %}
-                                <option value="{{ d.id }}">{{ d.description }}</option>
+                        <label for="district_destiny" class="font-weight-bold">Distrito</label>
+                        <select class="form-control combo" id="district_destiny"
+                                name="district-destiny" disabled>
+                            <option selected disabled value="0">Seleccione Distrito..</option>
+                            {% for d in district %}
+                                <option value="{{ d.id }}" ub="{{ d.ubigeo }}">{{ d.description }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -208,23 +208,22 @@
                 _district.focus();
                 return false;
             }
-            _location = _district.val();
+            //_location = _district.val();
             _address = _other_address_origin.val();
         }
 
-        $('#location-destiny').val(_location);
+        $('#location-destiny').val(ubigeo_destiny);
         $('#destiny-address').val(_address.toUpperCase());
         $('#modal-destiny').modal('hide');
 
-        saveNewAddressClient()
-
+        saveNewAddressClient();
     }
 
     function saveNewAddressClient() {
         let _client_id = $('#client_id').val();
-        let _department_destiny = $('#department-destiny').val();
-        let _province_destiny = $('#province-destiny').val();
-        let _district_destiny = $('#district-destiny').val();
+        let _department_destiny = $('#department_destiny').val();
+        let _province_destiny = $('#province_destiny').val();
+        let _district_destiny = $('#district_destiny').val();
         let _new_address = $('#new-address-destiny-text').val();
         $.ajax({
             url: '/comercial/save_new_address_client/',
@@ -242,14 +241,97 @@
             headers: {"X-CSRFToken": '{{ csrf_token }}'},
             success: function (response, textStatus, xhr) {
                 if (xhr.status === 200) {
-
+                    toastr.success("Agregada Nueva Dirección correctamente", 'Éxito');
                 }
             },
             error: function (jqXhr, textStatus, xhr) {
                 toastr.error("ERROR. ", '¡INCONCEBIBLE!');
             }
         });
+    }
 
+    $('#district_destiny').on('change', function () {
+        let option_district_selected = $(this).find('option:selected');
+        ubigeo_destiny = option_district_selected.attr('ub');
+        //console.log(ubigeo_origin);
+    });
+
+    var province_set = [
+        {% for e in province %}
+            [
+                '{{ e.id }}',
+                '{{ e.description }}',
+                '{{ e.department_id }}'
+            ],
+        {% endfor %}
+    ]
+    var district_set = [
+        {% for e in district %}
+            [
+                '{{ e.id }}',
+                '{{ e.description }}',
+                '{{ e.province_id }}',
+                '{{ e.ubigeo }}'
+            ],
+        {% endfor %}
+    ]
+
+    function loadProvincesDestiny() {
+        var departmentSelect = document.getElementById("department_destiny");
+        var provinceSelect = document.getElementById("province_destiny");
+        var districtSelect = document.getElementById("district_destiny");
+
+        var dep_select = departmentSelect.value;
+
+        // Filtrar las provincias que corresponden al departamento seleccionado
+        var provinceFilter = province_set.filter(function (province) {
+            return province[2] === dep_select;
+        });
+
+        // Limpiar el select de provincias
+        provinceSelect.innerHTML = "<option value=''>Seleccione Provincia..</option>";
+        provinceSelect.disabled = true;
+        districtSelect.innerHTML = "<option value=''>Seleccione Distrito..</option>";
+        districtSelect.disabled = true;
+
+        // Agregar las opciones de provincias
+        if (provinceFilter.length > 0) {
+            for (var i = 0; i < provinceFilter.length; i++) {
+                var option = document.createElement("option");
+                option.text = provinceFilter[i][1];
+                option.value = provinceFilter[i][0];
+                provinceSelect.appendChild(option);
+            }
+            provinceSelect.disabled = false;
+        }
+    }
+
+    function loadDistrictsDestiny() {
+        var provinceSelect = document.getElementById("province_destiny");
+        var districtSelect = document.getElementById("district_destiny");
+
+        var prov_select = provinceSelect.value;
+
+        // Filtrar los distritos que corresponden a la provincia seleccionada
+        var districtFilter = district_set.filter(function (district) {
+            return district[2] === prov_select;
+        });
+
+        // Limpiar el select de distritos
+        districtSelect.innerHTML = "<option value=''>Seleccione Distrito..</option>";
+        districtSelect.disabled = true;
+
+        // Agregar las opciones de distritos
+        if (districtFilter.length > 0) {
+            for (var i = 0; i < districtFilter.length; i++) {
+                var option = document.createElement("option");
+                option.value = districtFilter[i][0];
+                option.text = districtFilter[i][1];
+                option.setAttribute('ub', districtFilter[i][3]);
+                districtSelect.appendChild(option);
+            }
+            districtSelect.disabled = false;
+        }
     }
 
 

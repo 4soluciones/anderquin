@@ -504,9 +504,9 @@ def modal_guide_origin(request):
             # 'pilot_set': pilot_set,
             'date': formatdate,
             'motive_set': motive_set,
-            'department_set': Department.objects.all(),
-            'province_set': Province.objects.all(),
-            'district_set': District.objects.all(),
+            'department': Department.objects.all(),
+            'province': Province.objects.all(),
+            'district': District.objects.all(),
             'subsidiary_obj': subsidiary_obj,
             'subsidiary_set': subsidiary_set,
         })
@@ -544,9 +544,9 @@ def modal_guide_destiny(request):
             'motive_set': motive_set,
             'subsidiary_obj': subsidiary_obj,
             'subsidiary_set': subsidiary_set,
-            'department_set': Department.objects.all(),
-            'province_set': Province.objects.all(),
-            'district_set': District.objects.all(),
+            'department': Department.objects.all(),
+            'province': Province.objects.all(),
+            'district': District.objects.all(),
             'client_obj': client_obj,
             'client_address_set': client_address_set,
         })
@@ -568,14 +568,19 @@ def save_new_address_client(request):
         # province_destiny = request.GET.get('province_destiny')
         district_destiny = request.GET.get('district_destiny')
         new_address = request.GET.get('new_address')
-        if client_id:
+        if client_id and district_destiny:
             client_obj = Client.objects.get(id=int(client_id))
             district_obj = District.objects.get(id=int(district_destiny))
             ClientAddress.objects.create(client=client_obj, address=new_address.upper(), district=district_obj)
 
             return JsonResponse({
-                'success': False,
+                'success': True,
             })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Faltan datos al guardar cierre y vuelva a intentar'
+            }, status=HTTPStatus.OK)
 
 
 def modal_guide_carrier(request):
