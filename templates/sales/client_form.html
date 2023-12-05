@@ -1,23 +1,51 @@
 {% load static %}
 <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
-        <div id="modal-loader" class="overlay" style="display: none">
-            <i class="fas fa-3x fa-sync fa-spin"></i>
-        </div>
         <div class="modal-header bg-light">
             <h6 class="modal-title">REGISTRAR NUEVO CLIENTE</h6>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-
         <input type="hidden" class="form-control" id="client_id" name="client-id">
 
         <div class="modal-body p-2">
+
+            <div class="mr-3 ml-0" style="
+                        display: none;
+                        position: absolute;
+                        top: 8px;
+                        left: 0;
+                        background: var(--white);
+                        opacity: 0.5;
+                        width: 100%;
+                        !important: ;
+                        bottom: 6px;
+                        padding: 10em 23em 20em 26em;
+                        z-index: 2000;
+                        right: 0;" id="container-loading">
+
+                <div class="spinner-border border-0" role="status" style="width: auto; height: auto">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-12">
+                                    <div class="loader-inner"></div>
+                                    <div class="loader-inner"></div>
+                                    <div class="loader-inner"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <i class="fas fa-3x fa-sync fa-spin"></i>
+                </div>
+
+            </div>
             <div class="card">
                 <div class="card-body bg-light">
                     <div class="row">
                         <div class="col-lg-12">
+
                             <div class="row">
                                 <div class="col-lg-6">
                                     <label class="mb-1 mt-1 font-weight-light"
@@ -131,9 +159,9 @@
                                         <option value="040101">AREQUIPA</option>
                                         <option value="220101">TACNA</option>
                                         <option value="070101">CUSCO</option>
-{#                                        {% for district in districts %}#}
-{#                                            <option value="{{ district.id }}">{{ district.description }}</option>#}
-{#                                        {% endfor %}#}
+                                        {#                                        {% for district in districts %}#}
+                                        {#                                            <option value="{{ district.id }}">{{ district.description }}</option>#}
+                                        {#                                        {% endfor %}#}
                                     </select>
                                 </div>
                             </div>
@@ -180,7 +208,8 @@
             </div>
         </div>
         <div class="modal-footer bg-light p-2">
-            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>            &nbsp;
+            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
+            &nbsp;
             <button id="btn-save-client" type="button" class="btn btn-primary font-weight-light">Registrar
             </button>
         </div>
@@ -205,19 +234,6 @@
 </div>
 
 <script type="text/javascript">
-
-    loader = '<div class="container">' +
-        '<div class="row">' +
-        '<div class="col-md-12">' +
-        '<div class="loader">' +
-        '<p><strong><h4>Consultando datos...</h4></strong></p>' +
-        '<div class="loader-inner"></div>' +
-        '<div class="loader-inner"></div>' +
-        '<div class="loader-inner"></div>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-        '</div>';
 
     $(document).on('click', '#btn-nro-client', async function (e) {
 

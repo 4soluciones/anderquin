@@ -238,6 +238,8 @@
                     client.Addresses.push(addresseeObj);
                 });
             }
+            $(this).prop("disabled", true);
+            $('#container-loading').css('display', 'block');
             //console.log(client)
             $.ajax({
                 url: '/sales/client_save/',
@@ -245,13 +247,15 @@
                 dataType: 'json',
                 type: 'GET',
                 cache: false,
-                {#processData: false,#}
+
+            {#processData: false,#}
                 data: {'client': JSON.stringify(client)},
                 contentType: 'application/json;charset=UTF-8',
                 headers: {"X-CSRFToken": '{{ csrf_token }}'},
                 success: function (response, textStatus, xhr) {
                     if (response.success) {
                         toastr.success(response.message, '¡Bien hecho!');
+                        $('#container-loading').css('display', 'none');
                         setTimeout(() => {
                             location.reload();
                         }, 500);
@@ -260,6 +264,7 @@
                 error: function (jqXhr, textStatus, xhr) {
                     console.log(jqXhr);
                     toastr.error('Error', '¡Ocurrio un error!');
+                    $('#container-loading').css('display', 'none');
                 }
             });
         });
