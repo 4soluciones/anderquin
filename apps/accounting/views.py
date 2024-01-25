@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 from apps.hrm.views import get_subsidiary_by_user
 from apps.hrm.models import Worker, WorkerType, Employee
 from apps.buys.models import Purchase, PurchaseDetail
-from apps.sales.models import Subsidiary, SubsidiaryStore, Order, OrderDetail, TransactionPayment, LoanPayment, Supplier
+from apps.sales.models import Subsidiary, SubsidiaryStore, Order, OrderDetail, TransactionPayment, LoanPayment, \
+    Supplier, Client
 from django.template import loader, Context
 from django.http import JsonResponse
 from http import HTTPStatus
@@ -320,6 +321,8 @@ def get_cash_control_list(request):
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
 
+        client_set = Client.objects.all().values('id', 'names')
+
         cash_set = Cash.objects.filter(subsidiary=subsidiary_obj)
         only_cash_set = cash_set.filter(accounting_account__code__startswith='101')
 
@@ -331,6 +334,7 @@ def get_cash_control_list(request):
         return render(request, 'accounting/cash_list.html', {
             'formatdate': formatdate,
             'only_cash_set': only_cash_set,
+            'client_set': client_set,
             'cash_all_set': cash_all_set,
             'accounts_banks_set': accounts_banks_set,
             'choices_operation_types': CashFlow._meta.get_field('operation_type').choices,
@@ -338,13 +342,13 @@ def get_cash_control_list(request):
     elif request.method == 'POST':
         id_cash = int(request.POST.get('cash'))
         start_date = str(request.POST.get('start-date'))
-        end_date = str(request.POST.get('end-date'))
-
-        if start_date == end_date:
-            cash_flow_set = CashFlow.objects.filter(transaction_date__date=start_date, cash__id=id_cash).order_by('id')
-        else:
-            cash_flow_set = CashFlow.objects.filter(transaction_date__date__range=[start_date, end_date],
-                                                    cash__id=id_cash).order_by('id')
+        # end_date = str(request.POST.get('end-date'))
+        cash_flow_set = CashFlow.objects.filter(transaction_date__date=start_date, cash__id=id_cash).order_by('id')
+        # if start_date == end_date:
+        #     cash_flow_set = CashFlow.objects.filter(transaction_date__date=start_date, cash__id=id_cash).order_by('id')
+        # else:
+        #     cash_flow_set = CashFlow.objects.filter(transaction_date__date__range=[start_date, end_date],
+        #                                             cash__id=id_cash).order_by('id')
 
         has_rows = False
         if cash_flow_set:
@@ -675,21 +679,25 @@ def new_bank_transaction(request):
 def new_cash_disbursement(request):
     if request.method == 'POST':
         _cash = request.POST.get('disbursement-cash')
-        _date = request.POST.get('disbursement-operation-date')
+        _date = request.POST.get('operation-date')
         _total = decimal.Decimal(request.POST.get('disbursement-total'))
         _description = request.POST.get('disbursement-description')
         _operation_method = request.POST.get('operationMethod')
+        client = request.POST.get('client-id')
         _igv = request.POST.get('igv', '0.00')
         _sub_total = request.POST.get('subtotal', '0.00')
 
         cash_obj = Cash.objects.get(id=int(_cash))
 
         cash_flow_set = CashFlow.objects.filter(transaction_date__date=_date, cash=cash_obj)
+        client_obj = None
+        if client != '0':
+            client_obj = Client.objects.get(id=int(client))
 
         if cash_flow_set:
             closed = cash_flow_set.filter(type='C')
             if closed:
-                data = {'error': "Caja cerrada"}
+                data = {'error': "La caja se encuentra cerrada"}
                 response = JsonResponse(data)
                 response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
                 return response
@@ -706,7 +714,9 @@ def new_cash_disbursement(request):
                     igv=_igv,
                     subtotal=_sub_total,
                     user=user_obj,
-                    type=_operation_method)
+                    type=_operation_method,
+                    client=client_obj
+                )
                 cash_flow_obj.save()
 
         else:

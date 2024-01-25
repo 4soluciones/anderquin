@@ -216,6 +216,7 @@ class CashFlow(models.Model):
     requirement_buys = models.ForeignKey('buys.Requirement_buys', on_delete=models.CASCADE, null=True, blank=True)
     requirement_programming = models.ForeignKey('buys.RequirementBuysProgramming', on_delete=models.CASCADE, null=True,
                                                 blank=True)
+    client = models.ForeignKey('sales.Client', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return str(self.pk)

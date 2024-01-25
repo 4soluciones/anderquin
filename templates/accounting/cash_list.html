@@ -1,70 +1,67 @@
 {% extends 'home.html' %}
 
 {% block title %}
-    coronasoft.dev | Control de caja
+    Caja
 {% endblock title %}
 
 {% block body %}
     <div class="container-fluid">
-<div class="row">
-    <div class="col-sm-6">
-        <form class="form-inline" id="search-form" method="POST">
-            {% csrf_token %}
-            <label class="my-1 mr-2" for="id-cash">CAJA :</label>
-            <select class="custom-select my-1 mr-sm-2" id="id-cash" name="cash" required>
-                <option value="" disabled selected>SELECCIONE...</option>
+        <div class="row mt-3">
+            <div class="col-sm-6">
+                <form class="form-inline" id="search-form" method="POST">
+                    {% csrf_token %}
+                    <label class="my-1 mr-2" for="id-cash">CAJA :</label>
+                    <select class="custom-select my-1 mr-sm-2" id="id-cash" name="cash" required>
+                        <option value="" disabled selected>SELECCIONE...</option>
 
-                {% for c in only_cash_set %}
-                    <option value="{{ c.pk }}">{{ c.name }}</option>
-                {% endfor %}
+                        {% for c in only_cash_set %}
+                            <option value="{{ c.pk }}">{{ c.name }}</option>
+                        {% endfor %}
 
-            </select>
+                    </select>
 
-            <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>
-            <input type="date" class="form-control my-1 mr-sm-2" id="id-start-date" name="start-date"
-                   value="{{ formatdate }}">
+                    <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>
+                    <input type="date" class="form-control my-1 mr-sm-2" id="id-start-date" name="start-date"
+                           value="{{ formatdate }}">
+                    {##}
+                    {#            <label class="my-1 mr-2" for="id-end-date">Fecha final</label>#}
+                    {#            <input type="date" class="form-control my-1 mr-sm-2" id="id-end-date" name="end-date" readonly#}
+                    {#                   value="{{ formatdate }}">#}
 
-            <label class="my-1 mr-2" for="id-end-date">Fecha final</label>
-            <input type="date" class="form-control my-1 mr-sm-2" id="id-end-date" name="end-date" readonly
-                   value="{{ formatdate }}">
+                    <button type="submit" class="btn btn-primary my-1">
+                        <i class="fas fa-search-dollar" id="btn-search"></i> Buscar
+                    </button>
 
-            <button type="submit" class="btn btn-primary my-1">
-                <i class="fas fa-search-dollar" id="btn-search"></i> Buscar
-            </button>
+                </form>
+            </div>
+            <div class="col-sm-6">
 
-        </form>
-    </div>
-    <div class="col-sm-6">
+                <button type="button" class="btn btn-outline-success m-1" data-toggle="modal"
+                        data-target="#modal-account">
+                    <i class="fas fa-box-open"></i> Aperturar
+                </button>
 
-            <button type="button" class="btn btn-outline-success m-1" data-toggle="modal" data-target="#modal-account">
-                <i class="fas fa-box-open"></i> Aperturar
-            </button>
+                <button type="button" class="btn btn-outline-success m-1" data-toggle="modal"
+                        data-target="#modal-disbursement" id="in-out">
+                    <i class="fas fa-closed-captioning"></i> Ingresos / Salidas
+                </button>
 
-            <button type="button" class="btn btn-outline-success m-1" data-toggle="modal"
-                    data-target="#modal-disbursement" id="in-out">
-                <i class="fas fa-closed-captioning"></i> Ingresos / Salidas
-            </button>
+                <button type="button" class="btn btn-outline-danger m-1" data-toggle="modal"
+                        data-target="#modal-transfers" id="open-transfer-cash">
+                    <i class="fas fa-external-link-square-alt"></i> Traslados
+                </button>
 
-            <button type="button" class="btn btn-outline-danger m-1" data-toggle="modal"
-                    data-target="#modal-transfers" id="open-transfer-cash">
-                <i class="fas fa-external-link-square-alt"></i> Traslados
-            </button>
+                <button type="button" class="btn btn-outline-danger m-1 confirm-transfer-cash-to-cash">
+                    <i class="fas fa-clipboard-check"></i> Confirmar traslado
+                </button>
 
-            <button type="button" class="btn btn-outline-danger m-1 confirm-transfer-cash-to-cash">
-                <i class="fas fa-clipboard-check"></i> Confirmar traslado
-            </button>
+                <button type="button" class="btn btn-outline-dark m-1 cash-to-bank" data-toggle="modal"
+                        data-target="#modal-cash-to-bank" id="open-cash-to-bank">
+                    <i class="fas fa-external-link-square-alt"></i> Deposito a Cuenta Bancaria
+                </button>
 
-            <button type="button" class="btn btn-outline-dark m-1 cash-to-bank" data-toggle="modal"
-                    data-target="#modal-cash-to-bank" id="open-cash-to-bank">
-                <i class="fas fa-external-link-square-alt"></i> Deposito a Cuenta Bancaria
-            </button>
-
-    </div>
-</div>
-
-
-
-
+            </div>
+        </div>
         <div id="account-grid-list">{% include "accounting/cash_grid_list.html" %}</div>
 
     </div>
@@ -91,15 +88,15 @@
 
     <div class="modal" id="modal-disbursement" tabindex="-1" role="dialog">
 
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content">
                 <div class="modal-header pb-2 pt-2">
-                    <h4 class="modal-title mb-3 mt-3">Movimientos caja</h4>
+                    <h4 class="modal-title mb-3 mt-3 text-uppercase montserrat">Movimientos caja</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body bg-light">
                     {% include "accounting/new_cash_disbursements.html" with formatdate=formatdate %}
                 </div>
             </div>
@@ -147,6 +144,10 @@
 
 {% block extrajs %}
     <script type="text/javascript">
+
+        $('#client_id').select2({
+            theme: 'bootstrap4',
+        });
 
         $('#cash-output').change(function () {
             $('#invoice-input').removeAttr('disabled');
@@ -375,14 +376,14 @@
                 processData: false,
                 contentType: false,
                 success: function (response, textStatus, xhr) {
-                    if (xhr.status == 200) {
+                    if (xhr.status === 200) {
                         // $('#product-detail-grid').html(response.grid);
                         $('#modal-disbursement').modal('hide');
                         toastr.success(response['message'], '¡Bien hecho!');
                     }
                 },
                 error: function (jqXhr, textStatus, xhr) {
-                    if (jqXhr.status == 500) {
+                    if (jqXhr.status === 500) {
                         toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
                     }
                 }
