@@ -588,6 +588,9 @@ def get_purchase_annular_list(request):
 def get_detail_purchase_store(request):
     if request.method == 'GET':
         pk = request.GET.get('pk', '')
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+
         purchase_obj = Purchase.objects.get(id=pk)
         purchase_details = PurchaseDetail.objects.filter(purchase=purchase_obj)
         user_id = request.user.id
@@ -610,6 +613,7 @@ def get_detail_purchase_store(request):
 
         t = loader.get_template('buys/assignment_detail_purchase.html')
         c = ({
+            'formatdate': formatdate,
             'purchase': purchase_obj,
             'detail_purchase': purchase_details,
             'subsidiary_stores': subsidiary_store_obj,

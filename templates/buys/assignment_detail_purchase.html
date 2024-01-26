@@ -7,177 +7,142 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body ">
             <input type="hidden" id="purchase_id" value="{{ purchase.id }}">
-            <div class="row p-2">
-                <div class="col-sm-1 text-right">
-                    <label class="font-weight-bold form-control-sm" for="purchase_date">Fecha:</label>
+            <div class="card bg-light">
+
+                <div class="row p-2">
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="batch" class="font-weight-bold">Nº de Lote</label>
+                        <input type="text" class="form-control form-control-sm" id="batch"
+                               name="batch"
+                               value="">
+                    </div>
+
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="batch_expiration_date" class="font-weight-bold">Fecha venc. Lote</label>
+                        <input type="date" class="form-control form-control-sm" id="batch_expiration_date"
+                               name="batch_expiration_date"
+                               value="{{ formatdate }}" required>
+                    </div>
+
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="guide_number" class="font-weight-bold">Nº de Guia</label>
+                        <input type="text" class="form-control form-control-sm" id="guide_number"
+                               name="guide_number"
+                               value="">
+                    </div>
+
                 </div>
-                <div class="col-sm-2">
-                    <input type="date"
-                           class="form-control form-control-sm text-center" id="purchase_date" name="purchase-date"
-                           readonly
-                           value="{{ purchase.purchase_date|date:"Y-m-d" }}" required>
+
+                <div class="card bg-light m-2">
+                    <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
+                        <table class="table table-primary align-content-center table-bordered table-sm m-0">
+                            <thead>
+                            <tr class="text-white bg-info text-uppercase">
+                                <th class="align-middle text-center" style="width: 55%">Producto</th>
+                                <th class="align-middle text-center" style="width: 10%">Cantidad Comprada</th>
+                                <th class="align-middle text-center bg-warning text-dark" style="width: 10%">Cantidad Ingresada</th>
+                                <th class="align-middle text-center" style="width: 5%">Unidad</th>
+                                <th class="align-middle text-center" style="width: 10%">Precio unitario</th>
+                                <th class="align-middle text-center" style="width: 10%">Importe</th>
+                            </tr>
+                            </thead>
+                            <tbody id="details">
+                            {% for d in detail_purchase %}
+                                <tr product="{{ d.product.id }}" purchase_detail="{{ d.id }}" class="text-center">
+                                    {#                            <td>{{ d.product.id }}</td>#}
+                                    <td>{{ d.product.name }}</td>
+                                    <td class="item-quantity">
+                                        <input type="text"
+                                               class="form-control form-control-sm text-center quantity"
+                                               id="quantity"
+                                               value="{{ d.quantity|floatformat:0 }}" readonly>
+                                    </td>
+                                    <td class="item-quantity-income bg-warning">
+                                        <input type="text"
+                                               class="form-control form-control-sm text-center quantity-income"
+                                               id="quantity-income"
+                                               value="{{ d.quantity_entered|floatformat:0 }}">
+                                    </td>
+                                    <td class="item-unit" pu="{{ d.unit.id }}">{{ d.unit.name }}</td>
+                                    <td class="item-price">S/ {{ d.price_unit|floatformat:4 }}</td>
+                                    <td>S/ {{ d.multiplicate|floatformat:2 }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="col-sm-1 pr-0 pl-0 text-center">
-                    <label class="font-weight-bold form-control-sm" for="guide_number">Nro Guía:</label>
-                </div>
-                <div class="col-sm-2">
-                    <input type="text"
-                           class="form-control form-control-sm text-center"
-                           id="guide_number" name="guide-number"
-                           value="" required>
-                </div>
-                <div class="col-sm-1 pr-0 pl-0 text-center">
-                    <label class="font-weight-bold form-control-sm" for="bill_number">Factura:</label>
-                </div>
-                <div class="col-sm-2">
-                    <input type="text"
-                           class="form-control form-control-sm text-center"
-                           id="bill_number" name="bill-number"
-                           value="" required>
-                </div>
-                <div class="col-sm-1 pr-0 pl-0 text-center">
-                    <label class="font-weight-bold form-control-sm" for="store_id">Almacen:</label>
-                </div>
-                <div class="col-sm-2">
-                    <select class="form-control" id="store_id" name="store" required>
-                        {% for a in subsidiary_stores.all %}
-                            {% if subsidiary_stores.id == a.id %}
-                                <option value="{{ a.id }}">{{ a.name }}</option>
-                            {% else %}
-                                <option value="{{ a.id }}">{{ a.name }}</option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                </div>
+
+
+            </div><!-- modal-body -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button> &nbsp;
+                <button id="assignment-changes" type="button" class="btn btn-primary">Asignar Orden</button>
             </div>
-            {#                <table class="table" style="width: 100%">#}
-            {#                    <tr>#}
-            {#                        <td style="width: 0%">#}
-            {#                            <input type="hidden" id="id_compra" value="{{ purchase.id }}">#}
-            {#                        </td>#}
-            {#                        <td style="width: 15%" class="align-middle">Fecha compra</td>#}
-            {#                        <td style="width: 25%">#}
-            {#                            <input type="date" class="form-control" id="fecha-compra" name="fechacompra"#}
-            {#                                   readonly#}
-            {#                                   value="{{ purchase.purchase_date|date:"Y-m-d" }}" required>#}
-            {#                        </td>#}
-            {#                        <td style="width: 20%" class="align-middle">Almacen destino</td>#}
-            {#                        <td style="width: 40%">#}
-            {#                            <select class="form-control" id="id_almacen" name="almacen" required>#}
-            {#                                <option disabled selected value=""> Seleccione</option>#}
-            {#                                {% for a in subsidiary_stores.all %}#}
-            {#                                    {% if subsidiary_stores.id == a.id %}#}
-            {#                                        <option value="{{ a.id }}">{{ a.name }}</option>#}
-            {#                                    {% else %}#}
-            {#                                        <option value="{{ a.id }}">{{ a.name }}</option>#}
-            {#                                    {% endif %}#}
-            {#                                {% endfor %}#}
-            {#                            </select>#}
-            {#                        </td>#}
-            {#                    </tr>#}
-            {#                </table>#}
-            <table class="table table-sm table-primary table-bordered table-striped align-content-center">
-                <thead>
-                <tr class="text-white bg-info text-uppercase">
-                    <th class="align-middle text-center" style="width: 55%">Producto</th>
-                    <th class="align-middle text-center" style="width: 10%">Cantidad</th>
-                    <th class="align-middle text-center" style="width: 10%">Cantidad Ingresada</th>
-                    <th class="align-middle text-center" style="width: 5%">Unidad</th>
-                    <th class="align-middle text-center" style="width: 10%">Precio unitario</th>
-                    <th class="align-middle text-center" style="width: 10%">Importe</th>
-                </tr>
-                </thead>
-                <tbody id="details">
-                {% for d in detail_purchase %}
-                    <tr product="{{ d.product.id }}" purchase_detail="{{ d.id }}" class="text-center">
-                        {#                            <td>{{ d.product.id }}</td>#}
-                        <td>{{ d.product.name }}</td>
-                        <td class="item-quantity">
-                            <input type="text"
-                                   class="form-control form-control-sm text-center quantity" id="quantity"
-                                   value="{{ d.quantity|floatformat:0 }}" readonly>
-                        </td>
-                        <td class="item-quantity-income">
-                            <input type="text"
-                                   class="form-control form-control-sm text-center quantity-income" id="quantity-income"
-                                   value="{{ d.quantity_entered|floatformat:0 }}">
-                        </td>
-                        <td class="item-unit" pu="{{ d.unit.id }}">{{ d.unit.name }}</td>
-                        <td class="item-price">S/ {{ d.price_unit|floatformat:4 }}</td>
-                        <td>S/ {{ d.multiplicate|floatformat:2 }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div><!-- modal-body -->
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button> &nbsp;
-            <button id="assignment-changes" type="button" class="btn btn-primary">Asignar Orden</button>
+
         </div>
-
     </div>
-</div>
 
-<script type="text/javascript">
+    <script type="text/javascript">
 
-    $('#assignment-changes').click(function () {
-        let mensaje = confirm("¿Esta seguro de asignar al almacen seleccionado?");
-        if (mensaje) {
-            if ($('#purchase_id').val() !== '') {
-                if ($('#id_almacen').val() > 0) {
-                    let details_purchase = {
-                        "Details": [],
-                        "Purchase": $('#purchase_id').val(),
-                        "id_almacen": $('#id_almacen').val(),
-                    };
-                    $("#details  tr").each(function () {
-                        var detailObj = {
-                            "PurchaseDetail": $(this).attr('purchase_detail'),
-                            "Product": $(this).attr('product'),
-                            "Quantity": $(this).find("td.item-quantity").text(),
-                            "Unit": $(this).find("td.item-unit").attr('pu'),
-                            "Price": $(this).find("td.item-price").text(),
-                            //"Store": $(this).find("td.item-store select").val(),
+        $('#assignment-changes').click(function () {
+            let mensaje = confirm("¿Esta seguro de asignar al almacen seleccionado?");
+            if (mensaje) {
+                if ($('#purchase_id').val() !== '') {
+                    if ($('#id_almacen').val() > 0) {
+                        let details_purchase = {
+                            "Details": [],
+                            "Purchase": $('#purchase_id').val(),
+                            "id_almacen": $('#id_almacen').val(),
                         };
-                        details_purchase.Details.push(detailObj);
+                        $("#details  tr").each(function () {
+                            var detailObj = {
+                                "PurchaseDetail": $(this).attr('purchase_detail'),
+                                "Product": $(this).attr('product'),
+                                "Quantity": $(this).find("td.item-quantity").text(),
+                                "Unit": $(this).find("td.item-unit").attr('pu'),
+                                "Price": $(this).find("td.item-price").text(),
+                                //"Store": $(this).find("td.item-store select").val(),
+                            };
+                            details_purchase.Details.push(detailObj);
 
-                    });
-                    //console.log(JSON.stringify(details_purchase));
-                    $.ajax({
+                        });
+                        //console.log(JSON.stringify(details_purchase));
+                        $.ajax({
 
-                        url: '/buys/save_detail_purchase_store/',
-                        async: true,
-                        dataType: 'json', // for response
-                        type: 'GET',
-                        data: {'details_purchase': JSON.stringify(details_purchase)},
-                        contentType: 'application/json;charset=UTF-8',
-                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                        success: function (response, textStatus, xhr) {
-                            if (xhr.status === 200) {
-                                toastr.success(response.message, '¡EXITOSO!');
+                            url: '/buys/save_detail_purchase_store/',
+                            async: true,
+                            dataType: 'json', // for response
+                            type: 'GET',
+                            data: {'details_purchase': JSON.stringify(details_purchase)},
+                            contentType: 'application/json;charset=UTF-8',
+                            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                            success: function (response, textStatus, xhr) {
+                                if (xhr.status === 200) {
+                                    toastr.success(response.message, '¡EXITOSO!');
+                                    $('#assignment').modal('hide');
+                                    setTimeout(() => {
+                                        location.reload();
+                                    }, 800);
+                                }
+                            },
+                            error: function (jqXhr, textStatus, xhr) {
                                 $('#assignment').modal('hide');
-                                setTimeout(() => {
-                                    location.reload();
-                                }, 800);
+                                toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
                             }
-                        },
-                        error: function (jqXhr, textStatus, xhr) {
-                            $('#assignment').modal('hide');
-                            toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
-                        }
-                    });
+                        });
 
+                    } else {
+                        toastr.warning("SELECCIONE EL ALMACEN DE DESTINO. ", '¡ADVERTENCIA!');
+                        return false;
+                    }
                 } else {
-                    toastr.warning("SELECCIONE EL ALMACEN DE DESTINO. ", '¡ADVERTENCIA!');
+                    toastr.warning("NO SE LOGRO SELECCIONAR LA COMPRA ", '¡ADVERTENCIA!');
                     return false;
                 }
-            } else {
-                toastr.warning("NO SE LOGRO SELECCIONAR LA COMPRA ", '¡ADVERTENCIA!');
-                return false;
             }
-        }
-    })
+        })
 
-</script>
+    </script>
