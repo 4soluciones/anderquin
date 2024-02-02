@@ -91,6 +91,10 @@ class Purchase(models.Model):
                                             related_name='delivery_subsidiary')
     delivery_supplier = models.ForeignKey('sales.SupplierAddress', on_delete=models.CASCADE, null=True, blank=True)
     delivery_client = models.ForeignKey('sales.ClientAddress', on_delete=models.CASCADE, null=True, blank=True)
+    batch_number = models.CharField('Numero de Lote', max_length=50, null=True, blank=True)
+    batch_expiration_date = models.DateField('Fecha de expiracion de lote', null=True, blank=True)
+    guide_number = models.CharField('Numero de Guia', max_length=50, null=True, blank=True)
+    assign_date = models.DateField('Fecha de Ingreso a Almacen', null=True, blank=True)
     # delivery_client_final = models.ForeignKey('sales.Client', on_delete=models.CASCADE, null=True, blank=True,
     #                                           related_name='delivery_client_final')
 
@@ -146,6 +150,8 @@ class PurchaseDetail(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.DecimalField('Cantidad comprada', max_digits=10, decimal_places=4, default=0)
     quantity_entered = models.DecimalField('Cantidad Ingresada', max_digits=10, decimal_places=4, default=0)
+    quantity_returned = models.DecimalField('Cantidad devuelta', max_digits=10, decimal_places=4, default=0)
+    quantity_sold = models.DecimalField('Cantidad Vendida', max_digits=10, decimal_places=4, default=0)
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
     price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
 

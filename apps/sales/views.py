@@ -391,7 +391,6 @@ def get_list_kardex(request):
                 product_store=product_store[0], create_at__date__range=[start_date, end_date]
             ).select_related(
                 'product_store__product',
-                'programming_invoice__requirement_buys__subsidiary',
                 'requirement_detail',
                 'purchase_detail',
                 'manufacture_detail',
@@ -400,7 +399,6 @@ def get_list_kardex(request):
                 'distribution_detail__distribution_mobil__truck',
                 'loan_payment',
                 'ball_change',
-                'guide_detail__guide__programming__truck',
                 'guide_detail__guide__guide_motive',
                 'advance_detail__client_advancement__client',
             ).prefetch_related(

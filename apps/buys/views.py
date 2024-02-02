@@ -362,78 +362,64 @@ def save_purchase(request):
         }, status=HTTPStatus.OK)
 
 
-# guardar detalle de compras en almacenes
-@csrf_exempt
 def save_detail_purchase_store(request):
     if request.method == 'GET':
-        purchase_request = request.GET.get('details_purchase', '')
-        # print(purchase_request)
+        purchase_request = request.GET.get('details', '')
         data_purchase = json.loads(purchase_request)
-        # print(data_purchase)
-        purchase_id = str(data_purchase["Purchase"])
-        subsidiary_store_id = int(data_purchase["id_almacen"])
+
+        assign_date = str(data_purchase["AssignDate"])
+        purchase_id = int(data_purchase["Purchase"])
         purchase_obj = Purchase.objects.get(id=int(purchase_id))
-        # CONSULTA SI LA COMPRA YA ESTA EN ALMACEN Y ROMPE LA SECUENCIA
-        if purchase_obj.status == 'A':
-            data = {'error': 'LOS PRODUCTOS YA ESTAN ASIGNADOS A SU ALMACEN.'}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
 
-        # user_id = request.user.id
-        # user_obj = User.objects.get(id=int(user_id))
-        # subsidiary_obj = get_subsidiary_by_user(user_obj)
+        batch_number = data_purchase["Batch"]
+        batch_expiration_date = str(data_purchase["BatchExpirationDate"])
+        guide_number = data_purchase["GuideNumber"]
 
-        try:
-            subsidiary_store_obj = SubsidiaryStore.objects.get(id=subsidiary_store_id)
-        except SubsidiaryStore.DoesNotExist:
-            data = {'error': 'NO EXISTE ALMACEN DE MERCADERIA'}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        subsidiary_store_obj = SubsidiaryStore.objects.get(category='V', subsidiary=subsidiary_obj)
 
-        for detail in data_purchase['Details']:
-            print(detail['Quantity'])
-            quantity = decimal.Decimal((detail['Quantity']).replace(",", "."))
-            price = decimal.Decimal((detail['Price']).replace(",", "."))
-            # recuperamos del producto
-            product_id = int(detail['Product'])
+        for d in data_purchase['Details']:
+
+            quantity_entered = decimal.Decimal(d['QuantityEntered'])
+            quantity_returned = decimal.Decimal(d['QuantityReturned'])
+            quantity_sold = decimal.Decimal(d['QuantitySold'])
+            price = decimal.Decimal(d['Price'].replace(',', '.'))
+            product_id = int(d['Product'])
             product_obj = Product.objects.get(id=product_id)
-
-            # recuperamos la unidad
-            unit_id = int(detail['Unit'])
+            unit_id = int(d['Unit'])
             unit_obj = Unit.objects.get(id=unit_id)
-
-            # store_id = int(detail['Store'])
-            # store_obj = SubsidiaryStore.objects.get(id=store_id)
-
+            purchase_detail = int(d['PurchaseDetail'])
+            purchase_detail_obj = PurchaseDetail.objects.get(id=purchase_detail)
             try:
                 product_store_obj = ProductStore.objects.get(product=product_obj, subsidiary_store=subsidiary_store_obj)
             except ProductStore.DoesNotExist:
                 product_store_obj = None
-            unit_min_detail_product = ProductDetail.objects.get(product=product_obj, unit=unit_obj).quantity_minimum
 
-            purchase_detail = int(detail['PurchaseDetail'])
-            purchase_detail_obj = PurchaseDetail.objects.get(id=purchase_detail)
+            unit_min_detail_product = ProductDetail.objects.get(product=product_obj, unit=unit_obj).quantity_minimum
 
             if product_store_obj is None:
                 new_product_store_obj = ProductStore(
                     product=product_obj,
                     subsidiary_store=subsidiary_store_obj,
-                    stock=unit_min_detail_product * quantity
+                    stock=unit_min_detail_product * quantity_entered
                 )
                 new_product_store_obj.save()
-                kardex_initial(new_product_store_obj, unit_min_detail_product * quantity, price,
+                kardex_initial(new_product_store_obj, unit_min_detail_product * quantity_entered, price,
                                purchase_detail_obj=purchase_detail_obj)
             else:
-                kardex_input(product_store_obj.id, unit_min_detail_product * quantity, price,
+                kardex_input(product_store_obj.id, unit_min_detail_product * quantity_entered, price,
                              purchase_detail_obj=purchase_detail_obj)
 
         purchase_obj.status = 'A'
+        purchase_obj.batch_number = batch_number
+        purchase_obj.batch_expiration_date = batch_expiration_date
+        purchase_obj.guide_number = guide_number
+        purchase_obj.assign_date = assign_date
         purchase_obj.save()
         return JsonResponse({
             'message': 'PRODUCTO(S) ALMACENADO',
-
         }, status=HTTPStatus.OK)
 
 
@@ -549,8 +535,7 @@ def get_purchase_store_list(request):
             user_id = request.user.id
             user_obj = User.objects.get(id=user_id)
             subsidiary_obj = get_subsidiary_by_user(user_obj)
-            purchases_store = Purchase.objects.filter(subsidiary=subsidiary_obj, status='A',
-                                                      purchase_date__range=(
+            purchases_store = Purchase.objects.filter(status='A', assign_date__range=(
                                                           date_initial, date_final)).distinct('id')
             # purchases_store_serializers = serializers.serialize('json', purchases_store)
             tpl = loader.get_template('buys/purchase_store_grid_list.html')
@@ -2112,10 +2097,7 @@ def report_purchases_all(request):
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
     truck_set = Truck.objects.all().order_by('license_plate')
-    truck_set2 = Purchase.objects.filter(subsidiary=subsidiary_obj,
-                                         truck__isnull=False).distinct('truck__license_plate').values('truck__id',
-                                                                                                      'truck__license_plate').order_by(
-        'truck__license_plate')
+    truck_set2 = Purchase.objects.filter(subsidiary=subsidiary_obj)
     if request.method == 'GET':
         mydate = datetime.now()
         formatdate = mydate.strftime("%Y-%m-%d")

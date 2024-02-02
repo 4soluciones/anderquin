@@ -2,7 +2,7 @@
 
     <div class="modal-content">
         <div class="modal-header text-center">
-            <h5 class="modal-title  font-weight-bold">DETALLE DE ORDEN DE COMPRA</h5>
+            <h5 class="modal-title montserrat font-weight-bold">INGRESO A ALMACEN:</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -12,22 +12,29 @@
             <div class="card bg-light">
 
                 <div class="row p-2">
-                    <div class="col-sm-4 col-md-4 col-lg-4">
-                        <label for="batch" class="font-weight-bold">Nº de Lote</label>
+                    <div class="col-sm-3 col-md-3 col-lg-3">
+                        <label for="assign_date" class="font-weight-bold">Fecha de Ingreso:</label>
+                        <input type="date" class="form-control form-control-sm" id="assign_date"
+                               name="assign_date"
+                               value="{{ formatdate }}" required>
+                    </div>
+
+                    <div class="col-sm-3 col-md-3 col-lg-3">
+                        <label for="batch" class="font-weight-bold">Nº de Lote:</label>
                         <input type="text" class="form-control form-control-sm" id="batch"
                                name="batch"
                                value="">
                     </div>
 
-                    <div class="col-sm-4 col-md-4 col-lg-4">
-                        <label for="batch_expiration_date" class="font-weight-bold">Fecha venc. Lote</label>
+                    <div class="col-sm-3 col-md-3 col-lg-3">
+                        <label for="batch_expiration_date" class="font-weight-bold">Fecha venc. Lote:</label>
                         <input type="date" class="form-control form-control-sm" id="batch_expiration_date"
                                name="batch_expiration_date"
                                value="{{ formatdate }}" required>
                     </div>
 
-                    <div class="col-sm-4 col-md-4 col-lg-4">
-                        <label for="guide_number" class="font-weight-bold">Nº de Guia</label>
+                    <div class="col-sm-3 col-md-3 col-lg-3">
+                        <label for="guide_number" class="font-weight-bold">Nº de Guia:</label>
                         <input type="text" class="form-control form-control-sm" id="guide_number"
                                name="guide_number"
                                value="">
@@ -41,8 +48,12 @@
                             <thead>
                             <tr class="text-white bg-info text-uppercase">
                                 <th class="align-middle text-center" style="width: 55%">Producto</th>
-                                <th class="align-middle text-center" style="width: 10%">Cantidad Comprada</th>
-                                <th class="align-middle text-center bg-warning text-dark" style="width: 10%">Cantidad Ingresada</th>
+                                <th class="align-middle text-center bg-warning text-dark" style="width: 20%">Cantidad
+                                    Comprada
+                                </th>
+                                {#                                <th class="align-middle text-center bg-warning text-dark" style="width: 10%">Cantidad#}
+                                {#                                    Ingresada#}
+                                {#                                </th>#}
                                 <th class="align-middle text-center" style="width: 5%">Unidad</th>
                                 <th class="align-middle text-center" style="width: 10%">Precio unitario</th>
                                 <th class="align-middle text-center" style="width: 10%">Importe</th>
@@ -55,21 +66,55 @@
                                     <td>{{ d.product.name }}</td>
                                     <td class="item-quantity">
                                         <input type="text"
-                                               class="form-control form-control-sm text-center quantity"
-                                               id="quantity"
+                                               class="form-control form-control-sm font-weight-bold text-center quantity-purchased"
+                                               id="quantity_purchased" style="font-size: 17px"
                                                value="{{ d.quantity|floatformat:0 }}" readonly>
                                     </td>
-                                    <td class="item-quantity-income bg-warning">
-                                        <input type="text"
-                                               class="form-control form-control-sm text-center quantity-income"
-                                               id="quantity-income"
-                                               value="{{ d.quantity_entered|floatformat:0 }}">
-                                    </td>
                                     <td class="item-unit" pu="{{ d.unit.id }}">{{ d.unit.name }}</td>
-                                    <td class="item-price">S/ {{ d.price_unit|floatformat:4 }}</td>
+                                    <td class="item-price">{{ d.price_unit|floatformat:4 }}</td>
                                     <td>S/ {{ d.multiplicate|floatformat:2 }}</td>
                                 </tr>
                             {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card bg-light m-2">
+                    <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
+                        <table class="table table-primary align-content-center table-bordered table-sm m-0"
+                               id="table-quantities">
+                            <tbody class="text-uppercase">
+                            <tr class="text-white bg-info text-uppercase">
+                                <td class="align-middle text-right" style="width: 55%">Cantidad</td>
+                                <td class="align-middle text-center" style="width: 10%">#</td>
+                            </tr>
+                            <tr>
+                                <td class="align-middle text-right" style="width: 55%">Cantidad Ingresada</td>
+                                <td class="align-middle text-center quantity-entered" style="width: 55%">
+                                    <input type="text"
+                                           class="form-control form-control-sm text-center"
+                                           id="quantity_entered"
+                                           value="0">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="align-middle text-right" style="width: 55%">Cantidad Devuelta</td>
+                                <td class="align-middle text-center quantity-returned" style="width: 55%">
+                                    <input type="text"
+                                           class="form-control form-control-sm text-center"
+                                           id="quantity_returned"
+                                           value="0">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="align-middle text-right" style="width: 55%">Cantidad Vendida</td>
+                                <td class="align-middle text-center quantity-sold" style="width: 55%">
+                                    <input type="text"
+                                           class="form-control form-control-sm text-center"
+                                           id="quantity_sold"
+                                           value="0">
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -84,65 +129,69 @@
 
         </div>
     </div>
+</div>
 
-    <script type="text/javascript">
+<script type="text/javascript">
 
-        $('#assignment-changes').click(function () {
-            let mensaje = confirm("¿Esta seguro de asignar al almacen seleccionado?");
-            if (mensaje) {
-                if ($('#purchase_id').val() !== '') {
-                    if ($('#id_almacen').val() > 0) {
-                        let details_purchase = {
-                            "Details": [],
-                            "Purchase": $('#purchase_id').val(),
-                            "id_almacen": $('#id_almacen').val(),
-                        };
-                        $("#details  tr").each(function () {
-                            var detailObj = {
-                                "PurchaseDetail": $(this).attr('purchase_detail'),
-                                "Product": $(this).attr('product'),
-                                "Quantity": $(this).find("td.item-quantity").text(),
-                                "Unit": $(this).find("td.item-unit").attr('pu'),
-                                "Price": $(this).find("td.item-price").text(),
-                                //"Store": $(this).find("td.item-store select").val(),
-                            };
-                            details_purchase.Details.push(detailObj);
+    $('#assignment-changes').click(function () {
 
-                        });
-                        //console.log(JSON.stringify(details_purchase));
-                        $.ajax({
+        let _quantity_purchased = Number($('#quantity_purchased').val());
 
-                            url: '/buys/save_detail_purchase_store/',
-                            async: true,
-                            dataType: 'json', // for response
-                            type: 'GET',
-                            data: {'details_purchase': JSON.stringify(details_purchase)},
-                            contentType: 'application/json;charset=UTF-8',
-                            headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                            success: function (response, textStatus, xhr) {
-                                if (xhr.status === 200) {
-                                    toastr.success(response.message, '¡EXITOSO!');
-                                    $('#assignment').modal('hide');
-                                    setTimeout(() => {
-                                        location.reload();
-                                    }, 800);
-                                }
-                            },
-                            error: function (jqXhr, textStatus, xhr) {
-                                $('#assignment').modal('hide');
-                                toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
-                            }
-                        });
+        let _quantity_entered = Number($('#quantity_entered').val());
+        let _quantity_returned = Number($('#quantity_returned').val());
+        let _quantity_sold = Number($('#quantity_sold').val());
 
-                    } else {
-                        toastr.warning("SELECCIONE EL ALMACEN DE DESTINO. ", '¡ADVERTENCIA!');
-                        return false;
-                    }
-                } else {
-                    toastr.warning("NO SE LOGRO SELECCIONAR LA COMPRA ", '¡ADVERTENCIA!');
-                    return false;
+        let _sum_quantities = _quantity_entered + _quantity_returned + _quantity_sold
+
+        if (_sum_quantities > _quantity_purchased) {
+            toastr.warning("La suma de las cantidades no puede ser mayor a la cantidad comprada", '¡MENSAJE!');
+            return false;
+        }
+
+        let details_purchase = {
+            "Details": [],
+            "Purchase": $('#purchase_id').val(),
+            "AssignDate": $('#assign_date').val(),
+            "Batch": $('#batch').val(),
+            "BatchExpirationDate": $('#batch_expiration_date').val(),
+            "GuideNumber": $('#guide_number').val(),
+        };
+        $("#details tr").each(function () {
+            var detailObj = {
+                "PurchaseDetail": $(this).attr('purchase_detail'),
+                "Product": $(this).attr('product'),
+                "QuantityEntered": _quantity_entered,
+                "QuantityReturned": _quantity_returned,
+                "QuantitySold": _quantity_sold,
+                "Unit": $(this).find("td.item-unit").attr('pu'),
+                "Price": $(this).find("td.item-price").text(),
+            };
+            details_purchase.Details.push(detailObj);
+
+        });
+        console.log(JSON.stringify(details_purchase));
+        $.ajax({
+            url: '/buys/save_detail_purchase_store/',
+            async: true,
+            dataType: 'json', // for response
+            type: 'GET',
+            data: {'details': JSON.stringify(details_purchase)},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (xhr.status === 200) {
+                    toastr.success(response.message, '¡Mensaje!');
+                    $('#assignment').modal('hide');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 800);
                 }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                $('#assignment').modal('hide');
+                toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
             }
-        })
+        });
+    })
 
-    </script>
+</script>

@@ -83,7 +83,6 @@ def get_dict_purchases(purchases_set):
                 'status': p.get_status_display,
                 'details_count': p.purchasedetail_set.count(),
                 'total': p.total(),
-                'truck': p.truck,
                 'rowspan': 0
             }
             loan_payment = ''
@@ -113,11 +112,11 @@ def get_dict_purchases(purchases_set):
             for d in PurchaseDetail.objects.filter(purchase=p):
                 purchase_detail = {
                     'id': d.id,
-                    'product': d.product,
-                    'quantity': d.quantity,
+                    'product': d.product.name,
+                    'quantity': str(round(d.quantity, 2)),
                     'unit': d.unit.description,
-                    'price_unit': d.price_unit,
-                    'total': decimal.Decimal(d.multiplicate()),
+                    'price_unit': str(round(d.price_unit, 4)),
+                    'total': str(round(decimal.Decimal(d.multiplicate()), 4)),
                     'rowspan': rowspan
                 }
                 new.get('purchase_detail_set').append(purchase_detail)
