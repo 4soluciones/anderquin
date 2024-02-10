@@ -96,6 +96,7 @@ urlpatterns = [
     path('report_purchases_by_subsidiary/', report_purchases_by_subsidiary, name='report_purchases_by_subsidiary'),
     path('update_purchase/<int:pk>/', update_purchase, name='update_purchase'),
     path('save_update_purchase/', save_update_purchase, name='save_update_purchase'),
+    path('get_correlative_by_year/', get_correlative_by_year, name='get_correlative_by_year'),
 
     # PROVEEDORES
     path('suppliers/', login_required(supplier_list), name='supplier_list'),

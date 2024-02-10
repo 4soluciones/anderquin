@@ -95,6 +95,7 @@ class Purchase(models.Model):
     batch_expiration_date = models.DateField('Fecha de expiracion de lote', null=True, blank=True)
     guide_number = models.CharField('Numero de Guia', max_length=50, null=True, blank=True)
     assign_date = models.DateField('Fecha de Ingreso a Almacen', null=True, blank=True)
+    year = models.IntegerField('Year', null=True, blank=True)
     # delivery_client_final = models.ForeignKey('sales.Client', on_delete=models.CASCADE, null=True, blank=True,
     #                                           related_name='delivery_client_final')
 

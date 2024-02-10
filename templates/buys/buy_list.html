@@ -69,16 +69,17 @@
                                     <div class="form-group row">
                                         <label for="correlative"
                                                class="col-sm-5 border-0 text-white pt-2 text-right pr-0">Correlativo:</label>
-                                        <div class="col-sm-7">
-                                            <div class="input-group">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text font-weight-bold"
-                                                          style="font-size: 11px">OC-2023</span>
-                                                </div>
-                                                <input type="text" style="font-size: 12px"
-                                                       class="form-control text-center font-weight-bold"
-                                                       id="correlative" value="{{ correlative }}" autocomplete="off">
-                                            </div>
+                                        <div class="col-sm-3 pr-0">
+                                            <select id="year" class="form-control form-control-sm text-uppercase"
+                                                    style="font-size: 12px">
+                                                <option value="2023">2023</option>
+                                                <option selected value="2024">2024</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-4 pl-0">
+                                            <input type="text" style="font-size: 12px"
+                                                   class="form-control form-control-sm text-center font-weight-bold"
+                                                   id="correlative" value="{{ correlative }}" autocomplete="off">
                                         </div>
                                     </div>
                                 </form>
@@ -1194,6 +1195,21 @@
                 }
             }
         })
+
+        $(document).on('change', '#year', function (e) {
+            let year = $(this).val()
+            let _correlative = $('#correlative')
+            $.ajax({
+                url: '/buys/get_correlative_by_year/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'year': year},
+                success: function (response) {
+                    _correlative.val(response.correlative)
+                },
+            });
+        });
 
     </script>
 

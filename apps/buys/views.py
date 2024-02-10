@@ -186,26 +186,38 @@ def get_entities(request):
 #             'business_name': sales_reference_entity_obj.business_name,
 #             'status': 'OK'
 #         }, status=HTTPStatus.OK)
+def get_correlative_by_year(request):
+    if request.method == 'GET':
+        year = request.GET.get('year', '')
+        user_id = request.user.id
+        user_obj = User.objects.get(pk=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+
+        correlative = get_correlative_by_subsidiary(subsidiary_obj, year)
+
+        return JsonResponse({
+            'correlative': str(correlative).zfill(4),
+        }, status=HTTPStatus.OK)
 
 
-def get_correlative_by_subsidiary(subsidiary_obj=None):
-    number = Purchase.objects.filter(subsidiary=subsidiary_obj).aggregate(
-        r=Coalesce(Max('correlative'), 0)).get('r')
-    return number + 1
+def get_correlative_by_subsidiary(subsidiary_obj=None, year=None):
+    # number = Purchase.objects.filter(subsidiary=subsidiary_obj).aggregate(
+    #     r=Coalesce(Max('correlative'), 0)).get('r')
+    # return number + 1
 
-    # search = Purchase.objects.filter(subsidiary=subsidiary_obj)
-    # if search.exists():
-    #     purchase_obj = search.last()
-    #     correlative = purchase_obj.correlative
-    #     if correlative:
-    #         new_correlative = correlative + 1
-    #         result = new_correlative
-    #     else:
-    #         result = 1
-    # else:
-    #     result = 1
+    search = Purchase.objects.filter(subsidiary=subsidiary_obj, year=year)
+    if search.exists():
+        purchase_obj = search.last()
+        correlative = purchase_obj.correlative
+        if correlative:
+            new_correlative = correlative + 1
+            result = new_correlative
+        else:
+            result = 1
+    else:
+        result = 1
 
-    # return result
+    return result
 
 
 @csrf_exempt
@@ -309,7 +321,6 @@ def save_purchase(request):
 
         correlative = int(data_purchase["correlative"])
 
-        # _correlative = get_correlative_by_subsidiary(subsidiary_obj=subsidiary_obj)
         _bill_number = f'OC-{datetime.now().year}-{str(correlative).zfill(4)}'
 
         purchase_obj = Purchase(
@@ -2438,7 +2449,8 @@ def get_buy_list(request, contract_detail=None):
     # unitmeasurement_obj = Unit.objects.all()
     my_date = datetime.now()
     formatdate = my_date.strftime("%Y-%m-%d")
-    correlative = get_correlative_by_subsidiary(subsidiary_obj)
+    year = my_date.strftime("%Y")
+    correlative = get_correlative_by_subsidiary(subsidiary_obj, year)
     return render(request, 'buys/buy_list.html', {
         'supplier_obj': supplier_obj,
         # 'unitmeasurement_obj': unitmeasurement_obj,
