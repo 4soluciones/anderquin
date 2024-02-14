@@ -1,43 +1,58 @@
 <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
 
     <div class="modal-content">
-        <div class="modal-header text-center">
-            <h5 class="modal-title montserrat font-weight-bold">INGRESO A ALMACEN:</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <div class="modal-header text-left">
+            <h5 class="modal-title montserrat font-weight-bold col-sm-4">INGRESO A ALMACEN</h5>
+            <h5 class="modal-title montserrat font-weight-bold col-sm-7 text-success">ORDEN DE
+                COMPRA: {{ purchase.bill_number }}</h5>
+            <button type="button" class="close col-sm-1" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-        <div class="modal-body ">
+        <div class="modal-body roboto-condensed-regular">
             <input type="hidden" id="purchase_id" value="{{ purchase.id }}">
             <div class="card bg-light">
 
-                <div class="row p-2">
-                    <div class="col-sm-3 col-md-3 col-lg-3">
-                        <label for="assign_date" class="font-weight-bold">Fecha de Ingreso:</label>
+                <div class="row p-2 text-uppercase">
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="store">Seleccione Almacen de destino:</label>
+                        <select id="store" name="store" class="form-control">
+                            <option value="0">Seleccione</option>
+                            {% for s in subsidiary_stores %}
+                                <option value="{{ s.id }}">{{ s.subsidiary.name }} - ALMACEN {{ s.name|upper }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="assign_date" class="">Fecha de Ingreso:</label>
                         <input type="date" class="form-control form-control-sm" id="assign_date"
                                name="assign_date"
                                value="{{ formatdate }}" required>
                     </div>
 
-                    <div class="col-sm-3 col-md-3 col-lg-3">
-                        <label for="batch" class="font-weight-bold">Nº de Lote:</label>
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="guide_number" class="">Nº de Guia:</label>
+                        <input type="text" class="form-control form-control-sm text-uppercase" id="guide_number"
+                               name="guide_number"
+                               value="">
+                    </div>
+
+                </div>
+                <div class="row p-2 text-uppercase">
+
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="batch" class="">Nº de Lote:</label>
                         <input type="text" class="form-control form-control-sm" id="batch"
                                name="batch"
                                value="">
                     </div>
 
-                    <div class="col-sm-3 col-md-3 col-lg-3">
-                        <label for="batch_expiration_date" class="font-weight-bold">Fecha venc. Lote:</label>
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="batch_expiration_date" class="">Fecha de vencimiento del Lote:</label>
                         <input type="date" class="form-control form-control-sm" id="batch_expiration_date"
                                name="batch_expiration_date"
                                value="{{ formatdate }}" required>
-                    </div>
-
-                    <div class="col-sm-3 col-md-3 col-lg-3">
-                        <label for="guide_number" class="font-weight-bold">Nº de Guia:</label>
-                        <input type="text" class="form-control form-control-sm" id="guide_number"
-                               name="guide_number"
-                               value="">
                     </div>
 
                 </div>
@@ -51,9 +66,6 @@
                                 <th class="align-middle text-center bg-warning text-dark" style="width: 20%">Cantidad
                                     Comprada
                                 </th>
-                                {#                                <th class="align-middle text-center bg-warning text-dark" style="width: 10%">Cantidad#}
-                                {#                                    Ingresada#}
-                                {#                                </th>#}
                                 <th class="align-middle text-center" style="width: 5%">Unidad</th>
                                 <th class="align-middle text-center" style="width: 10%">Precio unitario</th>
                                 <th class="align-middle text-center" style="width: 10%">Importe</th>
@@ -71,7 +83,7 @@
                                                value="{{ d.quantity|floatformat:0 }}" readonly>
                                     </td>
                                     <td class="item-unit" pu="{{ d.unit.id }}">{{ d.unit.name }}</td>
-                                    <td class="item-price">{{ d.price_unit|floatformat:4 }}</td>
+                                    <td class="item-price">S/ {{ d.price_unit|floatformat:4 }}</td>
                                     <td>S/ {{ d.multiplicate|floatformat:2 }}</td>
                                 </tr>
                             {% endfor %}
@@ -86,11 +98,13 @@
                             <tbody class="text-uppercase">
                             <tr class="text-white bg-info text-uppercase">
                                 <td class="align-middle text-right" style="width: 55%">Cantidad</td>
-                                <td class="align-middle text-center" style="width: 10%">#</td>
+                                <td class="align-middle text-center" style="width: 20%">#</td>
                             </tr>
                             <tr>
-                                <td class="align-middle text-right" style="width: 55%">Cantidad Ingresada</td>
-                                <td class="align-middle text-center quantity-entered" style="width: 55%">
+                                <td class="align-middle text-right" style="width: 55%">
+                                    Cantidad Ingresada <span class="" style="font-size: 8px">(cantidad que ingresa directo a almacen)</span>
+                                </td>
+                                <td class="align-middle text-center quantity-entered" style="width: 20%">
                                     <input type="text"
                                            class="form-control form-control-sm text-center"
                                            id="quantity_entered"
@@ -98,8 +112,10 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td class="align-middle text-right" style="width: 55%">Cantidad Devuelta</td>
-                                <td class="align-middle text-center quantity-returned" style="width: 55%">
+                                <td class="align-middle text-right" style="width: 55%">
+                                    Cantidad Devuelta <span class="" style="font-size: 8px">(cantidad que se devuelve con Nota de credito)</span>
+                                </td>
+                                <td class="align-middle text-center quantity-returned" style="width: 20%">
                                     <input type="text"
                                            class="form-control form-control-sm text-center"
                                            id="quantity_returned"
@@ -107,24 +123,129 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td class="align-middle text-right" style="width: 55%">Cantidad Vendida</td>
-                                <td class="align-middle text-center quantity-sold" style="width: 55%">
+                                <td class="align-middle text-right" style="width: 55%">
+                                    Cantidad Vendida <span class="" style="font-size: 8px">(cantidad que se vende a el transportista)</span>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value=""
+                                               id="check-quantity-sold">
+                                        <label class="form-check-label" for="check-quantity-sold">
+                                            Habilitar
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="align-middle text-center quantity-sold" style="width: 20%">
                                     <input type="text"
                                            class="form-control form-control-sm text-center"
                                            id="quantity_sold"
+                                           disabled
                                            value="0">
                                 </td>
                             </tr>
                             </tbody>
                         </table>
+
+                        <div class="d-none sold">
+
+                            <div class="row mt-1 ml-0 mr-2">
+                                <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                                    <label for="bill_type" class="mb-0">Tipo de comprobante</label>
+                                    <select id="bill_type" class="form-control form-control-sm">
+                                        <option value="T">TICKET</option>
+                                        <option value="B">BOLETA</option>
+                                        <option value="F">FACTURA</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                                    <label for="bill_type" class="mb-0">Tipo de Documento</label>
+                                    <select id="bill_type" class="form-control form-control-sm">
+                                        <option value="0">DNI</option>
+                                        <option value="1">RUC</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                                    <label for="document_number" class="mb-0">Nro de Documento</label>
+                                    <input type="text"
+                                           class="form-control form-control-sm text-uppercase"
+                                           id="document_number"
+                                           name="document_number">
+                                </div>
+                                <div class="col-md-6 text-uppercase small pl-1 pr-0">
+                                    <label for="document_names" class="mb-0">Nombres o Razon Social</label>
+                                    <input type="text"
+                                           class="form-control form-control-sm text-uppercase"
+                                           id="document_names"
+                                           name="document_names">
+                                </div>
+                            </div>
+
+
+                            <table class="table table-success align-content-center table-bordered table-sm mt-3"
+                                   id="table-sold">
+                                <thead class="table-light text-uppercase small text-center">
+                                <tr class="text-white" style="background: #33a922">
+                                    <th scope="col" class="border-right border-top border-bottom font-weight-normal"
+                                        style="width: 46%;">Producto
+                                    </th>
+                                    <th scope="col" class="border-right border-top border-bottom font-weight-normal"
+                                        style="width: 5%;">Cantidad
+                                    </th>
+                                    <th scope="col" class="border-right border-top border-bottom font-weight-normal"
+                                        style="width: 5%;">Unidad
+                                    </th>
+                                    <th scope="col" class="border-right border-top border-bottom font-weight-normal"
+                                        style="width: 12%;">Precio
+                                    </th>
+                                    <th scope="col" class="border-right border-top border-bottom font-weight-normal"
+                                        style="width: 12%;">Total
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-uppercase">
+                                {% for d in detail_purchase %}
+                                    <tr product="{{ d.product.id }}" purchase_detail="{{ d.id }}" class="text-center">
+                                        <td class="text-center align-middle">{{ d.product.name }}</td>
+                                        <td class=" text-center align-middle item-quantity2">
+                                            <input type="text"
+                                                   class="form-control form-control-sm font-weight-bold text-center quantity-purchased-sold"
+                                                   id="quantity_purchased_sold" readonly
+                                                   value="">
+                                        </td>
+                                        <td class="text-center align-middle item-unit2"
+                                            pu="{{ d.unit.id }}">{{ d.unit.name }}</td>
+                                        <td class="text-center align-middle item-price2">
+                                            <div class="input-icon">
+                                                <input type="text"
+                                                       class="form-control text-right text-uppercase"
+                                                       placeholder="0.00" value="{{ d.price_unit|floatformat:4 }}"
+                                                       id="price_unit_sold">
+                                                <i class="change-money">S/</i>
+                                            </div>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <div class="input-icon">
+                                                <input type="text"
+                                                       class="form-control text-right text-uppercase"
+                                                       placeholder="0.00" value=""
+                                                       id="total-sold">
+                                                <i class="change-money">S/</i>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
                     </div>
                 </div>
-
 
             </div><!-- modal-body -->
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button> &nbsp;
-                <button id="assignment-changes" type="button" class="btn btn-primary">Asignar Orden</button>
+                <button id="assignment-changes" type="button" class="btn btn-primary">Guardar</button>
             </div>
 
         </div>
@@ -193,5 +314,29 @@
             }
         });
     })
+
+
+    $('#check-quantity-sold').change(function () {
+        if ($(this).is(':checked')) {
+            $('#quantity_sold').prop('disabled', false)
+            $('.sold').removeClass('d-none')
+        } else {
+            $('#quantity_sold').prop('disabled', true)
+            $('.sold').addClass('d-none')
+        }
+    });
+
+    $(document).ready(function () {
+        $("#quantity_sold").on("input keyup", function () {
+            let quantity_sold = $(this).val();
+            let price_unit_sold = $('#price_unit_sold').val()
+            let total = quantity_sold * price_unit_sold
+            $("#quantity_purchased_sold").not(this).val(quantity_sold);
+            $("#total-sold").val(total)
+        });
+    });
+
+
+
 
 </script>

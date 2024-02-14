@@ -51,15 +51,17 @@ def get_purchases_by_date(request):
         pk = request.GET.get('pk', '')
         supplier_obj = Supplier.objects.get(id=pk)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        purchases_set = Purchase.objects.filter(purchase_date__range=[start_date, end_date], subsidiary=subsidiary_obj,
-                                                status='A', supplier=supplier_obj).order_by('purchase_date')
+        # purchases_set = Purchase.objects.filter(purchase_date__range=[start_date, end_date], subsidiary=subsidiary_obj,
+        #                                         status='A', supplier=supplier_obj).order_by('purchase_date')
+        bill_purchase_set = BillPurchase.objects.filter(register_date__range=[start_date, end_date],
+                                                        purchase__bill_status='C', purchase__supplier=supplier_obj).order_by('register_date')
 
         return JsonResponse({
-            'grid': get_dict_purchases(purchases_set),
+            'grid': get_dict_purchases(bill_purchase_set),
         }, status=HTTPStatus.OK)
 
 
-def get_dict_purchases(purchases_set):
+def get_dict_purchases(bill_purchase_set):
     dictionary = []
 
     sum_total = 0
@@ -68,21 +70,21 @@ def get_dict_purchases(purchases_set):
     transaction_date = ''
     operation_code = '-'
 
-    for p in purchases_set:
-        if p.purchasedetail_set.count() > 0:
+    for p in bill_purchase_set:
+        if p.purchase.purchasedetail_set.count() > 0:
             new = {
-                'id': p.id,
-                'supplier': p.supplier,
-                'type': p.get_status_display(),
-                'purchase_date': p.purchase_date,
-                'bill_number': p.bill_number,
+                'id': p.purchase.id,
+                'supplier': p.purchase.supplier,
+                'purchase_date': p.register_date,
+                'expiration_date': p.expiration_date,
+                'bill_number': str(p.serial.upper()) + '-' + str(p.correlative),
                 'purchase_detail_set': [],
                 'loan_payment_set': [],
-                'user': p.user,
-                'subsidiary': p.subsidiary,
-                'status': p.get_status_display,
-                'details_count': p.purchasedetail_set.count(),
-                'total': p.total(),
+                'user': p.purchase.user,
+                'subsidiary': p.purchase.subsidiary,
+                'status': p.purchase.get_status_display,
+                'details_count': p.purchase.purchasedetail_set.count(),
+                'total': '{:,}'.format(round(decimal.Decimal(p.purchase.total()), 2)),
                 'rowspan': 0
             }
             loan_payment = ''
@@ -94,7 +96,7 @@ def get_dict_purchases(purchases_set):
                 transaction_date = cash_flow_obj.transaction_date
                 operation_code = cash_flow_obj.operation_code
 
-            for lp in p.loanpayment_set.all():
+            for lp in p.purchase.loanpayment_set.all():
                 sum_loan_payment = sum_loan_payment + lp.price
                 loan_payment = {
                     'id': lp.id,
@@ -107,23 +109,25 @@ def get_dict_purchases(purchases_set):
                 }
             new.get('loan_payment_set').append(loan_payment)
             sum_total_loan_pay = sum_total_loan_pay + sum_loan_payment
-            loans_count = p.loanpayment_set.count()
+            loans_count = p.purchase.loanpayment_set.count()
             rowspan = 1
-            for d in PurchaseDetail.objects.filter(purchase=p):
+            for d in PurchaseDetail.objects.filter(purchase=p.purchase):
+                total = d.multiplicate()
                 purchase_detail = {
                     'id': d.id,
                     'product': d.product.name,
                     'quantity': str(round(d.quantity, 2)),
                     'unit': d.unit.description,
-                    'price_unit': str(round(d.price_unit, 4)),
-                    'total': str(round(decimal.Decimal(d.multiplicate()), 4)),
+                    'price_unit': str(round(d.price_unit, 2)),
+                    # 'total': '{:,}'.format(round(decimal.Decimal(total), 2)),
+                    'total': '{:,}'.format(round(decimal.Decimal(total.quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_EVEN)), 2)),
                     'rowspan': rowspan
                 }
                 new.get('purchase_detail_set').append(purchase_detail)
                 new['rowspan'] = new['rowspan'] + rowspan
             dictionary.append(new)
 
-        sum_total = sum_total + p.total()
+        sum_total = sum_total + p.purchase.total()
 
     tpl = loader.get_template('accounting/purchase_grid.html')
     context = ({
@@ -155,6 +159,7 @@ def get_purchases_pay(request):
             'choices_payments': TransactionPayment._meta.get_field('type').choices,
             'detail_purchase': detail_purchase_obj,
             'purchase': purchase_obj,
+            'total_debt': '{:,}'.format(round(decimal.Decimal(purchase_obj.total()), 2)),
             'choices_account': cash_set,
             'choices_account_bank': cash_deposit_set,
             'date': formatdate,
@@ -2056,3 +2061,78 @@ def save_register_tributary(request):
             'message': 'Se registro correctamente.',
         })
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def get_purchase_list_finances(request):
+    user_id = request.user.id
+    user_obj = User.objects.get(id=user_id)
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+    purchases = Purchase.objects.filter(bill_status='S').order_by('-id')
+    return render(request, 'accounting/purchase_list_finances.html', {
+        'purchases': purchases
+    })
+
+
+def modal_bill_create(request):
+    if request.method == 'GET':
+        pk = request.GET.get('pk', '')
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+        purchase_obj = None
+        if pk:
+            purchase_obj = Purchase.objects.get(id=int(pk))
+        t = loader.get_template('accounting/modal_bill_create.html')
+        c = ({
+            'purchase_obj': purchase_obj,
+            'formatdate': formatdate,
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })
+
+
+def save_bill(request):
+    if request.method == 'GET':
+        bill_request = request.GET.get('bill', '')
+        data_bill = json.loads(bill_request)
+        purchase_id = str(data_bill["purchase_id"])
+        bill_date = str(data_bill["bill_date"])
+        bill_date_expiration = str(data_bill["bill_date_expiration"])
+        bill_serial = str(data_bill["bill_serial"])
+        bill_correlative = str(data_bill["bill_correlative"])
+        bill_address = str(data_bill["bill_address"])
+        bill_condition_pay = str(data_bill["bill_condition_pay"])
+        bill_order_number = str(data_bill["bill_order_number"])
+
+        purchase_obj = None
+        if purchase_id:
+            purchase_obj = Purchase.objects.get(id=int(purchase_id))
+
+        bill_purchase_obj = BillPurchase(
+            register_date=bill_date,
+            expiration_date=bill_date_expiration,
+            serial=bill_serial.upper(),
+            correlative=bill_correlative,
+            delivery_address=bill_address,
+            payment_condition=bill_condition_pay,
+            order_number=bill_order_number,
+            purchase=purchase_obj
+        )
+        bill_purchase_obj.save()
+
+        purchase_obj.bill_status = 'C'
+        purchase_obj.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Factura Registrada',
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+
+
+
+
+
+

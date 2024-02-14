@@ -529,7 +529,7 @@ def get_purchase_list(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
-    purchases = Purchase.objects.filter(status='S').order_by('id')
+    purchases = Purchase.objects.filter(status='S').order_by('-id')
     return render(request, 'buys/purchase_list.html', {
         'purchases': purchases
     })
@@ -592,27 +592,14 @@ def get_detail_purchase_store(request):
         user_id = request.user.id
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        # subsidiary_stores = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj)
-        # if purchase_obj.status == 'A':
-        #     data = {'error': 'LOS PRODUCTOS YA ESTAN ASIGNADOS A SU ALMACEN.'}
-        #     response = JsonResponse(data)
-        #     response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        #     return response
-        try:
-            # subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj)
-            subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj)
-        except SubsidiaryStore.DoesNotExist:
-            data = {'detalle': 'NO EXISTE ALMACEN DE MERCADERIA'}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
+        subsidiary_stores = SubsidiaryStore.objects.filter(category='V')
 
         t = loader.get_template('buys/assignment_detail_purchase.html')
         c = ({
             'formatdate': formatdate,
             'purchase': purchase_obj,
             'detail_purchase': purchase_details,
-            'subsidiary_stores': subsidiary_store_obj,
+            'subsidiary_stores': subsidiary_stores,
         })
         return JsonResponse({
             'success': True,

@@ -1,0 +1,92 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    Compras
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid">
+        <div class="card p-2">
+            <div class="row">
+                <div class="col-lg-2 pt-3 ml-3">
+                    {#                    <button type="button" onclick="showModalView('modal_client_create')"#}
+                    {#                            class="btn btn-outline-success btn-sm"><i class="nav-icon fas fa-user-plus"></i>#}
+                    {#                        NUEVO CLIENTE#}
+                    {#                    </button>#}
+                </div>
+                <div class="col-lg-8 text-center pt-2">
+                    <h2 class="font-weight-bold"> LISTADO DE ORDENES DE COMPRAS</h2>
+                </div>
+            </div>
+
+            <div class="card-body p-2">
+                <div id="client-grid-list">{% include "accounting/purchase_grid_list_finances.html" %}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-bill-create" tabindex="-1" role="dialog"
+         aria-labelledby="ModalHelpTitle"
+         aria-hidden="true"></div>
+
+    <style>
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon > i {
+        {#content: "$";#} position: absolute;
+            display: block;
+            transform: translate(0, -50%);
+            top: 50%;
+            pointer-events: none;
+            width: 25px;
+            text-align: center;
+            font-style: normal;
+        }
+
+        .input-icon > input {
+            padding-left: 25px;
+            padding-right: 8px;
+        }
+
+        .input-icon-right > i {
+            right: 0;
+        }
+
+        .input-icon-right > input {
+            padding-left: 0;
+            padding-right: 25px;
+            text-align: right;
+        }
+
+    </style>
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        $(document).on('click', '.bill-create', function () {
+            let _pk = $(this).attr('pk');
+            $.ajax({
+                url: '/accounting/modal_bill_create/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'pk': _pk},
+                success: function (response) {
+                    $('#modal-bill-create').html(response.form);
+                    $('#modal-bill-create').modal('show');
+                },
+                fail: function (response) {
+                    toastr.error('Error en la peticion', '¡Mensaje!');
+                }
+            });
+        });
+
+    </script>
+
+{% endblock extrajs %}

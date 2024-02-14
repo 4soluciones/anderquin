@@ -2,10 +2,10 @@
     <thead>
 
     <tr class="text-white small text-uppercase">
-        <td class="bg-primary text-center">ORDE DE COMPRA</td>
+        <td class="bg-primary text-center">FACTURA</td>
         <td class="bg-primary text-center">PROVEEDOR</td>
-        <td class="bg-primary text-center">FECHA DE COMPRA</td>
-        <td class="bg-primary text-center">ESTADO</td>
+        <td class="bg-primary text-center">FECHA DE REGISTRO</td>
+        <td class="bg-primary text-center">FECHA DE VENCIMIENTO</td>
         <td class="bg-primary text-center">USUARIO</td>
         <td class="bg-info text-center">PRODUCTO</td>
         <td class="bg-info text-center">TIPO UND.</td>
@@ -25,7 +25,7 @@
                 <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.bill_number }}</td>
                 <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.supplier.name }}</td>
                 <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.purchase_date|date:"d-m-y" }}</td>
-                <td class="align-middle text-center" class=" text-success" rowspan="{{ p.rowspan }}">{{ p.status }}</td>
+                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.expiration_date|date:"d-m-y" }}</td>
                 <td class="align-middle text-center"
                     rowspan="{{ p.rowspan }}">{{ p.user.worker_set.last.employee.names }}</td>
                 {% for d in p.purchase_detail_set %}
@@ -34,8 +34,8 @@
                         <td class="align-middle text-center" rowspan="{{ d.rowspan }}">{{ d.unit }}</td>
                         <td class="align-middle text-center" rowspan="{{ d.rowspan }}">{{ d.quantity }}</td>
                         <td class="align-middle text-center"
-                            rowspan="{{ d.rowspan }}">{{ d.price_unit }}</td>
-                        <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.total }}</td>
+                            rowspan="{{ d.rowspan }}">S/ {{ d.price_unit }}</td>
+                        <td class="align-middle text-center font-weight-bold" rowspan="{{ p.rowspan }}">S/ {{ p.total }}</td>
                         {% for lp in p.loan_payment_set %}
                             <td class="align-middle text-center pay-row"
                                 rowspan="{{ p.rowspan }}">{{ lp.price|floatformat:2 }}</td>

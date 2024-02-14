@@ -1,0 +1,333 @@
+<div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+        <div class="modal-header bg-light">
+            <h6 class="modal-title">GENERAR FACTURA A LA: <span
+                    class="font-weight-bold">{{ purchase_obj.bill_number }}</span></h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <input type="hidden" class="form-control" id="purchase_id" name="purchase-id" value="{{ purchase_obj.id }}">
+
+        <div class="modal-body p-2">
+
+            <div class="mr-3 ml-0" style="
+                        display: none;
+                        position: absolute;
+                        top: 8px;
+                        left: 0;
+                        background: var(--white);
+                        opacity: 0.5;
+                        width: 100%;
+                        !important: ;
+                        bottom: 6px;
+                        padding: 10em 23em 20em 26em;
+                        z-index: 2000;
+                        right: 0;" id="container-loading">
+                <div class="spinner-border border-0" role="status" style="width: auto; height: auto">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-12">
+                                    <div class="loader-inner"></div>
+                                    <div class="loader-inner"></div>
+                                    <div class="loader-inner"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <i class="fas fa-3x fa-sync fa-spin"></i>
+                </div>
+            </div>
+
+            <div class="card" style="background-color: #82cdd2">
+                <label class="mt-2 ml-3 font-weight-bold text-uppercase ">Datos de la factura</label>
+                <div class="card-body pt-1" style="background-color: #f0f1f5">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="row">
+                                <div class="col-lg-3">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="client">Razón Social:</label>
+                                    <input type="text" class="form-control" id="client" disabled
+                                           style="background-color: #e7ded9"
+                                           value="INDUSTRIAS ANDERQUIN EIRL">
+                                </div>
+                                <div class="col-lg-9">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="address">Dirección:</label>
+                                    <input type="text" class="form-control text-uppercase" id="address" disabled
+                                           style="background-color: #e7ded9"
+                                           value="Jr. Carabaya No. 443 (Frente a la Plaza Manco Cápac) - JULIACA - JULIACA">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-3">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="bill_date">Fecha de la Factura:</label>
+                                    <input type="date" class="form-control"
+                                           id="bill_date"
+                                           name="bill-date"
+                                           value="{{ formatdate }}">
+
+                                </div>
+                                <div class="col-lg-3">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="bill_date_expiration">Fecha Vencimiento:</label>
+                                    <input type="date" class="form-control"
+                                           id="bill_date_expiration"
+                                           name="bill-date-expiration"
+                                           value="{{ formatdate }}">
+
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="bill_number">Numero de Factura:</label>
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <input type="text" class="form-control text-uppercase" placeholder="F001"
+                                                   aria-label="" id="bill_serial">
+                                            <span class="input-group-text">-</span>
+                                        </div>
+                                        <input type="text" class="form-control" placeholder="001"
+                                               aria-label="" id="bill_correlative">
+                                    </div>
+                                    {#                                    <input type="text" class="form-control" id="bill_number"#}
+                                    {#                                           name="bill_number" autocomplete="off" placeholder="F001-001">#}
+                                </div>
+                            </div>
+                            <div class="row dni">
+                                <div class="col-lg-12">
+                                    <label class="mb-1 mt-1 font-weight-light" for="bill_delivery_address">Lugar de
+                                        entrega:</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                            </span>
+                                        </div>
+                                        <input type="text" class="form-control"
+                                               id="bill_delivery_address" name="bill_delivery_address"
+                                               value="{{ purchase_obj.delivery_address }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <label class="mb-1 mt-2 font-weight-light" for="way_to_pay">Condicion de
+                                        Pago:</label>
+                                    <input type="text" class="form-control"
+                                           placeholder="Factura a.." id="way_to_pay" name=way_to_pay">
+                                </div>
+                                <div class="col-lg-6">
+                                    <label for="order_number" class="mb-1 mt-2 font-weight-light">Nro de Orden:</label>
+                                    <input type="text" class="form-control"
+                                           placeholder="" id="order_number" name=order_number">
+                                </div>
+                            </div>
+
+                            <div class="d-flex mt-3">
+                                <hr class="my-auto flex-grow-1 bg-lightblue">
+                                <div class="px-2 font-weight-bold" style="font-size: .8375rem;">DETALLE DE LA GUIA</div>
+                                <hr class="my-auto flex-grow-1 bg-lightblue">
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-sm-12 p-1">
+                                    <div class="card col-sm-12 p-0">
+                                        <table class="table-hover table-sm table-bordered" id="id-table-detail-guide"
+                                               style="width: 100%;">
+                                            <thead class="text-uppercase small text-center">
+                                            <tr class="text-white" style="background: #0783d6">
+                                                <th scope="col" class="font-weight-normal" style="width: 5%;">Nº</th>
+                                                <th scope="col" class="font-weight-normal" style="width: 50%;">
+                                                    Descripcion
+                                                </th>
+                                                <th scope="col" class="font-weight-normal" style="width: 10%;">
+                                                    Cantidad
+                                                </th>
+                                                <th scope="col" class="font-weight-normal" style="width: 10%;">Unidad
+                                                </th>
+                                                <th scope="col" class="font-weight-normal" style="width: 10%;">Precio
+                                                </th>
+                                                <th scope="col" class="font-weight-normal" style="width: 15%;">Importe
+                                                </th>
+                                            </tr>
+                                            </thead>
+                                            <tbody id="guide-details">
+                                            {% for c in purchase_obj.purchasedetail_set.all %}
+                                                <tr class="" product="{{ c.product.id }}" unit_id="">
+                                                    <td class="item-numero align-middle text-center">{{ forloop.counter }}</td>
+                                                    <td class="align-middle text-left product-item-table">
+                                                        <input type="text"
+                                                               class="form-control text-uppercase product-table dropdown-toggle"
+                                                               data-toggle="dropdown" aria-expanded="false"
+                                                               placeholder="Ingrese producto..."
+                                                               value="{{ c.product.name }}"
+                                                               disabled></td>
+                                                    <td class="align-middle item-quantity">
+                                                        <input type="text"
+                                                               class="form-control text-center quantity-product text-uppercase"
+                                                               placeholder="0" disabled
+                                                               value="{{ c.quantity|safe|floatformat:0 }}">
+                                                    </td>
+                                                    <td class="align-middle unit">
+                                                        <input type="text"
+                                                               class="form-control text-center quantity-product text-uppercase"
+                                                               placeholder="0" disabled
+                                                               value="{{ c.unit.name }}">
+                                                    </td>
+                                                    <td class="align-middle price">
+                                                        <input type="text"
+                                                               class="form-control text-center quantity-product text-uppercase"
+                                                               placeholder="0" disabled
+                                                               value="{{ c.price_unit|safe|floatformat:4 }}">
+                                                    </td>
+                                                    <td class="align-middle price">
+                                                        <div class="input-icon">
+                                                            <input type="text"
+                                                                   class="form-control text-right text-uppercase total-foot-base"
+                                                                   placeholder="0.00"
+                                                                   value="{{ purchase_obj.total|safe|floatformat:4 }}"><i
+                                                                class="change-money">S/</i>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                            <tfoot>
+                                            <tr class="text-center">
+                                                <td class="align-middle font-weight-normal text-right" colspan="5">Base
+                                                    Imponible
+                                                </td>
+                                                <td class="foot-base">
+                                                    <div class="input-icon">
+                                                        <input type="text"
+                                                               class="form-control text-right text-uppercase total-foot-base"
+                                                               value="{{ purchase_obj.base_total_purchase|safe|floatformat:4 }}"
+                                                               placeholder="0.00"><i class="change-money">S/</i>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr class="text-center">
+                                                <td class="align-middle font-weight-normal text-right" colspan="5">
+                                                    IGV(18%)
+                                                </td>
+                                                <td class="foot-base">
+                                                    <div class="input-icon">
+                                                        <input type="text"
+                                                               class="form-control text-right text-uppercase total-foot-base"
+                                                               value="{{ purchase_obj.igv_total_purchase|safe|floatformat:4 }}"
+                                                               placeholder="0.00"><i class="change-money">S/</i>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr class="text-center">
+                                                <td class="align-middle font-weight-normal text-right" colspan="5">
+                                                    Importe Total
+                                                </td>
+                                                <td class="foot-base">
+                                                    <div class="input-icon">
+                                                        <input type="text"
+                                                               class="form-control text-right text-uppercase total-foot-base"
+                                                               value="{{ purchase_obj.total|safe|floatformat:4 }}"
+                                                               placeholder="0.00"><i class="change-money">S/</i>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer bg-light p-2">
+            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
+            &nbsp;
+            <button id="btn-save-bill" type="button" class="btn btn-primary font-weight-light">Registrar Factura
+            </button>
+        </div>
+
+        <div class="mr-3 ml-0" style="
+                display: none;
+                position: fixed;
+                top: 8px;
+                left: 5px;
+                background: #bdd9f5;
+                opacity: 0.5;
+                width: 100%;
+                {#height: 46em;#}
+                !important;bottom: 6px;
+                padding-right: 65em;
+                padding-left: 55em;
+                padding-top: 22em;" id="loading">
+
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    $(document).on('click', '#btn-save-bill', function (e) {
+
+        let bill_date = $('#bill_date');
+        let bill_date_expiration = $('#bill_date_expiration');
+        let bill_serial = $('#bill_serial');
+        let bill_correlative = $('#bill_correlative');
+        let bill_address = $('#bill_delivery_address');
+        let bill_condition_pay = $('#way_to_pay');
+        let bill_order_number = $('#order_number');
+
+        if (bill_serial.val() === '') {
+            toastr.warning('¡Ingresar la serie la de Factura!', 'Error de Datos');
+            return false;
+        }
+        if (bill_correlative.val() === '') {
+            toastr.warning('¡Ingresar el correlativo de la Factura!', 'Error de Datos');
+            return false;
+        }
+        if (bill_condition_pay.val() === '') {
+            toastr.warning('¡Ingresar La condicion de pago!', 'Error de Datos');
+            return false;
+        }
+
+        let bill = {
+            "purchase_id": $("#purchase_id").val(),
+            "bill_date": bill_date.val(),
+            "bill_date_expiration": bill_date_expiration.val(),
+            'bill_serial': bill_serial.val(),
+            'bill_correlative': bill_correlative.val(),
+            'bill_address': bill_address.val(),
+            'bill_condition_pay': bill_condition_pay.val(),
+            'bill_order_number': bill_order_number.val(),
+        };
+        console.log(bill)
+        $.ajax({
+            url: '/accounting/save_bill/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            cache: false,
+            data: {'bill': JSON.stringify(bill)},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (response.success) {
+                    toastr.success(response.message, '¡Bien hecho!');
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                console.log(jqXhr);
+                toastr.error('Error', '¡Ocurrio un error!');
+                $('#container-loading').css('display', 'none');
+            }
+        });
+    });
+
+
+</script>

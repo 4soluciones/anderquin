@@ -10,21 +10,22 @@
                 {#                        <th class="th-sm" style="width: 5%">Contrato</th>#}
                 <th class="th-sm" style="width: 5%">Fecha</th>
                 <th class="th-sm" style="width: 5%">O/C</th>
-                <th class="th-sm" style="width: 2%">Nº</th>
-                <th class="th-sm" style="width: 16%">Proveedor</th>
+{#                <th class="th-sm" style="width: 2%">Nº</th>#}
+                <th class="th-sm" style="width: 15%">Proveedor</th>
                 {#                        <th class="th-sm" style="width: 7%">Fecha compra</th>#}
                 <th class="th-sm" style="width: 20%">Cliente</th>
-                <th class="th-sm" style="width: 19%">Cliente Referido</th>
+                <th class="th-sm" style="width: 20%">Cliente Referido</th>
                 <th class="th-sm" style="width: 20%">Direccion de entrega</th>
                 <th class="th-sm" style="width: 5%">Usuario</th>
+                <th class="th-sm" style="width: 5%">Estado</th>
                 {#                <th class="th-sm" style="width: 8%">Estado</th>#}
-                <th class="th-sm" style="width: 3%"><i class="fas fa-print"></i></th>
+{#                <th class="th-sm" style="width: 3%"><i class="fas fa-print"></i></th>#}
                 <th class="th-sm" style="width: 5%">Accion</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody style="font-size: 10px">
             {% for p in purchases %}
-                <tr class="text-center" pk="{{ p.id }}">
+                <tr class="text-center" pk="{{ p.id }}" {% if p.bill_status == 'C' %} style="background-color: #8cd09b"{% endif %}>
                     {#                            <td>{{ p.id }}</td>#}
 {#                    <td>#}
 {#                        <input type="checkbox"#}
@@ -33,37 +34,41 @@
 {#                    </td>#}
                     {#                            <td>{{ p.contract_detail.contract.contract_number|default:'-' }}</td>#}
                     <td class="align-middle font-weight-bold">
-                        <i class="fas fa-calendar-alt" style="color: #9b9260;"></i> {{ p.purchase_date|date:'d-m-Y' }}</td>
+                        {{ p.purchase_date|date:'d-m-Y' }}</td>
                     <td class="align-middle text-center">
                         <span class="font-weight-bold"> {{ p.bill_number }}</span><br>
                     </td>
-                    <td class="align-middle text-center">{{ p.correlative|default_if_none:'-' }}</td>
+{#                    <td class="align-middle text-center">{{ p.correlative|default_if_none:'-' }}</td>#}
                     <td class="align-middle text-center">{{ p.supplier.name }}</td>
                     {#                            <td>{{ p.purchase_date|date:'d-m-Y' }}</td>#}
                     <td class="align-middle text-center">{{ p.client_reference.names|upper }}</td>
                     <td class="align-middle text-center">{{ p.client_reference_entity.names|default:'-'|default_if_none:'-' }}</td>
                     <td class="align-middle text-left">{{ p.delivery_address|default:'-'|default_if_none:'-'|upper }}</td>
-                    <td>{{ p.user.worker_set.last.employee.names|upper }}</td>
+                    <td class="align-middle text-center">{{ p.user.worker_set.last.employee.names|upper }}</td>
                     {#                    <td class="font-weight-bold {% if p.status == 'S' %} text-danger {% else %} text-success#}
                     {#                            {% endif %} bg-white">{{ p.get_status_display }}</td>#}
-                    <td>
-                        <a class="btn btn-sm btn-warning font-weight-light"
-                           href="{% url 'buys:print_pdf_purchase_order' p.id %}">
-                            <i class="fas fa-print"></i></a>
-                    </td>
+{#                    <td>#}
+{#                        <a class="btn btn-sm btn-warning font-weight-light"#}
+{#                           href="{% url 'buys:print_pdf_purchase_order' p.id %}">#}
+{#                            <i class="fas fa-print"></i></a>#}
+{#                    </td>#}
+                    <td class="align-middle text-center">{{ p.get_bill_status_display }}</td>
                     <td class="p-1">
                         <div class="btn-group">
-                            <button type="button" class="btn btn-success  dropdown-toggle"
+                            <button type="button" class="btn btn-success btn-sm dropdown-toggle"
                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-filter"></i>
+                                <i class="fas fa-layer-group"></i>
                             </button>
                             <div class="dropdown-menu bg-secondary text-white font-italic">
-                                <a class="dropdown-item assignment-store" pk="{{ p.id }}"><i
-                                        class="fas fa-save pr-1"></i> Ingresar </a>
+                                <a class="dropdown-item assignment-store" pk="{{ p.id }}">
+                                    <i class="fas fa-warehouse"></i> Ingreso Almacen </a>
                                 <a class="dropdown-item btn-update" pk="{{ p.id }}"><i
-                                        class="fas fa-edit pr-1"></i> Editar </a>
-                                <a class="dropdown-item btn-annular" pk="{{ p.id }}"><i
-                                        class="fas fa-edit pr-1"></i> Anular </a>
+                                        class="fas fa-edit pr-1"></i>Editar </a>
+                                <a class="dropdown-item btn-download text-white"
+                                   href="{% url 'buys:print_pdf_purchase_order' p.id %}">
+                                    <i class="fas fa-download"></i> Descargar </a>
+                                <a class="dropdown-item btn-annular" pk="{{ p.id }}">
+                                    <i class="fas fa-ban"></i> Anular </a>
                             </div>
                         </div>
                     </td>
@@ -77,15 +82,16 @@
                 {#                        <th class="th-sm" style="width: 5%">Contrato</th>#}
                 <th class="th-sm" style="width: 5%">Fecha</th>
                 <th class="th-sm" style="width: 5%">O/C</th>
-                <th class="th-sm" style="width: 2%">Nº</th>
+{#                <th class="th-sm" style="width: 2%">Nº</th>#}
                 <th class="th-sm" style="width: 15%">Proveedor</th>
                 {#                        <th class="th-sm" style="width: 7%">Fecha compra</th>#}
-                <th class="th-sm" style="width: 18%">Cliente</th>
-                <th class="th-sm" style="width: 18%">Cliente Referido</th>
-                <th class="th-sm" style="width: 19%">Direccion de entrega</th>
-                <th class="th-sm" style="width: 5%">USUARIO</th>
+                <th class="th-sm" style="width: 20%">Cliente</th>
+                <th class="th-sm" style="width: 20%">Cliente Referido</th>
+                <th class="th-sm" style="width: 20%">Direccion de entrega</th>
+                <th class="th-sm" style="width: 5%">Usuario</th>
+                <th class="th-sm" style="width: 5%">Estado</th>
                 {#                <th class="th-sm" style="width: 8%">Estado</th>#}
-                <th class="th-sm" style="width: 3%"><i class="fas fa-print"></i></th>
+{#                <th class="th-sm" style="width: 3%"><i class="fas fa-print"></i></th>#}
                 <th class="th-sm" style="width: 5%">Accion</th>
             </tr>
             </tfoot>

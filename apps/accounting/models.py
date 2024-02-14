@@ -348,9 +348,19 @@ class Tributes(models.Model):
         return str(self.id)
 
 
+class BillPurchase(models.Model):
+    id = models.AutoField(primary_key=True)
+    register_date = models.DateField(null=True, blank=True)
+    expiration_date = models.DateField(null=True, blank=True)
+    serial = models.CharField('Serie', max_length=200, null=True, blank=True)
+    correlative = models.CharField('Correlativo', max_length=200, null=True, blank=True)
+    delivery_address = models.CharField('Direccion de entrega', max_length=200, null=True, blank=True)
+    payment_condition = models.CharField('Condicion de Pago', max_length=255, null=True, blank=True)
+    order_number = models.IntegerField('Numero de Orden', null=True, blank=True)
+    purchase = models.ForeignKey('buys.Purchase', on_delete=models.CASCADE, null=True, blank=True)
 
-
-
+    def __str__(self):
+        return str(self.serial + '-' + self.correlative)
 
 
 

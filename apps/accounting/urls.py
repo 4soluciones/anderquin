@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth.decorators import login_required
 from apps.accounting.views import *
+from apps.accounting.views_PDF import print_pdf_bill_finances
 
 urlpatterns = [
     path('', login_required(Home.as_view()), name='home'),
@@ -60,4 +61,11 @@ urlpatterns = [
     # Tributes
     path('report_tributary/', login_required(report_tributary), name='report_tributary'),
     path('save_register_tributary/', login_required(save_register_tributary), name='save_register_tributary'),
+
+    # BUYS
+    path('get_purchase_list_finances/', login_required(get_purchase_list_finances), name='get_purchase_list_finances'),
+    path('modal_bill_create/', login_required(modal_bill_create), name='modal_bill_create'),
+    path('save_bill/', login_required(save_bill), name='save_bill'),
+    path('print_pdf_bill_finances/<int:pk>/', print_pdf_bill_finances, name='print_pdf_bill_finances'),
+
 ]

@@ -57,6 +57,7 @@ class AddressEntityReference(models.Model):
 
 
 class Purchase(models.Model):
+    BILL_CHOICES = (('S', 'SIN FACTURA'), ('C', 'CON FACTURA'), ('A', 'ANULADO'),)
     STATUS_CHOICES = (('S', 'SIN ASIGNAR'), ('A', 'ASIGNADO'), ('N', 'ANULADO'),)
     DELIVERY_CHOICES = (('S', 'SUCURSAL'), ('P', 'PROVIDER'), ('CR', 'CLIENTE REFERENCIA'), ('CP', 'CLIENTE ENTIDAD'))
     TYPE_CHOICES = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'),)
@@ -96,6 +97,7 @@ class Purchase(models.Model):
     guide_number = models.CharField('Numero de Guia', max_length=50, null=True, blank=True)
     assign_date = models.DateField('Fecha de Ingreso a Almacen', null=True, blank=True)
     year = models.IntegerField('Year', null=True, blank=True)
+    bill_status = models.CharField('Estado Factura', max_length=1, choices=BILL_CHOICES, default='S')
     # delivery_client_final = models.ForeignKey('sales.Client', on_delete=models.CASCADE, null=True, blank=True,
     #                                           related_name='delivery_client_final')
 
