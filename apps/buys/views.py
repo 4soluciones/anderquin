@@ -396,7 +396,9 @@ def save_detail_purchase_store(request):
             quantity_entered = decimal.Decimal(d['QuantityEntered'])
             quantity_returned = decimal.Decimal(d['QuantityReturned'])
             quantity_sold = decimal.Decimal(d['QuantitySold'])
-            price = decimal.Decimal(d['Price'].replace(',', '.'))
+            quantity_minimum = decimal.Decimal(d['QuantityMinimum'])
+            print(d['Price'])
+            price = decimal.Decimal(d['Price'].replace('S/', '').replace(',', '.'))
             product_id = int(d['Product'])
             product_obj = Product.objects.get(id=product_id)
             unit_id = int(d['Unit'])
@@ -594,11 +596,37 @@ def get_detail_purchase_store(request):
         subsidiary_obj = get_subsidiary_by_user(user_obj)
         subsidiary_stores = SubsidiaryStore.objects.filter(category='V')
 
+        purchase_details_dict = []
+        unit_description = ''
+
+        for pd in purchase_details:
+
+            product_detail_get = ProductDetail.objects.filter(unit=pd.unit, product=pd.product).last()
+            quantity_minimum = product_detail_get.quantity_minimum
+            quantity_in_units = pd.quantity / quantity_minimum
+            unit_description = pd.unit.description
+            item = {
+                'id': pd.id,
+                'product_id': pd.product.id,
+                'product_name': pd.product.name,
+                'quantity': pd.quantity,
+                'quantity_in_units': quantity_in_units,
+                'quantity_minimum': str(quantity_minimum),
+                'unit_id': pd.unit.id,
+                'unit_name': pd.unit.name,
+                'unit_description': pd.unit.description,
+                'price_unit': pd.price_unit,
+                'amount': pd.multiplicate()
+            }
+            purchase_details_dict.append(item)
+
         t = loader.get_template('buys/assignment_detail_purchase.html')
         c = ({
             'formatdate': formatdate,
             'purchase': purchase_obj,
-            'detail_purchase': purchase_details,
+            # 'detail_purchase': purchase_details,
+            'detail_purchase': purchase_details_dict,
+            'unit_name': unit_description,
             'subsidiary_stores': subsidiary_stores,
         })
         return JsonResponse({

@@ -73,18 +73,22 @@
                             </thead>
                             <tbody id="details">
                             {% for d in detail_purchase %}
-                                <tr product="{{ d.product.id }}" purchase_detail="{{ d.id }}" class="text-center">
+                                <tr product="{{ d.product_id }}" purchase_detail="{{ d.id }}" class="text-center">
                                     {#                            <td>{{ d.product.id }}</td>#}
-                                    <td>{{ d.product.name }}</td>
+                                    <td>{{ d.product_name }}</td>
                                     <td class="item-quantity">
                                         <input type="text"
-                                               class="form-control form-control-sm font-weight-bold text-center quantity-purchased"
-                                               id="quantity_purchased" style="font-size: 17px"
-                                               value="{{ d.quantity|floatformat:0 }}" readonly>
+                                               class="form-control form-control-sm font-weight-bold text-center quantity-purchased-in-units"
+                                               id="quantity-purchased-in-units" style="font-size: 17px"
+                                               value="{{ d.quantity_in_units|floatformat:0 }}" readonly>
+                                        <input type="hidden" class="form-control quantity-purchased" id="quantity_purchased"
+                                               value="{{ d.quantity }}">
+                                        <input type="hidden" class="form-control quantity-minimum" id="quantity_minimum"
+                                               value="{{ d.quantity_minimum }}">
                                     </td>
-                                    <td class="item-unit" pu="{{ d.unit.id }}">{{ d.unit.name }}</td>
+                                    <td class="item-unit" pu="{{ d.unit_id }}">{{ d.unit_description }}</td>
                                     <td class="item-price">S/ {{ d.price_unit|floatformat:4 }}</td>
-                                    <td>S/ {{ d.multiplicate|floatformat:2 }}</td>
+                                    <td>S/ {{ d.amount|floatformat:2 }}</td>
                                 </tr>
                             {% endfor %}
                             </tbody>
@@ -98,28 +102,39 @@
                             <tbody class="text-uppercase">
                             <tr class="text-white bg-info text-uppercase">
                                 <td class="align-middle text-right" style="width: 55%">Cantidad</td>
-                                <td class="align-middle text-center" style="width: 20%">#</td>
+                                <td class="align-middle text-center" style="width: 10%">#</td>
+                                <td class="align-middle text-center" style="width: 10%">Tipo de unidad</td>
                             </tr>
                             <tr>
                                 <td class="align-middle text-right" style="width: 55%">
                                     Cantidad Ingresada <span class="" style="font-size: 8px">(cantidad que ingresa directo a almacen)</span>
                                 </td>
-                                <td class="align-middle text-center quantity-entered" style="width: 20%">
+                                <td class="align-middle text-center quantity-entered" style="width: 10%">
                                     <input type="text"
                                            class="form-control form-control-sm text-center"
                                            id="quantity_entered"
                                            value="0">
+                                </td>
+                                <td class="align-middle text-center quantity-entered" style="width: 10%">
+                                    <input type="text"
+                                           class="form-control form-control-sm text-center" disabled
+                                           value="{{ unit_name }}">
                                 </td>
                             </tr>
                             <tr>
                                 <td class="align-middle text-right" style="width: 55%">
                                     Cantidad Devuelta <span class="" style="font-size: 8px">(cantidad que se devuelve con Nota de credito)</span>
                                 </td>
-                                <td class="align-middle text-center quantity-returned" style="width: 20%">
+                                <td class="align-middle text-center quantity-returned" style="width: 10%">
                                     <input type="text"
                                            class="form-control form-control-sm text-center"
                                            id="quantity_returned"
                                            value="0">
+                                </td>
+                                <td class="align-middle text-center quantity-entered" style="width: 10%">
+                                    <input type="text"
+                                           class="form-control form-control-sm text-center" disabled
+                                           value="{{ unit_name }}">
                                 </td>
                             </tr>
                             <tr>
@@ -133,12 +148,17 @@
                                         </label>
                                     </div>
                                 </td>
-                                <td class="align-middle text-center quantity-sold" style="width: 20%">
+                                <td class="align-middle text-center quantity-sold" style="width: 10%">
                                     <input type="text"
                                            class="form-control form-control-sm text-center"
                                            id="quantity_sold"
                                            disabled
                                            value="0">
+                                </td>
+                                <td class="align-middle text-center quantity-entered" style="width: 10%">
+                                    <input type="text"
+                                           class="form-control form-control-sm text-center" disabled
+                                           value="{{ unit_name }}">
                                 </td>
                             </tr>
                             </tbody>
@@ -203,8 +223,8 @@
                                 </thead>
                                 <tbody class="text-uppercase">
                                 {% for d in detail_purchase %}
-                                    <tr product="{{ d.product.id }}" purchase_detail="{{ d.id }}" class="text-center">
-                                        <td class="text-center align-middle">{{ d.product.name }}</td>
+                                    <tr product="{{ d.product_id }}" purchase_detail="{{ d.id }}" class="text-center">
+                                        <td class="text-center align-middle">{{ d.product_name }}</td>
                                         <td class=" text-center align-middle item-quantity2">
                                             <input type="text"
                                                    class="form-control form-control-sm font-weight-bold text-center quantity-purchased-sold"
@@ -212,7 +232,7 @@
                                                    value="">
                                         </td>
                                         <td class="text-center align-middle item-unit2"
-                                            pu="{{ d.unit.id }}">{{ d.unit.name }}</td>
+                                            pu="{{ d.unit_id }}">{{ d.unit_name }}</td>
                                         <td class="text-center align-middle item-price2">
                                             <div class="input-icon">
                                                 <input type="text"
@@ -261,6 +281,7 @@
         let _quantity_entered = Number($('#quantity_entered').val());
         let _quantity_returned = Number($('#quantity_returned').val());
         let _quantity_sold = Number($('#quantity_sold').val());
+        let _quantity_minimum = Number($('#quantity_minimum').val());
 
         let _sum_quantities = _quantity_entered + _quantity_returned + _quantity_sold
 
@@ -284,6 +305,7 @@
                 "QuantityEntered": _quantity_entered,
                 "QuantityReturned": _quantity_returned,
                 "QuantitySold": _quantity_sold,
+                "QuantityMinimum": _quantity_minimum,
                 "Unit": $(this).find("td.item-unit").attr('pu'),
                 "Price": $(this).find("td.item-price").text(),
             };
