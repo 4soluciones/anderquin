@@ -267,7 +267,7 @@
                                     </div>
                                 {% endif %}
                             {% elif client_obj.type_client == 'PR' %}
-                                {% if client_obj.clientaddress_set %}
+                                {% if client_obj.clientaddress_set.all %}
                                     {% for d in client_obj.clientaddress_set.all %}
                                         <div class="row private-update main">
                                             <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
@@ -287,9 +287,9 @@
                                             </div>
                                             <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
                                                 <label class="mb-1 mt-2 font-weight-light"
-                                                       for="id_district2">Seleccione distrito:</label>
-                                                <select id="id_district2" name="id_district2"
-                                                        class="form-control district">
+                                                       for="id_district">Seleccione distrito:</label>
+                                                <select id="id_district" name="id_district"
+                                                        class="form-control district-update">
                                                     {% if d.district.id == '1720' %}
                                                         <option value="1720">JULIACA</option>
                                                     {% elif d.district.id == '1702' %}
@@ -393,8 +393,8 @@
                                         </div>
                                         <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
                                             <label class="mb-1 mt-2 font-weight-light"
-                                                   for="id_district2">Seleccione distrito:</label>
-                                            <select id="id_district2" name="id_district2" class="form-control district">
+                                                   for="id_district">Seleccione distrito:</label>
+                                            <select id="id_district" name="id_district" class="form-control district-update">
                                                 <option selected disabled value="0">Seleccionar</option>
                                                 <option value="1720">JULIACA</option>
                                                 <option value="1702">PUNO</option>
@@ -461,7 +461,11 @@
             '</div>' +
             '</div>';
 
-    $('#id_type_client_update').trigger('change');
+    //$('#id_type_client_update').trigger('change');
+
+    setTimeout(function() {
+        $('#id_type_client_update').trigger('change');
+    }, 500);
 
     $(document).on('change', '#id_type_client_update', function () {
         let _type = $(this).val();

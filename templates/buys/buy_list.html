@@ -1112,6 +1112,7 @@
                 let _select = $('#client_address_reference');
                 let type_client = result.type_client;
                 let _client_address = result.address;
+                console.log(_client_address)
                 $('#client_reference_id').val(client_id);
                 $('#type_client_reference').val(type_client);
                 $('#client_final').val('');
@@ -1120,15 +1121,16 @@
                     $('#client_final_address').val("0");
                     $('.client-final').removeClass('d-none');
                     $('.delivery-client-final').removeClass('d-none');
-                    $('.delivery-client').addClass('d-none');
+                    {#$('.delivery-client').addClass('d-none');#}
 
                 } else {
                     $('.client-final').addClass('d-none');
                     $('#client_final_address').val("0");
                     $('.delivery-client-final').addClass('d-none');
-                    $('.delivery-client').removeClass('d-none');
+                    {#$('.delivery-client').removeClass('d-none');#}
                     //await getAddress(client_id, _client_address)
-                    _select.empty();
+                }
+                _select.empty();
                     //console.log("_result", result)
                     _select.append($('<option>').val("0").text('Seleccione'));
                     if (_client_address !== '[]') {
@@ -1137,7 +1139,6 @@
                             _select.append(option);
                         }
                     }
-                }
             } else {
                 toastr.warning('Seleccione un cliente valido', 'Error de llenado');
                 return false;
