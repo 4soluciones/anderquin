@@ -5839,9 +5839,16 @@ def modal_client_update(request):
         if pk:
             client_obj = Client.objects.get(id=int(pk))
         t = loader.get_template('sales/client_update.html')
+
+        districts_dict = [
+            {'id': 1702, 'description': 'PUNO'}, {'id': 1720, 'description': 'JULIACA'},
+            {'id': 338, 'description': 'AREQUIPA'}, {
+                'id': 1829, 'description': 'TACNA'}, {'id': 752, 'description': 'CUSCO'}, ]
+
         c = ({
             'client_obj': client_obj,
-            'districts': District.objects.all(),
+            # 'districts': District.objects.all(),
+            'districts': districts_dict,
             'type_client': Client._meta.get_field('type_client').choices,
             'document_types': DocumentType.objects.all(),
         })
