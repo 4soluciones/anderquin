@@ -344,7 +344,8 @@ def save_purchase(request):
             reference=reference,
             delivery_subsidiary=subsidiary_address_obj,
             delivery_supplier=address_provider_obj,
-            delivery_client=client_address_obj
+            delivery_client=client_address_obj,
+            year='2024'
         )
         purchase_obj.save()
 
