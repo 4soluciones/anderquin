@@ -5841,9 +5841,9 @@ def modal_client_update(request):
         t = loader.get_template('sales/client_update.html')
 
         districts_dict = [
-            {'id': 1702, 'description': 'PUNO'}, {'id': 1720, 'description': 'JULIACA'},
-            {'id': 338, 'description': 'AREQUIPA'}, {
-                'id': 1829, 'description': 'TACNA'}, {'id': 752, 'description': 'CUSCO'}, ]
+            {'id': '1702', 'description': 'PUNO'}, {'id': '1720', 'description': 'JULIACA'},
+            {'id': '338', 'description': 'AREQUIPA'}, {
+                'id': '1829', 'description': 'TACNA'}, {'id': '752', 'description': 'CUSCO'}, ]
 
         c = ({
             'client_obj': client_obj,
