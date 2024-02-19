@@ -274,8 +274,8 @@ def print_quotation(request, pk=None, t=None):
     tbl1_col__2 = [
         [Paragraph('INDUSTRIAS ANDERQUIN', styles["Justify_Newgot_title"])],
         [Paragraph('JR. CARABAYA NRO. 443', styles['Normal'])],
-        ['Celular: ' + str('-')],
-        ['Teléfono Fijo: ' + str('-')],
+        ['Celular: ' + str('951 622 449')],
+        # ['Teléfono Fijo: ' + str('-')],
         ['Correo: ' + str(email_subsidiary)],
     ]
     col_2 = Table(tbl1_col__2)
