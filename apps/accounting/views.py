@@ -5,7 +5,7 @@ from apps.hrm.views import get_subsidiary_by_user
 from apps.hrm.models import Worker, WorkerType, Employee
 from apps.buys.models import Purchase, PurchaseDetail
 from apps.sales.models import Subsidiary, SubsidiaryStore, Order, OrderDetail, TransactionPayment, LoanPayment, \
-    Supplier, Client
+    Supplier, Client, ProductDetail
 from django.template import loader, Context
 from django.http import JsonResponse
 from http import HTTPStatus
@@ -2078,13 +2078,40 @@ def modal_bill_create(request):
         pk = request.GET.get('pk', '')
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
         purchase_obj = None
+        purchase_details_dict = []
+        unit_description = ''
         if pk:
-            purchase_obj = Purchase.objects.get(id=int(pk))
+            purchase_obj = Purchase.objects.get(id=pk)
+            purchase_details = PurchaseDetail.objects.filter(purchase=purchase_obj)
+            for pd in purchase_details:
+                product_detail_get = ProductDetail.objects.filter(unit=pd.unit, product=pd.product).last()
+                quantity_minimum = product_detail_get.quantity_minimum
+                quantity_in_units = pd.quantity * quantity_minimum
+                unit_description = pd.unit.description
+                item = {
+                    'id': pd.id,
+                    'product_id': pd.product.id,
+                    'product_name': pd.product.name,
+                    'quantity': pd.quantity,
+                    'quantity_in_units': quantity_in_units,
+                    'quantity_minimum': str(quantity_minimum),
+                    'unit_id': pd.unit.id,
+                    'unit_name': pd.unit.name,
+                    'unit_description': pd.unit.description,
+                    'price_unit': pd.price_unit,
+                    'amount': pd.multiplicate()
+                }
+                purchase_details_dict.append(item)
+
         t = loader.get_template('accounting/modal_bill_create.html')
         c = ({
             'purchase_obj': purchase_obj,
             'formatdate': formatdate,
+            'detail_purchase': purchase_details_dict,
+            'unit_name': unit_description,
         })
         return JsonResponse({
             'form': t.render(c, request),

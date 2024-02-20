@@ -351,6 +351,7 @@ def save_purchase(request):
 
         for detail in data_purchase['Details']:
             quantity = decimal.Decimal(detail['Quantity'])
+            quantity_units = decimal.Decimal(detail['QuantityUnits'])
             price = decimal.Decimal(detail['Price'])
             product_id = int(detail['Product'])
             product_obj = Product.objects.get(id=product_id)
@@ -360,7 +361,7 @@ def save_purchase(request):
             new_purchase_detail = {
                 'purchase': purchase_obj,
                 'product': product_obj,
-                'quantity': quantity,
+                'quantity': quantity_units,
                 'unit': unit_obj,
                 'price_unit': price,
             }
@@ -604,7 +605,7 @@ def get_detail_purchase_store(request):
 
             product_detail_get = ProductDetail.objects.filter(unit=pd.unit, product=pd.product).last()
             quantity_minimum = product_detail_get.quantity_minimum
-            quantity_in_units = pd.quantity / quantity_minimum
+            quantity_in_units = pd.quantity * quantity_minimum
             unit_description = pd.unit.description
             item = {
                 'id': pd.id,
@@ -3087,7 +3088,7 @@ def update_purchase(request, pk=None):
 
     for pd in purchase_obj.purchasedetail_set.all():
         product_detail = ProductDetail.objects.get(product=pd.product, unit__id=pd.unit.id)
-        quantity_x_und = (pd.quantity / product_detail.quantity_minimum).quantize(decimal.Decimal('0.00'),
+        quantity_x_und = (pd.quantity * product_detail.quantity_minimum).quantize(decimal.Decimal('0.00'),
                                                                                   rounding=decimal.ROUND_UP)
         total_detail = (pd.price_unit * pd.quantity).quantize(decimal.Decimal('0.0000'),
                                                               rounding=decimal.ROUND_HALF_EVEN)
@@ -3096,7 +3097,7 @@ def update_purchase(request, pk=None):
             'product_id': pd.product.id,
             'product_name': pd.product.name,
             'product_brand': pd.product.product_brand.name,
-            'quantity': pd.quantity,
+            'quantity':round(pd.quantity, 2),
             'unit_id': pd.unit.id,
             'unit_name': pd.unit.name,
             'quantity_minimum': round(product_detail.quantity_minimum, 0),

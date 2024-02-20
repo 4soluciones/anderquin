@@ -154,15 +154,15 @@
                                             </tr>
                                             </thead>
                                             <tbody id="guide-details">
-                                            {% for c in purchase_obj.purchasedetail_set.all %}
-                                                <tr class="" product="{{ c.product.id }}" unit_id="">
+                                            {% for c in detail_purchase %}
+                                                <tr class="" product="{{ c.product_id }}" unit_id="{{ c.unit_id }}">
                                                     <td class="item-numero align-middle text-center">{{ forloop.counter }}</td>
                                                     <td class="align-middle text-left product-item-table">
                                                         <input type="text"
                                                                class="form-control text-uppercase product-table dropdown-toggle"
                                                                data-toggle="dropdown" aria-expanded="false"
                                                                placeholder="Ingrese producto..."
-                                                               value="{{ c.product.name }}"
+                                                               value="{{ c.product_name }}"
                                                                disabled></td>
                                                     <td class="align-middle item-quantity">
                                                         <input type="text"
@@ -174,7 +174,7 @@
                                                         <input type="text"
                                                                class="form-control text-center quantity-product text-uppercase"
                                                                placeholder="0" disabled
-                                                               value="{{ c.unit.name }}">
+                                                               value="{{ c.unit_name }}">
                                                     </td>
                                                     <td class="align-middle price">
                                                         <input type="text"
@@ -187,7 +187,7 @@
                                                             <input type="text"
                                                                    class="form-control text-right text-uppercase total-foot-base"
                                                                    placeholder="0.00"
-                                                                   value="{{ purchase_obj.total|safe|floatformat:4 }}"><i
+                                                                   value="{{ c.amount|safe|floatformat:4 }}"><i
                                                                 class="change-money">S/</i>
                                                         </div>
                                                     </td>

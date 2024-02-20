@@ -6,10 +6,10 @@
                 <thead>
                 <tr class="text-center font-weight-bold text-uppercase bg-light">
                     <th class="th-sm" style="width: 1%">#</th>
-                    <th class="th-sm" style="width: 19%">Nº de contrato</th>
+                    <th class="th-sm" style="width: 14%">Nº de contrato</th>
                     <th class="th-sm" style="width: 15%">Cliente</th>
                     <th class="th-sm" style="width: 5%">Fecha de Registro</th>
-                    <th class="th-sm" style="width: 45%">Fechas de Entrega</th>
+                    <th class="th-sm" style="width: 50%">Fechas de Entrega</th>
                     <th class="th-sm" style="width: 5%">Status</th>
                     <th class="th-sm" style="width: 10%">Observaciones</th>
                 </tr>
@@ -28,81 +28,101 @@
                         <td class="align-middle">{{ c.client.names }}</td>
                         <td class="align-middle">{{ c.register_date|date:'d-m-Y' }}</td>
                         <td class="align-middle text-center">
-                            <table class="table table-bordered table-sm"
-                                   style="background-color: #bfdecb; font-size: 11px">
-                                <thead>
-                                <tr class="text-center font-weight-bold text-uppercase bg-light align-middle">
-                                    <th class="th-sm" style="width: 5%">#</th>
-                                    <th class="th-sm" style="width: 10%">Fecha</th>
-                                    {#                                    <th class="th-sm" style="width: 10%">O/C</th>#}
-                                    <th class="th-sm" style="width: 55%">Producto</th>
-                                    <th class="th-sm" style="width: 15%">Orden de Compra</th>
-                                    <th class="th-sm" style="width: 15%">Guia de remision</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for d in c.contractdetail_set.all %}
-                                    <tr class="text-center" pk="{{ c.id }}">
-                                        <td class="align-middle font-weight-bold">{{ d.nro_quota|default_if_none:'-' }}</td>
-                                        <td class="align-middle font-weight-bold">
-                                            <i class="fas fa-calendar-alt"></i> {{ d.date|date:'d-m-Y' }}
-                                        </td>
-                                        {#                                        <td class="align-middle">#}
-                                        {#                                            {% if d.purchase_set.all %}#}
-                                        {#                                                <span class="font-weight-bold">{{ d.purchase_set.all.last.bill_number }}</span>#}
-                                        {#                                            {% else %}#}
-                                        {#                                                -#}
-                                        {#                                            {% endif %}#}
-                                        {#                                        </td>#}
-                                        <td>
-                                            <table class="table table-borderless table-sm"
-                                                   style="background-color: #bfdecb">
+                            <div id="accordion">
+                                <div class="card">
+                                    <div class="card-header p-0" id="heading-{{ c.id }}">
+                                        <h5 class="mb-0">
+                                            <button class="btn btn-link collapsed text-dark" data-toggle="collapse"
+                                                    data-target="#collapse-{{ c.id }}" aria-expanded="false"
+                                                    aria-controls="collapse-{{ c.id }}">
+                                                Fechas de Entrega <i class="fas fa-sort-down"></i>
+                                            </button>
+                                        </h5>
+                                    </div>
+                                    <div id="collapse-{{ c.id }}" class="collapse" aria-labelledby="heading-{{ c.id }}"
+                                         data-parent="#accordion">
+                                        <div class="card-body">
+                                            <table class="table table-bordered table-sm"
+                                                   style="background-color: #bfdecb; font-size: 11px">
+                                                <thead>
+                                                <tr class="text-center font-weight-bold text-uppercase bg-light align-middle">
+                                                    <th class="th-sm" style="width: 5%">#</th>
+                                                    <th class="th-sm" style="width: 10%">Fecha</th>
+                                                    {#                                    <th class="th-sm" style="width: 10%">O/C</th>#}
+                                                    <th class="th-sm" style="width: 55%">Producto</th>
+                                                    <th class="th-sm" style="width: 15%">Orden de Compra</th>
+                                                    <th class="th-sm" style="width: 15%">Guia de remision</th>
+                                                </tr>
+                                                </thead>
                                                 <tbody>
-                                                {% for e in d.contractdetailitem_set.all %}
-                                                    <tr class="p-0 m-0">
-                                                        <td class="align-middle text-right p-0 m-0">{{ e.quantity|safe }}</td>
-                                                        <td class="align-middle text-center p-0 m-0">{{ e.product.name }}</td>
+                                                {% for d in c.contractdetail_set.all %}
+                                                    <tr class="text-center" pk="{{ c.id }}">
+                                                        <td class="align-middle font-weight-bold">{{ d.nro_quota|default_if_none:'-' }}</td>
+                                                        <td class="align-middle font-weight-bold">
+                                                            <i class="fas fa-calendar-alt"></i> {{ d.date|date:'d-m-Y' }}
+                                                        </td>
+                                                        {#                                        <td class="align-middle">#}
+                                                        {#                                            {% if d.purchase_set.all %}#}
+                                                        {#                                                <span class="font-weight-bold">{{ d.purchase_set.all.last.bill_number }}</span>#}
+                                                        {#                                            {% else %}#}
+                                                        {#                                                -#}
+                                                        {#                                            {% endif %}#}
+                                                        {#                                        </td>#}
+                                                        <td>
+                                                            <table class="table table-borderless table-sm"
+                                                                   style="background-color: #bfdecb">
+                                                                <tbody>
+                                                                {% for e in d.contractdetailitem_set.all %}
+                                                                    <tr class="p-0 m-0">
+                                                                        <td class="align-middle text-left p-0 m-0">{{ e.quantity|safe }}</td>
+                                                                        <td class="align-middle text-left p-0 m-0">{{ e.product.name }}</td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                        <td class="align-middle">
+                                                            {% if d.purchase_set.all %}
+                                                                {#                                                {% if d.purchase_set.all %}#}
+                                                                {#                                                    <span class="font-weight-bold">{{ d.purchase_set.all.last.bill_number }}</span>#}
+                                                                {#                                                {% else %}#}
+                                                                {#                                                    -#}
+                                                                {#                                                {% endif %}#}
+                                                                <a class="btn btn-sm btn-success font-weight-light"
+                                                                   href="{% url 'buys:print_pdf_purchase_order' d.purchase_set.all.last.id %}">
+                                                                    {{ d.purchase_set.all.last.bill_number }}</a>
+
+                                                            {% else %}
+                                                                <a class="btn btn-sm btn-warning font-weight-light"
+                                                                   href="{% url 'buys:buy_list' d.id %}">
+                                                                    <i class="fas fa-money-check-alt"></i> Generar
+                                                                    O/C</a>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="align-middle">
+                                                            {% if d.guide_set.all %}
+                                                                <a class="btn btn-sm btn-danger font-weight-light"
+                                                                   href="{% url 'comercial:guide' d.guide_set.all.last.id %}">
+                                                                    {{ d.guide_set.all.last.serial }}-{{ d.guide_set.all.last.correlative|zfill:5 }}</a>
+                                                            {% else %}
+                                                                <a class="btn btn-sm btn-primary font-weight-light"
+                                                                   href="{% url 'comercial:new_guide' d.id %}">
+                                                                    <i class="fas fa-folder-plus"></i> Generar Guia</a>
+                                                            {% endif %}
+                                                            {#                                            <button type="button" class="btn-sm btn-primary" id="btn-new-guide"#}
+                                                            {#                                                    onclick="showModalViewGuide('modal_new_guide', {{ c.id }})">#}
+                                                            {#                                                <i class="fas fa-folder-plus"></i> Generar Guia#}
+                                                            {#                                            </button>#}
+                                                        </td>
                                                     </tr>
                                                 {% endfor %}
                                                 </tbody>
                                             </table>
-                                        </td>
-                                        <td class="align-middle">
-                                            {% if d.purchase_set.all %}
-                                                {#                                                {% if d.purchase_set.all %}#}
-                                                {#                                                    <span class="font-weight-bold">{{ d.purchase_set.all.last.bill_number }}</span>#}
-                                                {#                                                {% else %}#}
-                                                {#                                                    -#}
-                                                {#                                                {% endif %}#}
-                                                <a class="btn btn-sm btn-success font-weight-light"
-                                                   href="{% url 'buys:print_pdf_purchase_order' d.purchase_set.all.last.id %}">
-                                                    {{ d.purchase_set.all.last.bill_number }}</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                                            {% else %}
-                                                <a class="btn btn-sm btn-warning font-weight-light"
-                                                   href="{% url 'buys:buy_list' d.id %}">
-                                                    <i class="fas fa-money-check-alt"></i> Generar O/C</a>
-                                            {% endif %}
-                                        </td>
-                                        <td class="align-middle">
-                                            {% if d.guide_set.all %}
-                                                <a class="btn btn-sm btn-danger font-weight-light"
-                                                   href="{% url 'comercial:guide' d.guide_set.all.last.id %}">
-                                                    {{ d.guide_set.all.last.serial }}-{{ d.guide_set.all.last.correlative|zfill:5 }}</a>
-                                            {% else %}
-                                                <a class="btn btn-sm btn-primary font-weight-light"
-                                                   href="{% url 'comercial:new_guide' d.id %}">
-                                                    <i class="fas fa-folder-plus"></i> Generar Guia</a>
-                                            {% endif %}
-{#                                            <button type="button" class="btn-sm btn-primary" id="btn-new-guide"#}
-{#                                                    onclick="showModalViewGuide('modal_new_guide', {{ c.id }})">#}
-{#                                                <i class="fas fa-folder-plus"></i> Generar Guia#}
-{#                                            </button>#}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
                         </td>
                         <td class="align-middle">{{ c.get_status_display }}</td>
                         <td class="align-middle">{{ c.observation|default_if_none:'-'|upper }}</td>

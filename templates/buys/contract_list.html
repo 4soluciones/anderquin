@@ -179,47 +179,48 @@
             {% endfor %}
         ]
 
+        function validateHeader() {
+            let flag = true;
+
+            $('#tbody-product-add tr').each(function () {
+                let $tr = $(this);
+                let product = $tr.find('.product-add').val();
+                let quantity = $tr.find('.quantity-add').val();
+                let price = $tr.find('.price-unit-add').val();
+
+                if (product === '0' || quantity === '' || price === '') {
+                    toastr.warning('Por favor, complete todos los campos antes de continuar: Producto, Cantidad y Precio Unitario');
+                    flag = false;
+                    return false;
+                }
+            });
+
+            return flag;
+        }
+
         function addDates() {
             let _nro_dates = $('#nro_dates');
-            let product = $('#product_add_id').val();
-            let _quantity = $('#quantity_add');
-            let _price_unit = $('#price_unit');
+            //let product = $('#product_add_id').val();
+            //let _quantity = $('#quantity_add');
+            //let _price_unit = $('#price_unit');
             let _btn_add = $('#btn-add-dates');
-            _btn_add.attr('disabled', true);
-
             if (_nro_dates.val().length === 0) {
                 toastr.warning('Favor de ingresar una numero de fechas', 'Error de llenado');
                 _nro_dates.focus();
                 _btn_add.removeAttr('disabled');
                 return false;
             }
-            if (product === '0') {
-                toastr.warning('Favor de selecionar un producto', 'Error de llenado');
-                _btn_add.removeAttr('disabled');
-                return false;
-            }
-            if (_quantity.val().length === 0) {
-                toastr.warning('Favor de ingresar una cantidad primero', 'Error de llenado');
-                _quantity.focus();
+            _btn_add.attr('disabled', true);
+
+            if (!validateHeader()) {
                 _btn_add.removeAttr('disabled');
                 return false;
             }
 
             for (let i = 0; i < _nro_dates.val(); i++) {
-
-                let _quantity_add = Number(_quantity.val()) / Number(_nro_dates.val());
-
                 let _number = i + 1;
                 let _date_quota = '{{ date_now }}';
-                let selectOptions = '';
-                for (let j = 0; j < product_set.length; j++) {
-                    let productId = product_set[j][0];
-                    if (productId === product) {
-                        selectOptions += '<option value="' + productId + '" selected>' + product_set[j][1] + '</option>';
-                    } else {
-                        selectOptions += '<option value="' + productId + '">' + product_set[j][1] + '</option>';
-                    }
-                }
+
                 $('.dates-quotas').append(
                     '<div class="card mb-2 main-dates" style="border-color: #848d9f">' +
                     '<div class="card-header pt-1 pb-1">' +
@@ -238,42 +239,56 @@
                     '<thead>' +
                     '<tr class="text-center text-white" style="background: #1a77c8">' +
                     '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Item' + '</th>' +
-                    '<th scope="col" class="align-middle font-weight-normal" style="width: 50%;">' + 'Producto' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 60%;">' + 'Producto' + '</th>' +
                     '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Cantidad' + '</th>' +
                     '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'P. U.' + '</th>' +
                     '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Monto' + '</th>' +
-                    '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + '</th>' +
                     '</tr>' +
                     '</thead>' +
                     '<tbody id="details-table-date-' + _number + '" number="' + _number + '">' +
-                    '<tr class="text-center">' +
-                    '<td class="item-number align-middle text-center">1</td>' +
-                    '<td class="item-product align-middle text-center">' +
-                    '<label for="product_id" class="sr-only">Producto</label>' +
-                    '<select id="product_id" class="form-control form-control-sm product">' + selectOptions +
-                    '</select>' +
-                    '</td>' +
-                    '<td class="item-quantity align-middle text-center">' +
-                    '<input type="text" class="form-control text-right quantity" placeholder="0.00" autocomplete="off" value="' + _quantity_add.toFixed(2) + ' ">' +
-                    '</td>' +
-                    '<td class="item-price-unit align-middle text-center">' +
-                    '<input type="text" class="form-control text-right price-unit" placeholder="0.00" autocomplete="off" value="' + _price_unit.val() + ' ">' +
-                    '</td>' +
-                    '<td class="item-amount align-middle text-center">' +
-                    '<input type="text" class="form-control text-right amount" placeholder="0.00" autocomplete="off">' +
-                    '</td>' +
-                    '<td class="align-middle">' +
-                    '<button type="button" onclick="addItem(' + _number + ', ' + _price_unit.val() + ')" class="btn btn-outline-success btn-block">' +
-                    '<i class="fas fa-plus"></i>' +
-                    '</button>' +
-                    '</td>' +
-                    '</tr>' +
                     '</tbody>' +
                     '</table>' +
                     '</div>' +
                     '</div>'
                 );
-                _number++;
+
+                $('#tbody-product-add tr').each(function () {
+                    let selectOptions = '';
+                    let _tr = $(this);
+                    let item = _tr.attr("i");
+                    let product = _tr.find('td.item-product-add select.product-add').val()
+                    let _quantity = _tr.find('td.item-quantity-add input.quantity-add');
+                    let _quantity_add = Number(_quantity.val()) / Number(_nro_dates.val());
+                    let _price_unit = _tr.find('td.item-price-unit-add input.price-unit-add');
+                    let _amount = _quantity_add * Number(_price_unit.val())
+
+                    for (let j = 0; j < product_set.length; j++) {
+                        let productId = product_set[j][0];
+                        if (productId === product) {
+                            selectOptions += '<option value="' + productId + '" selected>' + product_set[j][1] + '</option>';
+                        } else {
+                            selectOptions += '<option value="' + productId + '">' + product_set[j][1] + '</option>';
+                        }
+                    }
+                    $('#details-table-date-' + _number).append(
+                        '<tr class="text-center">' +
+                        '<td class="item-number align-middle text-center">' + item + '</td>' +
+                        '<td class="item-product align-middle text-center">' +
+                        '<select id="product_id" class="form-control form-control-sm product">' + selectOptions +
+                        '</select>' +
+                        '</td>' +
+                        '<td class="item-quantity align-middle text-center">' +
+                        '<input type="text" class="form-control text-right quantity" placeholder="0.00" autocomplete="off" value="' + _quantity_add.toFixed(2) + ' ">' +
+                        '</td>' +
+                        '<td class="item-price-unit align-middle text-center">' +
+                        '<input type="text" class="form-control text-right price-unit" placeholder="0.00" autocomplete="off" value="' + _price_unit.val() + ' ">' +
+                        '</td>' +
+                        '<td class="item-amount align-middle text-center">' +
+                        '<input type="text" class="form-control text-right amount" placeholder="0.00" autocomplete="off" value="' + _amount.toFixed(2) + '">' +
+                        '</td>' +
+                        '</tr>');
+                });
+
             }
             calculateTotal()
         }
@@ -282,12 +297,18 @@
             $('.dates-quotas').empty();
             $('#nro_dates').val('');
             $('#nro_dates').focus();
+
             $('#total-quantity').val('');
-            $('#product_add_id').val('0');
+            $('#total-amount').val('');
+            /*$('#product_add_id').val('0');
             $('#quantity_add').val('');
             $('#price_unit').val('');
-            $('#total').val('');
+            $('#total').val('');*/
+            $('#tbody-product-add tr:not([i="1"])').remove();
+            $('#tbody-product-add tr[i="1"]').find('input').val('');
+
             $('#btn-add-dates').removeAttr('disabled');
+            $('#product_add-id').val('0');
         });
 
 
@@ -347,7 +368,7 @@
                 });
                 contract.dates.push(dateObj);
             });
-            //console.log(contract)
+            console.log(contract)
             $.ajax({
                 url: '/buys/save_contract/',
                 async: true,
@@ -363,8 +384,7 @@
                         setTimeout(() => {
                             location.reload();
                         }, 1000);
-                    }
-                    else {
+                    } else {
                         //console.log(response)
                         toastr.error(response.message, 'Error');
                         $('#btn-save-contract').slideDown();
@@ -486,6 +506,62 @@
             });
         }
 
+        function addProductHeader() {
+            let _products = '{% for p in product_set %}' + '<option value="{{ p.id }}">{{ p.name }}</option>' +
+                '{% endfor %}'
+            $('#table-product-add > tbody').append(
+                '<tr class="text-center">' +
+                '<td class="item-product-add align-middle text-center">' +
+                '<select id="product_add-id" class="form-control form-control-sm product-add">' +
+                '<option value="0">Seleccione</option>' + _products + '</select>' +
+                '</td>' +
+                '<td class="item-quantity-add align-middle text-center pt-0">' +
+                '<input type="text" class="form-control form-control-sm text-right quantity-add" placeholder="0.00" autocomplete="off">' +
+                '</td>' +
+                '<td class="item-price-unit-add align-middle text-center pt-0">' +
+                '<input type="text" class="form-control form-control-sm text-right price-unit-add" placeholder="0.00" autocomplete="off">' +
+                '</td>' +
+                '<td class="item-amount-add align-middle text-center pt-0">' +
+                '<input type="text" class="form-control form-control-sm text-right amount-add" placeholder="0.00" autocomplete="off">' +
+                '</td>' +
+                '<td class="align-middle pt-0">' +
+                '<button type="button" onclick="deleteItemHeader(this)" class="btn btn-danger btn-sm delete-detail"><i class="fa fa-trash"></i></button>' +
+                '</td>' +
+                '</tr>'
+            );
+            counterHeader()
+        }
+
+        function deleteItemHeader(btn) {
+            btn.parentNode.parentNode.remove();
+            counterHeader()
+        }
+
+        function counterHeader() {
+            let l = 1;
+            $(`#tbody-product-add tr`).each(function () {
+                $(this).attr('i', l);
+                l++;
+            });
+        }
+
+        $(document).on('keyup', '.quantity-add', function (e) {
+            calculateTotalHeader($(this));
+        });
+
+        $(document).on('keyup', '.price-unit-add', function (e) {
+            calculateTotalHeader($(this));
+        });
+
+        function calculateTotalHeader(input) {
+            let _tr = input.closest('tr');
+            let _quantity = Number(_tr.find('.quantity-add').val());
+            let _price_unit = Number(_tr.find('.price-unit-add').val());
+            let _total = _quantity * _price_unit;
+            _tr.find('.amount-add').val(_total.toFixed(2));
+
+        }
 
     </script>
+
 {% endblock extrajs %}
