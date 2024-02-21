@@ -153,7 +153,7 @@
                                                 </th>
                                             </tr>
                                             </thead>
-                                            <tbody id="guide-details">
+                                            <tbody id="bill-details">
                                             {% for c in detail_purchase %}
                                                 <tr class="" product="{{ c.product_id }}" unit_id="{{ c.unit_id }}">
                                                     <td class="item-numero align-middle text-center">{{ forloop.counter }}</td>
@@ -180,14 +180,14 @@
                                                         <input type="text"
                                                                class="form-control text-center quantity-product text-uppercase"
                                                                placeholder="0" disabled
-                                                               value="{{ c.price_unit|safe|floatformat:4 }}">
+                                                               value="{{ c.price_unit }}">
                                                     </td>
                                                     <td class="align-middle price">
                                                         <div class="input-icon">
                                                             <input type="text"
                                                                    class="form-control text-right text-uppercase total-foot-base"
                                                                    placeholder="0.00"
-                                                                   value="{{ c.amount|safe|floatformat:4 }}"><i
+                                                                   value="{{ c.amount|safe|floatformat:2 }}"><i
                                                                 class="change-money">S/</i>
                                                         </div>
                                                     </td>
@@ -202,8 +202,9 @@
                                                 <td class="foot-base">
                                                     <div class="input-icon">
                                                         <input type="text"
-                                                               class="form-control text-right text-uppercase total-foot-base"
-                                                               value="{{ purchase_obj.base_total_purchase|safe|floatformat:4 }}"
+                                                               class="form-control text-right text-uppercase total-base-bill font-weight-bold"
+                                                               style="background-color: #e4ece3"
+                                                               value="{{ purchase_obj.base_total_purchase|safe|floatformat:2 }}"
                                                                placeholder="0.00"><i class="change-money">S/</i>
                                                     </div>
                                                 </td>
@@ -215,8 +216,9 @@
                                                 <td class="foot-base">
                                                     <div class="input-icon">
                                                         <input type="text"
-                                                               class="form-control text-right text-uppercase total-foot-base"
-                                                               value="{{ purchase_obj.igv_total_purchase|safe|floatformat:4 }}"
+                                                               class="form-control text-right text-uppercase total-igv-bill font-weight-bold"
+                                                               style="background-color: #e4ece3"
+                                                               value="{{ purchase_obj.igv_total_purchase|safe|floatformat:2 }}"
                                                                placeholder="0.00"><i class="change-money">S/</i>
                                                     </div>
                                                 </td>
@@ -228,8 +230,9 @@
                                                 <td class="foot-base">
                                                     <div class="input-icon">
                                                         <input type="text"
-                                                               class="form-control text-right text-uppercase total-foot-base"
-                                                               value="{{ purchase_obj.total|safe|floatformat:4 }}"
+                                                               class="form-control text-right text-uppercase total-bill font-weight-bold"
+                                                               style="background-color: #e4ece3"
+                                                               value="{{ purchase_obj.total|safe|floatformat:2 }}"
                                                                placeholder="0.00"><i class="change-money">S/</i>
                                                     </div>
                                                 </td>
@@ -275,6 +278,7 @@
 
     $(document).on('click', '#btn-save-bill', function (e) {
 
+        let purchase = $("#purchase_id");
         let bill_date = $('#bill_date');
         let bill_date_expiration = $('#bill_date_expiration');
         let bill_serial = $('#bill_serial');
@@ -282,6 +286,10 @@
         let bill_address = $('#bill_delivery_address');
         let bill_condition_pay = $('#way_to_pay');
         let bill_order_number = $('#order_number');
+
+        let bill_total_base = $('.total-base-bill');
+        let bill_igv = $('.total-igv-bill');
+        let bill_total = $('.total-bill');
 
         if (bill_serial.val() === '') {
             toastr.warning('¡Ingresar la serie la de Factura!', 'Error de Datos');
@@ -297,7 +305,7 @@
         }
 
         let bill = {
-            "purchase_id": $("#purchase_id").val(),
+            "purchase_id": purchase.val(),
             "bill_date": bill_date.val(),
             "bill_date_expiration": bill_date_expiration.val(),
             'bill_serial': bill_serial.val(),
@@ -305,6 +313,10 @@
             'bill_address': bill_address.val(),
             'bill_condition_pay': bill_condition_pay.val(),
             'bill_order_number': bill_order_number.val(),
+
+            'bill_total_base': bill_total_base.val(),
+            'bill_igv': bill_igv.val(),
+            'bill_total': bill_total.val(),
         };
         console.log(bill)
         $.ajax({
@@ -319,6 +331,8 @@
             success: function (response, textStatus, xhr) {
                 if (response.success) {
                     toastr.success(response.message, '¡Bien hecho!');
+                    $('#body-finances').find('tr[pk="' + purchase.val() + '"]').remove();
+                    $('#modal-bill-create').modal('hide');
                 }
             },
             error: function (jqXhr, textStatus, xhr) {

@@ -10,18 +10,56 @@
         <div class="card p-2 bg-light">
             <div class="row">
                 <div class="col-lg-2 pt-3 ml-3">
-                    {#                    <button type="button" onclick="showModalView('modal_client_create')"#}
-                    {#                            class="btn btn-outline-success btn-sm"><i class="nav-icon fas fa-user-plus"></i>#}
-                    {#                        NUEVO CLIENTE#}
-                    {#                    </button>#}
                 </div>
                 <div class="col-lg-8 text-center pt-2 bg-info">
+
                     <h2 class="font-weight-bold"> LISTADO DE ORDENES DE COMPRAS</h2>
                 </div>
             </div>
 
             <div class="card-body p-2">
-                <div id="client-grid-list">{% include "accounting/purchase_grid_list_finances.html" %}</div>
+                <ul class="nav nav-tabs" id="multi-tab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="sales-project-tab" data-toggle="pill"
+                           href="#sales-project" role="tab" aria-controls="sales-project"
+                           aria-selected="true">SIN FACTURA</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="costs-and-expenses-tab" data-toggle="pill"
+                           href="#costs-and-expenses" role="tab" aria-controls="costs-and-expenses"
+                           aria-selected="false">CON FACTURA</a>
+                    </li>
+                </ul>
+            </div>
+
+
+            <div class="tab-content" id="multi-tabContent">
+                <div class="tab-pane active" id="sales-project" role="tabpanel"
+                     aria-labelledby="sales-project-tab">
+                    <div class="card-body p-2">
+                        <div class="row mt-1">
+                            <div id="file-list-grid" class="table-responsive small">
+                                <div id="client-grid-list">{% include "accounting/purchase_grid_list_finances.html" %}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="costs-and-expenses" role="tabpanel"
+                     aria-labelledby="costs-and-expenses-tab">
+                    <div class="card-body p-2">
+                        <div class="container">
+                            <div class="text-center">
+                                <h4 class="font-weight-bold">ORDENES DE COMPRA CON FACTURA</h4>
+                            </div>
+                        </div>
+                        <div class="row mb-1 mt-0">
+                            <div class="col-lg-12">
+                                <div id="client-grid-list">{% include "accounting/purchase_grid_list_bill_finances.html" %}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -2068,8 +2068,10 @@ def get_purchase_list_finances(request):
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
     purchases = Purchase.objects.filter(bill_status='S').order_by('-id')
+    purchases_with_bill = Purchase.objects.filter(bill_status='C').order_by('-id')
     return render(request, 'accounting/purchase_list_finances.html', {
-        'purchases': purchases
+        'purchases': purchases,
+        'purchases_bill': purchases_with_bill
     })
 
 
@@ -2101,7 +2103,7 @@ def modal_bill_create(request):
                     'unit_id': pd.unit.id,
                     'unit_name': pd.unit.name,
                     'unit_description': pd.unit.description,
-                    'price_unit': pd.price_unit,
+                    'price_unit': str(round(pd.price_unit, 2)),
                     'amount': pd.multiplicate()
                 }
                 purchase_details_dict.append(item)
@@ -2131,6 +2133,10 @@ def save_bill(request):
         bill_condition_pay = str(data_bill["bill_condition_pay"])
         bill_order_number = str(data_bill["bill_order_number"])
 
+        bill_total_base = decimal.Decimal(data_bill["bill_total_base"].replace(',', '.'))
+        bill_igv = decimal.Decimal(data_bill["bill_igv"].replace(',', '.'))
+        bill_total = decimal.Decimal(data_bill["bill_total"].replace(',', '.'))
+
         purchase_obj = None
         if purchase_id:
             purchase_obj = Purchase.objects.get(id=int(purchase_id))
@@ -2143,7 +2149,11 @@ def save_bill(request):
             delivery_address=bill_address,
             payment_condition=bill_condition_pay,
             order_number=bill_order_number,
-            purchase=purchase_obj
+            purchase=purchase_obj,
+            bill_base_total=bill_total_base,
+            bill_igv_total=bill_igv,
+            bill_total_total=bill_total
+
         )
         bill_purchase_obj.save()
 

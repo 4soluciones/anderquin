@@ -358,6 +358,9 @@ class BillPurchase(models.Model):
     payment_condition = models.CharField('Condicion de Pago', max_length=255, null=True, blank=True)
     order_number = models.IntegerField('Numero de Orden', null=True, blank=True)
     purchase = models.ForeignKey('buys.Purchase', on_delete=models.CASCADE, null=True, blank=True)
+    bill_base_total = models.DecimalField('Total base ventas', max_digits=30, decimal_places=2, default=0)
+    bill_igv_total = models.DecimalField('Total IGV ventas', max_digits=30, decimal_places=2, default=0)
+    bill_total_total = models.DecimalField('Total ventas', max_digits=30, decimal_places=2, default=0)
 
     def __str__(self):
         return str(self.serial + '-' + self.correlative)
