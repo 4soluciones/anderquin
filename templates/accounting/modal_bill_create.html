@@ -1,3 +1,4 @@
+{% load operations %}
 <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
         <div class="modal-header bg-light">
@@ -203,8 +204,9 @@
                                                     <div class="input-icon">
                                                         <input type="text"
                                                                class="form-control text-right text-uppercase total-base-bill font-weight-bold"
+                                                               readonly
                                                                style="background-color: #e4ece3"
-                                                               value="{{ purchase_obj.base_total_purchase|safe|floatformat:2 }}"
+                                                               value="{{ purchase_obj.base_total_purchase|replace_round }}"
                                                                placeholder="0.00"><i class="change-money">S/</i>
                                                     </div>
                                                 </td>
@@ -217,8 +219,9 @@
                                                     <div class="input-icon">
                                                         <input type="text"
                                                                class="form-control text-right text-uppercase total-igv-bill font-weight-bold"
+                                                               readonly
                                                                style="background-color: #e4ece3"
-                                                               value="{{ purchase_obj.igv_total_purchase|safe|floatformat:2 }}"
+                                                               value="{{ purchase_obj.igv_total_purchase|replace_round }}"
                                                                placeholder="0.00"><i class="change-money">S/</i>
                                                     </div>
                                                 </td>
@@ -231,10 +234,12 @@
                                                     <div class="input-icon">
                                                         <input type="text"
                                                                class="form-control text-right text-uppercase total-bill font-weight-bold"
-                                                               style="background-color: #e4ece3"
-                                                               value="{{ purchase_obj.total|safe|floatformat:2 }}"
+                                                               value="{{ purchase_obj.total|replace_round }}"
                                                                placeholder="0.00"><i class="change-money">S/</i>
                                                     </div>
+                                                    <input type="hidden"
+                                                           id="current_total"
+                                                           value="{{ purchase_obj.total|replace_round }}"
                                                 </td>
                                             </tr>
                                             </tfoot>
@@ -304,6 +309,12 @@
             return false;
         }
 
+        let previousTotal = parseFloat($('#current_total').val());
+        if (bill_total.val() > previousTotal + 2 || bill_total.val() < previousTotal - 2) {
+            toastr.warning('¡El valor no puede estar fuera del rango +2 y -2!, favor de corregir', 'Mensaje');
+            return false;
+        }
+
         let bill = {
             "purchase_id": purchase.val(),
             "bill_date": bill_date.val(),
@@ -318,7 +329,7 @@
             'bill_igv': bill_igv.val(),
             'bill_total': bill_total.val(),
         };
-        console.log(bill)
+        //console.log(bill)
         $.ajax({
             url: '/accounting/save_bill/',
             async: true,
@@ -343,5 +354,15 @@
         });
     });
 
+    $('.total-bill').keyup(function () {
+
+        let total = parseFloat($(this).val());
+        let subTotal = $('.total-base-bill');
+        let igv = $('.total-igv-bill');
+        let _subTotalCalculate = Number(total) / Number(1.18)
+        let _igvCalculate = Number(total) - _subTotalCalculate
+        subTotal.val(_subTotalCalculate.toFixed(2))
+        igv.val(_igvCalculate.toFixed(2))
+    });
 
 </script>

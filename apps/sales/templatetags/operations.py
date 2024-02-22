@@ -34,3 +34,17 @@ def get(d, k):
 @register.filter(name='get_element')
 def get_element(d, k):
     return d[k]
+
+
+@register.filter(name='thousands_separator')
+def thousands_separator(value):
+    if value is not None and value != '':
+        return '{:,}'.format(value)
+    return ''
+
+
+@register.filter(name='replace_round')
+def replace_round(value):
+    if value is not None and value != '':
+        return str(round(value, 2)).replace(',', '.')
+    return value

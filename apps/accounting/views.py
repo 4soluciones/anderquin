@@ -2068,10 +2068,10 @@ def get_purchase_list_finances(request):
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
     purchases = Purchase.objects.filter(bill_status='S').order_by('-id')
-    purchases_with_bill = Purchase.objects.filter(bill_status='C').order_by('-id')
+    bill_purchase_set = BillPurchase.objects.all().order_by('-id')
     return render(request, 'accounting/purchase_list_finances.html', {
         'purchases': purchases,
-        'purchases_bill': purchases_with_bill
+        'bill_purchase_set': bill_purchase_set
     })
 
 
@@ -2167,8 +2167,16 @@ def save_bill(request):
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
 
 
-
-
+def get_purchases_with_bill(request):
+    if request.method == 'GET':
+        bill_purchase_set = BillPurchase.objects.all().order_by('-id')
+        t = loader.get_template('accounting/purchase_grid_list_bill_finances.html')
+        c = ({'bill_purchase_set': bill_purchase_set})
+        return JsonResponse({
+            'grid': t.render(c, request),
+            'success': True,
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion'}, status=HTTPStatus.BAD_REQUEST)
 
 
 

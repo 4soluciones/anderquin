@@ -63,6 +63,7 @@ urlpatterns = [
     path('save_register_tributary/', login_required(save_register_tributary), name='save_register_tributary'),
 
     # BUYS
+    path('get_purchases_with_bill/', login_required(get_purchases_with_bill), name='get_purchases_with_bill'),
     path('get_purchase_list_finances/', login_required(get_purchase_list_finances), name='get_purchase_list_finances'),
     path('modal_bill_create/', login_required(modal_bill_create), name='modal_bill_create'),
     path('save_bill/', login_required(save_bill), name='save_bill'),
