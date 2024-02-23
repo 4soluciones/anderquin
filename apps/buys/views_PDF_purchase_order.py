@@ -413,7 +413,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     p3_4 = Paragraph(f'FACTURAR A:', styles["Left"])
     p3_5 = Paragraph(f'INDUSTRIAS ANDERQUIN EIRL', styles["Left"])
     p3_5_1 = Paragraph(f'RUC: 20604193053', styles["Left"])
-    p3_6 = Paragraph(f'Telf.: {TELEFONO}', styles["Left"])
+    p3_6 = Paragraph(f'Telf.: 954001800', styles["Left"])
     p3_7 = Paragraph(f'{DIRECCION}', styles["Left"])
 
     colwiths_table_3 = [_wt * 49 / 100, _wt * 2 / 100, _wt * 49 / 100]
