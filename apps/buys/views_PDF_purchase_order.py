@@ -498,9 +498,9 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         um = f'{i.unit.description}({int(quantity_minimum)}UND)'
 
         quantity_und = decimal.Decimal(i.quantity * quantity_minimum)
-        quantity = f'{round(i.quantity, 2)}'
-        price_unit = f'{round(i.price_unit, 6)}'
-        sub_total = (i.price_unit * quantity_und).quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_EVEN)
+        quantity = round(i.quantity, 2)
+        price_unit = round(i.price_unit, 6)
+        sub_total = (i.price_unit * quantity).quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_EVEN)
 
         total += sub_total
 
