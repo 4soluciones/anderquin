@@ -205,7 +205,7 @@ def get_correlative_by_subsidiary(subsidiary_obj=None, year=None):
     #     r=Coalesce(Max('correlative'), 0)).get('r')
     # return number + 1
 
-    search = Purchase.objects.filter(year=year)
+    search = Purchase.objects.filter(year=year, status__in=['S', 'A'])
     if search.exists():
         purchase_obj = search.last()
         correlative = purchase_obj.correlative
