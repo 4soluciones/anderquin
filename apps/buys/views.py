@@ -579,7 +579,7 @@ def get_purchase_annular_list(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
-    purchases_annular = Purchase.objects.filter(subsidiary=subsidiary_obj, status='N')
+    purchases_annular = Purchase.objects.filter(status='N')
     return render(request, 'buys/purchase_annular_list.html', {
         'purchases_annular': purchases_annular
     })
