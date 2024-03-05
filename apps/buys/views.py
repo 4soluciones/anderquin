@@ -1,3 +1,4 @@
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models.functions import Coalesce
 from django.shortcuts import render
 import decimal
@@ -11,6 +12,7 @@ from django.db.models import Q, Sum, F, Prefetch, Subquery, OuterRef, Max
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.template import loader
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
@@ -257,14 +259,7 @@ def save_purchase(request):
         client_address_entity = data_purchase["client_final_address"]
 
         observations = str(data_purchase["observations"])
-        contract_detail = data_purchase["contract_detail_id"]
-        contract_detail_obj = None
-        contract_detail_id = ''
-        date = date_now
-        if contract_detail:
-            date = str(data_purchase["Date"])
-            contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail))
-            contract_detail_id = contract_detail_obj.id
+        date = str(data_purchase["Date"])
 
         user_id = request.user.id
         user_obj = User.objects.get(pk=int(user_id))
@@ -338,7 +333,7 @@ def save_purchase(request):
             delivery_choice=delivery_choice,
             observation=observations.upper(),
             city=city.upper(),
-            contract_detail=contract_detail_obj,
+            # contract_detail=contract_detail_obj,
             delivery_date=date_delivery,
             correlative=correlative,
             reference=reference,
@@ -367,11 +362,18 @@ def save_purchase(request):
             }
             new_purchase_detail_obj = PurchaseDetail.objects.create(**new_purchase_detail)
             new_purchase_detail_obj.save()
+        contract = False
+        if data_purchase["contract_detail_id"]:
+            contract = True
+            contract_detail_array = data_purchase["contract_detail_id"].split(',')
+            for c in contract_detail_array:
+                contract_detail_obj = ContractDetail.objects.get(id=int(c))
+                ContractDetailPurchase.objects.create(contract_detail=contract_detail_obj, purchase=purchase_obj)
 
         return JsonResponse({
             'pk': purchase_obj.id,
-            'message': 'COMPRA REGISTRADA CORRECTAMENTE.',
-            'contract': contract_detail_id
+            'message': 'Orden Registrada Correctamante.',
+            'contract': contract
         }, status=HTTPStatus.OK)
 
 
@@ -2484,6 +2486,76 @@ def get_buy_list(request, contract_detail=None):
         'contract_dict': contract_dict,
         'correlative': str(correlative).zfill(4)
     })
+
+
+def get_buys_by_contract(request):
+    if request.method == 'GET':
+        selected_data = json.loads(request.GET.get('selectedData', '[]'))
+        selected_data_list = []
+
+        for product_id, data in selected_data.items():
+            product_obj = Product.objects.get(id=product_id)
+            units = []
+
+            for pd in ProductDetail.objects.filter(product_id=product_id):
+                unit_data = {
+                    'id': pd.id,
+                    'unit_id': pd.unit.id,
+                    'unit_name': pd.unit.name,
+                    'quantity_minimum': round(pd.quantity_minimum, 0),
+                }
+                units.append(unit_data)
+
+            contract_detail_ids = data['contractDetailIDs']
+            contract_details = ContractDetail.objects.filter(id__in=contract_detail_ids)
+            contract_obj = contract_details.first().contract
+            contract_data = []
+            for c in contract_details:
+                item_contract_detail = {
+                    'contract_detail_id': c.id,
+                    'nro_quota': c.nro_quota,
+                    'date': c.date,
+                }
+                contract_data.append(item_contract_detail)
+
+            client_data = []
+            client_reference_set = Client.objects.filter(id=contract_obj.client.id)
+            for c in client_reference_set:
+                client_address_set = c.clientaddress_set.all()
+                if client_address_set.exists():
+                    address_dict = [{
+                        'id': cd.id,
+                        'address': cd.address,
+                        'district': cd.district.description,
+                    } for cd in client_address_set]
+                else:
+                    address_dict = []
+
+                client_data.append({
+                    'id': c.id,
+                    'names': c.names,
+                    'type_client_display': c.get_type_client_display(),
+                    'type_client': c.type_client,
+                    'number': c.clienttype_set.last().document_number,
+                    'address': address_dict
+                })
+
+            item = {
+                'product_id': product_id,
+                'product_name': product_obj.name,
+                'quantity': data['quantity'],
+                # 'contract_detail': contract_detail_ids,
+                'contract_id': contract_obj.id,
+                'contract_number': contract_obj.contract_number,
+                'client_data': client_data,
+                'contract_data': contract_data,
+                'units': units
+            }
+
+            selected_data_list.append(item)
+        json_data = json.dumps(selected_data_list, cls=DjangoJSONEncoder)
+
+        return JsonResponse({'redirect_url': f'/buys/buy_list?selected_data={json_data}'})
 
 
 def get_address_by_supplier_id(request):

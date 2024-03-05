@@ -127,4 +127,7 @@ urlpatterns = [
 
     # GUIDE
     path('modal_new_guide/', login_required(modal_new_guide), name='modal_new_guide'),
+
+    # CONTRACT BUYS
+    path('get_buys_by_contract/', login_required(get_buys_by_contract), name='get_buys_by_contract'),
 ]

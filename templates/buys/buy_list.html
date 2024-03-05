@@ -7,7 +7,7 @@
     <div class="col-sm-12 col-sm-12 col-lg-12 pt-3 roboto-condensed-regular">
         <div class="card">
             <div class="card-header pt-0">
-                <div class="row"{% if contract_detail_obj %} style="background: #62a239" {% else %}
+                <div class="row row-contract"{% if contract_detail_obj %} style="background: #62a239" {% else %}
                      style="background: #1a77c8"{% endif %}>
                     <div class="col-sm-12 col-md-12 col-lg-12" style="font-size: 12px">
                         <div class="row p-2">
@@ -15,12 +15,12 @@
                                 <input type="hidden" id="contract_detail_id" name="contract-detail"
                                        value="{{ contract_detail_obj.id }}">
                                 {% if contract_detail_obj %}
-                                    <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                                    <h6 class="montserrat text-white mt-4 mb-0">
                                         <label>{{ contract_detail_obj.contract.contract_number }} -
                                             FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
                                     </h6>
                                 {% else %}
-                                    <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                                    <h6 class="montserrat text-white font-weight-bold mt-4 mb-0 title-contract">
                                         <label>ORDEN DE COMPRA:</label>
                                     </h6>
                                 {% endif %}
@@ -225,6 +225,85 @@
 {% block extrajs %}
     <script type="text/javascript">
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const data = urlParams.get('selected_data');
+        const dataObject = JSON.parse(data);
+
+        console.log(dataObject);
+
+        if (dataObject !== null && Object.keys(dataObject).length > 0) {
+            $('#id_detail_data_grid > tbody').empty();
+            $('.delivery').removeClass('d-none');
+            $('.purchase-date').addClass('d-none');
+
+            $('.row-contract').css('background', '#62a239');
+            const clientData = dataObject[0].client_data;
+            let client = {
+                names: clientData[0].names,
+                id: clientData[0].id,
+                type_client: clientData[0].type_client,
+                address: clientData[0].address
+            };
+            $('#person-names').val(clientData[0].names)
+            handleClientSubmit(client);
+
+            $(".title-contract label").text("CONTRATO: " + dataObject[0].contract_number);
+            const contractDetailIds = dataObject[0].contract_data.map(detail => detail.contract_detail_id).join(',');
+            $('#contract_detail_id').val(contractDetailIds);
+
+            var deliveryDatesHtml = '<p class="mb-0"></p><ul>';
+            dataObject[0].contract_data.forEach(function (contractDetail) {
+                deliveryDatesHtml += '<li><span>Nro. de Entrega:</span> <span class="text-white">' + contractDetail.nro_quota + '</span>, Fecha: <span class="text-white">' + contractDetail.date + '</span></li>';
+            });
+            deliveryDatesHtml += "</ul>";
+
+            $(".title-contract").after(deliveryDatesHtml);
+
+            for (let productID in dataObject) {
+                if (dataObject.hasOwnProperty(productID)) {
+                    let _check = $("#check_dollar");
+                    let _val_money = 'S/'
+
+                    if (_check.is(':checked')) {
+                        _val_money = '$'
+                    }
+                    let item = dataObject[productID];
+
+                    let options = '';
+                    for (let i = 0; i < item.units.length; i++) {
+                        options += '<option value="' + item.units[i].unit_id + '" qm="' + item.units[i].quantity_minimum + '">' + item.units[i].unit_name + ' (' + item.units[i].quantity_minimum + item.units[i].unit_name + ')' + '</option>';
+                    }
+
+                    let newRow = '<tr class="text-center" product="' + item.product_id + '">' +
+                        '<td class="item-numero align-middle">' + '</td>' +
+                        '<td class="align-middle text-left product-item-table">' +
+                        '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
+                        '               data-toggle="dropdown" aria-expanded="false" placeholder="Ingrese producto..." value="' + item.product_name + '" ' + 'iv class="dropdown-menu"></div>' + '</td>' +
+                        '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0" value="' + item.quantity + '">' + '</td>' +
+                        '<td class="align-middle unit text-center">' +
+                        '<select class="form-control unit-product text-center" id="id_unit_product" name="unit_product" required>' +
+                        '<option disabled value="0">Seleccione</option>' +
+                        options +
+                        '</td>' +
+                        '<td class="align-middle quantity-minimum text-center">' +
+                        '<input type="text" class="form-control text-center quantity-minimum-val" readonly>' +
+                        '</td>' +
+                        '<td class="item-price text-right align-middle" price-unit-with-discount="">' + '<div class="input-icon">' +
+                        '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
+                        '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
+                        '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
+                        '<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                        '</tr>';
+
+                    $('#id_detail_data_grid > tbody').append(newRow);
+                    counterStrike();
+                }
+            }
+            setTimeout(function () {
+                $(".unit-product").trigger('change');
+            }, 500);
+        }
+
         loader = '<div class="container">' +
             '<div class="row">' +
             '<div class="col-md-12">' +
@@ -237,6 +316,7 @@
             '</div>' +
             '</div>' +
             '</div>';
+
 
         $(document).on('click', '#check_dollar', function (e) {
             let _check = $(this);
@@ -285,7 +365,7 @@
 
         $("#btn-type-change").trigger('click');
 
-        $(document).ready(function () {
+        /*$(document).ready(function () {
             if ($('#contract_detail_id').val() !== '') {
                 //let client_set = {{ client|safe }};
                 let client = {
@@ -297,7 +377,7 @@
                 //console.log(client)
                 handleClientSubmit(client)
             }
-        });
+        });*/
 
         $("#btn-new").click(function () {
             setTimeout(() => {
@@ -455,7 +535,7 @@
                     };
                     Detail_purchase.Details.push(detailObj);
                 });
-                //console.log(Detail_purchase)
+                console.log(Detail_purchase)
                 $.ajax({
                     url: '/buys/save_purchase/',
                     async: true,
@@ -469,8 +549,9 @@
                             toastr.success(response.message, '¡COMPRA REGISTRADA CORRECTAMENTE!');
                             let purchase_id = response.pk
                             window.location.href = "/buys/print_pdf_purchase_order/" + purchase_id + "/";
+                            console.log(response.contract)
                             if (response.contract) {
-                                //console.log("contract")
+                                console.log("entro")
                                 setTimeout(() => {
                                     window.open("/buys/contracts/", '_self');
                                 }, 2000);
@@ -486,7 +567,6 @@
                         toastr.error("ERROR. ", '¡INCONCEBIBLE!');
                     }
                 });
-
             } else {
                 toastr.warning("PARA REALIZAR LA COMPRA AGREGUE AL MENOS UN PRODUCTO. ", '¡ADVERTENCIA!');
                 return false;
@@ -791,20 +871,6 @@
                 '<td class="align-middle quantity-minimum text-center">' +
                 '<input type="text" class="form-control text-center quantity-minimum-val" readonly>' +
                 '</td>' +
-                /*'<td class="align-middle item-quantity-x-unit" style="background-color: #bde7e2">' +
-                '<div class="row">' +
-                '<div class="col-sm-3 text-center pr-0">' +
-                '<label class="mt-2">Ver en:</label>' +
-                '</div>' +
-                '<div class="col-sm-3 pr-0 pl-0 mt-1">' +
-                '<select class="form-control quantity-unit pl-0 pr-0 text-center" aria-label="..." style="font-size: 0.7585em; background-color: #bde7e2">' +
-                '<option value="0">Seleccione</option>' +
-                '</select>' +
-                '</div>' +
-                '<div class="col-sm-6 pl-1">' +
-                '<input type="text" aria-label="..." class="form-control text-center quantity-x-unit text-uppercase" readonly style="background-color: #bde7e2">' +
-                '</div>' +
-                '</td>' +*/
                 '<td class="item-price text-right align-middle" price-unit-with-discount="">' + '<div class="input-icon">' +
                 '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
                 '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
@@ -1113,7 +1179,7 @@
                 let _select = $('#client_address_reference');
                 let type_client = result.type_client;
                 let _client_address = result.address;
-                console.log(_client_address)
+                //console.log(_client_address)
                 $('#client_reference_id').val(client_id);
                 $('#type_client_reference').val(type_client);
                 $('#client_final').val('');
@@ -1132,14 +1198,14 @@
                     //await getAddress(client_id, _client_address)
                 }
                 _select.empty();
-                    //console.log("_result", result)
-                    _select.append($('<option>').val("0").text('Seleccione'));
-                    if (_client_address !== '[]') {
-                        for (let i = 0; i < _client_address.length; i++) {
-                            let option = $('<option>').val(_client_address[i]['id']).text(_client_address[i]['address'].toUpperCase());
-                            _select.append(option);
-                        }
+                //console.log("_result", result)
+                _select.append($('<option>').val("0").text('Seleccione'));
+                if (_client_address !== '[]') {
+                    for (let i = 0; i < _client_address.length; i++) {
+                        let option = $('<option>').val(_client_address[i]['id']).text(_client_address[i]['address'].toUpperCase());
+                        _select.append(option);
                     }
+                }
             } else {
                 toastr.warning('Seleccione un cliente valido', 'Error de llenado');
                 return false;

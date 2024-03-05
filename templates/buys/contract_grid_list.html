@@ -41,25 +41,47 @@
                                     </div>
                                     <div id="collapse-{{ c.id }}" class="collapse" aria-labelledby="heading-{{ c.id }}"
                                          data-parent="#accordion">
-                                        <div class="card-body">
-                                            <table class="table table-bordered table-sm"
+                                        <div class="card-body pt-2 pb-0">
+                                            <div class="row pl-3">
+                                                <button type="button"
+                                                        class="btn btn-sm btn-warning font-weight-light generate-oc">
+                                                    Generar Orden de Compra
+                                                    <span class="badge badge-light">0</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="card-body pt-2">
+                                            <table class="table table-bordered table-sm dates"
                                                    style="background-color: #bfdecb; font-size: 11px">
                                                 <thead>
                                                 <tr class="text-center font-weight-bold text-uppercase bg-light align-middle">
+                                                    <th class="th-sm" style="width: 5%"><i class="fas fa-check"></i>
+                                                    </th>
                                                     <th class="th-sm" style="width: 5%">#</th>
                                                     <th class="th-sm" style="width: 10%">Fecha</th>
                                                     {#                                    <th class="th-sm" style="width: 10%">O/C</th>#}
-                                                    <th class="th-sm" style="width: 55%">Producto</th>
+                                                    <th class="th-sm" style="width: 65%">Producto</th>
                                                     <th class="th-sm" style="width: 15%">Orden de Compra</th>
-                                                    <th class="th-sm" style="width: 15%">Guia de remision</th>
+                                                    {#                                                    <th class="th-sm" style="width: 15%">Guia de remision</th>#}
                                                 </tr>
                                                 </thead>
                                                 <tbody>
                                                 {% for d in c.contractdetail_set.all %}
                                                     <tr class="text-center" pk="{{ c.id }}">
+                                                        <td class="align-middle item-check">
+                                                            {% if not d.contractdetailpurchase_set.last.purchase %}
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input check-dates"
+                                                                           type="checkbox" value=""
+                                                                           id="{{ c.id }}">
+                                                                    <label class="form-check-label"
+                                                                           for="{{ c.id }}"> </label>
+                                                                </div>
+                                                            {% endif %}
+                                                        </td>
                                                         <td class="align-middle font-weight-bold">{{ d.nro_quota|default_if_none:'-' }}</td>
                                                         <td class="align-middle font-weight-bold">
-                                                            <i class="fas fa-calendar-alt"></i> {{ d.date|date:'d-m-Y' }}
+                                                            {{ d.date|date:'d-m-Y' }}
                                                         </td>
                                                         {#                                        <td class="align-middle">#}
                                                         {#                                            {% if d.purchase_set.all %}#}
@@ -68,53 +90,57 @@
                                                         {#                                                -#}
                                                         {#                                            {% endif %}#}
                                                         {#                                        </td>#}
-                                                        <td>
-                                                            <table class="table table-borderless table-sm"
+                                                        <td class="items-table">
+                                                            <table class="table table-borderless table-sm mb-2 items"
                                                                    style="background-color: #bfdecb">
                                                                 <tbody>
                                                                 {% for e in d.contractdetailitem_set.all %}
-                                                                    <tr class="p-0 m-0">
-                                                                        <td class="align-middle text-left p-0 m-0">{{ e.quantity|safe }}</td>
+                                                                    <tr class="p-0 m-0" cd="{{ d.id }}" cdi="{{ e.id }}"
+                                                                        product="{{ e.product.id }}">
+                                                                        <td class="align-middle text-left p-0 m-0 item-quantity">{{ e.quantity|safe }}</td>
+                                                                        <td class="align-middle text-left p-0 m-0">UND
+                                                                        </td>
                                                                         <td class="align-middle text-left p-0 m-0">{{ e.product.name }}</td>
+
+
                                                                     </tr>
                                                                 {% endfor %}
                                                                 </tbody>
                                                             </table>
                                                         </td>
                                                         <td class="align-middle">
-                                                            {% if d.purchase_set.all %}
-                                                                {#                                                {% if d.purchase_set.all %}#}
-                                                                {#                                                    <span class="font-weight-bold">{{ d.purchase_set.all.last.bill_number }}</span>#}
-                                                                {#                                                {% else %}#}
-                                                                {#                                                    -#}
-                                                                {#                                                {% endif %}#}
+                                                            {% if d.contractdetailpurchase_set.last.purchase %}
                                                                 <a class="btn btn-sm btn-success font-weight-light"
-                                                                   href="{% url 'buys:print_pdf_purchase_order' d.purchase_set.all.last.id %}">
-                                                                    {{ d.purchase_set.all.last.bill_number }}</a>
-
-                                                            {% else %}
-                                                                <a class="btn btn-sm btn-warning font-weight-light"
-                                                                   href="{% url 'buys:buy_list' d.id %}">
-                                                                    <i class="fas fa-money-check-alt"></i> Generar
-                                                                    O/C</a>
+                                                                   href="{% url 'buys:print_pdf_purchase_order' d.contractdetailpurchase_set.last.purchase.id %}">
+                                                                    {{ d.contractdetailpurchase_set.last.purchase.bill_number }}</a>
                                                             {% endif %}
                                                         </td>
-                                                        <td class="align-middle">
-                                                            {% if d.guide_set.all %}
-                                                                <a class="btn btn-sm btn-danger font-weight-light"
-                                                                   href="{% url 'comercial:guide' d.guide_set.all.last.id %}">
-                                                                    {{ d.guide_set.all.last.serial }}-{{ d.guide_set.all.last.correlative|zfill:5 }}</a>
-                                                            {% else %}
-                                                                <a class="btn btn-sm btn-primary font-weight-light"
-                                                                   href="{% url 'comercial:new_guide' d.id %}">
-                                                                    <i class="fas fa-folder-plus"></i> Generar Guia</a>
-                                                            {% endif %}
-                                                            {#                                            <button type="button" class="btn-sm btn-primary" id="btn-new-guide"#}
-                                                            {#                                                    onclick="showModalViewGuide('modal_new_guide', {{ c.id }})">#}
-                                                            {#                                                <i class="fas fa-folder-plus"></i> Generar Guia#}
-                                                            {#                                            </button>#}
-                                                        </td>
+                                                        {#                                                        <td class="align-middle">#}
+                                                        {#                                                            {% if d.purchase_set.all %}#}
+                                                        {#                                                                <a class="btn btn-sm btn-success font-weight-light"#}
+                                                        {#                                                                   href="{% url 'buys:print_pdf_purchase_order' d.purchase_set.all.last.id %}">#}
+                                                        {#                                                                    {{ d.purchase_set.all.last.bill_number }}</a>#}
+                                                        {##}
+                                                        {#                                                            {% else %}#}
+                                                        {#                                                                <a class="btn btn-sm btn-warning font-weight-light"#}
+                                                        {#                                                                   href="{% url 'buys:buy_list' d.id %}">#}
+                                                        {#                                                                    <i class="fas fa-money-check-alt"></i> Generar#}
+                                                        {#                                                                    O/C</a>#}
+                                                        {#                                                            {% endif %}#}
+                                                        {#                                                        </td>#}
+                                                        {#                                                        <td class="align-middle">#}
+                                                        {#                                                            {% if d.guide_set.all %}#}
+                                                        {#                                                                <a class="btn btn-sm btn-danger font-weight-light"#}
+                                                        {#                                                                   href="{% url 'comercial:guide' d.guide_set.all.last.id %}">#}
+                                                        {#                                                                    {{ d.guide_set.all.last.serial }}-{{ d.guide_set.all.last.correlative|zfill:5 }}</a>#}
+                                                        {#                                                            {% else %}#}
+                                                        {#                                                                <a class="btn btn-sm btn-primary font-weight-light"#}
+                                                        {#                                                                   href="{% url 'comercial:new_guide' d.id %}">#}
+                                                        {#                                                                    <i class="fas fa-folder-plus"></i> Generar Guia</a>#}
+                                                        {#                                                            {% endif %}#}
+                                                        {#                                                        </td>#}
                                                     </tr>
+
                                                 {% endfor %}
                                                 </tbody>
                                             </table>

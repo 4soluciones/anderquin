@@ -562,6 +562,79 @@
 
         }
 
+        $(document).on('click', '.generate-oc', function () {
+            let collapse = $(this).closest('.collapse');
+            let table = collapse.find('table.dates');
+            let selectedData = {};
+            let checkedCount = 0;
+            table.find('tbody tr td.item-check input.check-dates').each(function () {
+                let checkbox = $(this);
+                let itemsTable = checkbox.closest('tr').find('td.items-table table.items');
+                if (checkbox.prop('checked')) {
+                    checkedCount++;
+                    itemsTable.find('tbody tr').each(function () {
+                        let _tr = $(this);
+                        let productID = parseInt(_tr.attr('product'));
+                        let quantity = parseFloat(_tr.find('td.item-quantity').text());
+                        let idContractDetail = parseInt(_tr.attr('cd'));
+                        if (selectedData[productID]) {
+                            selectedData[productID].quantity += quantity;
+                            selectedData[productID].contractDetailIDs.push(idContractDetail);
+                        } else {
+                            selectedData[productID] = {
+                                quantity: quantity,
+                                contractDetailIDs: [idContractDetail]
+                            };
+                        }
+                    });
+                }
+            });
+
+            if (checkedCount === 0) {
+                toastr.warning('Seleccione al menos una Fecha de entrega', '¡Mensaje!');
+            } else {
+                sendDataBuys(selectedData)
+            }
+
+        });
+
+        /*function sendDataBuys(selectedData) {
+
+            //console.log("Datos seleccionados:", selectedData);
+            var jsonArray = JSON.stringify(selectedData);
+            var baseUrl = window.location.origin;
+            location.href = baseUrl + "/buys/buy_list/?data=" + encodeURIComponent(jsonArray);
+        }*/
+        function sendDataBuys(selectedData) {
+            console.log("Datos seleccionados:", selectedData);
+            $.ajax({
+                url: '/buys/get_buys_by_contract/',
+                type: "GET",
+                data: {'selectedData': JSON.stringify(selectedData)},
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function (response) {
+                    window.location.href = response.redirect_url;
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error en la solicitud:", error);
+                }
+            });
+        }
+
+        $(document).on('change', '.form-check-input', function () {
+            let checkedCount = 0;
+            let table = $(this).closest('table');
+            let badge = table.closest('.collapse').find('.badge');
+            table.find('tbody tr').each(function () {
+                var checkbox = $(this).find('.form-check-input');
+                if (checkbox.prop('checked')) {
+                    checkedCount++;
+                }
+            });
+            badge.text(checkedCount);
+        });
+
     </script>
 
 {% endblock extrajs %}
