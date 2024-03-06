@@ -3142,7 +3142,7 @@ def get_purchase_detail(request):
 
 
 def update_purchase(request, pk=None):
-    contract_detail_obj = None
+    contract_obj = None
     purchase_detail_dict = []
     purchase_obj = Purchase.objects.get(id=int(pk))
     client_reference_address_set = ''
@@ -3155,8 +3155,14 @@ def update_purchase(request, pk=None):
         client_reference_entity_address_set = ClientAddress.objects.filter(
             client__id=purchase_obj.client_reference_entity.id)
 
-    if purchase_obj.contract_detail is not None:
-        contract_detail_obj = ContractDetail.objects.get(id=int(purchase_obj.contract_detail.id))
+    contract_detail_purchase_set = ContractDetailPurchase.objects.filter(purchase=purchase_obj)
+
+    contract_detail_ids_str = ''
+    if contract_detail_purchase_set.exists():
+        contract_detail_purchase_set_obj = contract_detail_purchase_set.last()
+        contract_obj = contract_detail_purchase_set_obj.contract_detail.contract
+        contract_detail_ids = [str(obj.contract_detail.id) for obj in contract_detail_purchase_set]
+        contract_detail_ids_str = ','.join(contract_detail_ids)
 
     for pd in purchase_obj.purchasedetail_set.all():
         product_detail = ProductDetail.objects.get(product=pd.product, unit__id=pd.unit.id)
@@ -3189,7 +3195,9 @@ def update_purchase(request, pk=None):
     # print(purchase_detail_dict)
     return render(request, 'buys/buy_list_edit.html', {
         'purchase': purchase_obj,
-        'contract_detail_obj': contract_detail_obj,
+        'contract_obj': contract_obj,
+        'contract_detail_purchase_set': contract_detail_purchase_set,
+        'contract_detail_ids_str': contract_detail_ids_str,
         'supplier_set': Supplier.objects.all(),
         'choices_payments_purchase': Purchase._meta.get_field('payment_method').choices,
         'client_set': Client.objects.all(),

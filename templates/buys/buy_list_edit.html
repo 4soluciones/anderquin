@@ -9,19 +9,28 @@
         <div class="col-sm-12 col-sm-12 col-lg-12 pt-3 roboto-condensed-regular">
             <div class="card">
                 <div class="card-header pt-0">
-                    <div class="row"{% if contract_detail_obj %} style="background: #62a239" {% else %}
+                    <div class="row"{% if contract_obj %} style="background: #62a239" {% else %}
                          style="background: #1a77c8"{% endif %}>
                         <div class="col-sm-12 col-md-12 col-lg-12">
                             <div class="row p-2">
-                                <div class="col-sm-4 col-md-4 col-lg-4 pr-0">
+                                <div class="col-sm-4 col-md-4 col-lg-4 pr-0" >
                                     <input type="hidden" id="contract_detail_id" name="contract-detail"
-                                           value="{{ contract_detail_obj.id }}">
+                                           value="{{ contract_detail_ids_str }}">
                                     <input type="hidden" id="purchase_id" value="{{ purchase.id }}">
-                                    {% if contract_detail_obj %}
-                                        <h6 class="text-white font-weight-bold mt-4 mb-0 text-warning">
-                                            EDITAR: {{ contract_detail_obj.contract.contract_number }} -
-                                            FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}
-                                        </h6>
+                                    {% if contract_obj %}
+                                        <h5 class="text-white mt-4 mb-0 text-white roboto-condensed-regular">
+                                            EDITAR CONTRATO: {{ contract_obj.contract_number }}
+                                            <p class="mb-0" style="font-size: 13px">Orden de Compra: {{ purchase.bill_number }}</p>
+                                            <ul style="font-size: 13px">
+                                                {% for c in contract_detail_purchase_set %}
+                                                    <li>
+                                                        <span class="text-dark">Nro. de Entrega:</span>
+                                                        <span class="text-white">{{ c.contract_detail.nro_quota }}</span>
+                                                        <span class="text-dark">Fecha:</span> <span class="text-white">{{ c.contract_detail.date|date:'d-m-Y' }}</span>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </h5>
                                     {% else %}
                                         <h5 class="text-white font-weight-bold mt-4 mb-0 text-warning">
                                             <label>EDITAR ORDEN DE COMPRA: {{ purchase.bill_number }}</label>
@@ -119,14 +128,14 @@
                                                     </select>
                                                 </div>
 
-                                                <div class="col-sm-4 col-md-4 col-lg-4 {% if contract_detail_obj is None %}d-none{% endif %}">
+                                                <div class="col-sm-4 col-md-4 col-lg-4 {% if contract_obj is None %}d-none{% endif %}">
                                                     <label for="delivery_date">Fecha de entrega</label>
                                                     <input type="date" class="form-control" id="delivery_date"
                                                            name="delivery-date"
-                                                           value="{{ contract_detail_obj.date|date:'Y-m-d' }}">
+                                                           value="{{ purchase.delivery_date|date:'Y-m-d' }}">
                                                 </div>
 
-                                                <div class="col-sm-4 col-md-4 col-lg-4 {% if contract_detail_obj %}d-none{% endif %}">
+                                                <div class="col-sm-4 col-md-4 col-lg-4 {% if contract_obj %}d-none{% endif %}">
                                                     <label for="id_fechacompra">Fecha</label>
                                                     <input type="date" class="form-control" id="id_fechacompra"
                                                            name="fechacompra"
@@ -431,7 +440,7 @@
                                                    data-toggle="dropdown" aria-expanded="false"
                                                    placeholder="Ingrese producto..."
                                                    value="{{ pd.product_name }} - {{ pd.product_brand }}"
-                                                   {% if contract_detail_obj %}disabled{% endif %}>
+                                                   {% if contract_obj %}disabled{% endif %}>
                                             <div class="dropdown-menu"></div>
                                         </td>
                                         <td class="align-middle item-quantity">
@@ -1312,7 +1321,7 @@
                     };
                     Detail_purchase.Details.push(detailObj);
                 });
-                {#console.log(JSON.stringify(Detail_purchase))#}
+                console.log(Detail_purchase)
                 $.ajax({
                     url: '/buys/save_update_purchase/',
                     async: true,
