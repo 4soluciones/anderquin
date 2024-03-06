@@ -470,8 +470,7 @@
                                         </td>
                                         <td class="align-middle quantity-minimum">
                                             <input type="text" class="form-control text-center quantity-minimum-val"
-                                                   value="{{ pd.quantity|safe }}"
-                                                   readonly>
+                                                   value="{{ pd.quantity|safe }}">
                                         </td>
 
                                         {#                                        <td class="align-middle item-quantity-x-unit">#}
@@ -848,14 +847,14 @@
             }
         }
 
-        $(document).on('change', '.unit-product', async function (e) {
+        $(document).on('change', '.unit-product', function (e) {
             let unit_id = $(this).val();
             let product_id = $(this).parent('td').parent('tr').attr('product')
             let _quantity = Number($(this).parent('td').parent('tr').find('td.item-quantity input.quantity-product').val())
             let _tr = $(this).parent('td').parent('tr')
             let _select_quantity_unit = _tr.find('td.item-quantity-x-unit select.quantity-unit');
             if (unit_id !== '0') {
-                await getQuantityMinimumByProduct(product_id, unit_id, _tr, _quantity)
+                getQuantityMinimumByProduct(product_id, unit_id, _tr, _quantity)
                 {#if (!flag_function) {#}
                 if (unit_id === '1') { /*optimizar*/
                     _select_quantity_unit.val('1').change();
@@ -885,7 +884,7 @@
             $('.quantity-product').trigger('keyup');
         });
 
-        async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
+        function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
             let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum-val');
             //let _input_cant_x_und = _tr.find('td.item-quantity-x-unit input.quantity-x-unit');
             let _price_unit_product = _tr.find('td.item-price input.price-unit-product');
@@ -904,8 +903,9 @@
                         let _quantity_minimum = Number(response.quantity_minimum).toFixed(2)
                         if (_quantity_minimum && _quantity) {
                             let _q_x_u = _quantity / _quantity_minimum
+                            //console.log("_q_x_u", _q_x_u)
                             //_input_cant_x_und.val(_q_x_u.toFixed(2))
-                            _input_quantity_minimum.val(_q_x_u.toFixed(2))
+                            _input_quantity_minimum.val(_q_x_u)
                             {#_input_cant_x_und.val(Math.ceil(_q_x_u))#}
                         }
                         //_input_quantity_minimum.val(response.quantity_minimum + ' UND');
@@ -1068,15 +1068,17 @@
 
             let _tr = $(this).parent('div').parent('td').parent('tr')
             let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
+            let _quantity_minimum = Number(_tr.find('td.quantity-minimum input.quantity-minimum-val').val())
             let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
             let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
 
-            {#console.log("_quantity", _quantity)#}
-            {#console.log("_price_unit", _price_unit)#}
-            {#console.log("_total", _total)#}
+            //console.log("_quantity", _quantity)
+            //console.log("_price_unit", _price_unit)
+            //console.log("_total", _total)
+            //console.log("_quantity_minimum", _quantity_minimum)
 
             if (_quantity !== 0 && _price_unit !== 0) {
-                _total = _quantity * _price_unit
+                _total = _quantity_minimum * _price_unit
                 _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(2));
             }
             calculate_total(_tr)
@@ -1087,11 +1089,12 @@
 
             let $quantity = Number(_tr.find('td.item-quantity input.quantity-product').val());
             let $quantity_x_und = Number(_tr.find('td.item-quantity-x-unit input.quantity-x-unit').val())
+            let $quantity_minimum = Number(_tr.find('td.quantity-minimum input.quantity-minimum-val').val())
             let $price_unit = Number(_tr.find('td.item-price input.price-unit-product').val());
             let $total = Number(_tr.find('td.total-row input.total-detail').val());
             let amount
 
-            amount = $quantity * $price_unit
+            amount = $quantity_minimum * $price_unit
 
             _tr.find('td.total-row input.total-detail').val(amount.toFixed(4))
 
@@ -1316,6 +1319,7 @@
                         "Product": $(this).attr('product'),
                         "Unit": $(this).find("td.unit select.unit-product").val(),
                         "Quantity": $(this).find("td.item-quantity input.quantity-product").val(),
+                        "QuantityUnits": $(this).find("td.quantity-minimum input.quantity-minimum-val").val(),
                         "Price": Number($(this).find("td.item-price input.price-unit-product").val()),
                         "Total": Number($(this).find("td.item-total input.total-detail").val()),
                     };

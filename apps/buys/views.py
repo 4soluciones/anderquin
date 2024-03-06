@@ -3175,7 +3175,7 @@ def update_purchase(request, pk=None):
             'product_id': pd.product.id,
             'product_name': pd.product.name,
             'product_brand': pd.product.product_brand.name,
-            'quantity':round(pd.quantity, 2),
+            'quantity': round(pd.quantity, 2),
             'unit_id': pd.unit.id,
             'unit_name': pd.unit.name,
             'quantity_minimum': round(product_detail.quantity_minimum, 0),
@@ -3406,6 +3406,7 @@ def save_update_purchase(request):
                 unit_id = int(detail['Unit'])
                 unit_obj = Unit.objects.get(id=unit_id)
                 quantity = str(detail['Quantity'])
+                quantity_units = decimal.Decimal(detail['QuantityUnits'])
                 price = decimal.Decimal(detail['Price'])
 
                 if detail['ProductDetail'] != 'NaN':
@@ -3414,7 +3415,7 @@ def save_update_purchase(request):
 
                     purchase_detail_obj.purchase = purchase_obj
                     purchase_detail_obj.product = product_obj
-                    purchase_detail_obj.quantity = quantity
+                    purchase_detail_obj.quantity = quantity_units
                     purchase_detail_obj.unit = unit_obj
                     purchase_detail_obj.price_unit = price
                     purchase_detail_obj.save()
@@ -3423,7 +3424,7 @@ def save_update_purchase(request):
                     new_purchase_detail_obj = PurchaseDetail(
                         purchase=purchase_obj,
                         product=product_obj,
-                        quantity=quantity,
+                        quantity=quantity_units,
                         unit=unit_obj,
                         price_unit=price
                     )
