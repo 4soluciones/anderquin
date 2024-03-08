@@ -2599,7 +2599,7 @@ def get_product_by_criteria_table(request):
             else:
                 full_query = full_query & q
 
-        product_set = product_query.filter(full_query).select_related(
+        product_set = product_query.filter(full_query, is_enabled=True).select_related(
             'product_family', 'product_brand').order_by('id')
 
         if not product_set:
