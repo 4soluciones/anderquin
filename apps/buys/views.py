@@ -535,7 +535,7 @@ def get_purchase_list(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
-    purchases = Purchase.objects.filter(status='S').order_by('-id')
+    purchases = Purchase.objects.filter(status='S').order_by('-correlative')
     return render(request, 'buys/purchase_list.html', {
         'purchases': purchases
     })
