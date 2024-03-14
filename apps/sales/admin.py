@@ -2,7 +2,7 @@ from import_export.admin import ImportExportModelAdmin
 from django.contrib import admin
 from apps.sales import models
 # Register your models here.
-from apps.sales.models import City, AddressSupplier
+from apps.sales.models import City
 
 
 class SubsidiaryAdmin(admin.ModelAdmin):
@@ -68,16 +68,3 @@ admin.site.register(models.Client)
 # admin.site.register(models.NaturalClient)
 # admin.site.register(models.Kardex)
 
-
-class CityAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name')
-
-
-admin.site.register(City, CityAdmin)
-
-
-class AddressSupplierAdmin(admin.ModelAdmin):
-    list_display = ('id', 'supplier', 'city', 'address')
-
-
-admin.site.register(AddressSupplier, AddressSupplierAdmin)

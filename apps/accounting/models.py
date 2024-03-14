@@ -188,12 +188,12 @@ class CashFlow(models.Model):
     DOCUMENT_TYPE_ATTACHED_CHOICES = (
         ('F', 'Factura'), ('B', 'Boleta'), ('T', 'Ticket'), ('V', 'Vale'), ('O', 'Otro'))
     OPERATION_TYPE_CHOICES = (
-    ('1', 'Deposito'), ('2', 'Pago electronico'), ('3', 'Compra electronica'), ('4', 'Extraccion bancaria'),
-    ('5', 'Transferencia bancaria'), ('6', 'Transferencia de Caja a Caja'), ('7', 'Transferencia de Caja a banco'),
-    ('0', 'Ninguno'))
+        ('1', 'Deposito'), ('2', 'Pago electronico'), ('3', 'Compra electronica'), ('4', 'Extraccion bancaria'),
+        ('5', 'Transferencia bancaria'), ('6', 'Transferencia de Caja a Caja'), ('7', 'Transferencia de Caja a banco'),
+        ('0', 'Ninguno'))
     TYPE_CHOICES = (
-    ('A', 'Apertura'), ('C', 'Cierre'), ('E', 'Entrada'), ('S', 'Salida'), ('D', 'Deposito'), ('R', 'Retiro'),
-    ('T', 'Transferencia'),)
+        ('A', 'Apertura'), ('C', 'Cierre'), ('E', 'Entrada'), ('S', 'Salida'), ('D', 'Deposito'), ('R', 'Retiro'),
+        ('T', 'Transferencia'),)
     transaction_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     description = models.CharField('Descripcion', max_length=200, null=True, blank=True)
@@ -320,7 +320,7 @@ class CashFlowLog(models.Model):
 
 
 class Salary(models.Model):
-    TYPE_CHOICES = (('S', 'Salario'),  ('G', 'Gratificacion'),)
+    TYPE_CHOICES = (('S', 'Salario'), ('G', 'Gratificacion'),)
     id = models.AutoField(primary_key=True)
     year = models.IntegerField('Año', default=0, null=True, blank=True)
     month = models.IntegerField('Meses', default=0, null=True, blank=True)
@@ -348,7 +348,7 @@ class Tributes(models.Model):
         return str(self.id)
 
 
-class BillPurchase(models.Model):
+class Bill(models.Model):
     id = models.AutoField(primary_key=True)
     register_date = models.DateField(null=True, blank=True)
     expiration_date = models.DateField(null=True, blank=True)
@@ -356,14 +356,35 @@ class BillPurchase(models.Model):
     correlative = models.CharField('Correlativo', max_length=200, null=True, blank=True)
     delivery_address = models.CharField('Direccion de entrega', max_length=200, null=True, blank=True)
     payment_condition = models.CharField('Condicion de Pago', max_length=255, null=True, blank=True)
-    order_number = models.IntegerField('Numero de Orden', null=True, blank=True)
-    purchase = models.ForeignKey('buys.Purchase', on_delete=models.CASCADE, null=True, blank=True)
+    # order_number = models.IntegerField('Numero de Orden', null=True, blank=True)
     bill_base_total = models.DecimalField('Total base ventas', max_digits=30, decimal_places=2, default=0)
     bill_igv_total = models.DecimalField('Total IGV ventas', max_digits=30, decimal_places=2, default=0)
     bill_total_total = models.DecimalField('Total ventas', max_digits=30, decimal_places=2, default=0)
+    supplier = models.ForeignKey('sales.Supplier', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return str(self.serial + '-' + self.correlative)
 
+    def sum_quantity_invoice(self):
+        response = 0
+        bill_purchase_set = BillPurchase.objects.filter(bill__id=self.id)
+        for b in bill_purchase_set:
+            response = response + b.quantity_invoice
+        return response
+
+    def sum_quantity_purchased(self):
+        response = 0
+        bill_purchase_set = BillPurchase.objects.filter(bill__id=self.id)
+        for b in bill_purchase_set:
+            response = response + b.quantity_purchased
+        return response
+
+
+class BillPurchase(models.Model):
+    id = models.AutoField(primary_key=True)
+    bill = models.ForeignKey(Bill, on_delete=models.CASCADE, null=True, blank=True)
+    purchase_detail = models.ForeignKey('buys.PurchaseDetail', on_delete=models.CASCADE, null=True, blank=True)
+    quantity_invoice = models.DecimalField('cantidad facturada', max_digits=10, decimal_places=2, default=0)
+    quantity_purchased = models.DecimalField('cantidad comprada', max_digits=10, decimal_places=2, default=0)
 
 

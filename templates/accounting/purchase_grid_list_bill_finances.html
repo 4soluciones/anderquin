@@ -1,53 +1,56 @@
 {% load operations %}
-{% if bill_purchase_set %}
+{% if bill_set %}
     <div class="card-body p-2 table-responsive small">
         <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
             <table id="purchase-list-with-bill"
                    class="table table-bordered align-content-center w-100 h-100 table-info">
                 <thead>
                 <tr class="font-weight-bold text-uppercase bg-warning text-center">
-                    <th class="th-sm" style="width: 5%">Fecha de Registro</th>
-                    <th class="th-sm" style="width: 5%">Fecha de Expiracion</th>
-                    <th class="th-sm" style="width: 7%">Nº Comprobante</th>
-                    <th class="th-sm" style="width: 16%">Proveedor</th>
-                    <th class="th-sm" style="width: 20%">Cliente</th>
-                    <th class="th-sm" style="width: 20%">Cliente Referido</th>
-                    <th class="th-sm" style="width: 5%">Usuario</th>
-                    <th class="th-sm" style="width: 5%">Subtotal</th>
-                    <th class="th-sm" style="width: 5%">Igv(18%)</th>
-                    <th class="th-sm" style="width: 5%">Total</th>
+                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Fecha de Registro</th>
+                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Fecha de Expiracion</th>
+                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Condición de Pago</th>
+                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Nº Comprobante</th>
+                    <th class="th-sm align-middle" style="width: 10%" rowspan="2">Proveedor</th>
+                    <th class="th-sm align-middle" style="width: 14%" rowspan="2">Direccion de Entrega</th>
+                    <th class="th-sm align-middle" style="width: 6%" rowspan="2">Subtotal</th>
+                    <th class="th-sm align-middle" style="width: 6%" rowspan="2">Igv(18%)</th>
+                    <th class="th-sm align-middle" style="width: 6%" rowspan="2">Total</th>
+                    <th class="th-sm align-middle" style="width: 6%" rowspan="2">Estado</th>
+
+                    <th class="th-sm" colspan="3">Ordenes de Compra</th>
+                </tr>
+                <tr class="font-weight-bold text-uppercase bg-warning text-center">
+                    <th class="th-sm" style="width: 6%">O/C</th>
+                    <th class="th-sm" style="width: 13%">Cliente</th>
+                    <th class="th-sm" style="width: 13%">Cliente Referido</th>
                 </tr>
                 </thead>
-                <tbody id="body-finances" style="font-size: 13px;">
-                {% for b in bill_purchase_set %}
+                <tbody id="body-finances-bill" style="font-size: 13px;">
+                {% for b in bill_dict %}
                     <tr class="text-center" pk="{{ b.id }}">
-                        <td class="align-middle">{{ b.register_date|date:'d-m-Y' }}</td>
-                        <td class="align-middle">{{ b.expiration_date|date:'d-m-Y' }}</td>
-                        <td class="align-middle text-center font-weight-bold">{{ b.serial }} - {{ b.correlative }}</td>
-                        <td class="align-middle text-center">{{ b.purchase.supplier.name }}</td>
-                        <td class="align-middle text-center">{{ b.purchase.client_reference.names|upper }}</td>
-                        <td class="align-middle text-center">{{ b.purchase.client_reference_entity.names|default:'-'|default_if_none:'-' }}</td>
-                        <td class="align-middle text-center">{{ b.purchase.user.worker_set.last.employee.names|upper }}</td>
-                        <td class="align-middle text-right font-weight-bold">S/ {{ b.bill_base_total|thousands_separator }}</td>
-                        <td class="align-middle text-right font-weight-bold">S/ {{ b.bill_igv_total|thousands_separator }}</td>
-                        <td class="align-middle text-right font-weight-bold">S/ {{ b.bill_total_total|thousands_separator }}</td>
+                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.register_date|date:'d-m-Y' }}</td>
+                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.expiration_date|date:'d-m-Y' }}</td>
+                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.payment_condition|upper }}</td>
+                        <td class="align-middle text-left font-weight-bold" rowspan="{{ b.row_count }}">{{ b.serial }} - {{ b.correlative }}</td>
+                        <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.supplier_name }}</td>
+                        <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.delivery_address }}</td>
+
+                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_base_total|thousands_separator }}</td>
+                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_igv_total|thousands_separator }}</td>
+                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_total_total|thousands_separator }}</td>
+                        <td class="align-middle text-center font-weight-bold bg-success {% if b.status == 'INCOMPLETO' %}bg-danger{% endif %}" rowspan="{{ b.row_count }}">
+                            {{ b.status }}
+                        </td>
+                        {% for d in b.bill_purchase %}
+                            <td class="align-middle text-center">{{ d.bill_number }}</td>
+                            <td class="align-middle text-center">{{ d.client_reference.names|upper }}</td>
+                            <td class="align-middle text-center">{{ d.client_reference_entity.names|default:'-'|default_if_none:'-' }}</td>
+                            </tr>
+                        {% endfor %}
                     </tr>
                 {% endfor %}
                 </tbody>
-                <tfoot>
-                <tr class="text-center bg-warning text-uppercase">
-                    <th class="th-sm" style="width: 5%">Fecha de Registro</th>
-                    <th class="th-sm" style="width: 5%">Fecha de Expiracion</th>
-                    <th class="th-sm" style="width: 5%">Nº Comprobante</th>
-                    <th class="th-sm" style="width: 16%">Proveedor</th>
-                    <th class="th-sm" style="width: 20%">Cliente</th>
-                    <th class="th-sm" style="width: 20%">Cliente Referido</th>
-                    <th class="th-sm" style="width: 5%">Usuario</th>
-                    <th class="th-sm" style="width: 5%">Subtotal</th>
-                    <th class="th-sm" style="width: 5%">Igv(18%)</th>
-                    <th class="th-sm" style="width: 5%">Total</th>
-                </tr>
-                </tfoot>
+
             </table>
         </div>
     </div>

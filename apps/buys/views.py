@@ -24,7 +24,7 @@ from .models import *
 from .views_PDF_purchase_order import query_apis_net_money
 from ..comercial.models import GuideMotive
 from ..sales.models import Product, Unit, Supplier, SubsidiaryStore, ProductStore, ProductDetail, Kardex, Cash, \
-    CashFlow, TransactionPayment, AddressSupplier, SupplierAddress
+    CashFlow, TransactionPayment, SupplierAddress
 from ..sales.views_SUNAT import query_apis_net_dni_ruc
 
 

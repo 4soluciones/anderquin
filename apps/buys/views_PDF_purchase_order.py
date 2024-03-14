@@ -26,7 +26,7 @@ from reportlab.rl_settings import defaultPageSize
 
 
 from anderquin import settings
-from .models import Purchase, PurchaseDetail, EntityReference, MoneyChange, AddressEntityReference, Bill, BillDetail
+from .models import Purchase, PurchaseDetail, EntityReference, MoneyChange, AddressEntityReference
 from ..hrm.models import Worker, Subsidiary
 from ..sales.models import Supplier, ProductSupplier, ProductDetail, Client
 from ..sales.number_to_letters import numero_a_moneda

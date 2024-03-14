@@ -248,10 +248,12 @@ class Supplier(models.Model):
 
 
 class SupplierAddress(models.Model):
+    TYPE_ADDRESS = (('P', 'PRINCIPAL'), ('S', 'SUCURSAL'))
     supplier = models.ForeignKey('Supplier', on_delete=models.CASCADE)
     address = models.CharField('Dirección', max_length=200, null=True, blank=True)
     district = models.ForeignKey(District, on_delete=models.SET_NULL, null=True, blank=True)
     reference = models.CharField('Referencia', max_length=400, null=True, blank=True)
+    type_address = models.CharField('Tipo de direccion', max_length=1, choices=TYPE_ADDRESS, default='S')
 
     def __str__(self):
         return str(self.address)
@@ -270,20 +272,6 @@ class City(models.Model):
     class Meta:
         verbose_name = 'Ciudad'
         verbose_name_plural = 'Ciudades'
-
-
-class AddressSupplier(models.Model):
-    supplier = models.ForeignKey(Supplier, verbose_name='Proveedor', on_delete=models.CASCADE,
-                                 related_name='supplier_address')
-    city = models.ForeignKey(City, verbose_name='Ciudad', on_delete=models.SET_NULL, null=True, blank=True)
-    address = models.CharField('Dirección', max_length=200)
-
-    def __str__(self):
-        return f'{self.address}'
-
-    class Meta:
-        verbose_name = 'Dirección del Proveedor'
-        verbose_name_plural = 'Direcciones del Proveedor'
 
 
 class ProductSupplier(models.Model):

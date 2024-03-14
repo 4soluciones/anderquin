@@ -36,7 +36,16 @@
             <div class="tab-content" id="multi-tabContent">
                 <div class="tab-pane active" id="purchase-without-bill" role="tabpanel"
                      aria-labelledby="purchase-list-tab">
-                    <div class="card-body p-2">
+                    <div class="card-body pt-2 pb-0">
+                        <div class="row pl-2">
+                            <button type="button"
+                                    class="btn btn-sm btn-success font-weight-light font-italic generate-bill">
+                                Generar Factura
+                                <span class="badge badge-light">0</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body pt-0">
                         <div class="row mt-1">
                             <div id="file-list-grid" class="table-responsive small">
                                 <div id="client-grid-list">{% include "accounting/purchase_grid_list_finances.html" %}</div>
@@ -140,6 +149,51 @@
                     toastr.error('Error en la peticion, Contactar con Sistemas', '¡Mensaje!');
                 }
             });
+        });
+
+        $(document).on('click', '.generate-bill', function () {
+            let tbody = $('#body-finances')
+            let firstSupplierID = null;
+            let purchasesID = [];
+            let error = false;
+
+            tbody.find('tr td.item-check input.check-oc').each(function () {
+                if ($(this).prop('checked')) {
+                    let _tr = $(this).closest('tr');
+                    let supplierID = parseInt(_tr.attr('supplier'));
+                    let purchaseID = parseInt(_tr.attr('pk'));
+                    if (firstSupplierID === null) {
+                        firstSupplierID = supplierID;
+                    } else {
+                        if (supplierID !== firstSupplierID) {
+                            error = true;
+                            return false;
+                        }
+                    }
+                    purchasesID.push(purchaseID);
+                }
+            });
+
+            if (error) {
+                toastr.warning('No puedes seleccionar Ordenes de Compra de diferentes proveedores para generar una factura.', 'Mensaje');
+            }
+
+            if (!error && purchasesID.length > 0) {
+                console.log(purchasesID)
+                $.ajax({
+                    url: '/accounting/modal_bill_create/',
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'purchases': JSON.stringify(purchasesID)},
+                    success: function (response) {
+                        $('#modal-bill-create').html(response.form);
+                        $('#modal-bill-create').modal('show');
+                    },
+                    fail: function (response) {
+                        toastr.error('Error en la peticion', '¡Mensaje!');
+                    }
+                });
+            }
         });
 
     </script>

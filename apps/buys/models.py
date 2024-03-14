@@ -403,33 +403,33 @@ class ContractDetailPurchase(models.Model):
         return str(self.id)
 
 
-class Bill(models.Model):
-    id = models.AutoField(primary_key=True)
-    order_date = models.DateField('Fecha de Pedido', null=True, blank=True)
-    order_number = models.CharField('Numero de Pedido', max_length=200, null=True, blank=True)
-    client = models.ForeignKey('sales.Client', verbose_name='Client', on_delete=models.CASCADE, null=True, blank=True)
-    purchase = models.ManyToManyField('Purchase', related_name='purchases', blank=True)
-    issue_date = models.DateField('Fecha de Emision', null=True, blank=True)
-    pay_condition = models.CharField('Condicion de Pago', max_length=50, null=True, blank=True)
-    due_date = models.DateField('Fecha de Vencimiento', null=True, blank=True)
-    user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, null=True, blank=True)
-    serial = models.CharField('Serie', max_length=200, null=True, blank=True)
-    correlative = models.CharField('Correlativo', max_length=200, null=True, blank=True)
-
-    def __str__(self):
-        return str(self.serial + ' ' + self.correlative)
-
-
-class BillDetail(models.Model):
-    id = models.AutoField(primary_key=True)
-    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
-    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
-    price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
-    bill = models.ForeignKey(Bill, on_delete=models.CASCADE, null=True, blank=True)
-
-    def __str__(self):
-        return str(self.id)
-
-    def multiply(self):
-        return self.quantity * self.price_unit
+# class Bill(models.Model):
+#     id = models.AutoField(primary_key=True)
+#     order_date = models.DateField('Fecha de Pedido', null=True, blank=True)
+#     order_number = models.CharField('Numero de Pedido', max_length=200, null=True, blank=True)
+#     client = models.ForeignKey('sales.Client', verbose_name='Client', on_delete=models.CASCADE, null=True, blank=True)
+#     purchase = models.ManyToManyField('Purchase', related_name='purchases', blank=True)
+#     issue_date = models.DateField('Fecha de Emision', null=True, blank=True)
+#     pay_condition = models.CharField('Condicion de Pago', max_length=50, null=True, blank=True)
+#     due_date = models.DateField('Fecha de Vencimiento', null=True, blank=True)
+#     user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, null=True, blank=True)
+#     serial = models.CharField('Serie', max_length=200, null=True, blank=True)
+#     correlative = models.CharField('Correlativo', max_length=200, null=True, blank=True)
+#
+#     def __str__(self):
+#         return str(self.serial + ' ' + self.correlative)
+#
+#
+# class BillDetail(models.Model):
+#     id = models.AutoField(primary_key=True)
+#     quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
+#     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+#     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
+#     price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
+#     bill = models.ForeignKey(Bill, on_delete=models.CASCADE, null=True, blank=True)
+#
+#     def __str__(self):
+#         return str(self.id)
+#
+#     def multiply(self):
+#         return self.quantity * self.price_unit
