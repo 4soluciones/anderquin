@@ -13,20 +13,22 @@
                          style="background: #1a77c8"{% endif %}>
                         <div class="col-sm-12 col-md-12 col-lg-12">
                             <div class="row p-2">
-                                <div class="col-sm-4 col-md-4 col-lg-4 pr-0" >
+                                <div class="col-sm-4 col-md-4 col-lg-4 pr-0">
                                     <input type="hidden" id="contract_detail_id" name="contract-detail"
                                            value="{{ contract_detail_ids_str }}">
                                     <input type="hidden" id="purchase_id" value="{{ purchase.id }}">
                                     {% if contract_obj %}
                                         <h5 class="text-white mt-4 mb-0 text-white roboto-condensed-regular">
                                             EDITAR CONTRATO: {{ contract_obj.contract_number }}
-                                            <p class="mb-0" style="font-size: 13px">Orden de Compra: {{ purchase.bill_number }}</p>
+                                            <p class="mb-0" style="font-size: 13px">Orden de
+                                                Compra: {{ purchase.bill_number }}</p>
                                             <ul style="font-size: 13px">
                                                 {% for c in contract_detail_purchase_set %}
                                                     <li>
                                                         <span class="text-dark">Nro. de Entrega:</span>
                                                         <span class="text-white">{{ c.contract_detail.nro_quota }}</span>
-                                                        <span class="text-dark">Fecha:</span> <span class="text-white">{{ c.contract_detail.date|date:'d-m-Y' }}</span>
+                                                        <span class="text-dark">Fecha:</span> <span
+                                                            class="text-white">{{ c.contract_detail.date|date:'d-m-Y' }}</span>
                                                     </li>
                                                 {% endfor %}
                                             </ul>
@@ -259,7 +261,8 @@
 
                                             </div>
                                             <div class="col-sm-6 col-md-6 col-lg-6 client-final {% if purchase.client_reference.type_client == 'PU' %}d-none{% endif %}">
-                                                <label for="person-final-names" class="text-primary">Referencia de Venta a la
+                                                <label for="person-final-names" class="text-primary">Referencia de Venta
+                                                    a la
                                                     Entidad: (Cliente Final)</label>
                                                 <div id="autocomplete-client-final" class="autocomplete">
                                                     <input class="form-control autocomplete-input"
@@ -497,7 +500,7 @@
                                             </div>
                                         </td>
                                         <td class="align-middle text-center">
-                                            <button type="button" onclick="deleteItem(this)"
+                                            <button type="button" onclick="deleteItem({{ pd.product_id }})"
                                                     class="btn btn-danger delete-detail">
                                                 <i class="fa fa-trash"></i>
                                             </button>
@@ -1141,11 +1144,17 @@
         function deleteItem($id) {
             let rows = $('#details-table').find("tr[product=" + $id + "]");
             let detail_id = parseInt(rows.attr('pd_id'));
-            counterStrike2();
+
             if (!isNaN(detail_id)) {
-                deleteProduct(detail_id);
+                let r = confirm("¿Está seguro que desea eliminar el detalle?, al hacerlo no podra recuperarlo");
+                if (r === true) {
+                    deleteProduct(detail_id);
+                    $('#details-table').find("tr[product=" + $id + "]").remove();
+                }
+            } else {
+                $('#details-table').find("tr[product=" + $id + "]").remove();
             }
-            $('#details-table').find("tr[product=" + $id + "]").remove();
+            counterStrike2();
         }
 
         function counterStrike2() {
@@ -1165,7 +1174,7 @@
         function deleteProduct(detail_id) {
 
             $.ajax({
-                url: '/buys/delete_item_product_buy/',
+                url: '/buys/delete_item_buys/',
                 async: true,
                 dataType: 'json', // for response
                 type: 'GET',
@@ -1174,7 +1183,7 @@
                 headers: {"X-CSRFToken": '{{ csrf_token }}'},
                 success: function (response, textStatus, xhr) {
                     if (xhr.status === 200) {
-                        {#toastr.success(response.message, '¡Mensaje!');#}
+                        toastr.success(response.message, '¡Mensaje!');
                     }
                 },
                 error: function (jqXhr, textStatus, xhr) {

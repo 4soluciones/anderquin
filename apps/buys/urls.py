@@ -98,6 +98,9 @@ urlpatterns = [
     path('save_update_purchase/', save_update_purchase, name='save_update_purchase'),
     path('get_correlative_by_year/', get_correlative_by_year, name='get_correlative_by_year'),
 
+    # DELETE DETAIL
+    path('delete_item_buys/', login_required(delete_item_buys), name='delete_item_buys'),
+
     # PROVEEDORES
     path('suppliers/', login_required(supplier_list), name='supplier_list'),
     path('get_address_by_supplier_id/', get_address_by_supplier_id, name='get_address_by_supplier_id'),
@@ -119,7 +122,7 @@ urlpatterns = [
     path('bill/', login_required(bill_list), name='bill_list'),
     path('get_purchase_detail/', login_required(get_purchase_detail), name='get_purchase_detail'),
     path('get_purchases_by_client/', login_required(get_purchases_by_client), name='get_purchases_by_client'),
-    path('save_bill/', login_required(save_bill), name='save_bill'),
+    # path('save_bill/', login_required(save_bill), name='save_bill'),
     path('print_pdf_bill/<int:pk>/', print_pdf_bill, name='print_pdf_bill'),
 
     # GET CLIENT
@@ -130,4 +133,5 @@ urlpatterns = [
 
     # CONTRACT BUYS
     path('get_buys_by_contract/', login_required(get_buys_by_contract), name='get_buys_by_contract'),
+
 ]

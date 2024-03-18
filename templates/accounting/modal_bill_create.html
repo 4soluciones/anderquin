@@ -191,14 +191,14 @@
                                                         </td>
                                                         <td class="align-middle price">
                                                             <input type="text"
-                                                                   class="form-control text-center quantity-product text-uppercase"
+                                                                   class="form-control text-center price-product text-uppercase"
                                                                    placeholder="0" disabled
                                                                    value="{{ d.price_unit|safe }}">
                                                         </td>
                                                         <td class="align-middle price">
                                                             <div class="input-icon">
                                                                 <input type="text"
-                                                                       class="form-control text-right text-uppercase total-foot-base"
+                                                                       class="form-control text-right text-uppercase subtotal"
                                                                        placeholder="0.00"
                                                                        value="{{ d.amount|replace_round }}"><i
                                                                     class="change-money">S/</i>
@@ -398,6 +398,23 @@
         let _igvCalculate = Number(total) - _subTotalCalculate
         subTotal.val(_subTotalCalculate.toFixed(2))
         igv.val(_igvCalculate.toFixed(2))
+    });
+
+    $('.quantity-invoice').keyup(function () {
+
+        let quantity = $(this).val();
+        let price = $('.price-product').val();
+
+        let total = quantity * price;
+        let igv = $('.total-igv-bill');
+
+        $('.subtotal').val(total.toFixed(2))
+        $('.total-bill').val(total.toFixed(2))
+
+        let _subTotalCalculate = Number(total) / Number(1.18)
+        let igvTotalCalculate = Number(total) - _subTotalCalculate
+        $('.total-base-bill').val(_subTotalCalculate.toFixed(2))
+        igv.val(igvTotalCalculate.toFixed(2))
     });
 
 </script>
