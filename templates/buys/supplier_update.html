@@ -1,5 +1,5 @@
 {% load static %}
-<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+<div class="modal-dialog modal-dialog-centered modal-xl" role="document">
 
     <div class="modal-content">
         <div id="modal-loader" class="overlay" style="display: none">
@@ -88,7 +88,7 @@
                                 {% for s in supplier_obj.supplieraddress_set.all %}
                                     {% if forloop.first %}
                                         <div class="row addresses-update main-update">
-                                            <div class="col-sm-8 col-md-8 col-lg-8 pr-1">
+                                            <div class="col-sm-7 col-md-7 col-lg-7 pr-1">
                                                 <label class="mb-1 mt-2 font-weight-light"
                                                        for="address">Dirección</label>
                                                 <div class="input-group">
@@ -102,6 +102,18 @@
                                                            name="address-update" value="{{ s.address|upper }}">
                                                 </div>
                                             </div>
+
+                                            <div class="col-sm-1 col-md-1 col-lg-1 pl-2">
+                                                <div class="custom-control custom-checkbox mt-3">
+                                                    <input class="form-check-input mt-3 type-address" type="radio"
+                                                           name="radio_type_address" id="type_address"
+                                                           value="P"
+                                                           {% if s.type_address == 'P' %}checked{% endif %}>
+                                                    <label class="form-check-label mt-3"
+                                                           for="type_address">Principal?</label>
+                                                </div>
+                                            </div>
+
                                             <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-2">
                                                 <label class="mb-1 mt-2 font-weight-light"
                                                        for="district-update">Distrito</label>
@@ -129,7 +141,7 @@
                                         </div>
                                     {% else %}
                                         <div class="row addresses-update">
-                                            <div class="col-sm-8 col-md-8 col-lg-8 pr-1">
+                                            <div class="col-sm-7 col-md-7 col-lg-7 pr-1">
                                                 <label class="mb-1 mt-2 font-weight-light"
                                                        for="address-update">Dirección</label>
                                                 <div class="input-group">
@@ -141,6 +153,16 @@
                                                     <input type="text" class="form-control address-update"
                                                            id="address-update"
                                                            name="address-update" value="{{ s.address|upper }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1 col-md-1 col-lg-1 pl-2">
+                                                <div class="custom-control custom-checkbox mt-3">
+                                                    <input class="form-check-input mt-3 type-address" type="radio"
+                                                           name="radio_type_address" id="type_address"
+                                                           value="P"
+                                                           {% if s.type_address == 'P' %}checked{% endif %}>
+                                                    <label class="form-check-label mt-3"
+                                                           for="type_address">Principal?</label>
                                                 </div>
                                             </div>
                                             <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-2">
@@ -172,7 +194,7 @@
                                 {% endfor %}
                             {% else %}
                                 <div class="row addresses-update main-update">
-                                    <div class="col-sm-8 col-md-8 col-lg-8 pr-1">
+                                    <div class="col-sm-7 col-md-7 col-lg-7 pr-1">
                                         <label class="mb-1 mt-2 font-weight-light"
                                                for="address">Dirección</label>
                                         <div class="input-group">
@@ -186,6 +208,18 @@
                                                    name="address-update" value="{{ s.address|upper }}">
                                         </div>
                                     </div>
+
+                                    <div class="col-sm-1 col-md-1 col-lg-1 pl-2">
+                                        <div class="custom-control custom-checkbox mt-3">
+                                            <input class="form-check-input mt-3 type-address" type="radio"
+                                                   name="radio_type_address" id="type_address"
+                                                   value="P"
+                                                   {% if s.type_address == 'P' %}checked{% endif %}>
+                                            <label class="form-check-label mt-3"
+                                                   for="type_address">Principal?</label>
+                                        </div>
+                                    </div>
+
                                     <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-2">
                                         <label class="mb-1 mt-2 font-weight-light"
                                                for="district-update">Distrito</label>
@@ -280,13 +314,18 @@
 
         let addresseeObj = {};
         $(".addresses-update").each(function () {
+            let _type = 'S'
+            if ($(this).find("input.type-address:checked").val() === "P") {
+                _type = $(this).find("input.type-address:checked").val();
+            }
             addresseeObj = {
                 "new_address": $(this).find("input.address-update").val(),
                 "district": $(this).find("select.district-update").val(),
+                "type_address": _type
             }
             supplier.Addresses.push(addresseeObj);
         });
-        console.log(supplier)
+        //console.log(supplier)
         $.ajax({
             url: '/buys/update_supplier/',
             async: true,

@@ -2895,13 +2895,15 @@ def save_supplier(request):
         for d in data_supplier['Addresses']:
             new_address = str(d['new_address'])
             district = str(d['district'])
+            type_address = str(d['type_address'])
 
             district_obj = District.objects.get(id=district)
 
             supplier_address_obj = SupplierAddress(
                 supplier=supplier_obj,
                 address=new_address.upper(),
-                district=district_obj
+                district=district_obj,
+                type_address=type_address
             )
             supplier_address_obj.save()
 
@@ -2955,13 +2957,15 @@ def update_supplier(request):
             for d in data_supplier['Addresses']:
                 new_address = str(d['new_address'])
                 district = str(d['district'])
+                type_address = str(d['type_address'])
 
                 district_obj = District.objects.get(id=district)
 
                 supplier_address_obj = SupplierAddress(
                     supplier=supplier_obj,
                     address=new_address.upper(),
-                    district=district_obj
+                    district=district_obj,
+                    type_address=type_address
                 )
                 supplier_address_obj.save()
 
