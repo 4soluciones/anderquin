@@ -2124,7 +2124,7 @@ def modal_bill_create(request):
                 for pd in purchase_details:
                     product_id = pd.product.id
                     unit_id = pd.unit.id
-                    price_unit = round(pd.price_unit, 2)
+                    price_unit = round(pd.price_unit, 6)
 
                     product_detail = ProductDetail.objects.filter(product_id=product_id, unit_id=unit_id).last()
 

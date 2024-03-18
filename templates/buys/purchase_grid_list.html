@@ -62,8 +62,12 @@
                             <div class="dropdown-menu bg-secondary text-white font-italic">
                                 <a class="dropdown-item assignment-store" pk="{{ p.id }}">
                                     <i class="fas fa-warehouse"></i> Ingreso Almacen </a>
-                                <a class="dropdown-item btn-update" pk="{{ p.id }}"><i
+
+                                {% if p.bill_status == 'S' %}
+                                    <a class="dropdown-item btn-update" pk="{{ p.id }}"><i
                                         class="fas fa-edit pr-1"></i>Editar </a>
+                                {% endif %}
+
                                 <a class="dropdown-item btn-download text-white"
                                    href="{% url 'buys:print_pdf_purchase_order' p.id %}">
                                     <i class="fas fa-download"></i> Descargar </a>
