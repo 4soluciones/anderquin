@@ -5,6 +5,8 @@ import decimal
 # Create your models here.
 from django.db.models import Sum, Count
 
+from apps import sales
+
 
 class TransactionAccount(models.Model):
     DOCUMENT_TYPE_ATTACHED_CHOICES = (

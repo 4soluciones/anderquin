@@ -2240,6 +2240,10 @@ def save_bill(request):
 
         bill_quantity = str(data_bill["bill_quantity"])
 
+        supplier_id = str(data_bill["supplier_id"])
+
+        supplier_obj = Supplier.objects.get(id=supplier_id)
+
         bill_obj = Bill(
             register_date=bill_date,
             expiration_date=bill_date_expiration,
@@ -2251,8 +2255,8 @@ def save_bill(request):
             # purchase=purchase_obj,
             bill_base_total=bill_total_base,
             bill_igv_total=bill_igv,
-            bill_total_total=bill_total
-
+            bill_total_total=bill_total,
+            supplier=supplier_obj
         )
         bill_obj.save()
 
@@ -2294,6 +2298,11 @@ def get_purchases_with_bill(request):
             if b.sum_quantity_invoice() != b.sum_quantity_purchased():
                 status = 'INCOMPLETO'
 
+            rowspan = b.billpurchase_set.count()
+
+            if b.billpurchase_set.count() == 0:
+                rowspan = 1
+
             item_bill = {
                 'id': b.id,
                 'register_date': b.register_date,
@@ -2310,7 +2319,7 @@ def get_purchases_with_bill(request):
                 'sum_quantity_purchased': b.sum_quantity_purchased(),
                 'status': status,
                 'bill_purchase': [],
-                'row_count': b.billpurchase_set.count()
+                'row_count': rowspan
             }
             for d in b.billpurchase_set.all():
                 item_detail = {

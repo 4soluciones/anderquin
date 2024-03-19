@@ -50,9 +50,10 @@
                                 <div class="col-lg-3">
                                     <label class="mb-1 mt-1 font-weight-light"
                                            for="client">Razón Social:</label>
-                                    <input type="text" class="form-control" id="client" disabled
+                                    <input type="text" class="form-control" id="supplier_name" disabled
                                            style="background-color: #e7ded9"
                                            value="{{ supplier_name }}">
+                                    <input type="hidden" id="supplier_id" value="{{ supplier_id }}">
                                 </div>
                                 <div class="col-lg-9">
                                     <label class="mb-1 mt-1 font-weight-light"
@@ -296,6 +297,7 @@
 
     $(document).on('click', '#btn-save-bill', function (e) {
 
+        let supplier_id = $("#supplier_id");
         let purchases = $("#purchase_id");
         let bill_date = $('#bill_date');
         let bill_date_expiration = $('#bill_date_expiration');
@@ -331,6 +333,8 @@
         }
 
         let Bill = {
+            "supplier_id": supplier_id.val(),
+
             "purchase_id": purchases.val(),
             "bill_date": bill_date.val(),
             "bill_date_expiration": bill_date_expiration.val(),
