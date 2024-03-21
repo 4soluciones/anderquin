@@ -98,6 +98,7 @@ class Purchase(models.Model):
     assign_date = models.DateField('Fecha de Ingreso a Almacen', null=True, blank=True)
     year = models.IntegerField('Year', null=True, blank=True)
     bill_status = models.CharField('Estado Factura', max_length=1, choices=BILL_CHOICES, default='S')
+    parent_purchase = models.ForeignKey('Purchase', on_delete=models.SET_NULL, null=True, blank=True)
     # delivery_client_final = models.ForeignKey('sales.Client', on_delete=models.CASCADE, null=True, blank=True,
     #                                           related_name='delivery_client_final')
 
@@ -148,15 +149,14 @@ class Purchase(models.Model):
 
 
 class PurchaseDetail(models.Model):
-    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, null=True, blank=True)
+    STATUS_CHOICES = (('C', 'COMPRADA'), ('I', 'INGRESADA'), ('D', 'DEVUELTA'), ('V', 'VENDIDA'),)
     id = models.AutoField(primary_key=True)
+    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, null=True, blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.DecimalField('Cantidad comprada', max_digits=10, decimal_places=4, default=0)
-    quantity_entered = models.DecimalField('Cantidad Ingresada', max_digits=10, decimal_places=4, default=0)
-    quantity_returned = models.DecimalField('Cantidad devuelta', max_digits=10, decimal_places=4, default=0)
-    quantity_sold = models.DecimalField('Cantidad Vendida', max_digits=10, decimal_places=4, default=0)
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
     price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
+    status_quantity = models.CharField('Estado Cantidad', max_length=1, choices=STATUS_CHOICES, default='C')
 
     def __str__(self):
         return str(self.id)

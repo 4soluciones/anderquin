@@ -22,6 +22,7 @@ from apps.sales.views import kardex_input, kardex_ouput, kardex_initial, calcula
     save_loan_payment_in_cash_flow, Client, ClientAddress, ClientType, ClientAssociate
 from .models import *
 from .views_PDF_purchase_order import query_apis_net_money
+from ..accounting.models import BillPurchase
 from ..comercial.models import GuideMotive
 from ..sales.models import Product, Unit, Supplier, SubsidiaryStore, ProductStore, ProductDetail, Kardex, Cash, \
     CashFlow, TransactionPayment, SupplierAddress
@@ -398,10 +399,7 @@ def save_detail_purchase_store(request):
         for d in data_purchase['Details']:
 
             quantity_entered = decimal.Decimal(d['QuantityEntered'])
-            quantity_returned = decimal.Decimal(d['QuantityReturned'])
-            quantity_sold = decimal.Decimal(d['QuantitySold'])
-            quantity_minimum = decimal.Decimal(d['QuantityMinimum'])
-            print(d['Price'])
+
             price = decimal.Decimal(d['Price'].replace('S/', '').replace(',', '.'))
             product_id = int(d['Product'])
             product_obj = Product.objects.get(id=product_id)
@@ -602,9 +600,16 @@ def get_detail_purchase_store(request):
 
         purchase_details_dict = []
         unit_description = ''
+        bill_number = ''
 
         for pd in purchase_details:
-
+            if not bill_number:
+                bill_purchase_set = BillPurchase.objects.filter(purchase_detail_id=int(pd.id))
+                if bill_purchase_set.exists():
+                    bill_purchase_obj = bill_purchase_set.first()
+                    serial = bill_purchase_obj.bill.serial
+                    correlative = bill_purchase_obj.bill.correlative
+                    bill_number = serial + '-' + correlative
             product_detail_get = ProductDetail.objects.filter(unit=pd.unit, product=pd.product).last()
             quantity_minimum = product_detail_get.quantity_minimum
             quantity_in_units = pd.quantity * quantity_minimum
@@ -614,12 +619,12 @@ def get_detail_purchase_store(request):
                 'product_id': pd.product.id,
                 'product_name': pd.product.name,
                 'quantity': pd.quantity,
-                'quantity_in_units': quantity_in_units,
+                'quantity_in_units': str(round(quantity_in_units, 2)),
                 'quantity_minimum': str(quantity_minimum),
                 'unit_id': pd.unit.id,
                 'unit_name': pd.unit.name,
                 'unit_description': pd.unit.description,
-                'price_unit': pd.price_unit,
+                'price_unit': round(pd.price_unit, 6),
                 'amount': pd.multiplicate()
             }
             purchase_details_dict.append(item)
@@ -632,6 +637,7 @@ def get_detail_purchase_store(request):
             'detail_purchase': purchase_details_dict,
             'unit_name': unit_description,
             'subsidiary_stores': subsidiary_stores,
+            'bill_number': bill_number,
         })
         return JsonResponse({
             'success': True,

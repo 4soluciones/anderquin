@@ -294,6 +294,18 @@
 
 <script type="text/javascript">
 
+    function checkQuantity() {
+        let check = true;
+        $('#bill-details tr').each(function () {
+            let purchaseQuantity = $(this).find('td.item-quantity input.quantity-invoice').val()
+            let oldPurchaseQuantity = $(this).find('td.item-quantity input.quantity-purchased').val()
+            if (purchaseQuantity !== oldPurchaseQuantity) {
+                check = false;
+            }
+        });
+        return check;
+    }
+
     $(document).on('click', '#btn-save-bill', function (e) {
 
         let purchases = $("#purchase_id");
@@ -324,10 +336,12 @@
             return false;
         }
 
-        let previousTotal = parseFloat($('#current_total').val());
-        if (bill_total.val() > previousTotal + 2 || bill_total.val() < previousTotal - 2) {
-            toastr.warning('¡El valor no puede estar fuera del rango +2 y -2!, favor de corregir', 'Mensaje');
-            return false;
+        if (checkQuantity() === true) {
+            let previousTotal = parseFloat($('#current_total').val());
+            if (bill_total.val() > previousTotal + 2 || bill_total.val() < previousTotal - 2) {
+                toastr.warning('¡El valor no puede estar fuera del rango +2 y -2!, favor de corregir', 'Mensaje');
+                return false;
+            }
         }
 
         let Bill = {
@@ -365,7 +379,7 @@
             cache: false,
             data: {'Bill': JSON.stringify(Bill)},
             contentType: 'application/json;charset=UTF-8',
-            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            headers: {"X-CSRFToken": ' {{ csrf_token }}'},
             success: function (response, textStatus, xhr) {
                 if (response.success) {
                     toastr.success(response.message, '¡Bien hecho!');
