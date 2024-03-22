@@ -126,19 +126,19 @@ def add_address_entity(request):
         }, status=HTTPStatus.OK)
 
 
-def get_addresses_supplier(request):
-    if request.method == 'GET':
-        supplier_id = request.GET.get('supplier_id', '')
-
-        addresses_supplier = AddressSupplier.objects.filter(supplier_id=supplier_id)
-
-        supplier_dict = {}
-        for i in addresses_supplier:
-            supplier_dict[i.id] = f'{i.city.name}'
-
-        return JsonResponse({
-            'addresses_supplier': supplier_dict
-        }, status=HTTPStatus.OK)
+# def get_addresses_supplier(request):
+#     if request.method == 'GET':
+#         supplier_id = request.GET.get('supplier_id', '')
+#
+#         addresses_supplier = AddressSupplier.objects.filter(supplier_id=supplier_id)
+#
+#         supplier_dict = {}
+#         for i in addresses_supplier:
+#             supplier_dict[i.id] = f'{i.city.name}'
+#
+#         return JsonResponse({
+#             'addresses_supplier': supplier_dict
+#         }, status=HTTPStatus.OK)
 
 
 def get_addresses_client(request):
@@ -390,48 +390,123 @@ def save_detail_purchase_store(request):
         batch_number = data_purchase["Batch"]
         batch_expiration_date = str(data_purchase["BatchExpirationDate"])
         guide_number = data_purchase["GuideNumber"]
+        store = data_purchase["Store"]
 
         user_id = request.user.id
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        subsidiary_store_obj = SubsidiaryStore.objects.get(category='V', subsidiary=subsidiary_obj)
+        subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(store))
+
+        purchase_store_obj = Purchase(
+            purchase_date=purchase_obj.purchase_date,
+            status='A',
+            subsidiary=purchase_obj.subsidiary,
+            supplier=purchase_obj.supplier,
+            user=user_obj,
+            client_reference=None,
+            client_reference_id=None,
+            assign_date=assign_date,
+            batch_expiration_date=batch_expiration_date,
+            batch_number=batch_number,
+            guide_number=guide_number,
+            year=purchase_obj.year,
+            bill_status=purchase_obj.bill_status,
+            parent_purchase=purchase_obj
+        )
+        purchase_store_obj.save()
 
         for d in data_purchase['Details']:
 
-            quantity_entered = decimal.Decimal(d['QuantityEntered'])
+            # purchase_detail = int(d['PurchaseDetail'])
+            # purchase_detail_obj = PurchaseDetail.objects.get(id=purchase_detail)
 
-            price = decimal.Decimal(d['Price'].replace('S/', '').replace(',', '.'))
             product_id = int(d['Product'])
             product_obj = Product.objects.get(id=product_id)
-            unit_id = int(d['Unit'])
+            unit_id = int(d['UnitPurchase'])
             unit_obj = Unit.objects.get(id=unit_id)
-            purchase_detail = int(d['PurchaseDetail'])
-            purchase_detail_obj = PurchaseDetail.objects.get(id=purchase_detail)
+            unit_min_product = ProductDetail.objects.get(product=product_obj, unit=unit_obj).quantity_minimum
+
+            price_purchase = decimal.Decimal(d['PricePurchase'])
+            quantity_purchase = decimal.Decimal(d['QuantityPurchased'])
+
+            # QUANTITY ENTERED
+            entered_quantity = decimal.Decimal(d['EnteredQuantityPrincipal'])
+            entered_quantity_in_units = entered_quantity * unit_min_product
+            entered_quantity_units = d['EnteredQuantityUnits']
+
+            unit_und_obj = Unit.objects.get(name='UND')
+
             try:
                 product_store_obj = ProductStore.objects.get(product=product_obj, subsidiary_store=subsidiary_store_obj)
             except ProductStore.DoesNotExist:
                 product_store_obj = None
 
-            unit_min_detail_product = ProductDetail.objects.get(product=product_obj, unit=unit_obj).quantity_minimum
+            if entered_quantity != 0 and entered_quantity != '':
+                detail_entered_obj = PurchaseDetail.objects.create(quantity=entered_quantity, price_unit=price_purchase,
+                                                                   product=product_obj, unit=unit_obj, status_quantity='I',
+                                                                   purchase=purchase_store_obj)
+                if product_store_obj is None:
+                    new_product_store_obj = ProductStore(
+                        product=product_obj,
+                        subsidiary_store=subsidiary_store_obj,
+                        stock=entered_quantity_in_units
+                    )
+                    new_product_store_obj.save()
+                    kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase,
+                                   purchase_detail_obj=detail_entered_obj)
+                else:
+                    kardex_input(product_store_obj.id, entered_quantity_in_units, price_purchase,
+                                 purchase_detail_obj=detail_entered_obj)
 
-            if product_store_obj is None:
-                new_product_store_obj = ProductStore(
-                    product=product_obj,
-                    subsidiary_store=subsidiary_store_obj,
-                    stock=unit_min_detail_product * quantity_entered
-                )
-                new_product_store_obj.save()
-                kardex_initial(new_product_store_obj, unit_min_detail_product * quantity_entered, price,
-                               purchase_detail_obj=purchase_detail_obj)
-            else:
-                kardex_input(product_store_obj.id, unit_min_detail_product * quantity_entered, price,
-                             purchase_detail_obj=purchase_detail_obj)
+            if entered_quantity_units != 0 and entered_quantity_units != '':
+                detail_entered_units_obj = PurchaseDetail.objects.create(quantity=entered_quantity_units,
+                                                                         price_unit=price_purchase, unit=unit_und_obj,
+                                                                         product=product_obj, status_quantity='I',
+                                                                         purchase=purchase_store_obj)
+                if product_store_obj is None:
+                    new_product_store_obj = ProductStore(
+                        product=product_obj,
+                        subsidiary_store=subsidiary_store_obj,
+                        stock=entered_quantity_units
+                    )
+                    new_product_store_obj.save()
+                    kardex_initial(new_product_store_obj, entered_quantity_units, price_purchase,
+                                   purchase_detail_obj=detail_entered_units_obj)
+                else:
+                    kardex_input(product_store_obj.id, entered_quantity_units, price_purchase,
+                                 purchase_detail_obj=detail_entered_units_obj)
+
+            # QUANTITY RETURNED
+            returned_quantity = d['ReturnedQuantityPrincipal']
+            returned_quantity_in_units = returned_quantity * unit_min_product
+            returned_quantity_units = d['ReturnedQuantityUnits']
+
+            if returned_quantity != 0 and returned_quantity != '':
+                PurchaseDetail.objects.create(quantity=returned_quantity, price_unit=price_purchase,
+                                              product=product_obj,
+                                              unit=unit_obj, status_quantity='D', purchase=purchase_store_obj)
+
+            if returned_quantity_units != 0 and returned_quantity_units != '':
+                PurchaseDetail.objects.create(quantity=returned_quantity_units, price_unit=price_purchase,
+                                              unit=unit_und_obj,
+                                              product=product_obj, status_quantity='D', purchase=purchase_store_obj)
+
+            # QUANTITY SOLD
+            sell_quantity = d['SoldQuantity']
+            sell_unit = d['SoldUnit']
+
+            if sell_quantity != 0 and sell_quantity != '':
+                sell_unit_obj = Unit.objects.get(id=int(sell_unit))
+                PurchaseDetail.objects.create(quantity=sell_quantity, price_unit=price_purchase, product=product_obj,
+                                              unit=sell_unit_obj, status_quantity='V', purchase=purchase_store_obj)
+
+            # unit_min_detail_product = ProductDetail.objects.get(product=product_obj, unit=unit_obj).quantity_minimum
 
         purchase_obj.status = 'A'
-        purchase_obj.batch_number = batch_number
-        purchase_obj.batch_expiration_date = batch_expiration_date
-        purchase_obj.guide_number = guide_number
-        purchase_obj.assign_date = assign_date
+        # purchase_obj.batch_number = batch_number
+        # purchase_obj.batch_expiration_date = batch_expiration_date
+        # purchase_obj.guide_number = guide_number
+        # purchase_obj.assign_date = assign_date
         purchase_obj.save()
         return JsonResponse({
             'message': 'PRODUCTO(S) ALMACENADO',
@@ -551,7 +626,7 @@ def get_purchase_store_list(request):
             user_obj = User.objects.get(id=user_id)
             subsidiary_obj = get_subsidiary_by_user(user_obj)
             purchases_store = Purchase.objects.filter(status='A', assign_date__range=(
-                                                          date_initial, date_final)).distinct('id')
+                date_initial, date_final)).distinct('id')
             # purchases_store_serializers = serializers.serialize('json', purchases_store)
             tpl = loader.get_template('buys/purchase_store_grid_list.html')
             context = ({
@@ -624,9 +699,19 @@ def get_detail_purchase_store(request):
                 'unit_id': pd.unit.id,
                 'unit_name': pd.unit.name,
                 'unit_description': pd.unit.description,
-                'price_unit': round(pd.price_unit, 6),
-                'amount': pd.multiplicate()
+                'price_unit': str(round(pd.price_unit, 6)),
+                'amount': pd.multiplicate(),
+                'units_sold': []
             }
+            for u in ProductDetail.objects.filter(product_id=pd.product.id).all():
+                item_units = {
+                    'id': u.id,
+                    'unit_id': u.unit.id,
+                    'unit_name': u.unit.name,
+                    'quantity_minimum': round(u.quantity_minimum, 0),
+                    'price_purchase': str(round(u.price_purchase, 6))
+                }
+                item.get('units_sold').append(item_units)
             purchase_details_dict.append(item)
 
         t = loader.get_template('buys/assignment_detail_purchase.html')

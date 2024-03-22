@@ -72,12 +72,12 @@
                         <table class="table table-primary align-content-center table-bordered table-sm m-0">
                             <thead>
                             <tr class="text-white bg-info text-uppercase">
-                                <th class="align-middle text-center" style="width: 25%">Producto</th>
+                                <th class="align-middle text-center" style="width: 23%">Producto</th>
                                 <th class="align-middle text-center bg-warning text-dark" style="width: 10%">Cantidad
                                     Comprada
                                 </th>
                                 <th class="align-middle text-center" style="width: 5%">Unidad</th>
-                                <th class="align-middle text-center" style="width: 8%">Precio unit.</th>
+                                <th class="align-middle text-center" style="width: 10%">Precio unit.</th>
                                 <th class="align-middle text-center" style="width: 8%">Importe</th>
                                 <th class="align-middle text-center bg-warning text-dark" style="width: 30%"
                                     colspan="2">Cantidad Ingresada
@@ -103,8 +103,17 @@
 
                                     <td class="align-middle item-unit text-center" pu="{{ d.unit_id }}"
                                         rowspan="4">{{ d.unit_description }}</td>
-                                    <td class="align-middle item-price text-center" rowspan="4">S/ {{ d.price_unit|thousands_separator }}</td>
-                                    <td class="align-middle text-center" rowspan="4">S/ {{ d.amount|replace_round }}</td>
+                                    <td class="align-middle item-price text-center" rowspan="4">
+                                        <div class="input-icon">
+                                            <input type="text" style="background-color: #b8daff"
+                                                   class="form-control text-right text-uppercase price-unit-purchase"
+                                                   value="{{ d.price_unit }}"
+                                                   id="price_unit_sold">
+                                            <i class="change-money">S/</i>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle text-center" rowspan="4">
+                                        S/ {{ d.amount|replace_round }}</td>
                                 </tr>
                                 <tr class="entered-quantity">
                                     <td class="align-middle text-right">
@@ -156,7 +165,7 @@
                                             </tbody>
                                         </table>
                                     </td>
-                                    <td class="align-middle text-center item-quantity-missing" rowspan="4">
+                                    <td class="align-middle text-center item-quantity-missing" rowspan="3">
                                         <input type="text" id="quantity-missing" aria-label="..."
                                                class="form-control form-control-sm font-weight-bold text-center quantity-missing"
                                                readonly
@@ -190,7 +199,8 @@
                                                                class="form-control form-control-sm text-center returned_quantity_entered_units"
                                                                id="returned_quantity_entered_units" disabled
                                                                value="0">
-                                                        <input type="hidden" class="form-control returned-quantity-minimum"
+                                                        <input type="hidden"
+                                                               class="form-control returned-quantity-minimum"
                                                                id="returned_quantity_minimum"
                                                                value="{{ d.quantity_minimum }}">
                                                     </td>
@@ -203,7 +213,8 @@
                                                                class="form-control form-control-sm text-center returned_quantity_entered_principal"
                                                                id="returned_quantity_entered_principal" disabled
                                                                value="0">
-                                                        <input type="hidden" class="form-control returned-quantity-minimum"
+                                                        <input type="hidden"
+                                                               class="form-control returned-quantity-minimum"
                                                                id="returned_quantity_minimum" disabled
                                                                value="{{ d.quantity_minimum }}">
                                                     </td>
@@ -215,7 +226,8 @@
                                                                class="form-control form-control-sm text-center returned_quantity_entered_units"
                                                                id="returned_quantity_entered_units" disabled
                                                                value="0">
-                                                        <input type="hidden" class="form-control returned-quantity-minimum"
+                                                        <input type="hidden"
+                                                               class="form-control returned-quantity-minimum"
                                                                id="returned_quantity_minimum" disabled
                                                                value="{{ d.quantity_minimum }}">
                                                     </td>
@@ -224,36 +236,155 @@
                                             </tbody>
                                         </table>
                                     </td>
-{#                                        <input type="text" aria-label="..."#}
-{#                                               class="form-control form-control-sm text-center"#}
-{#                                               id="quantity_returned" disabled#}
-{#                                               value="0">#}
+                                    {#                                        <input type="text" aria-label="..."#}
+                                    {#                                               class="form-control form-control-sm text-center"#}
+                                    {#                                               id="quantity_returned" disabled#}
+                                    {#                                               value="0">#}
                                 </tr>
                                 <tr>
                                     <td class="align-middle text-right">
                                         <div class="form-group mb-0">
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value=""
+                                                <input class="form-check-input check-quantity-sold" type="checkbox"
+                                                       value=""
                                                        id="invalidCheck" required>
                                                 <label class="form-check-label" for="invalidCheck">
-                                                    Cantidad Vendida
+                                                    Vender
                                                 </label>
                                             </div>
                                         </div>
-                                        {#                                        <div class="form-check">#}
-                                        {#                                            <input class="form-check-input" type="checkbox" value=""#}
-                                        {#                                                   id="check-quantity-sold">#}
-                                        {#                                            <label class="form-check-label" for="check-quantity-sold">#}
-                                        {#                                                Habilitar#}
-                                        {#                                            </label>#}
-                                        {#                                        </div>#}
                                     </td>
                                     <td class="align-middle text-center quantity-sold">
-                                        <input type="text"
-                                               class="form-control form-control-sm text-center"
-                                               id="quantity_sold"
-                                               disabled
-                                               value="0">
+                                        {#                                        <input type="text"#}
+                                        {#                                               class="form-control form-control-sm text-center"#}
+                                        {#                                               id="quantity_sold"#}
+                                        {#                                               disabled#}
+                                        {#                                               value="0">#}
+                                    </td>
+                                </tr>
+                                <tr class="d-none sold sold-quantity" style="background-color: #c7eabf">
+                                    <td colspan="8">
+                                        <div class="row mt-1 ml-0 mr-2">
+                                            <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                                                <label for="bill_type" class="mb-0">Tipo de comprobante</label>
+                                                <select id="bill_type"
+                                                        class="form-control form-control-sm bill_type">
+                                                    <option value="T">TICKET</option>
+                                                    <option value="B">BOLETA</option>
+                                                    <option value="F">FACTURA</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                                                <label for="document_type" class="mb-0">Tipo de Documento</label>
+                                                <select id="document_type"
+                                                        class="form-control form-control-sm document_type">
+                                                    <option value="0">DNI</option>
+                                                    <option value="1">RUC</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                                                <label for="document_number" class="mb-0">Nro de Documento</label>
+                                                <input type="text"
+                                                       class="form-control form-control-sm text-uppercase document_number"
+                                                       id="document_number"
+                                                       name="document_number">
+                                            </div>
+                                            <div class="col-md-5 text-uppercase small pl-1 pr-0">
+                                                <label for="document_names" class="mb-0">Nombres o Razon
+                                                    Social</label>
+                                                <input type="text"
+                                                       class="form-control form-control-sm text-uppercase document_names"
+                                                       id="document_names"
+                                                       name="document_names">
+                                            </div>
+                                            <div class="col-md-1 text-uppercase small pl-1 pr-0">
+                                                <button type="button" class="btn btn-success btn-sm btn-block mt-3">
+                                                    GENERAR VENTA
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <table class="table table-success align-content-center table-bordered table-sm mt-3 table-sold"
+                                               id="table-sold">
+                                            <thead class="table-light text-uppercase small text-center">
+                                            <tr class="text-white" style="background: #33a922">
+                                                <th scope="col"
+                                                    class="border-right border-top border-bottom font-weight-normal"
+                                                    style="width: 50%;">Producto
+                                                </th>
+                                                <th scope="col"
+                                                    class="border-right border-top border-bottom font-weight-normal"
+                                                    style="width: 13%;">Cantidad
+                                                </th>
+                                                <th scope="col"
+                                                    class="border-right border-top border-bottom font-weight-normal"
+                                                    style="width: 13%;">Unidad
+                                                </th>
+                                                <th scope="col"
+                                                    class="border-right border-top border-bottom font-weight-normal"
+                                                    style="width: 12%;">Precio
+                                                </th>
+                                                <th scope="col"
+                                                    class="border-right border-top border-bottom font-weight-normal"
+                                                    style="width: 12%;">Total
+                                                </th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="text-uppercase body-table-sold">
+                                            {% for d in detail_purchase %}
+                                                <tr product="{{ d.product_id }}" purchase_detail="{{ d.id }}"
+                                                    class="text-center">
+                                                    <td class="text-center align-middle">{{ d.product_name }}</td>
+                                                    <td class=" text-center align-middle item-quantity-sold">
+                                                        <input type="text"
+                                                               class="form-control form-control-sm font-weight-bold text-center quantity-purchased-sold"
+                                                               id="quantity_purchased_sold"
+                                                               value="0">
+                                                    </td>
+                                                    <td class="text-center align-middle item-unit-sold">
+                                                        <select class="form-control unit-product-sold text-center"
+                                                                id="unit_sold" name="unit-sold">
+                                                            <option disabled value="0">Seleccione</option>
+                                                            {% for u in d.units_sold %}
+                                                                {% if u.unit_id == d.unit_id %}
+                                                                    <option selected value="{{ u.unit_id }}"
+                                                                            qm="{{ u.quantity_minimum }}"
+                                                                            p="{{ u.price_purchase }}">{{ u.unit_name }}
+                                                                        ({{ u.quantity_minimum }}UND)
+                                                                    </option>
+                                                                {% else %}
+                                                                    <option value="{{ u.unit_id }}"
+                                                                            qm="{{ u.quantity_minimum }}"
+                                                                            p="{{ u.price_purchase }}">{{ u.unit_name }}
+                                                                        ({{ u.quantity_minimum }}UND)
+                                                                    </option>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </select>
+                                                    </td>
+                                                    <td class="text-center align-middle item-price-sold">
+                                                        <div class="input-icon">
+                                                            <input type="text"
+                                                                   class="form-control text-right text-uppercase price-unit-sold"
+                                                                   placeholder="0.00"
+                                                                   value="{{ d.price_unit }}"
+                                                                   id="price_unit_sold">
+                                                            <i class="change-money">S/</i>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center align-middle item-total-sold">
+                                                        <div class="input-icon">
+                                                            <input type="text"
+                                                                   class="form-control text-right text-uppercase total-sold"
+                                                                   placeholder="0.00" value=""
+                                                                   id="total-sold">
+                                                            <i class="change-money">S/</i>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -261,195 +392,6 @@
                         </table>
                     </div>
                 </div>
-                {#                <div class="card bg-light m-2">#}
-                {#                    <div class="table-responsive dataTables_wrapper roboto-condensed-regular">#}
-                {#                        <table class="table table-primary align-content-center table-bordered table-sm m-0"#}
-                {#                               id="table-quantities">#}
-                {#                            <tbody class="text-uppercase">#}
-                {#                            <tr class="text-white bg-info text-uppercase">#}
-                {#                                <td class="align-middle text-right" style="width: 70%">Cantidad</td>#}
-                {#                                <td class="align-middle text-center" style="width: 20%">#</td>#}
-                {#                                <td class="align-middle text-center" style="width: 10%">Tipo de unidad</td>#}
-                {#                            </tr>#}
-                {#                            <tr>#}
-                {#                                <td class="align-middle text-right" style="width: 55%">#}
-                {#                                    Cantidad Ingresada <span class="" style="font-size: 8px">(cantidad que ingresa directo a almacen)</span>#}
-                {#                                </td>#}
-                {#                                <td class="align-middle text-center quantity-entered">#}
-                {##}
-                {#                                    <table class="table table-info table-sm table-responsive-sm">#}
-                {#                                        <tbody>#}
-                {#                                        <tr>#}
-                {#                                            <td style="width: 50%">{{ unit_name }}</td>#}
-                {#                                            <td style="width: 50%"><input type="text"#}
-                {#                                                                          class="form-control form-control-sm text-center"#}
-                {#                                                                          id="quantity_entered"#}
-                {#                                                                          value="0">#}
-                {#                                            </td>#}
-                {#                                        </tr>#}
-                {#                                        <tr>#}
-                {#                                            <td style="width: 50%">UNIDADES</td>#}
-                {#                                            <td style="width: 50%"><input type="text"#}
-                {#                                                                          class="form-control form-control-sm text-center"#}
-                {#                                                                          id="quantity_entered"#}
-                {#                                                                          value="0">#}
-                {#                                            </td>#}
-                {#                                        </tr>#}
-                {#                                        </tbody>#}
-                {#                                    </table>#}
-                {##}
-                {#                                    <input type="text"#}
-                {#                                           class="form-control form-control-sm text-center"#}
-                {#                                           id="quantity_entered"#}
-                {#                                           value="0">#}
-                {##}
-                {#                                </td>#}
-                {#                                <td class="align-middle text-center quantity-entered" style="width: 10%">#}
-                {#                                    <input type="text"#}
-                {#                                           class="form-control form-control-sm text-center" disabled#}
-                {#                                           value="{{ unit_name }}">#}
-                {#                                </td>#}
-                {#                            </tr>#}
-                {#                            <tr>#}
-                {#                                <td class="align-middle text-right" style="width: 55%">#}
-                {#                                    Cantidad Devuelta <span class="" style="font-size: 8px">(cantidad que se devuelve con Nota de credito)</span>#}
-                {#                                </td>#}
-                {#                                <td class="align-middle text-center quantity-returned" style="width: 10%">#}
-                {#                                    <input type="text"#}
-                {#                                           class="form-control form-control-sm text-center"#}
-                {#                                           id="quantity_returned"#}
-                {#                                           value="0">#}
-                {#                                </td>#}
-                {#                                <td class="align-middle text-center quantity-entered" style="width: 10%">#}
-                {#                                    <input type="text"#}
-                {#                                           class="form-control form-control-sm text-center" disabled#}
-                {#                                           value="{{ unit_name }}">#}
-                {#                                </td>#}
-                {#                            </tr>#}
-                {#                            <tr>#}
-                {#                                <td class="align-middle text-right" style="width: 55%">#}
-                {#                                    Cantidad Vendida <span class="" style="font-size: 8px">(cantidad que se vende a el transportista)</span>#}
-                {#                                    <div class="form-check">#}
-                {#                                        <input class="form-check-input" type="checkbox" value=""#}
-                {#                                               id="check-quantity-sold">#}
-                {#                                        <label class="form-check-label" for="check-quantity-sold">#}
-                {#                                            Habilitar#}
-                {#                                        </label>#}
-                {#                                    </div>#}
-                {#                                </td>#}
-                {#                                <td class="align-middle text-center quantity-sold" style="width: 10%">#}
-                {#                                    <input type="text"#}
-                {#                                           class="form-control form-control-sm text-center"#}
-                {#                                           id="quantity_sold"#}
-                {#                                           disabled#}
-                {#                                           value="0">#}
-                {#                                </td>#}
-                {#                                <td class="align-middle text-center quantity-entered" style="width: 10%">#}
-                {#                                    <input type="text"#}
-                {#                                           class="form-control form-control-sm text-center" disabled#}
-                {#                                           value="{{ unit_name }}">#}
-                {#                                </td>#}
-                {#                            </tr>#}
-                {#                            </tbody>#}
-                {#                        </table>#}
-                {##}
-                {#                        <div class="d-none sold">#}
-                {##}
-                {#                            <div class="row mt-1 ml-0 mr-2">#}
-                {#                                <div class="col-md-2 text-uppercase small pl-1 pr-0">#}
-                {#                                    <label for="bill_type" class="mb-0">Tipo de comprobante</label>#}
-                {#                                    <select id="bill_type" class="form-control form-control-sm">#}
-                {#                                        <option value="T">TICKET</option>#}
-                {#                                        <option value="B">BOLETA</option>#}
-                {#                                        <option value="F">FACTURA</option>#}
-                {#                                    </select>#}
-                {#                                </div>#}
-                {##}
-                {#                                <div class="col-md-2 text-uppercase small pl-1 pr-0">#}
-                {#                                    <label for="bill_type" class="mb-0">Tipo de Documento</label>#}
-                {#                                    <select id="bill_type" class="form-control form-control-sm">#}
-                {#                                        <option value="0">DNI</option>#}
-                {#                                        <option value="1">RUC</option>#}
-                {#                                    </select>#}
-                {#                                </div>#}
-                {#                                <div class="col-md-2 text-uppercase small pl-1 pr-0">#}
-                {#                                    <label for="document_number" class="mb-0">Nro de Documento</label>#}
-                {#                                    <input type="text"#}
-                {#                                           class="form-control form-control-sm text-uppercase"#}
-                {#                                           id="document_number"#}
-                {#                                           name="document_number">#}
-                {#                                </div>#}
-                {#                                <div class="col-md-6 text-uppercase small pl-1 pr-0">#}
-                {#                                    <label for="document_names" class="mb-0">Nombres o Razon Social</label>#}
-                {#                                    <input type="text"#}
-                {#                                           class="form-control form-control-sm text-uppercase"#}
-                {#                                           id="document_names"#}
-                {#                                           name="document_names">#}
-                {#                                </div>#}
-                {#                            </div>#}
-                {##}
-                {##}
-                {#                            <table class="table table-success align-content-center table-bordered table-sm mt-3"#}
-                {#                                   id="table-sold">#}
-                {#                                <thead class="table-light text-uppercase small text-center">#}
-                {#                                <tr class="text-white" style="background: #33a922">#}
-                {#                                    <th scope="col" class="border-right border-top border-bottom font-weight-normal"#}
-                {#                                        style="width: 46%;">Producto#}
-                {#                                    </th>#}
-                {#                                    <th scope="col" class="border-right border-top border-bottom font-weight-normal"#}
-                {#                                        style="width: 5%;">Cantidad#}
-                {#                                    </th>#}
-                {#                                    <th scope="col" class="border-right border-top border-bottom font-weight-normal"#}
-                {#                                        style="width: 5%;">Unidad#}
-                {#                                    </th>#}
-                {#                                    <th scope="col" class="border-right border-top border-bottom font-weight-normal"#}
-                {#                                        style="width: 12%;">Precio#}
-                {#                                    </th>#}
-                {#                                    <th scope="col" class="border-right border-top border-bottom font-weight-normal"#}
-                {#                                        style="width: 12%;">Total#}
-                {#                                    </th>#}
-                {#                                </tr>#}
-                {#                                </thead>#}
-                {#                                <tbody class="text-uppercase">#}
-                {#                                {% for d in detail_purchase %}#}
-                {#                                    <tr product="{{ d.product_id }}" purchase_detail="{{ d.id }}" class="text-center">#}
-                {#                                        <td class="text-center align-middle">{{ d.product_name }}</td>#}
-                {#                                        <td class=" text-center align-middle item-quantity2">#}
-                {#                                            <input type="text"#}
-                {#                                                   class="form-control form-control-sm font-weight-bold text-center quantity-purchased-sold"#}
-                {#                                                   id="quantity_purchased_sold" readonly#}
-                {#                                                   value="">#}
-                {#                                        </td>#}
-                {#                                        <td class="text-center align-middle item-unit2"#}
-                {#                                            pu="{{ d.unit_id }}">{{ d.unit_name }}</td>#}
-                {#                                        <td class="text-center align-middle item-price2">#}
-                {#                                            <div class="input-icon">#}
-                {#                                                <input type="text"#}
-                {#                                                       class="form-control text-right text-uppercase"#}
-                {#                                                       placeholder="0.00" value="{{ d.price_unit|floatformat:4 }}"#}
-                {#                                                       id="price_unit_sold">#}
-                {#                                                <i class="change-money">S/</i>#}
-                {#                                            </div>#}
-                {#                                        </td>#}
-                {#                                        <td class="text-center align-middle">#}
-                {#                                            <div class="input-icon">#}
-                {#                                                <input type="text"#}
-                {#                                                       class="form-control text-right text-uppercase"#}
-                {#                                                       placeholder="0.00" value=""#}
-                {#                                                       id="total-sold">#}
-                {#                                                <i class="change-money">S/</i>#}
-                {#                                            </div>#}
-                {#                                        </td>#}
-                {#                                    </tr>#}
-                {#                                {% endfor %}#}
-                {#                                </tbody>#}
-                {##}
-                {#                            </table>#}
-                {##}
-                {#                        </div>#}
-                {##}
-                {#                    </div>#}
-                {#                </div>#}
 
             </div><!-- modal-body -->
             <div class="modal-footer">
@@ -480,26 +422,39 @@
             "Batch": $('#batch').val(),
             "BatchExpirationDate": $('#batch_expiration_date').val(),
             "GuideNumber": $('#guide_number').val(),
+            "Store": $('#store').val(),
         };
         $("#details tr.detail").each(function () {
             let _td_quantity_entered = $(this).parent('tbody#details').find('tr.entered-quantity td.quantity-entered');
-            let _entered_quantity_principal = _td_quantity_entered.find('input.quantity_entered_principal').val();
+            //let _entered_quantity_principal = _td_quantity_entered.find('input.quantity_entered_principal').val();
+            let _entered_quantity_principal = _td_quantity_entered.find('input.quantity_entered_principal').val() !== undefined ? _td_quantity_entered.find('input.quantity_entered_principal').val() : 0;
             let _entered_quantity_units = _td_quantity_entered.find('input.quantity_entered_units').val();
 
             let _td_quantity_returned = $(this).parent('tbody#details').find('tr.returned-quantity td.quantity-returned');
-            let _returned_quantity_principal = _td_quantity_returned.find('input.returned_quantity_entered_principal').val();
+            //let _returned_quantity_principal = _td_quantity_returned.find('input.returned_quantity_entered_principal').val();
+            let _returned_quantity_principal = _td_quantity_returned.find('input.returned_quantity_entered_principal').val() !== undefined ? _td_quantity_returned.find('input.returned_quantity_entered_principal').val() : 0;
+
             let _returned_quantity_units = _td_quantity_returned.find('input.returned_quantity_entered_units').val();
+
+            let _td_quantity_sold = $(this).parent('tbody#details').find('tr.sold-quantity table.table-sold');
+            let _sold_quantity = _td_quantity_sold.find('tr td.item-quantity-sold input.quantity-purchased-sold').val();
+            let _unit_sold = _td_quantity_sold.find('tr td.item-unit-sold select.unit-product-sold').val()
 
             let detailObj = {
                 "PurchaseDetail": $(this).attr('purchase_detail'),
                 "Product": $(this).attr('product'),
-                "Unit": $(this).find("td.item-unit").attr('pu'),
-                "Price": $(this).find("td.item-price").text(),
+                "UnitPurchase": $(this).find("td.item-unit").attr('pu'),
+                "PricePurchase": $(this).find("td.item-price input.price-unit-purchase").val(),
                 "QuantityPurchased": $(this).find("td.item-quantity input.quantity-purchased-in-units").val(),
-                "EnteredQuantityPrincipal": _entered_quantity_principal,
-                "EnteredQuantityUnits": _entered_quantity_units,
-                "ReturnedQuantityPrincipal": _returned_quantity_principal,
-                "ReturnedQuantityUnits": _returned_quantity_units,
+
+                "EnteredQuantityPrincipal": Number(_entered_quantity_principal),
+                "EnteredQuantityUnits": Number(_entered_quantity_units),
+
+                "ReturnedQuantityPrincipal": Number(_returned_quantity_principal),
+                "ReturnedQuantityUnits": Number(_returned_quantity_units),
+
+                "SoldQuantity": Number(_sold_quantity),
+                "SoldUnit": _unit_sold
             };
             details_purchase.Details.push(detailObj);
 
@@ -517,9 +472,6 @@
                 if (xhr.status === 200) {
                     toastr.success(response.message, '¡Mensaje!');
                     $('#assignment').modal('hide');
-                    setTimeout(() => {
-                        location.reload();
-                    }, 800);
                 }
             },
             error: function (jqXhr, textStatus, xhr) {
@@ -530,25 +482,7 @@
     })
 
 
-    $('#check-quantity-sold').change(function () {
-        if ($(this).is(':checked')) {
-            $('#quantity_sold').prop('disabled', false)
-            $('.sold').removeClass('d-none')
-        } else {
-            $('#quantity_sold').prop('disabled', true)
-            $('.sold').addClass('d-none')
-        }
-    });
-
-    $(document).ready(function () {
-        $("#quantity_sold").on("input keyup", function () {
-            let quantity_sold = $(this).val();
-            let price_unit_sold = $('#price_unit_sold').val()
-            let total = quantity_sold * price_unit_sold
-            $("#quantity_purchased_sold").not(this).val(quantity_sold);
-            $("#total-sold").val(total)
-        });
-    });
+    /********* QUANTITY ENTERED  ***********/
 
     $('.quantity_entered_principal').keyup(function () {
 
@@ -580,7 +514,7 @@
         let quantity_minimum = $(this).closest('tr').parent('tbody').find('tr.quantity-und input.quantity-minimum').val();
         let _q_unit = $(this).val();
         let _q_principal = 0
-        if ($(this).closest('tr').parent('tbody').find('tr.quantity-principal input.quantity_entered_principal').val() !== undefined){
+        if ($(this).closest('tr').parent('tbody').find('tr.quantity-principal input.quantity_entered_principal').val() !== undefined) {
             _q_principal = $(this).closest('tr').parent('tbody').find('tr.quantity-principal input.quantity_entered_principal').val();
         }
 
@@ -600,7 +534,9 @@
         }
     });
 
-    // QUANTITY RETURNED
+    /********* END QUANTITY ENTERED  ***********/
+
+    /********* QUANTITY RETURNED  ***********/
 
     $('.returned-quantity-check').change(function () {
         let _table = $(this).closest('tr').find('td.quantity-returned table.table-quantity-returned');
@@ -652,8 +588,8 @@
         let _q_unit = $(this).val();
         let _q_principal = 0
 
-        if ($(this).closest('tr').parent('tbody').find('tr.returned-quantity-principal input.returned_quantity_entered_principal').val()){
-            _q_principal =  $(this).closest('tr').parent('tbody').find('tr.returned-quantity-principal input.returned_quantity_entered_principal').val();
+        if ($(this).closest('tr').parent('tbody').find('tr.returned-quantity-principal input.returned_quantity_entered_principal').val()) {
+            _q_principal = $(this).closest('tr').parent('tbody').find('tr.returned-quantity-principal input.returned_quantity_entered_principal').val();
         }
 
         let q_in_units_principal = Number(_q_principal) * Number(quantity_minimum)
@@ -667,12 +603,72 @@
             $(this).val('')
             return false;
         } else {
+            // console.log("_quantity_missing.val()", _quantity_missing.val())
+            //console.log("sum_quantities", sum_quantities)
             let new_q_missing = Number(_quantity_missing.val()) - sum_quantities
             _quantity_missing.val(new_q_missing.toFixed(2))
+            //console.log("_quantity_missing", _quantity_missing.val())
         }
 
     });
 
+    /********* END QUANTITY RETURNED  ***********/
 
+
+    /********* QUANTITY SOLD  ***********/
+
+    $('.check-quantity-sold').change(function () {
+        if ($(this).is(':checked')) {
+            $('.sold').removeClass('d-none')
+        } else {
+            $('.sold').addClass('d-none')
+            $(this).closest('tbody#details').find('tr.sold-quantity table.table-sold td.item-quantity-sold input.quantity-purchased-sold').val('0');
+            $(this).closest('tbody#details').find('tr.sold-quantity table.table-sold td.item-total-sold input.total-sold').val('0.00');
+            $('.quantity_entered_principal').trigger('keyup')
+            $('.quantity_entered_units').trigger('keyup')
+        }
+    });
+
+    $('.unit-product-sold').change(function () {
+        let _price = $(this).closest('tr').find('td.item-price-sold input.price-unit-sold');
+        //let unit_id = $(this).val();
+        //let quantity_minimum = $(this).find('option:selected').attr('qm');
+        let _new_price = Number($(this).find('option:selected').attr('p'));
+        _price.val(_new_price.toFixed(6));
+        $('.quantity-purchased-sold').trigger('keyup');
+    });
+
+    $('.quantity-purchased-sold').keyup(function () {
+
+        let _quantity_minimum = $(this).closest('tr').find('td.item-unit-sold select.unit-product-sold option:selected').attr('qm');
+        let _quantity = $(this).val();
+        let _quantity_remaining = $(this).closest('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.quantity-missing');
+        let _quantity_in_units = Number(_quantity_minimum) * Number(_quantity);
+        let _price = $(this).closest('tr').find('td.item-price-sold input.price-unit-sold').val();
+        let _total = $(this).closest('tr').find('td.item-total-sold input.total-sold');
+        let new_total = Number(_quantity) * Number(_price)
+        $('.quantity_entered_principal').trigger('keyup')
+        $('.quantity_entered_units').trigger('keyup')
+        $('.returned_quantity_entered_principal').trigger('keyup')
+        $('.returned_quantity_entered_units').trigger('keyup')
+        if (_quantity_in_units > _quantity_remaining.val()) {
+            toastr.warning("La cantidad VENDIDA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
+                positionClass: "toast-center",
+            });
+            $(this).val('');
+            $(this).closest('tr').find('td.item-total-sold input.total-sold').val('0.00');
+            $(this).focus();
+            return false;
+        } else {
+            _total.val(new_total.toFixed(2))
+            //console.log("_quantity_remaining", _quantity_remaining.val())
+            ///.log("_quantity_in_units", _quantity_in_units)
+            let _new_quantity_remaining = _quantity_remaining.val() - _quantity_in_units
+            //console.log("_new_quantity_remaining", _new_quantity_remaining)
+            _quantity_remaining.val(_new_quantity_remaining.toFixed(2));
+        }
+    });
+
+    /********* END QUANTITY SOLD  ***********/
 
 </script>
