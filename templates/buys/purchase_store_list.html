@@ -67,31 +67,62 @@
 
             }
         });
-        /*boton ver tabla detalle*/
-        $(document).on('click', '.btn-show-detail', function () {
-            let search = $(this).attr('pk');
-            let _table = $(this).parent('td').parent('tr').next('tr').children('td.table-details-purchase');
-            $('#purchase-store-data-grid tbody tr td.table-details-purchase').parent('tr').slideUp(800);
-            $('#purchase-store-data-grid tbody tr td.table-details-purchase').empty();
 
+        /* $(document).on('click', '.btn-show-detail', function () {
+             let search = $(this).attr('pk');
+             let _table = $(this).parent('td').parent('tr').next('tr').children('td.table-details-purchase');
+             $('#purchase-store-data-grid tbody tr td.table-details-purchase').parent('tr').slideUp(800);
+             $('#purchase-store-data-grid tbody tr td.table-details-purchase').empty();
+
+             $.ajax({
+                 url: '/buys/get_details_by_purchase/',
+                 async: true,
+                 dataType: 'json',
+                 type: 'GET',
+                 data: {'ip': search},
+                 success: function (response) {
+                     _table.html(response.grid);
+                     _table.parent('tr').slideDown(1500);
+                 },
+
+             });
+         });*/
+
+        $(document).on('click', '.btn-show-detail', function () {
+            let _id = $(this).attr('pk');
+            let _table = $(this).parent('td').parent('tr').next('tr').children('td.table-details-purchase');
+            let _icon = $(this).find('i.see-icon')
+
+            if (_icon.hasClass("fas fa-sort-down fa-lg")) {
+                _icon.removeClass('fas fa-sort-down fa-lg');
+                _icon.addClass('fas fa-sort-up fa-lg')
+
+                openDetail(_id, _table)
+            } else {
+                _icon.removeClass('fas fa-sort-up fa-lg');
+                _icon.addClass('fas fa-sort-down fa-lg');
+
+                closeDetail(_table)
+            }
+        });
+
+        function openDetail(_id, _table) {
             $.ajax({
                 url: '/buys/get_details_by_purchase/',
                 async: true,
                 dataType: 'json',
                 type: 'GET',
-                //mando  id de la compra
-                data: {'ip': search},
-                // si va bien retorna la data
+                data: {'ip': _id},
                 success: function (response) {
-
                     _table.html(response.grid);
-                    _table.parent('tr').slideDown(1500);
+                    _table.parent('tr').slideDown("fast");
                 },
-
             });
+        }
 
-        });
-        {#$('.table-details-purchase').parent('tr').slideUp();#}
+        function closeDetail($td) {
+            $td.parent('tr').slideUp("fast");
+        }
 
     </script>
 {% endblock extrajs %}

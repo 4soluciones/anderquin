@@ -415,14 +415,31 @@
 
     $('#assignment-changes').click(function () {
 
+        let store = $('#store');
+        let batch = $('#batch');
+        let guide_number = $('#guide_number');
+
+        if (store.val() === '0') {
+            toastr.warning('¡Seleccionar el Almacen de Destino!', 'Error de Datos');
+            return false;
+        }
+        if (batch.val() === '') {
+            toastr.warning('¡Ingresar el Numero de lote!', 'Error de Datos');
+            return false;
+        }
+        if (guide_number.val() === '') {
+            toastr.warning('¡Ingresar el Numero de Guia!', 'Error de Datos');
+            return false;
+        }
+
         let details_purchase = {
             "Details": [],
             "Purchase": $('#purchase_id').val(),
             "AssignDate": $('#assign_date').val(),
-            "Batch": $('#batch').val(),
+            "Batch": batch.val(),
             "BatchExpirationDate": $('#batch_expiration_date').val(),
-            "GuideNumber": $('#guide_number').val(),
-            "Store": $('#store').val(),
+            "GuideNumber": guide_number.val(),
+            "Store": store.val(),
         };
         $("#details tr.detail").each(function () {
             let _td_quantity_entered = $(this).parent('tbody#details').find('tr.entered-quantity td.quantity-entered');

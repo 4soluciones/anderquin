@@ -99,6 +99,7 @@ class Purchase(models.Model):
     year = models.IntegerField('Year', null=True, blank=True)
     bill_status = models.CharField('Estado Factura', max_length=1, choices=BILL_CHOICES, default='S')
     parent_purchase = models.ForeignKey('Purchase', on_delete=models.SET_NULL, null=True, blank=True)
+    store_destiny = models.ForeignKey(SubsidiaryStore, on_delete=models.SET_NULL, null=True, blank=True)
     # delivery_client_final = models.ForeignKey('sales.Client', on_delete=models.CASCADE, null=True, blank=True,
     #                                           related_name='delivery_client_final')
 
@@ -146,6 +147,15 @@ class Purchase(models.Model):
         base_total = round(response / decimal.Decimal(1.18), 4)
         igv = response - base_total
         return round(igv, 4)
+
+    def number_bill(self):
+        from apps.accounting.models import BillPurchase
+        response = '-'
+        purchase_detail_get = PurchaseDetail.objects.filter(purchase__id=self.id).first()
+        bill_purchase_set = BillPurchase.objects.filter(purchase_detail=purchase_detail_get)
+        if bill_purchase_set.exists():
+            response = bill_purchase_set.first().bill.serial + '-' + bill_purchase_set.first().bill.correlative
+        return response
 
 
 class PurchaseDetail(models.Model):

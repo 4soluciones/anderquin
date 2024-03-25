@@ -411,7 +411,8 @@ def save_detail_purchase_store(request):
             guide_number=guide_number,
             year=purchase_obj.year,
             bill_status=purchase_obj.bill_status,
-            parent_purchase=purchase_obj
+            parent_purchase=purchase_obj,
+            store_destiny=subsidiary_store_obj
         )
         purchase_store_obj.save()
 
