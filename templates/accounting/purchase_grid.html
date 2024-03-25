@@ -1,81 +1,130 @@
-<table class="table table-sm table-bordered" id="table-dictionary">
+{% load operations %}
+<table class="table table-sm table-bordered roboto-condensed-regular bg-light" id="table-dictionary">
     <thead>
-
     <tr class="text-white small text-uppercase">
-        <td class="bg-primary text-center">FACTURA</td>
-        <td class="bg-primary text-center">PROVEEDOR</td>
-        <td class="bg-primary text-center">FECHA DE REGISTRO</td>
-        <td class="bg-primary text-center">FECHA DE VENCIMIENTO</td>
-        <td class="bg-primary text-center">USUARIO</td>
-        <td class="bg-info text-center">PRODUCTO</td>
-        <td class="bg-info text-center">TIPO UND.</td>
-        <td class="bg-info text-center">CANTIDAD</td>
-        <td class="bg-info text-center">PRECIO UNITARIO</td>
-        <td class="bg-info text-center">TOTAL</td>
-        <td class="bg-success text-center">TOTAL PAGADO</td>
-        <td class="bg-success text-center">FECHA DE PAGO</td>
-        <td class="bg-success text-center">NRO OPERACIÓN</td>
-        <td class="bg-success text-center">PAGAR</td>
+        <th class="bg-primary text-center align-middle" style="width: 10%;">FACTURA</th>
+        <th class="bg-primary text-center align-middle" style="width: 10%;">PROVEEDOR</th>
+        <th class="bg-primary text-center" style="width: 5%;">FECHA DE REGISTRO</th>
+        <th class="bg-primary text-center" style="width: 5%;">FECHA DE VENCIMIENTO</th>
+        <th class="bg-primary text-center" style="width: 10%;">CONDICIÓN DE PAGO</th>
+        <th class="bg-primary text-center align-middle" style="width: 15%;">ORDENES DE COMPRA</th>
+        {#        <th class="bg-info text-center" style="width: 12%;">PRODUCTO</th>#}
+        {#        <th class="bg-info text-center" style="width: 12%;">TIPO UND.</th>#}
+        {#        <th class="bg-info text-center" style="width: 12%;">CANTIDAD</th>#}
+        {#        <th class="bg-info text-center" style="width: 12%;">PRECIO UNITARIO</th>#}
+        <th class="bg-primary text-center align-middle" style="width: 10%;">TOTAL</th>
+        <th class="bg-success text-center align-middle" style="width: 10%;">TOTAL PAGADO</th>
+        <th class="bg-success text-center align-middle" style="width: 10%;">FECHA DE PAGO</th>
+        <th class="bg-success text-center align-middle" style="width: 10%;">NRO OPERACIÓN</th>
+        <th class="bg-success text-center align-middle" style="width: 5%;">PAGAR</th>
     </tr>
     </thead>
     <tbody>
     <tr>
         {% for p in dictionary %}
             <tr pk="{{ p.id }}" class="text-center purchase">
-                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.bill_number }}</td>
-                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.supplier.name }}</td>
-                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.purchase_date|date:"d-m-y" }}</td>
-                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.expiration_date|date:"d-m-y" }}</td>
-                <td class="align-middle text-center"
-                    rowspan="{{ p.rowspan }}">{{ p.user.worker_set.last.employee.names }}</td>
-                {% for d in p.purchase_detail_set %}
-                    {% if forloop.first %}
-                        <td class="align-middle text-center" rowspan="{{ d.rowspan }}">{{ d.product }}</td>
-                        <td class="align-middle text-center" rowspan="{{ d.rowspan }}">{{ d.unit }}</td>
-                        <td class="align-middle text-center" rowspan="{{ d.rowspan }}">{{ d.quantity }}</td>
-                        <td class="align-middle text-center"
-                            rowspan="{{ d.rowspan }}">S/ {{ d.price_unit }}</td>
-                        <td class="align-middle text-center font-weight-bold" rowspan="{{ p.rowspan }}">S/ {{ p.total }}</td>
-                        {% for lp in p.loan_payment_set %}
-                            <td class="align-middle text-center pay-row"
-                                rowspan="{{ p.rowspan }}">{{ lp.price|floatformat:2 }}</td>
-                            <td class="align-middle text-center pay-row-date"
-                                rowspan="{{ p.rowspan }}">{{ lp.date|date:"d-m-y" }}</td>
-                            <td class="align-middle text-center pay-row-operation"
-                                rowspan="{{ p.rowspan }}">{{ lp.operation_code }}</td>
-                        {% endfor %}
-                        <td class="align-middle text-center button-pay" class="p-1" rowspan="{{ p.rowspan }}">
-                            <button type="button"
-                                    class="btn btn-success btn-show-payments"
-                                    data-toggle="modal"
-                                    data-target="#modal-payment-purchase"
-                                    pk="{{ p.id }}"><i class="fas fa-hand-holding-usd"></i>
-                            </button>
-                        </td>
-                        </tr>
+            <td class="align-middle text-center font-weight-bold">{{ p.serial }}-{{ p.correlative }}</td>
+            <td class="align-middle text-center">{{ p.supplier_name }}</td>
+            <td class="align-middle text-center">{{ p.register_date|date:"d-m-y" }}</td>
+            <td class="align-middle text-center">{{ p.expiration_date|date:"d-m-y" }}</td>
+            <td class="align-middle text-center">{{ p.payment_condition|upper }}</td>
 
-                    {% else %}
-                        <tr class="text-center purchase">
-                            <td class="align-middle text-center" rowspan="{{ d.rowspan }}">{{ d.product }}</td>
-                            <td class="align-middle text-center" rowspan="{{ d.rowspan }}">{{ d.unit }}</td>
-                            <td class="align-middle text-center" rowspan="{{ d.rowspan }}">{{ d.quantity }}</td>
-                            <td class="align-middle text-center"
-                                rowspan="{{ d.rowspan }}">{{ d.price_unit|floatformat:2 }}</td>
-                            {#                            <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.total|floatformat:2 }}</td>#}
-                        </tr>
-                    {% endif %}
+            <td class="align-middle text-center">
+                {% for b in p.bill_purchase %}
+                    <span class="font-weight-bold">{{ b.bill_number }}</span>{% if not forloop.last %},{% endif %}
                 {% endfor %}
+            </td>
+            <td class="align-middle text-right">
+                <div class="input-icon">
+                    <input type="text" readonly
+                           style="background-color: #e4ece3; color: #0b43a4"
+                           class="form-control form-control-sm font-weight-bold text-right total"
+                           value="{{ p.bill_total_total|thousands_separator }}"><i
+                        class="change-money font-weight-bold">S/</i>
+                </div>
+            </td>
+
+            <td class="align-middle text-center"></td>
+            <td class="align-middle text-center"></td>
+            <td class="align-middle text-center"></td>
+            <td class="align-middle text-center button-pay p-1" rowspan="{{ p.rowspan }}">
+                <button type="button"
+                        class="btn btn-success btn-show-payments btn-sm"
+                        data-toggle="modal"
+                        data-target="#modal-payment-purchase"
+                        pk="{{ p.id }}"><i class="fas fa-shopping-cart"></i>
+                </button>
+            </td>
         {% endfor %}
     </tbody>
-{#    <tfoot>#}
-{#    <tr class="text-center bg-primary text-white">#}
-{#        <td class="align-middle text-center" colspan="9"></td>#}
-{#        <td class="align-middle text-center" colspan="">SUM TOTAL: {{ sum_total|floatformat:2 }}</td>#}
-{#        <td class="align-middle text-center" colspan="">SUM TOTAL PAGADO: {{ sum_total_loan_pay|floatformat:2 }}</td>#}
-{#        <td class="align-middle text-center" colspan="">DIFERENCIA: {{ sum_total_difference|floatformat:2 }}</td>#}
-{#    </tr>#}
-{#    </tfoot>#}
+    <tfoot>
+    <tr class="text-center" style="background-color: #f1f1e4">
+        <td class="align-middle text-center" colspan="6"></td>
+        <td class="align-middle text-center">
+            <div class="input-icon">
+                <input type="text" readonly
+                       style="background-color: #e4ece3"
+                       class="form-control form-control-sm font-weight-bold text-right total text-dark"
+                       value="{{ sum_total|thousands_separator }}"><i
+                    class="change-money font-weight-bold">S/</i>
+            </div>
+        </td>
+        <td class="align-middle text-center">
+            <div class="input-icon">
+                <input type="text" readonly
+                       style="background-color: #d0eedc"
+                       class="form-control form-control-sm font-weight-bold text-right total text-dark"
+                       value="{{ sum_total_loan_pay|thousands_separator }}"><i
+                    class="change-money font-weight-bold">S/</i>
+            </div>
+        </td>
+        <td class="align-middle text-center">
+            <div class="input-icon">
+                <input type="text" readonly
+                       style="background-color: #eed0d0"
+                       class="form-control form-control-sm font-weight-bold text-right total text-dark"
+                       value="{{ sum_total_difference|thousands_separator }}"><i
+                    class="change-money font-weight-bold">S/</i>
+            </div>
+        </td>
+        <td colspan="2"></td>
+    </tr>
+    </tfoot>
 </table>
+
+<style>
+
+    .input-icon {
+        position: relative;
+    }
+
+    .input-icon > i {
+        position: absolute;
+        display: block;
+        transform: translate(0, -50%);
+        top: 50%;
+        pointer-events: none;
+        width: 25px;
+        text-align: center;
+        font-style: normal;
+    }
+
+    .input-icon > input {
+        padding-left: 25px;
+        padding-right: 8px;
+    }
+
+    .input-icon-right > i {
+        right: 0;
+    }
+
+    .input-icon-right > input {
+        padding-left: 0;
+        padding-right: 25px;
+        text-align: right;
+    }
+
+</style>
 <script type="text/javascript">
 
     $(document).on('click', '.btn-show-payments', function () {
@@ -87,7 +136,11 @@
             async: true,
             dataType: 'json',
             type: 'GET',
-            data: {'purchase_id': _purchase_id, 'start-date': $('#id_date_initial').val(), 'end-date': $('#id_date_final').val(),},
+            data: {
+                'purchase_id': _purchase_id,
+                'start-date': $('#id_date_initial').val(),
+                'end-date': $('#id_date_final').val(),
+            },
             success: function (response) {
                 $('#pay-purchase').html(response.grid);
             },

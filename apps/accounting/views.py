@@ -53,16 +53,15 @@ def get_purchases_by_date(request):
         subsidiary_obj = get_subsidiary_by_user(user_obj)
         # purchases_set = Purchase.objects.filter(purchase_date__range=[start_date, end_date], subsidiary=subsidiary_obj,
         #                                         status='A', supplier=supplier_obj).order_by('purchase_date')
-        bill_purchase_set = BillPurchase.objects.filter(register_date__range=[start_date, end_date],
-                                                        purchase__bill_status='C',
-                                                        purchase__supplier=supplier_obj).order_by('register_date')
+        bill_set = Bill.objects.filter(register_date__range=[start_date, end_date],
+                                       supplier=supplier_obj).order_by('register_date')
 
         return JsonResponse({
-            'grid': get_dict_purchases(bill_purchase_set),
+            'grid': get_dict_purchases(bill_set),
         }, status=HTTPStatus.OK)
 
 
-def get_dict_purchases(bill_purchase_set):
+def get_dict_purchases(bill_set):
     dictionary = []
 
     sum_total = 0
@@ -71,65 +70,68 @@ def get_dict_purchases(bill_purchase_set):
     transaction_date = ''
     operation_code = '-'
 
-    for p in bill_purchase_set:
-        if p.purchase.purchasedetail_set.count() > 0:
-            new = {
-                'id': p.purchase.id,
-                'supplier': p.purchase.supplier,
-                'purchase_date': p.register_date,
-                'expiration_date': p.expiration_date,
-                'bill_number': str(p.serial.upper()) + '-' + str(p.correlative),
-                'purchase_detail_set': [],
-                'loan_payment_set': [],
-                'user': p.purchase.user,
-                'subsidiary': p.purchase.subsidiary,
-                'status': p.purchase.get_status_display,
-                'details_count': p.purchase.purchasedetail_set.count(),
-                'total': '{:,}'.format(round(decimal.Decimal(p.purchase.total()), 2)),
-                'rowspan': 0
-            }
-            loan_payment = ''
-            sum_loan_payment = 0
+    for b in bill_set:
+        status = 'COMPLETO'
+        if b.sum_quantity_invoice() != b.sum_quantity_purchased():
+            status = 'INCOMPLETO'
 
-            cash_flow_set = CashFlow.objects.filter(purchase_id=p.id)
-            if cash_flow_set.exists():
-                cash_flow_obj = cash_flow_set.first()
-                transaction_date = cash_flow_obj.transaction_date
-                operation_code = cash_flow_obj.operation_code
+        rowspan = b.billpurchase_set.count()
 
-            for lp in p.purchase.loanpayment_set.all():
-                sum_loan_payment = sum_loan_payment + lp.price
-                loan_payment = {
-                    'id': lp.id,
-                    'quantity': lp.quantity,
-                    # 'date': lp.create_at,
-                    'date': transaction_date,
-                    'operation_code': operation_code,
-                    'price': lp.price,
-                    'type': lp.type
-                }
-            new.get('loan_payment_set').append(loan_payment)
-            sum_total_loan_pay = sum_total_loan_pay + sum_loan_payment
-            loans_count = p.purchase.loanpayment_set.count()
+        if b.billpurchase_set.count() == 0:
             rowspan = 1
-            for d in PurchaseDetail.objects.filter(purchase=p.purchase):
-                total = d.multiplicate()
-                purchase_detail = {
-                    'id': d.id,
-                    'product': d.product.name,
-                    'quantity': str(round(d.quantity, 2)),
-                    'unit': d.unit.description,
-                    'price_unit': str(round(d.price_unit, 2)),
-                    # 'total': '{:,}'.format(round(decimal.Decimal(total), 2)),
-                    'total': '{:,}'.format(round(
-                        decimal.Decimal(total.quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_EVEN)), 2)),
-                    'rowspan': rowspan
-                }
-                new.get('purchase_detail_set').append(purchase_detail)
-                new['rowspan'] = new['rowspan'] + rowspan
-            dictionary.append(new)
+        new = {
+            'id': b.id,
+            'register_date': b.register_date,
+            'expiration_date': b.expiration_date,
+            'payment_condition': b.payment_condition,
+            'serial': b.serial,
+            'correlative': b.correlative,
+            'supplier_name': b.supplier.name,
+            'delivery_address': b.delivery_address,
+            'bill_base_total': b.bill_base_total,
+            'bill_igv_total': b.bill_igv_total,
+            'bill_total_total': b.bill_total_total,
+            'sum_quantity_invoice': b.sum_quantity_invoice(),
+            'sum_quantity_purchased': b.sum_quantity_purchased(),
+            'status': status,
+            'bill_purchase': [],
+            'loan_payment_set': [],
+            'row_count': rowspan
+        }
+        loan_payment = ''
+        sum_loan_payment = 0
 
-        sum_total = sum_total + p.purchase.total()
+        cash_flow_set = CashFlow.objects.filter(purchase_id=b.id)
+        if cash_flow_set.exists():
+            cash_flow_obj = cash_flow_set.first()
+            transaction_date = cash_flow_obj.transaction_date
+            operation_code = cash_flow_obj.operation_code
+
+        for lp in b.loanpayment_set.all():
+            sum_loan_payment = sum_loan_payment + lp.price
+            loan_payment = {
+                'id': lp.id,
+                'quantity': lp.quantity,
+                'date': transaction_date,
+                'operation_code': operation_code,
+                'price': lp.price,
+                'type': lp.type
+            }
+        new.get('loan_payment_set').append(loan_payment)
+        sum_total_loan_pay = sum_total_loan_pay + sum_loan_payment
+
+        for d in b.billpurchase_set.all():
+            item_detail = {
+                'id': d.id,
+                'bill_number': d.purchase_detail.purchase.bill_number,
+                'client_reference': d.purchase_detail.purchase.client_reference,
+                'client_reference_entity': d.purchase_detail.purchase.client_reference_entity
+            }
+            new.get('bill_purchase').append(item_detail)
+            # new['rowspan'] = new['rowspan'] + rowspan
+        dictionary.append(new)
+
+        sum_total = sum_total + b.bill_total_total
 
     tpl = loader.get_template('accounting/purchase_grid.html')
     context = ({
