@@ -214,7 +214,8 @@ class CashFlow(models.Model):
     user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, null=True, blank=True)
     operation_type = models.CharField('Tipo operacion', max_length=1, choices=OPERATION_TYPE_CHOICES, default='0', )
     cash_transfer = models.ForeignKey('CashTransfer', on_delete=models.SET_NULL, null=True, blank=True)
-    purchase = models.ForeignKey('buys.Purchase', on_delete=models.SET_NULL, null=True, blank=True)
+    # purchase = models.ForeignKey('buys.Purchase', on_delete=models.SET_NULL, null=True, blank=True)
+    bill = models.ForeignKey('Bill', on_delete=models.SET_NULL, null=True, blank=True)
     requirement_buys = models.ForeignKey('buys.Requirement_buys', on_delete=models.CASCADE, null=True, blank=True)
     requirement_programming = models.ForeignKey('buys.RequirementBuysProgramming', on_delete=models.CASCADE, null=True,
                                                 blank=True)

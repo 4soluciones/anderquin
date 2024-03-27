@@ -762,7 +762,7 @@ class LoanPayment(models.Model):
     create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     type = models.CharField('Tipo de Operacion', max_length=1, choices=TYPE_CHOICES, default='V', )
     # purchase = models.ForeignKey('buys.Purchase', on_delete=models.SET_NULL, null=True, blank=True)
-    bill_purchase = models.ForeignKey('accounting.Bill', on_delete=models.SET_NULL, null=True, blank=True)
+    bill = models.ForeignKey('accounting.Bill', on_delete=models.SET_NULL, null=True, blank=True)
     operation_date = models.DateField('Fecha de operacion', null=True, blank=True)
     distribution_mobil = models.ForeignKey('comercial.DistributionMobil', on_delete=models.SET_NULL, null=True,
                                            blank=True)

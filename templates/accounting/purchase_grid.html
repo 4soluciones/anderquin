@@ -6,23 +6,24 @@
         <th class="bg-primary text-center align-middle" style="width: 10%;">PROVEEDOR</th>
         <th class="bg-primary text-center" style="width: 5%;">FECHA DE REGISTRO</th>
         <th class="bg-primary text-center" style="width: 5%;">FECHA DE VENCIMIENTO</th>
-        <th class="bg-primary text-center" style="width: 10%;">CONDICIÓN DE PAGO</th>
+        <th class="bg-primary text-center align-middle" style="width: 10%;">CONDICIÓN DE PAGO</th>
         <th class="bg-primary text-center align-middle" style="width: 15%;">ORDENES DE COMPRA</th>
         {#        <th class="bg-info text-center" style="width: 12%;">PRODUCTO</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">TIPO UND.</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">CANTIDAD</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">PRECIO UNITARIO</th>#}
         <th class="bg-primary text-center align-middle" style="width: 10%;">TOTAL</th>
+        {#        <th class="bg-success text-center align-middle" style="width: 8%;">ENTIDAD</th>#}
         <th class="bg-success text-center align-middle" style="width: 10%;">TOTAL PAGADO</th>
         <th class="bg-success text-center align-middle" style="width: 10%;">FECHA DE PAGO</th>
-        <th class="bg-success text-center align-middle" style="width: 10%;">NRO OPERACIÓN</th>
-        <th class="bg-success text-center align-middle" style="width: 5%;">PAGAR</th>
+        <th class="bg-success text-center align-middle" style="width: 8%;">NRO OPERACIÓN</th>
+        <th class="bg-success text-center align-middle" style="width: 7%;">PAGAR</th>
     </tr>
     </thead>
     <tbody>
     <tr>
         {% for p in dictionary %}
-            <tr pk="{{ p.id }}" class="text-center purchase">
+            <tr pk="{{ p.id }}" class="text-center bill">
             <td class="align-middle text-center font-weight-bold">{{ p.serial }}-{{ p.correlative }}</td>
             <td class="align-middle text-center">{{ p.supplier_name }}</td>
             <td class="align-middle text-center">{{ p.register_date|date:"d-m-y" }}</td>
@@ -43,23 +44,43 @@
                         class="change-money font-weight-bold">S/</i>
                 </div>
             </td>
-
-            <td class="align-middle text-center"></td>
-            <td class="align-middle text-center"></td>
-            <td class="align-middle text-center"></td>
-            <td class="align-middle text-center button-pay p-1" rowspan="{{ p.rowspan }}">
-                <button type="button"
-                        class="btn btn-success btn-show-payments btn-sm"
-                        data-toggle="modal"
-                        data-target="#modal-payment-purchase"
-                        pk="{{ p.id }}"><i class="fas fa-shopping-cart"></i>
-                </button>
+            {% for l in p.loan_payment_set %}
+                {#                    <td class="align-middle text-center">{{ l.cash_name }}</td>#}
+                <td class="align-middle text-center pay-row font-weight-bold"
+                        {% if p.has_payment != False %}
+                    style="background-color: #aaebb9"
+                        {% endif %}
+                >{{ l.price|thousands_separator }}</td>
+                <td class="align-middle text-center pay-row-date">{{ l.date|date:"d-m-y" }}</td>
+                <td class="align-middle text-center">{{ l.operation_code }}</td>
+            {% endfor %}
+            <td class="align-middle text-center button-pay p-1" rowspan="">
+                {% if p.has_payment == False %}
+                    <button type="button"
+                            class="btn btn-success btn-show-payments btn-sm"
+                            data-toggle="modal"
+                            data-target="#modal-payment-purchase"
+                            pk="{{ p.id }}"><i class="fas fa-shopping-cart"></i>
+                    </button>
+                {% endif %}
             </td>
         {% endfor %}
     </tbody>
-    <tfoot>
+</table>
+
+<table class="table table-sm">
+    <thead>
+    <tr class="text-center roboto-condensed-regular">
+        <th style="width: 55%"></th>
+        <th style="width: 10%">DEUDA TOTAL</th>
+        <th style="width: 10%">TOTAL PAGADO</th>
+        <th style="width: 10%">PENDIENTE</th>
+        <th style="width: 15%"></th>
+    </tr>
+    </thead>
+    <tbody>
     <tr class="text-center" style="background-color: #f1f1e4">
-        <td class="align-middle text-center" colspan="6"></td>
+        <td></td>
         <td class="align-middle text-center">
             <div class="input-icon">
                 <input type="text" readonly
@@ -87,9 +108,9 @@
                     class="change-money font-weight-bold">S/</i>
             </div>
         </td>
-        <td colspan="2"></td>
+        <td></td>
     </tr>
-    </tfoot>
+    </tbody>
 </table>
 
 <style>
@@ -126,29 +147,6 @@
 
 </style>
 <script type="text/javascript">
-
-    $(document).on('click', '.btn-show-payments', function () {
-        let _purchase_id = $(this).attr('pk');
-
-        {#$('#lending').empty();#}
-        $.ajax({
-            url: '/accounting/get_purchases_pay/',
-            async: true,
-            dataType: 'json',
-            type: 'GET',
-            data: {
-                'purchase_id': _purchase_id,
-                'start-date': $('#id_date_initial').val(),
-                'end-date': $('#id_date_final').val(),
-            },
-            success: function (response) {
-                $('#pay-purchase').html(response.grid);
-            },
-            fail: function (response) {
-                console.log("error");
-            }
-        });
-    });
 
     $('#table-dictionary tr.purchase td.pay-row').each(function () {
 

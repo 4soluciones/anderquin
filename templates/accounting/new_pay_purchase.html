@@ -1,21 +1,22 @@
-<form id="purchase-payment-form" action="" method="POST">
+{% load operations %}
+<form id="purchase-payment-form" class="roboto-condensed-regular" action="" method="POST">
     {% csrf_token %}
 
-    <input type="hidden" id="id_detail_purchase" name="detail_purchase" value="{{ detail_purchase.id }}">
-    <input type="hidden" id="id_purchase" name="purchase" value="{{ purchase.id }}">
-    <input type="hidden" id="id_price_unit" name="price_unit" value="{{ detail.price_unit }}">
-    <input type="hidden" id="id_quantity" name="quantity" value="{{ detail_purchase.count }}">
+{#    <input type="hidden" id="id_detail_purchase" name="detail_purchase" value="{{ detail_purchase.id }}">#}
+    <input type="hidden" id="bill_id" name="bill" value="{{ bill.id }}">
+{#    <input type="hidden" id="id_price_unit" name="price_unit" value="{{ detail.price_unit }}">#}
+{#    <input type="hidden" id="id_quantity" name="quantity" value="{{ detail_purchase.count }}">#}
     <input type="hidden" id="date-ini" name="date-ini" value="{{ start_date }}">
     <input type="hidden" id="date-fin" name="date-fin" value="{{ end_date }}">
 
-    <table class="table table-sm pay-options">
+    <table class="table table-sm pay-options bg-light table-bordered mb-2">
 
         <thead>
         <tr class="text-uppercase font-weight-lighter">
-            <th class="border-bottom-0 border-right border-left align-middle text-center">PROVEEDOR</th>
-            <th class="border-bottom-0 border-right align-middle text-center">Deuda</th>
-            <th class="border-bottom-0 border-right align-middle">Monto a pagar</th>
-            <th class="border-bottom-0 border-right align-middle">Tipo de Pago</th>
+            <th class="border-bottom-0 border-right border-left align-middle text-center">PROVEEDOR:</th>
+            <th class="border-bottom-0 border-right align-middle text-right">Deuda Total:</th>
+            <th class="border-bottom-0 border-right align-middle text-right">Monto a pagar:</th>
+            <th class="border-bottom-0 border-right align-middle text-right">Tipo de Pago:</th>
         </tr>
         </thead>
         <tbody>
@@ -24,61 +25,70 @@
                 style="width: 30%">
 
                 <div class="text-uppercase text-center">
-                    <input type="text"
-                           class="form-control form-control-sm text-center" value="{{ purchase.supplier.name }}"
-                           id="id_suplier_name" name="suplier_name" readonly>
+                    <input type="text" aria-label="..."
+                           class="form-control form-control-sm text-center" value="{{ bill.supplier.name }}"
+                           id="supplier_name" name="supplier-name" readonly>
                 </div>
 
             </td>
 
-            <td class="border-top-0 border-bottom border-right align-middle pay-loan" style="width: 20%">
-                <div class="text-uppercase text-center">
-                    <input type="text"
-                           class="form-control form-control-sm text-center font-weight-bold text-danger"
-                           value="S/ {{ total_debt }}"
-                           id="id_purchase_total" name="purchase_total" readonly>
-                </div>
+            <td class="border-top-0 border-bottom border-right align-middle pay-loan" style="width: 20%;">
 
+                 <div class="input-icon">
+                    <input type="text" readonly
+                           style="background-color: #eed0d0" aria-label="..."
+                           class="form-control form-control-sm font-weight-bold text-right text-dark"
+                           id="total_debt" name="total-debt"
+                           value="{{ total_debt }}"><i
+                        class="change-money font-weight-bold">S/</i>
+                </div>
             </td>
 
             <td class="border-top-0 border-bottom border-right align-middle" style="width: 20%">
-                <input type="text"
-                       id="id_purchase_pay"
-                       name="purchase_pay"
-                       autocomplete="off"
-                       class="form-control form-control-sm">
+
+                <div class="input-icon">
+                    <input type="text"
+                           id="bill_pay" name="bill-pay"
+                           autocomplete="off"
+                           style="background-color: #d0eedc" aria-label="..."
+                           class="form-control form-control-sm font-weight-bold text-right text-dark"><i
+                        class="change-money font-weight-bold">S/</i>
+                </div>
             </td>
 
             <td class="border-top-0 border-bottom border-right align-middle" style="width: 30%">
 
                 <select id="id_transaction_payment_type"
+                        aria-label="..."
                         name="transaction_payment_type"
                         class="form-control form-control-sm">
-                    <option value="0">Seleccione</option>
-                    {% for item in choices_payments %}
+                    <option disabled selected value="0">Seleccione</option>
+                    <option value="E">CONTADO</option>
+                    <option value="D">DEPÓSITO</option>
+                   <!--{% for item in choices_payments %}
                         {% if item.0 != 'F' %}
                             <option value="{{ item.0 }}">{{ item.1 }}</option>
                         {% endif %}
-                    {% endfor %}
+                    {% endfor %}-->
                 </select>
             </td>
         </tr>
         </tbody>
         {#            CUANDO ES EFECTIVO EN LOS PAGOS SIMPLES#}
-        <table class="table table-sm" id="cash" style="display: none">
+        <table class="table table-sm bg-light table-bordered mb-0" id="cash" style="display: none">
             <thead>
             <tr class="text-uppercase font-weight-lighter">
-                <th class="border-bottom-0 border-right align-middle">CAJA SELECCIONADA</th>
-                <th class="border-bottom-0 border-right align-middle code">FECHA DE CAJA</th>
-                <th class="border-bottom-0 border-right align-middle voucher">DESCRIPCION DEL PAGO</th>
+                <th class="border-bottom-0 border-right align-middle">CAJA SELECCIONADA:</th>
+                <th class="border-bottom-0 border-right align-middle code">FECHA DE CAJA:</th>
+                <th class="border-bottom-0 border-right align-middle voucher">DESCRIPCIÓN DEL PAGO:</th>
             </tr>
             </thead>
             <tbody>
 
             <tr>
-                <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
+                <td class="border-top-0 border-bottom border-right align-middle"
                     style="width: 20%">
-                    <select id="id_cash" name="cash_efectivo"
+                    <select id="id_cash" name="cash" aria-label="..."
                             class="form-control form-control-sm text-uppercase"
                             aria-selected="Text input with radio button">
                         {% for c in choices_account %}
@@ -89,18 +99,18 @@
                 </td>
                 <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
                     style="width: 10%">
-                    <input type="date"
+                    <input type="date" aria-label="..."
                            id="id_date"
                            name="id_date"
                            class="form-control form-control-sm">
                 </td>
 
                 <td class="border-top-0 border-bottom border-right align-middle" style="width: 70%">
-                    <input type="text"
+                    <input type="text" aria-label="..."
                            id="id_description"
                            name="description_cash"
                            autocomplete="off"
-                           value="COMPROBANTE DE COMPRA Nro: {{ purchase.bill_number }} - PROVEEDOR: {{ purchase.supplier.name }}"
+                           value="PAGO DE LA FACTURA: {{ bill.serial }}-{{ bill.correlative }}"
                            class="form-control form-control-sm text-uppercase">
                 </td>
 
@@ -109,20 +119,20 @@
             </tbody>
         </table>
         {#            CUANDO ES DEPOSITO EN LOS PAGOS SIMPLE#}
-        <table class="table table-sm" id="deposit" style="display: none">
+        <table class="table table-sm bg-light table-bordered mb-0" id="deposit" style="display: none">
             <thead>
             <tr class="text-uppercase font-weight-lighter">
                 <th class="border-bottom-0 border-right align-middle">CUENTA BANCARIA:</th>
-                <th class="border-bottom-0 border-right align-middle code">FECHA DEL PAGO</th>
-                <th class="border-bottom-0 border-right align-middle code">DESCRIPCION DEL PAGO</th>
-                <th class="border-bottom-0 border-right align-middle code">COD-OP</th>
+                <th class="border-bottom-0 border-right align-middle code">FECHA DEL PAGO:</th>
+                <th class="border-bottom-0 border-right align-middle code">DESCRIPCIÓN DEL PAGO:</th>
+                <th class="border-bottom-0 border-right align-middle code">COD-OP:</th>
             </tr>
             </thead>
             <tbody>
             <tr>
-                <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
+                <td class="border-top-0 border-bottom border-right align-middle"
                     style="width: 30%">
-                    <select id="id_cash_deposit" name="id_cash_deposit"
+                    <select id="id_cash_deposit" name="id_cash_deposit" aria-label="..."
                             class="form-control form-control-sm text-uppercase"
                             aria-selected="Text input with radio button">
                         {% for c in choices_account_bank %}
@@ -133,7 +143,7 @@
                 </td>
                 <td class="border-top-0 border-bottom border-right align-middle text-left text-danger"
                     style="width: 10%">
-                    <input type="date"
+                    <input type="date" aria-label="..."
                            id="id_date_deposit"
                            name="id_date_deposit"
                            value="{{ date }}"
@@ -141,13 +151,14 @@
                 </td>
                 <td class="border-top-0 border-bottom border-right align-middle" style="width: 40%">
                     <input type="text"
+                           aria-label="..."
                            class="form-control form-control-sm"
                            id="id_description_deposit"
                            name="description_deposit"
-                           value="DEPOSITO A LA ORDEN DE COMPRA Nro: {{ purchase.bill_number }}">
+                           value="DEPOSITO A LA FACTURA Nro: {{ bill.serial }}-{{ bill.correlative }}">
                 </td>
                 <td class="border-top-0 border-bottom border-right align-middle" style="width: 20%">
-                    <input type="text"
+                    <input type="text" aria-label="..."
                            class="form-control form-control-sm"
                            id="id_code_operation"
                            name="code_operation">
@@ -155,25 +166,23 @@
             </tr>
             </tbody>
         </table>
-
-        <tfoot>
-        <tr class="border-0">
-            <td colspan="{% if detail.unit.name == 'G' %}6{% else %}7{% endif %}" class="border-0 pr-0 text-right">
-                <button type="submit" id="btn-save" class="btn btn-primary"> Guardar</button>
-            </td>
-        </tr>
-        </tfoot>
     </table>
+
+    <div class="modal-footer">
+        <button type="submit" id="btn-save" class="btn btn-primary">Guardar pago</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+      </div>
 
 </form>
 
 <script type="text/javascript">
 
-    {#let date1 = $('#id_date_initial').val();#}
-    {#$('#date-ini').val(date1);#}
-    {#let date2 = $('#id_date_final').val();#}
-    {#$('#date-fin').val(date2);#}
-    {#console.log(date1, date2)#}
+
+    $(document).ready(function () {
+        setTimeout(function () {
+            $('#bill_pay').focus();
+        }, 500);
+    });
 
     $('#id_transaction_payment_type').change(function () {
 
@@ -182,104 +191,29 @@
             $('#cash').css('display', 'table');
             $('#deposit').css('display', 'none');
             $('#id_cash').trigger('change');
-            $('#fises').css('display', 'none');
         } else if (type === 'D') {
             $('#deposit').css('display', 'table');
             $('#cash').css('display', 'none');
-            $('#fises').css('display', 'none');
         } else if (type === 'F') {
-            $('#fises').css('display', 'table');
             $('#cash').css('display', 'none');
             $('#deposit').css('display', 'none');
         } else if (type === 'V' || type === 'C') {
             $('#cash').css('display', 'none');
             $('#deposit').css('display', 'none');
-            $('#fises').css('display', 'none');
         }
 
-    });
-
-
-    $("#radio1,#radio2,#radio3").click(function () {
-        let _tr = $(this).parent('div').parent('td').parent('tr');
-        let _tbody = _tr.parent('tbody');
-        _tbody.find('tr').removeClass('bg-light');
-        _tr.addClass('bg-light');
-
-        if ($("#radio2").is(':checked')) {
-
-            $("#id_loan_quantity").removeAttr('disabled', 'disabled').css('color', '#e9ecef')
-            $("#id_loan_quantity2").attr('disabled', 'disabled').css('color', '#e9ecef')
-            $("#id_loan_payment2").attr('disabled', 'disabled').css('color', '#e9ecef')
-            $("#id_transaction_payment_type2").attr('disabled', 'disabled').css('color', '#e9ecef')
-            $('#cash2').css('display', 'none');
-            $('#deposit2').css('display', 'none');
-
-        } else if ($("#radio3").is(':checked')) {
-
-            $("#id_loan_quantity").attr('disabled', 'disabled').css('color', '#e9ecef')
-            $("#id_loan_quantity2").removeAttr('disabled').css('color', '#495057');
-            $("#id_loan_payment2").removeAttr('disabled').css('color', '#495057');
-            $("#id_transaction_payment_type2").removeAttr('disabled').css('color', '#495057');
-            $('#id_cash_efectivo2').trigger('change');
-        }
-
-    });
-
-    $('#id_loan_payment').keyup(function () {
-        let val = $(this).val();
-        let _price_of_vouchers = parseFloat($('#id_price_of_vouchers').val());
-        let _number_of_vouchers = $('#id_number_of_vouchers');
-        let _quantity = 0;
-        if (isNaN(val) || val === '') {
-            val = 0;
-            _number_of_vouchers.val(0);
-            $(this).val(val);
-        } else {
-            _quantity = parseFloat(val) / _price_of_vouchers;
-            _number_of_vouchers.val(_quantity.toFixed(2));
-        }
-
-    });
-
-    $('#id_loan_quantity').keyup(function () {
-        let val = $(this).val();
-        if (isNaN(val) || val === '') {
-            val = 0;
-            $(this).val(val);
-        }
-    });
-
-    $('#id_transaction_payment_type').change(function () {
-        if ($(this).val() == 'D' || $(this).val() == 'V') {
-            $('#id_code_operation').removeAttr('disabled').css('color', '#495057');
-        } else {
-            if ($(this).val() == 'F') {
-                $('#id_number_of_vouchers').removeAttr('disabled').css('color', '#495057');
-                $('#id_price_of_vouchers').removeAttr('disabled').css('color', '#495057');
-            } else {
-
-                $('#id_number_of_vouchers').attr('disabled', 'disabled').css('color', '#e9ecef');
-                $('#id_price_of_vouchers').attr('disabled', 'disabled').css('color', '#e9ecef');
-            }
-            $('#id_code_operation').attr('disabled', 'disabled').css('color', '#e9ecef');
-
-        }
-    });
-
-    $('#id_transaction_payment_type2').change(function () {
-        if ($(this).val() == 'D' || $(this).val() == 'V') {
-            $('#id_code_operation2').removeAttr('disabled').css('color', '#495057');
-        } else {
-            $('#id_code_operation2').attr('disabled', 'disabled').css('color', '#e9ecef');
-        }
     });
 
     $('#purchase-payment-form').submit(function (event) {
 
         event.preventDefault();
         let data = new FormData($('#purchase-payment-form').get(0));
-
+        let bill_id = $('#bill_id').val();
+        let _total_debt = $('#total_debt').val().replace(/,/g, '');
+        let _bill_pay = $('#bill_pay').val().replace(/,/g, '');
+        if (Number(_bill_pay) > Number(_total_debt) || Number(_bill_pay) < Number(_total_debt)){
+            toastr.warning('El monto a pagar no puede ser mayor o menor a la Deuda', 'Mensaje')
+        }
 
         $('#btn-save').attr("disabled", "true");
 
@@ -296,8 +230,8 @@
                     $('#modal-payment-purchase').modal('hide');
                     {#$('#table-list-purchase').html(response['grid']);#}
                     toastr.success(response['message'], '¡Bien hecho!');
-                    let _row = $('tr.purchase[pk="'+ {{ purchase.id }} +'"]')
-                    _row.find('td.pay-row').text(response.pay).css({'background-color': 'rgb(40, 167, 69)',});
+                    let _row = $('tr.bill[pk="'+ bill_id +'"]')
+                    _row.find('td.pay-row').text(response.pay).css({'background-color': 'rgb(170,235,185)',});
                     _row.find('td.pay-row-date').text(response.pay_date);
                     _row.find('td.button-pay').hide();
                 }
@@ -313,16 +247,11 @@
     });
 
 
-    function number_test(n) {
-        let result = (n - Math.floor(n)) !== 0;
-        return result;
-    }
-
     $("#id_cash").change(function () {
 
         $("#id_date").val('');
 
-        if ($("#id_cash").val() != '') {
+        if ($("#id_cash").val() !== '') {
 
             $.ajax({
                 url: '/accounting/get_cash_date/',

@@ -68,7 +68,6 @@ def get_dict_purchases(bill_set):
     sum_total_loan_pay = 0
     sum_total_difference = 0
     transaction_date = ''
-    operation_code = '-'
 
     for b in bill_set:
         status = 'COMPLETO'
@@ -76,6 +75,8 @@ def get_dict_purchases(bill_set):
             status = 'INCOMPLETO'
 
         rowspan = b.billpurchase_set.count()
+
+        has_payment = False
 
         if b.billpurchase_set.count() == 0:
             rowspan = 1
@@ -96,25 +97,32 @@ def get_dict_purchases(bill_set):
             'status': status,
             'bill_purchase': [],
             'loan_payment_set': [],
-            'row_count': rowspan
+            'row_count': rowspan,
+            'has_payment': ''
         }
         loan_payment = ''
         sum_loan_payment = 0
 
-        cash_flow_set = CashFlow.objects.filter(purchase_id=b.id)
+        cash_flow_set = CashFlow.objects.filter(bill_id=b.id)
+        operation_code = '-'
+        cash_name = '-'
         if cash_flow_set.exists():
+            has_payment = True
             cash_flow_obj = cash_flow_set.first()
             transaction_date = cash_flow_obj.transaction_date
-            operation_code = cash_flow_obj.operation_code
+            cash_name = cash_flow_obj.cash.name
+            if cash_flow_obj.operation_code is not None:
+                operation_code = cash_flow_obj.operation_code
 
         for lp in b.loanpayment_set.all():
             sum_loan_payment = sum_loan_payment + lp.price
             loan_payment = {
                 'id': lp.id,
+                'cash_name': cash_name,
                 'quantity': lp.quantity,
                 'date': transaction_date,
                 'operation_code': operation_code,
-                'price': lp.price,
+                'price': round(lp.price, 2),
                 'type': lp.type
             }
         new.get('loan_payment_set').append(loan_payment)
@@ -129,6 +137,7 @@ def get_dict_purchases(bill_set):
             }
             new.get('bill_purchase').append(item_detail)
             # new['rowspan'] = new['rowspan'] + rowspan
+            new['has_payment'] = has_payment
         dictionary.append(new)
 
         sum_total = sum_total + b.bill_total_total
@@ -137,8 +146,8 @@ def get_dict_purchases(bill_set):
     context = ({
         'dictionary': dictionary,
         'sum_total': sum_total,
-        'sum_total_loan_pay': sum_total_loan_pay,
-        'sum_total_difference': sum_total - sum_total_loan_pay,
+        'sum_total_loan_pay': round(sum_total_loan_pay, 2),
+        'sum_total_difference': round(sum_total - sum_total_loan_pay, 2),
         # 'rowspan': len(dictionary)
     })
     return tpl.render(context)
@@ -149,21 +158,22 @@ def get_purchases_pay(request):
         user_id = request.user.id
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        purchase_id = request.GET.get('purchase_id', '')
         start_date = request.GET.get('start-date', '')
         end_date = request.GET.get('end-date', '')
-        purchase_obj = Purchase.objects.get(id=int(purchase_id))
-        detail_purchase_obj = PurchaseDetail.objects.filter(purchase=purchase_obj)
-        cash_set = Cash.objects.filter(subsidiary=subsidiary_obj, accounting_account__code__startswith='101')
-        cash_deposit_set = Cash.objects.filter(subsidiary=subsidiary_obj, accounting_account__code__startswith='104')
+        bill_id = request.GET.get('bill_id', '')
+        bill_obj = Bill.objects.get(id=int(bill_id))
+        # purchase_obj = Purchase.objects.get(id=int(purchase_id))
+        # detail_purchase_obj = PurchaseDetail.objects.filter(purchase=purchase_obj)
+        cash_set = Cash.objects.filter(accounting_account__code__startswith='101')
+        cash_deposit_set = Cash.objects.filter(accounting_account__code__startswith='104')
         mydate = datetime.now()
         formatdate = mydate.strftime("%Y-%m-%d")
         tpl = loader.get_template('accounting/new_pay_purchase.html')
         context = ({
             'choices_payments': TransactionPayment._meta.get_field('type').choices,
-            'detail_purchase': detail_purchase_obj,
-            'purchase': purchase_obj,
-            'total_debt': '{:,}'.format(round(decimal.Decimal(purchase_obj.total()), 2)),
+            # 'detail_purchase': detail_purchase_obj,
+            'bill': bill_obj,
+            'total_debt': '{:,}'.format(round(decimal.Decimal(bill_obj.bill_total_total), 2)),
             'choices_account': cash_set,
             'choices_account_bank': cash_deposit_set,
             'date': formatdate,
@@ -182,15 +192,15 @@ def new_payment_purchase(request):
         user_id = request.user.id
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        purchase_total = str(request.POST.get('purchase_total'))
-        purchase_pay = decimal.Decimal(request.POST.get('purchase_pay'))
+        # purchase_total = str(request.POST.get('purchase_total'))
+        bill_pay = decimal.Decimal(request.POST.get('bill-pay').replace(',', ''))
         start_date = str(request.POST.get('date-ini'))
         end_date = str(request.POST.get('date-fin'))
         transaction_payment_type = str(request.POST.get('transaction_payment_type'))
-        purchase_id = int(request.POST.get('purchase'))
-        purchase_obj = Purchase.objects.get(id=purchase_id)
-        purchases_set = Purchase.objects.filter(purchase_date__range=[start_date, end_date], subsidiary=subsidiary_obj,
-                                                status='A')
+        bill_id = int(request.POST.get('bill'))
+        bill_obj = Bill.objects.get(id=bill_id)
+        # purchases_set = Purchase.objects.filter(purchase_date__range=[start_date, end_date], subsidiary=subsidiary_obj,
+        #                                         status='A')
         date_converter = ''
         cash_flow_date = str(request.POST.get('id_date'))
         cash_flow_transact_date_deposit = str(request.POST.get('id_date_deposit'))
@@ -198,36 +208,36 @@ def new_payment_purchase(request):
         formatdate = date_converter.strftime("%d-%m-%y")
 
         if transaction_payment_type == 'E':
-            cash_id = str(request.POST.get('cash_efectivo'))
+            cash_id = str(request.POST.get('cash'))
             cash_obj = Cash.objects.get(id=cash_id)
             cash_flow_description = str(request.POST.get('description_cash'))
 
-            cashflow_obj = CashFlow(
+            cash_flow_obj = CashFlow(
                 transaction_date=cash_flow_date,
                 document_type_attached='O',
                 description=cash_flow_description,
-                purchase=purchase_obj,
+                bill=bill_obj,
                 type='S',
-                total=purchase_pay,
+                total=bill_pay,
                 cash=cash_obj,
                 user=user_obj
             )
-            cashflow_obj.save()
+            cash_flow_obj.save()
 
             loan_payment_obj = LoanPayment(
-                price=purchase_pay,
+                price=bill_pay,
                 type='C',
-                purchase=purchase_obj
+                bill=bill_obj
             )
             loan_payment_obj.save()
 
             transaction_payment_obj = TransactionPayment(
-                payment=purchase_pay,
+                payment=bill_pay,
                 type=transaction_payment_type,
                 loan_payment=loan_payment_obj
             )
             transaction_payment_obj.save()
-
+        code_operation = ''
         if transaction_payment_type == 'D':
             cash_flow_description = str(request.POST.get('description_deposit'))
 
@@ -235,28 +245,28 @@ def new_payment_purchase(request):
             cash_obj = Cash.objects.get(id=cash_id)
             code_operation = str(request.POST.get('code_operation'))
 
-            cashflow_obj = CashFlow(
+            cash_flow_obj = CashFlow(
                 transaction_date=cash_flow_transact_date_deposit,
                 document_type_attached='O',
                 description=cash_flow_description,
-                purchase=purchase_obj,
+                bill=bill_obj,
                 type='R',
                 operation_code=code_operation,
-                total=purchase_pay,
+                total=bill_pay,
                 cash=cash_obj,
                 user=user_obj
             )
-            cashflow_obj.save()
+            cash_flow_obj.save()
 
             loan_payment_obj = LoanPayment(
-                price=purchase_pay,
+                price=bill_pay,
                 type='C',
-                purchase=purchase_obj
+                bill=bill_obj
             )
             loan_payment_obj.save()
 
             transaction_payment_obj = TransactionPayment(
-                payment=purchase_pay,
+                payment=bill_pay,
                 type=transaction_payment_type,
                 loan_payment=loan_payment_obj,
                 operation_code=code_operation
@@ -265,9 +275,10 @@ def new_payment_purchase(request):
 
         return JsonResponse({
             'message': 'Cambios guardados con exito.',
-            'pay': round(purchase_pay, 2),
+            'pay': round(bill_pay, 2),
             'pay_date': formatdate,
-            'grid': get_dict_purchases(purchases_set),
+            'cod_op': code_operation,
+            # 'grid': get_dict_purchases(purchases_set),
 
         }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
