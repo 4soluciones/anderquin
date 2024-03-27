@@ -29,9 +29,9 @@ urlpatterns = [
 
     # path('new_sales/', new_sales, name='new_sales'),
 
-    path('sales_list/', login_required(SalesList.as_view()), name='sales_list'),
-    path('sales_list/<int:pk>/', login_required(SalesList.as_view()), name='sales_list'),
-    path('sales_list/<str:letter>/', login_required(SalesList.as_view()), name='sales_list'),
+    path('sales_list/', login_required(SalesOrder.as_view()), name='sales_list'),
+    # path('sales_list/<int:pk>/', login_required(SalesList.as_view()), name='sales_list'),
+    # path('sales_list/<str:letter>/', login_required(SalesList.as_view()), name='sales_list'),
 
     path('set_product_detail/', set_product_detail, name='set_product_detail'),
     path('get_product_detail/', get_product_detail, name='get_product_detail'),
@@ -171,5 +171,8 @@ urlpatterns = [
     # List quotation
     path('get_sales_quotation_by_subsidiary/', login_required(get_sales_quotation_by_subsidiary), name='get_sales_quotation_by_subsidiary'),
 
+
+    # SALES NEW
+    path('get_product_grid/', login_required(get_product_grid), name='get_product_grid'),
 ]
 

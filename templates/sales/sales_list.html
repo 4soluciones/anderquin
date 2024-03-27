@@ -2,68 +2,10 @@
 {% load static %}
 {% load operations %}
 {% block title %}
-    GLP | Ventas
+    Ventas
 {% endblock title %}
 
 {% block body %}
-
-    <style type="text/css">
-        /* scrollbar_vertical */
-        .mCSB_scrollTools {
-            background-color: #f3efef;
-        }
-
-        .mCSB_draggerRail {
-            background-color: #17b7ce !important;
-        }
-
-        .mCSB_dragger_bar {
-            background-color: #0d76e0 !important;
-        }
-
-        /* ---- isotope ---- */
-
-        /* .grid {
-          border: 1px solid #333;
-        } */
-
-        /* clear fix */
-        .grid:after {
-            content: '';
-            display: block;
-            clear: both;
-        }
-
-        .dollar {
-        {#display: inline-block;#} position: relative;
-        }
-
-        .dollar input {
-            padding-left: 6px;
-        }
-
-        .dollar:before {
-            position: absolute;
-            content: "S/.";
-            left: 4px;
-            top: 3px;
-        }
-
-        .dollar-table {
-        {#display: inline-block;#} position: relative;
-        }
-
-        .dollar-table input {
-            padding-left: 6px;
-        }
-
-        .dollar-table:before {
-            position: absolute;
-            content: "S/.";
-            left: 12px;
-            top: 10px;
-        }
-    </style>
 
     {% if error != "" %}
         <div class="alert alert-danger" role="alert">
@@ -73,70 +15,28 @@
         </div>
     {% endif %}
 
-    {% if distribution %}
-
-        <input type="hidden" class="form-control form-control-sm distribution" id="id_distribution"
-               value="{{ distribution }}" readonly="true">
-        <input type="hidden" class="form-control form-control-sm type" id="type" value="R" readonly="true">
-
-    {% else %}
-
-        {% if electronic_invoice %}
-
-            <input type="hidden" class="form-control form-control-sm distribution" id="id_distribution" value="0"
-                   readonly="true">
-            <input type="hidden" class="form-control form-control-sm type" id="type" value="E" readonly="true">
-        {% else %}
-
-            <input type="hidden" class="form-control form-control-sm distribution" id="id_distribution" value="0"
-                   readonly="true">
-            <input type="hidden" class="form-control form-control-sm type" id="type" value="V" readonly="true">
-
-        {% endif %}
-    {% endif %}
-
-    <div class="card-group">
-        <div class="card col-sm-6 p-1">
-            <div class="col-sm-12 m-0 p-0">
-                {% include "sales/sales_grid_tab1.html" with client_dict=client_dict %}
-                <div class="col-sm-12 m-0 p-0 mt-1" id="table-distribution-grid">
-                    {% if distribution %}
-                        {% include "sales/sales_distribution_grid.html" %}
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <div class="card col-sm-6 p-1" id="tab-two">
-            {% include "sales/sales_grid_tab2.html" %}
-        </div>
-
-    </div><!-- card-group -->
-
-
-    <!-- Modal -->
-    <div class="modal fade modal-rate" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header text-center" style="background-color: #135d94;">
-                    <h5 class="modal-title text-white" id="exampleModalLabel">TARIFARIOS</h5>
-                    <button type="button" class="close ml-0" data-dismiss="modal" aria-label="Close">
+    <div class="card-group" style="display: flex;">
+        <div class="card p-0" style="flex: 0 0 47%;">
+            <div class="col-sm-12 m-0 p-0 vh-100 row justify-content-center align-items-center">
+            <div id="product_list_sales">
+                <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+                    <strong>Atencion!</strong>  Ingrese un texto para comenzar la búsqueda...
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body" id="rates">
-                    ...
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary float-left" id="add-all-details"><i
-                            class="fas fa-cart-plus"></i>
-                        agregar
-                    </button>
-                </div>
+            </div>
+            </div>
+            <div class="loader-container col-auto" id="loader-product" style="display: none;">
+                <div class="loader"></div>
             </div>
         </div>
-    </div>
+
+        <div class="card p-0" style="flex: 0 0 53%;" id="tab-two">
+            {% include "sales/sales_grid_tab1.html" %}
+        </div>
+    </div><!-- card-group -->
+
 
 {% endblock body %}
 
@@ -145,94 +45,184 @@
 
     <script type="text/javascript">
 
-        let pu;
-        let p;
+        $('#sum-total').val('0.00');
+
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p><strong>Cargando Reniec/Sunat...</strong></p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        loader2 = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p>Cargando Comprobante...</p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        $("#id-nro-document-sender").attr('maxlength', 8);
+        sessionStorage.setItem('document', '01');
         sessionStorage.setItem('BillType', 'V');
+
+        $(document).on('click', '#btn-new-form', function () {
+            location.reload();
+        });
+
         if ($("#radio2").is(':checked')) {
-            $("#id_client").attr('disabled', 'disabled');
+            $("#document_type_sender").attr('disabled', 'disabled');
             $("#id_client_name").removeAttr('disabled');
-            $("#id_client").find('option[value]').removeAttr('selected');
-            $("#id_client").find('option[value="0"]').attr('selected', 'selected');
-            $("#id_client").trigger('change');
+            $("#document_type_sender").find('option[value]').removeAttr('selected');
+            $("#document_type_sender").find('option[value="0"]').attr('selected', 'selected');
+            $("#id-nro-document-sender").attr('readonly', true);
+            $("#document_type_sender").trigger('change');
         }
-        ;
 
-        {#Sirve para convertir select en autocompletar#}
-        $('#id_client').select2({
-            theme: 'bootstrap4',
-        });
-        $('#id_client_name').select2({
-            theme: 'bootstrap4',
-        });
-        $('#id_serie').select2({
-            theme: 'bootstrap4',
-        });
-        {#Selecciona un cliente del autocomplit #}
-        $('#id_client, #id_client_name').on('select2:select', function (e) {
-            $('#id_table_client').empty()
-            let data = e.params.data;
-            // console.log(data);
-            // console.log(data['id']);
-
-            let search = data['id'];
-
-            $.ajax({
-                url: '/sales/get_client/',
-                async: true,
-                dataType: 'json',
-                type: 'GET',
-                data: {'pk': search},
-                success: function (response) {
-                    console.log(response);
-                    $('#client-name').val(response['client_names']);
-                    $('#id_table_client').html(response.grid).parent('div').slideDown();
-                },
-                fail: function (response) {
-                    console.log("error");
-                }
-            });
-
-        });
-        $("#grid-products").mCustomScrollbar();
-        /******* ISOTOPE *******/
-// quick search regex
-        var qsRegex;
-
-        // init Isotope
-        var $grid = $('.grid').isotope({
-            itemSelector: '.element-item',
-            layoutMode: 'fitRows',
-            filter: function () {
-                return qsRegex ? $(this).text().match(qsRegex) : true;
+        $('#transaction_payment_type').change(function () {
+            let type = $('#transaction_payment_type').val();
+            if (type === 'E') {
+                $('#cash').css('display', '');
+                $('#deposit').css('display', 'none');
+                $('#id_cash').trigger('change');
+                $('#credit').css('display', 'none');
+            } else if (type === 'D') {
+                $('#deposit').css('display', '');
+                $('#cash').css('display', 'none');
+                $('#credit').css('display', 'none');
+            } else if (type === 'C') {
+                $('#credit').css('display', '');
+                $('#cash').css('display', 'none');
+                $('#deposit').css('display', 'none');
+            } else if (type === '0') {
+                $('#credit').css('display', 'none');
+                $('#cash').css('display', 'none');
+                $('#deposit').css('display', 'none');
             }
         });
 
-        // use value of search field to filter
-        var $quicksearch = $('.quicksearch').keyup(debounce(function () {
-            qsRegex = new RegExp($quicksearch.val(), 'gi');
-            $grid.isotope();
-        }, 200));
+        $(document).on('change', '#document_type_sender', function () {
+            let _val = $(this).val();
+            if (_val === '01') {
+                $("#id-nro-document-sender").attr('maxlength', 8);
+                sessionStorage.setItem('document', '01')
+                $('#id-nro-document-sender').val('');
+                $('#id_sender').val('');
+                $('#id-address-line').css('display', 'none');
+                $('#id_address').val('')
+                {#$('#id_address_sender').val('');#}
+            } else if (_val === '06') {
+                $("#id-nro-document-sender").attr('maxlength', 11);
+                sessionStorage.setItem('document', '06')
+                $('#id-nro-document-sender').val('');
+                $('#id_sender').val('');
+                $('#id-address-line').css('display', '');
+                $('#id_address').val('')
+            } else if (_val === '04' || _val === '07' || _val === '00') {
+                $("#id-nro-document-sender").attr('maxlength', 15);
+                sessionStorage.setItem('document', '')
+                $('#id_sender').val('');
+                $('#id-nro-document-sender').val('');
+                $('#id-address-line').css('display', 'none');
+                $('#id_address').val('')
+            }
+        });
 
-        // debounce so filtering doesn't happen every millisecond
-        function debounce(fn, threshold) {
-            var timeout;
-            threshold = threshold || 100;
-            return function debounced() {
-                clearTimeout(timeout);
-                var args = arguments;
-                var _this = this;
+        $(document).on('change', '#id_client_name', function (e) {
 
-                function delayed() {
-                    fn.apply(_this, args);
+            let client_id = $('#id_client_name option:selected').val();
+            let client_name = $('#id_client_name option:selected').text();
+            let address = $('#id_client_name option:selected').attr('address');
+            let client_document = $('#id_client_name option:selected').attr('document-number');
+            let client_document_type = $('#id_client_name option:selected').attr('document-type');
+            $('#id-nro-document-sender').val(client_document);
+            $('#document_type_sender').val(client_document_type)
+            {#$("#document_type_sender").trigger('change');#}
+            $("#id_sender").val(client_name);
+            $("#id-client-sender").val(client_id);
+            if (client_id !== 0) {
+                $("#id_sender").val(client_name);
+                $("#id-client-sender").val(client_id);
+                $("#id_address").val(address);
+                $('#document_type_sender').val(client_document_type);
+                $('#id_client_name option:selected').attr('document-type');
+                $('#id-nro-document-sender').val(client_document)
+                $('#document_type_sender').val(client_document_type);
+                {#$("#document_type_sender").trigger('change');#}
+                $('#id-nro-document-sender').val(client_document);
+            }
+        });
+
+        $('#id-nro-document-sender').keypress(function (e) {
+
+            if (e.keyCode === 13) {
+                e.preventDefault()
+                $(this).trigger("enterKey");
+                let _document_number = $('#id-nro-document-sender').val();
+                if ((sessionStorage.getItem('document') === '01') && (_document_number.length !== 8)) {
+                    toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
+                    return false;
+                } else {
+                    if ((sessionStorage.getItem('document') === '06') && (_document_number.length !== 11)) {
+                        toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
+                        return false;
+                    }
+                }
+                if ($('#document_type_sender').val() === '0') {
+                    toastr.warning('¡Favor seleecionar un tipo de documento!', 'Error de Datos');
+                    return false;
                 }
 
-                timeout = setTimeout(delayed, threshold);
-            };
-        }
+                $('#loading-666').html(loader).show()
 
-        /******* ISOTOPE *******/
+                $.ajax({
+                    url: '/sales/get_name_business/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {
+                        'nro_document': $('#id-nro-document-sender').val(),
+                        'type': $('#document_type_sender').val()
+                    },
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡Bien hecho!');
+                            $("#id_sender").val(response.result);
+                            $("#id-client-sender").val(response.pk);
+                            $("#id_address").val(response.address);
+                            $('#loading-666').hide();
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        if (jqXhr.status === 500) {
+                            toastr.error(jqXhr.responseJSON.error, '¡Error de Consulta!');
+                        } else {
+                            if (textStatus === 'timeout') {
+                                toastr.error('Failed from timeout', '¡Error de Consulta!');
+                            } else {
+                                console.log(" STATUS: " + xhr + " " + textStatus);
+                            }
+                        }
+                        $('#loading-666').hide();
+                    },
+                });
+                return false;
+            }
+        });
 
-// sales_grid_tab1 - verifica si tiene filas
         function hasRowDetails() {
             var _response = false;
             if ($("#sales-details tr").length > 0) {
@@ -241,113 +231,29 @@
             return _response;
         }
 
-        // sales_grid_tab2 - btn Ver Precios
-        $(document).on('click', '.card-item-product', function () {
-            if (($('#id_client option:selected').val() == '0') && ($('#id_client_name option:selected').val() == '0')) {
-                toastr.warning('¡Elija un cliente porfavor!', 'Mensaje!');
-                $('#id_client').focus();
-                return false;
-            }
-            let _product_id = $(this).attr('pk');
-            sessionStorage.setItem("product_id", _product_id);
-
-            // Comprobar si hay filas en los detalles
-            if (hasRowDetails()) {
-                // Comprobar si hay filas de un producto especifico
-
-            }
-            $('#rates').empty();
-            // Cargamos el modal tarifas del producto
-            $.ajax({
-                url: '/sales/get_rate_product/',
-                async: true,
-                dataType: 'json',
-                type: 'GET',
-                data: {'product': _product_id, 'distribution': $('#id_distribution').val()},
-                success: function (response) {
-                    $('#rates').html(response.grid);
-                },
-                fail: function (response) {
-                    console.log("error");
-                }
-            });
-        });
-
-        // btn cotizacion
-        $(".quote").click(function () {
-            console.log(' le cotize parle tu france');
-
-        });
-
-        // sales_grid_tab1 - sumar total de los detalles
         function calculateTotal() {
-
             var sum = 0;
             $('#sales-details tr td.item-total').each(function () {
-                sum = sum + parseFloat($(this).text());
+                let total_detail = Number($(this).find('input.input-total-detail').val());
+                sum = sum + total_detail;
             });
-
-            {#$('#sum-total').val(sum);#}
             $('#sum-total').val(sum.toFixed(2));
-
         }
 
-        // sales_grid_tab1 - eliminar un detalle segun id producto
         function deleteItem($product, $unit) {
-            if ($('#id_distribution').val() != '') {
-                distribution_value($product, $unit)
-            }
-            if ($unit == '9') {
-                add_client_advancement($product, $unit, 0)
-            }
+            let quantity_delete = 0
+            let quantity_min = 0
+            let rows = $('#sales-details').find("tr[product=" + $product + "][pu=" + $unit + "]");
+            quantity_delete = parseFloat(rows.find('td.item-quantity input.input-quantity').val());
+            quantity_min = parseFloat(rows.find('td.item-unit').attr('unit_min'));
             $('#sales-details').find("tr[product=" + $product + "][pu=" + $unit + "]").remove();
+            let _row = $('table#product-data-grid tbody tr[product=' + $product + ']');
+            let old_stock = parseFloat(_row.find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text());
+            _row.find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text((old_stock + (quantity_delete * quantity_min)).toFixed(2));
             calculateTotal();
             counterStrike();
         }
 
-        function add_client_advancement($product, $_unit, $value) {
-
-            if ($value == 0) {
-                let _quantity = 0;
-                $('table#id-table-detail-order tbody#sales-details tr').each(function () {
-                    if ($(this).attr('product') == $product && $(this).attr('pu') == $_unit) {
-                        _quantity = parseFloat($(this).find('td.item-quantity').text());
-                        $('table.table-client-advancement tbody#details-client-advancement tr').each(function () {
-                            if ($product == parseInt($(this).attr('product_final'))) {
-                                let value_last = parseFloat($(this).find('td.quantity-client').text());
-                                $(this).find('td.quantity-client').text((value_last + _quantity).toFixed(0));
-                            }
-                        })
-                    }
-                })
-            } else {
-                if ($value > 0) {
-                    $('table.table-client-advancement tbody#details-client-advancement tr').each(function () {
-                        if ($product == parseInt($(this).attr('product_final'))) {
-                            let value_last = parseFloat($(this).find('td.quantity-client').text());
-                            $(this).find('td.quantity-client').text((value_last + parseFloat($value)).toFixed(0));
-                        }
-                    })
-                }
-            }
-        }
-
-        function distribution_value(_product, _unit) {
-            let param = 0;
-            $('table#id-table-detail-order tbody#sales-details tr').each(function () {
-                if ($(this).attr('product') === _product && $(this).attr('pu') === _unit) {
-                    param = parseFloat($(this).find('td.item-quantity').text());
-                    $('#tbl-sales-distribution-grid tbody.sales-distribution-detail tr').each(function () {
-                        if (_product === parseInt($(this).attr('product'))) {
-                            let value_last = parseFloat($(this).find('td.quantity-surplus').text());
-                            $(this).find('td.quantity-surplus').text((value_last + param).toFixed(2));
-                        }
-                    })
-                }
-            })
-        }
-
-        // reasigna numero de fila a los detalles
         function counterStrike() {
             var index = 1;
             $('#sales-details tr').each(function () {
@@ -355,355 +261,76 @@
                 $(this).children('td:first').text(index);
                 index++;
             });
-
         }
 
-        $('#save-order').click(function () {
-
-            createSales();
-
-        });
-
-        function createSales() {
-
-            // Comprobar si hay un cliente seleccionado
-            if (($('#id_client option:selected').val() == '0') && ($('#id_client_name option:selected').val() == '0')) {
-                toastr.warning('¡Elija un cliente porfavor!', 'Error de Llenado!');
-                $('#id_client').focus();
+        $(document).on('click', 'table#product-data-grid tbody tr td table.table-prices tbody tr td.prices-list div button', async function () {
+            let value = $(this).attr('pk');
+            let price = parseFloat($(this).attr('ip'));
+            let tr = $(this).parent('div').parent('div').parent('td').parent('tr');
+            let unit_id = tr.attr('unit');
+            let name_unit = tr.attr('unitname');
+            let product_id = tr.attr('product');
+            let product_brand = tr.attr('product_brand');
+            let name_product = tr.attr('productname');
+            let quantity_minim = parseFloat(tr.attr('quantity_minum'));
+            let quantity = parseFloat(tr.find('td.quantity-sales-price input.quantity-select').val());
+            let stock = parseFloat(tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text());
+            let store_id = tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary').attr('store_id');
+            if (isNaN(quantity)) {
+                toastr.warning('Ingrese la cantidad del producto');
+                tr.find('td.quantity-sales-price input.quantity-select').val('')
+                return false
+            }
+            if (quantity === '' || quantity === 0) {
+                toastr.warning('Ingrese la cantidad del producto');
+                tr.find('td.quantity-sales-price input.quantity-select').val('')
+                return false
+            }
+            if (quantity < 0) {
+                toastr.warning('La cantidad debe ser un valor positivo');
+                tr.find('td.quantity-sales-price input.quantity-select').val('')
+                return false
+            }
+            if ($("#sales-details tr[product=" + product_id + "][pu=" + unit_id + "]").length) {
+                let $msg = 'El producto con este tipo de unidad ya se encuentra en el registro.';
+                toastr.warning($msg, 'Mensaje');
+                tr.find('td.quantity-sales-price input.quantity-select').val('')
                 return false;
             }
-            //Comprobar si selecciono serie
-            if (($('#type').val() == 'E') && ($('#id_serie').val() == '0')) {
-                toastr.warning('¡Favor de completar la serie!', 'Error de Llenado!');
-                $('#id_serie').focus();
-            }
-            // Comprobar si hay filas en los detalles
-            if (hasRowDetails() == false) {
-                toastr.warning('¡Elija los productos..!', 'Error de Llenado!');
-                return false;
-            }
+            let _flag_stock = await check_stock(quantity, product_id)
 
-            let sales = {
-                "Details": [],
-                "Client": ($('#id_client').val() != '0') ? $('#id_client').val() : $('#id_client_name').val(),
-                "SaleTotal": $('#sum-total').val(),
-                "TransactionPaymentType": $('#transaction_payment_type').val(),
-                "Distribution": $('#id_distribution').val(),
-                "Type": $('#type').val(),
-                "Serie": $('#id_serie').val(),
-                "BillType": sessionStorage.BillType,
-                "Date": $('#date').val(),
-                "Demo": ($('#demo').is(':checked')) ? 1 : 0
-            };
-
-            // Recorre cada detalle de producto (son 2 arrays) each -> recorre
-
-            $("#sales-details tr").each(function () {
-                var detailObj = {
-                    "Product": $(this).attr('product'),
-                    "Unit": $(this).find("td.item-unit").attr('pu'),
-                    "Quantity": $(this).find("td.item-quantity").text(),
-                    "Price": $(this).find("td.item-price").text(),
-                    "DetailTotal": $(this).find("td.item-total").text(),
-                    "Store": $(this).attr("store_p")
-                };
-                sales.Details.push(detailObj);
-
-            });
-
-            console.log(JSON.stringify(sales));
-
-            $.ajax({
-                url: '/sales/create_order_detail/',
-                async: true,
-                dataType: 'json', // for response
-                type: 'GET',
-                data: {'sales': JSON.stringify(sales)},
-                contentType: 'application/json;charset=UTF-8',
-                headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                success: function (response, textStatus, xhr) {
-                    console.log(response);
-                    if (xhr.status == 200) {
-                        {#let parse = JSON.parse(response);#}
-                        toastr.success(response.message + response.msg_sunat, '¡Bien hecho!');
-                        {#console.log(response.sunat_pdf);#}
-                        if (response.sunat_pdf) {
-                            window.open(response.sunat_pdf, '_blank');
-                        }
-                        {#$('#tab-two').html(response.grid);#}
-                        clearForm();
-                        setTimeout(() => {
-                            location.reload();
-                        }, 2000);
-                        {#window.location.href = "{% url 'sales:sales_list' %}";#}
-                    }
-                },
-                error: function (jqXhr, textStatus, xhr) {
-                    toastr.error(jqXhr.responseJSON.error, '¡ERROR DE SUNAT!');
-                }
-            });
-        }
-
-        function clearForm() {
-
-            $('#client-name').val('');
-            $('#id_client').val('0').trigger('change')
-            $("#sales-details").empty();
-            $('#sum-total').val('');
-            $("#code-operation").empty();
-            $(".quicksearch").empty();
-            $("#id_distribution").val('');
-        }
-
-        {#le facture#}
-
-        $(".invoice").click(function () {
-
-            // Comprobar si hay un cliente seleccionado
-            if (($('#id_client option:selected').val() == '0') && ($('#id_client_name option:selected').val() == '0')) {
-                toastr.warning('¡Elija un cliente porfavor!', 'Error de Llenado!');
-                $('#id_client').focus();
-                return false;
-            }
-            //Comprobar si selecciono serie
-            if (($('#type').val() == 'E') && ($('#id_serie').val() == '0')) {
-                toastr.warning('¡Favor de completar la serie!', 'Error de Llenado!');
-                $('#id_serie').focus();
-            }
-            // Comprobar si hay filas en los detalles
-            if (hasRowDetails() == false) {
-                toastr.warning('¡Elija los productos..!', 'Error de Llenado!');
-                return false;
-            }
-            if ($("#radio1").is(':checked')) {
-
-                let _document_number = $('#id_client option:selected').attr('document-number');
-
-                if (_document_number.length === 8) {
-                    toastr.warning('¡La factura solo se registra con RUC!', 'Error de Llenado!');
-                    return false;
-                } else {
-                    if (_document_number.length !== 11) {
-                        toastr.warning('¡La factura solo se registra con RUC!!', 'Error de Llenado!');
-                        return false;
-                    }
-                }
+            if (_flag_stock === true) {
+                addDetail(unit_id, product_id, quantity, price, name_unit, unescape(name_product), store_id, quantity_minim, product_brand);
+                tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text((stock - quantity * quantity_minim).toFixed(2));
             } else {
-                if ($("#radio2").is(':checked')) {
-                    let _document_number_name = $('#id_client_name option:selected').attr('document-number');
-
-                    if (_document_number_name.length === 8) {
-                        toastr.warning('¡La factura solo se registra con RUC!', 'Error de Llenado!');
-                        return false;
-                    } else {
-                        if (_document_number_name.length !== 11) {
-                            toastr.warning('¡La factura solo se registra con RUC!', 'Error de Llenado!');
-                            return false;
-                        }
-                    }
-                }
+                toastr.warning('STOCK INSUFICIENTE EN ALMACEN');
             }
 
-            let r = confirm("¿Desea generar la factura?");
-            sessionStorage.setItem('BillType', 'F');
-            if (r == true) {
-
-                createSales();
-            }
-        });
-        $(".receipt").click(function () {
-
-            // Comprobar si hay un cliente seleccionado
-            if (($('#id_client option:selected').val() == '0') && ($('#id_client_name option:selected').val() == '0')) {
-                toastr.warning('¡Elija un cliente porfavor!', 'Error de LLenado!');
-                $('#id_client').focus();
-                return false;
-            }
-            //Comprobar si selecciono serie
-            if (($('#type').val() == 'E') && ($('#id_serie').val() == '0')) {
-                toastr.warning('¡Favor de completar la serie!', 'Error de LLenado!');
-                $('#id_serie').focus();
-            }
-            // Comprobar si hay filas en los detalles
-            if (hasRowDetails() == false) {
-                toastr.warning('¡Elija los productos..!', 'Error de LLenado!');
-                return false;
-            }
-
-            if ($("#radio1").is(':checked')) {
-
-                let _document_number = $('#id_client option:selected').attr('document-number');
-
-                if (_document_number.length === 11) {
-                    toastr.warning('¡La boleta solo se registra con DNI!', 'Error de Llenado!');
-                    return false;
-                } else {
-                    if (_document_number.length !== 8) {
-                        toastr.warning('¡La boleta solo se registra con DNI!!', 'Error de Llenado!');
-                        return false;
-                    }
-                }
-            } else {
-                if ($("#radio2").is(':checked')) {
-                    let _document_number_name = $('#id_client_name option:selected').attr('document-number');
-
-                    if (_document_number_name.length === 11) {
-                        toastr.warning('¡La boleta solo se registra con DNI!', 'Error de Llenado!');
-                        return false;
-                    } else {
-                        if (_document_number_name.length !== 8) {
-                            toastr.warning('¡La boleta solo se registra con DNI!!', 'Error de Llenado!');
-                            return false;
-                        }
-                    }
-                }
-            }
-            let r = confirm("¿Desea generar la boleta de venta?");
-            sessionStorage.setItem('BillType', 'B');
-            if (r == true) {
-                createSales();
-            }
+            tr.find('td.quantity-sales-price input.quantity-select').val('');
         });
 
 
-        $("#radio1,#radio2").click(function () {
-            if ($("#radio1").is(':checked')) {
-                $("#id_client_name").attr('disabled', 'disabled');
-                $("#id_client").removeAttr('disabled');
-                $("#id_client_name").find('option[value]').removeAttr('selected');
-                $("#id_client_name").find('option[value="0"]').attr('selected', 'selected');
-                $("#id_client_name").trigger('change');
+        function addDetail(a, b, c, d, e, f, g, h, i) {
 
-            } else if ($("#radio2").is(':checked')) {
-                $("#id_client").attr('disabled', 'disabled');
-                $("#id_client_name").removeAttr('disabled');
-                $("#id_client").find('option[value]').removeAttr('selected');
-                $("#id_client").find('option[value="0"]').attr('selected', 'selected');
-                $("#id_client").trigger('change');
-            }
-        });
+            let _unit_id = a
+            let _product_id = b
+            let _quantity = parseFloat(c)
+            let _price = parseFloat(d)
+            let _total = _quantity * _price
+            let _unit = e
+            let _product_name = escapeHtml(f)
+            let _product_brand = i
+            let _product_store = g
+            let _quantity_minim = parseFloat(h)
 
-        function Client_Advancement($product, $quantity) {
-            let a = false;
-            $('table.table-client-advancement tbody#details-client-advancement tr').each(function () {
-
-                if ($product == $(this).attr('product_final')) {
-                    let quantity_b = parseFloat($(this).find('td.quantity-client').text());
-                    if ((quantity_b - parseFloat($quantity)) >= 0) {
-                        $(this).find('td.quantity-client').text((Difference(quantity_b, parseFloat($quantity))).toFixed(0));
-                        a = true;
-                    } else {
-                        a = false;
-                    }
-                }
-            })
-            return a;
-        }
-
-        function Difference(Valor1, Valor2) {
-            let S = parseFloat(Valor1 - Valor2);
-            return S;
-        };
-        $('#tbl-sales-distribution-grid tbody.sales-distribution-detail tr td').each(function () {
-            let _str = $(this).text();
-            _str = _str.replace(',', '.');
-            $(this).text(_str);
-        });
-        $('#add-all-details').click(function () {
-
-            let _sum_detail_quantity = 0;
-            let _sum_product_rate_quantity = 0;
-            let _detail_quantity = 0;
-            $("#sales-details tr[product=" + sessionStorage.product_id + "]").each(function () {
-                _detail_quantity = parseFloat($(this).find('td.item-quantity').text());
-                _sum_detail_quantity = _sum_detail_quantity + _detail_quantity;
-            })
-
-            $('table tbody#product-rates tr').each(function () {
-                let cont_sequence = true;
-                let row = 0;
-                let _input_quantity = $(this).find("td input.quantity").val();
-                let _unit = $(this).attr('unit_id');
-                if ($(this).attr('_unit_name') === 'GBC' && _input_quantity != '') {
-                    if (Client_Advancement($(this).attr('product_id'), _input_quantity) == false) {
-                        toastr.warning("El cliente no cuenta con los fierros necesarios", "Mensaje")
-                        return false;
-                    }
-                }
-                if (($('#id_distribution').val() !== 0 || $('#id_distribution').text() !== '') && _input_quantity !== '') {
-                    let _product_row = $(this).attr('product_id')
-                    $('#tbl-sales-distribution-grid tbody.sales-distribution-detail tr').each(function () {
-                        if (parseInt(_product_row) === parseInt($(this).attr('product'))) {
-                            row = 1;
-                            let value_last = parseFloat($(this).find('td.quantity-surplus').text());
-                            if (parseFloat(_input_quantity) > value_last) {
-                                toastr.warning('La cantida no puede ecceder a: ' + value_last.toString(), 'Mensaje');
-                                add_client_advancement(_product_row, _unit, parseFloat(_input_quantity))
-                                cont_sequence = false;
-                                {#return false;#}
-                            } else {
-                                $(this).find('td.quantity-surplus').text((Difference(value_last, parseFloat(_input_quantity))).toFixed(2));
-                            }
-                            return false;
-                        }
-                    })
-                }
-                if (($('#id_distribution').val() != 0 || $('#id_distribution').text() != '') && (row == 0 && _input_quantity != '')) {
-                    toastr.warning("El producto no tiene salidas en el vehiculo", "Mensaje")
-                    return false;
-                }
-                if (($('#id_distribution').val() != 0 || $('#id_distribution').text() != '') && (cont_sequence == false) && _input_quantity != '') {
-                    return false;
-                }
-                let _input_price = $(this).find("td input.price").val();
-
-                if (_input_quantity !== '' && _input_price !== '') {
-                    let _quantity = parseFloat(_input_quantity);
-                    let _product = $(this).attr('product_id');
-                    let _unit = $(this).attr('unit_id');
-                    let _stock = parseFloat($('#store-rates').find("tr.selected-item td.current-stock").text());
-                    _sum_product_rate_quantity = _sum_product_rate_quantity + _quantity;
-                    {% if distribution is None and electronic_invoice is None %}
-                        if (_quantity > _stock || _sum_product_rate_quantity > _stock ||
-                            (_sum_detail_quantity > 0 && _sum_detail_quantity + _sum_product_rate_quantity > _stock)) {
-                            toastr.warning('Stock Insuficiente', '¡MENSAJE!');
-                            $('.modal-rate').modal('hide');
-                            return false;
-                        }
-                    {% endif %}
-                    if ($("#sales-details tr[product=" + _product + "][pu=" + _unit + "]").length) {
-                        let $msg = 'EL PRODUCTO CON ESTE TIPO DE UNIDAD YA SE ENCUENTRA EN EL REGISTRO.';
-                        $('#rates').html($msg);
-                        $('.modal-rate').modal('hide');
-                        toastr.warning($msg, '¡MENSAJE!');
-                        return false;
-                    }
-                    addDetail($(this));
-                }
-
-            });
-            $('.modal-rate').modal('hide');
-
-        });
-
-        function addDetail($tr) {
-
-            let _unit_id = $tr.attr('unit_id');
-            let _product_id = $tr.attr('product_id');
-            let _product_name = $tr.attr('product_name');
-            let _quantity = parseFloat($tr.find("td input.quantity").val());
-            let _price = parseFloat($tr.find("td input.price").val());
-            let _total = _quantity * _price;
-            let _unit = $tr.find("td.unit-name").text();
-            let _product_store = $('#store-rates').find("tr.selected-item").attr('ps');
             $('#sales-details').append(
-                '<tr product="' + _product_id + '" store_p="' + _product_store + '" pu="' + _unit_id + '" class="text-uppercase small text-center">' +
+                '<tr detail_id="' + 'NaN' + '" product="' + _product_id + '" store_p="' + _product_store + '" pu="' + _unit_id + '" class="text-uppercase small text-center" style="font-size: 14px;">' +
                 '<td class="align-middle">' + '</td>' +
-                '<td class="align-middle">' + _product_name + '</td>' +
-                '<td class="align-middle item-quantity">' + _quantity + '</td>' +
-                '<td class="align-middle item-unit" pu="' + _unit_id + '">' + _unit + '</td>' +
-                '<td class="align-middle item-price">' + _price.toFixed(2) + '</td>' +
-                '<td class="align-middle item-total">' + _total.toFixed(2) + '</td>' +
+                '<td class="align-middle text-left item-product">' + '<input type="text" class="form-control form-control-sm input-product-name" value="' + _product_name + ' - ' + _product_brand + '">' + '</td>' +
+                '<td class="align-middle item-quantity">' + '<input type="number" class="form-control form-control-sm text-right input-quantity" disabled value="' + _quantity.toFixed(2) + '">' + '</td>' +
+                '<td class="align-middle item-unit" pu="' + _unit_id + '" unit_min="' + _quantity_minim + '">' + _unit + '</td>' +
+                '<td class="align-middle item-price">' + '<input type="number" class="form-control form-control-sm text-right input-price" value="' + _price.toFixed(2) + '">' + '</td>' +
+                '<td class="align-middle item-total">' + '<input type="number" class="form-control form-control-sm text-right input-total-detail" value="' + _total.toFixed(2) + '">' + '</td>' +
                 '<td>' + '<button type="button" onclick="deleteItem(' + _product_id + ',' + _unit_id + ')" class="btn btn-danger btn-sm">' +
                 '<i class="fa fa-trash"></i></button>' + '</td>' +
                 '</tr>'
@@ -712,27 +339,185 @@
             counterStrike();
         }
 
-        if ($("#type").length) {
-            if ($("#type").val() == 'E') {
-                $("#save-order").hide()
-            } else {
-                $(".quote").hide();
-                $(".invoice").hide();
-                $(".receipt").hide();
-                $(".series").hide()
-                $("#demo").hide()
+        $(document).on('keypress', '#custom-search-product', function (e) {
+
+            $('#product_list_sales').empty();
+            $('#custom-search-barcode').val(' ')
+
+            if (e.keyCode === 13) {
+
+                e.preventDefault()
+
+                $(this).trigger("enterKey");
+
+                let _product_name = $(this).val().trim();
+
+                if (_product_name.length === 0) {
+                    toastr.warning('¡Favor de ingresar una busqueda', 'Error de Datos');
+                    return false;
+                }
+                getProduct(_product_name, '')
+
             }
+        });
+
+        function getProduct($product_name, $barcode) {
+
+            $('div#loader-product').css('display', '');
+            $.ajax({
+                url: '/sales/get_product_grid/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {
+                    'value': $product_name,
+                    'barcode': $barcode
+                },
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        {#$('#product-grid-list').html(response.grid);#}
+                        $('#product_list_sales').html(response.grid).slideDown();
+                        $('div#loader-product').css('display', 'none');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Error de Consulta!');
+                    } else {
+                        if (textStatus === 'timeout') {
+                            toastr.error('Failed from timeout', '¡Error de Consulta!');
+                        } else {
+                            console.log(" STATUS: " + xhr + " " + textStatus);
+                        }
+                    }
+                }
+            });
         }
 
-        function printPdf($url) {
-            {#myWindow = window.open($url);#}
-            {#myWindow.close;  //optional, to close the new window as soon as it opens#}
-            //this ensures user doesn't have to close the pop-up manually
-            let link = document.createElement('a');
-            link.href = $url;
-            link.download = 'file.pdf';
-            link.dispatchEvent(new MouseEvent('click'));
+        $(document).on('keyup', '#sales-details tr td.item-price input.input-price', function (e) {
+            let val = Number($(this).val());
+            let row = $(this).parent('td.item-price').parent('tr');
+            let quantity = Number(row.find('td.item-quantity input.input-quantity').val());
+            {#console.log('quantity',quantity)#}
+            {#console.log('val',val)#}
+            if (isNaN(val)) {
+                $(this).val('')
+            } else {
+                let total_detail = quantity * val
+                if (val !== '') {
+                    row.find('td.item-total input.input-total-detail').val((total_detail).toFixed(2))
+                    calculateTotal();
+                }
+            }
+        });
+
+        $(document).on('keyup', '#sales-details tr td.item-quantity input.input-quantity', function (e) {
+            let val = Number($(this).val());
+            let row = $(this).parent('td.item-quantity').parent('tr');
+            let price = Number(row.find('td.item-price input.input-price').val());
+            if (isNaN(val)) {
+                $(this).val('')
+            } else {
+                if (val !== '') {
+                    row.find('td.item-total input.input-total-detail').val((price * val).toFixed(2))
+                    calculateTotal();
+                }
+            }
+        });
+
+        $(document).on('keyup', '#sales-details tr td.item-total input.input-total-detail', function (e) {
+            let val = Number($(this).val());
+            {#console.log('total', val)#}
+            let row = $(this).parent('td.item-total').parent('tr');
+            let quantity = Number(row.find('td.item-quantity input.input-quantity').val());
+            let price = Number(row.find('td.item-price input.input-price').val());
+            {#console.log('quantity', quantity)#}
+
+            let price_unit = val / quantity
+            {#console.log('price_unit', price_unit)#}
+            row.find('td.item-price input.input-price').val((price_unit).toFixed(2))
+            calculateTotal();
+
+        });
+
+        $(document).on('change', '#document_type_client', async function () {
+            let _val = $(this).val();
+            if (_val === '01') {
+                $("#document_number_client").attr('maxlength', 8);
+                sessionStorage.setItem('client-document', '01')
+                $('#document_number_client').val('');
+            } else if (_val === '06') {
+                $("#document_number_client").attr('maxlength', 11);
+                sessionStorage.setItem('client-document', '06')
+                $('#document_number_client').val('');
+            } else if (_val === '00') {
+                $("#document_number_client").attr('maxlength', 15);
+                sessionStorage.setItem('client-document', '')
+                let new_n_order = await get_last_number_others();
+                $('#document_number_client').val(new_n_order);
+            }
+        });
+
+        $("#document_number_client").attr('maxlength', 8);
+        sessionStorage.setItem('client-document', '01')
+
+        async function check_stock(_quantity, _product_id) {
+
+            let _flag_stock = true
+
+            await $.ajax({
+                url: '/sales/check_stock/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {
+                    'quantity': _quantity,
+                    'product': _product_id
+                },
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        {#console.log(response.flag)#}
+                        _flag_stock = response.flag;
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error('¡ERROR!');
+                }
+            });
+            return _flag_stock
         }
+
+        async function get_last_number_others() {
+
+            let new_n_order = 0;
+
+            await $.ajax({
+                url: '/sales/get_last_id_type_others/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        new_n_order = response.new_n_order;
+                        //console.log(new_n_order)
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error('¡ERROR!');
+                }
+            });
+            return new_n_order
+
+        }
+
     </script>
 
 {% endblock extrajs %}

@@ -1,0 +1,104 @@
+{% load operations %}
+{% if product_dic %}
+<div class="card roboto-condensed-regular">
+    <div class="card-body m-0 p-1">
+        <div class="table-responsive dataTables_wrapper m-0 p-0"
+             style="overflow-y: scroll; height: 700px; width: auto; overflow-x: hidden;">
+            <table id="product-data-grid" class="table table-bordered table-hover">
+                <thead>
+                <tr class="text-center text-white text-uppercase" style="background: #0671a9">
+                    <th class="th-sm font-weight-normal" style="width: 40%;">Producto</th>
+                    <th class="th-sm font-weight-normal" style="width: 20%;">Stock en sedes</th>
+                    <th class="th-sm font-weight-normal" style="width: 40%;">Unidades</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for product in product_dic %}
+                    <tr class="text-center m-0 p-0" product="{{ product.id }}">
+                        <td class="align-middle text-left">
+                            <span class="text-left">{{ product.name|upper }}</span><br>
+                            <span class="font-weight-bold">Marca:</span> {{ product.product_brand.name }}
+                        </td>
+                        <td class="p-0 td-table-stock" style="width: 10%;">
+                            <table class="table table-sm text-uppercase small table-stock-headquarters">
+                                <thead>
+                                <th class="small font-weight-normal">Sede</th>
+                                <th class="small font-weight-normal">Stock</th>
+                                </thead>
+                                <tbody>
+                                {% for product_store in product.productstore_set.all %}
+                                    <tr
+                                            store_="{{ product_store.subsidiary_store.category }}"
+                                            store_id="{{ product_store.id }}"
+                                            class="{% if product_store.subsidiary_store.subsidiary.id == subsidiary.id %}text-danger my-subsidiary{% endif %}">
+                                        <td class="align-middle">{{ product_store.subsidiary_store.subsidiary.name }}</td>
+                                        <td class="item-stock align-middle {% if product_store.subsidiary_store.category == 'V' and product_store.subsidiary_store.subsidiary.id == subsidiary.id %}bg-success text-white montserrat {% endif %}">{{ product_store.stock|safe }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </td>
+                        <td class="p-0">
+                            <table class="table table-sm text-uppercase small table-prices" style="width: 100%;">
+                                <thead>
+                                <th style="width: 25%;" class="small font-weight-normal">Precio Compra</th>
+                                <th style="width: 15%;" class="small font-weight-normal">Cant. Und</th>
+                                <th style="width: 30%;" class="small font-weight-normal">Cantidad</th>
+                                <th style="width: 30%;" class="small font-weight-normal">Precios Venta</th>
+                                </thead>
+                                <tbody>
+                                {% for obj in product.productdetail_set.all %}
+                                    <tr product="{{ product.id }}" productname="{{ product.name }}"
+                                        unit="{{ obj.unit.id }}" unitname="{{ obj.unit.name }}"
+                                        quantity_minum="{{ obj.quantity_minimum|safe }}" product_brand="{{ product.product_brand.name }}">
+                                        <td class="align-middle text-center font-weight-bold quantity-sales-price">
+                                            S/ {{ obj.price_purchase|safe }} <span class="font-weight-lighter">{{ obj.update_at|date:"d/m/y" }}</span>
+                                        </td>
+                                        <td class="align-middle text-center quantity-minimum">
+                                            {{ obj.quantity_minimum|floatformat:0 }}
+                                        </td>
+                                        <td class="align-middle text-center quantity-sales-price">
+                                            <input type="number" class="form-control quantity-select text-center" min="0"
+                                                   onkeyup="if(this.value<0){this.value= this.value * -1}"
+                                                   placeholder="{{ obj.unit.name }}" value="">
+                                        </td>
+
+                                        <td class="align-middle p-1 prices-list">
+                                            <div class="row m-0 p-0">
+                                                <div class="col text-center p-0">
+                                                    <button type="button" pk="{{ obj.id }}"
+                                                            ip="{{ obj.price_sale|safe }}"
+                                                            class="btn btn-outline-success btn-one p-1">
+                                                        S/ {{ obj.price_sale|replace_round }}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            {#                            {% endif %}#}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                <tr class="text-center text-white text-uppercase" style="background: #0671a9">
+                    <th class="th-sm font-weight-normal" style="width: 40%;">Producto</th>
+                    <th class="th-sm font-weight-normal" style="width: 20%;">Stock en sedes</th>
+                    <th class="th-sm font-weight-normal" style="width: 40%;">Unidades</th>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+    <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+        <strong>Atencion!</strong> No existen Productos registrados con ese nombre.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+{% endif %}

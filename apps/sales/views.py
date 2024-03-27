@@ -649,71 +649,117 @@ def new_client_associate(request):
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
 
 
-class SalesList(View):
+# class SalesList(View):
+#     template_name = 'sales/sales_list.html'
+#
+#     def get_context_data(self, **kwargs):
+#         error = ""
+#         user_id = self.request.user.id
+#         user_obj = User.objects.get(pk=int(user_id))
+#         pk = self.kwargs.get('pk', None)
+#         letter = self.kwargs.get('letter', None)
+#         contexto = {}
+#         if pk is not None:
+#             contexto['list_distribution'] = DistributionMobil.objects.get(id=int(pk))
+#         mydate = datetime.now()
+#         formatdate = mydate.strftime("%Y-%m-%d")
+#         # try:
+#         subsidiary_obj = get_subsidiary_by_user(user_obj)
+#         sales_store = None
+#         if subsidiary_obj is None:
+#             error = "No tiene una sede definida."
+#         else:
+#             sales_store = SubsidiaryStore.objects.filter(
+#                 subsidiary=subsidiary_obj, category='V').first()
+#
+#         products = None
+#         if sales_store is None:
+#             error = "No tiene un almacen de ventas registrado, Favor de registrar un almacen primero."
+#         else:
+#             products = Product.objects.filter(
+#                 is_enabled=True, productstore__subsidiary_store=sales_store
+#             ).prefetch_related(
+#                 Prefetch(
+#                     'productstore_set', queryset=ProductStore.objects.select_related('subsidiary_store')
+#                 ),
+#                 Prefetch(
+#                     'productdetail_set', queryset=ProductDetail.objects.select_related('unit')
+#                 )
+#             ).order_by('id')
+#         worker_obj = Worker.objects.filter(user=user_obj).last()
+#         employee = Employee.objects.get(worker=worker_obj)
+#
+#         client_type_set = ClientType.objects.select_related('client').filter(
+#             client__clientassociate__subsidiary=subsidiary_obj)
+#         client_dict = {}
+#         for ct in client_type_set:
+#             key = ct.client.id
+#             if key not in client_dict:
+#                 client_dict[key] = {
+#                     'client_id': ct.client.id,
+#                     'client_names': ct.client.names,
+#                     'client_document_number': ct.document_number,
+#                 }
+#         series_set = Truck.objects.all()
+#
+#         contexto['employee'] = employee
+#         contexto['error'] = error
+#         contexto['sales_store'] = sales_store
+#         contexto['subsidiary'] = subsidiary_obj
+#         contexto['products'] = products
+#         contexto['client_dict'] = client_dict
+#         contexto['date'] = formatdate
+#         contexto['distribution'] = pk
+#         contexto['choices_payments'] = TransactionPayment._meta.get_field('type').choices
+#         contexto['electronic_invoice'] = letter
+#         contexto['series'] = series_set
+#         return contexto
+#
+#     def get(self, request, *args, **kwargs):
+#         return render(request, self.template_name, self.get_context_data())
+
+class SalesOrder(View):
     template_name = 'sales/sales_list.html'
 
     def get_context_data(self, **kwargs):
         error = ""
         user_id = self.request.user.id
         user_obj = User.objects.get(pk=int(user_id))
-        pk = self.kwargs.get('pk', None)
-        letter = self.kwargs.get('letter', None)
-        contexto = {}
-        if pk is not None:
-            contexto['list_distribution'] = DistributionMobil.objects.get(id=int(pk))
-        mydate = datetime.now()
-        formatdate = mydate.strftime("%Y-%m-%d")
-        # try:
+        context = {}
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        sales_store = None
+
         if subsidiary_obj is None:
             error = "No tiene una sede definida."
         else:
             sales_store = SubsidiaryStore.objects.filter(
                 subsidiary=subsidiary_obj, category='V').first()
 
-        products = None
-        if sales_store is None:
-            error = "No tiene un almacen de ventas registrado, Favor de registrar un almacen primero."
-        else:
-            products = Product.objects.filter(
-                is_enabled=True, productstore__subsidiary_store=sales_store
-            ).prefetch_related(
-                Prefetch(
-                    'productstore_set', queryset=ProductStore.objects.select_related('subsidiary_store')
-                ),
-                Prefetch(
-                    'productdetail_set', queryset=ProductDetail.objects.select_related('unit')
-                )
-            ).order_by('id')
-        worker_obj = Worker.objects.filter(user=user_obj).last()
-        employee = Employee.objects.get(worker=worker_obj)
+            document_types = DocumentType.objects.all()
+            series_set = Subsidiary.objects.filter(id=subsidiary_obj.id)
+            cash_set = Cash.objects.filter(subsidiary=subsidiary_obj, accounting_account__code__startswith='101')
+            cash_deposit_set = Cash.objects.filter(accounting_account__code__startswith='104')
+            family_set = ProductFamily.objects.all()
+            users_set = User.objects.filter(is_superuser=False, is_staff=True)
 
-        client_type_set = ClientType.objects.select_related('client').filter(
-            client__clientassociate__subsidiary=subsidiary_obj)
-        client_dict = {}
-        for ct in client_type_set:
-            key = ct.client.id
-            if key not in client_dict:
-                client_dict[key] = {
-                    'client_id': ct.client.id,
-                    'client_names': ct.client.names,
-                    'client_document_number': ct.document_number,
-                }
-        series_set = Truck.objects.all()
+            selected_choices = 'EC', 'L', 'Y'
+            context['choices_account'] = cash_set
+            context['choices_account_bank'] = cash_deposit_set
+            context['error'] = error
+            context['sales_store'] = sales_store
+            context['subsidiary'] = subsidiary_obj
+            context['family_set'] = family_set
+            context['districts'] = District.objects.all()
+            context['document_types'] = document_types
+            context['date'] = formatdate
+            context['choices_payments'] = [(k, v) for k, v in TransactionPayment._meta.get_field('type').choices
+                                           if k not in selected_choices]
+            context['series'] = series_set
+            context['order_set'] = Order._meta.get_field('type').choices
+            context['users'] = users_set
 
-        contexto['employee'] = employee
-        contexto['error'] = error
-        contexto['sales_store'] = sales_store
-        contexto['subsidiary'] = subsidiary_obj
-        contexto['products'] = products
-        contexto['client_dict'] = client_dict
-        contexto['date'] = formatdate
-        contexto['distribution'] = pk
-        contexto['choices_payments'] = TransactionPayment._meta.get_field('type').choices
-        contexto['electronic_invoice'] = letter
-        contexto['series'] = series_set
-        return contexto
+            return context
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context_data())
@@ -6154,3 +6200,71 @@ def get_dict_order_quotation(order_set):
         'sum_orders': sum_orders,
     })
     return tpl.render(context)
+
+
+def get_product_grid(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(pk=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        sales_store = SubsidiaryStore.objects.filter(
+            subsidiary=subsidiary_obj, category='V').first()
+        last_kardex = Kardex.objects.filter(product_store=OuterRef('id')).order_by('-id')[:1]
+        product_set = None
+
+        value = request.GET.get('value', '')
+        barcode = request.GET.get('barcode', '')
+
+        if value != '' and barcode == '':
+            array_value = value.split()
+            product_query = Product.objects
+            full_query = None
+
+            product_brand_set = ProductBrand.objects.filter(name__icontains=value.upper())
+
+            for i in range(0, len(array_value)):
+                q = Q(name__icontains=array_value[i]) | Q(product_brand__name__icontains=array_value[i])
+                if full_query is None:
+                    full_query = q
+                else:
+                    full_query = full_query & q
+
+            product_set = product_query.filter(full_query).select_related(
+                'product_family', 'product_brand').prefetch_related(
+                Prefetch(
+                    'productstore_set',
+                    queryset=ProductStore.objects.select_related('subsidiary_store__subsidiary').exclude(
+                        subsidiary_store__subsidiary=3)
+                        .annotate(
+                        last_remaining_quantity=Subquery(last_kardex.values('remaining_quantity'))
+                    )
+                ),
+                Prefetch(
+                    'productdetail_set', queryset=ProductDetail.objects.select_related('unit')
+                ),
+            ).order_by('id')
+
+        if value == '' and barcode != '':
+            product_set = Product.objects.filter(barcode=barcode).select_related(
+                'product_family', 'product_brand').prefetch_related(
+                Prefetch(
+                    'productstore_set',
+                    queryset=ProductStore.objects.select_related('subsidiary_store__subsidiary').exclude(
+                        subsidiary_store__subsidiary=3)
+                        .annotate(
+                        last_remaining_quantity=Subquery(last_kardex.values('remaining_quantity'))
+                    )
+                ),
+                Prefetch(
+                    'productdetail_set', queryset=ProductDetail.objects.select_related('unit')
+                ),
+            ).order_by('id')
+
+        t = loader.get_template('sales/sales_product_grid.html')
+        c = ({
+            'subsidiary': subsidiary_obj,
+            'product_dic': product_set
+        })
+        return JsonResponse({
+            'grid': t.render(c, request),
+        })

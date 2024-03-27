@@ -1,34 +1,113 @@
-<div class="card col-sm-12 p-0">
-
-    <div class="card-header text-center pb-3 bg-secondary">
-        {% if distribution %}
-            <h6 class="mb-0  text-white">VENTAS POR REPARTO</h6>
-        {% else %}
-            {% if electronic_invoice %}
-                <h6 class="mb-0  text-white">VENTAS ELECTRÓNICAS</h6>
-            {% else %}
-                <h6 class="mb-0  text-white">ORDEN DE VENTAS</h6>
-            {% endif %}
-        {% endif %}
+{% load app_filters %}
+<div class="row m-0" style="background-color: #0b62a4">
+    <div class="col-sm-12 col-sm-12 col-lg-12 text-center border m-0">
+        <h4 class="text-white font-weight-bold mt-1 mb-1">
+            MODULO DE VENTAS
+        </h4>
     </div>
+</div>
+<div class="card col-sm-12 p-0 roboto-condensed-regular" style="border-color: #0b62a4">
 
+    <div class="card-header text-center pb-3" style="background: #0b62a4">
+        <div class="row align-self-center">
+            <div class="col-sm-2 text-white align-self-center pl-0 pr-0">Ingrese un producto:</div>
+            <div class="col-sm-6 pl-0">
+                <input type="text" id="custom-search-product" class="form-control ml-2 text-uppercase"
+                       placeholder="Ingrese un producto...">
+            </div>
+            <div class="col-sm-2 col-md-2 col-lg-2 pl-4">
+                <div class="row save-order">
+                    <button type="button" id="btn-voucher-order"
+                            class="btn btn-primary btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"
+                            data-toggle="modal"
+                            data-target="#modal-voucher"><i
+                            class="fas fa-check-circle"></i> Guardar
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-sm-2 col-md-2 col-lg-2">
+                <button type="button"
+                        class="btn btn-warning btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"
+                        id="btn-new-form"><i class="far fa-check-circle"></i>
+                    Nuevo
+                </button>
+            </div>
+        </div>
+    </div>
     <div class="card-body p-0">
-
         <div class="card-group">
-
             <div class="card p-0 border-0" style="flex-grow: 4">
-                <div class="card-body pl-3 pt-3 pb-1 pr-0">
-                    <div class="form-row">
-                        <div class="form-group col-md-8 text-uppercase small mt-2 mb-0">
-                            <div class="card col-sm-12 pr-0 pl-0 border-right border-top-0 border-left-0 border-bottom-0">
-                                <div class="card header mb-1 border-0 text-center font-weight-bold">
-                                    Metodo de Busqueda
+                <div class="card-body pl-1 pt-2 pb-1 pr-0">
+                    <div class="form-row mb-0">
+                        <div class="form-group col-md-12 text-uppercase small mt-2 mb-0">
+                            <div class="card col-sm-12 pr-0 pl-0 border-right-0 border-top-0 border-left-0 border-bottom-0">
+
+                                <div class="col-sm-12 col-sm-12 col-lg-12 ">
+                                    <div class="row">
+                                        <div class="col-sm-6 col-md-6 col-lg-6">
+                                            <div class="card-body pt-2 pb-1">
+                                                <div class="card header mb-2 border-bottom-2 text-center font-weight-bold"
+                                                     style="background-color: #aaccf3">
+                                                    <h4 class="montserrat text-dark font-weight-bold mt-1 mb-1 title-without">
+                                                        NUEVA VENTA
+                                                    </h4>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-2 col-md-2 col-lg-2 pl-0">
+                                            <label for="user_id" class="mb-0 font-weight-bold">Seleccione
+                                                Usuario:</label>
+                                            <select id="user_id" name="user"
+                                                    class="form-control form-control-sm"
+                                                    aria-selected="Text input with radio button">
+                                                <option selected value="0">Seleccione...</option>
+                                                {% for u in users %}
+                                                    <option value="{{ u.id }}">{{ u|upper }}</option>
+                                                {% endfor %}
+                                            </select>
+
+                                        </div>
+
+                                        <div class="col-sm-4 col-md-4 col-lg-4 align-middle border border-primary">
+                                            <div class="row pt-2 pb-0">
+                                                {#                                                <div class="col-sm-4 col-md-4 col-lg-4">#}
+                                                {##}
+                                                {#                                                </div>#}
+
+                                                <div class="col-sm-6 col-md-6 col-lg-6 pl-4">
+                                                    <div class="row save-order">
+                                                        <button type="button" id="btn-voucher-order"
+                                                                class="btn btn-primary btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"
+                                                                data-toggle="modal"
+                                                                data-target="#modal-voucher"><i
+                                                                class="fas fa-check-circle"></i> Guardar
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-6 col-md-6 col-lg-6">
+                                                    <button type="button"
+                                                            class="btn btn-warning btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"
+                                                            id="btn-new-form"><i class="far fa-check-circle"></i>
+                                                        Nuevo
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="card-body p-0">
+
+                                <div class="card-body pt-0 pb-0 ">
+                                    <div class="card header mb-0 border-0 text-left font-weight-bold">
+                                        Metodo de Busqueda:
+                                    </div>
+
                                     <table class="table table-sm text-uppercase small align-right" style="width: 100%">
                                         <tr class="align-right">
                                             <th class="border-top-0 align-middle text-left p-0"
-                                                style="width: 10%">
+                                                style="width: 5%">
                                                 <input type="radio"
                                                        aria-label="Radio button for following text input"
                                                        id="radio1" name="radio">
@@ -36,17 +115,47 @@
                                             <th class="border-top-0 align-middle text-left p-0"
                                                 style="width: 10%">Numero Documento:
                                             </th>
-                                            <th class="border-top-0 custom-control-inline text-left" for="customCheck1"
-                                                style="width: 60%">
-                                                <select id="id_client" name="id_client"
+                                            <th class="border-top-0 custom-control-inline text-left"
+                                                style="width: 100%">
+                                                <select id="document_type_sender" name="document_type_sender"
                                                         class="form-control form-control-sm"
-                                                        aria-selected="Text input with radio button">
+                                                        style="font-size: .8375rem;">
                                                     <option selected value="0">Seleccione...</option>
-                                                    {% for k, c in client_dict.items %}
-                                                        <option value="{{ c.client_id }}"
-                                                                document-number="{{ c.client_document_number }}">{{ c.client_document_number }}</option>
+                                                    {% for type in document_types %}
+                                                        {% if type.id == '01' %}
+                                                            <option value="{{ type.id }}">DNI</option>
+                                                        {% elif type.id == '06' %}
+                                                            <option value="{{ type.id }}">RUC</option>
+                                                        {% elif type.id == '00' %}
+                                                            <option value="{{ type.id }}">OTRO</option>
+                                                        {% endif %}
                                                     {% endfor %}
                                                 </select>
+                                                <input type="hidden" class="form-control form-control-sm text-uppercase"
+                                                       id="id-client-sender"
+                                                       name="id-client-sender"
+                                                       placeholder="">
+
+                                            </th>
+                                            <th class="border-top-0 align-middle text-right p-0" style="width: 30%">
+                                                {#                                                <label class="mb-0">Documento</label>#}
+                                                <input type="text" class="form-control form-control-sm text-uppercase"
+                                                       id="id-nro-document-sender"
+                                                       name="nro-document-sender"
+                                                       placeholder="" style="width: 100%">
+                                            </th>
+                                            <th class="border-top-0 align-middle text-right p-0" style="width: 30%">
+                                                {#                                                <a class="btn btn-outline-info" data-toggle="modal"#}
+                                                {#                                                   data-target="#modal-option" style="width: 90%">#}
+                                                {#                                                    <i class="fas fa-user-plus"></i> &nbsp;NUEVO CLIENTE#}
+                                                {#                                                </a>#}
+
+                                                <button type="button" class="btn btn-sm btn-outline-info"
+                                                        data-toggle="modal"
+                                                        data-target="#modalClient" style="width: 90%">
+                                                    <i class="fas fa-user-plus"></i> &nbsp;NUEVO CLIENTE
+                                                </button>
+
                                             </th>
                                         </tr>
                                         <tr>
@@ -58,75 +167,180 @@
                                             <th class="border-top-0 align-middle text-left p-0">
                                                 Nombres/Razón Social:
                                             </th>
-                                            <td class="border-top-0 text-left">
-                                                <select id="id_client_name" name="id_client_name"
-                                                        class="form-control form-control-sm"
-                                                        aria-selected="Text input with radio button">
-                                                    <option selected value="0">Seleccione...</option>
-                                                    {% for k, c in client_dict.items %}
-                                                        <option value="{{ c.client_id }}"
-                                                                document-number="{{ c.client_document_number }}">{{ c.client_names }}</option>
-                                                    {% endfor %}
-                                                </select>
+                                            {#                                            <td class="border-top-0 text-left" colspan="3">#}
+                                            {#                                                <select id="id_client_name" name="id_client_name"#}
+                                            {#                                                        class="form-control form-control-sm"#}
+                                            {#                                                        aria-selected="Text input with radio button"#}
+                                            {#                                                        style="width: 100%">#}
+                                            {#                                                    <option selected value="0">Seleccione...</option>#}
+                                            {##}
+                                            {#                                                    {% for k, c in client_dict.items %}#}
+                                            {#                                                        <option value="{{ c.client_id }}"#}
+                                            {#                                                                document-number="{{ c.client_document_number }}"#}
+                                            {#                                                                address="{{ c.client_address }}"#}
+                                            {#                                                                document-type="{{ c.client_type_document }}"#}
+                                            {#                                                        >{{ c.client_names }}</option>#}
+                                            {#                                                    {% endfor %}#}
+                                            {#                                                </select>#}
+                                            {#                                            </td>#}
+                                            <td class="border-top-0 text-left" colspan="3">
+                                                <input type="text"
+                                                       class="form-control text-uppercase client-table dropdown-toggle"
+                                                       data-toggle="dropdown" aria-expanded="false"
+                                                       placeholder="Ingrese cliente y presione enter...">
+                                                <div class="dropdown-menu"></div>
                                             </td>
                                         </tr>
                                     </table>
                                 </div>
-                            </div>
-
-                        </div>
-                        <div class="form-group col-md-4 text-uppercase small mt-2 mb-0 pl-1 pr-3 text-center">
-                            <label for="hour"><strong>Fecha y Hora</strong> </label>
-                            <input type="date" class="form-control form-control-sm" style="width:100%" id="date"
-                                   value="{{ date }}"
-                                   placeholder="Fecha">
-
-                            <div class="form-row mt-2 m-0 p-1">
-                                <div class="input-group input-group-sm mb-2 series" style="width:100%">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text" id="inputGroup-sizing-sm">Serie :</span>
+                                <div class="form-row pl-1 pr-3">
+                                    <div class="form-group col-md-5 text-uppercase small">
+                                        <label class="mb-2 text-center font-weight-bold" style="font-size: 1.3em">Cliente
+                                            - Nombres/Razón social:</label>
+                                        <input type="text" class="form-control form-control-sm text-uppercase"
+                                               id="id_sender"
+                                               name="sender" readonly
+                                               placeholder="">
                                     </div>
-                                    <select id="id_serie" name="id_serie"
-                                            class="form-control form-control-sm"
-                                            aria-selected="Text input with radio button">
-                                        <option selected value="0">Seleccione...</option>
-                                        {% for serie in series %}
-                                            {% if serie.serial %}
-                                                <option value="{{ serie.id }}">{{ serie.license_plate }}
-                                                    | {{ serie.serial }}</option>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </select>
+                                    <div class="form-group col-md-7 text-uppercase small">
+                                        <label class="mb-2 text-center font-weight-bold" style="font-size: 1.3em">
+                                            Dirección:</label>
+                                        <input type="text" class="form-control form-control-sm text-uppercase"
+                                               id="id_address"
+                                               name="name_address"
+                                               placeholder="">
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="form-row pl-1 pr-3">
-                        <div class="form-group col-md-6 text-uppercase small">
-                            <label for="client-name">Cliente</label>
-                            <input type="text" class="form-control form-control-sm" id="client-name"
-                                   placeholder="Cliente" readonly>
-                        </div>
-                        <div class="form-group col-md-2 text-uppercase small">
-                            <label for="status">Estado</label>
-                            <input type="text" class="form-control form-control-sm" id="status"
-                                   value="PENDIENTE" readonly="true">
-                        </div>
-                        <div class="form-group col-md-2 text-uppercase small">
-                            <label for="transaction_payment_type">PAGO</label>
+                    <div class="form-row mt-1 ml-0 mr-2">
+                        <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                            <label for="transaction_payment_type_" class="mb-0">Pago</label>
                             <select id="transaction_payment_type" class="form-control form-control-sm">
+                                <option value="0">Seleccione</option>
                                 {% for item in choices_payments %}
                                     <option value="{{ item.0 }}">{{ item.1 }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="form-group col-md-2 text-uppercase small">
-                            <label for="code-operation">COD-OPERACIÓN</label>
-                            <input type="text" class="form-control form-control-sm" id="code-operation"
-                                   placeholder="">
+                        <div class="col-md-5 text-uppercase small pl-0 pr-0">
+                            <div class="row col-sm-12 m-0 p-0" id="cash" style="display: none">
+                                <div class="col-sm-6 pl-1 pr-0">
+                                    <label for="code-operation" class="mb-0">Caja destino</label>
+                                    <select id="id_cash" name="id_cash_efectivo"
+                                            class="form-control form-control-sm text-uppercase"
+                                            aria-selected="Text input with radio button">
+                                        {% for c in choices_account %}
+                                            <option value="{{ c.id }}"
+                                            >{{ c.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-sm-6 pl-1 pr-1">
+                                    <label for="code-operation" class="mb-0">Fecha</label>
+                                    <input type="date"
+                                           id="id_date"
+                                           name="id_date"
+                                           readonly
+                                           class="form-control form-control-sm">
+                                </div>
+                            </div>
+                            <div class="row col-sm-12 m-0 p-0" id="deposit" style="display: none">
+                                <div class="col-sm-6 pl-1 pr-0">
+                                    <label for="code-operation" class="mb-0">Deposito a cuenta</label>
+                                    <select id="id_cash_deposit" name="id_cash_deposit"
+                                            class="form-control form-control-sm text-uppercase"
+                                            aria-selected="Text input with radio button">
+                                        {% for c in choices_account_bank %}
+                                            <option value="{{ c.id }}"
+                                            >{{ c.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-sm-6 pl-1 pr-0">
+                                    <label for="code-operation" class="mb-0">Codigo operacion</label>
+                                    <input type="text" class="form-control form-control-sm" id="code-operation"
+                                           placeholder="">
+                                </div>
+                            </div>
+                            <div class="row col-sm-12 m-0 p-0 text-center pl-1 pr-0" id="credit" style="display: none">
+                                <label for="id-credit-client" class="mb-0 text-center"> Deuda </label>
+                                <input type="text" class="form-control form-control-sm " id="id-credit-client"
+                                       value="Credito del cliente" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-uppercase small pl-1 pr-1">
+                            <label for="code-operation" class="mb-0">Serie</label>
+                            <select id="id_serie" name="id_serie"
+                                    class="form-control form-control-sm"
+                                    aria-selected="Text input with radio button">
+                                <option selected value="0">Seleccione...</option>
+                                {% for serie in series %}
+                                    {% if serie.serial %}
+                                        <option selected value="{{ serie.id }}">{{ serie.serial|zfill:4 }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 text-uppercase small pl-0 pr-0">
+                            <label for="hour" class="mb-0">Fecha y Hora</label>
+                            <input type="date" class="form-control form-control-sm" id="date"
+                                   value="{{ date }}"
+                                   readonly
+                                   placeholder="Fecha">
                         </div>
                     </div>
 
+                    <div class="form-row mt-1 ml-0 mr-2" id="form_quotation" style="display: none">
+                        <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                            <label for="hour" class="mb-0">Valido hasta:</label>
+                            <input type="date" class="form-control form-control-sm" id="id_validity_date"
+                                   value="{{ date }}">
+                        </div>
+                        <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                            <label for="id_date_completion" class="mb-0">Tiempo entrega dias</label>
+                            <input type="number" class="form-control form-control-sm"
+                                   id="id_date_completion"
+                                   name="date_completion"
+                                   placeholder="0">
+                        </div>
+                        <div class="col-md-8 text-uppercase small pl-1 pr-1">
+                            <label for="id_place_delivery" class="mb-0">Lugar de entrega</label>
+                            <input type="text" class="form-control form-control-sm text-uppercase"
+                                   id="id_place_delivery"
+                                   name="place_delivery"
+                                   placeholder="">
+                        </div>
+
+                    </div>
+
+                    <div class="form-row mt-1 ml-0 mr-2" id="form_quotation_row2" style="display: none">
+                        <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                            <label for="id_type_quotation" class="mb-0">Tipo de Cotización</label>
+                            <select id="id_type_quotation" name="type_quotation"
+                                    class="form-control form-control-sm"
+                                    aria-selected="Text input with radio button">
+                                <option selected value="0">Seleccione...</option>
+                                <option value="P">PROYECTO</option>
+                                <option value="O">OBRA</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 text-uppercase small pl-1 pr-1">
+                            <label for="id_name_type_quotation" class="mb-0">Nombre de Proyecto / Obra</label>
+                            <input type="text" class="form-control form-control-sm text-uppercase"
+                                   id="id_name_type_quotation"
+                                   name="name_type_quotation"
+                                   placeholder="">
+                        </div>
+                        <div class="col-md-8 text-uppercase small pl-1 pr-1">
+                            <label for="id_observation" class="mb-0">Observación</label>
+                            <input type="text" class="form-control form-control-sm text-uppercase"
+                                   id="id_observation"
+                                   name="observation" value="PRECIO SUJETO A VARIACIÓN POR EL MERCADO"
+                                   placeholder="">
+                        </div>
+                    </div>
 
                 </div> <!-- card-body -->
             </div>     <!-- card -->
