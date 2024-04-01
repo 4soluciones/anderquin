@@ -6,27 +6,15 @@
 
 {% block body %}
 
-    <div class="container-fluid">
-        <div class="card border-info m-3">
-            <div class="card-header bg-info">
-                <h4 class="card-title text-center text-white">LISTA DE ORDENES DE COMPRAS</h4>
-            </div>
-            {#            <div class="card-body pt-1 pb-1">#}
-            {#                <div class="row p-1">#}
-            {#                    <div class="col-sm-2">#}
-            {#                        <button type="button"#}
-            {#                                class="btn btn-success btn-block"#}
-            {#                                id="btn-assign-store">INGRESAR A ALMACEN#}
-            {#                            <span class="badge badge-light ">0</span>#}
-            {#                        </button>#}
-            {#                    </div>#}
-            {#                </div>#}
-            {#            </div>#}
 
-            <div class="m-1" id="purchase-grid-list">{% include "buys/purchase_grid_list.html" %}</div>
-
+    <div class="card m-1">
+        <div class="card-header" style="background: #3e6787">
+            <h4 class="card-title text-center text-white roboto-condensed-regular">LISTA DE ORDENES DE COMPRAS</h4>
         </div>
+        <div class="" id="purchase-grid-list">{% include "buys/purchase_grid_list.html" %}</div>
+
     </div>
+
 
     <div class="modal fade" id="assignment" data-backdrop="static" data-keyboard="false"
          tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle"
@@ -68,22 +56,12 @@
         }
     </style>
 
-
-
-
-
 {% endblock body %}
 
 {% block extrajs %}
 
     <script type="text/javascript">
 
-        {#$('#puchase-data-grid').dataTable();#}
-        /*$('#puchase-data-grid').DataTable({
-            "language": {
-              "url": "//cdn.datatables.net/plug-ins/1.10.15/i18n/Spanish.json"
-            }
-        });*/
         $(document).on('click', '.assignment-store', function () {
             let search = $(this).attr('pk');
             $.ajax({
@@ -106,22 +84,9 @@
                     toastr.error(jqXhr.responseJSON.detalle, '¡MENSAJE!');
                 }
 
-                /*
-                success: function (response) {
-                    console.log(response);
-                    if(response.success){
-                        $('#assignment').html(response.form);
-                        $('#assignment').modal('show');
-                    }
-                },
-                fail: function (response) {
-                    console.log(response)
-{#toastr.warning('NO CUENTA CON UN ALMACEN DE MERCADERIA');#}
-            }*/
             });
         });
-        /*Boton anular*/
-        //Boton  validar requerimiento
+
         $(document).on('click', '.btn-annular', function () {
             let search = $(this).attr('pk');
             let mensaje = confirm("¿Esta seguro de anular la compra?");

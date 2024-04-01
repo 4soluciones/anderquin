@@ -1,16 +1,15 @@
 {% if purchases %}
-
     <div class="table-responsive roboto-condensed-regular">
-        <table id="puchase-data-grid"
-               class="table table-primary align-content-center table-bordered table-sm" style="font-size: 11px">
+        <table id="purchase-data-grid"
+               class="table align-content-center table-bordered table-sm m-0" style="font-size: 11px;background-color: #d0e2e9">
             <thead>
-            <tr class="text-center bg-info text-white text-uppercase">
+            <tr class="text-center text-white text-uppercase" style="background: #3e6787; font-size: 14px">
                 {#                        <th>#</th>#}
-{#                <th class="th-sm" style="width: 3%"><i class="fas fa-check"></i></th>#}
+                {#                <th class="th-sm" style="width: 3%"><i class="fas fa-check"></i></th>#}
                 {#                        <th class="th-sm" style="width: 5%">Contrato</th>#}
                 <th class="th-sm" style="width: 5%">Fecha</th>
                 <th class="th-sm" style="width: 5%">O/C</th>
-{#                <th class="th-sm" style="width: 2%">Nº</th>#}
+                {#                <th class="th-sm" style="width: 2%">Nº</th>#}
                 <th class="th-sm" style="width: 15%">Proveedor</th>
                 {#                        <th class="th-sm" style="width: 7%">Fecha compra</th>#}
                 <th class="th-sm" style="width: 20%">Cliente</th>
@@ -19,26 +18,27 @@
                 <th class="th-sm" style="width: 5%">Usuario</th>
                 <th class="th-sm" style="width: 5%">Factura</th>
                 {#                <th class="th-sm" style="width: 8%">Estado</th>#}
-{#                <th class="th-sm" style="width: 3%"><i class="fas fa-print"></i></th>#}
+                {#                <th class="th-sm" style="width: 3%"><i class="fas fa-print"></i></th>#}
                 <th class="th-sm" style="width: 5%">Accion</th>
             </tr>
             </thead>
             <tbody style="font-size: 10px">
             {% for p in purchases %}
-                <tr class="text-center" pk="{{ p.id }}" {% if p.bill_status == 'C' %} style="background-color: #8cd09b"{% endif %}>
+                <tr class="text-center" pk="{{ p.id }}" {% if p.bill_status == 'C' %}
+                    style="background-color: #8cd09b"{% endif %}>
                     {#                            <td>{{ p.id }}</td>#}
-{#                    <td>#}
-{#                        <input type="checkbox"#}
-{#                               class="requirement align-middle check-purchase"#}
-{#                               style=" transform: scale(1.4)">#}
-{#                    </td>#}
+                    {#                    <td>#}
+                    {#                        <input type="checkbox"#}
+                    {#                               class="requirement align-middle check-purchase"#}
+                    {#                               style=" transform: scale(1.4)">#}
+                    {#                    </td>#}
                     {#                            <td>{{ p.contract_detail.contract.contract_number|default:'-' }}</td>#}
                     <td class="align-middle font-weight-bold">
                         {{ p.purchase_date|date:'d-m-Y' }}</td>
                     <td class="align-middle text-center">
                         <span class="font-weight-bold"> {{ p.bill_number }}</span><br>
                     </td>
-{#                    <td class="align-middle text-center">{{ p.correlative|default_if_none:'-' }}</td>#}
+                    {#                    <td class="align-middle text-center">{{ p.correlative|default_if_none:'-' }}</td>#}
                     <td class="align-middle text-center">{{ p.supplier.name }}</td>
                     {#                            <td>{{ p.purchase_date|date:'d-m-Y' }}</td>#}
                     <td class="align-middle text-center">{{ p.client_reference.names|upper }}</td>
@@ -47,33 +47,33 @@
                     <td class="align-middle text-center">{{ p.user.worker_set.last.employee.names|upper }}</td>
                     {#                    <td class="font-weight-bold {% if p.status == 'S' %} text-danger {% else %} text-success#}
                     {#                            {% endif %} bg-white">{{ p.get_status_display }}</td>#}
-{#                    <td>#}
-{#                        <a class="btn btn-sm btn-warning font-weight-light"#}
-{#                           href="{% url 'buys:print_pdf_purchase_order' p.id %}">#}
-{#                            <i class="fas fa-print"></i></a>#}
-{#                    </td>#}
+                    {#                    <td>#}
+                    {#                        <a class="btn btn-sm btn-warning font-weight-light"#}
+                    {#                           href="{% url 'buys:print_pdf_purchase_order' p.id %}">#}
+                    {#                            <i class="fas fa-print"></i></a>#}
+                    {#                    </td>#}
                     <td class="align-middle text-center font-weight-bold">{{ p.number_bill }}</td>
                     <td class="p-1">
                         <div class="btn-group">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle"
                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-layer-group"></i>
+                                <i class="fas fa-bars"></i>
                             </button>
-                            <div class="dropdown-menu bg-secondary text-white font-italic">
-                                <a class="dropdown-item assignment-store" pk="{{ p.id }}">
+                            <div class="dropdown-menu bg-secondary font-italic">
+                                <a class="dropdown-item assignment-store text-white" pk="{{ p.id }}">
                                     <i class="fas fa-warehouse"></i> Ingreso Almacen </a>
 
                                 {% if p.bill_status == 'S' %}
-                                    <a class="dropdown-item btn-update" pk="{{ p.id }}"><i
-                                        class="fas fa-edit pr-1"></i>Editar </a>
+                                    <a class="dropdown-item btn-update text-white" pk="{{ p.id }}"><i
+                                            class="fas fa-edit pr-1"></i>Editar </a>
                                 {% endif %}
 
                                 <a class="dropdown-item btn-download text-white"
                                    href="{% url 'buys:print_pdf_purchase_order' p.id %}">
                                     <i class="fas fa-download"></i> Descargar </a>
                                 {% if p.bill_status == 'S' %}
-                                    <a class="dropdown-item btn-annular" pk="{{ p.id }}">
-                                    <i class="fas fa-ban"></i> Anular </a>
+                                    <a class="dropdown-item btn-annular text-white" pk="{{ p.id }}">
+                                        <i class="fas fa-ban"></i> Anular </a>
                                 {% endif %}
                             </div>
                         </div>
@@ -81,30 +81,9 @@
                 </tr>
             {% endfor %}
             </tbody>
-            <tfoot>
-            <tr class="text-center bg-info text-white text-uppercase">
-                {#                        <th>#</th>#}
-{#                <th class="th-sm" style="width: 3%"><i class="fas fa-check"></i></th>#}
-                {#                        <th class="th-sm" style="width: 5%">Contrato</th>#}
-                <th class="th-sm" style="width: 5%">Fecha</th>
-                <th class="th-sm" style="width: 5%">O/C</th>
-{#                <th class="th-sm" style="width: 2%">Nº</th>#}
-                <th class="th-sm" style="width: 15%">Proveedor</th>
-                {#                        <th class="th-sm" style="width: 7%">Fecha compra</th>#}
-                <th class="th-sm" style="width: 20%">Cliente</th>
-                <th class="th-sm" style="width: 20%">Cliente Referido</th>
-                <th class="th-sm" style="width: 20%">Direccion de entrega</th>
-                <th class="th-sm" style="width: 5%">Usuario</th>
-                <th class="th-sm" style="width: 5%">Estado</th>
-                {#                <th class="th-sm" style="width: 8%">Estado</th>#}
-{#                <th class="th-sm" style="width: 3%"><i class="fas fa-print"></i></th>#}
-                <th class="th-sm" style="width: 5%">Accion</th>
-            </tr>
-            </tfoot>
         </table>
 
     </div>
-
 
 {% else %}
     <h1>No existen compras registradas</h1>

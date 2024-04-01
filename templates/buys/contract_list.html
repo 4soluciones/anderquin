@@ -6,34 +6,80 @@
 
 {% block body %}
 
-    <div class="container-fluid p-3 bg">
-        <div class="card p-2">
-            <div class="row">
-                <div class="col-lg-2 pt-3 ml-3">
-                    <button type="button" onclick="showModalCreateContract('modal_contract_create')"
-                            class="btn btn-outline-success"><i class="fas fa-file-contract"></i>
-                        NUEVO CONTRATO
-                    </button>
-                </div>
-                <div class="col-lg-8 text-center pt-2">
-                    <h2 class="font-weight-bold"> LISTADO DE CONTRATOS</h2>
-                </div>
-            </div>
+    <div class="card m-1 bg-light">
+        <div class="row">
+            <div class="col-lg-2 pt-3 ml-3">
 
-            <div class="card-body p-2">
-                <div id="client-grid-list">{% include "buys/contract_grid_list.html" %}</div>
+            </div>
+            <div class="col-lg-8 text-center pt-2">
+                <h2 class="font-weight-bold roboto-condensed-regular"> LISTADO DE CONTRATOS</h2>
             </div>
         </div>
 
-        <div class="modal fade" id="modal-contract-create" tabindex="-1" role="dialog"
-             aria-labelledby="ModalHelpTitle"
-             aria-hidden="true"></div>
-        <div class="modal fade" id="modal-contract-update" tabindex="-1" role="dialog"
-             aria-labelledby="ModalHelpTitle"
-             aria-hidden="true"></div>
-        <div class="modal fade" id="modal-guide" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle"
-             aria-hidden="true"></div>
+        <div class="card-body p-0 roboto-condensed-regular">
+            <ul class="nav nav-tabs" id="multi-tab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="purchase-list-tab" data-toggle="pill"
+                       href="#purchase-without-bill" role="tab" aria-controls="purchase-without-bill"
+                       aria-selected="true">PENDIENTES</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="bill-purchase-tab" data-toggle="pill"
+                       href="#purchase-with-bill" role="tab" aria-controls="purchase-with-bill"
+                       aria-selected="false">COMPLETADOS</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tab-content" id="multi-tabContent">
+            <div class="tab-pane active" id="purchase-without-bill" role="tabpanel"
+                 aria-labelledby="purchase-list-tab">
+                <div class="card-body pt-2 pb-0">
+                    <div class="row pl-2">
+                        <button type="button" onclick="showModalCreateContract('modal_contract_create')"
+                                class="btn btn-outline-success"><i class="fas fa-file-contract"></i>
+                            NUEVO CONTRATO
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="row mt-1">
+                        <div id="file-list-grid" class="table-responsive small">
+                            <div id="client-grid-list">{% include "buys/contract_grid_list.html" %}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="purchase-with-bill" role="tabpanel"
+                 aria-labelledby="bill-purchase-tab">
+                <div class="card-body p-2">
+                    <div class="container">
+                        <div class="text-center">
+                            <h4 class="font-weight-bold">CONTRATOS COMPLETADOS</h4>
+                        </div>
+                    </div>
+                    <div class="row mb-1 mt-0">
+                        <div class="col-lg-12">
+{#                            <div id="purchases-with-bill-grid">{% include "accounting/purchase_grid_list_bill_finances.html" %}</div>#}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
     </div>
+
+    <div class="modal fade" id="modal-contract-create" tabindex="-1" role="dialog"
+         aria-labelledby="ModalHelpTitle"
+         aria-hidden="true"></div>
+    <div class="modal fade" id="modal-contract-update" tabindex="-1" role="dialog"
+         aria-labelledby="ModalHelpTitle"
+         aria-hidden="true"></div>
+    <div class="modal fade" id="modal-guide" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle"
+         aria-hidden="true"></div>
+
 {% endblock body %}
 
 {% block extrajs %}
