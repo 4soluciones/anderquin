@@ -8,430 +8,158 @@
 
 
     <table class="table table-sm pay-options">
-        {% if detail.unit.name == 'G' or detail.unit.name == 'GBC'%}
+
+        <thead>
+        <tr class="text-uppercase font-weight-lighter">
+            <th class="border-bottom-0 border-right border-left align-middle">Modalidad de pago</th>
+            <th class="border-bottom-0 border-right align-middle">Deuda</th>
+            <th class="border-bottom-0 border-right align-middle">Monto a pagar</th>
+            <th class="border-bottom-0 border-right align-middle">T.P</th>
+            <th class="border-bottom-0 border-right align-middle">Fecha operacion</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td class="border-top-0 border-bottom border-left border-right align-middle text-left p-0"
+                style="width: 20%">
+
+                <div class="form-check">
+                    <input type="radio" checked
+                           class="form-check-input position-static m-0" value="G"
+                           id="radio1" name="radio">
+                    <label class="form-check-label text-uppercase font-weight-lighter" for="radio1">x
+                        importe</label>
+                </div>
+
+            </td>
+
+            <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
+                style="width: 30%">
+                {{ detail.order.total_remaining_repay_loan|floatformat:2 }}
+            </td>
+
+            <td class="border-top-0 border-bottom border-right align-middle" style="width: 20%">
+                <input type="text"
+                       id="id_loan_payment"
+                       name="loan_payment"
+                       autocomplete="off"
+                       class="form-control form-control-sm">
+            </td>
+
+            <td class="border-top-0 border-bottom border-right align-middle" style="width: 15%">
+
+                <select id="id_transaction_payment_type"
+                        name="transaction_payment_type"
+                        class="form-control form-control-sm">
+                    <option value="0">Seleccione</option>
+                    {% for item in choices_payments %}
+                        <option value="{{ item.0 }}">{{ item.1 }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td class="border-top-0 border-bottom border-right align-middle" style="width: 15%">
+
+                <input type="date"
+                       id="id_date_return_loan0"
+                       name="date_return_loan0"
+                       class="form-control form-control-sm"
+                       value="{{ date }}">
+            </td>
+        </tr>
+        </tbody>
+        {#            CUANDO ES EFECTIVO EN LOS PAGOS SIMPLES#}
+        <table class="table table-sm" id="cash" style="display: none">
             <thead>
             <tr class="text-uppercase font-weight-lighter">
-                <th class="border-bottom-0 border-right border-left align-middle">Modalidad de pago</th>
-                <th class="border-bottom-0 border-right align-middle">Deuda</th>
-                <th class="border-bottom-0 border-right align-middle">Monto a pagar</th>
-                <th class="border-bottom-0 border-right align-middle">T.P</th>
-                <th class="border-bottom-0 border-right align-middle">Fecha operacion</th>
+                <th class="border-bottom-0 border-right align-middle">CAJA DESTINO</th>
+                <th class="border-bottom-0 border-right align-middle code">FECHA DE CAJA</th>
+                <th class="border-bottom-0 border-right align-middle voucher">DESCRIPCION</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr>
+                <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
+                    style="width: 20%">
+                    <select id="id_cash" name="id_cash_efectivo"
+                            class="form-control form-control-sm text-uppercase"
+                            aria-selected="Text input with radio button">
+                        {% for c in choices_account %}
+                            <option value="{{ c.id }}"
+                            >{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
+                    style="width: 10%">
+                    <input type="date"
+                           id="id_date"
+                           name="id_date"
+                           readonly
+                           class="form-control form-control-sm">
+                </td>
+
+                <td class="border-top-0 border-bottom border-right align-middle" style="width: 70%">
+                    <input type="text"
+                           id="id_description"
+                           name="id_description"
+                           autocomplete="off"
+                           value="PAGO DE LA ORDEN Nro: {{ detail.order.id }} - CONDUCTOR: {{ detail.order.distribution_mobil.pilot.full_name }}"
+                           class="form-control form-control-sm text-uppercase">
+                </td>
+
+            </tr>
+
+            </tbody>
+        </table>
+        {#            CUANDO ES DEPOSITO EN LOS PAGOS SIMPLE#}
+        <table class="table table-sm" id="deposit" style="display: none">
+            <thead>
+            <tr class="text-uppercase font-weight-lighter">
+                <th class="border-bottom-0 border-right align-middle">DEPOSITO A CUENTA:</th>
+                <th class="border-bottom-0 border-right align-middle code">FECHA DEL DEPOSITO</th>
+                <th class="border-bottom-0 border-right align-middle code">DESCRIPCION DEL DEPOSITO</th>
+                <th class="border-bottom-0 border-right align-middle code">COD-OP</th>
             </tr>
             </thead>
             <tbody>
             <tr>
-                <td class="border-top-0 border-bottom border-left border-right align-middle text-left p-0" style="width: 20%">
-
-                    <div class="form-check">
-                        <input type="radio" checked
-                               class="form-check-input position-static m-0" value="G"
-                               id="radio1" name="radio">
-                        <label class="form-check-label text-uppercase font-weight-lighter" for="radio1">x
-                            importe</label>
-                    </div>
-
-                </td>
-
-                <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan" style="width: 30%">
-                    {{ detail.order.total_remaining_repay_loan|floatformat:2 }}
-                </td>
-
-                <td class="border-top-0 border-bottom border-right align-middle"  style="width: 20%">
-                    <input type="text"
-                           id="id_loan_payment"
-                           name="loan_payment"
-                           autocomplete="off"
-                           class="form-control form-control-sm">
-                </td>
-
-                <td class="border-top-0 border-bottom border-right align-middle"  style="width: 15%">
-
-                    <select id="id_transaction_payment_type"
-                            name="transaction_payment_type"
-                            class="form-control form-control-sm">
-                        <option value="0">Seleccione</option>
-                        {% for item in choices_payments %}
-                            <option value="{{ item.0 }}">{{ item.1 }}</option>
+                <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
+                    style="width: 30%">
+                    <select id="id_cash_deposit" name="id_cash_deposit"
+                            class="form-control form-control-sm text-uppercase"
+                            aria-selected="Text input with radio button">
+                        {% for c in choices_account_bank %}
+                            <option value="{{ c.id }}"
+                            >{{ c.name }}</option>
                         {% endfor %}
                     </select>
                 </td>
-                <td class="border-top-0 border-bottom border-right align-middle"  style="width: 15%">
-
+                <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
+                    style="width: 10%">
                     <input type="date"
-                           id="id_date_return_loan0"
-                           name="date_return_loan0"
-                           class="form-control form-control-sm"
-                           value="{{ date }}">
-                </td>
-            </tr>
-            </tbody>
-            {#            CUANDO ES EFECTIVO EN LOS PAGOS SIMPLES#}
-            <table class="table table-sm" id="cash" style="display: none">
-                <thead>
-                <tr class="text-uppercase font-weight-lighter">
-                    <th class="border-bottom-0 border-right align-middle">CAJA DESTINO</th>
-                    <th class="border-bottom-0 border-right align-middle code">FECHA DE CAJA</th>
-                    <th class="border-bottom-0 border-right align-middle voucher">DESCRIPCION</th>
-                </tr>
-                </thead>
-                <tbody>
-
-                <tr>
-                    <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
-                        style="width: 20%">
-                        <select id="id_cash" name="id_cash_efectivo"
-                                class="form-control form-control-sm text-uppercase"
-                                aria-selected="Text input with radio button">
-                            {% for c in choices_account %}
-                                <option value="{{ c.id }}"
-                                >{{ c.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
-                        style="width: 10%">
-                        <input type="date"
-                               id="id_date"
-                               name="id_date"
-                               readonly
-                               class="form-control form-control-sm">
-                    </td>
-
-                    <td class="border-top-0 border-bottom border-right align-middle" style="width: 70%">
-                        <input type="text"
-                               id="id_description"
-                               name="id_description"
-                               autocomplete="off"
-                               value="PAGO DE LA ORDEN Nro: {{ detail.order.id }} - CONDUCTOR: {{ detail.order.distribution_mobil.pilot.full_name }}"
-                               class="form-control form-control-sm text-uppercase">
-                    </td>
-
-                </tr>
-
-                </tbody>
-            </table>
-            {#            CUANDO ES DEPOSITO EN LOS PAGOS SIMPLE#}
-            <table class="table table-sm" id="deposit" style="display: none">
-                <thead>
-                <tr class="text-uppercase font-weight-lighter">
-                    <th class="border-bottom-0 border-right align-middle">DEPOSITO A CUENTA:</th>
-                    <th class="border-bottom-0 border-right align-middle code">FECHA DEL DEPOSITO</th>
-                    <th class="border-bottom-0 border-right align-middle code">DESCRIPCION DEL DEPOSITO</th>
-                    <th class="border-bottom-0 border-right align-middle code">COD-OP</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
-                        style="width: 30%">
-                        <select id="id_cash_deposit" name="id_cash_deposit"
-                                class="form-control form-control-sm text-uppercase"
-                                aria-selected="Text input with radio button">
-                            {% for c in choices_account_bank %}
-                                <option value="{{ c.id }}"
-                                >{{ c.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
-                        style="width: 10%">
-                        <input type="date"
-                               id="id_date_deposit"
-                               name="id_date_deposit"
-                               value="{{ date }}"
-                               class="form-control form-control-sm">
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle" style="width: 40%">
-                        <input type="text"
-                               class="form-control form-control-sm"
-                               id="id_description_deposit"
-                               name="description_deposit"
-                               value="DEPOSITO DE LA ORDEN Nro: {{ detail.order.id }}">
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle" style="width: 20%">
-                        <input type="text"
-                               class="form-control form-control-sm"
-                               id="id_code_operation"
-                               name="code_operation">
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-            {#            CUANDO ES FISE DE LOS PAGOS SIMPLES#}
-            <table class="table table-sm" id="fises" style="display: none">
-                <thead>
-                <tr class="text-uppercase font-weight-lighter">
-                    <th class="border-bottom-0 border-right align-middle">DEPOSITO A CUENTA:</th>
-                    <th class="border-bottom-0 border-right align-middle code">FECHA DEL DEPOSITO</th>
-                    <th class="border-bottom-0 border-right align-middle code">DESCRIPCION DEL DEPOSITO</th>
-                    <th class="border-bottom-0 border-right align-middle voucher">Precio FISE</th>
-                    <th class="border-bottom-0 border-right align-middle voucher">CANTIDAD vales FISE</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
-                        style="width: 30%">
-                        <select id="id_cash_deposit_fise" name="id_cash_deposit_fise"
-                                class="form-control form-control-sm text-uppercase"
-                                aria-selected="Text input with radio button">
-                            {% for c in choices_account_bank %}
-                                <option value="{{ c.id }}"
-                                >{{ c.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
-                        style="width: 10%">
-                        <input type="date"
-                               id="id_date_desposit_fise"
-                               name="id_date_desposit_fise"
-                               value="{{ date }}"
-                               class="form-control form-control-sm">
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle" style="width: 40%">
-                        <input type="text"
-                               class="form-control form-control-sm"
-                               id="id_description_deposit_fise"
-                               name="id_description_deposit_fise"
-                               value="DEPOSITO DE LA ORDEN Nro: {{ detail.order.id }} MODALIDAD FISE">
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle" style="width: 10%">
-                        <input type="text"
-                               id="id_price_of_vouchers"
-                               name="price_of_vouchers"
-                               value="18.00"
-                               readonly
-                               disabled
-                               style="color: #e9ecef;"
-                               class="form-control form-control-sm">
-                    </td>
-
-                    <td class="border-top-0 border-bottom border-right align-middle" style="width: 10%">
-                        <input type="text"
-                               id="id_number_of_vouchers"
-                               name="number_of_vouchers"
-                               readonly
-                               disabled
-                               style="color: #e9ecef;"
-                               class="form-control form-control-sm">
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-
-        {% endif %}
-
-        {% if detail.unit.name == 'B' %}
-            <thead>
-            <tr class="text-uppercase font-weight-lighter bg-light">
-                <th class="border-bottom-0 border-right align-middle text-uppercase text-center border-left"
-                    style="width: 10%">Deuda
-                </th>
-
-                <td class="border-top-1 border-right align-middle pay-loan2 text-center text-black font-weight-bold"
-                    colspan="1">
-                    {{ detail.order.total_remaining_repay_loan_ball|floatformat:2 }}
-                </td>
-            </tr>
-            <tr class="text-uppercase font-weight-lighter">
-                <th class="border-bottom-0 border-right border-left align-middle" style="width: 15%">Modalidad de pago
-                </th>
-                <th class="border-bottom-0 border-right align-middle" style="width: 10%">Cant. pendiente</th>
-                <th class="border-bottom-0 border-right align-middle" style="width: 10%">Cant. a devolver</th>
-                <th class="border-bottom-0 border-right align-middle" style="width: 10%">Monto a pagar</th>
-                <th class="border-bottom-0 border-right align-middle" style="width: 15%">T.P</th>
-                <th class="border-bottom-0 border-right align-middle" style="width: 10%">Fecha devolucion</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td class="border-top-1 border-left border-right align-middle text-left p-0">
-
-                    <div class="form-check">
-                        <input type="radio" checked
-                               class="form-check-input position-static m-0" value="B"
-                               id="radio2" name="radio">
-                        <label class="form-check-label text-uppercase font-weight-lighter" for="radio2">x
-                            devolución</label>
-                    </div>
-
-                </td>
-
-                <td class="border-top-1 border-right align-middle text-danger return-loan">
-                    {{ detail.order.total_remaining_return_loan|floatformat:2 }}
-                </td>
-
-                <td class="border-top-1 border-right align-middle">
-                    <input type="text"
-                           id="id_loan_quantity"
-                           name="loan_quantity"
-                           autocomplete="off"
+                           id="id_date_deposit"
+                           name="id_date_deposit"
+                           value="{{ date }}"
                            class="form-control form-control-sm">
                 </td>
-                <td colspan="2"></td>
-                <td class="border-top-1 border-right align-middle" colspan="2">
-
-                    <input type="date"
-                           id="id_date_return_loan"
-                           name="date_return_loan"
-                           class="form-control form-control-sm"
-                           value="{{ date }}">
-                </td>
-
-            </tr>
-
-            <tr class="amount">
-                <td class="border-top-1 border-left border-bottom border-right align-middle text-left p-0">
-                    <div class="form-check">
-                        <input type="radio"
-                               class="form-check-input position-static m-0" value="P"
-                               id="radio3" name="radio">
-                        <label class="form-check-label text-uppercase font-weight-lighter" for="radio3">x
-                            importe</label>
-                    </div>
-                </td>
-                <td class="border-top-1 border-right align-middle text-danger return-loan2">
-                    {{ detail.order.total_remaining_return_loan|floatformat:2 }}
-                </td>
-                <td class="border-top-1 border-right align-middle">
+                <td class="border-top-0 border-bottom border-right align-middle" style="width: 40%">
                     <input type="text"
-                           id="id_loan_quantity2"
-                           name="loan_quantity2"
-                           autocomplete="off"
                            class="form-control form-control-sm"
-                           disabled>
+                           id="id_description_deposit"
+                           name="description_deposit"
+                           value="DEPOSITO DE LA ORDEN Nro: {{ detail.order.id }}">
                 </td>
-
-                <td class="border-top-1 border-right align-middle">
+                <td class="border-top-0 border-bottom border-right align-middle" style="width: 20%">
                     <input type="text"
-                           id="id_loan_payment2"
-                           name="loan_payment2"
-                           autocomplete="off"
                            class="form-control form-control-sm"
-                           disabled>
+                           id="id_code_operation"
+                           name="code_operation">
                 </td>
-
-                <td class="border-top-0 border-bottom border-right align-middle">
-
-                    <select id="id_transaction_payment_type2"
-                            name="transaction_payment_type2"
-                            class="form-control form-control-sm" disabled>
-                        <option value="0">Seleccione</option>
-                        {% for item in choices_payments %}
-                            {% if item.0 != 'F' %}
-                                <option value="{{ item.0 }}">{{ item.1 }}</option>
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-
-                </td>
-                <td class="border-top-0 border-bottom border-right align-middle">
-                     <input type="date"
-                           id="id_date_return_loan2"
-                           name="date_return_loan2"
-                           class="form-control form-control-sm"
-                           value="{{ date }}">
-
-                </td>
-
             </tr>
-
-            {#             CUANDO ES CAJA BOTON DEVOLVER  #}
-            <table class="table table-sm" id="cash2" style="display: none">
-                <thead>
-                <tr class="text-uppercase font-weight-lighter">
-                    <th class="border-bottom-0 border-right align-middle">CAJA DESTINO</th>
-                    <th class="border-bottom-0 border-right align-middle code">FECHA DE CAJA ABIERTA</th>
-                    <th class="border-bottom-0 border-right align-middle voucher">DESCRIPCION</th>
-                </tr>
-                </thead>
-                <tbody>
-
-                <tr>
-                    <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
-                        style="width: 20%">
-                        <select id="id_cash_efectivo2" name="id_cash_efectivo2"
-                                class="form-control form-control-sm text-uppercase"
-                                aria-selected="Text input with radio button">
-                            {% for c in choices_account %}
-                                <option value="{{ c.id }}"
-                                >{{ c.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
-                        style="width: 10%">
-                        <input type="date"
-                               id="id_date2"
-                               name="id_date2"
-                               class="form-control form-control-sm" readonly>
-                    </td>
-
-                    <td class="border-top-0 border-bottom border-right align-middle" style="width: 70%">
-                        <input type="text"
-                               id="id_description2"
-                               name="id_description2"
-                               autocomplete="off"
-                               value="PAGO DE LA ORDEN POR DEVOLUCION Nro: {{ detail.order.id }} - CONDUCTOR: {{ detail.order.distribution_mobil.pilot.full_name }}"
-                               class="form-control form-control-sm text-uppercase">
-                    </td>
-                </tr>
-
-                </tbody>
-            </table>
-            {#            CUANDO ES DEPOSITO BOTON DEVOLVER#}
-            <table class="table table-sm" id="deposit2" style="display: none">
-                <thead>
-                <tr class="text-uppercase font-weight-lighter">
-                    <th class="border-bottom-0 border-right align-middle">DEPOSITO A CUENTA:</th>
-                    <th class="border-bottom-0 border-right align-middle code">FECHA DEL DEPOSITO</th>
-                    <th class="border-bottom-0 border-right align-middle code">DESCRIPCION DEL DEPOSITO</th>
-                    <th class="border-bottom-0 border-right align-middle code">COD-OP</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td class="border-top-0 border-bottom border-right align-middle" for="customCheck1"
-                        style="width: 30%">
-                        <select id="id_cash_deposit2" name="id_cash_deposit2"
-                                class="form-control form-control-sm text-uppercase"
-                                aria-selected="Text input with radio button">
-                            {% for c in choices_account_bank %}
-                                <option value="{{ c.id }}"
-                                >{{ c.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
-                        style="width: 10%">
-                        <input type="date"
-                               id="id_date_desposit2"
-                               name="id_date_desposit2"
-                               value="{{ date }}"
-                               class="form-control form-control-sm">
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle" style="width: 40%">
-                        <input type="text"
-                               class="form-control form-control-sm"
-                               id="id_description_deposit2"
-                               name="description_deposit2"
-                               value="DEPOSITO DE LA ORDEN Nro: {{ detail.order.id }}">
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle" style="width: 20%">
-                        <input type="text"
-                               class="form-control form-control-sm"
-                               id="id_code_operation2"
-                               name="code_operation2"
-                               disabled>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-
-
             </tbody>
-        {% endif %}
+        </table>
+
         <tfoot>
         <tr class="border-0">
             <td colspan="{% if detail.unit.name == 'G' %}6{% else %}7{% endif %}" class="border-0 pr-0 text-right">

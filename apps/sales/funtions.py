@@ -1,4 +1,6 @@
 # from django.db import connection
+import decimal
+
 from django.db import models
 from django.db.models import Min, Sum, Max, Q, F, Prefetch, Subquery, OuterRef, Value
 from django.db.models.functions import Coalesce
@@ -6,7 +8,7 @@ from apps.sales.models import Client, Order, OrderDetail, LoanPayment
 
 
 def total_remaining_repay_loan(order_detail_set=None):
-    response = 0
+    response = decimal.Decimal(0)
 
     for d in order_detail_set:
 
@@ -122,7 +124,7 @@ def ball_changes(ballchange_set=None):
 
 
 def total_cash_flow_spending(cashflow_set=None):
-    response = 0
+    response = decimal.Decimal(0)
     for cf in cashflow_set:
         if cf.type == 'S':
             response = response + cf.total

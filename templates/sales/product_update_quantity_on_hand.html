@@ -1,33 +1,24 @@
-<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-
+<div class="modal-dialog modal-dialog-centered modal-xl roboto-condensed-regular" role="document">
     <div class="modal-content">
-
         <div class="modal-header">
-            <h5 class="modal-title">Actualizar la cantidad de producto por un producto</h5>
+            <h5 class="modal-title roboto-condensed-regular text-uppercase font-weight-bold">Actualizar la cantidad:</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-
         <form action="" method="POST">
             {% csrf_token %}
-
             <div class="modal-body">
-
-
                 {% if product %}
-
                     <div class="card">
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6 border-right">
-                                    <h4 class="mt-3">{{ product.name }}</h4>
+                                    <h4 class="roboto-condensed-regular font-weight-bold">Producto:</h4>
+                                    <h4 class="mt-0 roboto-condensed-regular font-weight-bold" style="color: #3e6787">{{ product.name }}</h4>
                                 </div>
                                 <div class="col-md-6 mt-3">
-
-
                                     <ul class="list-group" id="product-list" pk="{{ product.id }}">
-
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                             Stock Minimo
                                             <span class="badge badge-primary badge-pill">{{ product.stock_min }}</span>
@@ -37,54 +28,32 @@
                                             <span class="badge badge-primary badge-pill">{{ product.stock_max }}</span>
                                         </li>
                                     </ul>
-
                                 </div>
                             </div>
                         </div>
                     </div>
-
-
-
-
                 {% endif %}
-
                 {% if subsidiaries %}
-
                     <table class="table table-bordered table-sm">
                         <thead class="thead-light">
-
-                        <tr>
-                            <th scope="col" class="table-light text-center text-black-50 h6 border-0"
-                                style="text-transform: uppercase;">Serie
-                            </th>
-                            <th scope="col" class="table-light text-center text-black-50 h6 border-0"
-                                style="text-transform: uppercase;">Sede
-                            </th>
-                            <th scope="col" class="table-light text-center text-black-50 h6 border-0"
-                                style="text-transform: uppercase;">Almacenes
-                            </th>
+                        <tr class="text-uppercase">
+                            <th class="table-light text-center">Serie</th>
+                            <th class="table-light text-center">Sede</th>
+                            <th class="table-light text-center">Almacenes</th>
                         </tr>
-
                         </thead>
                         <tbody>
-
                         {% for subsidiary in subsidiaries %}
-
                             <tr subsidiary="{% if own_subsidiary.id == subsidiary.id %}{{ own_subsidiary.id }}{% else %}no-subsidiary{% endif %}">
-                                <th class="align-middle" scope="row">{{ subsidiary.serial }}</th>
+                                <th class="align-middle text-center">{{ subsidiary.serial }}</th>
                                 <td class="align-middle">{{ subsidiary.name }}</td>
-                                <td class="p-0">
-
+                                <td class="p-0 text-center align-middle">
                                     {% for subsidiary_store in subsidiary.subsidiarystore_set.all %}
-
                                         <table class="table table-borderless mb-0 table-sm product-store">
                                             <thead>
                                             <tr class="border-0">
                                                 <th class="table-light text-center text-black-50 small border-0"
-                                                    style="text-transform: uppercase; width: 10%;">#
-                                                </th>
-                                                <th class="table-light text-center text-black-50 small border-0"
-                                                    style="text-transform: uppercase; width: 45%;">Almacen
+                                                    style="text-transform: uppercase; width: 55%;">Almacen
                                                 </th>
                                                 <th class="table-light text-center text-black-50 small border-0"
                                                     style="text-transform: uppercase; width: 15%;">Cantidad
@@ -98,62 +67,41 @@
                                             </tr>
                                             </thead>
                                             <tbody>
-
                                             <tr class="border-0 detail">
-                                                <td class="align-middle text-center border-top border-right subsidiary-store"
-                                                    pk="{{ subsidiary_store.id }}">{{ subsidiary_store.id }}</td>
                                                 <td class="align-middle text-center border-top border-right">{{ subsidiary_store.name }}
-                                                    <p class="text-primary">({{ subsidiary_store.get_category_display }})</p>
                                                 </td>
-
                                                 {% if subsidiary_store.stores.all %}
-
-
                                                     {% for product_store in subsidiary_store.stores.all %}
-
-
-
-
                                                         {% if product_store.product.id == product.id %}
-
-                                                            <!-- <td class="exist" colspan="2">there are product stores, including this product {{ product.name }}.</td> -->
-
                                                             <td class="align-middle border-top stock exist" op="update"
                                                                 pk="{{ product_store.id }}">
-                                                                <input class="form-control form-control-sm decimal" type="text"
+                                                                <input class="form-control form-control-sm decimal text-right"
+                                                                       type="text"
                                                                        value="{{ product_store.stock|floatformat:2 }}">
                                                             </td>
                                                             <td class="align-middle border-top price exist"
                                                                 condition="update"
                                                                 key="{{ product_store.kardex_set.first.id }}">
-                                                                <input class="form-control form-control-sm decimal" type="text"
+                                                                <input class="form-control form-control-sm decimal text-right"
+                                                                       type="text"
                                                                        value="{{ product_store.kardex_set.first.remaining_price|floatformat:4 }}">
                                                             </td>
-
                                                         {% else %}
-                                                            <!-- <td class="notexist" colspan="2">there are product stores {{ subsidiary_store.stores.all.count }}, but not this product.</td> -->
-
                                                             <td class="align-middle border-top stock notexist"
                                                                 op="create" pk="0">
-                                                                <input class="form-control form-control-sm decimal" type="text"
+                                                                <input class="form-control form-control-sm decimal"
+                                                                       type="text"
                                                                        value="">
                                                             </td>
                                                             <td class="align-middle border-top price notexist"
                                                                 condition="create" key="0">
-                                                                <input class="form-control form-control-sm decimal" type="text"
+                                                                <input class="form-control form-control-sm decimal"
+                                                                       type="text"
                                                                        value="">
                                                             </td>
-
-
                                                         {% endif %}
-
                                                     {% endfor %}
-
-
                                                 {% else %}
-
-                                                    <!-- <td colspan="2">there are no product stores, nor this product.</td> -->
-
                                                     <td class="align-middle border-top stock" op="create" pk="0">
                                                         <input class="form-control form-control-sm decimal" type="text"
                                                                value="">
@@ -178,39 +126,25 @@
                                                 </td>
 
                                             </tr>
-
                                             </tbody>
                                         </table>
-
-
                                     {% empty %}
-                                        Lo sentimos, no hay almacenes en esta sede.
+                                        <span class="text-danger">Lo sentimos, no hay almacenes en esta sede.</span>
                                     {% endfor %}
-
                                 </td>
                             </tr>
-
                         {% endfor %}
-
                         </tbody>
                     </table>
 
                 {% else %}
-                    <h1>No existen sedes registradas</h1>
+                    <h1 class="text-danger">No existen sedes registradas</h1>
                 {% endif %}
-
-
-            </div><!-- modal-body -->
-
+            </div>
 
             <div class="modal-footer">
-                <button id="try" type="button" class="btn btn-success">Try</button>
-                &nbsp;
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                &nbsp;
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>                &nbsp;
                 <button id="save-changes" type="button" class="btn btn-primary">Guardar</button>
-
-
             </div>
 
         </form>
@@ -222,7 +156,6 @@
 
     $("table tbody tr[subsidiary='no-subsidiary']").find(':input').attr('readonly', 'readonly');
     $("table tbody tr[subsidiary='no-subsidiary']").find('select').empty();
-
 
 
     // $('#try').on('click', function () {

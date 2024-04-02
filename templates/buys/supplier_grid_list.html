@@ -1,31 +1,38 @@
 {% if supplier_set %}
-    <div class="card-body p-2 table-responsive small">
+    <div class="card-body p-2 table-responsive small roboto-condensed-regular">
         <div class="table-responsive dataTables_wrapper">
             <table id="client-data-grid" class="table table-bordered align-content-center w-100 h-100">
                 <thead>
                 <tr class="text-center font-weight-bold text-uppercase bg-light">
                     <th class="th-sm">Nº</th>
                     <th class="th-sm">RUC</th>
-                    <th class="th-sm">Razon Social</th>
-                    <th class="th-sm">Telefono</th>
+                    <th class="th-sm">Razón Social</th>
+                    <th class="th-sm">Teléfono</th>
                     <th class="th-sm">Email</th>
-                    <th class="th-sm">Direccion</th>
-                    <th class="th-sm">Editar</th>
+                    <th class="th-sm">Dirección</th>
+                    <th class="th-sm"><i class="fas fa-user-edit"></i></th>
                 </tr>
                 </thead>
                 <tbody style="font-size: 13px;">
                 {% for s in supplier_set %}
                     <tr class="text-center" pk="{{ s.id }}">
                         <td class="align-middle">{{ forloop.counter }}</td>
-                        <td class="align-middle font-weight-bold">{{ s.name|upper }}</td>
                         <td class="align-middle">{{ s.ruc }}</td>
+                        <td class="align-middle font-weight-bold">{{ s.name|upper }}</td>
                         <td class="align-middle">{{ s.phone|default:"-" }}</td>
                         <td class="align-middle">{{ s.email|default:"-" }}</td>
                         <td class="align-middle text-left">
                             {% for c in s.supplieraddress_set.all %}
-                                <i class="fas fa-map-marker-alt"></i>
-                                {{ c.address|upper|default_if_none:"-"|default:"-" }}
-                                <i class="fas fa-map-marked-alt"> {{ c.district.description|default_if_none:"-"|default:"-" }}</i><br>
+                                <div class="row">
+                                    <div class="col-sm-9">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        {{ c.address|upper|default_if_none:"-"|default:"-" }}
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <i class="fas fa-map-marked-alt"></i>
+                                        {{ c.district.description|default_if_none:"-"|default:"-" }}
+                                    </div>
+                                </div>
                             {% endfor %}
                         </td>
                         <td class="align-middle">

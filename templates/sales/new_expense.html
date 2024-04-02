@@ -7,12 +7,13 @@
     <input type="hidden" id="pay-loan" name="pay-loan" class="pay-loan"
            value="{{ detail.order.total_remaining_repay_loan|floatformat:2 }}">
 
-    <table class="table table-sm" id="table-datos">
+    <table class="table table-sm roboto-condensed-regular table-light" id="table-datos">
         <thead>
         <tr class="text-uppercase font-weight-lighter">
-            <th class="border-bottom-0 border-right align-middle">Nombre Caja destino</th>
-            <th class="border-bottom-0 border-right align-middle">Responsable</th>
-            <th class="border-bottom-0 border-right align-middle">Placa</th>
+            <th class="border-bottom-0 border-right align-middle">Caja destino:</th>
+            <th class="border-bottom-0 border-right align-middle">Fecha de Registro:</th>
+            <th class="border-bottom-0 border-right align-middle">Tipo Documento:</th>
+            <th class="border-bottom-0 border-right align-middle">Usuario:</th>
         </tr>
         </thead>
         <tbody>
@@ -27,18 +28,29 @@
                     {% endfor %}
                 </select>
             </td>
+            <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan">
+                <input type="date"
+                       id="id_date"
+                       name="id_date"
+                       value="{{ date }}"
+                       class="form-control form-control-sm">
+            </td>
+
             <td class="border-top-0 border-bottom border-right align-middle">
-                <input type="text"
-                       id="id_driver"
-                       name="id_driver"
-                       autocomplete="off"
-                       class="form-control form-control-sm text-uppercase" readonly>
+                <select id="id_transaction_document_type"
+                        name="id_transaction_document_type"
+                        class="form-control form-control-sm text-uppercase">
+                    <option value="0">Seleccione</option>
+                    {% for item in choices_document %}
+                        <option value="{{ item.0 }}">{{ item.1 }}</option>
+                    {% endfor %}
+                </select>
             </td>
             <td class="border-top-0 border-bottom border-right align-middle">
                 <input type="text"
-                       id="id_plate"
-                       name="id_plate"
-                       autocomplete="off"
+                       id="user_id"
+                       name="user"
+                       value="{{ user.username }}"
                        class="form-control form-control-sm text-uppercase" readonly>
             </td>
         </tr>
@@ -46,12 +58,11 @@
     </table>
 
 
-    <table class="table table-sm">
+    <table class="table table-sm roboto-condensed-regular table-light">
 
         <thead>
         <tr class="text-uppercase font-weight-lighter">
-            <th class="border-bottom-0 border-right align-middle">Fecha</th>
-            <th class="border-bottom-0 border-right align-middle">Tipo Documento</th>
+
             <th class="border-bottom-0 text-center align-middle code">Serie</th>
             <th class="border-bottom-0 align-middle "></th>
             <th class="border-bottom-0 text-center border-right align-middle voucher">Nro</th>
@@ -63,25 +74,6 @@
         </thead>
         <tbody>
         <tr>
-            <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
-                style="width: 10%">
-                <input type="date"
-                       id="id_date"
-                       name="id_date"
-                       value="{{ date }}"
-                       class="form-control form-control-sm">
-            </td>
-
-            <td class="border-top-0 border-bottom border-right align-middle" style="width: 12%">
-                <select id="id_transaction_document_type"
-                        name="id_transaction_document_type"
-                        class="form-control form-control-sm text-uppercase">
-                    <option value="0">Seleccione</option>
-                    {% for item in choices_document %}
-                        <option value="{{ item.0 }}">{{ item.1 }}</option>
-                    {% endfor %}
-                </select>
-            </td>
 
             <td class="border-top-0 border-bottom align-middle" style="width: 5%">
                 <input type="text"
@@ -136,10 +128,12 @@
         </tbody>
     </table>
 
-    <tr class="border-0">
-        <button type="submit" id="btn-save" class="btn btn-primary"> Guardar</button>
-        </td>
-    </tr>
+    <div class="modal-footer bg-light p-2">
+        <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
+        &nbsp;
+        <button id="btn-save" type="submit" class="btn btn-primary font-weight-light">Registrar Gasto
+        </button>
+    </div>
 
 </form>
 

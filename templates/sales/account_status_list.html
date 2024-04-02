@@ -5,65 +5,48 @@
 {% endblock title %}
 
 {% block body %}
-    <div class="row mr-3 ml-0 mt-2">
+    <div class="row m-2 bg-light">
         <div class="col-sm-12 p-0">
             <div class="card">
-                <div class="card-body text-center font-weight-bolder pb-1">
-                    <h2>LISTADO DE ORDENES</h2>
+                <div class="card-body text-center pb-0">
+                    <h2 class="roboto-condensed-regular font-weight-bold">LISTADO DE ORDENES DE CLIENTES</h2>
                 </div>
             </div>
         </div>
     </div>
-    <div class="container-fluid">
-        <div class="card-header text-left mt-2 mb-1 p-1">
-            <div class="form-inline mt-0 mb-0 p-0">
-
-                <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>
-                <input type="date" class="form-control my-1 mr-sm-2"
-                       id="id-start-date"
-                       name="start-date"
-                       value="{{ formatdate }}">
-
-                <label class="my-1 mr-2" for="id-end-date">Fecha final</label>
-                <input type="date" class="form-control my-1 mr-sm-2"
-                       id="id-end-date"
-                       name="end-date"
-                       value="{{ formatdate }}">
 
 
-                <label class="mr-2 ml-2">Cliente</label>
-
-                <select class="form-control" id="id_client">
-                    <option value="0">Seleccione</option>
-                    {% for client in client_set %}
-                        <option value="{{ client.id }}">{{ client.names }}</option>
-                    {% endfor %}
-                </select>
-
-                <button type="button" class="btn btn-blue my-1 ml-2" id="btn-search">
-                    <i class="fas fa-search-dollar"></i> Buscar
-                </button>
-
-                <button type="button"
-                        class="btn btn-danger ml-2"
-                        data-toggle="modal"
-                        data-target="#modal-payment"
-                        id="massive-payment"> Pagar masivo
-                    <span class="badge badge-light ">0</span>
-                </button>
-
-                <button type="button"
-                        class="btn btn-success ml-2"
-                        data-toggle="modal"
-                        data-target="#modal-payment"
-                        id="massive-return"> Devolucion masivo <span
-                        class="badge badge-light">0</span></button>
-            </div>
-
-
+    <div class="form-group row m-2 p-2 bg-light roboto-condensed-regular border">
+        <label for="id-start-date" class="col-form-label font-weight-bold">Fecha Inicial:</label>
+        <div class="col-sm-1">
+            <input type="date" class="form-control" id="id-start-date" value="{{ formatdate }}">
         </div>
-        <div class="table-responsive" id="table-order"></div>
+        <label for="id-end-date" class="col-form-label font-weight-bold">Fecha Final:</label>
+        <div class="col-sm-1">
+            <input type="date" class="form-control" id="id-end-date" value="{{ formatdate }}">
+        </div>
+        <label for="person-names" class="col-form-label font-weight-bold">Seleccione Cliente:</label>
+        <div class="col-sm-5">
+            <div id="autocomplete-client" class="autocomplete">
+                <input class="form-control autocomplete-input"
+                       type="text"
+                       id="person-names"
+                       name="person-names"
+                       maxlength="200"
+                       autocomplete="off"
+                       value=""
+                       placeholder="Ingrese un cliente..."/>
+                <ul class="autocomplete-result-list"></ul>
+            </div>
+            <input type="hidden" id="client_id" name="client-id">
+        </div>
+        <div class="col-sm-1">
+            <button type="button" class="btn btn-warning btn-block font-weight-bold" id="btn-search">
+                <i class="fas fa-hand-point-right"></i> Buscar
+            </button>
+        </div>
     </div>
+    <div class="table-responsive p-2" id="table-order"></div>
 
     {#    MODAL DE PAGOS#}
     <div class="modal fade" id="modal-payment" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -72,7 +55,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header text-center">
-                    <h5 class="modal-title" id="exampleModalLabel1">Devolver prestamo / Cambiar balon</h5>
+                    <h5 class="modal-title roboto-condensed-regular" id="exampleModalLabel1">REGISTRAR PAGO</h5>
                     <button type="button" class="close ml-0" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -108,61 +91,13 @@
             </div>
         </div>
     </div>
-    {##}
-    {#    <div class="text-center">#}
-    {#        <div class="spinner-border spin" role="status">#}
-    {#            <span class="sr-only">Loading...</span>#}
-    {#        </div>#}
-    {#    </div>#}
 
 
 {% endblock body %}
 
 {% block extrajs %}
+
     <script type="text/javascript">
-
-        let has_glp = false;
-        let has_gbc = false;
-        let has_ball = false;
-        let _total_glp = 0;
-        let _total_ball = 0;
-        let _quantity_ball = 0;
-        let _total_glp_gbc = 0;
-
-        let array_glp_indexes = [];
-        let array_id = 0;
-
-
-        let tour_products = [
-            {
-                id: 2,
-                name: '5kg',
-                total_glp: 0,
-                total_ball: 0,
-                total_glp_gbc: 0,
-                quantity_ball: 0
-            },
-            {
-                id: 3,
-                name: '45kg',
-                total_glp: 0,
-                total_ball: 0,
-                total_glp_gbc: 0,
-                quantity_ball: 0
-            },
-            {
-                id: 1,
-                name: '10kg',
-                total_glp: 0,
-                total_ball: 0,
-                total_glp_gbc: 0,
-                quantity_ball: 0
-            }
-
-        ];
-
-        let array_index = [2, 3, 1]
-
 
         loader = '<div class="container">' +
             '<div class="row">' +
@@ -177,38 +112,12 @@
             '</div>' +
             '</div>';
 
-        $('#id_client').change(function () {
-
-            /*let _search = $(this).val();
-
-            $('#table-order').empty();
-            $('#table-order').html(loader);
-            $.ajax({
-                url: '/sales/get_orders_by_client/',
-                async: true,
-                dataType: 'json',
-                type: 'GET',
-                data: {'client_id': _search},
-                success: function (response) {
-                    $('#table-order').html(response['grid']);
-
-                    array_glp_indexes = [];
-                    $('#massive-payment span.badge').text((0).toFixed(2));
-                    $('#massive-return span.badge').text((0).toFixed(2));
-
-
-                },
-            });*/
-        });
 
         $('#btn-search').click(function () {
 
-            let _client_id = $('#id_client').val();
+            let _client_id = $('#client_id').val();
             let _start_date = $('#id-start-date').val();
             let _end_date = $('#id-end-date').val();
-            //console.log(_start_date)
-            //console.log(_end_date)
-
             $('#table-order').empty();
             $('#table-order').html(loader);
             $.ajax({
@@ -223,381 +132,121 @@
                 },
                 success: function (response) {
                     $('#table-order').html(response['grid']);
-
-                    array_glp_indexes = [];
-                    $('#massive-payment span.badge').text((0).toFixed(2));
-                    $('#massive-return span.badge').text((0).toFixed(2));
-
-
                 },
             });
         });
 
-        function calMassive($index, $rowspan) {
 
-            let tot = parseInt($index) + parseInt($rowspan);
+        new Autocomplete('#autocomplete-client', {
+            search: input => {
+                const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
 
-            let _tr_main = $('tr:eq(' + $index + ')');
-            let _total_remaining_repay_loan = parseFloat(_tr_main.find('td.total-remaining-repay-loan-obj').text().replace(',', '.').trim());
-            let _total_remaining_return_loan = parseFloat(_tr_main.find('td.total-remaining-return-loan-obj').text().replace(',', '.').trim());
-            array_id = parseInt(_tr_main.find('td.id-obj').text().trim());
-            /***
-             console.log('_total_remaining_repay_loan: ' + _total_remaining_repay_loan);
-             console.log('_total_remaining_return_loan: ' + _total_remaining_return_loan);
-             ***/
-            for (let i = $index, len = tot; i < len; i++) {
-                let _tr = $('tr:eq(' + i + ')');
-                let _product_id = parseInt(_tr.find('td.product-obj').attr('dpk'));
-                let _unit = _tr.find('td.unit-obj span').text().trim();
-                let _tot = parseFloat(_tr.find('td.total-obj').text().replace(',', '.').trim());
-                let _qt = parseFloat(_tr.find('td.quantity-obj').text().replace(',', '.').trim());
-                let _repay_loan = 0;
-                let index = 0;
-                if (_tr.find('td.repay-loan-obj').text().trim() !== '') {
-                    _repay_loan = parseFloat(_tr.find('td.repay-loan-obj').text().replace(',', '.').trim());
-                }
-                /***console.log('_tot: ' + _tot);
-                 console.log('_qt: ' + _qt);**/
-                {#console.log('_product_id: ' + _product_id)#}
-                if (tour_products.some(e => e.id === _product_id)) {
-                    index = array_index.indexOf(_product_id);
-                }
-                if (_unit === 'GLP') {
-                    has_glp = true;
-                    if (_total_remaining_repay_loan === 0) {
-                        tour_products[index]["total_glp"] = 0;
-                    } else {
-                        tour_products[index]["total_glp"] = _tot - _repay_loan;
-                        _total_glp = _total_glp + tour_products[index]["total_glp"];
+                return new Promise(resolve => {
+                    if (input.length < 3) {
+                        return resolve([])
                     }
-
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            resolve(data.client)
+                        })
+                })
+            },
+            renderResult: (result, props) => {
+                let group = ''
+                if (result.index % 3 === 0) {
+                    group = '<li class="group">Group</li>'
+                }
+                return `
+                ${group}
+                <li ${props}>
+                 <div class="h6" style="font-family: roboto_condensed_regular">
+                    ${result.names}
+                 </div>
+                 <div class="wiki-snippet text-black">
+                    Nª Documento: ${result.number_document}
+                  </div>
+                </li>
+                `
+            },
+            getResultValue: result => result.names,
+            onSubmit: result => {
+                if (result) {
+                    let client_id = result.id;
+                    let type_client = result.type_client;
+                    let _client_address = result.address;
+                    $('#client_id').val(client_id);
                 } else {
-                    if (_unit === 'BALON') {
-                        has_ball = true;
-
-                        if (_total_remaining_return_loan === 0) {
-                            tour_products[index]["total_ball"] = 0;
-                            tour_products[index]["quantity_ball"] = 0;
-                        } else {
-                            tour_products[index]["total_ball"] = _total_remaining_repay_loan;
-                            tour_products[index]["quantity_ball"] = _total_remaining_return_loan;
-
-                            _total_ball = _total_ball + tour_products[index]["total_ball"];
-                            _quantity_ball = _quantity_ball + tour_products[index]["quantity_ball"];
-
-                        }
-
-                    } else {
-                        if (_unit === 'GBC') {
-                            has_gbc = true;
-                            if (_total_remaining_repay_loan === 0) {
-                                tour_products[index]["total_glp_gbc"] = 0;
-                            } else {
-                                tour_products[index]["total_glp_gbc"] = _tot - _repay_loan;
-                                _total_glp_gbc = _total_glp_gbc + tour_products[index]["total_glp_gbc"];
-                            }
-                        }
-                    }
+                    toastr.warning('Seleccione un cliente valido', 'Error de llenado');
+                    return false;
                 }
-            }
-        }
-
-        $(document).on('click', '.check-sales', function () {
-            let $tr = $(this).closest('tr');
-            let rowspan = $(this).parent('td').attr('rowspan');
-            let index = $('tr').index($tr);
-
-            let _massive_payment_badge = $('#massive-payment span.badge');
-            let _massive_payment = parseFloat(_massive_payment_badge.text());
-            let _massive_return_badge = $('#massive-return span.badge');
-            let _massive_return = parseFloat(_massive_return_badge.text());
-            calMassive(index, rowspan);
-
-            if (this.checked) {
-
-                if (has_glp) {
-                    _massive_payment = _massive_payment + _total_glp;
-                    _massive_payment_badge.text(_massive_payment.toFixed(2));
-                }
-
-                if (has_ball) {
-                    _massive_return = _massive_return + _quantity_ball;
-                    _massive_return_badge.text(_massive_return.toFixed(2));
-                }
-                if (has_gbc) {
-                    _massive_payment = _massive_payment + _total_glp_gbc;
-                    _massive_payment_badge.text(_massive_payment.toFixed(2));
-                }
-                if ((_total_glp > 0 || _quantity_ball > 0 || _total_glp_gbc > 0) && array_id > 0) {
-                    array_glp_indexes.push(array_id);
-                }
-
-            } else {
-
-                if (has_glp) {
-                    _massive_payment = _massive_payment - _total_glp;
-                    _massive_payment_badge.text(_massive_payment.toFixed(2));
-                }
-
-                if (has_ball) {
-                    _massive_return = _massive_return - _quantity_ball;
-                    _massive_return_badge.text(_massive_return.toFixed(2));
-                }
-                if (has_gbc) {
-                    _massive_payment = _massive_payment - _total_glp_gbc;
-                    _massive_payment_badge.text(_massive_payment.toFixed(2));
-                }
-                const index = array_glp_indexes.indexOf(array_id);
-                if (index > -1) {
-                    array_glp_indexes.splice(index, 1);
-                }
-
-
-            }
-            /***
-             console.log('_massive_payment: ' + _massive_payment);
-             console.log('_massive_return: ' + _massive_return);
-             console.log('array_glp_indexes: ' + array_glp_indexes);
-             **/
-            has_glp = false;
-            has_gbc = false;
-            has_ball = false;
-            _total_glp = 0;
-            _total_ball = 0;
-            _total_glp_gbc = 0;
-            _quantity_ball = 0;
-            array_id = 0;
-
-        });
-
-        $(document).on('click', '#massive-payment', function () {
-            let _massive_payment = parseFloat($(this).find('span.badge').text().trim());
-            if (_massive_payment > 0) {
-
-                $('#lending').empty();
-                $('#exampleModalLabel1').text('PAGO MASIVO');
-
-                $.ajax({
-                    url: '/sales/get_massiel_payment_form/',
-                    async: true,
-                    dataType: 'json',
-                    type: 'GET',
-                    data: {
-                        'massive_payment': _massive_payment,
-                        'massive_type': 'MP',
-                        'client_orders': $('#id_client').val(),
-                        'order_indexes': (JSON.stringify(array_glp_indexes)).toString()
-                    },
-                    success: function (response) {
-                        $('#lending').html(response.grid);
-                    },
-                    fail: function (response) {
-                        console.log("error");
-                    }
-                });
-
-            } else {
-                $('#lending').html('Debe seleccionar al menos una venta');
             }
         });
 
-        $(document).on('click', '#massive-return', function () {
-            let _massive_return = parseFloat($(this).find('span.badge').text().trim());
-            if (_massive_return) {
+        $(document).on('click', '.btn-payment', function () {
 
-                $('#lending').empty();
-                $('#exampleModalLabel1').text('PAGO MASIVO');
-
-                $.ajax({
-                    url: '/sales/get_massiel_payment_form/',
-                    async: true,
-                    dataType: 'json',
-                    type: 'GET',
-                    data: {
-                        'massive_return': _massive_return,
-                        'massive_type': 'MR',
-                        'client_orders': $('#id_client').val(),
-                        'order_indexes': (JSON.stringify(array_glp_indexes)).toString()
-                    },
-                    success: function (response) {
-                        $('#lending').html(response.grid);
-                    },
-                    fail: function (response) {
-                        console.log("error");
-                    }
-                });
-
-            } else {
-                $('#lending').html('Debe seleccionar al menos una venta');
-            }
-        });
-        $(document).on('click', '.review', function () {
-
-            let $row = $(this).closest('tr');
-            let $o_id = $row.attr('info');
-            // console.log($o_id);
-            // What row index is the clicked row?
-            let row = $row.index(); // Subtract heading row
-
-            // Does the clicked row overlap anything following?
-            let rowspan = ~~$row.find('td[rowspan]').attr('rowspan') || 0;
-
-            // Get all rows except the heading, up to the last overlapped row
-            let $rows = $row.parent().children().slice(1, row + rowspan);
-            row--;
-
-            // Now see if any preceding rows overlap the clicked row
-            $rows.each(function (i) {
-                let $tr = $(this);
-
-                // Only check first rowspan of a row
-                let rowspan = ~~$tr.find('td[rowspan]').attr('rowspan') || 0;
-                // If the rowspan is before the clicked row but overlaps it
-                // Or it is a row we included after the selection
-                if ((i < row && ((rowspan + i) > row)) || i > row) {
-                    $row = $row.add($tr);
+            let _detail_id = $(this).attr('pk');
+            let _start_date = $('#id-start-date').val();
+            let _end_date = $('#id-end-date').val();
+            $('#lending').empty();
+            $.ajax({
+                url: '/sales/get_order_detail_for_pay/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'detail_id': _detail_id,
+                    'start_date': _start_date,
+                    'end_date': _end_date,
+                },
+                success: function (response) {
+                    $('#lending').html(response.grid);
+                },
+                fail: function (response) {
+                    console.log("error");
                 }
             });
-            //$row.toggleClass('green');
-            if ($row.hasClass("green")) {
-                $row.removeClass('green');
-
-                {#console.log("false");#}
-                let pk = $row.attr("info");
-                $('td.td-green.o-' + pk).removeClass('td-green').removeClass('o-' + pk);
-
-                $row.find('td span.review-text').text('No revisado');
-                $.ajax({
-                    url: '/sales/check_review/',
-                    async: true,
-                    dataType: 'json',
-                    type: 'GET',
-                    data: {
-                        'pk': pk,
-                    },
-                    success: function (response) {
-                        {#$('#lending').html(response.grid);#}
-                    },
-                    fail: function (response) {
-                        console.log("error");
-                    }
-                });
-            } else {
-                $row.addClass('green');
-                $row.find('td span.review-text').text('Revisado');
-                {#console.log("true")#}
-                {#console.log($row.attr("info"))#}
-                let pk = $row.attr("info")
-                $.ajax({
-                    url: '/sales/check_review/',
-                    async: true,
-                    dataType: 'json',
-                    type: 'GET',
-                    data: {
-                        'pk': pk,
-                    },
-                    success: function (response) {
-                        {#$('#lending').html(response.grid);#}
-                    },
-                    fail: function (response) {
-                        console.log("error");
-                    }
-                });
-
-            }
         });
 
-        $(document).on('click', '.review-pay', function () {
+        {#LLAMAR A EL MODAL DE GASTOS#}
 
-            let lp_id = $(this).attr("lp_id")
-            let _input = $(this)
+        $(document).on('click', '.btn-expense', function () {
+            let _order_id = $(this).attr('pk');
 
-             if (this.checked) {
-                 $.ajax({
-                    url: '/sales/check_review_pay/',
-                    async: true,
-                    dataType: 'json',
-                    type: 'GET',
-                    data: {
-                        'lp_id': lp_id,
-                    },
-                    success: function (response) {
-                        _input.siblings('span.review-text-pay').text('Pago revisado')
-                    },
-                    fail: function (response) {
-                        console.log("error");
-                    }
-                });
-             }
-             else{
-                 $.ajax({
-                    url: '/sales/check_review_pay/',
-                    async: true,
-                    dataType: 'json',
-                    type: 'GET',
-                    data: {
-                        'lp_id': lp_id,
-                    },
-                    success: function (response) {
-                        _input.siblings('span.review-text-pay').text('No revisado')
-                    },
-                    fail: function (response) {
-                        console.log("error");
-                    }
-                });
-             }
+            let $tr = $('#table-dictionary').find('tr[info="' + _order_id + '"]');
 
-            /*if ($row.hasClass("green")) {
-                $row.removeClass('green');
+            let $td_pilot = $tr.find('td.pilot').text();
+            let $td_plate = $tr.find('td.plate').text();
 
-                {#console.log("false");#}
-                let pk = $row.attr("info");
-                $('td.td-green.o-' + pk).removeClass('td-green').removeClass('o-' + pk);
+            let $td_pay_loan = $tr.find('td.pay-loan-rest').text();
+            let _start_date = $('#id-start-date').val();
+            let _end_date = $('#id-end-date').val();
 
-                $row.find('td span.review-text').text('No revisado');
-                $.ajax({
-                    url: '/sales/check_review/',
-                    async: true,
-                    dataType: 'json',
-                    type: 'GET',
-                    data: {
-                        'pk': pk,
-                    },
-                    success: function (response) {
-                        {#$('#lending').html(response.grid);#}
-                    },
-                    fail: function (response) {
-                        console.log("error");
-                    }
-                });
-            } else {
-                $row.addClass('green');
-                $row.find('td span.review-text').text('Pago revisado');
-                {#console.log("true")#}
-                {#console.log($row.attr("info"))#}
-                let pk = $row.attr("info")
-                $.ajax({
-                    url: '/sales/check_review/',
-                    async: true,
-                    dataType: 'json',
-                    type: 'GET',
-                    data: {
-                        'pk': pk,
-                    },
-                    success: function (response) {
-                        {#$('#lending').html(response.grid);#}
-                    },
-                    fail: function (response) {
-                        console.log("error");
-                    }
-                });
-
-            }*/
+            $('#lending').empty();
+            $.ajax({
+                url: '/sales/get_expenses/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    '_order_id': _order_id,
+                    'start_date': _start_date,
+                    'end_date': _end_date,
+                },
+                success: function (response) {
+                    $('#expense').html(response.grid);
+                    {#$('#id_driver').val($td_pilot);#}
+                    {#$('#id_plate').val($td_plate);#}
+                    $('#id_order').val(_order_id);
+                    $('.pay-loan').val($td_pay_loan);
+                },
+                fail: function (response) {
+                    console.log("error");
+                }
+            });
         });
-
-
-
 
     </script>
+
 {% endblock extrajs %}
 

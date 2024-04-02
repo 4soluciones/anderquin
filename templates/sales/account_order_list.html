@@ -1,254 +1,121 @@
-<div class="card-header text-center text-uppercase bg-light font-weight-bold">
-    <h2> {{ client_obj }} </h2>
-    <label>Deuda Pendiente: S/ {{ difference_debt }}</label>
+{% load operations %}
+<div class="card border-primary mb-2">
+    <div class="card-header text-center text-uppercase p-1 roboto-condensed-regular m-2"
+         style="background-color: #ebebeb; border: yellow">
+        <h2 class="roboto-condensed-regular font-weight-bold"> {{ client_obj }} </h2>
+        <label>Deuda Pendiente: S/ {{ difference_debt }}</label>
+    </div>
 </div>
-<div class="" id="grid-dictionary" style="overflow:scroll;width: 100%;height: 45em">
-    <table class="table table-sm table-bordered" id="table-dictionary" style="border-collapse: collapse;">
-        {% if not is_pdf %}
-            <thead>{% endif %}
-        <tr class="text-white small text-uppercase">
-            <td class="bg-primary noExl">#</td>
-            <td class="bg-primary noExl">ID</td>
-            <td class="bg-primary noExl">TIPO</td>
-                    <td class="bg-primary">CLIENTE</td>
-{#            <td class="bg-success noExl">PLACA</td>#}
-            <td class="bg-success noExl">RESPONSABLE</td>
+<div class="card table-responsive roboto-condensed-regular" id="grid-dictionary">
+    <table class="table table-sm table-borderless table-hover mb-0" id="table-dictionary">
+        <thead>
+        <tr class="text-white small text-uppercase text-center">
+            <td class="bg-primary">ID</td>
+            <td class="bg-primary">TIPO</td>
+            {#            <td class="bg-primary">CLIENTE</td>#}
+            <td class="bg-primary">USUARIO</td>
             <td class="bg-primary">FECHA</td>
-            {#        <td class="bg-primary">ESTADO</td>#}
-
-            <td class="bg-info">PROD.</td>
-            <td class="bg-info noExl">UND</td>
-            <td class="bg-info">CALIDAD</td>
+            <td class="bg-primary">ESTADO</td>
+            <td class="bg-info">PRODUCTO</td>
+            <td class="bg-info">TIPO UND.</td>
             <td class="bg-info">CANT.</td>
-            <td class="bg-info">PREC.</td>
-            <td class="bg-info">IMP.</td>
+            <td class="bg-info">PRECIO (S/)</td>
+            <td class="bg-info">IMPORTE</td>
             <td class="bg-primary">TOTAL</td>
-
-            <td class="bg-danger head-spending noExl">GASTOS</td>
-
-{#            <td class="bg-secondary">FECHA OPERACIÓN</td>#}
-{#            <td class="bg-secondary">CANTIDAD ENTREGADA BALONES</td>#}
-{#            <td class="bg-secondary">CANTIDAD VALES FISE</td>#}
+            <td class="bg-danger">GASTOS</td>
             <td class="bg-secondary">MONTO PAGADO</td>
-            <td class="bg-secondary">PLACA</td>
             <td class="bg-secondary">FECHA OPERACIÓN</td>
             <td class="bg-secondary">TIPO PAGO</td>
-{#            <td class="bg-secondary">TOTAL CANTIDAD ENTREGADA BALONES</td>#}
-{#            <td class="bg-secondary">TOTAL CANTIDAD VALES FISE</td>#}
-{#            <td class="bg-secondary">TOTAL PAGADO GLP</td>#}
-{#            <td class="bg-secondary">TOTAL PAGADO BALONES</td>#}
-{#            <td class="bg-secondary">TOTAL CANTIDAD CAMBIADA</td>#}
-            <td class="bg-secondary noExl">ACCIÓN</td>
-
-            <td class="bg-primary">TOTAL</td>
-{#            <td class="bg-primary">TOTAL PAGADO GLP</td>#}
-            <td class="bg-danger">TOTAL GASTOS</td>
-{#            <td class="bg-primary">TOTAL VALES FISE</td>#}
-{#            <td class="bg-primary">TOTAL BALONES DEVUELTO</td>#}
-{#            <td class="bg-info">PAGO FALTANTE BALONES</td>#}
-{#            <td class="bg-primary">PAGO FALTANTE GLP</td>#}
-{#            <td class="bg-primary">CANTIDAD FALTANTE BALONES</td>#}
-{#            <td class="bg-primary">CANTIDAD DE BALONES CAMBIADOS</td>#}
+            <td class="bg-success">ACCIÓN</td>
+            <td class="bg-primary text-right">TOTAL</td>
+            <td class="bg-danger text-right">TOTAL GASTOS</td>
+            <td class="bg-secondary text-right">PAGO FALTANTE</td>
         </tr>
-        {% if not is_pdf %}</thead>{% endif %}
-        {% if not is_pdf %}
-            <tbody>{% endif %}
+        </thead>
+        <tbody>
         {% for o in dictionary %}
-            <tr info="{{ o.id }}" class="{% if o.is_review %}green{% endif %}">
-
-                <td class="align-middle text-center rowspan noExl" rowspan="{{ o.rowspan }}">
-                    <input type="checkbox" class="check-sales" value="S">
-                </td>
-                <td class="align-middle text-center id-obj noExl" rowspan="{{ o.rowspan }}">{{ o.id }}</td>
-                <td class="align-middle text-center noExl" rowspan="{{ o.rowspan }}">
-                    {% if o.type == 'VENTA' %}
-                        <span class="text-success font-weight-bolder ">{{ o.type }}</span>
-                    {% else %}
-                        <span class="text-dark font-weight-bolder">{{ o.type }}</span>
-                    {% endif %}
-
-                    {% if o.is_review %}
-                        <div class="form-check form-switch">
-                            <label class="form-check-label" for="id_is_review_{{ o.id }}">
-                            <input class="form-check-input review" type="checkbox" id="id_is_review_{{ o.id }}" checked>
-                            <span class="review-text">Revisado</span></label>
-                        </div>
-                    {% else %}
-                        <div class="form-check form-switch">
-                            <label class="form-check-label" for="id_is_review_{{ o.id }}">
-                            <input class="form-check-input review" type="checkbox" id="id_is_review_{{ o.id }}">
-                            <span class="review-text">No revisado</span></label>
-                        </div>
-                    {% endif %}
-                </td>
-                <td class="align-middle text-center" rowspan="{{ o.rowspan }}">{{ o.client }}</td>
-{#                <td class="align-middle text-center plate noExl"#}
-{#                    rowspan="{{ o.rowspan }}">{{ o.distribution_mobil.0.license_plate }}</td>#}
-{#                <td class="align-middle text-center pilot noExl"#}
-{#                    rowspan="{{ o.rowspan }}">{{ o.distribution_mobil.0.pilot }}</td>#}
+            <tr info="{{ o.id }}">
+                <td class="align-middle text-center id-obj " rowspan="{{ o.rowspan }}">{{ o.id }}</td>
+                <td class="align-middle text-center " rowspan="{{ o.rowspan }}">{{ o.type }}</td>
+                {#                <td class="align-middle text-center" rowspan="{{ o.rowspan }}">{{ o.client }}</td>#}
+                <td class="align-middle text-center plate "
+                    rowspan="{{ o.rowspan }}">{{ o.user|upper }}</td>
                 <td class="align-middle text-center" rowspan="{{ o.rowspan }}">{{ o.date|date:"d-m-y" }}</td>
-                {#            <td class="align-middle text-center" rowspan="{{ o.rowspan }}">{{ o.status }}</td>#}
+                <td class="align-middle text-center" rowspan="{{ o.rowspan }}">{{ o.status }}</td>
 
                 {% for d in o.order_detail_set %}
-
-                    <td class="align-middle text-center product-obj {% if o.is_review %}td-green o-{{ o.id }}{% endif %}" rowspan="{{ d.rowspan }}"
-                        dpk="{{ d.product_id }}">{{ d.code }}</td>
-                    <td class="align-middle text-center unit-obj noExl {% if o.is_review %}td-green o-{{ o.id }}{% endif %}" rowspan="{{ d.rowspan }}">
-                        {% if d.unit == 'G' %}
-                            <span class="text-danger font-weight-bolder">GLP</span>
-                        {% elif d.unit == 'B' %}
-                            <span class="text-primary font-weight-bolder">BALON</span>
-                        {% else %}
-                            <span class="text-success font-weight-bolder">{{ d.unit }}</span>
-
-                        {% endif %}
+                    <td class="align-middle text-center product-obj" rowspan="{{ d.rowspan }}"
+                        dpk="{{ d.product_id }}">{{ d.product }}</td>
+                    <td class="align-middle text-center unit-obj " rowspan="{{ d.rowspan }}">
+                        <span class="text-success font-weight-bolder">{{ d.unit }}</span>
                     </td>
-                    <td class="align-middle text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}" rowspan="{{ d.rowspan }}">{{ d.type }}</td>
-                    <td class="align-middle text-center quantity-obj {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
-                        rowspan="{{ d.rowspan }}">{{ d.quantity_sold|floatformat:0 }}</td>
-                    <td class="align-middle text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}" rowspan="{{ d.rowspan }}">{{ d.price_unit }}</td>
-                    <td class="align-middle text-center total-obj {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
-                        rowspan="{{ d.rowspan }}">{{ d.multiply|floatformat:2 }}</td>
-                    {#llamar a el modal de expense#}
+                    <td class="align-middle text-center quantity-obj" rowspan="{{ d.rowspan }}">
+                        {{ d.quantity_sold|floatformat:0 }}
+                    </td>
+                    <td class="align-middle text-center" rowspan="{{ d.rowspan }}">S/ {{ d.price_unit }}</td>
+                    <td class="align-middle text-center total-obj"
+                        rowspan="{{ d.rowspan }}">S/ {{ d.multiply|replace_round }}</td>
                     {% if forloop.first %}
-                        <td class="align-middle text-primary text-right font-weight-bold {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
-                            rowspan="{{ o.rowspan }}">{{ o.subtotal|safe }}</td>
+                        <td class="align-middle text-primary text-center font-weight-bold"
+                            rowspan="{{ o.rowspan }}">S/ {{ o.subtotal|replace_round }}</td>
                     {% endif %}
 
-                    {% if d.has_spending %}
-                        <td class="align-middle text-center body-spending noExl {% if o.is_review %}td-green o-{{ o.id }}{% endif %}" rowspan="{{ d.rowspan }}">
+                    {% if not d.has_spending %}
+                        <td class="align-middle text-center body-spending" rowspan="{{ d.rowspan }}">
                             <button type="button"
-                                    class="btn btn-outline-danger btn-sm btn-block btn-expense"
+                                    class="btn btn-outline-danger btn-expense"
                                     data-toggle="modal"
-                                    data-target="#modal-expense" pk="{{ o.id }}">+
+                                    data-target="#modal-expense" pk="{{ o.id }}"><i class="fas fa-receipt"></i>
                             </button>
                         </td>
                     {% else %}
-                        <td class="align-middle text-success text-center body-spending noExl {% if o.is_review %}td-green o-{{ o.id }}{% endif %}" rowspan="{{ d.rowspan }}">
-                        </td>
+                        <td class="align-middle text-success text-center body-spending "
+                            rowspan="{{ d.rowspan }}"></td>
                     {% endif %}
 
                     {% for l in d.loan_payment_set %}
-
                         {% if forloop.first %}
-
-                            <td class="align-middle text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}">{{ l.quantity|floatformat:0 }}</td>
-                            <td class="align-middle text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}">{{ l.number_of_vouchers }}</td>
-                            <td class="align-middle text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}">
-                                {% if  d.unit != 'B' %}
-                                    {{ l.price }}
-                                {% endif %}
-                            </td>
-                            <td class="align-middle text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}">{{ l.license_plate }}</td>
-                            <td class="align-middle text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}">{{ l.operation_date|date:"d-m-y" }}</td>
-                            <td class="align-middle text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}">
-                                {% if l.type != 'Deposito'  %}
+                            <td class="align-middle text-center">{{ l.quantity|floatformat:0 }}</td>
+                            <td class="align-middle text-center">{{ l.price }}</td>
+                            <td class="align-middle text-center">{{ l.operation_date|date:"d-m-y" }}</td>
+                            <td class="align-middle text-center">
+                                {% if l.type != 'Deposito' %}
                                     {{ l.type }}
                                 {% endif %}
                                 {% if l.cash_flow %}
                                     <br>{{ l.cash_flow.cash.name }}
                                     <br>{{ l.cash_flow.operation_code }}
-
-                                    {% if l.is_review_pay %}
-                                        <div class="form-check form-switch">
-                                            <label class="form-check-label" for="id_is_review_pay{{ l.id }}">
-                                            <input class="form-check-input review-pay red-input" type="checkbox" lp_id="{{ l.id }}" id="id_is_review_pay{{ l.id }}" checked>
-                                            <span class="review-text-pay text-success">Pago revisado</span></label>
-                                        </div>
-                                    {% else %}
-                                        <div class="form-check form-switch">
-                                            <label class="form-check-label" for="id_is_review_pay{{ l.id }}">
-                                            <input class="form-check-input review-pay red-input" type="checkbox" lp_id="{{ l.id }}" id="id_is_review_pay{{ l.id }}">
-                                            <span class="review-text-pay text-success">No revisado</span></label>
-                                        </div>
-                                    {% endif %}
-
                                 {% endif %}
                             </td>
-                            <td class="align-middle text-success text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
-                                rowspan="{{ d.rowspan }}">{{ d.return_loan }}</td>
-                            <td class="align-middle text-success text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
-                                rowspan="{{ d.rowspan }}">{{ d.repay_loan_with_vouchers }}</td>
-
-                            <td class="align-middle text-success text-center repay-loan-obj {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
+                            <td class="align-middle text-success text-center repay-loan-obj"
                                 rowspan="{{ d.rowspan }}">{{ d.repay_loan|floatformat:2 }}</td>
 
-                            <td class="align-middle text-success text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
-                                rowspan="{{ d.rowspan }}">{{ d.repay_loan_ball|floatformat:2 }}</td>
-
-                            <td class="align-middle text-success text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
-                                rowspan="{{ d.rowspan }}">{{ d.ball_changes }}</td>
-                            <td class="align-top text-success text-center noExl {% if o.is_review %}td-green o-{{ o.id }}{% endif %}" rowspan="{{ d.rowspan }}">
-
-                                {% if d.unit == 'G' %}
-                                    <button type="button"
-                                            class="btn btn-success btn-sm btn-block btn-payment"
-                                            data-toggle="modal"
-                                            data-target="#modal-payment" pk="{{ d.id }}">
-                                        <i class="fas fa-dollar-sign"></i> Pagar
-                                    </button>
-                                    <button type="button"
-                                            class="btn btn-warning btn-sm btn-block btn-change mt-1"
-                                            data-toggle="modal"
-                                            data-target="#modal-payment" pk="{{ d.id }}">
-                                        <i class="fas fa-arrow-alt-circle-down"></i> Cambiar
-                                    </button>
-                                {% elif d.unit == 'B' %}
-                                    <button type="button"
-                                            class="btn btn-info btn-sm btn-block btn-payment"
-                                            data-toggle="modal"
-                                            data-target="#modal-payment" pk="{{ d.id }}">
-                                        <i class="fas fa-dollar-sign"></i> Devolver
-                                    </button>
-                                {% elif d.unit == 'GBC' %}
-                                    <button type="button"
-                                            class="btn btn-success btn-sm btn-block btn-payment"
-                                            data-toggle="modal"
-                                            data-target="#modal-payment" pk="{{ d.id }}">
-                                        <i class="fas fa-dollar-sign"></i> Pagar
-                                    </button>
-
-                                {% endif %}
-
+                            <td class="align-top text-success text-center "
+                                rowspan="{{ d.rowspan }}">
+                                <button type="button"
+                                        class="btn btn-outline-success btn-block btn-payment"
+                                        data-toggle="modal"
+                                        data-target="#modal-payment" pk="{{ d.id }}">
+                                    <i class="fas fa-cart-plus"></i>
+                                </button>
                             </td>
 
                             {% if forloop.parentloop.first %}
 
-{#                                <td class="align-middle text-primary text-right {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"#}
-{#                                    rowspan="{{ o.rowspan }}">{{ o.subtotal|floatformat:2 }}</td>#}
-                                <td class="align-middle text-primary text-right {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
+                                <td class="align-middle text-primary text-right"
                                     rowspan="{{ o.rowspan }}">{{ o.total_repay_loan }}</td>
-                                <td class="align-middle text-danger font-weight-bold text-right {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
+                                <td class="align-middle text-danger font-weight-bold text-right"
                                     rowspan="{{ o.rowspan }}">{{ o.total_spending }}</td>
-                                <td class="align-middle text-primary text-right {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
-                                    rowspan="{{ o.rowspan }}">{{ o.total_repay_loan_with_vouchers }}</td>
-                                <td class="align-middle text-primary text-right {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
-                                    rowspan="{{ o.rowspan }}">{{ o.total_return_loan }}</td>
 
-                                <td class="align-middle text-info font-weight-bold text-right {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
-                                    rowspan="{{ o.rowspan }}">{{ o.total_remaining_repay_loan_ball }}</td>
-
-                                <td class="align-middle text-primary text-right total-remaining-repay-loan-obj pay-loan-rest {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
+                                <td class="align-middle text-primary text-right total-remaining-repay-loan-obj pay-loan-rest"
                                     rowspan="{{ o.rowspan }}">{{ o.total_remaining_repay_loan }}</td>
-                                <td class="align-middle text-primary text-right total-remaining-return-loan-obj {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
-                                    rowspan="{{ o.rowspan }}">{{ o.total_remaining_return_loan }}</td>
-
-                                <td class="align-middle text-warning font-weight-bold text-right {% if o.is_review %}td-green o-{{ o.id }}{% endif %}"
-                                    rowspan="{{ o.rowspan }}">{{ o.total_ball_changes }}</td>
-
                             {% endif %}
 
                             </tr>
                         {% else %}
-                            <tr class="{% if o.is_review %}green{% endif %}">
-
+                            <tr class="">
                                 <td class="align-middle text-center">{{ l.quantity|floatformat:0 }}</td>
-                                <td class="align-middle text-center">{{ l.number_of_vouchers }}</td>
-                                <td class="align-middle text-center">
-                                    {% if  d.unit != 'B' %}
-                                        {{ l.price }}
-                                    {% endif %}
-                                </td>
+                                <td class="align-middle text-center">{{ l.price }}</td>
                                 <td class="align-middle text-center">{{ l.license_plate }}</td>
                                 <td class="align-middle text-center">{{ l.operation_date|date:"d-m-y" }}</td>
                                 <td class="align-middle text-center">
@@ -258,273 +125,69 @@
                                     {% if l.cash_flow %}
                                         <br>{{ l.cash_flow.cash.name }}
                                         <br>{{ l.cash_flow.operation_code }}
-
-                                        {% if l.is_review_pay %}
-                                        <div class="form-check form-switch">
-                                            <label class="form-check-label" for="id_is_review_pay{{ l.id }}">
-                                            <input class="form-check-input review-pay red-input" type="checkbox" lp_id="{{ l.id }}" id="id_is_review_pay{{ l.id }}" checked>
-                                            <span class="review-text-pay text-success">Pago revisado</span></label>
-                                        </div>
-                                    {% else %}
-                                        <div class="form-check form-switch">
-                                            <label class="form-check-label" for="id_is_review_pay{{ l.id }}">
-                                            <input class="form-check-input review-pay red-input" type="checkbox" lp_id="{{ l.id }}" id="id_is_review_pay{{ l.id }}">
-                                            <span class="review-text-pay text-success">No revisado</span></label>
-                                        </div>
-                                    {% endif %}
-
                                     {% endif %}
                                 </td>
-
                             </tr>
                         {% endif %}
 
                     {% empty %}
-                        <td class="align-middle text-primary text-center {% if o.is_review %}td-green o-{{ o.id }}{% endif %}" colspan="11">SIN PAGOS</td>
-                        <td class=" noExl {% if o.is_review %}td-green o-{{ o.id }}{% endif %}">
-                            {% if d.unit == 'G' %}
-                                <button type="button"
-                                        class="btn btn-success btn-sm btn-block btn-payment"
-                                        data-toggle="modal"
-                                        data-target="#modal-payment" pk="{{ d.id }}">
-                                    <i class="fas fa-dollar-sign"></i> Pagar
-                                </button>
-                                <button type="button"
-                                        class="btn btn-warning btn-sm btn-block btn-change mt-1"
-                                        data-toggle="modal"
-                                        data-target="#modal-payment" pk="{{ d.id }}">
-                                    <i class="fas fa-arrow-alt-circle-down"></i> Cambiar
-                                </button>
-                            {% elif d.unit == 'B' %}
-                                <button type="button"
-                                        class="btn btn-info btn-sm btn-block btn-payment"
-                                        data-toggle="modal"
-                                        data-target="#modal-payment" pk="{{ d.id }}">
-                                    <i class="fas fa-dollar-sign"></i> Devolver
-                                </button>
-                            {% elif d.unit == 'GBC' %}
-                                <button type="button"
-                                        class="btn btn-success btn-sm btn-block btn-payment"
-                                        data-toggle="modal"
-                                        data-target="#modal-payment" pk="{{ d.id }}">
-                                    <i class="fas fa-dollar-sign"></i> Pagar
-                                </button>
-
-                            {% endif %}
+                        <td class="align-middle text-primary text-center"
+                            colspan="3">SIN PAGOS
+                        </td>
+                        <td class="">
+                            <button type="button"
+                                    class="btn btn-outline-success btn-block btn-payment"
+                                    data-toggle="modal"
+                                    data-target="#modal-payment" pk="{{ d.id }}">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
                         </td>
 
                         {% if not o.has_loans %}
-
                             {% if o.order_detail_set.0.id == d.id %}
-
                                 {% if o.details_count > 0 %}
-
-{#                                    <td class="align-middle text-primary text-right"#}
-{#                                        rowspan="{{ o.rowspan }}">{{ o.subtotal|floatformat:2 }}</td>#}
                                     <td class="align-middle text-primary text-right"
-                                        rowspan="{{ o.rowspan }}">{{ o.total_repay_loan }}</td>
+                                        rowspan="{{ o.rowspan }}">S/ {{ o.total_repay_loan }}</td>
                                     <td class="align-middle text-danger font-weight-bold text-right"
-                                        rowspan="{{ o.rowspan }}">{{ o.total_spending }}</td>
-                                    <td class="align-middle text-primary text-right"
-                                        rowspan="{{ o.rowspan }}">{{ o.total_repay_loan_with_vouchers }}</td>
-                                    <td class="align-middle text-primary text-right"
-                                        rowspan="{{ o.rowspan }}">{{ o.total_return_loan }}</td>
-
-                                    <td class="align-middle text-info font-weight-bold text-right"
-                                        rowspan="{{ o.rowspan }}">{{ o.total_remaining_repay_loan_ball }}</td>
-
-
+                                        rowspan="{{ o.rowspan }}">S/ {{ o.total_spending }}</td>
                                     <td class="align-middle text-primary text-right total-remaining-repay-loan-obj pay-loan-rest"
-                                        rowspan="{{ o.rowspan }}">{{ o.total_remaining_repay_loan }}</td>
-                                    <td class="align-middle text-primary text-right total-remaining-return-loan-obj"
-                                        rowspan="{{ o.rowspan }}">{{ o.total_remaining_return_loan }}</td>
-                                    <td class="align-middle text-warning font-weight-bold text-right"
-                                        rowspan="{{ o.rowspan }}">{{ o.total_ball_changes }}</td>
-
+                                        rowspan="{{ o.rowspan }}">S/ {{ o.total_remaining_repay_loan }}</td>
                                 {% endif %}
-
-
-
                             {% endif %}
                         {% else %}
                             {% if o.order_detail_set.0.id == d.id %}
-{#                                <td class="align-middle text-primary text-right"#}
-{#                                    rowspan="{{ o.rowspan }}">{{ o.subtotal }}</td><!--TOTAL-->#}
                                 <td class="align-middle text-primary text-right"
                                     rowspan="{{ o.rowspan }}">{{ o.total_repay_loan }}</td>
                                 <!--TOTAL PAGADO GLP-->
                                 <td class="align-middle text-danger font-weight-bold text-right"
                                     rowspan="{{ o.rowspan }}">{{ o.total_spending }}</td>
                                 <!--TOTAL GASTOS-->
-                                <td class="align-middle text-primary text-right"
-                                    rowspan="{{ o.rowspan }}">{{ o.total_repay_loan_with_vouchers }}</td>
-                                <!--TOTAL VALES FISE-->
-                                <td class="align-middle text-primary text-right"
-                                    rowspan="{{ o.rowspan }}">{{ o.total_return_loan }}</td>
-                                <!--TOTAL BALONES DEVUELTOS-->
-
-                                <td class="align-middle text-primary font-weight-bold text-right"
-                                    rowspan="{{ o.rowspan }}">{{ o.total_remaining_repay_loan_ball }}</td>
-                                <!-- PAGO FALTANTE BALONES-->
-
                                 <td class="align-middle text-primary text-right total-remaining-repay-loan-obj pay-loan-rest"
                                     rowspan="{{ o.rowspan }}">{{ o.total_remaining_repay_loan }}</td>
-                                <!--PAGO FALTANTE GLP-->
-                                <td class="align-middle text-primary text-right total-remaining-return-loan-obj"
-                                    rowspan="{{ o.rowspan }}">{{ o.total_remaining_return_loan }}</td>
-                                <!--FALTANTES BALONES-->
-                                <td class="align-middle text-warning font-weight-bold text-right"
-                                    rowspan="{{ o.rowspan }}">{{ o.total_ball_changes }}</td>
-                                <!--CANTIDAD DE BALONES CAMBIADOS-->
+                                <!--PAGO FALTANTE-->
                             {% endif %}
                         {% endif %}
-
                         </tr>
                     {% endfor %}
-
-
                 {% empty %}
-                    <td colspan="16" rowspan="0">SIN DETALLES</td>
+                    <td colspan="7" rowspan="0">SIN DETALLES</td>
                     </tr>
 
                 {% endfor %}
         {% endfor %}
-        {% if not is_pdf %}</tbody>{% endif %}
-        {% if not is_pdf %}
-            <tfoot>{% endif %}
-        <tr class="colcount ">
-            <td colspan="9" class="colcount-quantity"></td>
-            <td class="align-middle text-primary text-right">{{ sum_quantity_total|floatformat:0 }}</td>
+        </tbody>
+        <tfoot>
+        <tr class="colcount">
             <td colspan="16" class="colcount-total"></td>
-{#            <td class="align-middle text-primary text-right">{{ sum_total }}</td>#}
-            <td class="align-middle text-primary text-right">{{ sum_total_repay_loan }}</td>
-            <td class="align-middle text-danger text-right">{{ sum_total_cash_flow_spending }}</td>
-            <td class="align-middle text-primary text-right">{{ sum_total_repay_loan_with_vouchers }}</td>
-            <td class="align-middle text-primary text-right">{{ sum_total_return_loan }}</td>
-            <td class="align-middle text-info text-right">{{ sum_total_remaining_repay_loan_ball }}</td>
-            <td class="align-middle text-primary text-right">{{ sum_total_remaining_repay_loan }}</td>
-            <td class="align-middle text-primary text-right">{{ sum_total_remaining_return_loan }}</td>
-            <td class="align-middle text-warning text-right">{{ sum_total_ball_changes }}</td>
+            <td class="align-middle text-primary text-right">S/ {{ sum_total_repay_loan }}</td>
+            <td class="align-middle text-danger text-right">S/ {{ sum_total_cash_flow_spending }}</td>
+            <td class="align-middle text-primary text-right">S/ {{ sum_total_remaining_repay_loan }}</td>
         </tr>
-        {% if not is_pdf %}</tfoot>{% endif %}
+        </tfoot>
     </table>
 </div>
 
-<div class="mt-2 mb-2">
-    {% if is_pdf %}
-        <link rel="stylesheet"
-              href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-              integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
-              crossorigin="anonymous">
-
-        <h4>Reporte de estado de cuenta</h4>
-
-    {% else %}
-        {#        <button id="get-pdf" type="button" class="btn btn-outline-dark"><span class="fa fa-print"></span> Pdf</button>#}
-        <a href="{% url 'sales:account_order_list_pdf' client_obj.id %}" target="print"
-           class="btn btn-outline-dark"><span class="fa fa-print"></span> Pdf</a>
-
-        <a target="print" id="table-to-excel" class="btn btn-outline-dark"><span class="fa fa-file-excel"></span>
-            Excel</a>
-    {% endif %}
-
-</div>
-
-<style>
-    .red-input {
-    accent-color: #e9a1a1;
-    height: 15px; /* not needed */
-    width: 15px; /* not needed */
-}
-</style>
-
 <script type="text/javascript">
-
-    {#$("#grid-dictionary").mCustomScrollbar();#}
-
-    $(document).on('click', '.btn-payment', function () {
-
-        let _detail_id = $(this).attr('pk');
-        let _start_date = $('#id-start-date').val();
-        let _end_date = $('#id-end-date').val();
-        $('#lending').empty();
-        $.ajax({
-            url: '/sales/get_order_detail_for_pay/',
-            async: true,
-            dataType: 'json',
-            type: 'GET',
-            data: {
-                'detail_id': _detail_id,
-                'start_date': _start_date,
-                'end_date': _end_date,
-            },
-            success: function (response) {
-                $('#lending').html(response.grid);
-            },
-            fail: function (response) {
-                console.log("error");
-            }
-        });
-    });
-    $(document).on('click', '.btn-change', function () {
-
-        let _detail_id = $(this).attr('pk');
-        let _start_date = $('#id-start-date').val();
-        let _end_date = $('#id-end-date').val();
-        $('#lending').empty();
-        $.ajax({
-            url: '/sales/get_order_detail_for_ball_change/',
-            async: true,
-            dataType: 'json',
-            type: 'GET',
-            data: {'detail_id': _detail_id,
-                    'start_date': _start_date,
-                    'end_date': _end_date,},
-            success: function (response) {
-                $('#lending').html(response.grid);
-            },
-            fail: function (response) {
-                console.log("error");
-            }
-        });
-    });
-
-    {#LLAMAR A EL MODAL DE GASTOS#}
-
-    $(document).on('click', '.btn-expense', function () {
-        let _order_id = $(this).attr('pk');
-
-        let $tr = $('#table-dictionary').find('tr[info="' + _order_id + '"]');
-
-        let $td_pilot = $tr.find('td.pilot').text();
-        let $td_plate = $tr.find('td.plate').text();
-
-        let $td_pay_loan = $tr.find('td.pay-loan-rest').text();
-        let _start_date = $('#id-start-date').val();
-        let _end_date = $('#id-end-date').val();
-
-        $('#lending').empty();
-        $.ajax({
-            url: '/sales/get_expenses/',
-            async: true,
-            dataType: 'json',
-            type: 'GET',
-            data: {'_order_id': _order_id,
-                'start_date': _start_date,
-                'end_date': _end_date,
-            },
-            success: function (response) {
-                $('#expense').html(response.grid);
-                $('#id_driver').val($td_pilot);
-                $('#id_plate').val($td_plate);
-                $('#id_order').val(_order_id);
-                $('.pay-loan').val($td_pay_loan);
-            },
-            fail: function (response) {
-                console.log("error");
-            }
-        });
-    });
 
     $("#table-to-excel").click(function () {
 
@@ -540,35 +203,14 @@
             preserveColors: true
 
         });
-         setTimeout(() => {
+        setTimeout(() => {
             $('.colcount-quantity').prop('colspan', 9)
             $('.colcount-total').prop('colspan', 16)
         }, 1000);
 
-
     });
 
-    $("#get-pdf").on("click", function () {
-
-        $.ajax({
-            url: '/sales/account_order_list_pdf/',
-            type: 'GET',
-            data: {
-                'pk': {{ client_obj.id }},
-            },
-            success: function (response, textStatus, xhr) {
-                if (xhr.status === 200) {
-                    toastr.success(response['message'], '¡Bien hecho!');
-                }
-
-            },
-            fail: function (response) {
-                console.log("error");
-            }
-        });
-    });
-
-    $('#table-dictionary').each(function () {
+    /*$('#table-dictionary').each(function () {
 
         let count2 = $(this).find("td.body-spending button").length;
         if (count2 === 0) {
@@ -576,8 +218,7 @@
             $(this).find("td.body-spending").remove()
             $(this).find("td.colcount").attr('colspan', '22')
         }
-    });
-
+    });*/
 
 
 </script>
