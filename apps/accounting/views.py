@@ -74,34 +74,44 @@ def get_dict_purchases(bill_set):
         if b.sum_quantity_invoice() != b.sum_quantity_purchased():
             status = 'INCOMPLETO'
 
-        rowspan = b.billpurchase_set.count()
-
         has_payment = False
 
+        rowspan = b.billpurchase_set.count()
+        row_count_payment = b.loanpayment_set.count()
         if b.billpurchase_set.count() == 0:
             rowspan = 1
+        if b.loanpayment_set.count() == 0:
+            row_count_payment = 1
+
+        expiration_date = datetime.strptime(str(b.expiration_date), '%Y-%m-%d')
+        date_now = datetime.now()
+        difference_date = date_now - expiration_date
+        days_difference = difference_date.days
+        sum_payed = 0
         new = {
             'id': b.id,
             'register_date': b.register_date,
             'expiration_date': b.expiration_date,
-            'payment_condition': b.payment_condition,
+            'days_difference': days_difference,
+            'order_number': b.order_number,
             'serial': b.serial,
-            'correlative': b.correlative,
+            'correlative': str(b.correlative).zfill(7),
             'supplier_name': b.supplier.name,
             'delivery_address': b.delivery_address,
             'bill_base_total': b.bill_base_total,
             'bill_igv_total': b.bill_igv_total,
-            'bill_total_total': b.bill_total_total,
+            'bill_total': b.bill_total_total,
             'sum_quantity_invoice': b.sum_quantity_invoice(),
             'sum_quantity_purchased': b.sum_quantity_purchased(),
             'status': status,
             'bill_purchase': [],
             'loan_payment_set': [],
             'row_count': rowspan,
-            'has_payment': ''
+            'row_count_payment': row_count_payment,
+            'has_payment': '',
+            'difference_payed': 0
         }
         loan_payment = ''
-        sum_loan_payment = 0
 
         cash_flow_set = CashFlow.objects.filter(bill_id=b.id)
         operation_code = '-'
@@ -113,20 +123,27 @@ def get_dict_purchases(bill_set):
             cash_name = cash_flow_obj.cash.name
             if cash_flow_obj.operation_code is not None:
                 operation_code = cash_flow_obj.operation_code
-
         for lp in b.loanpayment_set.all():
-            sum_loan_payment = sum_loan_payment + lp.price
+            _payment_type = '-'
+            _operation_code = '-'
+            transaction_payment_set = lp.transactionpayment_set.all()
+            if transaction_payment_set.exists():
+                _payment_type = transaction_payment_set.last().get_type_display()
+                _operation_code = transaction_payment_set.last().operation_code if transaction_payment_set.last().operation_code is not None else '-'
+            sum_payed += lp.pay
             loan_payment = {
                 'id': lp.id,
                 'cash_name': cash_name,
-                'quantity': lp.quantity,
                 'date': transaction_date,
-                'operation_code': operation_code,
-                'price': round(lp.price, 2),
+                'operation_code': _operation_code,
+                'pay': round(lp.pay, 2),
                 'type': lp.type
             }
-        new.get('loan_payment_set').append(loan_payment)
-        sum_total_loan_pay = sum_total_loan_pay + sum_loan_payment
+            new.get('loan_payment_set').append(loan_payment)
+        difference_payed = decimal.Decimal(b.bill_total_total) - decimal.Decimal(sum_payed)
+        new['difference_payed'] = round(difference_payed, 2)
+        # new['row_count_payment'] = row_count_payment
+        sum_total_loan_pay = sum_total_loan_pay + sum_payed
 
         for d in b.billpurchase_set.all():
             item_detail = {
@@ -2244,7 +2261,7 @@ def save_bill(request):
         bill_serial = str(data_bill["bill_serial"])
         bill_correlative = str(data_bill["bill_correlative"])
         bill_address = str(data_bill["bill_delivery_address"])
-        bill_condition_pay = str(data_bill["bill_condition_pay"])
+        bill_order_number = str(data_bill["bill_order_number"])
         # bill_order_number = str(data_bill["bill_order_number"])
 
         bill_total_base = decimal.Decimal(data_bill["bill_total_base"].replace(',', '.'))
@@ -2263,7 +2280,7 @@ def save_bill(request):
             serial=bill_serial.upper(),
             correlative=bill_correlative,
             delivery_address=bill_address.upper(),
-            payment_condition=bill_condition_pay,
+            order_number=bill_order_number,
             # order_number=bill_order_number,
             # purchase=purchase_obj,
             bill_base_total=bill_total_base,
@@ -2320,7 +2337,7 @@ def get_purchases_with_bill(request):
                 'id': b.id,
                 'register_date': b.register_date,
                 'expiration_date': b.expiration_date,
-                'payment_condition': b.payment_condition,
+                'order_number': b.order_number,
                 'serial': b.serial,
                 'correlative': b.correlative,
                 'supplier_name': b.supplier.name,

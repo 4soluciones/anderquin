@@ -519,54 +519,12 @@ class OrderDetail(models.Model):
     def multiply(self):
         return self.quantity_sold * self.price_unit
 
-    def return_loan(self):
-        response = 0
-        loan_payment_set = LoanPayment.objects.filter(order_detail=self.pk).values(
-            'order_detail').annotate(totals=Sum('quantity'))
-        if loan_payment_set.count() > 0:
-            response = loan_payment_set[0].get('totals')
-        return response
-
     def repay_loan(self):
         response = 0
         loan_payment_set = LoanPayment.objects.filter(order_detail=self.pk, quantity=0).values(
             'order_detail').annotate(totals=Sum('price'))
         if loan_payment_set.count() > 0:
             response = loan_payment_set[0].get('totals')
-        return response
-
-    def repay_loan_ball(self):
-        response = 0
-        loan_payment_set = LoanPayment.objects.filter(order_detail=self.pk)
-        for lp in loan_payment_set:
-            response = response + (lp.quantity * (lp.price + lp.discount))
-        return response
-
-    def ball_changes(self):
-        response = 0
-        ball_change_set = BallChange.objects.filter(order_detail=self.pk).values(
-            'order_detail').annotate(totals=Sum('quantity'))
-        if ball_change_set.count() > 0:
-            response = ball_change_set[0].get('totals')
-        return response
-
-    def repay_loan_with_vouchers(self):
-        response = 0
-        loan_payment_set = LoanPayment.objects.filter(order_detail=self.pk)
-        for lp in loan_payment_set:
-            if lp.price > 0:
-                transaction_payment = lp.transactionpayment_set.first()
-                if transaction_payment and transaction_payment.type == 'F':
-                    response = response + transaction_payment.number_of_vouchers
-        return response
-
-    def multiply_return_loan(self):
-        return self.return_loan() * self.price_unit
-
-    def validate_debt(self):
-        response = False
-        if self.quantity_sold == self.return_loan():
-            response = True
         return response
 
     class Meta:
@@ -582,7 +540,7 @@ class TransactionPayment(models.Model):
     order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True)
     operation_code = models.CharField(
         verbose_name='Codigo de operación', max_length=45, null=True, blank=True)
-    number_of_vouchers = models.DecimalField('Vales FISE', max_digits=10, decimal_places=2, default=0)
+    # number_of_vouchers = models.DecimalField('Vales FISE', max_digits=10, decimal_places=2, default=0)
     loan_payment = models.ForeignKey('LoanPayment', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
@@ -754,31 +712,23 @@ class ManufactureRecipe(models.Model):
 class LoanPayment(models.Model):
     TYPE_CHOICES = (('V', 'Venta'), ('C', 'Compra'),)
     id = models.AutoField(primary_key=True)
-    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
-    price = models.DecimalField('Precio', max_digits=30, decimal_places=15, default=0)
-    discount = models.DecimalField('Descuento', max_digits=30, decimal_places=15, default=0)
-    product = models.ForeignKey('Product', on_delete=models.SET_NULL, null=True, blank=True)
+    # quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
+    pay = models.DecimalField('Pago', max_digits=30, decimal_places=15, default=0)
+    # product = models.ForeignKey('Product', on_delete=models.SET_NULL, null=True, blank=True)
     order_detail = models.ForeignKey('OrderDetail', on_delete=models.SET_NULL, null=True, blank=True)
     create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     type = models.CharField('Tipo de Operacion', max_length=1, choices=TYPE_CHOICES, default='V', )
     # purchase = models.ForeignKey('buys.Purchase', on_delete=models.SET_NULL, null=True, blank=True)
     bill = models.ForeignKey('accounting.Bill', on_delete=models.SET_NULL, null=True, blank=True)
     operation_date = models.DateField('Fecha de operacion', null=True, blank=True)
-    distribution_mobil = models.ForeignKey('comercial.DistributionMobil', on_delete=models.SET_NULL, null=True,
-                                           blank=True)
-    requirement_detail_buys = models.ForeignKey('buys.RequirementDetail_buys', on_delete=models.SET_NULL, null=True,
-                                                blank=True)
-    is_check = models.BooleanField('check', default=False)
+    # distribution_mobil = models.ForeignKey('comercial.DistributionMobil', on_delete=models.SET_NULL, null=True,
+    #                                        blank=True)
+    # requirement_detail_buys = models.ForeignKey('buys.RequirementDetail_buys', on_delete=models.SET_NULL, null=True,
+    #                                             blank=True)
+    # is_check = models.BooleanField('check', default=False)
 
     def __str__(self):
         return str(self.id)
-
-    def get_cash_flow(self):
-        cash_flow_set = CashFlow.objects.filter(total=self.price,
-                                                requirement_buys=self.requirement_detail_buys.requirement_buys)
-        if cash_flow_set.exists():
-            return cash_flow_set.first()
-        return None
 
 
 class BallChange(models.Model):

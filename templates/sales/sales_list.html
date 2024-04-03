@@ -16,24 +16,27 @@
     {% endif %}
 
     <div class="card-group" style="display: flex;">
-        <div class="card p-0" style="flex: 0 0 47%;">
-            <div class="col-sm-12 m-0 p-0 vh-100 row justify-content-center align-items-center">
-            <div id="product_list_sales">
-                <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
-                    <strong>Atencion!</strong>  Ingrese un texto para comenzar la búsqueda...
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+        <div class="card p-0" style="flex: 0 0 47%;" id="tab-two">
+            {% include "sales/sales_grid_tab1.html" %}
+        </div>
+        <div class="card p-0" style="flex: 0 0 53%;">
+            <div class="col-sm-12 m-0 p-0 align-items-center">
+                <div id="product_list_sales">
+
+                    <div class="card text-center roboto-condensed-regular p-3 border-info m-3">
+                        <div class="card-header font-weight-bold text-black-50" style="background-color: #88a3b9 ">
+                            Atencion!
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-info roboto-condensed-regular font-weight-bold">Ingrese un texto
+                                para comenzar la búsqueda...</h5>
+                        </div>
+                    </div>
                 </div>
-            </div>
             </div>
             <div class="loader-container col-auto" id="loader-product" style="display: none;">
                 <div class="loader"></div>
             </div>
-        </div>
-
-        <div class="card p-0" style="flex: 0 0 53%;" id="tab-two">
-            {% include "sales/sales_grid_tab1.html" %}
         </div>
     </div><!-- card-group -->
 
@@ -89,6 +92,37 @@
             $("#id-nro-document-sender").attr('readonly', true);
             $("#document_type_sender").trigger('change');
         }
+
+        $("#radio1,#radio2").click(function () {
+            if ($("#radio1").is(':checked')) {
+                $("#id_client_name").attr('disabled', 'disabled');
+                $("#document_type_sender").removeAttr('disabled');
+                $("#id-nro-document-sender").attr('readonly', false);
+                $("#id_client_name").find('option[value]').removeAttr('selected');
+                $("#id_client_name").find('option[value="0"]').attr('selected', 'selected');
+                $("#id_client_name").trigger('change');
+                $('#document_type_sender').val(0);
+                $("#id_sender").val('');
+                $("#id-nro-document-sender").val('');
+                $("#id_address").val('');
+                $(".client-table").val('');
+                $(".client-table").attr('placeholder', '')
+                $(".client-table").attr('disabled', 'disabled');
+
+            } else if ($("#radio2").is(':checked')) {
+                $("#document_type_sender").attr('disabled', 'disabled');
+                $("#id_client_name").removeAttr('disabled');
+                $("#document_type_sender").find('option[value]').removeAttr('selected');
+                $("#document_type_sender").find('option[value="0"]').attr('selected', 'selected');
+                $("#id_sender").val('');
+                $("#id_address").val('');
+                $("#document_type_sender").trigger('change');
+                $("#id-nro-document-sender").val('');
+                $("#id-nro-document-sender").attr('readonly', true);
+                $(".client-table").attr('placeholder', 'INGRESE CLIENTE Y PRESIONE ENTER...')
+                $(".client-table").removeAttr('disabled');
+            }
+        });
 
         $('#transaction_payment_type').change(function () {
             let type = $('#transaction_payment_type').val();
@@ -515,8 +549,59 @@
                 }
             });
             return new_n_order
-
         }
+
+        new Autocomplete('#autocomplete-client', {
+            search: input => {
+                const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
+
+                return new Promise(resolve => {
+                    if (input.length < 3) {
+                        //$('#person-number').val('')
+                        //$('#order-number').val('')
+                        return resolve([])
+                    }
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            resolve(data.client)
+                        })
+                })
+            },
+            renderResult: (result, props) => {
+                let group = ''
+                if (result.index % 3 === 0) {
+                    group = '<li class="group">Group</li>'
+                }
+                return `
+                ${group}
+                <li ${props}>
+                 <div class="h6" style="font-family: roboto_condensed_regular">
+                    ${result.names}
+                 </div>
+                 <div class="wiki-snippet text-black">
+                    Tipo: ${result.type_client_display}
+                  </div>
+                </li>
+                `
+            },
+            getResultValue: result => result.names,
+            onSubmit: result => {
+                if (result) {
+                    let client_id = result.id;
+                    let type_client = result.type_client;
+                    let _address_dict = result.address;
+                    $('#id-client').val(client_id);
+                    $('#client_name').val(result.names);
+                    $('#client_address').val(result.last_address);
+
+                } else {
+                    toastr.warning('Seleccione un cliente valido', 'Error de llenado');
+                    return false;
+                }
+
+            }
+        })
 
     </script>
 

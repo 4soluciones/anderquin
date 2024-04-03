@@ -1,5 +1,5 @@
 {% load operations %}
-<div class="modal-dialog modal-xl" role="document">
+<div class="modal-dialog modal-xl roboto-condensed-regular" role="document">
     <div class="modal-content">
         <div class="modal-header bg-light">
             <h6 class="modal-title">GENERAR FACTURA:<span
@@ -66,7 +66,7 @@
                             <div class="row">
                                 <div class="col-lg-3">
                                     <label class="mb-1 mt-1 font-weight-light"
-                                           for="bill_date">Fecha de la Factura:</label>
+                                           for="bill_date">Fecha de Emisión:</label>
                                     <input type="date" class="form-control"
                                            id="bill_date"
                                            name="bill-date"
@@ -85,7 +85,7 @@
                                 <div class="col-lg-6">
                                     <label class="mb-1 mt-1 font-weight-light"
                                            for="bill_number">Numero de Factura:</label>
-                                    <div class="input-group mb-3">
+                                    <div class="input-group">
                                         <div class="input-group-prepend">
                                             <input type="text" class="form-control text-uppercase" placeholder="F001"
                                                    aria-label="" id="bill_serial">
@@ -98,7 +98,7 @@
                                     {#                                           name="bill_number" autocomplete="off" placeholder="F001-001">#}
                                 </div>
                             </div>
-                            <div class="row dni">
+                            <div class="row">
                                 <div class="col-lg-12">
                                     <label class="mb-1 mt-1 font-weight-light" for="bill_delivery_address">Lugar de
                                         entrega:</label>
@@ -116,16 +116,15 @@
                             </div>
                             <div class="row">
                                 <div class="col-lg-6">
-                                    <label class="mb-1 mt-2 font-weight-light" for="way_to_pay">Condicion de
-                                        Pago:</label>
+                                    <label class="mb-1 mt-2 font-weight-light" for="order_number">Nº Pedido:</label>
                                     <input type="text" class="form-control"
-                                           placeholder="Factura a.." id="way_to_pay" name=way_to_pay">
+                                            id="order_number" name=order_number">
                                 </div>
                                 <div class="col-lg-6">
-                                    <label for="order_number" class="mb-1 mt-2 font-weight-light">Nro de
+                                    <label for="purchases_numbers" class="mb-1 mt-2 font-weight-light">Nro de
                                         Ordenes:</label>
-                                    <input type="text" class="form-control font-weight-bold" id="order_number"
-                                           name=order_number"
+                                    <input type="text" class="form-control font-weight-bold" id="purchases_numbers"
+                                           name=purchases_numbers"
                                            style="background-color: #d0e7d5"
                                            value="{{ oc_numbers }}" disabled>
                                     <input type="hidden" class="form-control" id="quantity_total" name=quantity_total"
@@ -316,8 +315,8 @@
         let bill_serial = $('#bill_serial');
         let bill_correlative = $('#bill_correlative');
         let bill_address = $('#bill_delivery_address');
-        let bill_condition_pay = $('#way_to_pay');
         let bill_order_number = $('#order_number');
+        let bill_purchases_numbers = $('#purchases_numbers');
 
         let bill_total_base = $('.total-base-bill');
         let bill_igv = $('.total-igv-bill');
@@ -333,8 +332,8 @@
             toastr.warning('¡Ingresar el correlativo de la Factura!', 'Error de Datos');
             return false;
         }
-        if (bill_condition_pay.val() === '') {
-            toastr.warning('¡Ingresar La condicion de pago!', 'Error de Datos');
+        if (bill_order_number.val() === '') {
+            toastr.warning('¡Ingresar el numero de pedido!', 'Error de Datos');
             return false;
         }
 
@@ -355,8 +354,7 @@
             'bill_serial': bill_serial.val(),
             'bill_correlative': bill_correlative.val(),
             'bill_delivery_address': bill_address.val(),
-            'bill_condition_pay': bill_condition_pay.val(),
-            //'bill_order_number': bill_order_number.val(),
+            'bill_order_number': bill_order_number.val(),
 
             'bill_total_base': bill_total_base.val(),
             'bill_igv': bill_igv.val(),

@@ -1,105 +1,98 @@
 {% load app_filters %}
-<div class="row m-0" style="background-color: #0b62a4">
-    <div class="col-sm-12 col-sm-12 col-lg-12 text-center border m-0">
-        <h4 class="text-white font-weight-bold mt-1 mb-1">
-            MODULO DE VENTAS
-        </h4>
-    </div>
-</div>
-<div class="card col-sm-12 p-0 roboto-condensed-regular" style="border-color: #0b62a4">
+{#<div class="row m-0" style="background-color: #3e6787">#}
+{#    <div class="col-sm-12 col-sm-12 col-lg-12 text-center border m-0">#}
+{#        <h4 class="text-white font-weight-bold mt-1 mb-1 roboto-condensed-regular">#}
+{#            MODULO DE VENTAS#}
+{#        </h4>#}
+{#    </div>#}
+{#</div>#}
+<div class="card col-sm-12 p-1 roboto-condensed-regular" style="border-color: #3e6787">
 
-    <div class="card-header text-center pb-3" style="background: #0b62a4">
+    <div class="card-header text-center pb-3" style="background: #3e6787">
         <div class="row align-self-center">
-            <div class="col-sm-2 text-white align-self-center pl-0 pr-0">Ingrese un producto:</div>
-            <div class="col-sm-6 pl-0">
-                <input type="text" id="custom-search-product" class="form-control ml-2 text-uppercase"
-                       placeholder="Ingrese un producto...">
+            <div class="col-sm-5 pl-0 pt-2">
+                <div class="card header mb-2 border-bottom-2 text-center font-weight-bold"
+                     style="background-color: #aaccf3">
+                    <h4 class="roboto-condensed-regular text-dark font-weight-bold mt-1 mb-1 title-without">
+                        MODULO DE VENTAS
+                    </h4>
+                </div>
             </div>
-            <div class="col-sm-2 col-md-2 col-lg-2 pl-4">
-                <div class="row save-order">
-                    <button type="button" id="btn-voucher-order"
-                            class="btn btn-primary btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"
-                            data-toggle="modal"
-                            data-target="#modal-voucher"><i
-                            class="fas fa-check-circle"></i> Guardar
-                    </button>
+            <div class="col-sm-3 col-md-3 col-lg-3 pt-2">
+                <div class="input-group">
+                    <input id="search-sale" type="text"
+                           class="form-control" aria-label="..."
+                           style="border-color: #96a494">
+                    <span class="input-group-btn">
+                        <button id="btn-search-quotation"
+                                class="btn btn-success"
+                                type="button"
+                                onclick="SearchQuotation()">
+                            Buscar <span class="fa fa-search"></span>
+                        </button>
+                    </span>
                 </div>
             </div>
 
-            <div class="col-sm-2 col-md-2 col-lg-2">
-                <button type="button"
-                        class="btn btn-warning btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"
-                        id="btn-new-form"><i class="far fa-check-circle"></i>
-                    Nuevo
-                </button>
+            <div class="col-sm-4 col-md-4 col-lg-4 align-middle border border-white">
+                <div class="row pt-2 pb-0">
+                    <div class="col-sm-6 col-md-6 col-lg-6 pl-4 pb-2">
+                        <div class="row save-order">
+                            <button type="button" id="btn-voucher-order"
+                                    class="btn btn-primary btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"
+                                    data-toggle="modal"
+                                    data-target="#modal-voucher"><i class="fas fa-save"></i> Guardar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-6">
+                        <button type="button"
+                                class="btn btn-warning btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"
+                                id="btn-new-form"><i class="far fa-check-circle"></i>
+                            Nuevo
+                        </button>
+                    </div>
+                </div>
             </div>
+
         </div>
     </div>
     <div class="card-body p-0">
         <div class="card-group">
             <div class="card p-0 border-0" style="flex-grow: 4">
-                <div class="card-body pl-1 pt-2 pb-1 pr-0">
+                <div class="card-body pl-1 pt-0 pb-1 pr-0">
                     <div class="form-row mb-0">
                         <div class="form-group col-md-12 text-uppercase small mt-2 mb-0">
                             <div class="card col-sm-12 pr-0 pl-0 border-right-0 border-top-0 border-left-0 border-bottom-0">
-
-                                <div class="col-sm-12 col-sm-12 col-lg-12 ">
+                                <div class="col-sm-12 col-sm-12 col-lg-12 p-3" style="background-color: #d8e0e7">
                                     <div class="row">
-                                        <div class="col-sm-6 col-md-6 col-lg-6">
-                                            <div class="card-body pt-2 pb-1">
-                                                <div class="card header mb-2 border-bottom-2 text-center font-weight-bold"
-                                                     style="background-color: #aaccf3">
-                                                    <h4 class="montserrat text-dark font-weight-bold mt-1 mb-1 title-without">
-                                                        NUEVA VENTA
-                                                    </h4>
-                                                </div>
+                                        <div class="col-sm-2 col-md-2 col-lg-2 pr-0 pt-2">
+                                            <div class="text-dark">Ingrese un
+                                                producto:
                                             </div>
                                         </div>
-
-                                        <div class="col-sm-2 col-md-2 col-lg-2 pl-0">
-                                            <label for="user_id" class="mb-0 font-weight-bold">Seleccione
-                                                Usuario:</label>
-                                            <select id="user_id" name="user"
-                                                    class="form-control form-control-sm"
-                                                    aria-selected="Text input with radio button">
-                                                <option selected value="0">Seleccione...</option>
-                                                {% for u in users %}
-                                                    <option value="{{ u.id }}">{{ u|upper }}</option>
-                                                {% endfor %}
-                                            </select>
-
+                                        <div class="col-sm-10 col-md-10 col-lg-10 pl-0">
+                                            <input type="text" id="custom-search-product" aria-label="..."
+                                                   class="form-control ml-2 text-uppercase"
+                                                   placeholder="Ingrese un producto...">
                                         </div>
 
-                                        <div class="col-sm-4 col-md-4 col-lg-4 align-middle border border-primary">
-                                            <div class="row pt-2 pb-0">
-                                                {#                                                <div class="col-sm-4 col-md-4 col-lg-4">#}
-                                                {##}
-                                                {#                                                </div>#}
-
-                                                <div class="col-sm-6 col-md-6 col-lg-6 pl-4">
-                                                    <div class="row save-order">
-                                                        <button type="button" id="btn-voucher-order"
-                                                                class="btn btn-primary btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"
-                                                                data-toggle="modal"
-                                                                data-target="#modal-voucher"><i
-                                                                class="fas fa-check-circle"></i> Guardar
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                <div class="col-sm-6 col-md-6 col-lg-6">
-                                                    <button type="button"
-                                                            class="btn btn-warning btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"
-                                                            id="btn-new-form"><i class="far fa-check-circle"></i>
-                                                        Nuevo
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+{#                                        <div class="col-sm-2 col-md-2 col-lg-2 pl-0">#}
+{#                                            <label for="user_id" class="mb-0 font-weight-bold">Seleccione#}
+{#                                                Usuario:</label>#}
+{#                                            <select id="user_id" name="user"#}
+{#                                                    class="form-control form-control-sm"#}
+{#                                                    aria-selected="Text input with radio button">#}
+{#                                                <option selected value="0">Seleccione...</option>#}
+{#                                                {% for u in users %}#}
+{#                                                    <option value="{{ u.id }}">{{ u|upper }}</option>#}
+{#                                                {% endfor %}#}
+{#                                            </select>#}
+{#                                        </div>#}
                                     </div>
                                 </div>
 
-                                <div class="card-body pt-0 pb-0 ">
+                                <div class="card-body pt-2 pb-0">
                                     <div class="card header mb-0 border-0 text-left font-weight-bold">
                                         Metodo de Busqueda:
                                     </div>
@@ -137,26 +130,19 @@
                                                        placeholder="">
 
                                             </th>
-                                            <th class="border-top-0 align-middle text-right p-0" style="width: 30%">
-                                                {#                                                <label class="mb-0">Documento</label>#}
+                                            <th class="border-top-0 align-middle text-right p-0" style="width: 60%">
                                                 <input type="text" class="form-control form-control-sm text-uppercase"
                                                        id="id-nro-document-sender"
                                                        name="nro-document-sender"
                                                        placeholder="" style="width: 100%">
                                             </th>
-                                            <th class="border-top-0 align-middle text-right p-0" style="width: 30%">
-                                                {#                                                <a class="btn btn-outline-info" data-toggle="modal"#}
-                                                {#                                                   data-target="#modal-option" style="width: 90%">#}
-                                                {#                                                    <i class="fas fa-user-plus"></i> &nbsp;NUEVO CLIENTE#}
-                                                {#                                                </a>#}
-
-                                                <button type="button" class="btn btn-sm btn-outline-info"
-                                                        data-toggle="modal"
-                                                        data-target="#modalClient" style="width: 90%">
-                                                    <i class="fas fa-user-plus"></i> &nbsp;NUEVO CLIENTE
-                                                </button>
-
-                                            </th>
+{#                                            <th class="border-top-0 align-middle text-right p-0" style="width: 30%">#}
+{#                                                <button type="button" class="btn btn-sm btn-outline-info"#}
+{#                                                        data-toggle="modal"#}
+{#                                                        data-target="#modalClient" style="width: 90%">#}
+{#                                                    <i class="fas fa-user-plus"></i> &nbsp;NUEVO CLIENTE#}
+{#                                                </button>#}
+{#                                            </th>#}
                                         </tr>
                                         <tr>
                                             <th class="border-top-0 align-middle text-left p-0">
@@ -167,28 +153,18 @@
                                             <th class="border-top-0 align-middle text-left p-0">
                                                 Nombres/Razón Social:
                                             </th>
-                                            {#                                            <td class="border-top-0 text-left" colspan="3">#}
-                                            {#                                                <select id="id_client_name" name="id_client_name"#}
-                                            {#                                                        class="form-control form-control-sm"#}
-                                            {#                                                        aria-selected="Text input with radio button"#}
-                                            {#                                                        style="width: 100%">#}
-                                            {#                                                    <option selected value="0">Seleccione...</option>#}
-                                            {##}
-                                            {#                                                    {% for k, c in client_dict.items %}#}
-                                            {#                                                        <option value="{{ c.client_id }}"#}
-                                            {#                                                                document-number="{{ c.client_document_number }}"#}
-                                            {#                                                                address="{{ c.client_address }}"#}
-                                            {#                                                                document-type="{{ c.client_type_document }}"#}
-                                            {#                                                        >{{ c.client_names }}</option>#}
-                                            {#                                                    {% endfor %}#}
-                                            {#                                                </select>#}
-                                            {#                                            </td>#}
                                             <td class="border-top-0 text-left" colspan="3">
-                                                <input type="text"
-                                                       class="form-control text-uppercase client-table dropdown-toggle"
-                                                       data-toggle="dropdown" aria-expanded="false"
-                                                       placeholder="Ingrese cliente y presione enter...">
-                                                <div class="dropdown-menu"></div>
+                                                <div id="autocomplete-client" class="autocomplete">
+                                                    <input class="form-control form-control-sm autocomplete-input"
+                                                           type="text"
+                                                           id="person-names"
+                                                           name="person-names"
+                                                           maxlength="200"
+                                                           autocomplete="off"
+                                                           placeholder="Buscar Cliente..."/>
+                                                    <ul class="autocomplete-result-list"></ul>
+                                                </div>
+                                                <input type="hidden" id="id-client" name="id-client">
                                             </td>
                                         </tr>
                                     </table>
@@ -198,7 +174,7 @@
                                         <label class="mb-2 text-center font-weight-bold" style="font-size: 1.3em">Cliente
                                             - Nombres/Razón social:</label>
                                         <input type="text" class="form-control form-control-sm text-uppercase"
-                                               id="id_sender"
+                                               id="client_name"
                                                name="sender" readonly
                                                placeholder="">
                                     </div>
@@ -206,7 +182,7 @@
                                         <label class="mb-2 text-center font-weight-bold" style="font-size: 1.3em">
                                             Dirección:</label>
                                         <input type="text" class="form-control form-control-sm text-uppercase"
-                                               id="id_address"
+                                               id="client_address"
                                                name="name_address"
                                                placeholder="">
                                     </div>

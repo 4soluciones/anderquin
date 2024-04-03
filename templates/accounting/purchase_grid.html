@@ -2,69 +2,78 @@
 <table class="table table-sm table-bordered roboto-condensed-regular bg-light" id="table-dictionary">
     <thead>
     <tr class="text-white small text-uppercase">
-        <th class="bg-primary text-center align-middle" style="width: 10%;">FACTURA</th>
-        <th class="bg-primary text-center align-middle" style="width: 10%;">PROVEEDOR</th>
-        <th class="bg-primary text-center" style="width: 5%;">FECHA DE REGISTRO</th>
-        <th class="bg-primary text-center" style="width: 5%;">FECHA DE VENCIMIENTO</th>
-        <th class="bg-primary text-center align-middle" style="width: 10%;">CONDICIÓN DE PAGO</th>
-        <th class="bg-primary text-center align-middle" style="width: 15%;">ORDENES DE COMPRA</th>
+        <th class="bg-primary text-center align-middle" style="width: 10%;">REFERENCIA</th>
+        {#        <th class="bg-primary text-center align-middle" style="width: 10%;">PROVEEDOR</th>#}
+        <th class="bg-primary text-center align-middle" style="width: 10%;">Nª DE DOC</th>
+        <th class="bg-primary text-center align-middle" style="width: 10%;">FECHA BASE</th>
+        <th class="bg-primary text-center" style="width: 10%;">FECHA VENCIMIENTO</th>
+        <th class="bg-primary text-center align-middle" style="width: 5%;">MORO</th>
+        {#        <th class="bg-primary text-center align-middle" style="width: 15%;">ORDENES DE COMPRA</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">PRODUCTO</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">TIPO UND.</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">CANTIDAD</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">PRECIO UNITARIO</th>#}
-        <th class="bg-primary text-center align-middle" style="width: 10%;">TOTAL</th>
+        <th class="bg-primary text-center align-middle" style="width: 10%;">IMPORTE DEL DOC</th>
         {#        <th class="bg-success text-center align-middle" style="width: 8%;">ENTIDAD</th>#}
-        <th class="bg-success text-center align-middle" style="width: 10%;">TOTAL PAGADO</th>
+        <th class="bg-success text-center align-middle" style="width: 10%;">IMPORTE VENCIDO</th>
+        {#        <th class="bg-success text-center align-middle" style="width: 10%;">TOTAL DEUDA</th>#}
         <th class="bg-success text-center align-middle" style="width: 10%;">FECHA DE PAGO</th>
-        <th class="bg-success text-center align-middle" style="width: 8%;">NRO OPERACIÓN</th>
-        <th class="bg-success text-center align-middle" style="width: 7%;">PAGAR</th>
+        <th class="bg-success text-center align-middle" style="width: 10%;">NRO OPERACIÓN</th>
+        <th class="bg-success text-center align-middle" style="width: 5%;">PAGAR</th>
     </tr>
     </thead>
     <tbody>
-    <tr>
-        {% for p in dictionary %}
-            <tr pk="{{ p.id }}" class="text-center bill">
-            <td class="align-middle text-center font-weight-bold">{{ p.serial }}-{{ p.correlative }}</td>
-            <td class="align-middle text-center">{{ p.supplier_name }}</td>
-            <td class="align-middle text-center">{{ p.register_date|date:"d-m-y" }}</td>
-            <td class="align-middle text-center">{{ p.expiration_date|date:"d-m-y" }}</td>
-            <td class="align-middle text-center">{{ p.payment_condition|upper }}</td>
-
-            <td class="align-middle text-center">
-                {% for b in p.bill_purchase %}
-                    <span class="font-weight-bold">{{ b.bill_number }}</span>{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            </td>
-            <td class="align-middle text-right">
+    {% for p in dictionary %}
+        <tr pk="{{ p.id }}" class="text-center bill">
+            <td class="align-middle text-center font-weight-bold"
+                rowspan="{{ p.row_count_payment }}">{{ p.serial }}-{{ p.correlative }}</td>
+            <td class="align-middle text-center"
+                rowspan="{{ p.row_count_payment }}">{{ p.order_number|default_if_none:'-' }}</td>
+            <td class="align-middle text-center"
+                rowspan="{{ p.row_count_payment }}">{{ p.register_date|date:"d-m-Y" }}</td>
+            <td class="align-middle text-center"
+                rowspan="{{ p.row_count_payment }}">{{ p.expiration_date|date:"d-m-Y" }}</td>
+            <td class="align-middle text-center text-danger font-weight-bold"
+                rowspan="{{ p.row_count_payment }}">{{ p.days_difference }}</td>
+            {#            <td class="align-middle text-center">#}
+            {#                {% for b in p.bill_purchase %}#}
+            {#                    <span class="font-weight-bold">{{ b.bill_number }}</span>{% if not forloop.last %},{% endif %}#}
+            {#                {% endfor %}#}
+            {#            </td>#}
+            <td class="align-middle text-right" rowspan="{{ p.row_count_payment }}">
                 <div class="input-icon">
                     <input type="text" readonly
                            style="background-color: #e4ece3; color: #0b43a4"
                            class="form-control form-control-sm font-weight-bold text-right total"
-                           value="{{ p.bill_total_total|thousands_separator }}"><i
+                           value="{{ p.bill_total|thousands_separator }}"><i
                         class="change-money font-weight-bold">S/</i>
                 </div>
             </td>
             {% for l in p.loan_payment_set %}
-                {#                    <td class="align-middle text-center">{{ l.cash_name }}</td>#}
                 <td class="align-middle text-center pay-row font-weight-bold"
                         {% if p.has_payment != False %}
                     style="background-color: #aaebb9"
                         {% endif %}
-                >{{ l.price|thousands_separator }}</td>
-                <td class="align-middle text-center pay-row-date">{{ l.date|date:"d-m-y" }}</td>
+                >{{ l.pay|thousands_separator }}</td>
+{#                <td class="align-middle text-center">{{ p.difference_payed|thousands_separator }}</td>#}
+                <td class="align-middle text-center">{{ l.date|date:"d-m-y" }}</td>
                 <td class="align-middle text-center">{{ l.operation_code }}</td>
+                </tr>
+            {% empty %}
+                <td class="align-middle text-center text-danger font-weight-bold" colspan="3">SIN PAGOS</td>
             {% endfor %}
-            <td class="align-middle text-center button-pay p-1" rowspan="">
-                {% if p.has_payment == False %}
-                    <button type="button"
-                            class="btn btn-success btn-show-payments btn-sm"
-                            data-toggle="modal"
-                            data-target="#modal-payment-purchase"
-                            pk="{{ p.id }}"><i class="fas fa-shopping-cart"></i>
-                    </button>
-                {% endif %}
-            </td>
-        {% endfor %}
+        <td class="align-middle text-center button-pay p-1" rowspan="">
+            {% if p.has_payment == False %}
+                <button type="button"
+                        class="btn btn-success btn-show-payments btn-sm"
+                        data-toggle="modal"
+                        data-target="#modal-payment-purchase"
+                        pk="{{ p.id }}"><i class="fas fa-shopping-cart"></i>
+                </button>
+            {% endif %}
+        </td>
+        </tr>
+    {% endfor %}
     </tbody>
 </table>
 
