@@ -2,7 +2,7 @@ from django.urls import path
 from django.contrib.auth.decorators import login_required
 from apps.comercial.views import *
 from apps.comercial.views_PDF import guide_print, print_programming_guide, get_input_note, get_output_note, \
-    print_ticket, guide
+    guide
 
 urlpatterns = [
     path('', login_required(Index.as_view()), name='index'),
@@ -54,7 +54,6 @@ urlpatterns = [
     path('print_programming_guide/<int:pk>/<int:guide>/', print_programming_guide, name='print_programming_guide'),
     path('get_input_note/<int:pk>/', get_input_note, name='get_input_note'),
     path('get_output_note/<int:pk>/', get_output_note, name='get_output_note'),
-    path('print_ticket/<int:pk>/', print_ticket, name='print_ticket'),
 
     # DistributionMovil
     path('distribution_movil_list/', distribution_movil_list, name='distribution_movil_list'),
@@ -130,5 +129,9 @@ urlpatterns = [
     path('modal_new_driver/', modal_new_driver, name='modal_new_driver'),
     path('create_driver/', create_driver, name='create_driver'),
     path('new_pilot_associate/', new_pilot_associate, name='new_pilot_associate'),
+
+    # CREATE STORES
+    path('get_store/', get_store, name='get_store'),
+    path('new_store/', new_store, name='new_store'),
 
 ]

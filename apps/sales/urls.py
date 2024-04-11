@@ -1,14 +1,13 @@
 from django.urls import path
 from django.contrib.auth.decorators import login_required
 
-from apps.buys.views import new_loan_payment_buys_approved
 from apps.sales.views import *
 from apps.sales.views_SUNAT import query_dni
 from apps.sales.views_PDF import product_print, kardex_glp_pdf, account_order_list_pdf, \
     pdf_get_orders_for_status_account, print_quotation
 from apps.sales.views_EXCEL import kardex_glp_excel
 urlpatterns = [
-    path('', login_required(Home.as_view()), name='home'),
+    # path('', login_required(Home.as_view()), name='home'),
     path('product_list/', login_required(ProductList.as_view()), name='product_list'),
     path('json_product_create/', login_required(JsonProductCreate.as_view()), name='json_product_create'),
     path('json_product_list/', login_required(JsonProductList.as_view()), name='json_product_list'),
@@ -115,7 +114,6 @@ urlpatterns = [
     # massive payment
     path('get_massiel_payment_form/', get_massiel_payment_form, name='get_massiel_payment_form'),
     path('new_massiel_payment/', new_massiel_payment, name='new_massiel_payment'),
-    path('new_massiel_return/', new_massiel_return, name='new_massiel_return'),
 
     # purchases
     path('purchases_of_clients/', purchases_of_clients, name='purchases_of_clients'),
@@ -149,7 +147,7 @@ urlpatterns = [
     path('pdf_get_orders_for_status_account/', login_required(pdf_get_orders_for_status_account), name='pdf_get_orders_for_status_account'),
 
     # comparative_sales_and_purchases_report
-    path('comparative_sales_and_purchases_report/', login_required(comparative_sales_and_purchases_report), name='comparative_sales_and_purchases_report'),
+    # path('comparative_sales_and_purchases_report/', login_required(comparative_sales_and_purchases_report), name='comparative_sales_and_purchases_report'),
 
     # purchase_report_by_category
     path('purchase_report_by_category/', login_required(purchase_report_by_category), name='purchase_report_by_category'),
@@ -171,8 +169,17 @@ urlpatterns = [
     # List quotation
     path('get_sales_quotation_by_subsidiary/', login_required(get_sales_quotation_by_subsidiary), name='get_sales_quotation_by_subsidiary'),
 
-
     # SALES NEW
     path('get_product_grid/', login_required(get_product_grid), name='get_product_grid'),
+    path('check_stock/', login_required(check_stock), name='check_stock'),
+
+    # CREATE_SALE_WAREHOUSE
+    path('create_warehouse_sale/', login_required(create_warehouse_sale), name='create_warehouse_sale'),
+    path('delete_warehouse_sale/', login_required(delete_warehouse_sale), name='delete_warehouse_sale'),
+
+    # SEARCH SALE
+    path('get_order_by_correlative/', login_required(get_order_by_correlative), name='get_order_by_correlative'),
+    path('get_name_business/', login_required(get_name_business), name='get_name_business'),
+
 ]
 

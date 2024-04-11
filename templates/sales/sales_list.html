@@ -48,8 +48,6 @@
 
     <script type="text/javascript">
 
-        $('#sum-total').val('0.00');
-
         loader = '<div class="container">' +
             '<div class="row">' +
             '<div class="col-md-12">' +
@@ -173,31 +171,6 @@
             }
         });
 
-        $(document).on('change', '#id_client_name', function (e) {
-
-            let client_id = $('#id_client_name option:selected').val();
-            let client_name = $('#id_client_name option:selected').text();
-            let address = $('#id_client_name option:selected').attr('address');
-            let client_document = $('#id_client_name option:selected').attr('document-number');
-            let client_document_type = $('#id_client_name option:selected').attr('document-type');
-            $('#id-nro-document-sender').val(client_document);
-            $('#document_type_sender').val(client_document_type)
-            {#$("#document_type_sender").trigger('change');#}
-            $("#id_sender").val(client_name);
-            $("#id-client-sender").val(client_id);
-            if (client_id !== 0) {
-                $("#id_sender").val(client_name);
-                $("#id-client-sender").val(client_id);
-                $("#id_address").val(address);
-                $('#document_type_sender').val(client_document_type);
-                $('#id_client_name option:selected').attr('document-type');
-                $('#id-nro-document-sender').val(client_document)
-                $('#document_type_sender').val(client_document_type);
-                {#$("#document_type_sender").trigger('change');#}
-                $('#id-nro-document-sender').val(client_document);
-            }
-        });
-
         $('#id-nro-document-sender').keypress(function (e) {
 
             if (e.keyCode === 13) {
@@ -234,9 +207,9 @@
                     success: function (response, textStatus, xhr) {
                         if (xhr.status === 200) {
                             toastr.success(response.message, '¡Bien hecho!');
-                            $("#id_sender").val(response.result);
-                            $("#id-client-sender").val(response.pk);
-                            $("#id_address").val(response.address);
+                            $("#client_name").val(response.result);
+                            $("#client-id").val(response.client_id);
+                            $("#client_address").val(response.address);
                             $('#loading-666').hide();
                         }
                     },
@@ -348,29 +321,45 @@
 
             let _unit_id = a
             let _product_id = b
-            let _quantity = parseFloat(c)
+            let _quantity = Number(c)
             let _price = parseFloat(d)
             let _total = _quantity * _price
             let _unit = e
             let _product_name = escapeHtml(f)
-            let _product_brand = i
             let _product_store = g
             let _quantity_minim = parseFloat(h)
+
+            console.log(_quantity)
+            console.log(_price.toFixed(2))
 
             $('#sales-details').append(
                 '<tr detail_id="' + 'NaN' + '" product="' + _product_id + '" store_p="' + _product_store + '" pu="' + _unit_id + '" class="text-uppercase small text-center" style="font-size: 14px;">' +
                 '<td class="align-middle">' + '</td>' +
-                '<td class="align-middle text-left item-product">' + '<input type="text" class="form-control form-control-sm input-product-name" value="' + _product_name + ' - ' + _product_brand + '">' + '</td>' +
-                '<td class="align-middle item-quantity">' + '<input type="number" class="form-control form-control-sm text-right input-quantity" disabled value="' + _quantity.toFixed(2) + '">' + '</td>' +
+                '<td class="align-middle text-left item-product">' + '<input type="text" class="form-control form-control-sm input-product-name" value="' + _product_name + '">' + '</td>' +
+                '<td class="align-middle item-quantity">' + '<input type="text" class="form-control form-control-sm text-right input-quantity" disabled value="' + _quantity.toFixed(2) + '">' + '</td>' +
                 '<td class="align-middle item-unit" pu="' + _unit_id + '" unit_min="' + _quantity_minim + '">' + _unit + '</td>' +
-                '<td class="align-middle item-price">' + '<input type="number" class="form-control form-control-sm text-right input-price" value="' + _price.toFixed(2) + '">' + '</td>' +
-                '<td class="align-middle item-total">' + '<input type="number" class="form-control form-control-sm text-right input-total-detail" value="' + _total.toFixed(2) + '">' + '</td>' +
+                '<td class="align-middle item-price">' + '<input type="text" class="form-control form-control-sm text-right input-price" value="' + _price.toFixed(2) + '">' + '</td>' +
+                '<td class="align-middle item-total">' + '<input type="text" class="form-control form-control-sm text-right input-total-detail" value="' + _total.toFixed(2) + '">' + '</td>' +
                 '<td>' + '<button type="button" onclick="deleteItem(' + _product_id + ',' + _unit_id + ')" class="btn btn-danger btn-sm">' +
                 '<i class="fa fa-trash"></i></button>' + '</td>' +
                 '</tr>'
             );
             calculateTotal();
             counterStrike();
+        }
+
+        function escapeHtml(text) {
+            var map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+
+            return text.replace(/[&<>"']/g, function (m) {
+                return map[m];
+            });
         }
 
         $(document).on('keypress', '#custom-search-product', function (e) {
@@ -601,7 +590,67 @@
                 }
 
             }
-        })
+        });
+
+        function searchSale() {
+            let correlative = $('#search_sale').val();
+            $.ajax({
+                url: '/sales/get_order_by_correlative/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {'correlative': correlative},
+                success: function (response) {
+                    if (response.success) {
+                        $(".sale").addClass('d-none');
+                        $(".sale-store").removeClass('d-none');
+                        $("#order_id").val(response.order_id);
+                        $('#transaction_payment_type').val(response.transaction_payment_type)
+                        $("#transaction_payment_type").trigger('change');
+                        let Detail = response['detail'];
+                        console.log(Detail)
+                        $('table#id-table-detail-order tbody#sales-details').empty();
+                        Detail.forEach(
+                            e =>
+                                addOrderDetail(e.id, e.product_id, e.product_name, e.quantity, e.price, e.unit_id, e.unit_name, e.unit_min)
+                        )
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                fail: function (response) {
+                    toastr.error("error");
+                }
+            });
+        }
+
+        function addOrderDetail(detail, product_id, product_name, quantity, price, unit, unit_name, unit_min) {
+
+            let _total = quantity * price
+            $('#sales-details').append(
+                '<tr detail_id="' + detail + '" product="' + product_id + '" unit="' + unit + '" class="text-uppercase small text-center" style="font-size: 14px;">' +
+                '<td class="align-middle">' + '</td>' +
+                '<td class="align-middle text-left item-product">' + '<input type="text" class="form-control form-control-sm input-product-name" value="' + product_name + '">' + '</td>' +
+                '<td class="align-middle item-quantity">' + '<input type="number" class="form-control form-control-sm text-right input-quantity" value="' + Number(quantity).toFixed(0) + '">' + '</td>' +
+                '<td class="align-middle item-unit" unit="' + unit + '" unit_min="' + unit_min + '">' + unit_name + '</td>' +
+                '<td class="align-middle item-price">' + '<input type="number" class="form-control form-control-sm text-right input-price" value="' + Number(price).toFixed(2) + '">' + '</td>' +
+                '<td class="align-middle item-total">' + '<input type="number" class="form-control form-control-sm text-right input-total-detail" value="' + Number(_total).toFixed(2) + '">' + '</td>' +
+                '<td>' + '<button type="button" onclick="deleteItem(' + product_id + ',' + unit + ')" class="btn btn-danger btn-sm">' +
+                '<i class="fa fa-trash"></i></button>' + '</td>' +
+                '</tr>'
+            );
+            calculateTotal();
+            counter();
+        }
+        function counter() {
+            let index = 1;
+            $('#sales-details tr').each(function () {
+                $(this).attr('i', index);
+                $(this).children('td:first').text(index);
+                index++;
+            });
+
+        }
 
     </script>
 

@@ -1,0 +1,152 @@
+{% extends 'home.html' %}
+{% block title %}
+    Almacenes
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+
+        <a class="btn btn-warning mb-3 mt-3 roboto-condensed-regular border-dark" href="" data-toggle="modal"
+           data-target="#modal-subsidiary-store">
+            <i class="fas fa-warehouse"></i> &nbsp;NUEVO ALMACEN
+        </a>
+        <div id="ss-grid-list">{% include "comercial/stores_grid_list.html" %}</div>
+    </div>
+
+    <div class="modal" id="modal-subsidiary-store" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #3e6787">
+                    <h6 class="modal-title text-white roboto-condensed-regular">REGISTRAR NUEVO ALMACEN</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="store-form" action="" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-body p-2 roboto-condensed-regular">
+                        <div class="card">
+                            <div class="card-body bg-light">
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <div class="row p-1">
+                                            <table class="table table-borderless">
+                                                <tbody>
+                                                <tr>
+                                                    <td class="align-middle">Nombre del Almacén:</td>
+                                                    <td>
+                                                        <input type="text" name="name-store" aria-label=""
+                                                               class="form-control form-control-sm text-uppercase"
+                                                               placeholder="Ingrese nombre del nuevo almacen"
+                                                               required autocomplete="off"
+                                                               id="name_store">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="align-middle">Categoría:</td>
+                                                    <td>
+                                                        <select id="category_id" name="category" aria-label=""
+                                                                class="form-control form-control-sm">
+                                                            <option selected disabled value="0">Seleccione..</option>
+                                                            {% for c in categories %}
+                                                                <option value="{{ c.0 }}">{{ c.1 }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="align-middle">Sede:</td>
+                                                    <td>
+                                                        <select id="subsidiary_id" name="subsidiary" aria-label=""
+                                                                class="form-control form-control-sm">
+                                                            <option selected disabled value="0">Seleccione..</option>
+                                                            {% for s in subsidiary_set %}
+                                                                <option value="{{ s.id }}">{{ s.name }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light p-2">
+                        <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar
+                        </button> &nbsp;
+                        <button id="btn-save" type="submit" class="btn btn-primary font-weight-light">Registrar
+                            Almacen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        let stores =
+            [{% for ss in subsidiary_stores %}
+                {
+                    id: "{{ ss.subsidiary.id }}",
+                    subsidiaryName: "{{ ss.subsidiary.name }}",
+                    subsidiaryId: "{{ ss.subsidiary.id }}",
+                    storeName: "{{ ss.name }}",
+                    category: "{{ ss.category }}",
+                },
+
+            {% endfor %}];
+
+        $('#store-form').submit(function (event) {
+            event.preventDefault();
+            let data = new FormData($('#store-form').get(0));
+            $('#btn-save').prop("disabled", "true");
+            let _category = $('#category_id').val();
+            let _category_name =$('#category_id option:selected').text();
+            let _subsidiary = $('#subsidiary_id').val();
+            let _subsidiary_name =$('#subsidiary_id option:selected').text();
+            if (checkStore(_category, _subsidiary)) {
+                toastr.warning('Ya existe un almacén con categoría ' + _category_name + ' en la ' + _subsidiary_name, '¡Atención!');
+                $('#btn-save').removeAttr("disabled");
+                return false;
+            }
+            $.ajax({
+                url: '/comercial/new_store/',
+                type: "POST",
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        toastr.success(response['message'], '¡Bien hecho!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Error!');
+                    }
+                }
+            });
+            {#$('#btn-save').removeAttr("disabled", "false");#}
+        });
+
+        function checkStore(category, subsidiary) {
+            return stores.some(function (store) {
+                return store.category === category && store.subsidiaryId === subsidiary;
+            });
+        }
+
+    </script>
+
+{% endblock extrajs %}

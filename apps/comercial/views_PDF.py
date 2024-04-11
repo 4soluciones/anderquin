@@ -19,7 +19,7 @@ from reportlab.pdfgen.canvas import Canvas
 from reportlab.rl_settings import defaultPageSize
 from reportlab.lib.colors import PCMYKColor, PCMYKColorSep, Color, black, blue, red, pink
 from anderquin import settings
-from .models import Programming, Guide, GuideMotive, GuideDetail, GuideEmployee, FuelProgramming
+from .models import Programming, Guide, GuideMotive, GuideDetail, GuideEmployee
 from apps.sales.number_to_letters import numero_a_moneda
 import io
 import os
@@ -1318,115 +1318,115 @@ def NumTomonth(shortMonth):
     }[shortMonth]
 
 
-def print_ticket(request, pk=None):
-    reportlab.rl_config.TTFSearchPath.append(str(settings.BASE_DIR) + '/static/fonts')
-    pdfmetrics.registerFont(TTFont('Square', 'sqr721bc.ttf'))
-    pdfmetrics.registerFont(TTFont('Newgot', 'newgotbc.ttf'))
-
-    fuel_programming_obj = FuelProgramming.objects.get(id=int(pk))
-
-    tbh_business_name = (fuel_programming_obj.subsidiary.business_name, '')
-    tbh_address = (fuel_programming_obj.subsidiary.address, '')
-    th = Table([tbh_business_name] + [tbh_address], colWidths=[5.5 * inch, 0.1 * inch])
-    th.setStyle(TableStyle(
-        [
-
-            ('FONTNAME', (0, 0), (0, -1), 'Square'),
-            # ('GRID', (0, 0), (-1, -1), 1, colors.white),
-            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
-            ('FONTNAME', (0, 1), (0, -1), 'Square'),
-            ('FONTSIZE', (0, 0), (0, -1), 12),
-
-            # ('LINEBELOW', (0, 0), (-1, 0), 1, colors.darkblue),
-            # ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey)
-        ]
-    ))
-
-    tpl_supplier = ('ABASTECER EN', fuel_programming_obj.supplier.name, '', '')
-    tpl_date = ('FECHA', str(fuel_programming_obj.date_fuel.day) + ' ' +
-                str(NumTomonth(fuel_programming_obj.date_fuel.month)) + ' ' + str(fuel_programming_obj.date_fuel.year))
-    tpl_quantity = ('CANTIDAD', str(fuel_programming_obj.quantity_fuel),
-                    str(fuel_programming_obj.unit_fuel.name))
-    tpl_license_plate = ('PLACA', str(fuel_programming_obj.programming.truck.license_plate))
-    tpl_pilot = ('CONDUCTOR', str(fuel_programming_obj.programming.get_pilot().names) + ' ' + str(
-        fuel_programming_obj.programming.get_pilot().paternal_last_name) + ' ' + str(
-        fuel_programming_obj.programming.get_pilot().maternal_last_name))
-    tpl_route = ('RUTA', str(fuel_programming_obj.programming.get_route()))
-    tpl_client = ('PRECIO', 'S/. ' + str(round(fuel_programming_obj.price_fuel, 2)),
-                  'IMPORTE', 'S/. ' + str(round(fuel_programming_obj.amount(), 2)))
-
-    t = Table([tpl_supplier] + [tpl_date] + [tpl_quantity] + [tpl_license_plate] + [tpl_pilot] +
-              [tpl_route] + [tpl_client], colWidths=[0.65 * inch, 0.7 * inch, 0.8 * inch, 0.9 * inch])
-
-    t.setStyle(TableStyle(
-        [
-            ('FONTNAME', (2, 2), (3, 2), 'Newgot'),  # galon
-            ('FONTNAME', (1, 0), (3, 0), 'Newgot'),  # proveedor
-            ('FONTNAME', (1, 5), (3, 5), 'Newgot'),  # ruta
-            # ('FONTNAME', (1, 6), (1, 6), 'Square'),  # tpl_client - price
-            ('FONTNAME', (2, 6), (2, 6), 'Newgot'),  # tpl_client - import
-            ('FONTSIZE', (0, 0), (-1, -1), 7.2),  # tpl_quantity
-            ('FONTSIZE', (1, 0), (3, 0), 8),  # proveeodr
-            ('FONTSIZE', (1, 5), (3, 5), 8),  # ruta
-            ('FONTSIZE', (2, 2), (3, 2), 8),  # galon
-
-            ('SPAN', (1, 0), (3, 0)),
-            ('SPAN', (1, 1), (3, 1)),
-            ('SPAN', (2, 2), (3, 2)),
-            ('SPAN', (1, 3), (3, 3)),
-            ('SPAN', (1, 4), (3, 4)),
-            ('SPAN', (1, 5), (3, 5)),
-            ('FONTNAME', (0, 0), (0, -1), 'Newgot'),
-            # ('GRID', (0, 0), (-1, -1), 1, colors.lightgrey),#BORDE COLOR
-            # ('GRID',(0,0),(-1,-1),1,colors.lightgrey)
-            # ('BOX',(0,0),(-1,-1),0.6*mm,(0,0,0))
-            # ('LINEBEFORE',(2,1),(2,-2),6,colors.pink)
-
-            # ('LINEBELOW', (0, 0), (-1, 0), 1, colors.darkblue),
-            # ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey)
-        ]
-    ))
-
-    buff = io.BytesIO()
-
-    xmax = 595
-    ymax = 842
-
-    ml = 0.14 * cm
-    mr = 0.05 * cm
-    ms = 0.1 * cm
-    mi = 0.1 * cm
-
-    doc = SimpleDocTemplate(buff,
-                            pagesize=C7,
-                            rightMargin=mr,
-                            leftMargin=ml,
-                            topMargin=ms,
-                            bottomMargin=mi,
-                            title='Combustible'
-                            )
-
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY,
-                              leading=13, fontName='Newgot', fontSize=12))
-    styles.add(
-        ParagraphStyle(name='header1', alignment=TA_CENTER, leading=13, fontName='Helvetica-Bold', fontSize=12))
-
-    Story = []
-
-    Story.append(th)
-    Story.append(Spacer(1, 60))
-    Story.append(t)
-    Story.append(OutputGetTicket(fuel_programming_obj=fuel_programming_obj))
-    Story.append(Spacer(1, 1))
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="Combustible_[{}].pdf"'.format(
-        fuel_programming_obj.get_correlative())
-    doc.build(Story)
-    response.write(buff.getvalue())
-    buff.close()
-    return response
+# def print_ticket(request, pk=None):
+#     reportlab.rl_config.TTFSearchPath.append(str(settings.BASE_DIR) + '/static/fonts')
+#     pdfmetrics.registerFont(TTFont('Square', 'sqr721bc.ttf'))
+#     pdfmetrics.registerFont(TTFont('Newgot', 'newgotbc.ttf'))
+#
+#     fuel_programming_obj = FuelProgramming.objects.get(id=int(pk))
+#
+#     tbh_business_name = (fuel_programming_obj.subsidiary.business_name, '')
+#     tbh_address = (fuel_programming_obj.subsidiary.address, '')
+#     th = Table([tbh_business_name] + [tbh_address], colWidths=[5.5 * inch, 0.1 * inch])
+#     th.setStyle(TableStyle(
+#         [
+#
+#             ('FONTNAME', (0, 0), (0, -1), 'Square'),
+#             # ('GRID', (0, 0), (-1, -1), 1, colors.white),
+#             ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+#             ('FONTNAME', (0, 1), (0, -1), 'Square'),
+#             ('FONTSIZE', (0, 0), (0, -1), 12),
+#
+#             # ('LINEBELOW', (0, 0), (-1, 0), 1, colors.darkblue),
+#             # ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey)
+#         ]
+#     ))
+#
+#     tpl_supplier = ('ABASTECER EN', fuel_programming_obj.supplier.name, '', '')
+#     tpl_date = ('FECHA', str(fuel_programming_obj.date_fuel.day) + ' ' +
+#                 str(NumTomonth(fuel_programming_obj.date_fuel.month)) + ' ' + str(fuel_programming_obj.date_fuel.year))
+#     tpl_quantity = ('CANTIDAD', str(fuel_programming_obj.quantity_fuel),
+#                     str(fuel_programming_obj.unit_fuel.name))
+#     tpl_license_plate = ('PLACA', str(fuel_programming_obj.programming.truck.license_plate))
+#     tpl_pilot = ('CONDUCTOR', str(fuel_programming_obj.programming.get_pilot().names) + ' ' + str(
+#         fuel_programming_obj.programming.get_pilot().paternal_last_name) + ' ' + str(
+#         fuel_programming_obj.programming.get_pilot().maternal_last_name))
+#     tpl_route = ('RUTA', str(fuel_programming_obj.programming.get_route()))
+#     tpl_client = ('PRECIO', 'S/. ' + str(round(fuel_programming_obj.price_fuel, 2)),
+#                   'IMPORTE', 'S/. ' + str(round(fuel_programming_obj.amount(), 2)))
+#
+#     t = Table([tpl_supplier] + [tpl_date] + [tpl_quantity] + [tpl_license_plate] + [tpl_pilot] +
+#               [tpl_route] + [tpl_client], colWidths=[0.65 * inch, 0.7 * inch, 0.8 * inch, 0.9 * inch])
+#
+#     t.setStyle(TableStyle(
+#         [
+#             ('FONTNAME', (2, 2), (3, 2), 'Newgot'),  # galon
+#             ('FONTNAME', (1, 0), (3, 0), 'Newgot'),  # proveedor
+#             ('FONTNAME', (1, 5), (3, 5), 'Newgot'),  # ruta
+#             # ('FONTNAME', (1, 6), (1, 6), 'Square'),  # tpl_client - price
+#             ('FONTNAME', (2, 6), (2, 6), 'Newgot'),  # tpl_client - import
+#             ('FONTSIZE', (0, 0), (-1, -1), 7.2),  # tpl_quantity
+#             ('FONTSIZE', (1, 0), (3, 0), 8),  # proveeodr
+#             ('FONTSIZE', (1, 5), (3, 5), 8),  # ruta
+#             ('FONTSIZE', (2, 2), (3, 2), 8),  # galon
+#
+#             ('SPAN', (1, 0), (3, 0)),
+#             ('SPAN', (1, 1), (3, 1)),
+#             ('SPAN', (2, 2), (3, 2)),
+#             ('SPAN', (1, 3), (3, 3)),
+#             ('SPAN', (1, 4), (3, 4)),
+#             ('SPAN', (1, 5), (3, 5)),
+#             ('FONTNAME', (0, 0), (0, -1), 'Newgot'),
+#             # ('GRID', (0, 0), (-1, -1), 1, colors.lightgrey),#BORDE COLOR
+#             # ('GRID',(0,0),(-1,-1),1,colors.lightgrey)
+#             # ('BOX',(0,0),(-1,-1),0.6*mm,(0,0,0))
+#             # ('LINEBEFORE',(2,1),(2,-2),6,colors.pink)
+#
+#             # ('LINEBELOW', (0, 0), (-1, 0), 1, colors.darkblue),
+#             # ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey)
+#         ]
+#     ))
+#
+#     buff = io.BytesIO()
+#
+#     xmax = 595
+#     ymax = 842
+#
+#     ml = 0.14 * cm
+#     mr = 0.05 * cm
+#     ms = 0.1 * cm
+#     mi = 0.1 * cm
+#
+#     doc = SimpleDocTemplate(buff,
+#                             pagesize=C7,
+#                             rightMargin=mr,
+#                             leftMargin=ml,
+#                             topMargin=ms,
+#                             bottomMargin=mi,
+#                             title='Combustible'
+#                             )
+#
+#     styles = getSampleStyleSheet()
+#     styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY,
+#                               leading=13, fontName='Newgot', fontSize=12))
+#     styles.add(
+#         ParagraphStyle(name='header1', alignment=TA_CENTER, leading=13, fontName='Helvetica-Bold', fontSize=12))
+#
+#     Story = []
+#
+#     Story.append(th)
+#     Story.append(Spacer(1, 60))
+#     Story.append(t)
+#     Story.append(OutputGetTicket(fuel_programming_obj=fuel_programming_obj))
+#     Story.append(Spacer(1, 1))
+#
+#     response = HttpResponse(content_type='application/pdf')
+#     response['Content-Disposition'] = 'attachment; filename="Combustible_[{}].pdf"'.format(
+#         fuel_programming_obj.get_correlative())
+#     doc.build(Story)
+#     response.write(buff.getvalue())
+#     buff.close()
+#     return response
 
 
 class OutputGetTicket(Flowable):

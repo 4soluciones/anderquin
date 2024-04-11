@@ -84,9 +84,7 @@ class ProductSubcategory(models.Model):
 
 
 class SubsidiaryStore(models.Model):
-    CATEGORY_CHOICES = (
-        ('M', 'MERCADERIA'), ('I', 'INSUMO'), ('V', 'VENTA'), ('R', 'MANTENIMIENTO'), ('G', 'GLP'),
-        ('O', 'OSINERGMIN'),)
+    CATEGORY_CHOICES = (('V', 'VENTA'), ('I', 'INSUMO'),  ('M', 'MALOGRADOS'), ('R', 'MANTENIMIENTO'))
     id = models.AutoField(primary_key=True)
     subsidiary = models.ForeignKey(Subsidiary, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField('Nombre', max_length=45)
@@ -385,32 +383,34 @@ class ClientAssociate(models.Model):
 
 
 class Order(models.Model):
-    TYPE_CHOICES = (('V', 'VENTA'), ('T', 'COTIZACION'), ('R', 'REPARTO'), ('E', 'ELECTRONICO'),)
-    TYPE_CHOICES_PAYMENT = (('E', 'Efectivo'), ('D', 'Deposito'), ('C', 'Credito'))
-    STATUS_CHOICES = (('P', 'PENDIENTE'), ('C', 'COMPLETADO'), ('A', 'ANULADO'),)
+    ORDER_TYPE_CHOICES = (('V', 'VENTA'), ('T', 'COTIZACION'))
+    SALE_TYPE_CHOICES = (('VC', 'VENTA CERRADA'), ('VA', 'VENTA ALMACEN'), ('VR', 'VENTA REPARTO'))
+    TYPE_CHOICES_PAYMENT = (('E', 'EFECTIVO'), ('D', 'DEPOSITO'), ('C', 'CREDITO'))
+    STATUS_CHOICES = (('P', 'PENDIENTE'), ('C', 'COMPLETADO'), ('A', 'ANULADO'))
     HAS_ORDER_QUOTATION = (('S', 'SIN VENTA'), ('C', 'CON VENTA'), ('0', 'SOLO VENTA'))
-    type = models.CharField('Tipo', max_length=1, choices=TYPE_CHOICES, default='C', )
-    supplier = models.ForeignKey('Supplier', verbose_name='Proveedor',
-                                 on_delete=models.SET_NULL, null=True, blank=True)
+    order_type = models.CharField('Tipo de Orden', max_length=1, choices=ORDER_TYPE_CHOICES, default='V')
+    sale_type = models.CharField('Tipo de Venta', max_length=2, choices=SALE_TYPE_CHOICES, default='VC')
+    # supplier = models.ForeignKey('Supplier', verbose_name='Proveedor',
+    #                              on_delete=models.SET_NULL, null=True, blank=True)
     subsidiary_store = models.ForeignKey(
         'SubsidiaryStore', verbose_name='Almacen Sucursal', on_delete=models.SET_NULL, null=True, blank=True)
     client = models.ForeignKey('Client', verbose_name='Cliente',
                                on_delete=models.SET_NULL, null=True, blank=True)
     user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
-    requirement = models.ManyToManyField('Requirement', related_name='requirements', blank=True)
-    operation_code = models.CharField(
-        verbose_name='Codigo de operación', max_length=45, null=True, blank=True)
-    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P', )
+    # requirement = models.ManyToManyField('Requirement', related_name='requirements', blank=True)
+    # operation_code = models.CharField(
+    #     verbose_name='Codigo de operación', max_length=45, null=True, blank=True)
+    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P')
     create_at = models.DateTimeField(null=True, blank=True)
     update_at = models.DateTimeField(auto_now=True)
     total = models.DecimalField('Total', max_digits=10, decimal_places=2, default=0)
     discount = models.DecimalField('Descuento', max_digits=10, decimal_places=2, default=0)
-    distribution_mobil = models.ForeignKey('comercial.DistributionMobil', on_delete=models.SET_NULL, null=True,
-                                           blank=True)
+    # distribution_mobil = models.ForeignKey('comercial.DistributionMobil', on_delete=models.SET_NULL, null=True,
+    #                                        blank=True)
     correlative = models.IntegerField('Correlativo', default=0)
-    truck = models.ForeignKey('comercial.Truck', on_delete=models.SET_NULL, null=True,
-                              blank=True)
-    is_review = models.BooleanField('Revisado', default=False)
+    # truck = models.ForeignKey('comercial.Truck', on_delete=models.SET_NULL, null=True,
+    #                           blank=True)
+    # is_review = models.BooleanField('Revisado', default=False)
     subsidiary = models.ForeignKey('hrm.Subsidiary', on_delete=models.SET_NULL, null=True, blank=True)
 
     validity_date = models.DateField('Fecha de validación hasta', null=True, blank=True)
@@ -433,49 +433,12 @@ class Order(models.Model):
             response = response + d.repay_loan()
         return response
 
-    def total_repay_loan_with_vouchers(self):
-        response = 0
-        order_detail_set = OrderDetail.objects.filter(order__id=self.pk, order__type__in=['R', 'V'])
-        for d in order_detail_set:
-            response = response + d.repay_loan_with_vouchers()
-        return response
-
-    def total_return_loan(self):
-        response = 0
-        order_detail_set = OrderDetail.objects.filter(order__id=self.pk, order__type__in=['R', 'V'])
-        for d in order_detail_set:
-            response = response + d.return_loan()
-        return response
-
     def total_remaining_repay_loan(self):
         response = 0
         order_detail_set = OrderDetail.objects.filter(order__id=self.pk, order__type__in=['R', 'V'])
         for d in order_detail_set:
             if d.unit.name == 'G' or d.unit.name == 'GBC':
                 response = response + (d.multiply() - d.repay_loan())
-        return response
-
-    def total_remaining_repay_loan_ball(self):
-        response = 0
-        order_detail_set = OrderDetail.objects.filter(order__id=self.pk, order__type__in=['R', 'V'])
-        for d in order_detail_set:
-            if d.unit.name == 'B':
-                response = response + (d.multiply() - d.repay_loan_ball())
-        return response
-
-    def total_remaining_return_loan(self):
-        response = 0
-        order_detail_set = OrderDetail.objects.filter(order__id=self.pk, order__type__in=['R', 'V'])
-        for d in order_detail_set:
-            if d.unit.name == 'B':
-                response = response + (d.quantity_sold - d.return_loan())
-        return response
-
-    def total_ball_changes(self):
-        response = 0
-        order_detail_set = OrderDetail.objects.filter(order__id=self.pk, order__type__in=['R', 'V'])
-        for d in order_detail_set:
-            response = response + d.ball_changes()
         return response
 
     def total_cash_flow_spending(self):
@@ -506,12 +469,12 @@ class OrderDetail(models.Model):
     order = models.ForeignKey('Order', on_delete=models.CASCADE, null=True, blank=True)
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     quantity_sold = models.DecimalField('Cantidad vendida', max_digits=10, decimal_places=2, default=0)
-    quantity_purchased = models.DecimalField('Cantidad comprada', max_digits=10, decimal_places=2, default=0)
-    quantity_requested = models.DecimalField('Cantidad solicitada', max_digits=10, decimal_places=2, default=0)
+    # quantity_purchased = models.DecimalField('Cantidad comprada', max_digits=10, decimal_places=2, default=0)
+    # quantity_requested = models.DecimalField('Cantidad solicitada', max_digits=10, decimal_places=2, default=0)
     price_unit = models.DecimalField('Precio unitario', max_digits=10, decimal_places=2, default=0)
     unit = models.ForeignKey('Unit', on_delete=models.CASCADE)
     commentary = models.CharField(max_length=200, null=True, blank=True)
-    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P', )
+    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='V')
 
     def __str__(self):
         return str(self.pk)
@@ -580,9 +543,9 @@ class Kardex(models.Model):
     order_detail = models.ForeignKey('OrderDetail', on_delete=models.SET_NULL, null=True, blank=True)
     purchase_detail = models.ForeignKey('buys.PurchaseDetail', on_delete=models.SET_NULL, null=True, blank=True)
     guide_detail = models.ForeignKey('comercial.GuideDetail', on_delete=models.SET_NULL, null=True, blank=True)
-    requirement_detail = models.ForeignKey('buys.RequirementDetail_buys', on_delete=models.SET_NULL, null=True,
-                                           blank=True)
-    programming_invoice = models.ForeignKey('buys.Programminginvoice', on_delete=models.SET_NULL, null=True, blank=True)
+    # requirement_detail = models.ForeignKey('buys.RequirementDetail_buys', on_delete=models.SET_NULL, null=True,
+    #                                        blank=True)
+    # programming_invoice = models.ForeignKey('buys.Programminginvoice', on_delete=models.SET_NULL, null=True, blank=True)
     create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     manufacture_detail = models.ForeignKey('ManufactureDetail', on_delete=models.SET_NULL, null=True, blank=True)
     manufacture_recipe = models.ForeignKey('ManufactureRecipe', on_delete=models.SET_NULL, null=True, blank=True)
@@ -590,20 +553,6 @@ class Kardex(models.Model):
                                             blank=True)
     loan_payment = models.ForeignKey('LoanPayment', on_delete=models.SET_NULL, null=True, blank=True)
     ball_change = models.ForeignKey('BallChange', on_delete=models.SET_NULL, null=True, blank=True)
-    advance_detail = models.ForeignKey('comercial.ClientAdvancementDetail', on_delete=models.SET_NULL, null=True,
-                                       blank=True)
-
-    def conversion_mml_g(self):
-        paint_converter = ProductStore.objects.filter(product__product_family__id=4)
-        if paint_converter.count() > 0:
-            response = float(self.quantity) / float(3785.41)
-        return response
-
-    def conversion_mml_g_remainig(self):
-        paint_converter = ProductStore.objects.filter(product__product_family__id=4)
-        if paint_converter.count() > 0:
-            response = float(self.remaining_quantity) / float(3785.41)
-        return response
 
     class Meta:
         verbose_name = 'Registro de Kardex'

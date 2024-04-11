@@ -1,0 +1,57 @@
+{% if subsidiary_stores %}
+    <div class="card">
+        <div class="card-header text-center border-dark" style="background-color: #3e6787">
+            <h5 class="card-title font-weight-bold roboto-condensed-regular text-white mt-2">LISTA DE ALMACENES</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive dataTables_wrapper bg-light">
+                <table id="ss-data-grid" class="table table-bordered roboto-condensed-regular table-hover mb-0">
+                    <thead>
+                    <tr class="text-center text-uppercase">
+                        <th style="width: 5%">#</th>
+                        <th style="width: 10%" scope="col">sede</th>
+                        <th style="width: 10%" scope="col">Nombre</th>
+                        <th style="width: 10%" scope="col">Categoría</th>
+                        <th style="width: 5%" scope="col"><i class="fas fa-edit"></i></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for ss in subsidiary_stores %}
+                        <tr>
+                            <th class="text-center align-middle">{{ forloop.counter }}</th>
+                            <td class="align-middle">{{ ss.subsidiary.name }}</td>
+                            <td class="align-middle">{{ ss.name }}</td>
+                            <td class="align-middle">
+                                {{ ss.get_category_display }}
+                                {% if ss.category == 'M' %}
+                                    <p class="font-weight-bolder text-success">[Destinado para el envio de productos malogrados]</p>
+                                {% elif ss.category == 'V' %}
+                                    <p class="font-weight-bolder text-primary">[Exclusivo para las ventas]</p>
+                                {% elif ss.category == 'I' %}
+                                    <p class="font-weight-bolder text-danger">[Destinado para la fabricación]</p>
+                                {% endif %}
+                            </td>
+                            <td class="align-middle text-center">
+                                <i class="fas fa-edit"></i>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center text-uppercase">
+                        <th style="width: 5%"></th>
+                        <th style="width: 10%" scope="col">sede</th>
+                        <th style="width: 10%" scope="col">Nombre</th>
+                        <th style="width: 10%" scope="col">Categoría</th>
+                        <th style="width: 5%" scope="col"></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <h1>Lo sentimos, No existen almacenes</h1>
+{% endif %}
+
+

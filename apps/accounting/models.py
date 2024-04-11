@@ -216,9 +216,9 @@ class CashFlow(models.Model):
     cash_transfer = models.ForeignKey('CashTransfer', on_delete=models.SET_NULL, null=True, blank=True)
     # purchase = models.ForeignKey('buys.Purchase', on_delete=models.SET_NULL, null=True, blank=True)
     bill = models.ForeignKey('Bill', on_delete=models.SET_NULL, null=True, blank=True)
-    requirement_buys = models.ForeignKey('buys.Requirement_buys', on_delete=models.CASCADE, null=True, blank=True)
-    requirement_programming = models.ForeignKey('buys.RequirementBuysProgramming', on_delete=models.CASCADE, null=True,
-                                                blank=True)
+    # requirement_buys = models.ForeignKey('buys.Requirement_buys', on_delete=models.CASCADE, null=True, blank=True)
+    # requirement_programming = models.ForeignKey('buys.RequirementBuysProgramming', on_delete=models.CASCADE, null=True,
+    #                                             blank=True)
     client = models.ForeignKey('sales.Client', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
@@ -305,21 +305,6 @@ class CashTransferAction(models.Model):
     class Meta:
         verbose_name = 'Usuario involucrado'
         verbose_name_plural = 'Usuarios involucrados'
-
-
-class CashFlowLog(models.Model):
-    id = models.AutoField(primary_key=True)
-    cash_flow = models.ForeignKey('CashFlow', on_delete=models.SET_NULL, null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    reason = models.CharField('Motivo', max_length=200, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-
-    def __str__(self):
-        return str(self.id)
-
-    class Meta:
-        verbose_name = 'Caja reajuste'
-        verbose_name_plural = 'Caja reajustes'
 
 
 class Salary(models.Model):

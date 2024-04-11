@@ -4,150 +4,123 @@
 {% endblock title %}
 
 {% block body %}
-    <div class="col-sm-12 col-sm-12 col-lg-12 pt-3 roboto-condensed-regular">
-        <div class="card">
-            <div class="card-header pt-0">
-                <div class="row row-contract"{% if contract_detail_obj %} style="background: #62a239" {% else %}
-                     style="background: #1a77c8"{% endif %}>
-                    <div class="col-sm-12 col-md-12 col-lg-12" style="font-size: 12px">
-                        <div class="row p-2">
-                            <div class="col-sm-3 col-md-3 col-lg-3 pr-0">
-                                <input type="hidden" id="contract_detail_id" name="contract-detail"
-                                       value="{{ contract_detail_obj.id }}">
-                                {% if contract_detail_obj %}
-                                    <h6 class="montserrat text-white mt-4 mb-0">
-                                        <label>{{ contract_detail_obj.contract.contract_number }} -
-                                            FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
-                                    </h6>
-                                {% else %}
-                                    <h6 class="montserrat text-white font-weight-bold mt-4 mb-0 title-contract">
-                                        <label>ORDEN DE COMPRA:</label>
-                                    </h6>
-                                {% endif %}
-                            </div>
-                            {#                            {% if contract_detail_obj %}#}
-                            {#                                <div class="col-sm-2 col-md-2 col-lg-2">#}
-                            {#                                    <h5 class="montserrat text-white font-weight-bold mt-4 mb-0">#}
-                            {#                                        <label>FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>#}
-                            {#                                    </h5>#}
-                            {#                                </div>#}
-                            {#                            {% endif %}#}
 
-                            <div class="col-sm-2 col-md-2 col-lg-2 mb-3">
-                                <button type="button" onclick="showModalViewSupplier('modal_supplier_create')"
-                                        class="btn btn-sm btn-secondary btn-block mt-3 mb-0 col-sm-12 col-md-12 col-lg-12">
-                                    Nuevo Proveedor
-                                </button>
-                            </div>
+    <div class="card pt-1 roboto-condensed-regular">
+        <div class="card-header pt-0 pb-0">
+            <div class="row row-contract"{% if contract_detail_obj %} style="background: #62a239" {% else %}
+                 style="background: #3e6787"{% endif %}>
+                <div class="col-sm-12 col-md-12 col-lg-12" style="font-size: 12px">
+                    <div class="row p-2">
+                        <div class="col-sm-3 col-md-3 col-lg-3 pr-0">
+                            <input type="hidden" id="contract_detail_id" name="contract-detail"
+                                   value="{{ contract_detail_obj.id }}">
+                            {% if contract_detail_obj %}
+                                <h6 class="roboto-condensed-regular text-white mt-4 mb-0">
+                                    <label>{{ contract_detail_obj.contract.contract_number }} -
+                                        FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
+                                </h6>
+                            {% else %}
+                                <h6 class="roboto-condensed-regular text-white font-weight-bold mt-4 mb-0 title-contract">
+                                    <label>ORDEN DE COMPRA:</label>
+                                </h6>
+                            {% endif %}
+                        </div>
 
-                            <div class="col-sm-2 col-md-2 col-lg-2 mt-3">
-                                <form>
-                                    <div class="form-group row">
-                                        <button type="button"
-                                                class="col-sm-5 btn btn-sm btn-outline-secondary border-0 text-white btn-block p-1"
-                                                id="btn-type-change">Tipo de Cambio:
-                                        </button>
-                                        <div class="col-sm-7">
-                                            <input type="text" class="form-control text-center font-weight-bold"
-                                                   id="type_change" readonly>
-                                        </div>
+                        <div class="col-sm-2 col-md-2 col-lg-2 mb-3">
+                            <button type="button" onclick="showModalViewSupplier('modal_supplier_create')"
+                                    class="btn btn-sm btn-secondary btn-block mt-3 mb-0 col-sm-12 col-md-12 col-lg-12">
+                                Nuevo Proveedor
+                            </button>
+                        </div>
+
+                        <div class="col-sm-2 col-md-2 col-lg-2 mt-3">
+                            <form>
+                                <div class="form-group row">
+                                    <button type="button"
+                                            class="col-sm-5 btn btn-sm btn-outline-secondary border-0 text-white btn-block p-1"
+                                            id="btn-type-change">Tipo de Cambio:
+                                    </button>
+                                    <div class="col-sm-7">
+                                        <input type="text" class="form-control text-center font-weight-bold"
+                                               id="type_change" readonly>
                                     </div>
-                                </form>
-                            </div>
-
-                            <div class="col-sm-2 col-md-2 col-lg-2">
-                                <div class="form-check mt-4">
-                                    <input class="form-check-input check-dollar" type="checkbox" value=""
-                                           id="check_dollar">
-                                    <label class="form-check-label text-white" for="check_dollar">
-                                        COMPRA EN DOLARES
-                                    </label>
                                 </div>
-                            </div>
-                            <div class="col-sm-3 col-md-3 col-lg-3 mt-3">
-                                <form>
-                                    <div class="form-group row">
-                                        <label for="correlative"
-                                               class="col-sm-5 border-0 text-white pt-2 text-right pr-0">Correlativo:</label>
-                                        <div class="col-sm-3 pr-0">
-                                            <select id="year" class="form-control form-control-sm text-uppercase"
-                                                    style="font-size: 12px">
-                                                <option value="2023">2023</option>
-                                                <option selected value="2024">2024</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-sm-4 pl-0">
-                                            <input type="text" style="font-size: 12px"
-                                                   class="form-control form-control-sm text-center font-weight-bold"
-                                                   id="correlative" value="{{ correlative }}" autocomplete="off">
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
+                            </form>
+                        </div>
 
+                        <div class="col-sm-2 col-md-2 col-lg-2">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input check-dollar" type="checkbox" value=""
+                                       id="check_dollar">
+                                <label class="form-check-label text-white" for="check_dollar">
+                                    COMPRA EN DOLARES
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-3 col-md-3 col-lg-3 mt-3">
+                            <form>
+                                <div class="form-group row">
+                                    <label for="correlative"
+                                           class="col-sm-5 border-0 text-white pt-2 text-right pr-0">Correlativo:</label>
+                                    <div class="col-sm-3 pr-0">
+                                        <select id="year" class="form-control form-control-sm text-uppercase"
+                                                style="font-size: 12px">
+                                            <option value="2023">2023</option>
+                                            <option selected value="2024">2024</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-4 pl-0">
+                                        <input type="text" style="font-size: 12px"
+                                               class="form-control form-control-sm text-center font-weight-bold"
+                                               id="correlative" value="{{ correlative }}" autocomplete="off">
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                    {#                    <div class="col-sm-4 col-md-4 col-lg-4">#}
-                    {#                        <div class="row">#}
-                    {#                        </div>#}
-                    {#                    </div>#}
-
-                </div>
-                <div class="card-body p-0">
-                    <div class="row border">
-                        <div class="col-sm-5 col-md-5 col-lg-5 pr-0">
-                            <div class="card">
-                                <div class="card-header pb-1 pt-1">
-                                    <div class="row">
-                                        <div class="col-sm-9 col-md-9 col-lg-9 font-weight-bold">
-                                            DATOS DE LA ORDEN:
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body pt-1">
-                                    {% include "buys/buy_register.html" %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-7 col-md-7 col-lg-7 pl-0">
-                            <div class="card">
-                                <div class="card-header pb-1 pt-1">
-                                    <div class="row">
-                                        <div class="col-sm-9 col-md-9 col-lg-9 font-weight-bold">
-                                            REFERENCIA DE VENTA:
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-body pt-1">
-                                    {% include "buys/buys_reference.html" %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </div>
-
-    </div>
-
-
-    <div class="col-sm-12 col-md-12 col-lg-12 pt-1 roboto-condensed-regular">
-        <div class="card">
-            <div class="card-body pt-2">
-                <div class="table-responsive" id="render-table">
-                    {% include "buys/buy_detail.html" %}
+        <div class="card-body pt-0 pb-0">
+            <div class="row border">
+                <div class="col-sm-5 col-md-5 col-lg-5 pr-0 pl-0">
+                    <div class="card">
+                        <div class="card-header pb-1 pt-1">
+                            <div class="row">
+                                <div class="col-sm-9 col-md-9 col-lg-9 font-weight-bold">
+                                    DATOS DE LA ORDEN:
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body pt-3">
+                            {% include "buys/buy_register.html" %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-7 col-md-7 col-lg-7 pl-0 pr-0">
+                    <div class="card">
+                        <div class="card-header pb-1 pt-1">
+                            <div class="row">
+                                <div class="col-sm-9 col-md-9 col-lg-9 font-weight-bold">
+                                    REFERENCIA DE VENTA:
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body pt-4">
+                            {% include "buys/buys_reference.html" %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 col-md-12 col-lg-12 p-0 roboto-condensed-regular">
+                    <div class="table-responsive" id="render-table">
+                        {% include "buys/buy_detail.html" %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="card-body">
-        <div id="product-grid-list"></div>
-    </div>
-    <div class="modal fade bd-example-modal-lg" id="add-modal" tabindex="-1" role="dialog"
-         aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
-
 
     <div class="mr-3 ml-0" style="
             display: none;
@@ -161,10 +134,7 @@
             !important;bottom: 560px;
             padding-right: 65em;
             padding-top: 2em;" id="loading-666">
-
     </div>
-
-
 
     <div class="modal" id="modal-debs" tabindex="-1" role="dialog">
 
@@ -182,8 +152,6 @@
             </div>
         </div>
     </div>
-
-
 
     <style>
 
@@ -229,7 +197,7 @@
         const data = urlParams.get('selected_data');
         const dataObject = JSON.parse(data);
 
-        console.log(dataObject);
+        //console.log(dataObject);
 
         if (dataObject !== null && Object.keys(dataObject).length > 0) {
             $('#id_detail_data_grid > tbody').empty();
@@ -421,7 +389,7 @@
             return _response;
         }
 
-        $('#purchase-form').submit(function (event) {
+        $('#btn-save').click(function (event) {
             event.preventDefault();
             let reference = $('#reference').val();
             let _contract = $("#contract_detail_id");
@@ -549,9 +517,8 @@
                             toastr.success(response.message, '¡COMPRA REGISTRADA CORRECTAMENTE!');
                             let purchase_id = response.pk
                             window.location.href = "/buys/print_pdf_purchase_order/" + purchase_id + "/";
-                            console.log(response.contract)
+                           // console.log(response.contract)
                             if (response.contract) {
-                                console.log("entro")
                                 setTimeout(() => {
                                     window.open("/buys/contracts/", '_self');
                                 }, 2000);

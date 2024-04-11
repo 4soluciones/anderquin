@@ -18,109 +18,10 @@ from anderquin import settings
 from django.http import HttpResponse
 from django.contrib.auth.models import User
 from apps.hrm.views import get_subsidiary_by_user
-from .views import get_kardex_dictionary
-from .models import Requirement_buys, RequirementDetail_buys
 from django.template import loader
 from datetime import datetime
 import io
 import pdfkit
-
-
-def kardex_glp_pdf(request, date_initial, date_final):
-    user_id = request.user.id
-    user_obj = User.objects.get(id=user_id)
-    subsidiary_obj = get_subsidiary_by_user(user_obj)
-    if request.method == 'GET':
-        html = get_kardex_dictionary(subsidiary_obj, is_pdf=True, start_date=date_initial, end_date=date_final)
-        options = {
-            'page-size': 'A3',
-            'orientation': 'Landscape',
-            'encoding': "UTF-8",
-        }
-        path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
-        config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-
-        pdf = pdfkit.from_string(html, False, options, configuration=config)
-        response = HttpResponse(pdf, content_type='application/pdf')
-        # response['Content-Disposition'] = 'attachment;filename="kardex_pdf.pdf"'
-        return response
-
-
-def print_requirement(request, pk=None):
-    reportlab.rl_config.TTFSearchPath.append(str(settings.BASE_DIR) + '/static/fonts')
-    pdfmetrics.registerFont(TTFont('Square', 'sqr721bc.ttf'))
-    pdfmetrics.registerFont(TTFont('Newgot', 'newgotbc.ttf'))
-
-    requirement_buy_obj = Requirement_buys.objects.get(id=int(pk))
-    requirement_detail_buy_obj = requirement_buy_obj.requirements_buys.first()
-    buff = io.BytesIO()
-
-    ml = 1.0 * cm
-    mr = 3.0 * cm
-    ms = 3.0 * cm
-    mi = 2.5 * cm
-
-    doc = SimpleDocTemplate(buff,
-                            pagesize=A4,
-                            rightMargin=mr,
-                            leftMargin=ml,
-                            topMargin=ms,
-                            bottomMargin=mi,
-                            title="Orden de requerimiento - [{}-{}]".format(requirement_buy_obj.id,
-                                                                            requirement_buy_obj.number_scop),
-                            )
-
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY, leading=13, fontName='Newgot', fontSize=12))
-    styles.add(
-        ParagraphStyle(name='header2', alignment=TA_CENTER, leading=13, fontName='Helvetica', fontSize=8))
-    styles.add(
-        ParagraphStyle(name='header1', alignment=TA_CENTER, leading=13, fontName='Helvetica-Bold', fontSize=12))
-
-    tpl_title = ('ORDEN COMPRA PLUSPETROL', '')
-    tpl_company = ('Nombre Empresa', requirement_buy_obj.subsidiary.business_name)
-    tpl_ruc = ('Número RUC', requirement_buy_obj.subsidiary.ruc)
-    tpl_dgh = ('Número DGH', requirement_buy_obj.subsidiary.dgh)
-    tpl_date = ('Fecha Orden de Compra', requirement_buy_obj.creation_date)
-    tpl_product = ('Tipo de Producto', '{} - G'.format(requirement_detail_buy_obj.product.name))
-    tpl_quantity = (
-    'Cantidad de Glp', '{} {}'.format(str(requirement_detail_buy_obj.quantity), requirement_detail_buy_obj.unit.name))
-    tpl_point = ('Punto de Entrega', 'Pisco')
-    tpl_scop = ('Nº Scop', requirement_buy_obj.number_scop)
-    tpl_buyer = ('Nombre comprador', requirement_buy_obj.subsidiary.legal_representative_name)
-    tpl_dni = ('Número de DNI', requirement_buy_obj.subsidiary.legal_representative_dni)
-
-    t = Table([tpl_title] + [tpl_company] + [tpl_ruc] + [tpl_dgh] + [tpl_date] + [tpl_product] + [tpl_quantity] + [
-        tpl_point] + [tpl_scop] + [tpl_buyer] + [tpl_dni])
-    # wave-transparent-background
-    t.setStyle(TableStyle(
-        [
-            ('GRID', (0, 0), (-1, -1), 1, colors.lightgrey),
-            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTNAME', (1, 5), (1, 6), 'Helvetica-Bold'),
-            ('FONTNAME', (1, 8), (1, 8), 'Helvetica-Bold'),
-            ('ALIGN', (1, 1), (1, -1), 'CENTER'),
-            ('TOPPADDING', (0, 0), (-1, 0), 30),
-            ('TOPPADDING', (0, 1), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 8), (1, 8), 10),
-        ]
-    ))
-
-    Story = []
-
-    Story.append(Spacer(40, 100))
-    Story.append(t)
-    Story.append(Spacer(1, 10))
-    Story.append(OutputPrintRequirement())
-    Story.append(Spacer(1, 1))
-    r = HttpResponse(content_type='application/pdf')
-    r['Content-Disposition'] = 'attachment; filename="Orden_de_requerimiento_[{}-{}].pdf"'.format(
-        requirement_buy_obj.id, requirement_buy_obj.number_scop)
-    doc.build(Story)
-    r.write(buff.getvalue())
-    buff.close()
-    return r
 
 
 class OutputPrintRequirement(Flowable):

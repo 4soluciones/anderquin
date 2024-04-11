@@ -6,7 +6,7 @@
 
 {% block body %}
     <div class="container-fluid">
-        <div class="card-header text-left mt-2 mb-1 p-1 bg-secondary">
+        <div class="card-header text-left mt-2 mb-1 p-1 roboto-condensed-regular" style="background: #3e6787">
             <div class="form-inline mt-1 mb-1 p-0">
                 <table>
                     <tr>
@@ -40,14 +40,14 @@
         {#$('#puchase-data-grid').dataTable();#}
 
         $("#id_btn_show").click(function () {
-            if ($("#id_date_initial").val() != '' && $("#id_date_final").val() != '') {
+            if ($("#id_date_initial").val() !== '' && $("#id_date_final").val() !== '') {
                 let pk = 1;
                 let dates = {
                     "date_initial": $('#id_date_initial').val(),
                     "date_final": $('#id_date_final').val(),
                 };
                 $.ajax({
-                    url: '/buys/get_purchase_store_list/',
+                    url: '/buys/buy_order_store_list/',
                     async: true,
                     dataType: 'json',
                     type: 'GET',
@@ -55,7 +55,7 @@
                     contentType: 'application/json;charset=UTF-8',
                     headers: {"X-CSRFToken": '{{ csrf_token }}'},
                     success: function (response, textStatus, xhr) {
-                        if (xhr.status == 200) {
+                        if (xhr.status === 200) {
                             $('#table-list-purchase-store').html(response.form);
                         }
                     },

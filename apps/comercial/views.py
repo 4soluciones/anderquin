@@ -2613,7 +2613,7 @@ def get_output_distributions(request):
             purchases_store = Purchase.objects.filter(subsidiary=subsidiary_obj, status='A',
                                                       purchase_date__range=(
                                                           date_initial, date_final)).distinct('id')
-            tpl = loader.get_template('buys/purchase_store_grid_list.html')
+            tpl = loader.get_template('buys/buy_order_store_grid_list.html')
             context = ({
                 'purchases_store': purchases_store,
             })
@@ -2954,6 +2954,31 @@ def get_correlative_guide_by_subsidiary(subsidiary_obj=None):
     return result
 
 
+def get_store(request):
+    user_id = request.user.id
+    user_obj = User.objects.get(id=user_id)
+    subsidiary_set = Subsidiary.objects.all()
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+    subsidiary_stores = SubsidiaryStore.objects.all()
+    return render(request, 'comercial/get_store.html', {
+        'subsidiary_obj': subsidiary_obj,
+        'subsidiary_stores': subsidiary_stores,
+        'subsidiary_set': subsidiary_set,
+        'categories': SubsidiaryStore._meta.get_field('category').choices,
+    })
+
+
+def new_store(request):
+    if request.method == 'POST':
+        name_store = str(request.POST.get('name-store'))
+        category = request.POST.get('category')
+        subsidiary = request.POST.get('subsidiary')
+        subsidiary_obj = Subsidiary.objects.get(id=int(subsidiary))
+        SubsidiaryStore.objects.create(subsidiary=subsidiary_obj, name=name_store.upper(), category=category)
+        return JsonResponse({
+            'message': 'Almacen registrado correctamente.',
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
 

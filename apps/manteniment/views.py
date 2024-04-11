@@ -259,7 +259,7 @@ def get_purchase_list(request):
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
     purchases = Purchase.objects.filter(subsidiary=subsidiary_obj)
-    return render(request, 'buys/purchase_list.html', {
+    return render(request, 'buys/buy_order_list.html', {
         'purchases': purchases
     })
 
@@ -273,7 +273,7 @@ def get_detail_purchase_store(request):
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
         subsidiary_stores = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj)
-        t = loader.get_template('buys/assignment_detail_purchase.html')
+        t = loader.get_template('buys/assignment_detail_buy_order.html')
         c = ({
             'purchase': purchase_obj,
             'detail_purchase': purchase_details,
