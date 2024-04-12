@@ -1,0 +1,67 @@
+{% load static %}
+<form id="purchase-form" action="{% url 'buys:save_purchase' %}" method="POST">
+    {% csrf_token %}
+    <div class="card roboto-condensed-regular">
+        <div class="row">
+            <div class="col-sm-12 col-md-12 col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row p-1">
+                            <div class="col-sm-6 col-md-6 col-lg-6">
+                                <label for="supplier_id">Seleccione Proveedor:</label>
+                                <select id="supplier_id" name="supplier-id" class="form-control" required>
+                                    <option value="0">Seleccione</option>
+                                    {% for s in supplier_set %}
+                                        <option value="{{ s.id }}">{{ s.name|upper }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-md-6 col-lg-6 purchase-date">
+                                <label for="purchase_date">Fecha de Compra:</label>
+                                <input type="date" class="form-control" id="purchase_date"
+                                       name="purchase-date"
+                                       value="{{ formatdate }}" required>
+                            </div>
+                        </div>
+                        <div class="row p-1">
+                            <div class="col-sm-6 col-md-6 col-lg-6">
+                                <label for="supplier_id">Moneda:</label>
+                                <select id="supplier_id" name="supplier-id" class="form-control" required>
+                                    <option value="0">Seleccione</option>
+                                    {% for s in supplier_set %}
+                                        <option value="{{ s.id }}">{{ s.name|upper }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-md-6 col-lg-6">
+                                <label for="supplier_id">Metodo de Pago:</label>
+                                <select id="supplier_id" name="supplier-id" class="form-control" required>
+                                    <option value="0">Seleccione</option>
+                                    {% for s in supplier_set %}
+                                        <option value="{{ s.id }}">{{ s.name|upper }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row p-1">
+                            <div class="col-sm-6 col-md-6 col-lg-6">
+                                <label for="pay_condition">Condicion de pago:</label>
+                                <input type="text" class="form-control" id="pay_condition"
+                                       name="pay_condition" autocomplete="off"
+                                       placeholder=""
+                                       value="" required>
+                            </div>
+                            <div class="col-sm-6 col-md-6 col-lg-6">
+                                <label for="pay_condition">Observaciones:</label>
+                                <input type="text" class="form-control" id="pay_condition"
+                                       name="pay_condition" autocomplete="off"
+                                       placeholder=""
+                                       value="" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

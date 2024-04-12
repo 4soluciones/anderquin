@@ -1,25 +1,71 @@
 {% extends 'home.html' %}
 {% block title %}
-    coronasoft.dev | Compras
+    Compras
 {% endblock title %}
 
 {% block body %}
-    <div class="row">
-        <div class="card col-sm-12">
-            <div class="card-body" id="render-form">
-                {% include "buys/purchase_create.html" %}
-            </div>
+
+    <div class="card roboto-condensed-regular">
+        <div class="card-header m-1" style="background: #3e6787">
+            <h4 class="roboto-condensed-regular text-white font-weight-bold mt-3 mb-1">
+                <label>REGISTRO DE COMPRAS</label>
+            </h4>
         </div>
     </div>
-    <div class="row mt-4 ml-4">
-        <div class="card col-sm-10">
-            <div class="card-body ">
-                <div class="table-responsive" id="render-table">
-                    {% include "buys/purchase_detail_list.html" %}
+    <div class="card-body pt-1">
+        <div class="row border">
+            <div class="card col-sm-12 p-0">
+                <div class="card-body" id="render-form">
+                    {% include "buys/purchase_header.html" %}
+                </div>
+            </div>
+        </div>
+        <div class="row border">
+            <div class="card col-sm-12 p-0">
+                <div class="card-body ">
+                    <div class="table-responsive" id="render-table">
+                        {% include "buys/purchase_detail.html" %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    </div>
+
+    <style>
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon > i {
+        {#content: "$";#} position: absolute;
+            display: block;
+            transform: translate(0, -50%);
+            top: 50%;
+            pointer-events: none;
+            width: 25px;
+            text-align: center;
+            font-style: normal;
+        }
+
+        .input-icon > input {
+            padding-left: 25px;
+            padding-right: 8px;
+        }
+
+        .input-icon-right > i {
+            right: 0;
+        }
+
+        .input-icon-right > input {
+            padding-left: 0;
+            padding-right: 25px;
+            text-align: right;
+        }
+
+    </style>
+
 {% endblock body %}
 
 
@@ -342,6 +388,7 @@
                 async: true,
                 dataType: 'json',
                 type: 'GET',
+                //mando  id del producto del combo
                 //mando  id del producto del combo
                 data: {'ip': _search},
                 // si va bien retorna la data

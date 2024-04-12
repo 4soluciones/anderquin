@@ -21,7 +21,7 @@ from apps.hrm.views import get_subsidiary_by_user
 from apps.sales.views import kardex_input, kardex_ouput, kardex_initial, calculate_minimum_unit, \
     save_loan_payment_in_cash_flow, Client, ClientAddress, ClientType, ClientAssociate
 from .models import *
-from .views_PDF_purchase_order import query_apis_net_money
+from .views_PDF import query_apis_net_money
 from ..accounting.models import BillPurchase
 from ..comercial.models import GuideMotive
 from ..sales.models import Product, Unit, Supplier, SubsidiaryStore, ProductStore, ProductDetail, Kardex, Cash, \
@@ -487,21 +487,6 @@ def get_detail_purchase_store(request):
             'form': t.render(c, request),
         })
 
-def get_units_by_product(request):
-    if request.method == 'GET':
-        id_product = request.GET.get('ip', '')
-        product_obj = Product.objects.get(pk=int(id_product))
-        units = Unit.objects.filter(productdetail__product=product_obj)
-        units_serialized_obj = serializers.serialize('json', units)
-
-        product_details = ProductDetail.objects.filter(product=product_obj)
-        products_serialized_obj = serializers.serialize('json', product_details)
-
-        return JsonResponse({
-            'units': units_serialized_obj,
-            # 'units': products_serialized_obj,
-        }, status=HTTPStatus.OK)
-
 
 def get_quantity_minimum(request):
     if request.method == 'GET':
@@ -527,30 +512,9 @@ def get_quantity_minimum(request):
             }, status=HTTPStatus.OK)
 
 
-def get_price_by_unit(request):
-    if request.method == 'GET':
-        id_product = request.GET.get('id_product', '')
-        id_unit = request.GET.get('id_unit', '')
-
-        product_obj = Product.objects.get(id=id_product)
-        unit_obj = Unit.objects.get(id=id_unit)
-
-        product_detail = ProductDetail.objects.get(
-            product=product_obj,
-            unit=unit_obj
-        )
-
-        price = product_detail.price_purchase
-        quantity = product_detail.quantity_minimum
-
-        return JsonResponse({
-            'price': price,
-            'quantity': quantity
-        }, status=HTTPStatus.OK)
-
-
 def get_units_product(request):
     id_product = request.GET.get('ip', '')
+    product_obj = Product.objects.get(pk=int(id_product))
     product_obj = Product.objects.get(pk=int(id_product))
     units = Unit.objects.filter(productdetail__product=product_obj)
     units_serialized_obj = serializers.serialize('json', units)
@@ -583,20 +547,6 @@ def update_state_annular_purchase(request):
         'message': 'COMPRA ANULADA CORRECTAMENTE',
 
     }, status=HTTPStatus.OK)
-
-
-def get_details_by_purchase(request):
-    if request.method == 'GET':
-        purchase_id = request.GET.get('ip', '')
-        purchase_obj = Purchase.objects.get(pk=int(purchase_id))
-        details_purchase = PurchaseDetail.objects.filter(purchase=purchase_obj)
-        t = loader.get_template('buys/table_details_purchase_by_purchase.html')
-        c = ({
-            'details': details_purchase,
-        })
-        return JsonResponse({
-            'grid': t.render(c, request),
-        }, status=HTTPStatus.OK)
 
 
 def report_purchases_all(request):
@@ -1933,3 +1883,16 @@ def delete_item_buys(request):
                 'success': False,
                 'message': 'No se puedo obtener el Detalle, Actualice la pag'
             }, status=HTTPStatus.OK)
+
+
+def get_purchase_form(request):
+    if request.method == 'GET':
+        supplier_set = Supplier.objects.all().order_by('id')
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+
+        return render(request, 'buys/purchase_form.html', {
+            'formatdate': formatdate,
+            'supplier_set': supplier_set,
+
+        })

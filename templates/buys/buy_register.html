@@ -1,119 +1,118 @@
+<div class="row p-1">
+    <div class="col-sm-8 col-md-8 col-lg-8">
+        <label for="supplier_id">Proveedor:</label>
+        <select id="supplier_id" name="supplier-id" class="form-control" required>
+            <option value="0">Seleccione</option>
+            {% for s in supplier_set %}
+                <option value="{{ s.id }}">{{ s.name|upper }}</option>
+            {% endfor %}
+        </select>
+    </div>
 
-    <div class="row p-1">
-        <div class="col-sm-8 col-md-8 col-lg-8">
-            <label for="supplier_id">Proveedor:</label>
-            <select id="supplier_id" name="supplier-id" class="form-control" required>
-                <option value="0">Seleccione</option>
-                {% for s in supplier_set %}
-                    <option value="{{ s.id }}">{{ s.name|upper }}</option>
-                {% endfor %}
-            </select>
-        </div>
+    {#        <div class="col-sm-4 col-md-4 col-lg-4 {% if contract_detail_obj is None %}d-none{% endif %}">#}
+    {#            <label for="delivery_date">Fecha de entrega</label>#}
+    {#            <input type="date" class="form-control" id="delivery_date"#}
+    {#                   name="delivery-date"#}
+    {#                   value="{{ contract_detail_obj.date|date:'Y-m-d' }}">#}
+    {#        </div>#}
+    <div class="col-sm-4 col-md-4 col-lg-4 delivery d-none">
+        <label for="delivery_date">Fecha de entrega:</label>
+        <input type="date" class="form-control" id="delivery_date"
+               name="delivery-date"
+               value="{{ formatdate }}">
+    </div>
 
-{#        <div class="col-sm-4 col-md-4 col-lg-4 {% if contract_detail_obj is None %}d-none{% endif %}">#}
-{#            <label for="delivery_date">Fecha de entrega</label>#}
-{#            <input type="date" class="form-control" id="delivery_date"#}
-{#                   name="delivery-date"#}
-{#                   value="{{ contract_detail_obj.date|date:'Y-m-d' }}">#}
-{#        </div>#}
-        <div class="col-sm-4 col-md-4 col-lg-4 delivery d-none">
-            <label for="delivery_date">Fecha de entrega:</label>
-            <input type="date" class="form-control" id="delivery_date"
-                   name="delivery-date"
-                   value="{{ formatdate }}">
-        </div>
+    <div class="col-sm-4 col-md-4 col-lg-4 purchase-date">
+        <label for="id_fechacompra">Fecha:</label>
+        <input type="date" class="form-control" id="id_fechacompra"
+               name="fechacompra"
+               value="{{ formatdate }}" required>
+    </div>
 
-        <div class="col-sm-4 col-md-4 col-lg-4 purchase-date">
-            <label for="id_fechacompra">Fecha:</label>
-            <input type="date" class="form-control" id="id_fechacompra"
-                   name="fechacompra"
-                   value="{{ formatdate }}" required>
-        </div>
+</div>
+<div class="row p-1">
+    <div class="col-sm-4 col-md-4 col-lg-4">
+        <label for="reference">Referencia:</label>
+        <input type="text" class="form-control text-uppercase" id="reference"
+               name="reference" autocomplete="off"
+               placeholder="O/C"
+               value="" required>
+    </div>
+
+    <div class="col-sm-4 col-md-4 col-lg-4">
+        <label for="payment_type">Tipo de pago:</label>
+        <select id="payment_type" class="form-control text-uppercase">
+            <option value="0">Seleccione</option>
+            {% for item in choices_payments_purchase %}
+                <option value="{{ item.0 }}">{{ item.1 }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-sm-4 col-md-4 col-lg-4">
+        <label for="pay_condition">Condicion de pago:</label>
+        <input type="text" class="form-control" id="pay_condition"
+               name="pay_condition" autocomplete="off"
+               placeholder=""
+               value="" required>
 
     </div>
-    <div class="row p-1">
-        <div class="col-sm-4 col-md-4 col-lg-4">
-            <label for="reference">Referencia:</label>
-            <input type="text" class="form-control text-uppercase" id="reference"
-                   name="reference" autocomplete="off"
-                   placeholder="O/C"
-                   value="" required>
-        </div>
 
-        <div class="col-sm-4 col-md-4 col-lg-4">
-            <label for="payment_type">Tipo de pago:</label>
-            <select id="payment_type" class="form-control text-uppercase">
-                <option value="0">Seleccione</option>
-                {% for item in choices_payments_purchase %}
-                    <option value="{{ item.0 }}">{{ item.1 }}</option>
-                {% endfor %}
-            </select>
+    <div class="col-sm-2 col-md-2 col-lg-2 pr-1 pl-1 dues d-none">
+        <label>Monto:</label>
+        <div class="input-group">
+            <input type="number" class="form-control text-right" placeholder="INGRESE MONTO"
+                   aria-label="Recipient's username" aria-describedby="add-dues" id="amount-due">
+            <button class="btn btn-outline-success" type="button" id="add-dues">+</button>
         </div>
-        <div class="col-sm-4 col-md-4 col-lg-4">
-            <label for="pay_condition">Condicion de pago:</label>
-            <input type="text" class="form-control" id="pay_condition"
-                   name="pay_condition" autocomplete="off"
-                   placeholder=""
-                   value="" required>
+    </div>
+</div>
 
-        </div>
+<div class="row p-2 table-dues d-none">
 
-        <div class="col-sm-2 col-md-2 col-lg-2 pr-1 pl-1 dues d-none">
-            <label>Monto:</label>
-            <div class="input-group">
-                <input type="number" class="form-control text-right" placeholder="INGRESE MONTO"
-                       aria-label="Recipient's username" aria-describedby="add-dues" id="amount-due">
-                <button class="btn btn-outline-success" type="button" id="add-dues">+</button>
+    <div class="col-sm-8 col-md-8 col-lg-8 pr-1 pl-1">
+
+    </div>
+    <div class="col-sm-4 col-md-4 col-lg-4 pr-1 pl-1">
+        <div class="table-responsive">
+            <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
+
+                <table id="id_debs_grid"
+                       class="table table-hover table-sm align-content-center table-bordered mb-0"
+                       cellspacing="0" style="width: 100%;">
+                    <thead>
+                    <tr class="text-center text-white text-uppercase" style="background: #1a77c8">
+                        <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Nº cuotas</th>
+                        <th scope="col" class="align-middle font-weight-normal" style="width: 20%;">Monto</th>
+                        <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Eliminar</th>
+                    </tr>
+                    </thead>
+                    <tbody id="details-dues">
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>
-
-    <div class="row p-2 table-dues d-none">
-
-        <div class="col-sm-8 col-md-8 col-lg-8 pr-1 pl-1">
-
-        </div>
-        <div class="col-sm-4 col-md-4 col-lg-4 pr-1 pl-1">
-            <div class="table-responsive">
-                <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
-
-                    <table id="id_debs_grid"
-                           class="table table-hover table-sm align-content-center table-bordered mb-0"
-                           cellspacing="0" style="width: 100%;">
-                        <thead>
-                        <tr class="text-center text-white text-uppercase" style="background: #1a77c8">
-                            <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Nº cuotas</th>
-                            <th scope="col" class="align-middle font-weight-normal" style="width: 20%;">Monto</th>
-                            <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Eliminar</th>
-                        </tr>
-                        </thead>
-                        <tbody id="details-dues">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </div>
 
     </div>
 
+</div>
 
-    <div class="row p-4">
-        <div class="col-sm-4 col-md-4 col-lg-4">
-            <button type="button" id="btn-new"
-                    class="btn btn-sm btn-secondary btn-block p-1">NUEVO
-            </button>
-        </div>
 
-        <div class="col-sm-4 col-md-4 col-lg-4">
-            <button type="button" id="btn-save"
-                    class="btn btn-sm btn-primary btn-block p-1">GUARDAR
-            </button>
-        </div>
-
-        <div class="col-sm-4 col-md-4 col-lg-4">
-            <button type="button" id="btn-add-new-detail"
-                    class="btn btn-sm btn-success btn-block">AGREGAR DETALLE
-            </button>
-        </div>
+<div class="row p-4">
+    <div class="col-sm-4 col-md-4 col-lg-4">
+        <button type="button" id="btn-new"
+                class="btn btn-sm btn-secondary btn-block p-1">NUEVO
+        </button>
     </div>
+
+    <div class="col-sm-4 col-md-4 col-lg-4">
+        <button type="button" id="btn-save"
+                class="btn btn-sm btn-primary btn-block p-1">GUARDAR
+        </button>
+    </div>
+
+    <div class="col-sm-4 col-md-4 col-lg-4">
+        <button type="button" id="btn-add-new-detail"
+                class="btn btn-sm btn-success btn-block">AGREGAR DETALLE
+        </button>
+    </div>
+</div>

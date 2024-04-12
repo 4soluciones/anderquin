@@ -2,7 +2,7 @@ from django.urls import path
 from django.contrib.auth.decorators import login_required
 from apps.buys.views import *
 
-from apps.buys.views_PDF_purchase_order import print_pdf
+from apps.buys.views_PDF import print_pdf
 
 urlpatterns = [
     # path('', login_required(Home.as_view()), name='home'),
@@ -11,10 +11,10 @@ urlpatterns = [
 
     # PURCHASES
     path('get_purchase_annular_list/', get_purchase_annular_list, name='get_purchase_annular_list'),
-    path('get_details_by_purchase/', get_details_by_purchase, name='get_details_by_purchase'),
-    path('get_units_by_product/', get_units_by_product, name='get_units_by_product'),
-    path('get_price_by_unit/', get_price_by_unit, name='get_price_by_unit'),
     path('update_state_annular_purchase/', update_state_annular_purchase, name='update_state_annular_purchase'),
+
+    path('get_purchase_form/', get_purchase_form, name='get_purchase_form'),
+
     path('get_units_product/', get_units_product, name='get_units_product'),
 
     # Report Buys
