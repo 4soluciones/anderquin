@@ -1894,5 +1894,37 @@ def get_purchase_form(request):
         return render(request, 'buys/purchase_form.html', {
             'formatdate': formatdate,
             'supplier_set': supplier_set,
+            'type_options': Purchase._meta.get_field('payment_method').choices,
+        })
 
+
+def get_product(request):
+    if request.method == 'GET':
+        search = request.GET.get('search')
+        product_list = []
+        if search:
+            product_set = Product.objects.filter(name__icontains=search, is_enabled=True).select_related(
+                'product_family', 'product_brand').order_by('id')
+            for c in product_set:
+                item_product_list = {
+                    'id': c.id,
+                    'name': c.name,
+                    'brand': c.product_brand.name,
+                    'unit_dict': [],
+                }
+                if c.productdetail_set.exists():
+                    for pd in c.productdetail_set.all():
+                        item_unit = {
+                            'unit_id': pd.unit.id,
+                            'unit_name': pd.unit.name,
+                            'price_sale': pd.price_sale,
+                            'price_purchase': pd.price_purchase,
+                            'quantity_minimum': pd.quantity_minimum
+                        }
+                        item_product_list.get('unit_dict').append(item_unit)
+                product_list.append(item_product_list)
+
+        return JsonResponse({
+            'status': True,
+            'product': product_list
         })

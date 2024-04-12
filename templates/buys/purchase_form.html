@@ -15,7 +15,7 @@
     <div class="card-body pt-1">
         <div class="row border">
             <div class="card col-sm-12 p-0">
-                <div class="card-body" id="render-form">
+                <div class="card-body" id="render-header">
                     {% include "buys/purchase_header.html" %}
                 </div>
             </div>
@@ -23,17 +23,15 @@
         <div class="row border">
             <div class="card col-sm-12 p-0">
                 <div class="card-body ">
-                    <div class="table-responsive" id="render-table">
+                    <div class="table-responsive" id="render-detail">
                         {% include "buys/purchase_detail.html" %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    </div>
 
     <style>
-
         .input-icon {
             position: relative;
         }
@@ -63,249 +61,202 @@
             padding-right: 25px;
             text-align: right;
         }
-
     </style>
 
 {% endblock body %}
 
 
 {% block extrajs %}
+
     <script type="text/javascript">
 
-        window.onload = function () {
-            var date = new Date(); //Fecha actual
-            var day = date.getDate(); //obteniendo dia
-            var month = date.getMonth() + 1; //obteniendo mes
-            var year = date.getFullYear(); //obteniendo año
-            if (day < 10)
-                day = '0' + day; //agrega cero si el menor de 10
-            if (month < 10)
-                month = '0' + month //agrega cero si el menor de 10
-            document.getElementById('id_fechacompra').value = year + "-" + month + "-" + day;
-        }
-        {#document.ready = document.getElementById("opciones").value = '0';#}
-        $('#id_proveedor').select2({
-            theme: 'bootstrap4',
-        });
-        $('#id_producto').select2({
-            theme: 'bootstrap4',
-        })
-        ;$('#id_delivery').select2({
-            theme: 'bootstrap4',
-        });
-
-        $('#id-sales-reference').select2({
-            theme: 'bootstrap4',
-        });
-        $('#id_address').select2({
-            theme: 'bootstrap4',
-        });
-        $('#id_name').select2({
-            theme: 'bootstrap4',
-        });
-        $('#id_city_address').select2({
-            theme: 'bootstrap4',
-        });
-        $('#id-sales-reference-entity').select2({
-            theme: 'bootstrap4',
-        });
-        /*
-        $('#id-truck').select2({
-            theme: 'bootstrap4',
-        });
-        */
         $("#btn-new").click(function () {
-            limper_form();
+            setTimeout(() => {
+                location.reload()
+            }, 1000);
         });
 
-        function limper_form(request) {
-            $('#id_fechacompra').val('');
-            $("#id_factura").val('');
-            $("#id_entrega").val('');
-            $("#id_payment_condition").val('');
-            $("#id_observation").val('');
-            $('#id_proveedor option').removeAttr('selected');
-            $('#id_proveedor option:first').attr('selected', 'selected');
-            $('#id_proveedor').trigger('change');
-            $('#id_currency option').removeAttr('selected');
-            $('#id_currency option:first').attr('selected', 'selected');
-            $('#id_currency').trigger('change');
-            $('#id_payment_method option').removeAttr('selected');
-            $('#id_payment_method option:first').attr('selected', 'selected');
-            $('#id_payment_method').trigger('change');
-            $('#id-sales-reference option').removeAttr('selected');
-            $('#id-sales-reference option:first').attr('selected', 'selected');
-            $('#id-sales-reference').trigger('change');
-            $('#id-sales-reference-entity option').removeAttr('selected');
-            $('#id-sales-reference-entity option:first').attr('selected', 'selected');
-            $('#id-sales-reference-entity').trigger('change');
-            /*$('#id_delivery option').removeAttr('selected');
-            $('#id_delivery option:first').attr('selected', 'selected');
-            $('#id_delivery').trigger('change');*/
+        $(document).on('change', '#money_type', function (e) {
+            let type_money = $(this).val();
+            if (type_money === 'D') {
+                $(".change-money").text('$')
+            } else {
+                $(".change-money").text('S/')
+            }
+        });
 
-            document.getElementById("id-tr-reference").hidden = true;
-            document.getElementById("id-tr-reference-entity").hidden = true;
-            document.getElementById("id_address_add").hidden = true;
-        };
+        $(document).on('click', '#btn-add-new-detail', function () {
 
-        function limper(request) {
-            $('#id_cantidad').val('');
-            $('#id_preciounitario').val('');
-            $('#id_cantidad_unidad').val('');
-            $('#id_producto option').removeAttr('selected');
-            $('#id_producto option:first').attr('selected', 'selected');
-            $('#id_producto').trigger('change');
-            $("#id_unidad").empty().append('<option>Seleccione</option>');
+            let type_money = $("#money_type").val();
+            let _val_money = 'S/'
 
-            {#$('#id_producto option[value=0]').attr('selected','selected');#}
-            {#$('#id_unidad option[value=0]').attr('selected','selected');#}
-        };
+            if (type_money === 'D') {
+                _val_money = '$'
+            }
 
-        function limper_reference(request) {
-            $('#id_razon_social').val('');
-            $('#id_ruc').val('');
-            $('#id_direccion').val('');
-            $('#id_is_private option').removeAttr('selected');
-            $('#id_is_private option:first').attr('selected', 'selected');
-            $('#id_is_private').trigger('change');
-        };
+            $('#detail_purchase > tbody').append(
+                '<tr>' +
+                '<td class="item-number align-middle text-center">' + '</td>' +
+                '<td class="align-middle text-left product-item-table">' +
+                '<input type="text" aria-label="" class="form-control text-uppercase product-table dropdown-toggle"' +
+                'data-toggle="dropdown" aria-expanded="false"' +
+                'placeholder="Ingrese un producto...">' +
+                '<div class="dropdown-menu"></div>' +
+                '</td>' +
+                '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">' +
+                '</td>' +
+                '<td class="align-middle unit text-center">' +
+                '<select class="form-control unit-product text-center" id="id_unit_product" name="unit_product" required>' +
+                '<option value="0">Seleccione</option>' +
+                '</td>' +
+                '<td class="align-middle quantity-minimum text-center">' +
+                '<input type="text" class="form-control text-center quantity-minimum-val">' +
+                '</td>' +
+                '<td class="item-price text-right align-middle">' + '<div class="input-icon">' +
+                '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' +
+                '</td>' +
+                '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
+                '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' +
+                '</td>' +
+                '<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                '</tr>');
+            counter()
+        });
 
-        function limper_reference_entity(request) {
-            $('#id_name option').removeAttr('selected');
-            $('#id_name option:first').attr('selected', 'selected');
-            $('#id_name').trigger('change');
-            $('#id_city_address option').removeAttr('selected');
-            $('#id_city_address option:first').attr('selected', 'selected');
-            $('#id_city_address').trigger('change');
-            $('#id_direccion_entity').val('');
-        };
+        function deleteItem(btn) {
+            btn.parentNode.parentNode.remove();
+            counter();
+        }
 
-        $("#id_add").click(function () {
+        function counter() {
+            let l = 1;
+            $('#details-table tr').each(function () {
+                $(this).attr('i', l);
+                $(this).children('td:nth-child(1)').text(l);
+                l++;
+            });
+        }
 
-            let id_product = $('#id_producto').val();
-            let name_product = $('#id_producto option:selected').text();
-            let quantity = parseFloat($('#id_cantidad').val());
-            let id_unit = $('#id_unidad').val();
-            let name_unit = $('#id_unidad option:selected').text();
-            let price_unit = parseFloat($('#id_preciounitario').val());
-            let quantity_um = parseInt($('#id_cantidad_unidad').val());
-            if (id_product > 0 && quantity > 0 && id_unit > 0 && price_unit > 0 && quantity_um > 0) {
-                if ($("#id_detail_data_grid tr[product=" + id_product + "]").length) {
-                    toastr.warning('PRODUCTO YA SELECCIONADO, SELECCIONE OTRO.!');
+        $(document).on('focusin', '.product-table', function (e) {
+            let _menu = $(this).parent('td').find('div.dropdown-menu');
+            _menu.empty();
+            _menu.removeClass('show')
+            _menu.prop('aria-expanded', false);
+            _menu.css({
+                'background-color': 'transparent',
+                'border': 'transparent',
+            })
+            //$(this).val(' ');
+            /*let _tr = $(this).parent('td').parent('tr')
+            let _select = _tr.find('td.unit select.unit-product');
+            let option = $('<option>').val(0).text('Seleccione');
+            console.log("input", $(this).val())
+            if ($(this).val() !== '') {
+                _select.empty();
+                _select.append(option);
+                $(this).parent('td').find('div.dropdown-menu').css({
+                    'background-color': 'transparent',
+                    'border': 'transparent',
+                })
+            }*/
+            //$(this).parent('td').find('div.dropdown-menu').empty();
+
+        });
+
+        $(document).on('keypress', '.product-table', function (e) {
+
+            $(this).parent('td').find('div.dropdown-menu').empty();
+            let _select_unit = $(this).parent('td').parent('tr').find('td.unit select.unit-product');
+            let _select_quantity_unit = $(this).parent('td').parent('tr').find('td.item-quantity-x-unit select.quantity-unit');
+            let _input = $(this)
+            let _td = $(this).parent('td')
+            let _menu = _td.find('.dropdown-menu')
+            _menu.addClass('show');
+            if (e.keyCode === 13) {
+                e.preventDefault()
+                $(this).trigger("enterKey");
+                let _product_name = $(this).val();
+                if (_product_name.length > 3) {
+                    $.ajax({
+                        url: '/buys/get_product_by_criteria_table/',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        data: {
+                            'value': _product_name,
+                        },
+                        contentType: 'application/json;charset=UTF-8',
+                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                        success: function (response, textStatus, xhr) {
+                            if (xhr.status === 200) {
+                                _select_unit.empty()
+                                _select_quantity_unit.empty()
+                                //console.log(response.productList[0].unit_dict)
+                                let _unit_dict = response.productList[0].unit_dict
+                                let list = response.productList;
+                                _input.prop('aria-expanded', true);
+                                _menu.css({
+                                    'background-color': '#fff',
+                                    'border': '1px solid rgba(0,0,0,.15)',
+                                    'position': 'absolute',
+                                    'transform': 'translate3d(117px, 92px, 0px)',
+                                    'top': '0x',
+                                    'left': '0px',
+                                    'will_change': 'transform'
+                                });
+
+                                for (let i = 0; i < list.length; i++) {
+                                    let unit_dict = JSON.stringify(list[i].unit_dict)
+                                    //console.log(JSON.stringify(list[i].unit_dict, null, 2))
+                                    _menu.append(`<a class="dropdown-item product-item" unit='${unit_dict}'  brand="${list[i].brand}" href="#" data-id="${list[i].id}">${list[i].name} - ${list[i].brand}</a>`)
+                                }
+                            }
+                        },
+                        error: function (jqXhr, textStatus, xhr) {
+                            if (jqXhr.status === 500) {
+                                toastr.error(jqXhr.responseJSON.error, 'Mensaje');
+                            } else {
+                                if (textStatus === 'timeout') {
+                                    toastr.error('Failed from timeout', 'Mensaje');
+                                } else {
+                                    console.log(" STATUS: " + xhr + " " + textStatus);
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    toastr.warning('Para la busqueda ingrese minimo 3 caracteres', 'Error de llenado');
                     return false;
                 }
-                $('#id_detail_data_grid').append(
-                    '<tr product="' + id_product + '">' +
-                    '<td class="item-numero">' + '</td>' +
-                    '<td class="text-center">' + '</td>' +
-                    '<td>' + name_product + '</td>' +
-                    '<td class="item-unit text-center" pu="' + id_unit + '">' + name_unit + ' x ' + quantity_um + '</td>' +
-                    '<td class="text-center" pu="' + id_unit + '">' + quantity + '</td>' +
-                    '<td class="item-quantity  text-right">' + parseInt(quantity * quantity_um) + '</td>' +
-                    '<td class="item-price text-right">' + price_unit.toFixed(6) + '</td>' +
-                    '<td class="text-right">' + (quantity * price_unit * quantity_um).toFixed(2) + '</td>' +
-                    {#'<td class="text-center">' + '<button type="button" onclick="deleteItem(' + id_product + ')" class="btn btn-sm delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +#}
-                    '<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(' + id_product + ')" class="btn btn-success delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
-                    '</tr>'
-                );
-                //$index++;
-                limper()
-                counterStrike()
-                toastr.info('PRODUCTO AGREGADO', '¡MENSAJE!');
-
-
-            } else {
-                {#toastr.succes('info messages');#}
-                toastr.warning('POR FAVOR, COMPLETE TODO LOS CAMPOS!');
-            }
-
-        });
-        $("#id_add_reference").click(function () {
-
-            let business_name = $('#id_razon_social').val();
-            let ruc = $('#id_ruc').val();
-            let is_private = $('#id_is_private').val();
-
-            if (business_name && ruc && is_private) {
-                $.ajax({
-                    url: '/buys/add_reference/',
-                    async: true,
-                    dataType: 'json',
-                    type: 'GET',
-                    // registra nuevo referencia de venta
-                    data: {
-                        'business_name': business_name,
-                        'ruc': ruc,
-                        'is_private': is_private
-                    },
-                    // si va bien retorna la data
-                    success: function (response) {
-                        toastr.success('REFERENCIA AGREGADA CORRECTAMENTE!');
-                        const $select = document.querySelector("#id-sales-reference");
-                        const option = document.createElement('option');
-                        option.value = response.id;
-                        option.text = response.business_name;
-                        $select.appendChild(option);
-
-                        const $select2 = document.querySelector("#id-sales-reference-entity");
-                        const option2 = document.createElement('option');
-                        option2.value = response.id;
-                        option2.text = response.business_name
-                        $select2.appendChild(option2)
-
-                        limper_reference();
-                    },
-                });
-
-
-            } else {
-                {#toastr.succes('info messages');#}
-                toastr.warning('POR FAVOR, COMPLETE TODO LOS CAMPOS!');
             }
         });
 
 
-        $("#id_add_address_entity").click(function () {
+        $(document).on('click', '.product-item', function (e) {
 
-            let name_id = $('#id_name').val();
-            let city_id = $('#id_city_address').val();
-            let address = $('#id_direccion_entity').val();
-
-            if (name_id && city_id && address) {
-                $.ajax({
-                    url: '/buys/add_address_entity/',
-                    async: true,
-                    dataType: 'json',
-                    type: 'GET',
-                    // registra nuevo referencia de venta
-                    data: {
-                        'name_id': name_id,
-                        'city_id': city_id,
-                        'address': address,
-                    },
-                    // si va bien retorna la data
-                    success: function (response) {
-
-                        toastr.success('DIRECCION AÑADIDA CORRECTAMENTE!');
-                        {#const $select = document.querySelector("#id_client_group");#}
-                        {#const option = document.createElement('option');#}
-                        {#option.value = `c-${response.id}`;#}
-                        {#option.text = response.address;#}
-                        {#$select.appendChild(option);#}
-
-                        $('#id-sales-reference option').removeAttr('selected');
-                        $('#id-sales-reference option:first').attr('selected', 'selected');
-                        $('#id-sales-reference').trigger('change');
-
-                        limper_reference_entity();
-                    },
-                });
-            } else {
-                {#toastr.succes('info messages');#}
-                toastr.warning('POR FAVOR, COMPLETE TODO LOS CAMPOS!');
+            let _product_id = $(this).attr('data-id');
+            let _unit_dict = $(this).attr('unit');
+            let _product_name = $(this).text();
+            let _menu = $(this).parent('div.dropdown-menu');
+            let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
+            let _td = $(this).parent('div.dropdown-menu').parent('td')
+            let _select_unit = _tr.find('td.unit select.unit-product');
+            //let _select_unit_quantity = _tr.find('td.item-quantity-x-unit select.quantity-unit');
+            _tr.attr('product', _product_id);
+            _td.find('input.product-table').val(_product_name);
+            _select_unit.append($('<option>').val(0).text('Seleccione'));
+            let units = JSON.parse(_unit_dict);
+            //console.log(units)
+            for (let i = 0; i < units.length; i++) {
+                let _quantity_minimum = Number(units[i].quantity_minimum).toFixed(0);
+                let option = $('<option>')
+                    .val(units[i].unit_id)
+                    .text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')')
+                    .attr('qm', _quantity_minimum);
+                _select_unit.append(option);
             }
+            _menu.empty()
         });
-
 
         $('#purchase-form').submit(function (event) {
             event.preventDefault();
@@ -339,12 +290,7 @@
                     Detail_purchase.Details.push(detailObj);
 
                 });
-
-                {#console.log(JSON.stringify(Detail_purchase));#}
-                {#alert('llego la hora de guardar.');#}
-
                 $.ajax({
-
                     url: '/buys/save_purchase/',
                     async: true,
                     dataType: 'json', // for response
@@ -377,251 +323,6 @@
             }
         });
 
-        $('#id_producto').change(function () {
-            //recupera el id_dela opcion seleccionada
-            let _search = $(this).val();
-            //vacia el combo-borra opciones
-            $('#id_unidad').empty();
-
-            $.ajax({
-                url: '/buys/get_units_by_product/',
-                async: true,
-                dataType: 'json',
-                type: 'GET',
-                //mando  id del producto del combo
-                //mando  id del producto del combo
-                data: {'ip': _search},
-                // si va bien retorna la data
-                success: function (response) {
-                    //le da formato array
-                    let units = JSON.parse(response['units']);
-                    units.forEach(
-                        element =>
-                            $('#id_unidad').append(
-                                '<option value="' + element['pk'] + '">' + element['fields']['name'] + '</option>')
-                    )
-                },
-            });
-        });
-
-        $('#id_unidad').change(function () {
-            //recupera el id_dela opcion seleccionada
-            let _search = $(this).val();
-            let id_product = document.getElementById('id_producto').value
-
-            $.ajax({
-                url: '/buys/get_price_by_unit/',
-                async: true,
-                dataType: 'json',
-                type: 'GET',
-                //mando  id del producto del combo
-                data: {
-                    'id_unit': _search,
-                    'id_product': id_product,
-                },
-                // si va bien retorna la data
-                success: function (response) {
-                    document.getElementById('id_preciounitario').value = response.price;
-                    document.getElementById('id_cantidad_unidad').value = parseInt(response.quantity);
-                },
-            });
-        });
-
-        $('#id_proveedor').change(function () {
-            //recupera el id_dela opcion seleccionada
-            let supplier_id = $(this).val();
-
-            $.ajax({
-                url: '/buys/is_supplier_reference/',
-                async: true,
-                dataType: 'json',
-                type: 'GET',
-                //mando  id del producto del combo
-                data: {'supplier_id': supplier_id},
-                // si va bien retorna la data
-                success: function (response) {
-                    if (response.status) {
-                        {#document.getElementById('id-tr-reference').style.visibility = "visible"; // visible#}
-                        {#document.getElementById('id-tr-reference-entity').style.visibility = "visible"; // visible#}
-                        document.getElementById("id-tr-reference").hidden = false;
-                        document.getElementById("id-tr-supplier-order").hidden = false;
-                        {#document.getElementById("id-tr-delivery").hidden = true;#}
-                        {#document.getElementById("id-tr-reference-entity").hidden = false;#}
-                    } else {
-                        {#document.getElementById('id-tr-reference').style.visibility = "hidden"; // hide#}
-                        {#document.getElementById('id-tr-reference-entity').style.visibility = "hidden"; // hide#}
-                        document.getElementById("id-tr-reference").hidden = true;
-                        document.getElementById("id-tr-supplier-order").hidden = true;
-                        document.getElementById("id-tr-delivery").hidden = false;
-
-                        get_addresses_supplier(supplier_id);
-
-                        {#document.getElementById("id-tr-reference-entity").hidden = true;#}
-                    }
-                },
-            });
-        });
-
-
-        $('#id-sales-reference').change(function () {
-            //recupera el id_dela opcion seleccionada
-            let entity_id = $(this).val();
-            let supplier_id = document.getElementById('id_proveedor').value
-
-            {#console.log(_search)#}
-
-            $.ajax({
-                url: '/buys/is_entity_private/',
-                async: true,
-                dataType: 'json',
-                type: 'GET',
-                //mando  id del producto del combo
-                data: {'entity_id': entity_id, 'supplier_id': supplier_id},
-                // si va bien retorna la data
-                success: function (response) {
-                    if (response.status) {
-                        {#document.getElementById('id-tr-reference').style.visibility = "visible"; // visible#}
-                        {#document.getElementById('id-tr-reference-entity').style.visibility = "visible"; // visible#}
-                        {#document.getElementById("id-tr-reference").hidden = false;#}
-                        document.getElementById("id-tr-reference-entity").hidden = false;
-                    } else {
-                        {#document.getElementById('id-tr-reference').style.visibility = "hidden"; // hide#}
-                        {#document.getElementById('id-tr-reference-entity').style.visibility = "hidden"; // hide#}
-                        {#document.getElementById("id-tr-reference").hidden = true;#}
-                        document.getElementById("id-tr-reference-entity").hidden = true;
-                    }
-
-                    document.getElementById("id-tr-delivery").hidden = false;
-                    document.getElementById("id_address_add").hidden = false;
-
-
-                    $('#id_delivery option').removeAttr('selected');
-                    $('#id_delivery option:first').attr('selected', 'selected');
-                    $('#id_delivery').trigger('change');
-                    $('#id-sales-reference-entity option').removeAttr('selected');
-                    $('#id-sales-reference-entity option:first').attr('selected', 'selected');
-                    $('#id-sales-reference-entity').trigger('change');
-
-                    {#get_addresses_by_client_supplier_id(entity_id, supplier_id);#}
-                    get_addresses_client(entity_id);
-                    get_addresses_supplier(supplier_id);
-                    get_entities();
-                },
-            });
-        });
-
-        function get_addresses_client(entity_id) {
-
-            let padre_1 = document.getElementById("id_client_group"); //obteniendo el elemento padre
-
-            padre_1.innerHTML = ''; //estableciendo el contenido HTML del elemento padre como una cadena vacía para eliminar todas las etiquetas hijas
-            if ($("#id_delivery").hasClass('select2-hidden-accessible')) {
-                $("#id_delivery").select2("destroy");
-                $("#id_delivery").select2();
-            }
-
-            $.ajax({
-                url: '/buys/get_addresses_client/',
-                async: true,
-                dataType: 'json',
-                type: 'GET',
-                //mando  id del producto del combo
-                data: {'entity_id': entity_id},
-                // si va bien retorna la data
-                success: function (response) {
-
-                    let addresses_client = response.addresses_client;
-
-                    for (var id in addresses_client) {
-                        const opt = document.createElement("option"); // <option></option>
-                        opt.textContent = addresses_client[id]
-                        opt.value = `c-${id}`
-                        padre_1.appendChild(opt)
-                    }
-                },
-            });
-
-        }
-
-        function get_addresses_supplier(supplier_id) {
-
-            let padre_2 = document.getElementById("id_supplier_group"); //obteniendo el elemento padre
-
-            padre_2.innerHTML = '';
-            if ($("#id_delivery").hasClass('select2-hidden-accessible')) {
-                $("#id_delivery").select2("destroy");
-                $("#id_delivery").select2();
-            }
-
-            $.ajax({
-                url: '/buys/get_addresses_supplier/',
-                async: true,
-                dataType: 'json',
-                type: 'GET',
-                //mando  id del producto del combo
-                data: {'supplier_id': supplier_id},
-                // si va bien retorna la data
-                success: function (response) {
-
-                    let addresses_supplier = response.addresses_supplier;
-
-                    for (var id in addresses_supplier) {
-                        const opt = document.createElement("option"); // <option></option>
-                        opt.textContent = addresses_supplier[id]
-                        opt.value = `p-${id}`
-                        padre_2.appendChild(opt)
-                    }
-                },
-            });
-
-        }
-
-        function get_entities() {
-            let padre_1 = document.getElementById("id_name"); //obteniendo el elemento padre
-
-            padre_1.innerHTML = '';
-            if ($("#id_name").hasClass('select2-hidden-accessible')) {
-                $("#id_name").select2("destroy");
-                $("#id_name").select2();
-            }
-            $.ajax({
-                url: '/buys/get_entities/',
-                async: true,
-                dataType: 'json',
-                type: 'GET',
-                //mando  id del producto del combo
-                data: {},
-                // si va bien retorna la data
-                success: function (response) {
-                    let entities = response.entities;
-
-                    for (var id in entities) {
-                        const opt = document.createElement("option"); // <option></option>
-                        opt.textContent = entities[id]
-                        opt.value = id
-                        padre_1.appendChild(opt)
-                    }
-                },
-            });
-        }
-
-        //Bonton eliminar fila
-        function deleteItem($id) {
-            $('#details').find("tr[product=" + $id + "]").remove();
-            counterStrike();
-        }
-
-        // reasigna numero de fila a los detalles
-        function counterStrike() {
-            let l = 1;
-            $('#details tr').each(function () {
-                $(this).attr('i', l);
-                $(this).children('td:nth-child(2)').text(l);
-                l++;
-            });
-
-        }
-
-
     </script>
+
 {% endblock extrajs %}

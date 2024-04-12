@@ -12,8 +12,9 @@ urlpatterns = [
     # PURCHASES
     path('get_purchase_annular_list/', get_purchase_annular_list, name='get_purchase_annular_list'),
     path('update_state_annular_purchase/', update_state_annular_purchase, name='update_state_annular_purchase'),
+    path('get_product/', get_product, name='get_product'),
 
-    path('get_purchase_form/', get_purchase_form, name='get_purchase_form'),
+    path('purchases/', get_purchase_form, name='purchases'),
 
     path('get_units_product/', get_units_product, name='get_units_product'),
 

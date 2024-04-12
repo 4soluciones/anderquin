@@ -7,54 +7,84 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="row p-1">
+                            <div class="col-sm-3 col-md-3 col-lg-3">
+                                <label for="document_type">Tipo de Documento:</label>
+                                <select id="document_type" name="document-type" class="form-control" required>
+                                    <option selected disabled value="0">Seleccione</option>
+                                    <option value="T">TICKET</option>
+                                    <option value="B">BOLETA</option>
+                                    <option value="F">FACTURA</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-3 col-md-3 col-lg-3">
+                                <label for="document_number">Numero de Documento:</label>
+                                <input type="text" class="form-control" id="document_number"
+                                       name="document-number" autocomplete="off"
+                                       placeholder="Ejem: F001-001">
+                            </div>
+                            <div class="col-sm-3 col-md-3 col-lg-3">
+                                <label for="way_to_pay">Metodo de Pago:</label>
+                                <select id="way_to_pay" name="way-to-pay" class="form-control" required>
+                                    {% for t in type_options %}
+                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-sm-3 col-md-3 col-lg-3">
+                                <label for="money_type">Moneda:</label>
+                                <select id="money_type" name="money-type" class="form-control" required>
+                                    <option value="S">SOLES</option>
+                                    <option value="D">DOLARES</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row p-1">
                             <div class="col-sm-6 col-md-6 col-lg-6">
                                 <label for="supplier_id">Seleccione Proveedor:</label>
-                                <select id="supplier_id" name="supplier-id" class="form-control" required>
+                                <select id="supplier_id" name="supplier" class="form-control" required>
                                     <option value="0">Seleccione</option>
                                     {% for s in supplier_set %}
                                         <option value="{{ s.id }}">{{ s.name|upper }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-sm-6 col-md-6 col-lg-6 purchase-date">
+                            <div class="col-sm-3 col-md-3 col-lg-3 purchase-date">
                                 <label for="purchase_date">Fecha de Compra:</label>
                                 <input type="date" class="form-control" id="purchase_date"
                                        name="purchase-date"
                                        value="{{ formatdate }}" required>
                             </div>
-                        </div>
-                        <div class="row p-1">
-                            <div class="col-sm-6 col-md-6 col-lg-6">
-                                <label for="supplier_id">Moneda:</label>
-                                <select id="supplier_id" name="supplier-id" class="form-control" required>
-                                    <option value="0">Seleccione</option>
-                                    {% for s in supplier_set %}
-                                        <option value="{{ s.id }}">{{ s.name|upper }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-sm-6 col-md-6 col-lg-6">
-                                <label for="supplier_id">Metodo de Pago:</label>
-                                <select id="supplier_id" name="supplier-id" class="form-control" required>
-                                    <option value="0">Seleccione</option>
-                                    {% for s in supplier_set %}
-                                        <option value="{{ s.id }}">{{ s.name|upper }}</option>
-                                    {% endfor %}
-                                </select>
+                            <div class="col-sm-3 col-md-3 col-lg-3 purchase-date">
+                                <label for="issue_date">Fecha de Emisión:</label>
+                                <input type="date" class="form-control" id="issue_date"
+                                       name="issue-date"
+                                       value="{{ formatdate }}" required>
                             </div>
                         </div>
                         <div class="row p-1">
-                            <div class="col-sm-6 col-md-6 col-lg-6">
-                                <label for="pay_condition">Condicion de pago:</label>
-                                <input type="text" class="form-control" id="pay_condition"
-                                       name="pay_condition" autocomplete="off"
-                                       placeholder=""
-                                       value="" required>
+                            <div class="col-sm-2 col-md-2 col-lg-2">
+                                <label for="btn-save">&nbsp;</label>
+                                <button type="button" id="btn-save"
+                                        class="btn btn-success btn-block">GUARDAR COMPRA
+                                </button>
                             </div>
+                            <div class="col-sm-2 col-md-2 col-lg-2">
+                                <label for="btn-new">&nbsp;</label>
+                                <button type="button" id="btn-new"
+                                        class="btn btn-secondary btn-block">NUEVO
+                                </button>
+                            </div>
+                            <div class="col-sm-2 col-md-2 col-lg-2">
+                                <label for="btn-add-new-detail">&nbsp;</label>
+                                <button type="button" id="btn-add-new-detail"
+                                        class="btn btn-block text-white" style="background: #3e6787">AGREGAR DETALLE
+                                </button>
+                            </div>
+
                             <div class="col-sm-6 col-md-6 col-lg-6">
-                                <label for="pay_condition">Observaciones:</label>
-                                <input type="text" class="form-control" id="pay_condition"
-                                       name="pay_condition" autocomplete="off"
+                                <label for="observation">Observaciones:</label>
+                                <input type="text" class="form-control" id="observation"
+                                       name="observation" autocomplete="off"
                                        placeholder=""
                                        value="" required>
                             </div>
