@@ -138,7 +138,7 @@ pdfmetrics.registerFont(TTFont('allerta_medium', 'allerta_medium.ttf'))
 # pdfmetrics.registerFont(TTFont('Romanesque_Serif', 'Romanesque Serif.ttf'))
 
 
-LOGO = "static/assests/img/logo-anderquin.png"
+LOGO = "static/assets/avatar/logo-anderquin-original.png"
 
 MONTH = (
     "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE",
