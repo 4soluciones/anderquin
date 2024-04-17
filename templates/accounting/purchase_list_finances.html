@@ -196,6 +196,133 @@
             }
         });
 
+        $(document).on('click', '#btn-save-bill', function (e) {
+
+            let supplier_id = $("#supplier_id");
+            let purchases = $("#purchase_id");
+            let bill_date = $('#bill_date');
+            let bill_date_expiration = $('#bill_date_expiration');
+            let bill_serial = $('#bill_serial');
+            let bill_correlative = $('#bill_correlative');
+            let bill_address = $('#bill_delivery_address');
+            let bill_order_number = $('#order_number');
+            let bill_purchases_numbers = $('#purchases_numbers');
+
+            let bill_total_base = $('.total-base-bill');
+            let bill_igv = $('.total-igv-bill');
+            let bill_total = $('.total-bill');
+
+            let quantity_total = $('#quantity_total');
+
+            if (bill_serial.val() === '') {
+                toastr.warning('¡Ingresar la serie la de Factura!', 'Error de Datos');
+                return false;
+            }
+            if (bill_correlative.val() === '') {
+                toastr.warning('¡Ingresar el correlativo de la Factura!', 'Error de Datos');
+                return false;
+            }
+            if (bill_order_number.val() === '') {
+                toastr.warning('¡Ingresar el numero de pedido!', 'Error de Datos');
+                return false;
+            }
+
+            if (checkQuantity() === true) {
+                let previousTotal = parseFloat($('#current_total').val());
+                if (bill_total.val() > previousTotal + 2 || bill_total.val() < previousTotal - 2) {
+                    toastr.warning('¡El valor no puede estar fuera del rango +2 y -2!, favor de corregir', 'Mensaje');
+                    return false;
+                }
+            }
+
+            let Bill = {
+                "supplier_id": supplier_id.val(),
+
+                "purchase_id": purchases.val(),
+                "bill_date": bill_date.val(),
+                "bill_date_expiration": bill_date_expiration.val(),
+                'bill_serial': bill_serial.val(),
+                'bill_correlative': bill_correlative.val(),
+                'bill_delivery_address': bill_address.val(),
+                'bill_order_number': bill_order_number.val(),
+
+                'bill_total_base': bill_total_base.val(),
+                'bill_igv': bill_igv.val(),
+                'bill_total': bill_total.val(),
+
+                'bill_quantity': quantity_total.val(),
+                'billPurchases': []
+            };
+            $('#bill-details tr').each(function () {
+                let details = {
+                    'purchaseDetailID': $(this).attr('detail'),
+                    'purchaseQuantity': $(this).find('td.item-quantity input.quantity-invoice').val(),
+                    'invoiceQuantity': $(this).find('td.item-quantity input.quantity-purchased').val()
+                };
+                Bill.billPurchases.push(details)
+            })
+            console.log(Bill)
+            let purchases_array = JSON.parse(purchases.val())
+            $.ajax({
+                url: '/accounting/save_bill/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                cache: false,
+                data: {'Bill': JSON.stringify(Bill)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": ' {{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (response.success) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        $('#body-finances tr').each(function () {
+                            let row = $(this);
+                            let pk = row.attr('pk');
+                            for (let i = 0; i < purchases_array.length; i++) {
+                                if (parseInt(pk) === parseInt(purchases_array[i])) {
+                                    row.remove();
+                                }
+                            }
+                        });
+                        $('#modal-bill-create').modal('hide');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    console.log(jqXhr);
+                    toastr.error('Error', '¡Ocurrio un error!');
+                    $('#container-loading').css('display', 'none');
+                }
+            });
+        });
+
+        $(document).on('click', '.bill-cancel', function (e) {
+            let _bill_id = $(this).attr("pk")
+            let r = confirm("¿Está seguro que desea eliminar la factura?");
+            if (r === true) {
+                $.ajax({
+                    url: '/accounting/cancel_bill/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    cache: false,
+                    data: {'bill': _bill_id},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": ' {{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (response.success) {
+                            toastr.success(response.message, '¡Bien hecho!');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        }
+                        else {
+                            toastr.error(response.message, 'ERROR DE ANULACION');
+                        }
+                    }
+                });
+            }
+        });
+
     </script>
 
 {% endblock extrajs %}

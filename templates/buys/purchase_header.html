@@ -7,21 +7,29 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="row p-1">
-                            <div class="col-sm-3 col-md-3 col-lg-3">
+                            <div class="col-sm-2 col-md-2 col-lg-2">
                                 <label for="document_type">Tipo de Documento:</label>
                                 <select id="document_type" name="document-type" class="form-control" required>
                                     <option selected disabled value="0">Seleccione</option>
                                     <option value="T">TICKET</option>
                                     <option value="B">BOLETA</option>
-
                                     <option value="F">FACTURA</option>
                                 </select>
                             </div>
-                            <div class="col-sm-3 col-md-3 col-lg-3">
+                            <div class="col-sm-2 col-md-2 col-lg-2">
                                 <label for="document_number">Numero de Documento:</label>
                                 <input type="text" class="form-control" id="document_number"
                                        name="document-number" autocomplete="off"
                                        placeholder="Ejem: F001-001">
+                            </div>
+                            <div class="col-sm-2 col-md-2 col-lg-2">
+                                <label for="store_id">Asignar Almacén:</label>
+                                <select id="store_id" name="store-id" class="form-control" required>
+                                    <option selected value="0">SIN ALMACÉN</option>
+                                    {% for s in stores %}
+                                        <option value="{{ s.id }}">{{ s.name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="col-sm-3 col-md-3 col-lg-3">
                                 <label for="way_to_pay">Metodo de Pago:</label>
@@ -65,7 +73,7 @@
                         <div class="row p-1">
                             <div class="col-sm-2 col-md-2 col-lg-2">
                                 <label for="btn-save">&nbsp;</label>
-                                <button type="button" id="btn-save"
+                                <button type="submit" id="btn-save"
                                         class="btn btn-success btn-block">GUARDAR COMPRA
                                 </button>
                             </div>
@@ -87,7 +95,7 @@
                                 <input type="text" class="form-control" id="observation"
                                        name="observation" autocomplete="off"
                                        placeholder=""
-                                       value="" required>
+                                       value="">
                             </div>
                         </div>
                     </div>

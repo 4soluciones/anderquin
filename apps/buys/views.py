@@ -340,9 +340,9 @@ def save_detail_buy_order_store(request):
             sold_quantity_principal = d['SoldQuantityPrincipal']
             sold_quantity_units = d['SoldQuantityUnit']
             sold_order_id = d['SoldOrderId']
-            order_sale_obj = Order.objects.get(id=int(sold_order_id))
-
+            order_sale_obj=None
             if sold_quantity_principal != 0 and sold_quantity_principal != '':
+                order_sale_obj = Order.objects.get(id=int(sold_order_id))
                 PurchaseDetail.objects.create(quantity=sold_quantity_principal, price_unit=price_purchase,
                                               unit=unit_obj,
                                               product=product_obj, status_quantity='V', purchase=purchase_store_obj,
@@ -1895,6 +1895,7 @@ def get_purchase_form(request):
             'formatdate': formatdate,
             'supplier_set': supplier_set,
             'type_options': Purchase._meta.get_field('payment_method').choices,
+            'stores': SubsidiaryStore.objects.all()
         })
 
 
@@ -1928,3 +1929,107 @@ def get_product(request):
             'status': True,
             'product': product_list
         })
+
+
+@csrf_exempt
+def create_purchase(request):
+    if request.method == 'POST':
+        _document = request.POST.get('document-type', '')
+        _document_number = request.POST.get('document-number', '')
+        _supplier = request.POST.get('supplier', '')
+        _store_id = request.POST.get('store-id', '')
+        _way_to_pay = request.POST.get('way-to-pay', '')
+        _money_type = request.POST.get('money-type', '')
+        _purchase_date = request.POST.get('purchase-date', '')
+        _issue_date = request.POST.get('issue-date', '')
+        _observation = request.POST.get('observation', '')
+        _base_total = request.POST.get('base-total', '')
+        _igv_total = request.POST.get('igv-total', '')
+        _total = request.POST.get('total', '')
+
+        user_id = request.user.id
+        user_obj = User.objects.get(id=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+
+        detail = json.loads(request.POST.get('detail', ''))
+
+        supplier_obj = Supplier.objects.get(id=int(_supplier))
+        store_obj = None
+        if _store_id and _store_id != '0':
+            store_obj = SubsidiaryStore.objects.get(id=int(_store_id))
+
+        order_buy_obj = OrderBuy(
+            order_number=_document_number.upper(),
+            supplier=supplier_obj,
+            payment_method=_way_to_pay,
+            currency_type=_money_type,
+            order_date=_purchase_date,
+            issue_date=_issue_date,
+            observation=_observation,
+            store_destiny=store_obj,
+            subsidiary=subsidiary_obj,
+            user=user_obj
+        )
+        order_buy_obj.save()
+
+        for d in detail:
+            product_id = int(d['product'])
+            product_obj = Product.objects.get(id=product_id)
+            unit_id = int(d['unit'])
+            unit_obj = Unit.objects.get(id=unit_id)
+            quantity = str(d['quantity'])
+            price = decimal.Decimal(d['price'])
+
+            order_detail_buy_obj = OrderBuyDetail(
+                quantity=quantity,
+                product=product_obj,
+                unit=unit_obj,
+                price_unit=price,
+                order_buy=order_buy_obj
+            )
+            order_detail_buy_obj.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Compra registrada con exito'
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error contactar con sistemas'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def report_contracts(request):
+    if request.method == 'GET':
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%d-%m-%Y")
+        contract_detail_set = ContractDetail.objects.all().select_related('contract', 'contract__client')
+        contract_detail_dict = []
+        for c in contract_detail_set:
+            c_datetime = datetime.combine(c.date, datetime.min.time())
+            difference_date = (c_datetime - my_date).days
+            item = {
+                'id': c.id,
+                'contract_number': c.contract.contract_number,
+                'client': c.contract.client.names,
+                'nro_quota': c.nro_quota,
+                'date': c.date,
+                'difference_date': difference_date
+            }
+            contract_detail_dict.append(item)
+
+        return render(request, 'buys/report_contracts_detail.html', {
+            'formatdate': formatdate,
+            'contract_detail_dict': contract_detail_dict,
+        })
+
+
+def get_details_by_buy(request):
+    if request.method == 'GET':
+        purchase_id = request.GET.get('ip', '')
+        purchase_obj = Purchase.objects.get(pk=int(purchase_id))
+        details_purchase = PurchaseDetail.objects.filter(purchase=purchase_obj)
+        t = loader.get_template('buys/details_buys_store.html')
+        c = ({
+            'details': details_purchase,
+        })
+        return JsonResponse({
+            'grid': t.render(c, request),
+        }, status=HTTPStatus.OK)

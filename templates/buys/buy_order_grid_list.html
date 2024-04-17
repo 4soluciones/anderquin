@@ -1,7 +1,8 @@
 {% if purchases %}
     <div class="table-responsive roboto-condensed-regular">
         <table id="purchase-data-grid"
-               class="table align-content-center table-bordered table-sm m-0" style="font-size: 11px;background-color: #d0e2e9">
+               class="table align-content-center table-bordered table-sm m-0"
+               style="font-size: 13px;background-color: #d0e2e9">
             <thead>
             <tr class="text-center text-white text-uppercase" style="background: #3e6787; font-size: 14px">
                 {#                        <th>#</th>#}
@@ -12,11 +13,12 @@
                 {#                <th class="th-sm" style="width: 2%">Nº</th>#}
                 <th class="th-sm" style="width: 15%">Proveedor</th>
                 {#                        <th class="th-sm" style="width: 7%">Fecha compra</th>#}
-                <th class="th-sm" style="width: 20%">Cliente</th>
-                <th class="th-sm" style="width: 20%">Cliente Referido</th>
+                <th class="th-sm" style="width: 20%">Clientes</th>
+                {#                <th class="th-sm" style="width: 20%">Cliente Referido</th>#}
                 <th class="th-sm" style="width: 20%">Direccion de entrega</th>
                 <th class="th-sm" style="width: 5%">Usuario</th>
                 <th class="th-sm" style="width: 5%">Factura</th>
+                <th class="th-sm" style="width: 5%">Estado</th>
                 {#                <th class="th-sm" style="width: 8%">Estado</th>#}
                 {#                <th class="th-sm" style="width: 3%"><i class="fas fa-print"></i></th>#}
                 <th class="th-sm" style="width: 5%">Accion</th>
@@ -41,8 +43,21 @@
                     {#                    <td class="align-middle text-center">{{ p.correlative|default_if_none:'-' }}</td>#}
                     <td class="align-middle text-center">{{ p.supplier.name }}</td>
                     {#                            <td>{{ p.purchase_date|date:'d-m-Y' }}</td>#}
-                    <td class="align-middle text-center">{{ p.client_reference.names|upper }}</td>
-                    <td class="align-middle text-center">{{ p.client_reference_entity.names|default:'-'|default_if_none:'-' }}</td>
+                    <td class="align-middle text-center">
+                        <div class="row">
+                            <div class="col-1"></div>
+                            <div class="col-10 text-left">
+                                - {{ p.client_reference.names|upper }}<br>
+                                {% if p.client_reference_entity %}
+                                    -<span class="font-weight-bold text-primary">CLIENTE REFERIDO:</span>
+                                    {{ p.client_reference_entity.names|default:'-'|default_if_none:'-' }}
+                                {% endif %}
+                            </div>
+                            <div class="col-1"></div>
+                        </div>
+
+                    </td>
+                    {#                    <td class="align-middle text-center">{{ p.client_reference_entity.names|default:'-'|default_if_none:'-' }}</td>#}
                     <td class="align-middle text-left">{{ p.delivery_address|default:'-'|default_if_none:'-'|upper }}</td>
                     <td class="align-middle text-center">{{ p.user.worker_set.last.employee.names|upper }}</td>
                     {#                    <td class="font-weight-bold {% if p.status == 'S' %} text-danger {% else %} text-success#}
@@ -53,6 +68,7 @@
                     {#                            <i class="fas fa-print"></i></a>#}
                     {#                    </td>#}
                     <td class="align-middle text-center font-weight-bold">{{ p.number_bill }}</td>
+                    <td class="align-middle text-center font-weight-bold">En Almacen</td>
                     <td class="p-1">
                         <div class="btn-group">
                             <button type="button" class="btn btn-success btn-sm dropdown-toggle"

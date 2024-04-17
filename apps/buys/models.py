@@ -192,33 +192,43 @@ class ContractDetailPurchase(models.Model):
         return str(self.id)
 
 
-# class Bill(models.Model):
-#     id = models.AutoField(primary_key=True)
-#     order_date = models.DateField('Fecha de Pedido', null=True, blank=True)
-#     order_number = models.CharField('Numero de Pedido', max_length=200, null=True, blank=True)
-#     client = models.ForeignKey('sales.Client', verbose_name='Client', on_delete=models.CASCADE, null=True, blank=True)
-#     purchase = models.ManyToManyField('Purchase', related_name='purchases', blank=True)
-#     issue_date = models.DateField('Fecha de Emision', null=True, blank=True)
-#     pay_condition = models.CharField('Condicion de Pago', max_length=50, null=True, blank=True)
-#     due_date = models.DateField('Fecha de Vencimiento', null=True, blank=True)
-#     user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, null=True, blank=True)
-#     serial = models.CharField('Serie', max_length=200, null=True, blank=True)
-#     correlative = models.CharField('Correlativo', max_length=200, null=True, blank=True)
-#
-#     def __str__(self):
-#         return str(self.serial + ' ' + self.correlative)
-#
-#
-# class BillDetail(models.Model):
-#     id = models.AutoField(primary_key=True)
-#     quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
-#     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
-#     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
-#     price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
-#     bill = models.ForeignKey(Bill, on_delete=models.CASCADE, null=True, blank=True)
-#
-#     def __str__(self):
-#         return str(self.id)
-#
-#     def multiply(self):
-#         return self.quantity * self.price_unit
+class OrderBuy(models.Model):
+    TYPE_CHOICES = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'),)
+    PAYMENT_METHOD_CHOICES = (('CO', 'CONTADO'), ('CR', 'CREDITO'),)
+    CURRENCY_TYPE_CHOICES = (('S', 'SOL'), ('D', 'DOLAR'),)
+    id = models.AutoField(primary_key=True)
+    order_number = models.CharField('Numero de documento', max_length=200, null=True, blank=True)
+    supplier = models.ForeignKey(Supplier, verbose_name='Proveedor', on_delete=models.CASCADE, null=True, blank=True)
+    payment_method = models.CharField('Método de Pago', max_length=2, choices=PAYMENT_METHOD_CHOICES, default='CO')
+    currency_type = models.CharField('Tipo de moneda', max_length=1, choices=CURRENCY_TYPE_CHOICES, default='S')
+    order_date = models.DateField('Fecha de Compra', null=True, blank=True)
+    issue_date = models.DateField('Fecha de Emision', null=True, blank=True)
+    observation = models.TextField('Observación', blank=True, null=True)
+    store_destiny = models.ForeignKey('sales.SubsidiaryStore', on_delete=models.SET_NULL, null=True, blank=True)
+    subsidiary = models.ForeignKey('hrm.Subsidiary', on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.order_number)
+
+    def total(self):
+        response = 0
+        order_buy_detail_set = OrderBuyDetail.objects.filter(order_buy__id=self.id)
+        for pd in order_buy_detail_set:
+            response = response + (pd.quantity * pd.price_unit)
+        return round(response, 4)
+
+
+class OrderBuyDetail(models.Model):
+    id = models.AutoField(primary_key=True)
+    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
+    price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
+    order_buy = models.ForeignKey(OrderBuy, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.id)
+
+    def multiply(self):
+        return self.quantity * self.price_unit

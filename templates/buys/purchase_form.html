@@ -230,7 +230,6 @@
             }
         });
 
-
         $(document).on('click', '.product-item', function (e) {
 
             let _product_id = $(this).attr('data-id');
@@ -257,69 +256,193 @@
             _menu.empty()
         });
 
-        $('#purchase-form').submit(function (event) {
-            event.preventDefault();
+        $(document).on('change', '.unit-product', async function (e) {
+            let unit_id = $(this).val();
+            let product_id = $(this).parent('td').parent('tr').attr('product')
+            let _quantity = Number($(this).parent('td').parent('tr').find('td.item-quantity input.quantity-product').val())
+            let _tr = $(this).parent('td').parent('tr')
+            let _select_quantity_unit = _tr.find('td.item-quantity-x-unit select.quantity-unit');
+            if (unit_id !== '0') {
+                await getQuantityMinimumByProduct(product_id, unit_id, _tr, _quantity)
+                if (unit_id === '1') { /*optimizar*/
+                    _select_quantity_unit.val('1').change();
+                }
+            } else {
+                toastr.warning('Seleccione una unidad valida', 'Error de llenado');
+                $(this).val(1).change();
+                return false;
+            }
 
-            if ($("#id_detail_data_grid tbody tr").length > 0) {
-                let Detail_purchase = {
-                    "Details": [],
-                    {#"Invoice": $('#id_factura').val(),#}
-                    "ProviderId": $('#id_proveedor').val(),
-                    "Date": $('#id_fechacompra').val(),
-                    //"truck": $('#id-truck').val(),
-                    "Type_bill": $('#id_type_bill').val(),
-                    "currency": $('#id_currency').val(),
-                    "payment_method": $('#id_payment_method').val(),
-                    "payment_condition": $('#id_payment_condition').val(),
-                    "delivery": $('#id_delivery').val(),
-                    "referenceId": $('#id-sales-reference').val(),
-                    "reference_entityId": $('#id-sales-reference-entity').val(),
-                    "observation": $('#id_observation').val(),
-                    "supplier_order": $('#id_supplier_order').val()
-                };
-                // Recorre cada detalle de producto (son 2 arrays) each -> recorre
+        });
 
-                $("#id_detail_data_grid tbody tr").each(function () {
-                    var detailObj = {
-                        "Product": $(this).attr('product'),
-                        "Quantity": $(this).find("td.item-quantity").text(),
-                        "Unit": $(this).find("td.item-unit").attr('pu'),
-                        "Price": $(this).find("td.item-price").text(),
-                    };
-                    Detail_purchase.Details.push(detailObj);
-
-                });
+        async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
+            let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum-val');
+            let _price_unit_product = _tr.find('td.item-price input.price-unit-product');
+            _input_quantity_minimum.val('')
+            if (product_id !== '0') {
                 $.ajax({
-                    url: '/buys/save_purchase/',
+                    url: '/buys/get_quantity_minimum/',
                     async: true,
-                    dataType: 'json', // for response
+                    dataType: 'json',
                     type: 'GET',
-                    data: {'purchase': JSON.stringify(Detail_purchase)},
-                    contentType: 'application/json;charset=UTF-8',
-                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                    success: function (response, textStatus, xhr) {
-                        if (xhr.status === 200) {
-                            toastr.success(response.message, '¡COMPRA REGISTRADA CORRECTAMENTE!');
-                            id_buys = response.pk
-
-                            let url_print_pdf = "/buys/print_pdf_purchase_order/" + id_buys + "/";
-                            window.location.href = url_print_pdf;
-
-                            console.log(url_print_pdf)
-
-                            setTimeout(() => {
-                                location.reload();
-                            }, 2000);
-                        }
+                    data: {
+                        'product_id': product_id,
+                        'unit_id': _unit
                     },
-                    error: function (jqXhr, textStatus, xhr) {
-                        toastr.error("ERROR. ", '¡INCONCEBIBLE!');
-                    }
+                    success: function (response) {
+                        let _quantity_minimum = Number(response.quantity_minimum).toFixed(2)
+                        if (_quantity_minimum && _quantity) {
+                            let _q_x_u = _quantity / _quantity_minimum
+                            _input_quantity_minimum.val(_q_x_u.toFixed(2))
+                        }
+                        _price_unit_product.val(response.price_purchase);
+                        $('.price-unit-product').trigger('keyup');
+                    },
                 });
+            }
+        }
+
+        $(document).on('keyup', '.quantity-minimum-val', async function (e) {
+            let _tr = $(this).parent('td').parent('tr');
+            let _quantity_minimum = _tr.find('td.unit select.unit-product option:selected').attr('qm');
+            let _val = $(this).val();
+            let _quantity = _tr.find('td.item-quantity input.quantity-product');
+            let _new_quantity = _val * _quantity_minimum
+            _quantity.val(_new_quantity);
+            $('.quantity-product').trigger('keyup');
+        });
+
+        $(document).on('keyup', '.quantity-product', function () {
+
+            let _tr = $(this).parent('td').parent('tr')
+            let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
+            let _quantity_minimum = Number((_tr.find('td.unit select.unit-product option:selected').attr("qm")))
+
+            if (!isNaN(_quantity_minimum)) {
+                quantityDivideUnit(_quantity, _quantity_minimum, _tr)
+            }
+            calculateTotal(_tr)
+            sum_table()
+        });
+
+        function quantityDivideUnit(quantity, quantity_minimum, tr) {
+            let _quantity_quantity_minimum = quantity / quantity_minimum
+            tr.find('td.quantity-minimum input.quantity-minimum-val').val(_quantity_quantity_minimum.toFixed(2));
+        }
+
+        $(document).on('keyup', '.price-unit-product', function () {
+
+            let _tr = $(this).parent('div').parent('td').parent('tr')
+            let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
+            let _quantity_x_und = Number(_tr.find('td.item-quantity-x-unit input.quantity-x-unit').val())
+            let _quantity_minimum = Number(_tr.find('td.quantity-minimum input.quantity-minimum-val').val())
+            let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
+            let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
+
+            if (_quantity !== 0 && _price_unit !== 0) {
+                _total = _quantity_minimum * _price_unit
+                _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(4));
+            }
+            calculateTotal(_tr)
+            sum_table()
+        });
+
+        $(document).on('keyup', '.total-detail', function () {
+            let _tr = $(this).parent('div').parent('td').parent('tr')
+            let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
+            let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
+            console.log('_total',_total)
+            console.log('_quantity',_quantity)
+            let price_unit = _total / _quantity
+            console.log(price_unit)
+
+            _tr.find('td.item-price div.input-icon input.price-unit-product').val(Number(price_unit).toFixed(2));
+            calculateTotal(_tr)
+            sum_table()
+        });
+
+        function sum_table() {
+            let igv = 0;
+            let base = 0;
+            let sum_total = 0;
+            let total_document = 0;
+            let _total;
+
+            $("tbody#details-table tr").each(function () {
+                let td_total = Number($(this).find("td.total-row input.total-detail").val());
+                sum_total = sum_total + td_total
+            });
+
+            let _check_igv = $("#details-table-foot tr input.check-igv")
+
+            if (_check_igv.is(':checked')) {
+                base = sum_total / 1.18
+                igv = sum_total - base
+                _total = base + igv
+                total_document = _total
 
             } else {
-                toastr.warning("PARA REALIZAR LA COMPRA NECESITA AGREGAR PRODUCTOS. ", '¡ADVERTENCIA!');
+                base = sum_total
+                igv = sum_total * 0.18
+                _total = base + igv
+                total_document = _total
             }
+
+            $("#detail_purchase tfoot tr input.total-foot-base").val(base.toFixed(4));
+            $("#detail_purchase tfoot tr input.total-foot-igv").val(igv.toFixed(4));
+            $("#detail_purchase tfoot tr input.total-foot-total").val(_total.toFixed(4));
+            $("#detail_purchase tfoot tr input.total-foot-document").val(total_document.toFixed(4));
+        }
+
+        $(document).on('change', '#details-table-foot tr input.check-igv', function (e) {
+            sum_table()
+        });
+
+        function calculateTotal(_tr) {
+
+            let $quantity_minimum = Number(_tr.find('td.quantity-minimum input.quantity-minimum-val').val())
+            let $price_unit = Number(_tr.find('td.item-price input.price-unit-product').val());
+            let amount
+            amount = $quantity_minimum * $price_unit
+            _tr.find('td.total-row input.total-detail').val(amount.toFixed(4))
+
+        }
+
+        $('#purchase-form').submit(function (event) {
+            event.preventDefault();
+            let detailPurchase = []
+            $("#details-table tr").each(function () {
+                let detailObj = {
+                    product: $(this).attr('product'),
+                    quantity: $(this).find("td.item-quantity input.quantity-product").val(),
+                    unit: $(this).find("td.unit select.unit-product").val(),
+                    price: $(this).find("td.item-price input.price-unit-product").val(),
+                };
+                detailPurchase.push(detailObj);
+            });
+            let data = new FormData($('#purchase-form').get(0));
+            data.append('detail', JSON.stringify(detailPurchase));
+            $.ajax({
+                url: '/buys/create_purchase/',
+                type: 'POST',
+                async: true,
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    }
+                },
+                error: function (response) {
+                    toastr.error(response.message, "Guardado Fallido");
+                }
+            });
         });
 
     </script>

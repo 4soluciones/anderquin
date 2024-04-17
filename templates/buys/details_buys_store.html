@@ -1,0 +1,35 @@
+{% load operations %}
+<table class="table table-sm table-striped table-bordered roboto-condensed-regular table-details m-0">
+    <thead>
+        <tr class="text-center bg-dark text-white m-0 p-0 text-uppercase">
+            <td class="text-center">Estado</td>
+            <td class="text-center">Producto</td>
+            <td class="text-center">Cantidad</td>
+            <td class="text-center">Tipo Unidad</td>
+            {#            <td class="text-center">Precio</td>#}
+{#            <td class="text-center">Total</td>#}
+        </tr>
+    </thead>
+    <tbody>
+    {% for dt in details %}
+        <tr class="col-form-label bg-secondary text-white">
+            <td class="text-center">{{ dt.get_status_quantity_display }}</td>
+            <td> - {{ dt.product.name }}</td>
+            <td class="text-center">{{ dt.quantity|floatformat:0 }}</td>
+            <td class="text-center">{{ dt.unit.description }}</td>
+            {#            <td class="text-right">S/ {{ dt.price_unit|floatformat:2 }}</td>#}
+{#            <td class="text-right">S/ {{ dt.multiplicate|floatformat:2 }}</td>#}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<script>
+
+    $('.table-details tbody tr td').each(function () {
+        let _str = $(this).text();
+        _str = _str.replace(',', '.');
+        $(this).text(_str);
+    });
+
+</script>

@@ -6,16 +6,17 @@
                    class="table table-bordered align-content-center w-100 h-100 table-info">
                 <thead>
                 <tr class="font-weight-bold text-uppercase bg-warning text-center">
-                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Fecha de Registro</th>
-                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Fecha de Expiracion</th>
-                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Nº de Pedido</th>
-                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Nº Comprobante</th>
+                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Fecha de <br> Registro</th>
+                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Fecha de <br>Expiracion</th>
+                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Número de <br>Pedido</th>
+                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Número <br>Comprobante</th>
                     <th class="th-sm align-middle" style="width: 10%" rowspan="2">Proveedor</th>
-                    <th class="th-sm align-middle" style="width: 14%" rowspan="2">Direccion de Entrega</th>
+                    <th class="th-sm align-middle" style="width: 12%" rowspan="2">Direccion de Entrega</th>
                     <th class="th-sm align-middle" style="width: 6%" rowspan="2">Subtotal</th>
                     <th class="th-sm align-middle" style="width: 6%" rowspan="2">Igv(18%)</th>
                     <th class="th-sm align-middle" style="width: 6%" rowspan="2">Total</th>
                     <th class="th-sm align-middle" style="width: 6%" rowspan="2">Estado</th>
+                    <th class="th-sm align-middle" style="width: 2%" rowspan="2">Anular <br>Factura</th>
 
                     <th class="th-sm" colspan="3">Ordenes de Compra</th>
                 </tr>
@@ -40,6 +41,11 @@
                         <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_total_total|thousands_separator }}</td>
                         <td class="align-middle text-center font-weight-bold bg-success {% if b.status == 'INCOMPLETO' %}bg-danger{% endif %}" rowspan="{{ b.row_count }}">
                             {{ b.status }}
+                        </td>
+                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">
+                            <button type="button" class="btn btn-outline-danger btn-sm bill-cancel" pk="{{ b.id }}">
+                                <i class="fas fa-ban fa-lg"></i>
+                            </button>
                         </td>
                         {% for d in b.bill_purchase %}
                             <td class="align-middle text-center">{{ d.bill_number }}</td>

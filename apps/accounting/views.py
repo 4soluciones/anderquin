@@ -1452,8 +1452,8 @@ def update_transaction_date_in_cash_flow(request):
 
             scan_and_reassign_cash_flow(cash_obj, current_cash_flow_open)
 
-        cash_flow_log_obj = CashFlowLog(cash_flow=current_cash_flow_obj, user=user_obj, reason=reason_text)
-        cash_flow_log_obj.save()
+        # cash_flow_log_obj = CashFlowLog(cash_flow=current_cash_flow_obj, user=user_obj, reason=reason_text)
+        # cash_flow_log_obj.save()
 
         start_date = str(request.POST.get('query-start-date'))
         end_date = str(request.POST.get('query-end-date'))
@@ -2371,3 +2371,52 @@ def get_purchases_with_bill(request):
             'success': True,
         }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def cancel_bill(request):
+    if request.method == 'GET':
+        bill_id = request.GET.get('bill', '')
+        bill_obj = Bill.objects.get(id=int(bill_id))
+        bill_purchase_set = BillPurchase.objects.filter(bill=bill_obj)
+        for b in bill_purchase_set:
+            purchase_id = b.purchase_detail.purchase.id
+            purchase_obj = Purchase.objects.get(id=purchase_id)
+            if purchase_obj.status == 'A':
+                return JsonResponse({
+                    'message': 'La Factura no se puede eliminar porque ya esta ingresada a Almacen',
+                    'success': False,
+                }, status=HTTPStatus.OK)
+            else:
+                purchase_obj.bill_status = 'S'
+                purchase_obj.save()
+
+        bill_to_delete = BillPurchase.objects.filter(bill=bill_obj)
+        bill_to_delete.delete()
+        bill_obj.delete()
+
+        return JsonResponse({
+            'message': 'Factura Eliminada Correctamente',
+            'success': True,
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de Eliminacion'}, status=HTTPStatus.BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

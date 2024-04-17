@@ -13,6 +13,8 @@ urlpatterns = [
     path('get_purchase_annular_list/', get_purchase_annular_list, name='get_purchase_annular_list'),
     path('update_state_annular_purchase/', update_state_annular_purchase, name='update_state_annular_purchase'),
     path('get_product/', get_product, name='get_product'),
+    path('create_purchase/', create_purchase, name='create_purchase'),
+    path('get_details_by_buy/', get_details_by_buy, name='get_details_by_buy'),
 
     path('purchases/', get_purchase_form, name='purchases'),
 
@@ -77,4 +79,7 @@ urlpatterns = [
 
     # GUIDE
     path('modal_new_guide/', login_required(modal_new_guide), name='modal_new_guide'),
+
+    # REPORT CONTRACTS DETAIL
+    path('contracts_detail/', login_required(report_contracts), name='contracts_detail'),
 ]

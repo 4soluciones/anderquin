@@ -1389,15 +1389,11 @@ def kardex_initial(
         stock,
         price_unit,
         purchase_detail_obj=None,
-        requirement_detail_obj=None,
-        programming_invoice_obj=None,
         manufacture_detail_obj=None,
         guide_detail_obj=None,
         distribution_detail_obj=None,
         order_detail_obj=None,
         loan_payment_obj=None,
-        ball_change_obj=None,
-        advance_detail_obj=None,
 ):
     new_kardex = {
         'operation': 'C',
@@ -1407,17 +1403,13 @@ def kardex_initial(
         'remaining_quantity': decimal.Decimal(stock),
         'remaining_price': decimal.Decimal(price_unit),
         'remaining_price_total': decimal.Decimal(stock) * decimal.Decimal(price_unit),
+        'distribution_detail': distribution_detail_obj,
+        'guide_detail': guide_detail_obj,
+        'manufacture_detail': manufacture_detail_obj,
+        'order_detail': order_detail_obj,
         'product_store': product_store_obj,
         'purchase_detail': purchase_detail_obj,
-        'requirement_detail': requirement_detail_obj,
-        'programming_invoice': programming_invoice_obj,
-        'manufacture_detail': manufacture_detail_obj,
-        'guide_detail': guide_detail_obj,
-        'distribution_detail': distribution_detail_obj,
-        'order_detail': order_detail_obj,
         'loan_payment': loan_payment_obj,
-        'ball_change': ball_change_obj,
-        'advance_detail': advance_detail_obj
     }
     kardex = Kardex.objects.create(**new_kardex)
     kardex.save()
@@ -1428,15 +1420,11 @@ def kardex_input(
         quantity_purchased,
         price_unit,
         purchase_detail_obj=None,
-        requirement_detail_obj=None,
-        programming_invoice_obj=None,
         manufacture_detail_obj=None,
         guide_detail_obj=None,
         distribution_detail_obj=None,
         order_detail_obj=None,
         loan_payment_obj=None,
-        ball_change_obj=None,
-        advance_detail_obj=None,
 ):
     product_store = ProductStore.objects.get(pk=int(product_store_id))
 
@@ -1463,17 +1451,13 @@ def kardex_input(
         'remaining_quantity': new_remaining_quantity,
         'remaining_price': new_remaining_price,
         'remaining_price_total': new_remaining_price_total,
+        'distribution_detail': distribution_detail_obj,
+        'guide_detail': guide_detail_obj,
+        'manufacture_detail': manufacture_detail_obj,
+        'order_detail': order_detail_obj,
         'product_store': product_store,
         'purchase_detail': purchase_detail_obj,
-        'requirement_detail': requirement_detail_obj,
-        'programming_invoice': programming_invoice_obj,
-        'manufacture_detail': manufacture_detail_obj,
-        'guide_detail': guide_detail_obj,
-        'distribution_detail': distribution_detail_obj,
-        'order_detail': order_detail_obj,
         'loan_payment': loan_payment_obj,
-        'ball_change': ball_change_obj,
-        'advance_detail': advance_detail_obj,
     }
     kardex = Kardex.objects.create(**new_kardex)
     kardex.save()
@@ -1486,12 +1470,9 @@ def kardex_ouput(
         product_store_id,
         quantity_sold,
         order_detail_obj=None,
-        programming_invoice_obj=None,
-        manufacture_recipe_obj=None,
         guide_detail_obj=None,
         distribution_detail_obj=None,
         loan_payment_obj=None,
-        ball_change_obj=None,
 ):
     product_store = ProductStore.objects.get(pk=int(product_store_id))
 
@@ -1516,14 +1497,11 @@ def kardex_ouput(
         'remaining_quantity': new_remaining_quantity,
         'remaining_price': new_remaining_price,
         'remaining_price_total': new_remaining_price_total,
-        'product_store': product_store,
-        'programming_invoice': programming_invoice_obj,
-        'manufacture_recipe': manufacture_recipe_obj,
-        'order_detail': order_detail_obj,
-        'guide_detail': guide_detail_obj,
         'distribution_detail': distribution_detail_obj,
+        'guide_detail': guide_detail_obj,
+        'order_detail': order_detail_obj,
+        'product_store': product_store,
         'loan_payment': loan_payment_obj,
-        'ball_change': ball_change_obj,
     }
     kardex = Kardex.objects.create(**new_kardex)
     kardex.save()
