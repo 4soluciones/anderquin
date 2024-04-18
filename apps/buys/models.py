@@ -24,7 +24,7 @@ class MoneyChange(models.Model):
 
 class Purchase(models.Model):
     BILL_CHOICES = (('S', 'SIN FACTURA'), ('C', 'CON FACTURA'), ('A', 'ANULADO'),)
-    STATUS_CHOICES = (('S', 'SIN ASIGNAR'), ('A', 'ASIGNADO'), ('N', 'ANULADO'),)
+    STATUS_CHOICES = (('S', 'SIN ALMACEN'), ('A', 'EN ALMACEN'), ('N', 'ANULADO'),)
     DELIVERY_CHOICES = (('S', 'SUCURSAL'), ('P', 'PROVIDER'), ('CR', 'CLIENTE REFERENCIA'), ('CP', 'CLIENTE ENTIDAD'))
     # TYPE_CHOICES = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'),)
     CURRENCY_TYPE_CHOICES = (('S', 'SOL'), ('D', 'DOLAR'),)
@@ -121,6 +121,16 @@ class Purchase(models.Model):
         bill_purchase_set = BillPurchase.objects.filter(purchase_detail=purchase_detail_get)
         if bill_purchase_set.exists():
             response = bill_purchase_set.first().bill.serial + '-' + bill_purchase_set.first().bill.correlative
+        return response
+
+    def get_quantity_refund(self):
+        response = False
+        # purchase_obj = Purchase.objects.get(parent_purchase_id=self.id)
+        purchase_detail_set = PurchaseDetail.objects.filter(purchase__parent_purchase__id=self.id)
+        if purchase_detail_set.exists():
+            for p in purchase_detail_set:
+                if p.status_quantity == 'D':
+                    response = True
         return response
 
 

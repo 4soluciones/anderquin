@@ -2104,7 +2104,7 @@ def get_purchase_list_finances(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
-    purchases = Purchase.objects.filter(bill_status='S').order_by('-id')
+    purchases = Purchase.objects.filter(bill_status='S', bill_number__isnull=False).order_by('-id')
     bill_purchase_set = BillPurchase.objects.all().order_by('-id')
     return render(request, 'accounting/purchase_list_finances.html', {
         'purchases': purchases,

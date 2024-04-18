@@ -51,7 +51,7 @@ def get_correlative_by_subsidiary(subsidiary_obj=None, year=None):
     #     r=Coalesce(Max('correlative'), 0)).get('r')
     # return number + 1
 
-    search = Purchase.objects.filter(year=year, status__in=['S', 'A'])
+    search = Purchase.objects.filter(year=year, status__in=['S', 'A'], bill_number__isnull=False)
     if search.exists():
         purchase_obj = search.last()
         correlative = purchase_obj.correlative
@@ -340,7 +340,7 @@ def save_detail_buy_order_store(request):
             sold_quantity_principal = d['SoldQuantityPrincipal']
             sold_quantity_units = d['SoldQuantityUnit']
             sold_order_id = d['SoldOrderId']
-            order_sale_obj=None
+            order_sale_obj = None
             if sold_quantity_principal != 0 and sold_quantity_principal != '':
                 order_sale_obj = Order.objects.get(id=int(sold_order_id))
                 PurchaseDetail.objects.create(quantity=sold_quantity_principal, price_unit=price_purchase,
@@ -365,9 +365,54 @@ def get_buy_order_list(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
-    purchases = Purchase.objects.filter(status='S').order_by('-correlative')
+    # purchases = Purchase.objects.filter(status='S')
+    purchase_dict = []
+    purchase_set = Purchase.objects.filter(bill_number__isnull=False, status__in=['S', 'A']
+                                           ).select_related('subsidiary').prefetch_related(
+        Prefetch(
+            'purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')
+        )
+    ).select_related('supplier', 'subsidiary', 'client_reference', 'client_reference_entity', 'delivery_supplier',
+                     'delivery_subsidiary', 'delivery_client', 'store_destiny', 'user').annotate(
+        sum_total=Subquery(
+            PurchaseDetail.objects.filter(purchase_id=OuterRef('id')).annotate(
+                return_sum_total=Sum(F('quantity') * F('price_unit'))).values('return_sum_total')[:1]
+        )
+    ).order_by('-correlative')
+
+    for p in purchase_set:
+        client_reference_entity = None
+        purchase_parent = ''
+        guide_number = '-'
+        if p.client_reference_entity:
+            client_reference_entity = p.client_reference_entity.names
+        parent_purchase_set = Purchase.objects.filter(parent_purchase_id=p.id).select_related('parent_purchase')
+        if parent_purchase_set.exists():
+            parent_purchase_get = parent_purchase_set.last()
+            guide_number = parent_purchase_get.guide_number
+            purchase_parent = parent_purchase_get.id
+
+        item_purchase = {
+            'id': p.id,
+            'purchase_parent': purchase_parent,
+            'purchase_date': p.purchase_date,
+            'buy_number': p.bill_number,
+            'supplier': p.supplier.name,
+            'client_reference': p.client_reference.names,
+            'client_entity': client_reference_entity,
+            'delivery_address': p.delivery_address,
+            'user': p.user.worker_set.last().employee.names,
+            'bill_number': p.number_bill(),
+            'status_store_text': p.get_status_display,
+            'status_store': p.status,
+            'status_bill': p.bill_status,
+            'guide_number': guide_number,
+            'refund': p.get_quantity_refund()
+        }
+        purchase_dict.append(item_purchase)
+
     return render(request, 'buys/buy_order_list.html', {
-        'purchases': purchases
+        'purchases': purchase_dict
     })
 
 

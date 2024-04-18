@@ -550,6 +550,7 @@
             details_purchase.Details.push(detailObj);
 
         });
+        $('#assignment-changes').prop('disabled', true);
         console.log(details_purchase);
         $.ajax({
             url: '/buys/save_detail_buy_order_store/',
@@ -562,7 +563,10 @@
             success: function (response, textStatus, xhr) {
                 if (xhr.status === 200) {
                     toastr.success(response.message, '¡Mensaje!');
-                    $('#assignment').modal('hide');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                    //$('#assignment').modal('hide');
                 }
             },
             error: function (jqXhr, textStatus, xhr) {
@@ -865,7 +869,7 @@
                 type: 'GET',
                 data: {
                     'product_id': _product_id,
-                    'unit_principal': unit_principal? unit_principal : null,
+                    'unit_principal': unit_principal ? unit_principal : null,
                     'input_principal_val': input_principal_val,
                     'unit_id': unit_id,
                     'input_units': input_units.val(),
@@ -928,8 +932,8 @@
         let input_principal
         let input_units = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_units');
         if ($(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_principal').val()) {
-                input_principal = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_principal');
-            }
+            input_principal = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_principal');
+        }
         let r = confirm("¿Esta seguro de Eliminar la Venta")
         if (r === true) {
             $.ajax({
