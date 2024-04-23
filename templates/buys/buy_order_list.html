@@ -20,9 +20,13 @@
          tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle"
          aria-hidden="true"></div>
 
-    <div class="modal fade" id="modal-assign-store" tabindex="-1" role="dialog"
+    <div class="modal fade" id="modal-credit-note" tabindex="-1" role="dialog"
          aria-labelledby="ModalHelpTitle"
          aria-hidden="true"></div>
+
+{#    <div class="modal fade" id="modal-assign-store" tabindex="-1" role="dialog"#}
+{#         aria-labelledby="ModalHelpTitle"#}
+{#         aria-hidden="true"></div>#}
 
     <style>
         .input-icon {
@@ -74,7 +78,7 @@
                 contentType: 'application/json;charset=UTF-8',
                 headers: {"X-CSRFToken": '{{ csrf_token }}'},
                 success: function (response, textStatus, xhr) {
-                    if (xhr.status == 200) {
+                    if (xhr.status === 200) {
                         $('#assignment').html(response.form);
                         $('#assignment').modal('show');
 
@@ -110,10 +114,10 @@
             }
         });
 
-        let count = 0;
-        let array_purchase_id = []
+        //let count = 0;
+        //let array_purchase_id = []
 
-        $(document).on('click', '.check-purchase', function () {
+        /*$(document).on('click', '.check-purchase', function () {
             let _tr = $(this).parent('td').parent('tr');
             let _purchase_id = _tr.attr("pk");
             if (this.checked) {
@@ -146,7 +150,7 @@
                     toastr.error('Error en la petición', '¡Mensaje!');
                 }
             });
-        });
+        });*/
 
 
         $(document).on('click', '.btn-update', function () {
@@ -192,6 +196,23 @@
         function closeDetail($td) {
             $td.parent('tr').slideUp("fast");
         }
+
+        $(document).on('click', '.generate-credit-note', function () {
+            let purchase_detail_id = $(this).attr('pk');
+            $.ajax({
+                url: '/buys/buys_credit_note/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'purchase_detail_id': purchase_detail_id},
+                success: function (response) {
+                    $('#modal-credit-note').html(response.form);
+                    $('#modal-credit-note').modal('show');
+                },
+                fail: function (response) {
+                    toastr.error('Error en la petición', '¡Mensaje!');
+                }
+            });
+        });
 
 
     </script>

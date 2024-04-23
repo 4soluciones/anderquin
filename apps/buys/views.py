@@ -2078,3 +2078,19 @@ def get_details_by_buy(request):
         return JsonResponse({
             'grid': t.render(c, request),
         }, status=HTTPStatus.OK)
+
+
+def buys_credit_note(request):
+    if request.method == 'GET':
+        purchase_detail_id = request.GET.get('purchase_detail_id', '')
+        purchase_detail_obj = PurchaseDetail.objects.get(id=int(purchase_detail_id))
+        my_date = datetime.now()
+        date_now = my_date.strftime("%Y-%m-%d")
+        t = loader.get_template('buys/modal_credit_note.html')
+        c = ({
+            'purchase_detail_obj': purchase_detail_obj,
+            'date': date_now,
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })

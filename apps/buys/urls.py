@@ -15,6 +15,7 @@ urlpatterns = [
     path('get_product/', get_product, name='get_product'),
     path('create_purchase/', create_purchase, name='create_purchase'),
     path('get_details_by_buy/', get_details_by_buy, name='get_details_by_buy'),
+    path('buys_credit_note/', buys_credit_note, name='buys_credit_note'),
 
     path('purchases/', get_purchase_form, name='purchases'),
 
