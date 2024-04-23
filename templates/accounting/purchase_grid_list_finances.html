@@ -12,12 +12,13 @@
                     <th class="th-sm" style="width: 20%">Cliente</th>
                     <th class="th-sm" style="width: 20%">Cliente Referido</th>
                     <th class="th-sm" style="width: 5%">Usuario</th>
+                    <th class="th-sm" style="width: 5%">Estado</th>
 {#                    <th class="th-sm" style="width: 5%">Accion</th>#}
                 </tr>
                 </thead>
                 <tbody id="body-finances" style="font-size: 13px;">
                 {% for p in purchases %}
-                    <tr class="text-center" pk="{{ p.id }}" supplier="{{ p.supplier.id }}">
+                    <tr class="text-center" pk="{{ p.id }}" supplier="{{ p.supplier_id }}" style="background-color: {% if p.has_incomplete %}#dbd2d2{% endif %} ">
                         <td class="align-middle item-check">
                             <div class="form-check">
                                 <input class="form-check-input check-oc"
@@ -31,10 +32,17 @@
                         <td class="align-middle text-center">
                             <span class="font-weight-bold"> {{ p.bill_number }}</span><br>
                         </td>
-                        <td class="align-middle text-center">{{ p.supplier.name }}</td>
-                        <td class="align-middle text-center">{{ p.client_reference.names|upper }}</td>
-                        <td class="align-middle text-center">{{ p.client_reference_entity.names|default:'-'|default_if_none:'-' }}</td>
-                        <td class="align-middle text-center">{{ p.user.worker_set.last.employee.names|upper }}</td>
+                        <td class="align-middle text-center">{{ p.supplier_name }}</td>
+                        <td class="align-middle text-center">{{ p.client_reference|upper }}</td>
+                        <td class="align-middle text-center">{{ p.client_reference_entity|default:'-'|default_if_none:'-' }}</td>
+                        <td class="align-middle text-center">{{ p.user|upper }}</td>
+                        <td class="align-middle text-center font-weight-bold">
+                            {% if p.has_incomplete %}
+                                INCOMPLETO
+                            {% else %}
+                                PENDIENTE
+                            {% endif %}
+                        </td>
 {#                        <td class="p-1">#}
 {#                            <div class="btn-group">#}
 {#                                <button type="button" class="btn btn-success  dropdown-toggle"#}
@@ -59,6 +67,7 @@
                     <th class="th-sm" style="width: 20%">Cliente</th>
                     <th class="th-sm" style="width: 20%">Cliente Referido</th>
                     <th class="th-sm" style="width: 5%">Usuario</th>
+                    <th class="th-sm" style="width: 5%">Estado</th>
 {#                    <th class="th-sm" style="width: 5%">Accion</th>#}
                 </tr>
                 </tfoot>

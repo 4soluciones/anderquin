@@ -15,8 +15,8 @@
                     <th class="th-sm align-middle" style="width: 6%" rowspan="2">Subtotal</th>
                     <th class="th-sm align-middle" style="width: 6%" rowspan="2">Igv(18%)</th>
                     <th class="th-sm align-middle" style="width: 6%" rowspan="2">Total</th>
-                    <th class="th-sm align-middle" style="width: 6%" rowspan="2">Estado</th>
-                    <th class="th-sm align-middle" style="width: 2%" rowspan="2">Anular <br>Factura</th>
+                    {#                    <th class="th-sm align-middle" style="width: 6%" rowspan="2">Estado</th>#}
+                    <th class="th-sm align-middle" style="width: 2%" rowspan="2">Acciones</th>
 
                     <th class="th-sm" colspan="3">Ordenes de Compra</th>
                 </tr>
@@ -28,24 +28,33 @@
                 </thead>
                 <tbody id="body-finances-bill" style="font-size: 13px;">
                 {% for b in bill_dict %}
-                    <tr class="text-center" pk="{{ b.id }}">
+                    <tr class="text-center details" pk="{{ b.id }}">
                         <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.register_date|date:'d-m-Y' }}</td>
                         <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.expiration_date|date:'d-m-Y' }}</td>
                         <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.order_number|upper }}</td>
-                        <td class="align-middle text-left font-weight-bold" rowspan="{{ b.row_count }}">{{ b.serial }} - {{ b.correlative }}</td>
+                        <td class="align-middle text-left font-weight-bold" rowspan="{{ b.row_count }}">{{ b.serial }}
+                            - {{ b.correlative }}</td>
                         <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.supplier_name }}</td>
                         <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.delivery_address }}</td>
 
-                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_base_total|thousands_separator }}</td>
-                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_igv_total|thousands_separator }}</td>
-                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_total_total|thousands_separator }}</td>
-                        <td class="align-middle text-center font-weight-bold bg-success {% if b.status == 'INCOMPLETO' %}bg-danger{% endif %}" rowspan="{{ b.row_count }}">
-                            {{ b.status }}
-                        </td>
+                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">
+                            S/ {{ b.bill_base_total|thousands_separator }}</td>
+                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">
+                            S/ {{ b.bill_igv_total|thousands_separator }}</td>
+                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">
+                            S/ {{ b.bill_total_total|thousands_separator }}</td>
+                        {#                        <td class="align-middle text-center font-weight-bold bg-success {% if b.status == 'INCOMPLETO' %}bg-danger{% endif %}" rowspan="{{ b.row_count }}">#}
+                        {#                            {{ b.status }}#}
+                        {#                        </td>#}
                         <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">
-                            <button type="button" class="btn btn-outline-danger btn-sm bill-cancel" pk="{{ b.id }}">
-                                <i class="fas fa-ban fa-lg"></i>
-                            </button>
+                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                <button type="button" class="btn btn-danger btn-sm bill-cancel" pk="{{ b.id }}">
+                                    <i class="fas fa-ban"></i>
+                                </button>
+                                <button type="button" class="btn btn-success btn-sm btn-show-bill" pk="{{ b.id }}">
+                                    <i class="fas fa-sort-down fa-lg see-icon"></i>
+                                </button>
+                            </div>
                         </td>
                         {% for d in b.bill_purchase %}
                             <td class="align-middle text-center">{{ d.bill_number }}</td>
@@ -53,6 +62,9 @@
                             <td class="align-middle text-center">{{ d.client_reference_entity.names|default:'-'|default_if_none:'-' }}</td>
                             </tr>
                         {% endfor %}
+                    </tr>
+                    <tr class="show-detail" pk="{{ b.id }}" style="display: none">
+                        <td colspan="10" class="table-details-bill p-0"></td>
                     </tr>
                 {% endfor %}
                 </tbody>

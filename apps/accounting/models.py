@@ -371,6 +371,7 @@ class BillPurchase(models.Model):
     id = models.AutoField(primary_key=True)
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE, null=True, blank=True)
     purchase_detail = models.ForeignKey('buys.PurchaseDetail', on_delete=models.CASCADE, null=True, blank=True)
+    purchase = models.ForeignKey('buys.Purchase', on_delete=models.CASCADE, null=True, blank=True)
     quantity_invoice = models.DecimalField('cantidad facturada', max_digits=10, decimal_places=2, default=0)
     quantity_purchased = models.DecimalField('cantidad comprada', max_digits=10, decimal_places=2, default=0)
 

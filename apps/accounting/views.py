@@ -2104,11 +2104,41 @@ def get_purchase_list_finances(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
-    purchases = Purchase.objects.filter(bill_status='S', bill_number__isnull=False).order_by('-id')
-    bill_purchase_set = BillPurchase.objects.all().order_by('-id')
+    purchases_set = Purchase.objects.filter(bill_status__in=['S', 'I'], bill_number__isnull=False).order_by('-id')
+    purchase_dict = []
+    for p in purchases_set:
+        has_incomplete = False
+        client_reference = '-'
+        client_reference_entity = '-'
+        if p.client_reference:
+            client_reference = p.client_reference.names
+        if p.client_reference_entity:
+            client_reference_entity = p.client_reference_entity.names
+
+        bill_purchase_set = BillPurchase.objects.filter(purchase=p)
+        if bill_purchase_set.exists():
+            has_incomplete = True
+            quantity_total_invoice = 0
+        #     quantity_total_purchased = bill_purchase_set.last().quantity_purchased
+        #     for b in bill_purchase_set:
+        #         quantity_total_invoice += b.quantity_invoice
+        #     if quantity_total_invoice != quantity_total_purchased:
+
+        item_purchase = {
+            'id': p.id,
+            'supplier_id': p.supplier.id,
+            'purchase_date': p.purchase_date,
+            'bill_number': p.bill_number,
+            'supplier_name': p.supplier.name,
+            'client_reference': client_reference,
+            'client_reference_entity': client_reference_entity,
+            'user': p.user.worker_set.last().employee.names,
+            'has_incomplete': has_incomplete
+        }
+        purchase_dict.append(item_purchase)
+
     return render(request, 'accounting/purchase_list_finances.html', {
-        'purchases': purchases,
-        'bill_purchase_set': bill_purchase_set
+        'purchases': purchase_dict,
     })
 
 
@@ -2155,8 +2185,17 @@ def modal_bill_create(request):
                     product_id = pd.product.id
                     unit_id = pd.unit.id
                     price_unit = round(pd.price_unit, 6)
-
+                    bill_purchase_set = BillPurchase.objects.filter(purchase_detail=pd)
+                    quantity_total_invoice = 0
                     product_detail = ProductDetail.objects.filter(product_id=product_id, unit_id=unit_id).last()
+                    has_bill = False
+                    if bill_purchase_set.exists():
+                        has_bill = True
+                        for b in bill_purchase_set:
+                            quantity_total_invoice += b.quantity_invoice
+                    quantity = pd.quantity - quantity_total_invoice
+
+                    amount = quantity * pd.price_unit
 
                     item_detail = {
                         'detail_id': pd.id,
@@ -2166,67 +2205,18 @@ def modal_bill_create(request):
                         'unit_name': pd.unit.name,
                         'unit_description': pd.unit.description,
                         'price_unit': price_unit,
-                        'quantity': pd.quantity,
+                        'quantity': quantity,
                         'quantity_minimum': product_detail.quantity_minimum,
-                        'amount': pd.multiplicate(),
+                        'amount': amount,
                         'purchase_id': pd.purchase.id,
-                        'purchase_number': pd.purchase.bill_number
+                        'purchase_number': pd.purchase.bill_number,
+                        'has_bill': has_bill
                     }
-                    acc_total += pd.multiplicate()
-                    quantity_total += pd.quantity
+                    acc_total += amount
+                    quantity_total += quantity
                     item_purchase.get('details').append(item_detail)
                 purchase_dict.append(item_purchase)
 
-                # for pd in purchase_details:
-                #     product_id = pd.product.id
-                #     unit_id = pd.unit.id
-                #     price_unit = round(pd.price_unit, 2)
-                #
-                #     key = (product_id, unit_id, price_unit)
-                #
-                #     if key in details_dict:
-                #         existing_detail = details_dict[key]
-                #         if existing_detail['product_id'] == product_id and existing_detail['unit_id'] == unit_id and \
-                #                 existing_detail['price_unit'] == price_unit:
-                #             existing_detail['quantity'] += pd.quantity
-                #         else:
-                #             item_detail = {
-                #                 'product_id': product_id,
-                #                 'unit_id': unit_id,
-                #                 'price_unit': price_unit,
-                #                 'quantity': pd.quantity,
-                #                 'quantity_minimum': pd.product_detail.quantity_minimum,
-                #                 'product_name': pd.product.name,
-                #                 'unit_name': pd.unit.name,
-                #                 'unit_description': pd.unit.description,
-                #                 'amount': pd.multiplicate()
-                #             }
-                #             details_dict[key] = item_detail
-                #     else:
-                #         product_detail = ProductDetail.objects.filter(product_id=product_id, unit_id=unit_id).last()
-                #         item_detail = {
-                #             'product_id': product_id,
-                #             'unit_id': unit_id,
-                #             'price_unit': price_unit,
-                #             'quantity': pd.quantity,
-                #             'quantity_minimum': product_detail.quantity_minimum,
-                #             'product_name': pd.product.name,
-                #             'unit_name': pd.unit.name,
-                #             'unit_description': pd.unit.description,
-                #             'amount': pd.multiplicate()
-                #         }
-                #         details_dict[key] = item_detail
-
-            # all_details = list(details_dict.values())
-
-            # purchase_dict = {
-            #     'purchases': all_purchases_ids,
-            #     'oc_number': oc_numbers,
-            #     'supplier_id': purchase_obj.supplier.id,
-            #     'supplier_name': purchase_obj.supplier.name,
-            #     'details': all_details
-            # }
-            # print(purchase_dict)
             base_total = acc_total / decimal.Decimal(1.18)
             igv_total = acc_total - base_total
             t = loader.get_template('accounting/modal_bill_create.html')
@@ -2296,20 +2286,28 @@ def save_bill(request):
             quantity_invoice = decimal.Decimal(b['invoiceQuantity'])
 
             purchase_detail_obj = PurchaseDetail.objects.get(id=purchase_detail_id)
+            purchase_obj = purchase_detail_obj.purchase
+
+            if quantity_purchased == quantity_invoice:
+                purchase_obj.bill_status = 'C'
+            else:
+                purchase_obj.bill_status = 'I'
+            purchase_obj.save()
 
             bill_purchase_obj = BillPurchase(
                 purchase_detail=purchase_detail_obj,
                 quantity_invoice=quantity_invoice,
                 quantity_purchased=quantity_purchased,
-                bill=bill_obj
+                bill=bill_obj,
+                purchase=purchase_detail_obj.purchase
             )
             bill_purchase_obj.save()
 
-        purchases_array = purchases.replace('"', '').split(",")
-        for p in purchases_array:
-            purchase_obj = Purchase.objects.get(id=int(p))
-            purchase_obj.bill_status = 'C'
-            purchase_obj.save()
+        # purchases_array = purchases.replace('"', '').split(",")
+        # for p in purchases_array:
+        #     purchase_obj = Purchase.objects.get(id=int(p))
+        #     purchase_obj.bill_status = 'C'
+        #     purchase_obj.save()
 
         return JsonResponse({
             'success': True,
@@ -2400,6 +2398,23 @@ def cancel_bill(request):
         }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de Eliminacion'}, status=HTTPStatus.BAD_REQUEST)
 
+
+def get_bill(request):
+    if request.method == 'GET':
+        bill_id = request.GET.get('bill', '')
+        bill_obj = Bill.objects.get(pk=int(bill_id))
+        bill_purchase_set = BillPurchase.objects.filter(bill=bill_obj)
+        bill_details = []
+
+        t = loader.get_template('accounting/get_bill_details.html')
+        c = ({
+            'bill_details': bill_details,
+            'bill_purchase_set': bill_purchase_set,
+        })
+        return JsonResponse({
+            'success': True,
+            'grid': t.render(c, request),
+        }, status=HTTPStatus.OK)
 
 
 

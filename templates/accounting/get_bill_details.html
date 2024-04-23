@@ -1,0 +1,23 @@
+{% load operations %}
+<table class="table table-sm table-striped table-bordered roboto-condensed-regular table-details m-0">
+    <thead>
+    <tr class="text-center bg-dark text-white m-0 p-0 text-uppercase">
+        <td class="text-center" style="width: 5%">O/C</td>
+        <td class="text-center" style="width: 40%">Producto</td>
+        <td class="text-center" style="width: 5%">Cantidad</td>
+        <td class="text-center" style="width: 10%">Tipo Unidad</td>
+        <td class="text-center" style="width: 10%">Precio</td>
+    </tr>
+    </thead>
+    <tbody>
+    {% for b in bill_purchase_set %}
+        <tr class="col-form-label bg-secondary text-white p-0 m-0">
+            <td class="text-center">{{ b.purchase_detail.purchase.bill_number }}</td>
+            <td class="text-center">{{ b.purchase_detail.product.name }}</td>
+            <td class="text-center">{{ b.quantity_invoice|floatformat:0 }}</td>
+            <td class="text-center">{{ b.purchase_detail.unit.name }}</td>
+            <td class="text-center">{{ b.purchase_detail.price_unit|floatformat:4 }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

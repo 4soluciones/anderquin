@@ -23,7 +23,7 @@ class MoneyChange(models.Model):
 
 
 class Purchase(models.Model):
-    BILL_CHOICES = (('S', 'SIN FACTURA'), ('C', 'CON FACTURA'), ('A', 'ANULADO'),)
+    BILL_CHOICES = (('S', 'SIN FACTURA'), ('I', 'INCOMPLETO'), ('C', 'CON FACTURA'), ('A', 'ANULADO'),)
     STATUS_CHOICES = (('S', 'SIN ALMACEN'), ('A', 'EN ALMACEN'), ('N', 'ANULADO'),)
     DELIVERY_CHOICES = (('S', 'SUCURSAL'), ('P', 'PROVIDER'), ('CR', 'CLIENTE REFERENCIA'), ('CP', 'CLIENTE ENTIDAD'))
     # TYPE_CHOICES = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'),)

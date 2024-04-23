@@ -13,7 +13,7 @@
                 </div>
                 <div class="col-lg-8 text-center pt-2 bg-info">
 
-                    <h2 class="font-weight-bold"> LISTADO DE ORDENES DE COMPRAS</h2>
+                    <h2 class="font-weight-bold roboto-condensed-regular"> LISTADO DE ORDENES DE COMPRAS</h2>
                 </div>
             </div>
 
@@ -41,7 +41,6 @@
                             <button type="button"
                                     class="btn btn-sm btn-success font-weight-light font-italic generate-bill">
                                 Generar Factura
-                                <span class="badge badge-light">0</span>
                             </button>
                         </div>
                     </div>
@@ -59,7 +58,7 @@
                     <div class="card-body p-2">
                         <div class="container">
                             <div class="text-center">
-                                <h4 class="font-weight-bold">ORDENES DE COMPRA CON FACTURA</h4>
+                                <h4 class="font-weight-bold roboto-condensed-light">ORDENES DE COMPRA CON FACTURA</h4>
                             </div>
                         </div>
                         <div class="row mb-1 mt-0">
@@ -256,8 +255,8 @@
             $('#bill-details tr').each(function () {
                 let details = {
                     'purchaseDetailID': $(this).attr('detail'),
-                    'purchaseQuantity': $(this).find('td.item-quantity input.quantity-invoice').val(),
-                    'invoiceQuantity': $(this).find('td.item-quantity input.quantity-purchased').val()
+                    'purchaseQuantity': $(this).find('td.item-quantity input.quantity-purchased').val(),
+                    'invoiceQuantity': $(this).find('td.item-quantity input.quantity-invoice').val()
                 };
                 Bill.billPurchases.push(details)
             })
@@ -276,7 +275,10 @@
                 success: function (response, textStatus, xhr) {
                     if (response.success) {
                         toastr.success(response.message, '¡Bien hecho!');
-                        $('#body-finances tr').each(function () {
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                        /*$('#body-finances tr').each(function () {
                             let row = $(this);
                             let pk = row.attr('pk');
                             for (let i = 0; i < purchases_array.length; i++) {
@@ -284,7 +286,7 @@
                                     row.remove();
                                 }
                             }
-                        });
+                        });*/
                         $('#modal-bill-create').modal('hide');
                     }
                 },
@@ -316,14 +318,56 @@
                             setTimeout(() => {
                                 location.reload();
                             }, 1000);
-                        }
-                        else {
+                        } else {
                             toastr.error(response.message, 'ERROR DE ANULACION');
                         }
                     }
                 });
             }
         });
+
+        $(document).on('click', '.btn-show-bill', function (e) {
+            let _bill_id = $(this).attr("pk");
+            let _table = $(this).closest('tbody').find('tr[pk="'+ _bill_id +'"].show-detail').find('td.table-details-bill');
+            let _icon = $(this).find('i.see-icon')
+
+            if (_icon.hasClass("fas fa-sort-down fa-lg")) {
+                _icon.removeClass('fas fa-sort-down fa-lg');
+                _icon.addClass('fas fa-sort-up fa-lg')
+
+                openDetail(_bill_id, _table)
+            } else {
+                _icon.removeClass('fas fa-sort-up fa-lg');
+                _icon.addClass('fas fa-sort-down fa-lg');
+
+                closeDetail(_table)
+            }
+        });
+
+        function openDetail(_bill_id, _table) {
+            $.ajax({
+                url: '/accounting/get_bill/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                cache: false,
+                data: {'bill': _bill_id},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": ' {{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (response.success) {
+                        _table.html(response.grid);
+                        _table.parent('tr').slideDown("fast");
+                    } else {
+                        toastr.error(response.message, 'ERROR');
+                    }
+                }
+            });
+        }
+
+        function closeDetail($td) {
+            $td.parent('tr').slideUp("fast");
+        }
 
     </script>
 
