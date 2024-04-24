@@ -390,38 +390,24 @@ class Order(models.Model):
     HAS_ORDER_QUOTATION = (('S', 'SIN VENTA'), ('C', 'CON VENTA'), ('0', 'SOLO VENTA'))
     order_type = models.CharField('Tipo de Orden', max_length=1, choices=ORDER_TYPE_CHOICES, default='V')
     sale_type = models.CharField('Tipo de Venta', max_length=2, choices=SALE_TYPE_CHOICES, default='VC')
-    # supplier = models.ForeignKey('Supplier', verbose_name='Proveedor',
-    #                              on_delete=models.SET_NULL, null=True, blank=True)
-    subsidiary_store = models.ForeignKey(
-        'SubsidiaryStore', verbose_name='Almacen Sucursal', on_delete=models.SET_NULL, null=True, blank=True)
-    client = models.ForeignKey('Client', verbose_name='Cliente',
-                               on_delete=models.SET_NULL, null=True, blank=True)
+    subsidiary_store = models.ForeignKey('SubsidiaryStore', verbose_name='Almacen Sucursal', on_delete=models.SET_NULL, null=True, blank=True)
+    client = models.ForeignKey('Client', verbose_name='Cliente', on_delete=models.SET_NULL, null=True, blank=True)
     user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
-    # requirement = models.ManyToManyField('Requirement', related_name='requirements', blank=True)
-    # operation_code = models.CharField(
-    #     verbose_name='Codigo de operación', max_length=45, null=True, blank=True)
     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P')
     create_at = models.DateTimeField(null=True, blank=True)
     update_at = models.DateTimeField(auto_now=True)
     total = models.DecimalField('Total', max_digits=10, decimal_places=2, default=0)
     discount = models.DecimalField('Descuento', max_digits=10, decimal_places=2, default=0)
-    # distribution_mobil = models.ForeignKey('comercial.DistributionMobil', on_delete=models.SET_NULL, null=True,
-    #                                        blank=True)
     correlative = models.IntegerField('Correlativo', default=0)
-    # truck = models.ForeignKey('comercial.Truck', on_delete=models.SET_NULL, null=True,
-    #                           blank=True)
-    # is_review = models.BooleanField('Revisado', default=False)
     subsidiary = models.ForeignKey('hrm.Subsidiary', on_delete=models.SET_NULL, null=True, blank=True)
-
     validity_date = models.DateField('Fecha de validación hasta', null=True, blank=True)
     date_completion = models.CharField('Tiempo de entrega', max_length=100, null=True, blank=True, default=0)
     place_delivery = models.CharField('Lugar de entrega', max_length=300, null=True, blank=True, default=0)
     observation = models.CharField('Observacion', max_length=500, null=True, blank=True, default=0)
     way_to_pay_type = models.CharField('Tipo de pago', max_length=1, choices=TYPE_CHOICES_PAYMENT, default='E', )
-    has_quotation_order = models.CharField('Has Order Quotation', max_length=1, choices=HAS_ORDER_QUOTATION,
-                                           default='0')
-    order_sale_quotation = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
-                                             related_name="order_quotation")
+    has_quotation_order = models.CharField('Has Order Quotation', max_length=1, choices=HAS_ORDER_QUOTATION, default='0')
+    order_sale_quotation = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name="order_quotation")
+    serial = models.CharField('Serie', max_length=5, null=True, blank=True)
 
     def __str__(self):
         return str(self.pk)
@@ -448,16 +434,6 @@ class Order(models.Model):
             response = response + cf.total
         return response
 
-    def count_sales_details_b(self):
-        return len(self.sales_details_b())
-
-    def sales_details_b(self):
-        _details = []
-        for d in self.orderdetail_set.filter(unit__name='B'):
-            if not d.validate_debt():
-                _details.append(d)
-        return _details
-
     class Meta:
         verbose_name = 'Orden'
         verbose_name_plural = 'Ordenes'
@@ -469,8 +445,6 @@ class OrderDetail(models.Model):
     order = models.ForeignKey('Order', on_delete=models.CASCADE, null=True, blank=True)
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     quantity_sold = models.DecimalField('Cantidad vendida', max_digits=10, decimal_places=2, default=0)
-    # quantity_purchased = models.DecimalField('Cantidad comprada', max_digits=10, decimal_places=2, default=0)
-    # quantity_requested = models.DecimalField('Cantidad solicitada', max_digits=10, decimal_places=2, default=0)
     price_unit = models.DecimalField('Precio unitario', max_digits=10, decimal_places=2, default=0)
     unit = models.ForeignKey('Unit', on_delete=models.CASCADE)
     commentary = models.CharField(max_length=200, null=True, blank=True)
@@ -661,20 +635,12 @@ class ManufactureRecipe(models.Model):
 class LoanPayment(models.Model):
     TYPE_CHOICES = (('V', 'Venta'), ('C', 'Compra'),)
     id = models.AutoField(primary_key=True)
-    # quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
     pay = models.DecimalField('Pago', max_digits=30, decimal_places=15, default=0)
-    # product = models.ForeignKey('Product', on_delete=models.SET_NULL, null=True, blank=True)
     order_detail = models.ForeignKey('OrderDetail', on_delete=models.SET_NULL, null=True, blank=True)
     create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     type = models.CharField('Tipo de Operacion', max_length=1, choices=TYPE_CHOICES, default='V', )
-    # purchase = models.ForeignKey('buys.Purchase', on_delete=models.SET_NULL, null=True, blank=True)
     bill = models.ForeignKey('accounting.Bill', on_delete=models.SET_NULL, null=True, blank=True)
     operation_date = models.DateField('Fecha de operacion', null=True, blank=True)
-    # distribution_mobil = models.ForeignKey('comercial.DistributionMobil', on_delete=models.SET_NULL, null=True,
-    #                                        blank=True)
-    # requirement_detail_buys = models.ForeignKey('buys.RequirementDetail_buys', on_delete=models.SET_NULL, null=True,
-    #                                             blank=True)
-    # is_check = models.BooleanField('check', default=False)
 
     def __str__(self):
         return str(self.id)

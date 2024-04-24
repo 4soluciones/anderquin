@@ -22,7 +22,7 @@ from .models import Product, Client, Order, OrderDetail, SubsidiaryStore, Produc
 from django.contrib.auth.models import User
 from apps.hrm.views import get_subsidiary_by_user
 from .number_to_letters import numero_a_moneda
-from .views import get_context_kardex_glp, get_dict_orders, total_remaining_repay_loan, total_remaining_return_loan, \
+from .views import get_dict_orders, total_remaining_repay_loan, total_remaining_return_loan, \
     repay_loan, return_loan
 from datetime import datetime
 from .format_dates import utc_to_local
