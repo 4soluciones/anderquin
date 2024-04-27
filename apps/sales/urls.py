@@ -40,14 +40,8 @@ urlpatterns = [
     path('get_products_by_subsidiary/', get_products_by_subsidiary, name='get_products_by_subsidiary'),
     path('new_subsidiary_store/', new_subsidiary_store, name='new_subsidiary_store'),
     path('get_recipe/', login_required(get_recipe), name='get_recipe'),
-    path('get_manufacture/', login_required(get_manufacture), name='get_manufacture'),
     path('get_unit_by_product/', get_unit_by_product, name='get_unit_by_product'),
     path('get_price_by_product/', get_price_by_product, name='get_price_by_product'),
-    path('create_order_manufacture/', login_required(create_order_manufacture),
-         name='create_order_manufacture'),
-    path('orders_manufacture/', login_required(orders_manufacture), name='orders_manufacture'),
-    path('update_manufacture_by_id/', login_required(update_manufacture_by_id),
-         name='update_manufacture_by_id'),
 
     # product get recipe
     path('get_recipe_by_product/', get_recipe_by_product, name='get_recipe_by_product'),
@@ -66,7 +60,6 @@ urlpatterns = [
     path('account_order_list_pdf/<int:pk>/',
          login_required(account_order_list_pdf), name='account_order_list_pdf'),
 
-
     # ESTADO DE CUENTA
     path('order_list/', login_required(order_list), name='order_list'),
     path('get_orders_by_client/', get_orders_by_client, name='get_orders_by_client'),
@@ -75,8 +68,6 @@ urlpatterns = [
     path('get_expenses/', login_required(get_expenses), name='get_expenses'),
     path('new_expense/', login_required(new_expense), name='new_expense'),
 
-
-    path('product_recipe_edit/', get_product_recipe_view, name='product_recipe_edit'),
     path('get_recipe_by_product/', get_recipe_by_product, name='get_recipe_by_product'),
 
     # report graphic

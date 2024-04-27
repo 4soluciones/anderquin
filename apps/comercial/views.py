@@ -10,9 +10,8 @@ from apps.hrm.models import Subsidiary, Employee, District, Department, Province
 from django.http import JsonResponse
 from .forms import *
 from django.urls import reverse_lazy
-from apps.sales.models import Product, SubsidiaryStore, ProductStore, ProductDetail, ProductRecipe, \
-    ProductSubcategory, ProductSupplier, \
-    TransactionPayment, Order, LoanPayment, ClientAddress
+from apps.sales.models import Product, SubsidiaryStore, ProductStore, ProductDetail, ProductSubcategory, \
+    ProductSupplier, TransactionPayment, Order, LoanPayment, ClientAddress
 from apps.sales.views import kardex_ouput, kardex_input, kardex_initial, calculate_minimum_unit, Supplier
 from apps.hrm.models import Subsidiary
 import json

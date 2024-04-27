@@ -84,7 +84,7 @@ class ProductSubcategory(models.Model):
 
 
 class SubsidiaryStore(models.Model):
-    CATEGORY_CHOICES = (('V', 'VENTA'), ('I', 'INSUMO'),  ('M', 'MALOGRADOS'), ('R', 'MANTENIMIENTO'))
+    CATEGORY_CHOICES = (('V', 'VENTA'), ('I', 'INSUMO'), ('M', 'MALOGRADOS'), ('R', 'MANTENIMIENTO'))
     id = models.AutoField(primary_key=True)
     subsidiary = models.ForeignKey(Subsidiary, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField('Nombre', max_length=45)
@@ -100,7 +100,6 @@ class SubsidiaryStore(models.Model):
 
 
 class Product(models.Model):
-    VALVULE_CHOICES = (('N', 'NO ESPECIFICA'), ('P', 'PREMIUM'), ('R', 'ROSCA'), ('P', 'PRESION'),)
     id = models.AutoField(primary_key=True)
     name = models.CharField('Nombre', max_length=100, unique=True)
     observation = models.CharField('Observacion', max_length=50, null=True, blank=True)
@@ -114,20 +113,16 @@ class Product(models.Model):
     photo_thumbnail = ImageSpecField([Adjust(contrast=1.2, sharpness=1.1), ResizeToFill(
         100, 100)], source='photo', format='JPEG', options={'quality': 90})
     barcode = models.CharField('Codigo de barras', max_length=45, null=True, blank=True)
-    valvule = models.CharField('Tipo de Valvula', max_length=1,
-                               choices=VALVULE_CHOICES, default='N', )
     product_subcategory = models.ForeignKey('ProductSubcategory', on_delete=models.CASCADE)
 
     is_supply = models.BooleanField('Suministro', default=False)
     is_merchandise = models.BooleanField('Mercancia', default=False)
-    is_epp = models.BooleanField('EPP', default=False)
     is_equipment = models.BooleanField('Equipo', default=False)
     is_machine = models.BooleanField('Maquina', default=False)
     is_purchased = models.BooleanField('Comprado', default=False)
     is_manufactured = models.BooleanField('Fabricado', default=False)
     is_imported = models.BooleanField('Importado', default=False)
     is_enabled = models.BooleanField('Habilitado', default=True)
-    is_approved_by_osinergmin = models.BooleanField('Es aprobado por osinergmin', default=False)
     weight = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
@@ -192,12 +187,6 @@ class ProductStore(models.Model):
 
     def get_stock_with_dot(self):
         return str(self.stock).replace(',', '.')
-
-    def conversion_mml_g_stock(self):
-        paint_converter = ProductStore.objects.filter(product__product_family__id=4)
-        if paint_converter.count() > 0:
-            response = float(self.stock) / float(3785.41)
-        return response
 
     class Meta:
         unique_together = ('product', 'subsidiary_store',)
@@ -390,7 +379,8 @@ class Order(models.Model):
     HAS_ORDER_QUOTATION = (('S', 'SIN VENTA'), ('C', 'CON VENTA'), ('0', 'SOLO VENTA'))
     order_type = models.CharField('Tipo de Orden', max_length=1, choices=ORDER_TYPE_CHOICES, default='V')
     sale_type = models.CharField('Tipo de Venta', max_length=2, choices=SALE_TYPE_CHOICES, default='VC')
-    subsidiary_store = models.ForeignKey('SubsidiaryStore', verbose_name='Almacen Sucursal', on_delete=models.SET_NULL, null=True, blank=True)
+    subsidiary_store = models.ForeignKey('SubsidiaryStore', verbose_name='Almacen Sucursal', on_delete=models.SET_NULL,
+                                         null=True, blank=True)
     client = models.ForeignKey('Client', verbose_name='Cliente', on_delete=models.SET_NULL, null=True, blank=True)
     user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P')
@@ -405,8 +395,10 @@ class Order(models.Model):
     place_delivery = models.CharField('Lugar de entrega', max_length=300, null=True, blank=True, default=0)
     observation = models.CharField('Observacion', max_length=500, null=True, blank=True, default=0)
     way_to_pay_type = models.CharField('Tipo de pago', max_length=1, choices=TYPE_CHOICES_PAYMENT, default='E', )
-    has_quotation_order = models.CharField('Has Order Quotation', max_length=1, choices=HAS_ORDER_QUOTATION, default='0')
-    order_sale_quotation = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name="order_quotation")
+    has_quotation_order = models.CharField('Has Order Quotation', max_length=1, choices=HAS_ORDER_QUOTATION,
+                                           default='0')
+    order_sale_quotation = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
+                                             related_name="order_quotation")
     serial = models.CharField('Serie', max_length=5, null=True, blank=True)
 
     def __str__(self):
@@ -469,36 +461,6 @@ class OrderDetail(models.Model):
         verbose_name_plural = 'Detalles de orden'
 
 
-class TransactionPayment(models.Model):
-    TYPE_CHOICES = (('E', 'Contado'), ('D', 'Deposito'), ('C', 'Credito'))
-    id = models.AutoField(primary_key=True)
-    payment = models.DecimalField('Pago', max_digits=10, decimal_places=2, default=0)
-    type = models.CharField('Tipo de pago', max_length=1, choices=TYPE_CHOICES, default='E', )
-    order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True)
-    operation_code = models.CharField(
-        verbose_name='Codigo de operación', max_length=45, null=True, blank=True)
-    # number_of_vouchers = models.DecimalField('Vales FISE', max_digits=10, decimal_places=2, default=0)
-    loan_payment = models.ForeignKey('LoanPayment', on_delete=models.SET_NULL, null=True, blank=True)
-
-    def __str__(self):
-        return str(self.order.id) + " - " + str(self.type) + " - " + str(self.payment)
-
-    def get_cash_flow(self):
-        response = None
-        if self.type == 'D':
-            cash_flow_set = CashFlow.objects.filter(type='D',
-                                                    total=self.payment,
-                                                    order=self.loan_payment.order_detail.order,
-                                                    operation_code=self.operation_code)
-            if cash_flow_set:
-                response = cash_flow_set.last()
-        return response
-
-    class Meta:
-        verbose_name = 'Transacción de pago'
-        verbose_name_plural = 'Transacciones de pago'
-
-
 class Kardex(models.Model):
     OPERATION_CHOICES = (('E', 'Entrada'), ('S', 'Salida'), ('C', 'Inventario inicial'),)
     id = models.AutoField(primary_key=True)
@@ -517,16 +479,10 @@ class Kardex(models.Model):
     order_detail = models.ForeignKey('OrderDetail', on_delete=models.SET_NULL, null=True, blank=True)
     purchase_detail = models.ForeignKey('buys.PurchaseDetail', on_delete=models.SET_NULL, null=True, blank=True)
     guide_detail = models.ForeignKey('comercial.GuideDetail', on_delete=models.SET_NULL, null=True, blank=True)
-    # requirement_detail = models.ForeignKey('buys.RequirementDetail_buys', on_delete=models.SET_NULL, null=True,
-    #                                        blank=True)
-    # programming_invoice = models.ForeignKey('buys.Programminginvoice', on_delete=models.SET_NULL, null=True, blank=True)
     create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    manufacture_detail = models.ForeignKey('ManufactureDetail', on_delete=models.SET_NULL, null=True, blank=True)
-    manufacture_recipe = models.ForeignKey('ManufactureRecipe', on_delete=models.SET_NULL, null=True, blank=True)
     distribution_detail = models.ForeignKey('comercial.DistributionDetail', on_delete=models.SET_NULL, null=True,
                                             blank=True)
     loan_payment = models.ForeignKey('LoanPayment', on_delete=models.SET_NULL, null=True, blank=True)
-    ball_change = models.ForeignKey('BallChange', on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name = 'Registro de Kardex'
@@ -560,78 +516,6 @@ class OrderBill(models.Model):
         verbose_name_plural = 'Registros de Comprobantes'
 
 
-class ProductRecipe(models.Model):
-    product_input = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='inputs')
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='recipes')
-    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
-    unit = models.ForeignKey('Unit', on_delete=models.CASCADE)
-    price = models.DecimalField('Precio Unitario', max_digits=10, decimal_places=2, default=0)
-
-    # total = models.DecimalField('Precio Total', max_digits=10, decimal_places=2, default=0)
-
-    def __str__(self):
-        return str(self.pk)
-
-    def get_price_with_dot(self):
-        return str(self.price).replace(',', '.')
-
-    def get_quantity_with_dot(self):
-        return str(self.quantity).replace(',', '.')
-
-    class Meta:
-        verbose_name = 'Registro de Receta'
-        verbose_name_plural = 'Registros de Recetas'
-
-
-class Manufacture(models.Model):
-    code = models.CharField('Numero de comprobante', max_length=45, null=True, blank=True)
-    total = models.DecimalField('Precio Total', max_digits=10, decimal_places=2, default=0)
-    subsidiary = models.ForeignKey(Subsidiary, on_delete=models.SET_NULL, null=True, blank=True)
-
-    def __str__(self):
-        return str(self.id)
-
-    class Meta:
-        verbose_name = 'Registro de Orden Fabricacion'
-        verbose_name_plural = 'Registros de Ordenes de Fabricaciones'
-
-
-class ManufactureAction(models.Model):
-    STATUS_CHOICES = (('1', 'PENDIENTE'), ('2', 'APROBADO'), ('3', 'EN PRODUCCION'),
-                      ('4', 'FINALIZADO'), ('5', 'ANULADO'),)
-    user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True)
-    manufacture = models.ForeignKey('Manufacture', on_delete=models.CASCADE)
-    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='1', )
-
-    def __str__(self):
-        return str(self.id)
-
-
-class ManufactureDetail(models.Model):
-    manufacture = models.ForeignKey('Manufacture', on_delete=models.CASCADE)
-    product_manufacture = models.ForeignKey('Product', on_delete=models.CASCADE, null=True, blank=True)
-    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
-    price = models.DecimalField('Precio', max_digits=10, decimal_places=2, default=0)
-
-    def __str__(self):
-        return str(self.id)
-
-    class Meta:
-        unique_together = ('manufacture', 'product_manufacture')
-        verbose_name = 'Registro de Detalles de Fabricacion'
-        verbose_name_plural = 'Registros de Detalle de Fabricaciones'
-
-
-class ManufactureRecipe(models.Model):
-    manufacture_detail = models.ForeignKey('ManufactureDetail', on_delete=models.CASCADE)
-    product_input = models.ForeignKey('Product', on_delete=models.CASCADE)
-    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
-
-    def __str__(self):
-        return str(self.id)
-
-
 class LoanPayment(models.Model):
     TYPE_CHOICES = (('V', 'Venta'), ('C', 'Compra'),)
     id = models.AutoField(primary_key=True)
@@ -646,75 +530,30 @@ class LoanPayment(models.Model):
         return str(self.id)
 
 
-class BallChange(models.Model):
-    STATUS_CHOICES = (
-        ('1', 'Corrosión excesiva'), ('2', 'Abolladuras'), ('3', 'Válvula pintada o con fugas de gas'), ('4', 'Otro'))
+class TransactionPayment(models.Model):
+    TYPE_CHOICES = (('E', 'Contado'), ('D', 'Deposito'), ('C', 'Credito'))
     id = models.AutoField(primary_key=True)
-    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
-    product = models.ForeignKey('Product', on_delete=models.SET_NULL, null=True, blank=True)
-    order_detail = models.ForeignKey('OrderDetail', on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='4', )
-    create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    observation = models.CharField(max_length=200, null=True, blank=True)
-
-    def __str__(self):
-        return str(self.id)
-
-
-class LoanAccount(models.Model):
-    OPERATION_CHOICES = (('L', 'Prestado'), ('P', 'Pagado'),)
-    id = models.AutoField(primary_key=True)
-    operation = models.CharField('Tipo de operación', max_length=1,
-                                 choices=OPERATION_CHOICES, default='L', )
-    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
-    price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=15, default=0)
-    price_total = models.DecimalField('Precio total', max_digits=30, decimal_places=15, default=0)
-    remaining_quantity = models.DecimalField('Cantidad restante', max_digits=10, decimal_places=2, default=0)
-    remaining_price = models.DecimalField(
-        'Precio restante', max_digits=30, decimal_places=15, default=0)
-    remaining_price_total = models.DecimalField(
-        'Precio total restante', max_digits=30, decimal_places=15, default=0)
-    product = models.ForeignKey('Product', on_delete=models.SET_NULL, null=True, blank=True)
-    client = models.ForeignKey('Client', verbose_name='Cliente', on_delete=models.SET_NULL, null=True, blank=True)
-    order_detail = models.ForeignKey('OrderDetail', on_delete=models.SET_NULL, null=True, blank=True)
+    payment = models.DecimalField('Pago', max_digits=10, decimal_places=2, default=0)
+    type = models.CharField('Tipo de pago', max_length=1, choices=TYPE_CHOICES, default='E', )
+    order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True)
+    operation_code = models.CharField(
+        verbose_name='Codigo de operación', max_length=45, null=True, blank=True)
     loan_payment = models.ForeignKey('LoanPayment', on_delete=models.SET_NULL, null=True, blank=True)
 
-    create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    def __str__(self):
+        return str(self.order.id) + " - " + str(self.type) + " - " + str(self.payment)
+
+    def get_cash_flow(self):
+        response = None
+        if self.type == 'D':
+            cash_flow_set = CashFlow.objects.filter(type='D',
+                                                    total=self.payment,
+                                                    order=self.loan_payment.order_detail.order,
+                                                    operation_code=self.operation_code)
+            if cash_flow_set:
+                response = cash_flow_set.last()
+        return response
 
     class Meta:
-        verbose_name = 'Registro de Prestamo'
-        verbose_name_plural = 'Registros de Prestamo'
-
-    def __str__(self):
-        return str(self.id)
-
-
-class Perceptron(models.Model):
-    serial = models.CharField('Serie', max_length=5, null=True, blank=True)
-    n_receipt = models.IntegerField('Numero de Comprobante', default=0)
-    user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
-    client = models.ForeignKey('Client', verbose_name='Cliente',
-                               on_delete=models.SET_NULL, null=True, blank=True)
-    create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    total_received = models.DecimalField('Total Percibido', max_digits=10, decimal_places=2, default=0)
-    total_charged = models.DecimalField('Total Cobrado con Percepcion', max_digits=10, decimal_places=2, default=0)
-    observation = models.CharField('Observacion', max_length=50, null=True, blank=True)
-
-    def __str__(self):
-        return str(self.id)
-
-
-class PerceptronDetail(models.Model):
-    order_bill = models.ForeignKey('OrderBill', on_delete=models.SET_NULL, null=True, blank=True)
-    payment_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
-    total_no_perceptron = models.DecimalField('Total Cobrado sin Percepcion', max_digits=10, decimal_places=2,
-                                              default=0)
-    total_perceptron_received = models.DecimalField('Total Recibido', max_digits=10, decimal_places=2, default=0)
-    charged_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
-    total_perceptron = models.DecimalField('Total Cobrado con Percepcion', max_digits=10, decimal_places=2, default=0)
-    sunat_status = models.CharField('Sunat Status', max_length=5, null=True, blank=True)
-    sunat_description = models.CharField('Sunat descripcion', max_length=200, null=True, blank=True)
-    sunat_enlace_pdf = models.CharField('Sunat Enlace Pdf', max_length=200, null=True, blank=True)
-
-    def __str__(self):
-        return str(self.id)
+        verbose_name = 'Transacción de pago'
+        verbose_name_plural = 'Transacciones de pago'

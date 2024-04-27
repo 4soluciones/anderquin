@@ -68,9 +68,6 @@ class ProductList(View):
             Prefetch(
                 'productdetail_set', queryset=ProductDetail.objects.select_related('unit')
             ),
-            Prefetch(
-                'recipes', queryset=ProductRecipe.objects.select_related('unit').select_related('product_input')
-            )
         ).order_by('id')
 
     def get_context_data(self, **kwargs):
@@ -902,6 +899,7 @@ def save_order(request):
             subsidiary=subsidiary_obj,
             create_at=_date,
             correlative=get_correlative_order(subsidiary_obj, 'V'),
+            way_to_pay_type=_type_payment
         )
         order_obj.save()
 
@@ -913,7 +911,7 @@ def save_order(request):
             quantity = decimal.Decimal(detail['quantity'])
             price = decimal.Decimal(detail['price'])
             total = decimal.Decimal(detail['detailTotal'])
-            store_product_id = int(detail['Store'])
+            store_product_id = int(detail['store'])
 
             product_obj = Product.objects.get(id=product_id)
             unit_obj = Unit.objects.get(id=unit_id)
@@ -932,55 +930,54 @@ def save_order(request):
 
             kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj)
 
-            date = request.POST.get('date', '')
+            code_operation = '-'
 
-            cash_casing_id = request.POST.get('cash_id', '')
+            cash_obj = None
+            if _type_payment == 'E':
+                cash_casing_id = request.POST.get('cash_id', '')
+                date_cash_casing = request.POST.get('date_cash', '')
+                cash_obj = Cash.objects.get(id=int(cash_casing_id))
+            elif _type_payment == 'D':
+                cash_deposit_id = request.POST.get('id_cash_deposit', '')
+                cash_obj = Cash.objects.get(id=int(cash_deposit_id))
+                date = request.POST.get('date', '')
+                code_operation = request.POST.get('code-operation', '')
 
-            cash_deposit_id = request.POST.get('id_cash_deposit', '')
-            code_operation = request.POST.get('code-operation', '')
+            if _type_payment == 'E' or _type_payment == 'D':
+                loan_payment_obj = LoanPayment(
+                    pay=decimal.Decimal(_sum_total),
+                    order_detail=order_detail_obj,
+                    create_at=_date,
+                    type='V',
+                    operation_date=_date
+                )
+                loan_payment_obj.save()
 
-            if _type_payment != 'C':
-                new_loan_payments = {
-                    'quantity': 0,
-                    'price': _sum_total,
-                    'create_at': _date,
-                    'type': 'V',
-                    'operation_date': _date,
-                    'order_detail': order_detail_obj,
-                    'product': product_obj,
-                }
-                new_loan_payment_obj = LoanPayment.objects.create(**new_loan_payments)
-                new_loan_payment_obj.save()
+                transaction_payment_obj = TransactionPayment(
+                    payment=decimal.Decimal(_sum_total),
+                    type=_type_payment,
+                    order=order_obj,
+                    operation_code=code_operation,
+                    loan_payment=loan_payment_obj
+                )
+                transaction_payment_obj.save()
 
-                new_transaction_payment = {
-                    'payment': _sum_total,
-                    'type': _type_payment,
-                    'operation_code': code_operation,
-                    'loan_payment': new_loan_payment_obj,
-                }
-                new_transaction_payment_obj = TransactionPayment.objects.create(**new_transaction_payment)
-                new_transaction_payment_obj.save()
-
-                cash_finality_obj = Cash.objects.get(id=int(cash_casing_id))
-                new_cash_flow = {
-                    'transaction_date': _date,
-                    'created_at': _date,
-                    'description': 'VENTA: ' + str(order_obj.subsidiary.serial) + '-' + str(
+                cash_flow_obj = CashFlow(
+                    transaction_date=_date,
+                    description='VENTA: ' + str(order_obj.subsidiary.serial) + '-' + str(
                         order_obj.correlative).zfill(6),
-                    'type': _type_payment,
-                    'total': _sum_total,
-                    'operation_code': code_operation,
-                    'cash': cash_finality_obj,
-                    'order': order_obj,
-                    'user': user_obj,
-                    'document_type_attached': 'T'
-                }
-                new_cash_flow_obj = CashFlow.objects.create(**new_cash_flow)
-                new_cash_flow_obj.save()
+                    document_type_attached='T',
+                    type=_type_payment,
+                    total=_sum_total,
+                    operation_code=code_operation,
+                    order=order_obj,
+                    user=user_obj,
+                    cash=cash_obj
+                )
+                cash_flow_obj.save()
 
         # if _type == 'E':
         #     if _bill_type == 'F':
-        #
         #         r = send_bill_nubefact(order_sale_obj.id)
         #         msg_sunat = r.get('sunat_description')
         #         sunat_pdf = r.get('enlace_del_pdf')
@@ -1307,25 +1304,6 @@ def get_recipe(request):
     })
 
 
-def get_manufacture(request):
-    products_insume = Product.objects.filter(
-        is_manufactured=True, recipes__isnull=False).distinct('name')
-    inputs = Product.objects.filter(is_supply=True)
-    mydate = datetime.now()
-    user_id = request.user.id
-    user_obj = User.objects.get(id=user_id)
-    subsidiary_obj = get_subsidiary_by_user(user_obj)
-    my_subsidiary_store_obj = SubsidiaryStore.objects.get(subsidiary=subsidiary_obj, category='I')
-    formatdate = mydate.strftime("%Y-%m-%d %H:%M:%S")
-    return render(request, 'sales/recipe_list.html', {
-        'products_insume': products_insume,
-        'my_subsidiary_store': my_subsidiary_store_obj,
-        'date': formatdate,
-        'context': validate_manufacture_pendient(subsidiary_obj),
-        'inputs': inputs
-    })
-
-
 def get_unit_by_product(request):
     if request.method == 'GET':
         pk = request.GET.get('pk', '')
@@ -1342,174 +1320,6 @@ def get_price_by_product(request):
         price = product_detail_obj.price_sale
 
     return JsonResponse({'price_unit': price})
-
-
-def create_order_manufacture(request):
-    if request.method == 'GET':
-        production_request = request.GET.get('production')
-        data_production = json.loads(production_request)
-
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-
-        manufacture_obj_val = ManufactureAction.objects.filter(
-            status="1", manufacture__subsidiary=subsidiary_obj)
-
-        # ---Cabecera de Manufacturee---
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        code = str(data_production["Code"])
-        total = decimal.Decimal((data_production["Total"]).replace(',', '.'))
-
-        new_manufacture_obj = Manufacture(subsidiary=subsidiary_obj, code=code, total=total)
-        new_manufacture_obj.save()
-
-        # --Save ManufactureAction--
-        new_manufacture_action_obj = ManufactureAction(
-            user=user_obj, manufacture=new_manufacture_obj, status="1")
-        new_manufacture_action_obj.save()
-
-        # --Save Manufacturedetail--
-        for details in data_production['Details']:
-
-            product_create_id = str(details["Product"])
-            product_create_obj = Product.objects.get(id=product_create_id)
-
-            quantity_request = decimal.Decimal(details["Quantity"])
-            price = decimal.Decimal(details["Price"])
-
-            new_manufacture_detail_obj = ManufactureDetail(manufacture=new_manufacture_obj,
-                                                           product_manufacture=product_create_obj,
-                                                           quantity=quantity_request, price=price)
-            new_manufacture_detail_obj.save()
-
-            for insume in ProductRecipe.objects.filter(product=product_create_obj):
-                new_manufacture_recipe_obj = ManufactureRecipe(manufacture_detail=new_manufacture_detail_obj,
-                                                               product_input=insume.product_input,
-                                                               quantity=insume.quantity * quantity_request)
-                new_manufacture_recipe_obj.save()
-
-        return JsonResponse({
-            'message': 'La operaciòn se Realizo correctamente.',
-        }, status=HTTPStatus.OK)
-
-    else:
-        return JsonResponse({
-            'error': 'No se puede guardar, existe una Orden pendiente'
-        }, status=HTTPStatus.OK)
-
-
-def orders_manufacture(request):
-    if request.method == 'GET':
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        manufactures = Manufacture.objects.filter(subsidiary=subsidiary_obj)
-        status = ManufactureAction._meta.get_field('status').choices
-
-        return render(request, 'sales/manufacture_list.html', {
-            'manufactures': manufactures,
-            'status': status
-        })
-
-
-def update_manufacture_by_id(request):
-    if request.method == 'GET':
-        manufacture_id = request.GET.get('pk', '')
-        status_id = request.GET.get('status', '')
-        manufacture_obj = Manufacture.objects.get(id=int(manufacture_id))
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-
-        if status_id == '2':  # aprobado
-            subsidiary_store_set_obj = SubsidiaryStore.objects.get(
-                subsidiary=subsidiary_obj, category='I')
-            manufacture_details_set = ManufactureDetail.objects.filter(
-                manufacture_id=int(manufacture_id))
-            if validate_stock_insume(subsidiary_store_set_obj, manufacture_id):
-                for d in manufacture_details_set.all():
-                    inputs_set = ManufactureRecipe.objects.filter(manufacture_detail=d)
-                    for i in inputs_set:
-                        product_store_inputs_obj = ProductStore.objects.get(subsidiary_store=subsidiary_store_set_obj,
-                                                                            product=i.product_input)
-                        kardex_ouput(product_store_inputs_obj.id,
-                                     i.quantity,
-                                     manufacture_recipe_obj=i)  # i.quantity = LA CANTIDAD QUE SE DESCONTARA DEL STOCK DEL INSUMO
-
-                new_manufacture_action_obj = ManufactureAction(user=user_obj, date=datetime.now(),
-                                                               manufacture=manufacture_obj, status=status_id)
-                new_manufacture_action_obj.save()
-            else:
-                data = {'error': 'No se pudo Aprobar la solicitud por falta de stock de un insumo'}
-                response = JsonResponse(data)
-                response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-                return response
-
-        elif status_id == '3':  # produccion
-            new_manufacture_action_obj = ManufactureAction(user=user_obj, date=datetime.now(),
-                                                           manufacture=manufacture_obj, status=status_id)
-            new_manufacture_action_obj.save()
-
-        elif status_id == '4':
-            subsidiary_store_set_obj = SubsidiaryStore.objects.get(
-                subsidiary=subsidiary_obj, category='V')
-            manufacture_details_set = ManufactureDetail.objects.filter(
-                manufacture_id=int(manufacture_id))
-            for d in manufacture_details_set.all():
-                price_unit = d.price / d.quantity
-                try:
-                    product_store_create = ProductStore.objects.get(subsidiary_store=subsidiary_store_set_obj,
-                                                                    product=d.product_manufacture)
-                except ProductStore.DoesNotExist:
-                    product_store_create = None
-
-                if product_store_create is None:
-                    product_store_create = ProductStore(product=d.product_manufacture, stock=d.quantity,
-                                                        subsidiary_store=subsidiary_store_set_obj)
-                    product_store_create.save()
-                    kardex_initial(product_store_create, d.quantity,
-                                   price_unit, manufacture_detail_obj=d)
-                else:
-                    kardex_input(product_store_create.id, d.quantity,
-                                 price_unit, manufacture_detail_obj=d)
-
-            new_manufacture_action_obj = ManufactureAction(user=user_obj, date=datetime.now(),
-                                                           manufacture=manufacture_obj, status=status_id)
-            new_manufacture_action_obj.save()
-
-        elif status_id == '5':
-            new_manufacture_action_obj = ManufactureAction(user=user_obj, date=datetime.now(),
-                                                           manufacture=manufacture_obj, status=status_id)
-            new_manufacture_action_obj.save()
-
-        return JsonResponse({
-            'message': 'Se cambio el estado correctamente.',
-        }, status=HTTPStatus.OK)
-
-
-def validate_stock_insume(subsidiary_store, manufacture_id):
-    manufacture_details_set = ManufactureDetail.objects.filter(manufacture_id=int(manufacture_id))
-    for d in manufacture_details_set.all():
-        inputs_set = ManufactureRecipe.objects.filter(manufacture_detail=d)
-        for i in inputs_set:
-            product_store_inputs_obj = ProductStore.objects.get(subsidiary_store=subsidiary_store,
-                                                                product=i.product_input)
-            if product_store_inputs_obj.stock < i.quantity:
-                return False
-    return True
-
-
-def validate_manufacture_pendient(subsidiary_obj):
-    for m in Manufacture.objects.filter(subsidiary=subsidiary_obj):
-        last_action = ManufactureAction.objects.filter(manufacture=m).last()
-        if last_action.status == '1':
-            context = ({
-                'code': last_action.manufacture.code,
-                'flag': False,
-            })
-            return context
-    return {'flag': True}
 
 
 def order_list(request):
@@ -1952,28 +1762,6 @@ def new_loan_payment(request):
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
-def open_loan_account(order_detail_obj, payment=0, quantity=0):
-    new_quantity = decimal.Decimal(quantity)
-    new_price_unit = decimal.Decimal(payment)
-    new_price_total = new_quantity * new_price_unit
-    new_remaining_quantity = new_quantity
-    new_remaining_price = new_price_unit
-    new_remaining_price_total = new_remaining_quantity * new_remaining_price
-
-    new_loan_account = LoanAccount(
-        operation='L',
-        quantity=new_quantity,
-        price_unit=new_price_unit,
-        price_total=new_price_total,
-        remaining_quantity=new_remaining_quantity,
-        remaining_price=new_remaining_price,
-        remaining_price_total=new_remaining_price_total,
-        product=order_detail_obj.product,
-        order_detail=order_detail_obj,
-    )
-    new_loan_account.save()
-
-
 def get_supplies_view(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
@@ -2052,25 +1840,6 @@ def get_stock_product_store(request):
         'dic_stock': dic_stock,
         'tid': tid,
     })
-
-
-def get_product_recipe_view(request):
-    if request.method == 'GET':
-        product_pk = request.GET.get('pk', '')
-        product_obj = Product.objects.get(id=int(product_pk))
-        product_recipe_set = ProductRecipe.objects.filter(product=product_obj)
-        products_supplies = Product.objects.filter(is_supply=True)
-        unit_set = Unit.objects.all()
-        t = loader.get_template('sales/product_recipe_update.html')
-        c = ({
-            'product_recipe_set': product_recipe_set,
-            'products_supplies_set': products_supplies,
-            'product_obj': product_obj,
-            'unit_set': unit_set,
-        })
-        return JsonResponse({
-            'form': t.render(c, request),
-        })
 
 
 def save_loan_payment_in_cash_flow(
