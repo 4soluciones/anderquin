@@ -1083,7 +1083,6 @@ def kardex_initial(
         'remaining_price_total': decimal.Decimal(stock) * decimal.Decimal(price_unit),
         'distribution_detail': distribution_detail_obj,
         'guide_detail': guide_detail_obj,
-        'manufacture_detail': manufacture_detail_obj,
         'order_detail': order_detail_obj,
         'product_store': product_store_obj,
         'purchase_detail': purchase_detail_obj,
