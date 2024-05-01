@@ -11,10 +11,10 @@
     </thead>
     <tbody>
     {% for b in bill_purchase_set %}
-        <tr class="col-form-label bg-secondary text-white p-0 m-0">
+        <tr class="col-form-label bg-secondary text-white p-0 m-0" pk="{{ b.id }}">
             <td class="text-center">{{ b.purchase_detail.purchase.bill_number }}</td>
             <td class="text-center">{{ b.purchase_detail.product.name }}</td>
-            <td class="text-center">{{ b.quantity_invoice|floatformat:0 }}</td>
+            <td class="text-center">{{ b.quantity_invoice|replace_round }}</td>
             <td class="text-center">{{ b.purchase_detail.unit.name }}</td>
             <td class="text-center">{{ b.purchase_detail.price_unit|floatformat:4 }}</td>
         </tr>

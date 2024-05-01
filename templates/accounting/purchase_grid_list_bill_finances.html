@@ -1,5 +1,5 @@
 {% load operations %}
-{% if bill_set %}
+
     <div class="card-body p-2 table-responsive small">
         <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
             <table id="purchase-list-with-bill"
@@ -9,8 +9,8 @@
                     <th class="th-sm align-middle" style="width: 5%" rowspan="2">Fecha de <br> Registro</th>
                     <th class="th-sm align-middle" style="width: 5%" rowspan="2">Fecha de <br>Expiracion</th>
                     <th class="th-sm align-middle" style="width: 5%" rowspan="2">Número de <br>Pedido</th>
-                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Número <br>Comprobante</th>
-                    <th class="th-sm align-middle" style="width: 10%" rowspan="2">Proveedor</th>
+                    <th class="th-sm align-middle" style="width: 7%" rowspan="2">Número <br>Comprobante</th>
+                    <th class="th-sm align-middle" style="width: 8%" rowspan="2">Proveedor</th>
                     <th class="th-sm align-middle" style="width: 12%" rowspan="2">Direccion de Entrega</th>
                     <th class="th-sm align-middle" style="width: 6%" rowspan="2">Subtotal</th>
                     <th class="th-sm align-middle" style="width: 6%" rowspan="2">Igv(18%)</th>
@@ -31,8 +31,8 @@
                     <tr class="text-center details" pk="{{ b.id }}">
                         <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.register_date|date:'d-m-Y' }}</td>
                         <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.expiration_date|date:'d-m-Y' }}</td>
-                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.order_number|upper }}</td>
-                        <td class="align-middle text-left font-weight-bold" rowspan="{{ b.row_count }}">{{ b.serial }}
+                        <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.order_number|upper }}</td>
+                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">{{ b.serial }}
                             - {{ b.correlative }}</td>
                         <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.supplier_name }}</td>
                         <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.delivery_address }}</td>
@@ -57,7 +57,7 @@
                             </div>
                         </td>
                         {% for d in b.bill_purchase %}
-                            <td class="align-middle text-center">{{ d.bill_number }}</td>
+                            <td class="align-middle text-center text-primary font-weight-bold">{{ d.bill_number }}</td>
                             <td class="align-middle text-center">{{ d.client_reference.names|upper }}</td>
                             <td class="align-middle text-center">{{ d.client_reference_entity.names|default:'-'|default_if_none:'-' }}</td>
                             </tr>
@@ -72,6 +72,3 @@
         </div>
     </div>
 
-{% else %}
-    <h1>No existen compras registradas</h1>
-{% endif %}

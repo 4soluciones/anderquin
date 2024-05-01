@@ -2,8 +2,8 @@
 <div class="modal-dialog modal-xl roboto-condensed-regular" role="document">
     <div class="modal-content">
         <div class="modal-header bg-light">
-            <h6 class="modal-title">GENERAR FACTURA:<span
-                    class="font-weight-bold"></span></h6>
+            <h4 class="modal-title roboto-condensed-regular font-weight-bold">GENERAR FACTURA:<span
+                    class="font-weight-bold"></span></h4>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -117,8 +117,8 @@
                             <div class="row">
                                 <div class="col-lg-6">
                                     <label class="mb-1 mt-2 font-weight-light" for="order_number">Nº Pedido:</label>
-                                    <input type="text" class="form-control"
-                                            id="order_number" name=order_number">
+                                    <input type="text" class="form-control" autocomplete="off"
+                                           id="order_number" name=order_number">
                                 </div>
                                 <div class="col-lg-6">
                                     <label for="purchases_numbers" class="mb-1 mt-2 font-weight-light">Nro de
@@ -140,7 +140,7 @@
                             <div class="row mt-2">
                                 <div class="col-sm-12 p-1">
                                     <div class="card col-sm-12 p-0">
-                                        <table class="table-hover table-sm table-bordered" id="id-table-detail-guide"
+                                        <table class="table-hover table-sm table-bordered" id="id-table-bill"
                                                style="width: 100%;">
                                             <thead class="text-uppercase small text-center">
                                             <tr class="text-white" style="background: #0783d6">
@@ -164,7 +164,8 @@
                                             {% for c in detail_purchase %}
                                                 {% for d in c.details %}
                                                     <tr class="" product="{{ d.product_id }}" unit_id="{{ d.unit_id }}"
-                                                        detail="{{ d.detail_id }}" purchase="{{ d.purchase_id }}" {% if d.has_bill %}style="background-color: #eedede" {% endif %} >
+                                                        detail="{{ d.detail_id }}" purchase="{{ d.purchase_id }}"
+                                                        {% if d.has_bill %}style="background-color: #eedede" {% endif %}>
                                                         <td class="item-number align-middle text-center"
                                                             style="font-size: 11px; background-color: #ececbe">{{ d.purchase_number }}</td>
                                                         <td class="item-number align-middle text-center">{{ forloop.parentloop.counter }}</td>
@@ -178,10 +179,10 @@
                                                         <td class="align-middle item-quantity">
                                                             <input type="text"
                                                                    class="form-control text-center quantity-invoice text-uppercase"
-                                                                   value="{{ d.quantity|safe|floatformat:0 }}">
+                                                                   value="{{ d.quantity|replace_round }}">
                                                             <input type="hidden"
                                                                    class="quantity-purchased"
-                                                                   value="{{ d.quantity|safe|floatformat:0 }}">
+                                                                   value="{{ d.quantity|replace_round }}">
                                                         </td>
                                                         <td class="align-middle unit">
                                                             <input type="text"
@@ -189,13 +190,13 @@
                                                                    placeholder="0" disabled
                                                                    value="{{ d.unit_description }}">
                                                         </td>
-                                                        <td class="align-middle price">
+                                                        <td class="align-middle item-price">
                                                             <input type="text"
                                                                    class="form-control text-center price-product text-uppercase"
                                                                    placeholder="0" disabled
                                                                    value="{{ d.price_unit|safe }}">
                                                         </td>
-                                                        <td class="align-middle price">
+                                                        <td class="align-middle item-amount">
                                                             <div class="input-icon">
                                                                 <input type="text"
                                                                        class="form-control text-right text-uppercase subtotal"
@@ -294,18 +295,6 @@
 
 <script type="text/javascript">
 
-    function checkQuantity() {
-        let check = true;
-        $('#bill-details tr').each(function () {
-            let purchaseQuantity = $(this).find('td.item-quantity input.quantity-invoice').val()
-            let oldPurchaseQuantity = $(this).find('td.item-quantity input.quantity-purchased').val()
-            if (purchaseQuantity !== oldPurchaseQuantity) {
-                check = false;
-            }
-        });
-        return check;
-    }
-
 
     $('.total-bill').keyup(function () {
 
@@ -319,20 +308,41 @@
     });
 
     $('.quantity-invoice').keyup(function () {
-
-        let quantity = $(this).val();
-        let price = $('.price-product').val();
-
-        let total = quantity * price;
-        let igv = $('.total-igv-bill');
-
-        $('.subtotal').val(total.toFixed(2))
-        $('.total-bill').val(total.toFixed(2))
-
-        let _subTotalCalculate = Number(total) / Number(1.18)
-        let igvTotalCalculate = Number(total) - _subTotalCalculate
-        $('.total-base-bill').val(_subTotalCalculate.toFixed(2))
-        igv.val(igvTotalCalculate.toFixed(2))
+        let _tr = $(this).parent('td').parent('tr');
+        let $quantity = _tr.find('td.item-quantity input.quantity-invoice')
+        let $quantity_purchased = _tr.find('td.item-quantity input.quantity-purchased')
+        if (Number($quantity.val().replace(',', '.')) > Number($quantity_purchased.val().replace(',', '.'))) {
+            toastr.warning('La cantidad a Facturar no puede superar a la cantidad de la Orden de Compra', 'Error de llenado');
+            $quantity.val($quantity_purchased.val())
+            return false;
+        } else {
+            calculate_total(_tr);
+            sum_table();
+        }
     });
+
+    function calculate_total(_tr) {
+        let $quantity = Number(_tr.find('td.item-quantity input.quantity-invoice').val().replace(',', '.'));
+        let $price_unit = Number(_tr.find('td.item-price input.price-product').val());
+        let amount = $quantity * $price_unit
+        _tr.find('td.item-amount input.subtotal').val(amount.toFixed(2));
+    }
+
+    function sum_table() {
+        let igv = 0;
+        let base = 0;
+        let sum_total = 0;
+        let _total;
+        $("#id-table-bill tbody#bill-details tr").each(function () {
+            let td_total = Number($(this).find("td.item-amount input.subtotal").val());
+            sum_total = sum_total + td_total
+        });
+        base = sum_total / 1.18
+        igv = sum_total - base
+        _total = base + igv
+        $("#id-table-bill tfoot tr input.total-base-bill").val(base.toFixed(2));
+        $("#id-table-bill tfoot tr input.total-igv-bill").val(igv.toFixed(2));
+        $("#id-table-bill tfoot tr input.total-bill").val(_total.toFixed(2));
+    }
 
 </script>

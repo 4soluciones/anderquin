@@ -63,6 +63,13 @@
                         </div>
                         <div class="row mb-1 mt-0">
                             <div class="col-lg-12">
+                                <div class="loader-container col-auto" id="loader-bill"
+                                     style="display: none;
+                                             opacity: 1.5;
+                                             width: 100%;
+                                             padding-top: 3em;">
+                                    <div class="loader"></div>
+                                </div>
                                 <div id="purchases-with-bill-grid">{% include "accounting/purchase_grid_list_bill_finances.html" %}</div>
                             </div>
                         </div>
@@ -72,11 +79,19 @@
         </div>
     </div>
 
+
+
     <div class="modal fade" id="modal-bill-create" tabindex="-1" role="dialog"
          data-backdrop="static" data-keyboard="false" aria-labelledby="ModalHelpTitle"
          aria-hidden="true"></div>
 
     <style>
+
+        .loader {
+            width: 100px;
+            height: 70px;
+            margin: 40px auto;
+        }
 
         .input-icon {
             position: relative;
@@ -116,6 +131,31 @@
 
     <script type="text/javascript">
 
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p><strong>Cargando..</strong></p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        function checkQuantity() {
+            let check = true;
+            $('#bill-details tr').each(function () {
+                let purchaseQuantity = $(this).find('td.item-quantity input.quantity-invoice').val()
+                let oldPurchaseQuantity = $(this).find('td.item-quantity input.quantity-purchased').val()
+                if (purchaseQuantity !== oldPurchaseQuantity) {
+                    check = false;
+                }
+            });
+            return check;
+        }
+
         $(document).on('click', '.bill-create', function () {
             let _pk = $(this).attr('pk');
             $.ajax({
@@ -136,16 +176,23 @@
         $(document).on('click', '#bill-purchase-tab', function () {
 
             $('#purchase-list-with-bill').empty();
+            $('#loader-bill').html(loader).show()
             $.ajax({
                 url: '/accounting/get_purchases_with_bill/',
                 dataType: 'json',
                 type: 'GET',
                 data: {},
                 success: function (response) {
-                    $('#purchases-with-bill-grid').html(response['grid']);
+                    if (response) {
+                        $('#purchases-with-bill-grid').html(response['grid']);
+                    } else {
+                        toastr.error('No se encontraron compras registradas.', '¡Mensaje!');
+                    }
+                    $('#loader-bill').hide();
                 },
                 fail: function (response) {
                     toastr.error('Error en la peticion, Contactar con Sistemas', '¡Mensaje!');
+                    $('#loader-bill').hide();
                 }
             });
         });
@@ -178,7 +225,7 @@
             }
 
             if (!error && purchasesID.length > 0) {
-                console.log(purchasesID)
+                //console.log(purchasesID)
                 $.ajax({
                     url: '/accounting/modal_bill_create/',
                     dataType: 'json',
@@ -197,6 +244,7 @@
 
         $(document).on('click', '#btn-save-bill', function (e) {
 
+            e.preventDefault()
             let supplier_id = $("#supplier_id");
             let purchases = $("#purchase_id");
             let bill_date = $('#bill_date');
@@ -261,7 +309,7 @@
                 Bill.billPurchases.push(details)
             })
             console.log(Bill)
-            let purchases_array = JSON.parse(purchases.val())
+            //let purchases_array = JSON.parse(purchases.val())
             $('#btn-save-bill').prop('disabled', true)
             $.ajax({
                 url: '/accounting/save_bill/',
@@ -278,15 +326,6 @@
                         setTimeout(() => {
                             location.reload();
                         }, 1000);
-                        /*$('#body-finances tr').each(function () {
-                            let row = $(this);
-                            let pk = row.attr('pk');
-                            for (let i = 0; i < purchases_array.length; i++) {
-                                if (parseInt(pk) === parseInt(purchases_array[i])) {
-                                    row.remove();
-                                }
-                            }
-                        });*/
                         $('#modal-bill-create').modal('hide');
                     }
                 },
@@ -328,7 +367,7 @@
 
         $(document).on('click', '.btn-show-bill', function (e) {
             let _bill_id = $(this).attr("pk");
-            let _table = $(this).closest('tbody').find('tr[pk="'+ _bill_id +'"].show-detail').find('td.table-details-bill');
+            let _table = $(this).closest('tbody').find('tr[pk="' + _bill_id + '"].show-detail').find('td.table-details-bill');
             let _icon = $(this).find('i.see-icon')
 
             if (_icon.hasClass("fas fa-sort-down fa-lg")) {

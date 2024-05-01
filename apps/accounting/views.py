@@ -2104,7 +2104,7 @@ def get_purchase_list_finances(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
-    purchases_set = Purchase.objects.filter(bill_status__in=['S', 'I'], bill_number__isnull=False).order_by('-id')
+    purchases_set = Purchase.objects.filter(bill_status__in=['S', 'I'], bill_number__isnull=False).order_by('id')
     purchase_dict = []
     for p in purchases_set:
         has_incomplete = False
@@ -2118,11 +2118,6 @@ def get_purchase_list_finances(request):
         bill_purchase_set = BillPurchase.objects.filter(purchase=p)
         if bill_purchase_set.exists():
             has_incomplete = True
-            quantity_total_invoice = 0
-        #     quantity_total_purchased = bill_purchase_set.last().quantity_purchased
-        #     for b in bill_purchase_set:
-        #         quantity_total_invoice += b.quantity_invoice
-        #     if quantity_total_invoice != quantity_total_purchased:
 
         item_purchase = {
             'id': p.id,
@@ -2288,7 +2283,9 @@ def save_bill(request):
             purchase_detail_obj = PurchaseDetail.objects.get(id=purchase_detail_id)
             purchase_obj = purchase_detail_obj.purchase
 
-            if quantity_purchased == quantity_invoice:
+            quantity_difference = quantity_purchased - quantity_invoice
+
+            if quantity_difference < 1:
                 purchase_obj.bill_status = 'C'
             else:
                 purchase_obj.bill_status = 'I'
@@ -2311,9 +2308,9 @@ def save_bill(request):
 
         return JsonResponse({
             'success': True,
-            'message': 'Factura Registrada',
+            'message': 'Factura Registrada Correctamente',
         }, status=HTTPStatus.OK)
-    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+    return JsonResponse({'error': True, 'message': 'Error de peticion. Contactar con Sistemas'})
 
 
 def get_purchases_with_bill(request):

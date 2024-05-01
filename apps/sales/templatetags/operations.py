@@ -1,3 +1,5 @@
+import decimal
+
 from django import template
 
 register = template.Library()
@@ -48,3 +50,12 @@ def replace_round(value):
     if value is not None and value != '':
         return str(round(value, 2)).replace(',', '.')
     return value
+
+
+@register.filter
+def divide_stock(stock, qm):
+    try:
+        new_stock = decimal.Decimal(stock) / decimal.Decimal(qm)
+        return round(new_stock, 2)
+    except (TypeError, ZeroDivisionError):
+        return None

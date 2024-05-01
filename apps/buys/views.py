@@ -378,7 +378,7 @@ def get_buy_order_list(request):
             PurchaseDetail.objects.filter(purchase_id=OuterRef('id')).annotate(
                 return_sum_total=Sum(F('quantity') * F('price_unit'))).values('return_sum_total')[:1]
         )
-    ).order_by('-correlative')
+    ).order_by('correlative')
 
     for p in purchase_set:
         client_reference_entity = None
