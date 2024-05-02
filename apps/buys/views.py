@@ -22,7 +22,7 @@ from apps.sales.views import kardex_input, kardex_ouput, kardex_initial, calcula
     save_loan_payment_in_cash_flow, Client, ClientAddress, ClientType, ClientAssociate
 from .models import *
 from .views_PDF import query_apis_net_money
-from ..accounting.models import BillPurchase
+from ..accounting.models import BillPurchase, Bill
 from ..comercial.models import GuideMotive
 from ..sales.models import Product, Unit, Supplier, SubsidiaryStore, ProductStore, ProductDetail, Kardex, Cash, \
     CashFlow, TransactionPayment, SupplierAddress, Order
@@ -369,9 +369,8 @@ def get_buy_order_list(request):
     purchase_dict = []
     purchase_set = Purchase.objects.filter(bill_number__isnull=False, status__in=['S', 'A']
                                            ).select_related('subsidiary').prefetch_related(
-        Prefetch(
-            'purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')
-        )
+        Prefetch('purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')),
+        Prefetch('billpurchase_set', queryset=BillPurchase.objects.select_related('bill'))
     ).select_related('supplier', 'subsidiary', 'client_reference', 'client_reference_entity', 'delivery_supplier',
                      'delivery_subsidiary', 'delivery_client', 'store_destiny', 'user').annotate(
         sum_total=Subquery(
@@ -384,6 +383,7 @@ def get_buy_order_list(request):
         client_reference_entity = None
         purchase_parent = ''
         guide_number = '-'
+        bill_numbers = []
         if p.client_reference_entity:
             client_reference_entity = p.client_reference_entity.names
         parent_purchase_set = Purchase.objects.filter(parent_purchase_id=p.id).select_related('parent_purchase')
@@ -391,6 +391,13 @@ def get_buy_order_list(request):
             parent_purchase_get = parent_purchase_set.last()
             guide_number = parent_purchase_get.guide_number
             purchase_parent = parent_purchase_get.id
+        for pd in PurchaseDetail.objects.filter(purchase=p):
+            for bp in BillPurchase.objects.filter(purchase_detail=pd):
+                item_bp = {
+                    'id': bp.id,
+                    'bill_number': bp.bill.serial + '-' + bp.bill.correlative
+                }
+                bill_numbers.append(item_bp)
 
         item_purchase = {
             'id': p.id,
@@ -407,6 +414,7 @@ def get_buy_order_list(request):
             'status_store': p.status,
             'status_bill': p.bill_status,
             'guide_number': guide_number,
+            'bill_numbers': bill_numbers,
             'refund': p.get_quantity_refund()
         }
         purchase_dict.append(item_purchase)
@@ -2068,12 +2076,18 @@ def report_contracts(request):
 
 def get_details_by_buy(request):
     if request.method == 'GET':
-        purchase_id = request.GET.get('ip', '')
-        purchase_obj = Purchase.objects.get(pk=int(purchase_id))
-        details_purchase = PurchaseDetail.objects.filter(purchase=purchase_obj)
+        parent_id = request.GET.get('parent_id', '')
+        purchase_id = request.GET.get('purchase_id', '')
+        purchase_parent_obj = Purchase.objects.get(pk=int(parent_id))
+        purchase_set = Purchase.objects.filter(pk=int(purchase_id))
+        purchase_obj = ''
+        if purchase_set.exists():
+            purchase_obj = purchase_set.last()
+        details_parent_purchase = PurchaseDetail.objects.filter(purchase=purchase_parent_obj)
         t = loader.get_template('buys/details_buys_store.html')
         c = ({
-            'details': details_purchase,
+            'details_parent': details_parent_purchase,
+            'purchase_obj': purchase_obj,
         })
         return JsonResponse({
             'grid': t.render(c, request),
@@ -2083,14 +2097,73 @@ def get_details_by_buy(request):
 def buys_credit_note(request):
     if request.method == 'GET':
         purchase_detail_id = request.GET.get('purchase_detail_id', '')
+        purchase_id = request.GET.get('purchase_id', '')
+        purchase_obj = Purchase.objects.get(id=int(purchase_id))
         purchase_detail_obj = PurchaseDetail.objects.get(id=int(purchase_detail_id))
+        bill_serial = '-'
+        bill_correlative = '-'
+        bill_purchase_set = BillPurchase.objects.filter(purchase=purchase_obj)
+        if bill_purchase_set.exists():
+            bill_purchase_obj = bill_purchase_set.last()
+            bill_serial = bill_purchase_obj.bill.serial
+            bill_correlative = bill_purchase_obj.bill.correlative
+
         my_date = datetime.now()
         date_now = my_date.strftime("%Y-%m-%d")
         t = loader.get_template('buys/modal_credit_note.html')
         c = ({
             'purchase_detail_obj': purchase_detail_obj,
+            'bill_serial': bill_serial,
+            'bill_correlative': bill_correlative,
             'date': date_now,
         })
         return JsonResponse({
             'form': t.render(c, request),
         })
+
+
+def save_credit_note(request):
+    if request.method == 'POST':
+        nro_document = request.POST.get('nro-document', '')
+        date_issue = request.POST.get('date-issue', '')
+        bill_serial = request.POST.get('bill-serial', '')
+        bill_correlative = request.POST.get('bill-correlative', '')
+        detail = json.loads(request.POST.get('detail', ''))
+        purchase_obj = None
+        purchase_detail_id = ''
+        for detail in detail:
+            purchase_detail_id = int(detail['purchaseDetail'])
+            purchase_detail_obj = PurchaseDetail.objects.get(id=int(purchase_detail_id))
+            purchase_obj = purchase_detail_obj.purchase
+            # parent_purchase_id = purchase_obj.parent_purchase.id
+        bill_obj = Bill.objects.get(serial=bill_serial, correlative=bill_correlative)
+        CreditNote.objects.create(nro_document=nro_document, issue_date=date_issue, bill=bill_obj, purchase=purchase_obj)
+
+        return JsonResponse({
+            'message': 'Nota de Credito registrada',
+            'parent': purchase_obj.id,
+            'purchase_detail_id': purchase_detail_id,
+            'nro_document': nro_document,
+            'bill': str(bill_obj)
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

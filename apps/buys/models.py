@@ -66,6 +66,7 @@ class Purchase(models.Model):
     bill_status = models.CharField('Estado Factura', max_length=1, choices=BILL_CHOICES, default='S')
     parent_purchase = models.ForeignKey('Purchase', on_delete=models.SET_NULL, null=True, blank=True)
     store_destiny = models.ForeignKey(SubsidiaryStore, on_delete=models.SET_NULL, null=True, blank=True)
+
     # delivery_client_final = models.ForeignKey('sales.Client', on_delete=models.CASCADE, null=True, blank=True,
     #                                           related_name='delivery_client_final')
 
@@ -242,3 +243,14 @@ class OrderBuyDetail(models.Model):
 
     def multiply(self):
         return self.quantity * self.price_unit
+
+
+class CreditNote(models.Model):
+    id = models.AutoField(primary_key=True)
+    nro_document = models.CharField('Numero de documento', max_length=200, null=True, blank=True)
+    issue_date = models.DateField('Fecha de Emision', null=True, blank=True)
+    bill = models.ForeignKey('accounting.Bill', on_delete=models.CASCADE, null=True, blank=True)
+    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.nro_document)

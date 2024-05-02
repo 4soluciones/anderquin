@@ -1,7 +1,7 @@
 {% if purchases %}
     <div class="table-responsive roboto-condensed-regular">
         <table id="purchase-data-grid"
-               class="table align-content-center table-bordered table-sm m-0"
+               class="table table-striped table-bordered table-dark text-dark align-content-center table-sm m-0"
                style="font-size: 13px;background-color: #d0e2e9;">
             <thead>
             <tr class="text-center text-white text-uppercase" style="background: #3e6787; font-size: 14px">
@@ -35,7 +35,12 @@
                     </td>
                     <td class="align-middle text-left">{{ p.delivery_address|default:'-'|default_if_none:'-'|upper }}</td>
                     <td class="align-middle text-center">{{ p.user|upper }}</td>
-                    <td class="align-middle text-center font-weight-bold">{{ p.bill_number }}</td>
+                    <td class="align-middle text-center font-weight-bold">
+                        {% for bp in p.bill_numbers %}
+                            {{ bp.bill_number }}{% if not forloop.last %}<br>{% endif %}
+                        {% endfor %}
+{#                        {{ p.bill_number }}#}
+                    </td>
                     <td class="align-middle text-center font-weight-bold">{{ p.guide_number|default:'-'|default_if_none:'-'|upper }}</td>
                     <td class="align-middle text-center font-weight-bold" {% if p.status_store == 'S' %}
                         style="background-color: #f6dfdf" {% else %}style="background-color: #b2fac4"{% endif %}>
@@ -74,7 +79,7 @@
                             <div class="col-6 pl-0">
                                 {% if p.status_store == 'A' %}
                                     <button type="button" class="btn btn-sm btn-show-detail btn-outline-success"
-                                            pk="{{ p.purchase_parent }}">
+                                            pk_parent="{{ p.purchase_parent }}" pk="{{ p.id }}">
                                         <i class="fas fa-sort-down fa-lg see-icon"></i>
                                     </button>
                                 {% endif %}
@@ -83,7 +88,7 @@
 
                     </td>
                 </tr>
-                <tr style="display: none">
+                <tr pk_parent="{{ p.purchase_parent }}" style="display: none">
                     <td colspan="2"></td>
                     <td colspan="7" class="table-details-purchase bg-white p-0"></td>
                 </tr>

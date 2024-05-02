@@ -1,5 +1,5 @@
 {% load operations %}
-<table class="table table-sm table-striped table-bordered roboto-condensed-regular table-details m-0">
+<table class="table table-sm table-striped table-bordered roboto-condensed-regular table-details m-0" pk="{{ purchase_obj.id }}">
     <thead>
     <tr class="text-center bg-dark text-white m-0 p-0 text-uppercase">
         <td class="text-center" style="width: 10%">Estado</td>
@@ -8,25 +8,35 @@
         <td class="text-center" style="width: 10%">Fecha Venc. Lote</td>
         <td class="text-center" style="width: 5%">Cantidad</td>
         <td class="text-center" style="width: 10%">Tipo Unidad</td>
-        <td class="text-center" style="width: 8%">N.C.</td>
+        <td class="text-center" style="width: 8%">Nota de Crédito</td>
     </tr>
     </thead>
     <tbody>
-    {% for dt in details %}
-        <tr class="col-form-label bg-secondary text-white p-0 m-0">
-            <td class="text-center">{{ dt.get_status_quantity_display }}</td>
+    {% for dt in details_parent %}
+        <tr class="col-form-label bg-secondary text-white p-0 m-0" detail="{{ dt.id }}">
+            <td class="text-center">
+                {{ dt.get_status_quantity_display }}
+                <input type="hidden" value="{{ purchase_obj.id }}">
+            </td>
             <td> - {{ dt.product.name }}</td>
 
             <td class="text-center">
-                {% if dt.status_quantity == 'I' %}{{ dt.purchase.batch_number|upper }}{% endif %}</td>
+                {% if dt.status_quantity == 'I' %}{{ dt.purchase.batch_number|upper|default:'-'|default_if_none:'-' }}{% endif %}</td>
             <td class="text-center">
                 {% if dt.status_quantity == 'I' %}{{ dt.purchase.batch_expiration_date|date:'d-m-Y' }}{% endif %}</td>
 
             <td class="text-center">{{ dt.quantity|floatformat:0 }}</td>
             <td class="text-center">{{ dt.unit.description }}</td>
-            <td class="text-center p-1">
+            <td class="text-center p-1 credit-note">
                 {% if dt.status_quantity == 'D' %}
-                    <button type="button" class="btn btn-danger btn-sm generate-credit-note" pk="{{ dt.id }}">Nota de Credito</button>
+                    {% if dt.purchase.creditnote_set.all %}
+                        <span class="text-warning">{{ dt.purchase.creditnote_set.all.last.nro_document }}</span><br>
+                        Factura: <span class="text-warning">{{ dt.purchase.creditnote_set.all.last.bill }}</span>
+                    {% else %}
+                        <button type="button" class="btn btn-danger btn-sm generate-credit-note" pk="{{ dt.id }}"
+                                purchase="{{ purchase_obj.id }}">Nota de Crédito
+                        </button>
+                    {% endif %}
                 {% else %}
                     -
                 {% endif %}
