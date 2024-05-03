@@ -5,7 +5,6 @@ from apps.comercial.views_PDF import guide_print, print_programming_guide, get_i
     guide
 
 urlpatterns = [
-    path('', login_required(Index.as_view()), name='index'),
     path('truck_list/', login_required(TruckList.as_view()), name='truck_list'),
     path('truck_create/', login_required(TruckCreate.as_view()), name='truck_create'),
     path('truck_update/<int:pk>/', login_required(TruckUpdate.as_view()), name='truck_update'),
@@ -29,8 +28,6 @@ urlpatterns = [
     path('programming_receive_by_sucursal_detail_guide/', programming_receive_by_sucursal_detail_guide,
          name='programming_receive_by_sucursal_detail_guide'),
     path('get_stock_by_store/', get_stock_by_store, name='get_stock_by_store'),
-    path('update_stock_from_programming/', update_stock_from_programming,
-         name='update_stock_from_programming'),
 
     # IO guides
     path('output_guide/', login_required(output_guide), name='output_guide'),
@@ -47,7 +44,6 @@ urlpatterns = [
          name='get_merchandise_of_output'),
     path('new_input_from_output/', login_required(new_input_from_output), name='new_input_from_output'),
     path('output_change_status/', login_required(output_change_status), name='output_change_status'),
-    path('get_stock_by_product_type/', get_stock_by_product_type, name='get_stock_by_product_type'),
 
     # ReportLab
     path('guide_print/', guide_print, name='guide_print'),
@@ -74,32 +70,23 @@ urlpatterns = [
          name='get_distribution_mobil_recovered'),
     path('get_units_by_products_distribution_mobil/', get_units_by_products_distribution_mobil,
          name='get_units_by_products_distribution_mobil'),
-    path('return_detail_distribution_mobil_store/', return_detail_distribution_mobil_store,
-         name='return_detail_distribution_mobil_store'),
     path('get_distribution_list/', get_distribution_list, name='get_distribution_list'),
     path('output_distribution/', output_distribution, name='output_distribution'),
     path('get_distribution_mobil_sales/', get_distribution_mobil_sales,
          name='get_distribution_mobil_sales'),
 
     # Mantenimient Product
-    path('get_mantenimient_product_list/', get_mantenimient_product_list,
-         name='get_mantenimient_product_list'),
-    path('mantenimient_product/', mantenimient_product, name='mantenimient_product'),
     path('get_units_and_sotck_by_product/', get_units_and_sotck_by_product,
          name='get_units_and_sotck_by_product'),
 
     # Fuel programming
-    path('get_fuel_request_list/', get_fuel_request_list, name='get_fuel_request_list'),
-    path('fuel_request/', fuel_request, name='fuel_request'),
     path('get_products_by_supplier/', get_products_by_supplier, name='get_products_by_supplier'),
     path('get_programming_by_license_plate/', get_programming_by_license_plate,
          name='get_programming_by_license_plate'),
-    path('save_fuel_programming/', save_fuel_programming, name='save_fuel_programming'),
 
     # adelanto de balones de los clientes
     path('get_advancement_client/', login_required(get_advancement_client), name='get_advancement_client'),
     path('advancement_client/', login_required(get_advancement_client), name='advancement_client'),
-    path('save_advancement_client/', save_advancement_client, name='save_advancement_client'),
 
     # reports
     path('get_distribution_query/', login_required(get_distribution_query), name='get_distribution_query'),

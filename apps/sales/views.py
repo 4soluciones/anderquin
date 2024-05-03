@@ -36,8 +36,11 @@ from django.db.models.functions import (
     ExtractDay, ExtractMonth, ExtractQuarter, ExtractWeek,
     ExtractWeekDay, ExtractIsoYear, ExtractYear,
 )
+
+from ..accounting.models import Bill
 from ..buys.models import PurchaseDetail, Purchase
 from apps.sales.funtions import *
+
 
 # class Home(TemplateView):
 #     template_name = 'sales/home.html'
@@ -3507,7 +3510,6 @@ def get_name_business(request):
                 r = query_apis_net_dni_ruc(nro_document, type_name)
 
                 if r.get('numeroDocumento') == nro_document:
-
                     business_name = r.get('nombre')
                     address_business = r.get('direccion')
                     result = business_name
@@ -3534,3 +3536,52 @@ def get_name_business(request):
         return JsonResponse({'client_id': client_obj.id, 'result': result, 'address': address},
                             status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_purchases_bills(request):
+    if request.method == 'GET':
+        bill_set = Bill.objects.all().order_by('-id')
+        bill_dict = []
+
+        for b in bill_set:
+            status = 'COMPLETO'
+            if b.sum_quantity_invoice() != b.sum_quantity_purchased():
+                status = 'INCOMPLETO'
+
+            rowspan = b.billpurchase_set.count()
+
+            if b.billpurchase_set.count() == 0:
+                rowspan = 1
+
+            item_bill = {
+                'id': b.id,
+                'register_date': b.register_date,
+                'expiration_date': b.expiration_date,
+                'order_number': b.order_number,
+                'serial': b.serial,
+                'correlative': b.correlative,
+                'supplier_name': b.supplier.name,
+                'delivery_address': b.delivery_address,
+                'bill_base_total': b.bill_base_total,
+                'bill_igv_total': b.bill_igv_total,
+                'bill_total_total': b.bill_total_total,
+                'sum_quantity_invoice': b.sum_quantity_invoice(),
+                'sum_quantity_purchased': b.sum_quantity_purchased(),
+                'status': status,
+                'bill_purchase': [],
+                'row_count': rowspan
+            }
+            for d in b.billpurchase_set.all():
+                item_detail = {
+                    'id': d.id,
+                    'bill_number': d.purchase_detail.purchase.bill_number,
+                    'client_reference': d.purchase_detail.purchase.client_reference,
+                    'client_reference_entity': d.purchase_detail.purchase.client_reference_entity
+                }
+                item_bill.get('bill_purchase').append(item_detail)
+            bill_dict.append(item_bill)
+
+        return render(request, 'sales/logistic_list.html', {
+             'bill_dict': bill_dict,
+        })
+    return JsonResponse({'message': 'Error de peticion'}, status=HTTPStatus.BAD_REQUEST)

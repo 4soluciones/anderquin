@@ -30,12 +30,6 @@ from ..hrm.views import get_subsidiary_by_user
 from ..sales.views_SUNAT import query_apis_net_dni_ruc
 
 
-class Index(TemplateView):
-    # template_name = 'dashboard.html'
-    # template_name = 'vetstore/home.html'
-    template_name = 'comercial/../../templates/main.html'
-
-
 # ---------------------------------------Truck-----------------------------------
 class TruckList(View):
     model = Truck
@@ -913,75 +907,6 @@ def get_stock_by_store(request):
         }, status=HTTPStatus.OK)
 
 
-def update_stock_from_programming(request):
-    if request.method == 'GET':
-        programming_request = request.GET.get('programming', '')
-        data_programming = json.loads(programming_request)
-        programming = int(data_programming["id_programming"])
-        programming_obj = Programming.objects.get(pk=programming)
-        programming_obj.status = 'F'
-        programming_obj.save()
-
-        for detail in data_programming['Details']:
-            quantity = decimal.Decimal((detail['Quantity']).replace(',', '.'))
-            product_id = int(detail['Product'])
-            detail_id = int(detail['detail_id'])
-            product_obj = Product.objects.get(id=product_id)
-            detail_guide_obj = GuideDetail.objects.get(id=detail_id)
-            type = str(detail['Type'])
-            unit = str(detail['Unit']).strip()
-            unit_obj = Unit.objects.get(description=unit)
-            # product_detail_obj = ProductDetail.objects.get(product=product_obj, unit=unit_obj)
-            user = request.user.id
-            user_obj = User.objects.get(id=user)
-            subsidiary_obj = get_subsidiary_by_user(user_obj)
-            if type == '1':
-                subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='I').first()
-                subcategory_obj = ProductSubcategory.objects.get(name='FIERRO', product_category__name='FIERRO')
-                product_recipe_obj = ProductRecipe.objects.filter(product=product_obj,
-                                                                  product_input__product_subcategory=subcategory_obj)
-                product_obj = product_recipe_obj.first().product_input
-
-            if type == '2':
-                subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='V').first()
-
-            if type == '3':
-                subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='R').first()
-
-            if type == '4':
-                subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='R').first()
-                subcategory_obj = ProductSubcategory.objects.get(name='FIERRO', product_category__name='FIERRO')
-                product_recipe_obj = ProductRecipe.objects.filter(product=product_obj,
-                                                                  product_input__product_subcategory=subcategory_obj)
-                product_obj = product_recipe_obj.first().product_input
-
-            try:
-                product_store_obj = ProductStore.objects.get(product__id=product_obj.id,
-                                                             subsidiary_store=subsidiary_store_obj)
-            except ProductStore.DoesNotExist:
-                product_store_obj = None
-                # unit_min_detail_product = ProductDetail.objects.get(product=product_obj, unit=unit_obj).quantity_minimum
-            quantity_minimum_unit = calculate_minimum_unit(quantity, unit_obj, product_obj)
-
-            if product_store_obj is None:
-                new_product_store_obj = ProductStore(
-                    product=product_obj,
-                    subsidiary_store=subsidiary_store_obj,
-                    stock=quantity_minimum_unit
-                )
-                new_product_store_obj.save()
-                kardex_initial(new_product_store_obj, quantity_minimum_unit,
-                               product_obj.calculate_minimum_price_sale(),
-                               guide_detail_obj=detail_guide_obj)
-            else:
-                kardex_input(product_store_obj.id, quantity_minimum_unit,
-                             product_obj.calculate_minimum_price_sale(),
-                             guide_detail_obj=detail_guide_obj)
-    return JsonResponse({
-        'message': 'Se guardo la guia correctamente.',
-    }, status=HTTPStatus.OK)
-
-
 def output_guide(request):
     # programmings = Programming.objects.filter(status__in=['P'], guide__isnull=False).order_by('id')
     motives = GuideMotive.objects.filter(type='S')
@@ -1632,91 +1557,6 @@ def get_units_and_sotck_by_product(request):
 
 
 @csrf_exempt
-def return_detail_distribution_mobil_store(request):
-    if request.method == 'GET':
-        detail_distribution_mobil_request = request.GET.get('details_distribution_mobil', '')
-        data_distribution_mobil = json.loads(detail_distribution_mobil_request)
-        distribution_mobil_id = int(data_distribution_mobil["distribution_id_"])
-        distribution_mobil_obj = DistributionMobil.objects.get(id=distribution_mobil_id)
-        if distribution_mobil_obj.status == 'F':
-            data = {'error': 'Reparto retornado.'}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
-        user_id = request.user.id
-        user_obj = User.objects.get(id=int(user_id))
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-
-        for detail in data_distribution_mobil['Details']:
-            quantity = decimal.Decimal(detail['quantity_'])
-            product_id = int(detail['product_id_'])
-            product_obj = Product.objects.get(id=product_id)
-            type_id = detail['type_id_']  # V: Vacio, L: Lleno, M: Malogrado
-            unit_id = int(detail['unit_id_'])
-            unit_obj = Unit.objects.get(id=unit_id)
-            status = 'D'
-            new_detail_distribution = {
-                'product': product_obj,
-                'distribution_mobil': distribution_mobil_obj,
-                'quantity': quantity,
-                'unit': unit_obj,
-                'status': status,
-                'type': type_id,
-            }
-            new_detail_distribution = DistributionDetail.objects.create(**new_detail_distribution)
-            new_detail_distribution.save()
-
-            try:
-                if new_detail_distribution.type == 'V':
-                    subsidiary_store_obj = SubsidiaryStore.objects.get(subsidiary=subsidiary_obj, category='I')
-                    # productrecipe_obj = ProductRecipe.objects.filter(product_id=product_obj.id)
-
-                    # product_obj = Product.objects.filter(product_id=productrecipe_obj,subcategory='FIERROS')
-                    subcategory_obj = ProductSubcategory.objects.get(name='FIERRO', product_category__name='FIERRO')
-                    product_insume_set = ProductRecipe.objects.filter(product=product_obj,
-                                                                      product_input__product_subcategory=subcategory_obj)
-                    product_obj = product_insume_set.first().product_input
-
-                    # fierro_obj=Product.objects.get(product=product_obj)
-                elif new_detail_distribution.type == 'L':
-                    subsidiary_store_obj = SubsidiaryStore.objects.get(subsidiary=subsidiary_obj, category='V')
-                elif new_detail_distribution.type == 'M':
-                    subsidiary_store_obj = SubsidiaryStore.objects.get(subsidiary=subsidiary_obj, category='R')
-            except SubsidiaryStore.DoesNotExist:
-                data = {'error': 'No existe el almacen correspondiente'}
-                response = JsonResponse(data)
-                response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-                return response
-
-            try:
-                product_store_obj = ProductStore.objects.get(product=product_obj, subsidiary_store=subsidiary_store_obj)
-            except ProductStore.DoesNotExist:
-                product_store_obj = None
-            # unit_min_detail_product = ProductDetail.objects.get(product=product_obj, unit=unit_obj).quantity_minimum
-            quantity_minimum_unit = calculate_minimum_unit(quantity, unit_obj, product_obj)
-
-            if product_store_obj is None:
-                new_product_store_obj = ProductStore(
-                    product=product_obj,
-                    subsidiary_store=subsidiary_store_obj,
-                    stock=quantity_minimum_unit
-                )
-                new_product_store_obj.save()
-                kardex_initial(new_product_store_obj, quantity_minimum_unit,
-                               product_obj.calculate_minimum_price_sale(),
-                               distribution_detail_obj=new_detail_distribution)
-            else:
-                kardex_input(product_store_obj.id, quantity_minimum_unit,
-                             product_obj.calculate_minimum_price_sale(),
-                             distribution_detail_obj=new_detail_distribution)
-
-        return JsonResponse({
-            'message': True,
-
-        }, status=HTTPStatus.OK)
-
-
-@csrf_exempt
 def c_return_distribution_mobil_detail(request):
     if request.method == 'GET':
         _c_distribution_mobil = request.GET.get('c_distribution_mobil', '')
@@ -1788,32 +1628,6 @@ def get_distribution_list(request):
             })
 
 
-def get_mantenimient_product_list(request):
-    if request.method == 'GET':
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        date_mantenimient = request.GET.get('_date', '')
-        if date_mantenimient != '':
-
-            mantenimient_product = MantenimentProduct.objects.filter(subsidiary=subsidiary_obj,
-                                                                     date_programing=date_mantenimient)
-            tpl = loader.get_template('comercial/manteniment_product.html')
-            context = ({
-                'mantenimient_product': mantenimient_product,
-            })
-            return JsonResponse({
-                'success': True,
-                'grid': tpl.render(context),
-            }, status=HTTPStatus.OK)
-        else:
-            my_date = datetime.now()
-            date_now = my_date.strftime("%Y-%m-%d")
-            return render(request, 'comercial/manteniment_product_list.html', {
-                'date_now': date_now,
-            })
-
-
 def output_distribution(request):
     if request.method == 'GET':
         trucks_set = Truck.objects.all()
@@ -1875,28 +1689,6 @@ def get_quantity_last_distribution(request):
         # except DistributionMobil.DoesNotExist:
 
 
-def mantenimient_product(request):
-    if request.method == 'GET':
-        trucks_set = Truck.objects.all()
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='R').first()
-        products_set = Product.objects.filter(productstore__subsidiary_store=subsidiary_store_obj)
-        t = loader.get_template('comercial/mantenimient_create.html')
-        c = ({
-
-            'product_set': products_set,
-            'employees': Employee.objects.all(),
-            'type_mantenimient': MantenimentProduct._meta.get_field('type').choices,
-            'type_fuction': MantenimentProductDetail._meta.get_field('type').choices,
-
-        })
-        return JsonResponse({
-            'form': t.render(c, request),
-        })
-
-
 def get_distribution_mobil_sales(request):
     if request.method == 'GET':
         pk = int(request.GET.get('pk', ''))
@@ -1916,56 +1708,6 @@ def get_distribution_mobil_sales(request):
         })
         return JsonResponse({
             'success': True,
-            'form': t.render(c, request),
-        })
-
-
-def get_fuel_request_list(request):
-    if request.method == 'GET':
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        license_plate_id = request.GET.get('license_plate_', '')
-        if license_plate_id != '':
-            month_fuel = request.GET.get('month_', '')
-            date_time_obj = datetime.strptime(month_fuel, '%Y-%m')
-            new_year = date_time_obj.year
-            new_month = date_time_obj.month
-            fuel_programming_set = FuelProgramming.objects.filter(subsidiary=subsidiary_obj,
-                                                                  date_fuel__year=new_year,
-                                                                  date_fuel__month=new_month,
-                                                                  programming__truck_id=license_plate_id)
-            tpl = loader.get_template('comercial/fuel_request_grid_list.html')
-            context = ({
-                'fuel_programming_set': fuel_programming_set,
-            })
-            return JsonResponse({
-                'success': True,
-                'grid': tpl.render(context),
-            }, status=HTTPStatus.OK)
-        else:
-            truck_set = Truck.objects.all()
-            my_date = datetime.now()
-            date_now = my_date.strftime("%Y-%m")
-            return render(request, 'comercial/fuel_request_list.html', {
-                'date_now': date_now,
-                'truck_set': truck_set,
-            })
-
-
-def fuel_request(request):
-    if request.method == 'GET':
-        supplier_set = Supplier.objects.all().order_by('-id')
-        programming_set = Programming.objects.filter(status='P')
-        my_date = datetime.now()
-        date_now = my_date.strftime("%Y-%m-%d")
-        t = loader.get_template('comercial/fuel_request.html')
-        c = ({
-            'programming_set': programming_set,
-            'supplier_set': supplier_set,
-            'date_now': date_now,
-        })
-        return JsonResponse({
             'form': t.render(c, request),
         })
 
@@ -2003,91 +1745,6 @@ def get_programming_by_license_plate(request):
         'employee_name': name,
         'employee_document': document,
     }, status=HTTPStatus.OK)
-
-
-@csrf_exempt
-def save_fuel_programming(request):
-    if request.method == 'POST':
-        user_id = request.user.id
-        user_obj = User.objects.get(id=int(user_id))
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        _quantity_fuel = request.POST.get('quantity', '')
-        _date_fuel = request.POST.get('date-fuel', '')
-        _price_fuel = request.POST.get('price', '')
-        _product_id = request.POST.get('product', '')
-        _programming_id = request.POST.get('license_plate', '')
-        _supplier_id = request.POST.get('supplier', '')
-        _unit_fuel_id = request.POST.get('unit', '')
-
-        product_obj = Product.objects.get(id=int(_product_id))
-        programming_obj = Programming.objects.get(id=int(_programming_id))
-        supplier_obj = Supplier.objects.get(id=int(_supplier_id))
-        unit_obj = Unit.objects.get(id=int(_unit_fuel_id))
-
-        fuel_programming_obj = FuelProgramming(
-            quantity_fuel=_quantity_fuel,
-            date_fuel=_date_fuel,
-            price_fuel=_price_fuel,
-            product=product_obj,
-            programming=programming_obj,
-            supplier=supplier_obj,
-            unit_fuel=unit_obj,
-            subsidiary=subsidiary_obj
-        )
-        fuel_programming_obj.save()
-
-        return JsonResponse({
-            'success': True,
-            'id': fuel_programming_obj.id,
-        }, status=HTTPStatus.OK)
-
-
-def get_stock_by_product_type(request):
-    if request.method == 'GET':
-        data = {}
-        id_product = request.GET.get('id_product_', '')
-        id_type = request.GET.get('id_type_', '')
-
-        if id_type == '':
-            data['error'] = "Ingrese un tipo."
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
-
-        product_obj = Product.objects.get(pk=int(id_product))
-        user = request.user.id
-        user_obj = User.objects.get(id=user)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        product_store_obj = ''
-        if int(id_type) == 1:
-            subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='I').first()
-            subcategory_obj = ProductSubcategory.objects.get(name='FIERRO', product_category__name='FIERRO')
-            product_recipe_obj = ProductRecipe.objects.filter(product=product_obj,
-                                                              product_input__product_subcategory=subcategory_obj)
-            product_obj = product_recipe_obj.first().product_input
-            product_store_obj = ProductStore.objects.get(product__id=product_obj.id,
-                                                         subsidiary_store=subsidiary_store_obj)
-        if int(id_type) == 2:
-            subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='V').first()
-            product_store_obj = ProductStore.objects.get(product__id=id_product, subsidiary_store=subsidiary_store_obj)
-        if int(id_type) == 3:
-            subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='R').first()
-            product_store_obj = ProductStore.objects.get(product__id=id_product, subsidiary_store=subsidiary_store_obj)
-        if int(id_type) == 4:
-            subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='R').first()
-            subcategory_obj = ProductSubcategory.objects.get(name='FIERRO', product_category__name='FIERRO')
-            product_recipe_obj = ProductRecipe.objects.filter(product=product_obj,
-                                                              product_input__product_subcategory=subcategory_obj)
-            product_obj = product_recipe_obj.first().product_input
-            product_store_obj = ProductStore.objects.get(product__id=product_obj.id,
-                                                         subsidiary_store=subsidiary_store_obj)
-
-        return JsonResponse({
-            'quantity': product_store_obj.stock,
-            'id_product_store': product_store_obj.id,
-            'product_store_name': product_store_obj.subsidiary_store.name
-        }, status=HTTPStatus.OK)
-    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
 
 
 def get_distribution_query(request):
@@ -2499,103 +2156,6 @@ def get_advancement_client(request):
                 'format': formatdate,
                 'product_set': product_obj,
             })
-
-
-def save_advancement_client(request):
-    if request.method == 'GET':
-        advancement_request = request.GET.get('advancement', '')
-        data_advancement = json.loads(advancement_request)
-        user_id = request.user.id
-        user_obj = User.objects.get(pk=int(user_id))
-        distribution_mobil_id = (data_advancement["_distribution_mobil"])
-        if distribution_mobil_id != 0:
-            distribution_mobil_obj = DistributionMobil.objects.get(id=int(distribution_mobil_id))
-            _type = 'R'
-        else:
-            _type = 'S'
-            distribution_mobil_obj = None
-        date_advancement = (data_advancement["_date_advancement"])
-        observation = (data_advancement["_observation"])
-
-        id_client = int(data_advancement["_client"])
-        client_obj = Client.objects.get(id=id_client)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-
-        new_client_advancement = {
-            'type': _type,
-            'distribution_mobil': distribution_mobil_obj,
-            'observation': observation,
-            'date_create': date_advancement,
-            'client': client_obj,
-            'subsidiary': subsidiary_obj,
-            'user': user_obj,
-        }
-        client_advancement_obj = ClientAdvancement.objects.create(**new_client_advancement)
-        client_advancement_obj.save()
-
-        for detail in data_advancement['Details']:
-            quantity = decimal.Decimal(detail['Quantity'])
-            product_id = int(detail['Product'])
-            product_obj = Product.objects.get(id=product_id)
-            unit_id = int(detail['Unit'])
-            unit_obj = Unit.objects.get(id=unit_id)
-            new_client_advancement_detail = {
-                'client_advancement': client_advancement_obj,
-                'product': product_obj,
-                'quantity': decimal.Decimal(quantity),
-                'unit': unit_obj,
-            }
-            new_client_advancement_detail_obj = ClientAdvancementDetail.objects.create(**new_client_advancement_detail)
-            new_client_advancement_detail_obj.save()
-
-            search_product_client = ClientProduct.objects.filter(product=product_obj, client=client_obj, unit=unit_obj)
-            if search_product_client.count() > 0:
-                search_product_client_q = search_product_client.last()
-                search_product_client_q.quantity = search_product_client_q.quantity + decimal.Decimal(quantity)
-                search_product_client_q.save()
-            else:
-                new_client_product = {
-                    'quantity': decimal.Decimal(quantity),
-                    'product': product_obj,
-                    'unit': unit_obj,
-                    'client': client_obj,
-                }
-                new_client_product_obj = ClientProduct.objects.create(**new_client_product)
-                new_client_product_obj.save()
-
-            subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='I').first()
-            if subsidiary_store_obj is not None and client_advancement_obj.type == 'S':
-                product_store_obj = ProductStore.objects.get(product=product_obj,
-                                                             subsidiary_store=subsidiary_store_obj)
-                quantity_minimum_unit = calculate_minimum_unit(quantity, unit_obj, product_obj)
-                kardex_input(product_store_obj.id, quantity_minimum_unit, product_obj.calculate_minimum_price_sale(),
-                             advance_detail_obj=new_client_advancement_detail_obj)
-            else:
-                if client_advancement_obj.type == 'R':
-                    new_product_obj = ProductRecipe.objects.get(product_input=product_obj).product
-                    search_distribution_detail = DistributionDetail.objects.filter(product=new_product_obj,
-                                                                                   distribution_mobil=distribution_mobil_obj,
-                                                                                   unit=unit_obj, status='A')
-                    if search_distribution_detail.count() > 0:
-                        search_distribution_detail_p = search_distribution_detail.last()
-                        search_distribution_detail_p.quantity = search_distribution_detail_p.quantity + decimal.Decimal(
-                            quantity)
-                        search_distribution_detail_p.save()
-                    else:
-                        _a_new_detail_distribution = {
-                            'product': new_product_obj,
-                            'distribution_mobil': distribution_mobil_obj,
-                            'quantity': decimal.Decimal(quantity),
-                            'unit': unit_obj,
-                            'status': 'A',
-                            'type': 'V',
-                        }
-                        _a_new_detail_distribution = DistributionDetail.objects.create(**_a_new_detail_distribution)
-                        _a_new_detail_distribution.save()
-
-        return JsonResponse({
-            'message': 'ADELANTO DE BALONES REGISTRADO CORRECTAMENTE.',
-        }, status=HTTPStatus.OK)
 
 
 def get_output_distributions(request):

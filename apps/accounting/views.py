@@ -2104,7 +2104,8 @@ def get_purchase_list_finances(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
-    purchases_set = Purchase.objects.filter(bill_status__in=['S', 'I'], bill_number__isnull=False).order_by('id')
+    purchases_set = Purchase.objects.filter(bill_status__in=['S', 'I'], status__in=['S', 'A'],
+                                            bill_number__isnull=False).order_by('id')
     purchase_dict = []
     for p in purchases_set:
         has_incomplete = False
@@ -2359,7 +2360,7 @@ def get_purchases_with_bill(request):
         t = loader.get_template('accounting/purchase_grid_list_bill_finances.html')
         c = ({
             'bill_dict': bill_dict,
-            'bill_set': bill_set
+            # 'bill_set': bill_set
         })
         return JsonResponse({
             'grid': t.render(c, request),
