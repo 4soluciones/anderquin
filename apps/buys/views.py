@@ -1712,8 +1712,8 @@ def save_update_purchase(request):
 
         check_subsidiary = str(data_purchase["check-subsidiary"])
         check_provider = str(data_purchase["check-provider"])
-        check_client_reference = data_purchase["check-client"]
         check_client_entity = str(data_purchase["check-client-final"])
+        check_client_reference = str(data_purchase["check-client"])
 
         address_subsidiary = data_purchase["address_subsidiary"]
         address_provider = data_purchase["address_provider"]
