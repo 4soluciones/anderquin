@@ -2338,9 +2338,9 @@ def get_purchases_with_bill(request):
             if b.sum_quantity_invoice() != b.sum_quantity_purchased():
                 status = 'INCOMPLETO'
 
-            rowspan = b.billpurchase_set.count()
+            rowspan = b.billdetail_set.count()
 
-            if b.billpurchase_set.count() == 0:
+            if b.billdetail_set.count() == 0:
                 rowspan = 1
 
             item_bill = {
@@ -2358,17 +2358,27 @@ def get_purchases_with_bill(request):
                 'sum_quantity_invoice': b.sum_quantity_invoice(),
                 'sum_quantity_purchased': b.sum_quantity_purchased(),
                 'status': status,
-                'bill_purchase': [],
+                # 'bill_purchase': [],
+                'bill_detail': [],
                 'row_count': rowspan
             }
-            for d in b.billpurchase_set.all():
+            # for d in b.billpurchase_set.all():
+            #     item_detail = {
+            #         'id': d.id,
+            #         'bill_number': d.purchase_detail.purchase.bill_number,
+            #         'client_reference': d.purchase_detail.purchase.client_reference,
+            #         'client_reference_entity': d.purchase_detail.purchase.client_reference_entity
+            #     }
+            #     item_bill.get('bill_purchase').append(item_detail)
+            for d in b.billdetail_set.filter(status_quantity='C'):
                 item_detail = {
                     'id': d.id,
-                    'bill_number': d.purchase_detail.purchase.bill_number,
-                    'client_reference': d.purchase_detail.purchase.client_reference,
-                    'client_reference_entity': d.purchase_detail.purchase.client_reference_entity
+                    'product': d.product.name,
+                    'quantity': str(round(d.quantity, 2)),
+                    'unit': d.unit.description,
+                    'price_unit': str(round(d.price_unit, 4))
                 }
-                item_bill.get('bill_purchase').append(item_detail)
+                item_bill.get('bill_detail').append(item_detail)
             bill_dict.append(item_bill)
 
         t = loader.get_template('accounting/purchase_grid_list_bill_finances.html')

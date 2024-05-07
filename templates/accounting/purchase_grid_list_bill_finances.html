@@ -15,15 +15,15 @@
                     <th class="th-sm align-middle" style="width: 6%" rowspan="2">Subtotal</th>
                     <th class="th-sm align-middle" style="width: 6%" rowspan="2">Igv(18%)</th>
                     <th class="th-sm align-middle" style="width: 6%" rowspan="2">Total</th>
-                    {#                    <th class="th-sm align-middle" style="width: 6%" rowspan="2">Estado</th>#}
                     <th class="th-sm align-middle" style="width: 2%" rowspan="2">Acciones</th>
 
-                    <th class="th-sm" colspan="3">Ordenes de Compra</th>
+                    <th class="th-sm" colspan="4">Detalle de Factura</th>
                 </tr>
                 <tr class="font-weight-bold text-uppercase bg-warning text-center">
-                    <th class="th-sm" style="width: 6%">O/C</th>
-                    <th class="th-sm" style="width: 13%">Cliente</th>
-                    <th class="th-sm" style="width: 13%">Cliente Referido</th>
+                    <th class="th-sm" style="width: 16%">Producto</th>
+                    <th class="th-sm" style="width: 5%">Cantidad</th>
+                    <th class="th-sm" style="width: 5%">Unidad</th>
+                    <th class="th-sm" style="width: 6%">Precio Unit.</th>
                 </tr>
                 </thead>
                 <tbody id="body-finances-bill" style="font-size: 13px;">
@@ -32,20 +32,12 @@
                         <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.register_date|date:'d-m-Y' }}</td>
                         <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.expiration_date|date:'d-m-Y' }}</td>
                         <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.order_number|upper }}</td>
-                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">{{ b.serial }}
-                            - {{ b.correlative }}</td>
+                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">{{ b.serial }} - {{ b.correlative }}</td>
                         <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.supplier_name }}</td>
                         <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.delivery_address }}</td>
-
-                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">
-                            S/ {{ b.bill_base_total|thousands_separator }}</td>
-                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">
-                            S/ {{ b.bill_igv_total|thousands_separator }}</td>
-                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">
-                            S/ {{ b.bill_total_total|thousands_separator }}</td>
-                        {#                        <td class="align-middle text-center font-weight-bold bg-success {% if b.status == 'INCOMPLETO' %}bg-danger{% endif %}" rowspan="{{ b.row_count }}">#}
-                        {#                            {{ b.status }}#}
-                        {#                        </td>#}
+                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_base_total|thousands_separator }}</td>
+                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_igv_total|thousands_separator }}</td>
+                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_total_total|thousands_separator }}</td>
                         <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">
                             <div class="btn-group btn-group-toggle" data-toggle="buttons">
                                 <button type="button" class="btn btn-danger btn-sm bill-cancel" pk="{{ b.id }}">
@@ -56,10 +48,11 @@
                                 </button>
                             </div>
                         </td>
-                        {% for d in b.bill_purchase %}
-                            <td class="align-middle text-center text-primary font-weight-bold">{{ d.bill_number }}</td>
-                            <td class="align-middle text-center">{{ d.client_reference.names|upper }}</td>
-                            <td class="align-middle text-center">{{ d.client_reference_entity.names|default:'-'|default_if_none:'-' }}</td>
+                        {% for d in b.bill_detail %}
+                            <td class="align-middle text-center text-primary font-weight-bold">{{ d.product }}</td>
+                            <td class="align-middle text-center">{{ d.quantity }}</td>
+                            <td class="align-middle text-center">{{ d.unit }}</td>
+                            <td class="align-middle text-center">S/ {{ d.price_unit }}</td>
                             </tr>
                         {% endfor %}
                     </tr>
