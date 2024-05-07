@@ -376,3 +376,19 @@ class BillPurchase(models.Model):
     quantity_purchased = models.DecimalField('cantidad comprada', max_digits=10, decimal_places=2, default=0)
 
 
+class BillDetail(models.Model):
+    STATUS_CHOICES = (('C', 'COMPRADA'), ('I', 'INGRESADA'), ('D', 'DEVUELTA'), ('V', 'VENDIDA'),)
+    id = models.AutoField(primary_key=True)
+    bill = models.ForeignKey(Bill, on_delete=models.CASCADE, null=True, blank=True)
+    product = models.ForeignKey('sales.Product', on_delete=models.CASCADE, null=True, blank=True)
+    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=4, default=0)
+    unit = models.ForeignKey('sales.Unit', on_delete=models.CASCADE, null=True, blank=True)
+    price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
+    status_quantity = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='C')
+    order = models.ForeignKey('sales.Order', on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.id)
+
+    def amount(self):
+        return self.quantity * self.price_unit

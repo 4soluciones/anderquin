@@ -2239,78 +2239,92 @@ def modal_bill_create(request):
 
 def save_bill(request):
     if request.method == 'GET':
-        bill_request = request.GET.get('Bill', '')
-        data_bill = json.loads(bill_request)
-        purchases = str(data_bill["purchase_id"]).replace(']', '').replace('[', '')
-        bill_date = str(data_bill["bill_date"])
-        bill_date_expiration = str(data_bill["bill_date_expiration"])
-        bill_serial = str(data_bill["bill_serial"])
-        bill_correlative = str(data_bill["bill_correlative"])
-        bill_address = str(data_bill["bill_delivery_address"])
-        bill_order_number = str(data_bill["bill_order_number"])
-        # bill_order_number = str(data_bill["bill_order_number"])
+        try:
+            bill_request = request.GET.get('Bill', '')
+            data_bill = json.loads(bill_request)
+            purchases = str(data_bill["purchase_id"]).replace(']', '').replace('[', '')
+            bill_date = str(data_bill["bill_date"])
+            bill_date_expiration = str(data_bill["bill_date_expiration"])
+            bill_serial = str(data_bill["bill_serial"])
+            bill_correlative = str(data_bill["bill_correlative"])
+            bill_address = str(data_bill["bill_delivery_address"])
+            bill_order_number = str(data_bill["bill_order_number"])
 
-        bill_total_base = decimal.Decimal(data_bill["bill_total_base"].replace(',', '.'))
-        bill_igv = decimal.Decimal(data_bill["bill_igv"].replace(',', '.'))
-        bill_total = decimal.Decimal(data_bill["bill_total"].replace(',', '.'))
+            bill_total_base = decimal.Decimal(data_bill["bill_total_base"].replace(',', '.'))
+            bill_igv = decimal.Decimal(data_bill["bill_igv"].replace(',', '.'))
+            bill_total = decimal.Decimal(data_bill["bill_total"].replace(',', '.'))
 
-        bill_quantity = str(data_bill["bill_quantity"])
+            bill_quantity = str(data_bill["bill_quantity"])
 
-        supplier_id = str(data_bill["supplier_id"])
+            supplier_id = str(data_bill["supplier_id"])
 
-        supplier_obj = Supplier.objects.get(id=supplier_id)
+            supplier_obj = Supplier.objects.get(id=supplier_id)
 
-        bill_obj = Bill(
-            register_date=bill_date,
-            expiration_date=bill_date_expiration,
-            serial=bill_serial.upper(),
-            correlative=bill_correlative,
-            delivery_address=bill_address.upper(),
-            order_number=bill_order_number,
-            # order_number=bill_order_number,
-            # purchase=purchase_obj,
-            bill_base_total=bill_total_base,
-            bill_igv_total=bill_igv,
-            bill_total_total=bill_total,
-            supplier=supplier_obj
-        )
-        bill_obj.save()
-
-        for b in data_bill['billPurchases']:
-            purchase_detail_id = int(b['purchaseDetailID'])
-            quantity_purchased = decimal.Decimal(b['purchaseQuantity'])
-            quantity_invoice = decimal.Decimal(b['invoiceQuantity'])
-
-            purchase_detail_obj = PurchaseDetail.objects.get(id=purchase_detail_id)
-            purchase_obj = purchase_detail_obj.purchase
-
-            quantity_difference = quantity_purchased - quantity_invoice
-
-            if quantity_difference < 1:
-                purchase_obj.bill_status = 'C'
-            else:
-                purchase_obj.bill_status = 'I'
-            purchase_obj.save()
-
-            bill_purchase_obj = BillPurchase(
-                purchase_detail=purchase_detail_obj,
-                quantity_invoice=quantity_invoice,
-                quantity_purchased=quantity_purchased,
-                bill=bill_obj,
-                purchase=purchase_detail_obj.purchase
+            bill_obj = Bill(
+                register_date=bill_date,
+                expiration_date=bill_date_expiration,
+                serial=bill_serial.upper(),
+                correlative=bill_correlative,
+                delivery_address=bill_address.upper(),
+                order_number=bill_order_number,
+                bill_base_total=bill_total_base,
+                bill_igv_total=bill_igv,
+                bill_total_total=bill_total,
+                supplier=supplier_obj
             )
-            bill_purchase_obj.save()
+            bill_obj.save()
 
-        # purchases_array = purchases.replace('"', '').split(",")
-        # for p in purchases_array:
-        #     purchase_obj = Purchase.objects.get(id=int(p))
-        #     purchase_obj.bill_status = 'C'
-        #     purchase_obj.save()
+            quantity_sum_invoice = 0
+            product_obj = None
+            unit_obj = None
+            price_unit = None
 
-        return JsonResponse({
-            'success': True,
-            'message': 'Factura Registrada Correctamente',
-        }, status=HTTPStatus.OK)
+            for b in data_bill['billPurchases']:
+                purchase_detail_id = int(b['purchaseDetailID'])
+                quantity_purchased = decimal.Decimal(b['purchaseQuantity'])
+                quantity_invoice = decimal.Decimal(b['invoiceQuantity'])
+
+                purchase_detail_obj = PurchaseDetail.objects.get(id=purchase_detail_id)
+                purchase_obj = purchase_detail_obj.purchase
+                product_obj = purchase_detail_obj.product
+                unit_obj = purchase_detail_obj.unit
+                price_unit = purchase_detail_obj.price_unit
+
+                quantity_difference = quantity_purchased - quantity_invoice
+
+                if quantity_difference < 1:
+                    purchase_obj.bill_status = 'C'
+                else:
+                    purchase_obj.bill_status = 'I'
+                purchase_obj.save()
+
+                bill_purchase_obj = BillPurchase(
+                    purchase_detail=purchase_detail_obj,
+                    quantity_invoice=quantity_invoice,
+                    quantity_purchased=quantity_purchased,
+                    bill=bill_obj,
+                    purchase=purchase_detail_obj.purchase
+                )
+                bill_purchase_obj.save()
+
+                quantity_sum_invoice += quantity_invoice
+
+            bill_detail_obj = BillDetail(
+                bill=bill_obj,
+                product=product_obj,
+                quantity=quantity_sum_invoice,
+                unit=unit_obj,
+                price_unit=price_unit,
+                status_quantity='C',
+            )
+            bill_detail_obj.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Factura Registrada Correctamente',
+            }, status=HTTPStatus.OK)
+        except Exception as e:
+            return JsonResponse({'error': True, 'message': str(e)})
     return JsonResponse({'error': True, 'message': 'Error de peticion. Contactar con Sistemas'})
 
 
