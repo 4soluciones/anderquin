@@ -483,6 +483,7 @@ class Kardex(models.Model):
     distribution_detail = models.ForeignKey('comercial.DistributionDetail', on_delete=models.SET_NULL, null=True,
                                             blank=True)
     loan_payment = models.ForeignKey('LoanPayment', on_delete=models.SET_NULL, null=True, blank=True)
+    bill_detail = models.ForeignKey('accounting.BillDetail', on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name = 'Registro de Kardex'

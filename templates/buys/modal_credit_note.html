@@ -11,11 +11,12 @@
             </div>
             <div class="modal-body roboto-condensed-regular">
                 <div class="card-body bg-light p-0">
+                    <input type="hidden" name="bill" id="bill_id" value="{{ bill_obj.id }}">
                     <div class="row m-1 mt-2">
                         <div class="col-md-4 p-1 border">
                             <label for="nro-document" class="text-primary">Número de Documento:</label>
                             <input type="text" autocomplete="off"
-                                   class="form-control" name="nro-document" id="nro-document"
+                                   class="form-control text-uppercase" name="nro-document" id="nro-document"
                                    placeholder="Nº de nota de credito" required
                                    value="" maxlength="200">
                         </div>
@@ -61,14 +62,14 @@
                                     </tr>
                                     </thead>
                                     <tbody id="new-note-credit">
-                                    <tr purchase_detail="{{ purchase_detail_obj.id }}">
+                                    <tr bill_detail="{{ bill_detail_obj.id }}">
                                         <td class="text-center align-middle">1</td>
-                                        <td class="text-center align-middle">{{ purchase_detail_obj.quantity|replace_round }}</td>
-                                        <td class="text-center align-middle">{{ purchase_detail_obj.unit.name }}</td>
-                                        <td class="text-center align-middle">{{ purchase_detail_obj.product.code }}</td>
-                                        <td class="text-center align-middle">{{ purchase_detail_obj.product.name }}</td>
-                                        <td class="text-center align-middle">{{ purchase_detail_obj.price_unit|replace_round }}</td>
-                                        <td class="text-center align-middle">{{ purchase_detail_obj.multiplicate|replace_round }}</td>
+                                        <td class="text-center align-middle">{{ bill_detail_obj.quantity|replace_round }}</td>
+                                        <td class="text-center align-middle">{{ bill_detail_obj.unit.name }}</td>
+                                        <td class="text-center align-middle">{{ bill_detail_obj.product.code }}</td>
+                                        <td class="text-center align-middle">{{ bill_detail_obj.product.name }}</td>
+                                        <td class="text-center align-middle">{{ bill_detail_obj.price_unit|replace_round }}</td>
+                                        <td class="text-center align-middle">{{ bill_detail_obj.amount|replace_round }}</td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -98,7 +99,7 @@
         let data = new FormData($('#credit-form').get(0));
         data.append('detail', JSON.stringify(detailCredit));
         $.ajax({
-            url: '/buys/save_credit_note/',
+            url: '/sales/bill_create_credit_note/',
             async: true,
             dataType: 'json',
             type: 'POST',
@@ -110,12 +111,15 @@
             success: function (response, textStatus, xhr) {
                 if (xhr.status === 200) {
                     toastr.success(response.message, '¡Mensaje!');
-                    let parent = response.parent
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                    /*let parent = response.parent
                     let _tr = $('#purchase-data-grid tbody').find('tr[pk_parent="' + parent + '"]');
                     let _td = _tr.find('table.table-details tbody tr[detail="'+ response.purchase_detail_id +'"] td.credit-note');
                     _td.empty();
                     _td.append('<span class="text-warning">' + response.nro_document + '</span><br>');
-                    _td.append('Factura: <span class="text-warning">' + response.bill + '</span>');
+                    _td.append('Factura: <span class="text-warning">' + response.bill + '</span>');*/
                     $('#modal-credit-note').modal('hide');
                 }
             },

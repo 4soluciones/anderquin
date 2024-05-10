@@ -115,6 +115,12 @@ urlpatterns = [
     path('get_name_business/', login_required(get_name_business), name='get_name_business'),
 
     # LOGISTIC
-    path('get_purchases_bills/', login_required(get_purchases_bills), name='get_purchases_bills'),
+    path('bills_pending/', login_required(get_purchases_bills), name='bills_pending'),
+    path('assign_to_warehouse/', login_required(assign_to_warehouse), name='assign_to_warehouse'),
+    path('save_detail_to_warehouse/', login_required(save_detail_to_warehouse), name='save_detail_to_warehouse'),
+    path('get_details_by_bill/', login_required(get_details_by_bill), name='get_details_by_bill'),
+    path('bills_in_warehouse/', login_required(get_bills_in_warehouse), name='bills_in_warehouse'),
+    path('bill_credit_note/', login_required(bill_credit_note), name='bill_credit_note'),
+    path('bill_create_credit_note/', login_required(bill_create_credit_note), name='bill_create_credit_note'),
 ]
 

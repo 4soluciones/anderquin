@@ -37,8 +37,8 @@ from django.db.models.functions import (
     ExtractWeekDay, ExtractIsoYear, ExtractYear,
 )
 
-from ..accounting.models import Bill
-from ..buys.models import PurchaseDetail, Purchase
+from ..accounting.models import Bill, BillPurchase, BillDetail
+from ..buys.models import PurchaseDetail, Purchase, CreditNote
 from apps.sales.funtions import *
 
 
@@ -1070,11 +1070,11 @@ def kardex_initial(
         stock,
         price_unit,
         purchase_detail_obj=None,
-        manufacture_detail_obj=None,
         guide_detail_obj=None,
         distribution_detail_obj=None,
         order_detail_obj=None,
         loan_payment_obj=None,
+        bill_detail_obj=None
 ):
     new_kardex = {
         'operation': 'C',
@@ -1090,6 +1090,7 @@ def kardex_initial(
         'product_store': product_store_obj,
         'purchase_detail': purchase_detail_obj,
         'loan_payment': loan_payment_obj,
+        'bill_detail': bill_detail_obj,
     }
     kardex = Kardex.objects.create(**new_kardex)
     kardex.save()
@@ -1104,6 +1105,7 @@ def kardex_input(
         distribution_detail_obj=None,
         order_detail_obj=None,
         loan_payment_obj=None,
+        bill_detail_obj=None
 ):
     product_store = ProductStore.objects.get(pk=int(product_store_id))
 
@@ -1136,6 +1138,7 @@ def kardex_input(
         'product_store': product_store,
         'purchase_detail': purchase_detail_obj,
         'loan_payment': loan_payment_obj,
+        'bill_detail': bill_detail_obj,
     }
     kardex = Kardex.objects.create(**new_kardex)
     kardex.save()
@@ -3540,19 +3543,12 @@ def get_name_business(request):
 
 def get_purchases_bills(request):
     if request.method == 'GET':
-        bill_set = Bill.objects.all().order_by('-id')
+        bill_set = Bill.objects.filter(status='S').order_by('-id')
         bill_dict = []
-
         for b in bill_set:
-            status = 'COMPLETO'
-            if b.sum_quantity_invoice() != b.sum_quantity_purchased():
-                status = 'INCOMPLETO'
-
-            rowspan = b.billpurchase_set.count()
-
-            if b.billpurchase_set.count() == 0:
+            rowspan = b.billdetail_set.count()
+            if b.billdetail_set.count() == 0:
                 rowspan = 1
-
             item_bill = {
                 'id': b.id,
                 'register_date': b.register_date,
@@ -3567,21 +3563,307 @@ def get_purchases_bills(request):
                 'bill_total_total': b.bill_total_total,
                 'sum_quantity_invoice': b.sum_quantity_invoice(),
                 'sum_quantity_purchased': b.sum_quantity_purchased(),
-                'status': status,
-                'bill_purchase': [],
+                'bill_detail': [],
                 'row_count': rowspan
             }
-            for d in b.billpurchase_set.all():
+            for d in b.billdetail_set.filter(status_quantity='C'):
                 item_detail = {
                     'id': d.id,
-                    'bill_number': d.purchase_detail.purchase.bill_number,
-                    'client_reference': d.purchase_detail.purchase.client_reference,
-                    'client_reference_entity': d.purchase_detail.purchase.client_reference_entity
+                    'product': d.product.name,
+                    'quantity': str(round(d.quantity, 2)),
+                    'unit': d.unit.description,
+                    'price_unit': str(round(d.price_unit, 4))
                 }
-                item_bill.get('bill_purchase').append(item_detail)
+                item_bill.get('bill_detail').append(item_detail)
             bill_dict.append(item_bill)
 
         return render(request, 'sales/logistic_list.html', {
              'bill_dict': bill_dict,
         })
     return JsonResponse({'message': 'Error de peticion'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def assign_to_warehouse(request):
+    if request.method == 'GET':
+        pk = request.GET.get('pk', '')
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+        subsidiary_stores = SubsidiaryStore.objects.filter(category='V')
+
+        bill_obj = Bill.objects.get(id=int(pk))
+        bill_details_set = BillDetail.objects.filter(bill=bill_obj)
+        unit_description = ''
+
+        details_dict = []
+
+        for bd in bill_details_set:
+            product_detail_get = ProductDetail.objects.filter(unit=bd.unit, product=bd.product).last()
+            quantity_minimum = product_detail_get.quantity_minimum
+            quantity_in_units = bd.quantity * quantity_minimum
+            unit_description = bd.unit.description
+            item = {
+                'id': bd.id,
+                'product_id': bd.product.id,
+                'product_name': bd.product.name,
+                'quantity': bd.quantity,
+                'quantity_in_units': str(round(quantity_in_units, 2)),
+                'quantity_minimum': str(quantity_minimum),
+                'unit_id': bd.unit.id,
+                'unit_name': bd.unit.name,
+                'unit_description': bd.unit.description,
+                'price_unit': str(round(bd.price_unit, 6)),
+                'amount': bd.amount(),
+                'units_sold': []
+            }
+            for u in ProductDetail.objects.filter(product_id=bd.product.id).all():
+                item_units = {
+                    'id': u.id,
+                    'unit_id': u.unit.id,
+                    'unit_name': u.unit.name,
+                    'unit_description': u.unit.description,
+                    'quantity_minimum': round(u.quantity_minimum, 0),
+                    'price_purchase': str(round(u.price_purchase, 6))
+                }
+                item.get('units_sold').append(item_units)
+            details_dict.append(item)
+
+        t = loader.get_template('sales/assignment_detail_bill.html')
+        c = ({
+            'formatdate': formatdate,
+            'unit_name': unit_description,
+            'subsidiary_stores': subsidiary_stores,
+            'detail_bill': details_dict,
+            'bill_obj': bill_obj,
+        })
+        return JsonResponse({
+            'success': True,
+            'form': t.render(c, request),
+        })
+
+
+def save_detail_to_warehouse(request):
+    if request.method == 'GET':
+        purchase_request = request.GET.get('details', '')
+        data_purchase = json.loads(purchase_request)
+
+        assign_date = str(data_purchase["AssignDate"])
+        bill_id = int(data_purchase["Bill"])
+        bill_obj = Bill.objects.get(id=int(bill_id))
+
+        batch_number = data_purchase["Batch"]
+        batch_expiration_date = str(data_purchase["BatchExpirationDate"])
+        guide_number = data_purchase["GuideNumber"]
+        store = data_purchase["Store"]
+
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(store))
+
+        bill_obj.batch_number = batch_number
+        bill_obj.batch_expiration_date = batch_expiration_date
+        bill_obj.guide_number = guide_number
+        bill_obj.assign_date = assign_date
+        bill_obj.store_destiny = subsidiary_store_obj
+        bill_obj.status = 'E'
+        bill_obj.save()
+
+        for d in data_purchase['Details']:
+
+            product_id = int(d['Product'])
+            product_obj = Product.objects.get(id=product_id)
+            unit_id = int(d['UnitPurchase'])
+            unit_obj = Unit.objects.get(id=unit_id)
+            unit_min_product = ProductDetail.objects.get(product=product_obj, unit=unit_obj).quantity_minimum
+            price_purchase = decimal.Decimal(d['PricePurchase'])
+
+            try:
+                product_store_obj = ProductStore.objects.get(product=product_obj, subsidiary_store=subsidiary_store_obj)
+            except ProductStore.DoesNotExist:
+                product_store_obj = None
+
+            unit_und_obj = Unit.objects.get(name='UND')
+
+            # ----------------------------------- QUANTITY ENTERED --------------------------------------------------
+
+            entered_quantity_principal = decimal.Decimal(d['EnteredQuantityPrincipal'])
+            entered_quantity_in_units = entered_quantity_principal * unit_min_product
+            entered_quantity_units = d['EnteredQuantityUnits']
+
+            if entered_quantity_principal != 0 and entered_quantity_principal != '':
+                detail_entered_obj = BillDetail.objects.create(quantity=entered_quantity_principal, unit=unit_obj,
+                                                               price_unit=price_purchase, product=product_obj,
+                                                               status_quantity='I', bill=bill_obj)
+                if product_store_obj is None:
+                    new_product_store_obj = ProductStore.objects.create(product=product_obj,
+                                                                        subsidiary_store=subsidiary_store_obj,
+                                                                        stock=entered_quantity_in_units)
+                    kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase,
+                                   bill_detail_obj=detail_entered_obj)
+                else:
+                    kardex_input(product_store_obj.id, entered_quantity_in_units, price_purchase,
+                                 bill_detail_obj=detail_entered_obj)
+
+            if entered_quantity_units != 0 and entered_quantity_units != '':
+                detail_entered_units_obj = BillDetail.objects.create(quantity=entered_quantity_units,
+                                                                     price_unit=price_purchase, unit=unit_und_obj,
+                                                                     product=product_obj, status_quantity='I',
+                                                                     bill=bill_obj)
+                if product_store_obj is None:
+                    new_product_store_obj = ProductStore.objects.create(product=product_obj,
+                                                                        subsidiary_store=subsidiary_store_obj,
+                                                                        stock=entered_quantity_units)
+                    new_product_store_obj.save()
+                    kardex_initial(new_product_store_obj, entered_quantity_units, price_purchase,
+                                   bill_detail_obj=detail_entered_units_obj)
+                else:
+                    kardex_input(product_store_obj.id, entered_quantity_units, price_purchase,
+                                 bill_detail_obj=detail_entered_units_obj)
+
+            # ----------------------------------- QUANTITY RETURNED --------------------------------------------------
+
+            returned_quantity_principal = d['ReturnedQuantityPrincipal']
+            returned_quantity_units = d['ReturnedQuantityUnits']
+
+            if returned_quantity_principal != 0 and returned_quantity_principal != '':
+                BillDetail.objects.create(quantity=returned_quantity_principal, price_unit=price_purchase,
+                                          unit=unit_obj, product=product_obj, status_quantity='D', bill=bill_obj)
+
+            if returned_quantity_units != 0 and returned_quantity_units != '':
+                BillDetail.objects.create(quantity=returned_quantity_units, price_unit=price_purchase,
+                                          unit=unit_und_obj, product=product_obj, status_quantity='D', bill=bill_obj)
+
+            # ----------------------------------- QUANTITY SOLD --------------------------------------------------
+
+            sold_quantity_principal = d['SoldQuantityPrincipal']
+            sold_quantity_units = d['SoldQuantityUnit']
+            sold_order_id = d['SoldOrderId']
+            order_sale_obj = None
+            if sold_quantity_principal != 0 and sold_quantity_principal != '':
+                order_sale_obj = Order.objects.get(id=int(sold_order_id))
+                BillDetail.objects.create(quantity=sold_quantity_principal, price_unit=price_purchase, unit=unit_obj,
+                                          product=product_obj, status_quantity='V', bill=bill_obj, order=order_sale_obj)
+
+            if sold_quantity_units != 0 and sold_quantity_units != '':
+                BillDetail.objects.create(quantity=sold_quantity_units, price_unit=price_purchase, unit=unit_und_obj,
+                                          product=product_obj, status_quantity='V', bill=bill_obj, order=order_sale_obj)
+
+        bill_purchase_set = BillPurchase.objects.filter(bill=bill_obj)
+        for b in bill_purchase_set:
+            purchase_obj = b.purchase
+            purchase_obj.status = 'A'
+            purchase_obj.save()
+
+        return JsonResponse({
+            'message': 'PRODUCTO(S) REGISTRADOS EN ALMACEN',
+        }, status=HTTPStatus.OK)
+
+
+def get_details_by_bill(request):
+    if request.method == 'GET':
+        bill_id = request.GET.get('bill_id', '')
+        bill_obj = Bill.objects.get(pk=int(bill_id))
+        details_bill = BillDetail.objects.filter(bill=bill_obj)
+        t = loader.get_template('sales/details_bill.html')
+        c = ({
+            'details_bill': details_bill,
+            'bill_obj': bill_obj,
+        })
+        return JsonResponse({
+            'grid': t.render(c, request),
+        }, status=HTTPStatus.OK)
+
+
+def get_bills_in_warehouse(request):
+    if request.method == 'GET':
+        bill_set = Bill.objects.filter(status='E').order_by('-id')
+        bill_dict = []
+        for b in bill_set:
+            rowspan = b.billdetail_set.count()
+            if b.billdetail_set.count() == 0:
+                rowspan = 1
+            item_bill = {
+                'id': b.id,
+                'register_date': b.register_date,
+                'expiration_date': b.expiration_date,
+                'order_number': b.order_number,
+                'serial': b.serial,
+                'correlative': b.correlative,
+                'supplier_name': b.supplier.name,
+                'delivery_address': b.delivery_address,
+                'bill_base_total': b.bill_base_total,
+                'bill_igv_total': b.bill_igv_total,
+                'bill_total_total': b.bill_total_total,
+                'sum_quantity_invoice': b.sum_quantity_invoice(),
+                'sum_quantity_purchased': b.sum_quantity_purchased(),
+                'status_store': b.status,
+                'status_store_text': b.get_status_display(),
+                'refund': b.get_quantity_refund(),
+                # 'bill_detail': [],
+                'row_count': rowspan
+            }
+            # for d in b.billdetail_set.filter(status_quantity='C'):
+            #     item_detail = {
+            #         'id': d.id,
+            #         'product': d.product.name,
+            #         'quantity': str(round(d.quantity, 2)),
+            #         'unit': d.unit.description,
+            #         'price_unit': str(round(d.price_unit, 4))
+            #     }
+            #     item_bill.get('bill_detail').append(item_detail)
+            bill_dict.append(item_bill)
+
+        return render(request, 'sales/logistic_bill_warehouse.html', {
+             'bill_dict': bill_dict,
+        })
+    return JsonResponse({'message': 'Error de peticion'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def bill_credit_note(request):
+    if request.method == 'GET':
+        bill_detail_id = request.GET.get('bill_detail_id', '')
+        bill_id = request.GET.get('bill_id', '')
+        bill_obj = Bill.objects.get(id=int(bill_id))
+        bill_detail_obj = BillDetail.objects.get(id=int(bill_detail_id))
+        bill_serial = bill_obj.serial
+        bill_correlative = bill_obj.correlative
+        my_date = datetime.now()
+        date_now = my_date.strftime("%Y-%m-%d")
+        t = loader.get_template('buys/modal_credit_note.html')
+        c = ({
+            'bill_detail_obj': bill_detail_obj,
+            'bill_serial': bill_serial,
+            'bill_correlative': bill_correlative,
+            'bill_obj': bill_obj,
+            'date': date_now,
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })
+
+
+def bill_create_credit_note(request):
+    if request.method == 'POST':
+        nro_document = request.POST.get('nro-document', '')
+        date_issue = request.POST.get('date-issue', '')
+        bill_id = request.POST.get('bill', '')
+        bill_serial = request.POST.get('bill-serial', '')
+        bill_correlative = request.POST.get('bill-correlative', '')
+        detail = json.loads(request.POST.get('detail', ''))
+        # purchase_obj = None
+        # purchase_detail_id = ''
+        # for detail in detail:
+        #     purchase_detail_id = int(detail['purchaseDetail'])
+        #     purchase_detail_obj = PurchaseDetail.objects.get(id=int(purchase_detail_id))
+        #     purchase_obj = purchase_detail_obj.purchase
+        bill_obj = Bill.objects.get(id=int(bill_id))
+        CreditNote.objects.create(nro_document=nro_document, issue_date=date_issue, bill=bill_obj)
+
+        return JsonResponse({
+            'message': 'Nota de Credito registrada',
+            # 'parent': purchase_obj.id,
+            # 'purchase_detail_id': purchase_detail_id,
+            'nro_document': nro_document,
+            'bill': str(bill_obj)
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)

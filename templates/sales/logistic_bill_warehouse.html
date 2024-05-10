@@ -7,11 +7,12 @@
 {% block body %}
 
     <div class="card m-2 border-dark">
-        <div class="card-header bg-warning border-dark">
-            <h4 class="card-title text-center font-weight-bold roboto-condensed-regular">LOGÍSTICA - LISTADO DE FACTURAS POR INGRESAR</h4>
+        <div class="card-header bg-info border-dark">
+            <h4 class="card-title text-center font-weight-bold roboto-condensed-regular">LOGÍSTICA - LISTADO DE FACTURAS
+                EN ALMACEN</h4>
         </div>
         <div class="card-body p-0">
-            <div class="" id="purchase-grid-list">{% include "sales/logistic_list_grid.html" %}</div>
+            <div class="" id="purchase-grid-list">{% include "sales/logistic_bill_warehouse_grid.html" %}</div>
         </div>
     </div>
 
@@ -62,28 +63,6 @@
 
     <script type="text/javascript">
 
-        $(document).on('click', '.assignment-store', function () {
-            let search = $(this).attr('pk');
-            $.ajax({
-                url: '/sales/assign_to_warehouse/',
-                dataType: 'json',
-                type: 'GET',
-                data: {'pk': search},
-                contentType: 'application/json;charset=UTF-8',
-                headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                success: function (response, textStatus, xhr) {
-                    if (xhr.status === 200) {
-                        $('#assignment').html(response.form);
-                        $('#assignment').modal('show');
-                    }
-                },
-                error: function (jqXhr, textStatus, xhr) {
-                    toastr.error(jqXhr.responseJSON.detalle, '¡MENSAJE!');
-                }
-
-            });
-        });
-
         $(document).on('click', '.btn-show-detail', function () {
             let bill_id = $(this).attr('pk');
             let _table = $(this).closest('td').parent('tr').next('tr').children('td.table-details-bill');
@@ -119,6 +98,24 @@
         function closeDetail($td) {
             $td.parent('tr').slideUp("fast");
         }
+
+        $(document).on('click', '.generate-credit-note', function () {
+            let bill_detail_id = $(this).attr('pk');
+            let bill_id = $(this).attr('bill');
+            $.ajax({
+                url: '/sales/bill_credit_note/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'bill_detail_id': bill_detail_id, 'bill_id': bill_id},
+                success: function (response) {
+                    $('#modal-credit-note').html(response.form);
+                    $('#modal-credit-note').modal('show');
+                },
+                fail: function (response) {
+                    toastr.error('Error en la petición', '¡Mensaje!');
+                }
+            });
+        });
 
     </script>
 

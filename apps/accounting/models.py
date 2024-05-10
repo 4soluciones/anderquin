@@ -337,6 +337,7 @@ class Tributes(models.Model):
 
 
 class Bill(models.Model):
+    STATUS_CHOICES = (('S', 'SIN ALMACEN'), ('E', 'EN ALMACEN'), ('A', 'ANULADO'),)
     id = models.AutoField(primary_key=True)
     register_date = models.DateField(null=True, blank=True)
     expiration_date = models.DateField(null=True, blank=True)
@@ -348,6 +349,12 @@ class Bill(models.Model):
     bill_igv_total = models.DecimalField('Total IGV ventas', max_digits=30, decimal_places=2, default=0)
     bill_total_total = models.DecimalField('Total ventas', max_digits=30, decimal_places=2, default=0)
     supplier = models.ForeignKey('sales.Supplier', on_delete=models.CASCADE, null=True, blank=True)
+    batch_number = models.CharField('Numero de Lote', max_length=50, null=True, blank=True)
+    batch_expiration_date = models.DateField('Fecha de expiracion de lote', null=True, blank=True)
+    guide_number = models.CharField('Numero de Guia', max_length=50, null=True, blank=True)
+    assign_date = models.DateField('Fecha de Ingreso a Almacen', null=True, blank=True)
+    store_destiny = models.ForeignKey('sales.SubsidiaryStore', on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField('Status', max_length=1, choices=STATUS_CHOICES, default='S')
 
     def __str__(self):
         return str(self.serial + '-' + self.correlative)
@@ -364,6 +371,15 @@ class Bill(models.Model):
         bill_purchase_set = BillPurchase.objects.filter(bill__id=self.id)
         for b in bill_purchase_set:
             response = response + b.quantity_purchased
+        return response
+
+    def get_quantity_refund(self):
+        response = False
+        bill_detail_set = BillDetail.objects.filter(bill__id=self.id)
+        if bill_detail_set.exists():
+            for b in bill_detail_set:
+                if b.status_quantity == 'D':
+                    response = True
         return response
 
 

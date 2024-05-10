@@ -1,0 +1,928 @@
+{% load operations %}
+<div class="modal-dialog modal-xl" role="document">
+
+    <div class="modal-content">
+        <div class="modal-header text-left">
+            <h5 class="modal-title roboto-condensed-regular font-weight-bold col-sm-4">INGRESO A ALMACEN:</h5>
+            <h4 class="modal-title roboto-condensed-regular font-weight-bold col-sm-7 text-success">FACTURA: {{ bill_obj }}</h4>
+            <button type="button" class="close col-sm-1" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body roboto-condensed-regular">
+            <input type="hidden" id="bill_id" value="{{ bill_obj.id }}">
+            <div class="card bg-light">
+
+                <div class="row p-2 text-uppercase">
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="store">Seleccione Almacen de destino:</label>
+                        <select id="store" name="store" class="form-control">
+                            <option disabled selected value="0">Seleccione</option>
+                            {% for s in subsidiary_stores %}
+                                <option value="{{ s.id }}">{{ s.subsidiary.name }} - ALMACEN {{ s.name|upper }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="assign_date" class="">Fecha de Ingreso:</label>
+                        <input type="date" class="form-control form-control-sm" id="assign_date"
+                               name="assign_date"
+                               value="{{ formatdate }}" required>
+                    </div>
+
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="guide_number" class="font-weight-bold">Nº de Guia:</label>
+                        <input type="text" class="form-control form-control-sm text-uppercase font-weight-bold"
+                               id="guide_number"
+                               name="guide_number"
+                               value="">
+                    </div>
+
+                </div>
+                <div class="row p-2 text-uppercase">
+
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="batch" class="">Nº de Lote:</label>
+                        <input type="text" class="form-control form-control-sm" id="batch"
+                               name="batch" autocomplete="off">
+                    </div>
+
+                    <div class="col-sm-4 col-md-4 col-lg-4">
+                        <label for="batch_expiration_date" class="">Fecha de vencimiento del Lote:</label>
+                        <input type="date" class="form-control form-control-sm" id="batch_expiration_date"
+                               name="batch_expiration_date"
+                               value="{{ formatdate }}" required>
+                    </div>
+
+{#                    <div class="col-sm-4 col-md-4 col-lg-4">#}
+{#                        <label for="bill_number" class="font-weight-bold">Nº de Factura:</label>#}
+{#                        <input type="text" class="form-control form-control-sm text-uppercase font-weight-bold"#}
+{#                               id="bill_number"#}
+{#                               name="bill_number" readonly#}
+{#                               value="{{ bill_number }}">#}
+{#                    </div>#}
+
+                </div>
+
+                <div class="card bg-light m-2">
+                    <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
+                        <table class="table table-primary align-content-center table-bordered table-sm m-0">
+                            <thead>
+                            <tr class="text-white bg-info text-uppercase">
+                                <th class="align-middle text-center" style="width: 23%">Producto</th>
+                                <th class="align-middle text-center bg-warning text-dark" style="width: 10%">Cantidad Comprada </th>
+                                <th class="align-middle text-center bg-warning text-dark" style="width: 5%">Unidad</th>
+{#                                <th class="align-middle text-center" style="width: 10%">Precio unit.</th>#}
+{#                                <th class="align-middle text-center" style="width: 8%">Importe</th>#}
+                                <th class="align-middle text-center bg-warning text-dark" style="width: 30%"
+                                    colspan="2">Cantidad Ingresada
+                                </th>
+                                <th class="align-middle text-center bg-warning text-dark" style="width: 14%"
+                                    colspan="3">Cantidad Faltante (UND)
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody id="details">
+                            {% for d in detail_bill %}
+                                <tr class="detail" product="{{ d.product_id }}" purchase_detail="{{ d.id }}">
+                                    <td class="align-middle text-left" rowspan="4">{{ d.product_name }}</td>
+                                    <td class="align-middle item-quantity" rowspan="4">
+                                        <input type="text"
+                                               class="form-control form-control-sm font-weight-bold text-center quantity-purchased-in-units"
+                                               id="quantity-purchased-in-units" autocomplete="off"
+                                               value="{{ d.quantity|replace_round }}" readonly>
+                                        <input type="hidden" class="form-control quantity-purchased"
+                                               id="quantity_purchased"
+                                               value="{{ d.quantity_in_units }}">
+                                        <input type="hidden" class="price-unit-purchase" value="{{ d.price_unit }}"
+                                               id="price_unit_sold">
+                                    </td>
+
+                                    <td class="align-middle item-unit text-center" pu="{{ d.unit_id }}"
+                                        rowspan="4">{{ d.unit_description }}</td>
+{#                                    <td class="align-middle item-price text-center" rowspan="4">#}
+{#                                        <div class="input-icon">#}
+{#                                            <input type="text" style="background-color: #b8daff"#}
+{#                                                   class="form-control text-right text-uppercase price-unit-purchase border-0"#}
+{#                                                   value="{{ d.price_unit }}"#}
+{#                                                   id="price_unit_sold">#}
+{#                                            <i class="change-money">S/</i>#}
+{#                                        </div>#}
+{#                                    </td>#}
+{#                                    <td class="align-middle text-center" rowspan="4">#}
+{#                                        S/ {{ d.amount|replace_round }}</td>#}
+                                </tr>
+                                <tr class="entered-quantity">
+                                    <td class="align-middle text-right">
+                                        Cantidad Ingresada
+                                    </td>
+                                    <td class="align-middle text-center quantity-entered p-0">
+
+                                        <table class="table table-info table-sm table-responsive-sm mb-0 table-entered">
+                                            <tbody>
+                                            {% if d.unit_name == 'UND' %}
+                                                <tr class="quantity-und">
+                                                    <td style="width: 50%">{{ unit_name }}</td>
+                                                    <td class="item-quantity-entered" style="width: 50%">
+                                                        <input type="text"
+                                                               class="form-control form-control-sm text-center quantity_entered_units"
+                                                               id="quantity_entered_units" autocomplete="off"
+                                                               value="0">
+                                                        <input type="hidden" class="form-control quantity-minimum"
+                                                               id="quantity_minimum"
+                                                               value="{{ d.quantity_minimum }}">
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr class="quantity-principal">
+                                                    <td style="width: 50%">{{ unit_name }}</td>
+                                                    <td style="width: 50%">
+                                                        <input type="text"
+                                                               class="form-control form-control-sm text-center quantity_entered_principal"
+                                                               id="quantity_entered_principal" autocomplete="off"
+                                                               value="0">
+                                                        <input type="hidden" class="form-control quantity-minimum"
+                                                               id="quantity_minimum"
+                                                               value="{{ d.quantity_minimum }}">
+                                                    </td>
+                                                </tr>
+                                                <tr class="quantity-und">
+                                                    <td style="width: 50%">UNIDAD(ES)</td>
+                                                    <td style="width: 50%">
+                                                        <input type="text"
+                                                               class="form-control form-control-sm text-center quantity_entered_units"
+                                                               id="quantity_entered_units" autocomplete="off"
+                                                               value="0">
+                                                        <input type="hidden" class="form-control quantity-minimum"
+                                                               id="quantity_minimum"
+                                                               value="{{ d.quantity_minimum }}">
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                    <td class="align-middle text-center item-quantity-missing" rowspan="3">
+                                        <input type="text" id="quantity-missing" aria-label="..."
+                                               class="form-control form-control-sm font-weight-bold text-center quantity-missing"
+                                               readonly
+                                               style="background-color: #b8daff"
+                                               value="{{ d.quantity_in_units }}">
+                                        <input type="hidden" id="current-quantity-missing"
+                                               class="current-quantity-missing" value="{{ d.quantity_in_units }}">
+                                    </td>
+                                </tr>
+                                <tr class="returned-quantity">
+                                    <td class="align-middle text-right item-returned-quantity-check">
+                                        <div class="form-group mb-0">
+                                            <div class="form-check">
+                                                <input class="form-check-input returned-quantity-check"
+                                                       type="checkbox" value=""
+                                                       id="returnedQuantityCheck" required>
+                                                <label class="form-check-label" for="returnedQuantityCheck">Devuelta</label>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle text-center quantity-returned p-0">
+                                        <table class="table table-info table-sm table-responsive-sm mb-0 table-quantity-returned">
+                                            <tbody>
+                                            {% if d.unit_name == 'UND' %}
+                                                <tr class="returned-quantity-und">
+                                                    <td style="width: 50%">{{ unit_name }}</td>
+                                                    <td class="item-quantity-entered" style="width: 50%">
+                                                        <input type="text"
+                                                               class="form-control form-control-sm text-center returned_quantity_entered_units"
+                                                               id="returned_quantity_entered_units" disabled
+                                                               autocomplete="off"
+                                                               value="0">
+                                                        <input type="hidden"
+                                                               class="form-control returned-quantity-minimum"
+                                                               id="returned_quantity_minimum"
+                                                               value="{{ d.quantity_minimum }}">
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr class="returned-quantity-principal">
+                                                    <td style="width: 50%">{{ unit_name }}</td>
+                                                    <td style="width: 50%">
+                                                        <input type="text"
+                                                               class="form-control form-control-sm text-center returned_quantity_entered_principal"
+                                                               id="returned_quantity_entered_principal" disabled
+                                                               autocomplete="off"
+                                                               value="0">
+                                                        <input type="hidden"
+                                                               class="form-control returned-quantity-minimum"
+                                                               id="returned_quantity_minimum" disabled
+                                                               value="{{ d.quantity_minimum }}">
+                                                    </td>
+                                                </tr>
+                                                <tr class="returned-quantity-und">
+                                                    <td style="width: 50%">UNIDAD(ES)</td>
+                                                    <td style="width: 50%">
+                                                        <input type="text"
+                                                               class="form-control form-control-sm text-center returned_quantity_entered_units"
+                                                               id="returned_quantity_entered_units" disabled
+                                                               autocomplete="off"
+                                                               value="0">
+                                                        <input type="hidden"
+                                                               class="form-control returned-quantity-minimum"
+                                                               id="returned_quantity_minimum" disabled
+                                                               value="{{ d.quantity_minimum }}">
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                    {#                                        <input type="text" aria-label="..."#}
+                                    {#                                               class="form-control form-control-sm text-center"#}
+                                    {#                                               id="quantity_returned" disabled#}
+                                    {#                                               value="0">#}
+                                </tr>
+                                <tr class="sold-quantity-units">
+                                    <td class="align-middle text-right item-check-sold">
+                                        <div class="form-group mb-0">
+                                            <div class="form-check">
+                                                <input class="form-check-input check-quantity-sold" type="checkbox"
+                                                       value=""
+                                                       id="invalidCheck" required>
+                                                <label class="form-check-label" for="invalidCheck">
+                                                    Vender
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle text-center quantity-sold p-0">
+                                        <table class="table table-info table-sm table-responsive-sm mb-0 table-sold">
+                                            <tbody>
+                                            {% if d.unit_name == 'UND' %}
+                                                <tr class="sold-quantity-und" unit="{{ d.unit_id }}">
+                                                    <td style="width: 50%">{{ d.unit_description }}</td>
+                                                    <td class="item-quantity-sold" style="width: 50%">
+                                                        <input type="text" aria-label="..."
+                                                               class="form-control form-control-sm text-center quantity_sold_units"
+                                                               id="quantity_sold_units" disabled autocomplete="off"
+                                                               value="0">
+                                                        <input type="hidden" class="form-control sold-quantity-minimum"
+                                                               id="quantity_minimum"
+                                                               value="{{ d.quantity_minimum }}">
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr class="sold-quantity-principal" unit="{{ d.unit_id }}">
+                                                    <td style="width: 50%">{{ d.unit_description }}</td>
+                                                    <td style="width: 50%">
+                                                        <input type="text"
+                                                               class="form-control form-control-sm text-center quantity_sold_principal"
+                                                               id="quantity_sold_principal" disabled autocomplete="off"
+                                                               value="0">
+                                                        <input type="hidden" class="form-control sold-quantity-minimum"
+                                                               id="sold_quantity_minimum"
+                                                               value="{{ d.quantity_minimum }}">
+                                                    </td>
+                                                </tr>
+                                                <tr class="sold-quantity-und" unit="1">
+                                                    <td style="width: 50%">UNIDAD(ES)</td>
+                                                    <td style="width: 50%">
+                                                        <input type="text"
+                                                               class="form-control form-control-sm text-center quantity_sold_units"
+                                                               id="quantity_sold_units" disabled autocomplete="off"
+                                                               value="0">
+                                                        <input type="hidden" class="form-control sold-quantity-minimum"
+                                                               id="quantity_minimum"
+                                                               value="{{ d.quantity_minimum }}">
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                            </tbody>
+                                        </table>
+                                        {#                                        <input type="text"#}
+                                        {#                                               class="form-control form-control-sm text-center"#}
+                                        {#                                               id="quantity_sold"#}
+                                        {#                                               disabled#}
+                                        {#                                               value="0">#}
+                                    </td>
+                                </tr>
+                                <tr class="d-none sold sold-quantity">
+                                    <td colspan="3" rowspan="2"></td>
+                                    <td colspan="2" rowspan="2">
+                                        <div class="row m-0">
+                                            <div class="col-md-6 text-uppercase sale pl-0">
+                                                <button type="button"
+                                                        class="btn btn-success btn-sm btn-block btn-generate-sold">
+                                                    GENERAR CÓDIGO VENTA
+                                                </button>
+                                            </div>
+                                            <div class="col-md-6 text-uppercase pl-0 delete-sale d-none">
+                                                <button type="button"
+                                                        class="btn btn-danger btn-sm btn-block btn-cancel-sold">
+                                                    ANULAR VENTA
+                                                </button>
+                                            </div>
+                                            <div class="col-md-6 text-uppercase pr-0 pl-0 item-sale">
+                                                <input type="text" readonly aria-label=""
+                                                       class="form-control form-control-sm text-center font-weight-bold sale-cod"
+                                                       id="sale-cod" value=""
+                                                       name="sale-cod">
+                                                <input type="hidden" class="sale-id" id="sale-id" name="sale-id">
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div><!-- modal-body -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="close-modal" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="assignment-changes" type="button" class="btn btn-primary">Guardar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .toast-center {
+        top: 5%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+</style>
+
+<script type="text/javascript">
+
+    $('#assignment-changes').click(function () {
+
+        let store = $('#store');
+        let batch = $('#batch');
+        let guide_number = $('#guide_number');
+        if (store.val() === '0' || store.val() === null) {
+            toastr.warning('¡Seleccionar el Almacen de Destino!', 'Error de Datos');
+            return false;
+        }
+        /*if (batch.val() === '') {
+            toastr.warning('¡Ingresar el Numero de lote!', 'Error de Datos');
+            return false;
+        }
+        if (guide_number.val() === '') {
+            toastr.warning('¡Ingresar el Numero de Guia!', 'Error de Datos');
+            return false;
+        }*/
+
+        let details_bill = {
+            "Details": [],
+            "Bill": $('#bill_id').val(),
+            "AssignDate": $('#assign_date').val(),
+            "Batch": batch.val(),
+            "BatchExpirationDate": $('#batch_expiration_date').val(),
+            "GuideNumber": guide_number.val(),
+            "Store": store.val(),
+        };
+        $("#details tr.detail").each(function () {
+            let _td_quantity_entered = $(this).parent('tbody#details').find('tr.entered-quantity td.quantity-entered');
+            //let _entered_quantity_principal = _td_quantity_entered.find('input.quantity_entered_principal').val();
+            let _entered_quantity_principal = _td_quantity_entered.find('input.quantity_entered_principal').val() !== undefined ? _td_quantity_entered.find('input.quantity_entered_principal').val() : 0;
+            let _entered_quantity_units = _td_quantity_entered.find('input.quantity_entered_units').val();
+
+            let _td_quantity_returned = $(this).parent('tbody#details').find('tr.returned-quantity td.quantity-returned');
+            //let _returned_quantity_principal = _td_quantity_returned.find('input.returned_quantity_entered_principal').val();
+            let _returned_quantity_principal = _td_quantity_returned.find('input.returned_quantity_entered_principal').val() !== undefined ? _td_quantity_returned.find('input.returned_quantity_entered_principal').val() : 0;
+
+            let _returned_quantity_units = _td_quantity_returned.find('input.returned_quantity_entered_units').val();
+
+            let _td_quantity_sold = $(this).parent('tbody#details').find('tr.sold-quantity-units table.table-sold');
+            let _sold_quantity_principal = _td_quantity_sold.find('input.quantity_sold_principal').val() !== undefined ? _td_quantity_sold.find('input.quantity_sold_principal').val() : 0;
+            let _sold_quantity_units = _td_quantity_sold.find('tr input.quantity_sold_units').val();
+
+            let _order = $(this).parent('tbody#details').find('tr.sold-quantity input.sale-id').val();
+
+            let detailObj = {
+                "PurchaseDetail": $(this).attr('purchase_detail'),
+                "Product": $(this).attr('product'),
+                "UnitPurchase": $(this).find("td.item-unit").attr('pu'),
+                "PricePurchase": $(this).find("td.item-quantity input.price-unit-purchase").val(),
+                "QuantityPurchased": $(this).find("td.item-quantity input.quantity-purchased-in-units").val(),
+
+                "EnteredQuantityPrincipal": Number(_entered_quantity_principal),
+                "EnteredQuantityUnits": Number(_entered_quantity_units),
+
+                "ReturnedQuantityPrincipal": Number(_returned_quantity_principal),
+                "ReturnedQuantityUnits": Number(_returned_quantity_units),
+
+                "SoldQuantityPrincipal": Number(_sold_quantity_principal),
+                "SoldQuantityUnit": Number(_sold_quantity_units),
+                "SoldOrderId": _order
+            };
+            details_bill.Details.push(detailObj);
+
+        });
+        $('#assignment-changes').prop('disabled', true);
+        console.log(details_bill);
+        $.ajax({
+            url: '/sales/save_detail_to_warehouse/',
+            async: true,
+            dataType: 'json', // for response
+            type: 'GET',
+            data: {'details': JSON.stringify(details_bill)},
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (xhr.status === 200) {
+                    toastr.success(response.message, '¡Mensaje!');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                    //$('#assignment').modal('hide');
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                //$('#assignment').modal('hide');
+                toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
+            }
+        });
+    })
+
+
+    $('.returned-quantity-check').change(function () {
+        let _input_entered_unit = $(this).closest('tr').parent('tbody#details').find('tr.entered-quantity td.quantity-entered input.quantity_entered_units').val()
+        let _input_entered_principal = $(this).closest('tr').parent('tbody#details').find('tr.entered-quantity td.quantity-entered input.quantity_entered_principal').val()
+
+        let _table = $(this).closest('tr').find('td.quantity-returned table.table-quantity-returned');
+        let _input_und = _table.find('tr.returned-quantity-und input.returned_quantity_entered_units');
+        let _input_principal = _table.find('tr.returned-quantity-principal input.returned_quantity_entered_principal');
+
+        if (!(Number(_input_entered_unit) > 0 || Number(_input_entered_principal) > 0)) {
+            if (!(Number(_input_und.val()) > 0 || Number(_input_principal.val()) > 0)) {
+                toastr.warning('Antes de DEVOLVER, Favor de registrar la cantidad ingresada', '¡MENSAJE!');
+                $(this).prop('checked', false);
+                return;
+            }
+        }
+
+        if ($(this).is(':checked')) {
+            _input_und.prop('disabled', false);
+            _input_principal.prop('disabled', false);
+        } else {
+            _input_und.prop('disabled', true);
+            _input_principal.prop('disabled', true);
+            _input_und.val('0');
+            _input_principal.val('0');
+            $('.quantity_entered_principal').trigger('keyup');
+            $('.quantity_entered_units').trigger('keyup');
+        }
+    });
+
+    $('.check-quantity-sold').change(function () {
+        let _input_entered_unit = $(this).closest('tr').parent('tbody#details').find('tr.entered-quantity td.quantity-entered input.quantity_entered_units').val()
+        let _input_entered_principal = $(this).closest('tr').parent('tbody#details').find('tr.entered-quantity td.quantity-entered input.quantity_entered_principal').val()
+
+        let _table = $(this).closest('tr').find('td.quantity-sold table.table-sold');
+        let _input_und = _table.find('tr.sold-quantity-und input.quantity_sold_units');
+        let _input_principal = _table.find('tr.sold-quantity-principal input.quantity_sold_principal');
+
+        if (!(Number(_input_entered_unit) > 0 || Number(_input_entered_principal) > 0)) {
+            if (!(Number(_input_und.val()) > 0 || Number(_input_principal.val()) > 0)) {
+                toastr.warning('Antes de VENDER, Favor de registrar la cantidad ingresada', '¡MENSAJE!');
+                $(this).prop('checked', false);
+                return;
+            }
+        }
+
+        if ($(this).is(':checked')) {
+            _input_und.prop('disabled', false);
+            _input_principal.prop('disabled', false);
+            $('.sold').removeClass('d-none')
+        } else {
+            $('.sold').addClass('d-none')
+            _input_und.prop('disabled', true);
+            _input_principal.prop('disabled', true);
+            _input_und.val('0');
+            _input_principal.val('0');
+            //$(this).closest('tbody#details').find('tr.sold-quantity table.table-sold td.item-quantity-sold input.quantity-purchased-sold').val('0');
+            //$(this).closest('tbody#details').find('tr.sold-quantity table.table-sold td.item-total-sold input.total-sold').val('0.00');
+            $('.returned_quantity_entered_principal').trigger('keyup')
+            $('.returned_quantity_entered_units').trigger('keyup')
+        }
+
+    });
+
+    /********* QUANTITY ENTERED  ***********/
+
+    $('.quantity_entered_principal').keyup(function () {
+
+        let _quantity_missing = $(this).parent('td').closest('table').parent('td').parent('tr').find('td.item-quantity-missing input.quantity-missing')
+        let _current_quantity_missing = $(this).parent('td').closest('table').parent('td').parent('tr').find('td.item-quantity-missing input.current-quantity-missing')
+        let quantity_minimum = $(this).parent('td').find('input.quantity-minimum').val();
+        let _q_principal = $(this);
+        let _q_unit = $(this).closest('tr').parent('tbody').find('tr.quantity-und input.quantity_entered_units').val();
+        let q_in_units_principal = Number(_q_principal.val()) * Number(quantity_minimum)
+
+        let sum_quantities = q_in_units_principal + Number(_q_unit)
+        if (sum_quantities > Number(_current_quantity_missing.val())) {
+            toastr.warning("La cantidad INGRESADA no puede superar a la cantidad COMPRADA", '¡MENSAJE!', {
+                positionClass: "toast-center",
+            });
+            $(this).val('')
+            _quantity_missing.val(_current_quantity_missing.val())
+            return false;
+        } else {
+            let new_q_missing = Number(_current_quantity_missing.val()) - sum_quantities
+            _quantity_missing.val(new_q_missing.toFixed(2))
+        }
+        /*calculateQuantity(true, false, false, false, false, false, _quantity_missing, _current_quantity_missing,
+            quantity_minimum, _q_principal, _q_unit, q_in_units_principal)*/
+    });
+
+    $('.quantity_entered_units').keyup(function () {
+
+        let _quantity_missing = $(this).parent('td').closest('table').parent('td').parent('tr').find('td.item-quantity-missing input.quantity-missing')
+        let _current_quantity_missing = $(this).parent('td').closest('table').parent('td').parent('tr').find('td.item-quantity-missing input.current-quantity-missing')
+        let quantity_minimum = $(this).closest('tr').parent('tbody').find('tr.quantity-und input.quantity-minimum').val();
+        let _q_unit = $(this);
+        let _q_principal = 0
+        if ($(this).closest('tr').parent('tbody').find('tr.quantity-principal input.quantity_entered_principal').val() !== undefined) {
+            _q_principal = $(this).closest('tr').parent('tbody').find('tr.quantity-principal input.quantity_entered_principal').val();
+        }
+
+        let q_in_units_principal = Number(_q_principal) * Number(quantity_minimum)
+
+        let sum_quantities = q_in_units_principal + Number(_q_unit.val())
+        if (sum_quantities > Number(_current_quantity_missing.val())) {
+            toastr.warning("La cantidad INGRESADA no puede superar a la cantidad COMPRADA", '¡MENSAJE!', {
+                positionClass: "toast-center",
+            });
+            $(this).val('')
+            _quantity_missing.val(_current_quantity_missing.val())
+            return false;
+        } else {
+            let new_q_missing = Number(_current_quantity_missing.val()) - sum_quantities
+            _quantity_missing.val(new_q_missing.toFixed(2))
+        }
+        /*calculateQuantity(false, true, false, false, false, false, _quantity_missing, _current_quantity_missing,
+            quantity_minimum, _q_principal, _q_unit, q_in_units_principal)*/
+    });
+
+    /********* END QUANTITY ENTERED  ***********/
+
+    /********* QUANTITY RETURNED  ***********/
+
+    $('.returned_quantity_entered_principal').keyup(function () {
+
+        let _quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.quantity-missing')
+        //let _current_quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.current-quantity-missing')
+        let quantity_minimum = $(this).parent('td').find('input.returned-quantity-minimum').val();
+        let _q_principal = $(this);
+        let _q_unit = $(this).closest('tr').parent('tbody').find('tr.returned-quantity-und input.returned_quantity_entered_units').val();
+
+        let q_in_units_principal = Number(_q_principal.val()) * Number(quantity_minimum)
+
+        let sum_quantities = q_in_units_principal + Number(_q_unit)
+        $('.quantity_entered_principal').trigger('keyup')
+        $('.quantity_entered_units').trigger('keyup')
+        if (sum_quantities > Number(_quantity_missing.val())) {
+            toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
+                positionClass: "toast-center",
+            });
+            $(this).val('')
+            return false;
+        } else {
+            let new_q_missing = Number(_quantity_missing.val()) - sum_quantities
+            _quantity_missing.val(new_q_missing.toFixed(2))
+        }
+        /*calculateQuantity(false, false, true, false, false, false, _quantity_missing, null,
+            quantity_minimum, _q_principal, _q_unit, q_in_units_principal)*/
+
+    });
+
+    $('.returned_quantity_entered_units').keyup(function () {
+
+        let _quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.quantity-missing')
+        //let _current_quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.current-quantity-missing')
+        let quantity_minimum = $(this).parent('td').find('input.returned-quantity-minimum').val();
+        let _q_unit = $(this);
+        let _q_principal = 0
+
+        if ($(this).closest('tr').parent('tbody').find('tr.returned-quantity-principal input.returned_quantity_entered_principal').val()) {
+            _q_principal = $(this).closest('tr').parent('tbody').find('tr.returned-quantity-principal input.returned_quantity_entered_principal').val();
+        }
+
+        let q_in_units_principal = Number(_q_principal) * Number(quantity_minimum)
+
+        let sum_quantities = q_in_units_principal + Number(_q_unit.val())
+        $('.quantity_entered_principal').trigger('keyup')
+        $('.quantity_entered_units').trigger('keyup')
+        if (sum_quantities > Number(_quantity_missing.val())) {
+            toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
+                positionClass: "toast-center",
+            });
+            $(this).val('')
+            return false;
+        } else {
+            // console.log("_quantity_missing.val()", _quantity_missing.val())
+            //console.log("sum_quantities", sum_quantities)
+            let new_q_missing = Number(_quantity_missing.val()) - sum_quantities
+            _quantity_missing.val(new_q_missing.toFixed(2))
+            //console.log("_quantity_missing", _quantity_missing.val())
+        }
+        /*calculateQuantity(false, false, false, true, false, false, _quantity_missing, null,
+            quantity_minimum, _q_principal, _q_unit, q_in_units_principal)*/
+
+    });
+
+    /********* END QUANTITY RETURNED  ***********/
+
+    /********* QUANTITY SOLD  ***********/
+
+
+    /*$('.unit-product-sold').change(function () {
+        let _price = $(this).closest('tr').find('td.item-price-sold input.price-unit-sold');
+        //let unit_id = $(this).val();
+        //let quantity_minimum = $(this).find('option:selected').attr('qm');
+        let _new_price = Number($(this).find('option:selected').attr('p'));
+        _price.val(_new_price.toFixed(6));
+        $('.quantity-purchased-sold').trigger('keyup');
+    });*/
+
+    $('.quantity_sold_principal').keyup(function () {
+
+        let _quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.quantity-missing')
+        //let _current_quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.current-quantity-missing')
+        let quantity_minimum = $(this).parent('td').find('input.sold-quantity-minimum').val();
+        let _q_principal = $(this);
+        let _q_unit = $(this).closest('tr').parent('tbody').find('tr.sold-quantity-und input.quantity_sold_units').val();
+
+        let q_in_units_principal = Number(_q_principal.val()) * Number(quantity_minimum)
+
+        let sum_quantities = q_in_units_principal + Number(_q_unit)
+
+        $('.returned_quantity_entered_principal').trigger('keyup')
+        $('.returned_quantity_entered_units').trigger('keyup')
+
+        if (sum_quantities > Number(_quantity_missing.val())) {
+            toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
+                positionClass: "toast-center",
+            });
+            $(this).val('')
+            return false;
+        } else {
+            let new_q_missing = Number(_quantity_missing.val()) - sum_quantities
+            _quantity_missing.val(new_q_missing.toFixed(2))
+        }
+        /*calculateQuantity(false, false, false, false, true, false, _quantity_missing, null,
+            quantity_minimum, _q_principal, _q_unit, q_in_units_principal)*/
+    });
+
+    $('.quantity_sold_units').keyup(function () {
+
+        let _quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.quantity-missing')
+        //let _current_quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.current-quantity-missing')
+        let quantity_minimum = $(this).parent('td').find('input.sold-quantity-minimum').val();
+        let _q_unit = $(this);
+        let _q_principal = 0
+
+        if ($(this).closest('tr').parent('tbody').find('tr.sold-quantity-principal input.quantity_sold_principal').val()) {
+            _q_principal = $(this).closest('tr').parent('tbody').find('tr.sold-quantity-principal input.quantity_sold_principal').val();
+        }
+        $('.returned_quantity_entered_principal').trigger('keyup')
+        $('.returned_quantity_entered_units').trigger('keyup')
+        let q_in_units_principal = Number(_q_principal) * Number(quantity_minimum)
+        let sum_quantities = q_in_units_principal + Number(_q_unit.val())
+        if (sum_quantities > Number(_quantity_missing.val())) {
+            toastr.warning("La cantidad VENDIDA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
+                positionClass: "toast-center",
+            });
+            $(this).val('')
+            return false;
+        } else {
+            let new_q_missing = Number(_quantity_missing.val()) - sum_quantities
+            _quantity_missing.val(new_q_missing.toFixed(2))
+        }
+        /*calculateQuantity(false, false, false, false, false, true, _quantity_missing, null,
+            quantity_minimum, _q_principal, _q_unit, q_in_units_principal)*/
+    });
+
+    $('.btn-generate-sold').click(function () {
+
+        let r = confirm("¿Esta seguro de Generar la Venta? ")
+        if (r === true) {
+            let _product_id = $(this).closest('tr').parent('tbody#details').find('tr.detail').attr('product');
+            let _button = $(this);
+            let check_sold = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.item-check-sold input.check-quantity-sold')
+            let input_principal_val = 0
+            let input_principal
+            let unit_principal
+            if ($(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_principal').val()) {
+                input_principal_val = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_principal').val();
+                input_principal = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_principal');
+                unit_principal = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold tr.sold-quantity-principal').attr('unit');
+            }
+            let input_units = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_units');
+            let unit_id = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold tr.sold-quantity-und').attr('unit');
+
+            let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
+            let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
+            let _input_correlative = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod');
+            let _input_order = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id');
+            /*console.log('product_id', _product_id)
+            console.log('unit_principal', unit_principal)
+            console.log('unit_id', unit_id)
+            console.log("input_principal", input_principal_val)
+            console.log("input_units", input_units.val())*/
+
+            $.ajax({
+                url: '/sales/create_warehouse_sale/',
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'product_id': _product_id,
+                    'unit_principal': unit_principal ? unit_principal : null,
+                    'input_principal_val': input_principal_val,
+                    'unit_id': unit_id,
+                    'input_units': input_units.val(),
+                },
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        let correlative_sale = response.correlative
+                        let order_id = response.order_id
+                        _input_correlative.val(correlative_sale);
+                        _input_order.val(order_id);
+                        _div_sale.addClass('d-none');
+                        _div_cancel.removeClass('d-none');
+                        toastr.success(response.message, '¡CODIGO DE VENTA GENERADO!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.detalle, '¡ERROR!');
+                }
+
+            });
+
+            if (input_principal) {
+                input_principal.prop('disabled', true);
+            }
+            check_sold.prop('disabled', true);
+            input_units.prop('disabled', true);
+            //_button.prop('disabled', true);
+        }
+    });
+
+    function checkSaleCodAndCloseModal() {
+        let allowClose = true;
+
+        $(".sale-cod").each(function () {
+            if ($(this).val() !== "") {
+                allowClose = false;
+            }
+        });
+        return allowClose
+    }
+
+    $('#close-modal, .close').click(function () {
+        let allowClose = checkSaleCodAndCloseModal();
+        if (allowClose) {
+            $('#assignment').modal('hide');
+        } else {
+            toastr.error('No puedes cerrar la ventana si ya se genero la venta, completa el guardado o Anula la venta');
+            return false;
+        }
+    });
+
+    $('.btn-cancel-sold').click(function () {
+        let _correlative = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod');
+        let _order_id = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id').val()
+        let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
+        let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
+        let check_sold = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.item-check-sold input.check-quantity-sold')
+        let input_principal
+        let input_units = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_units');
+        if ($(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_principal').val()) {
+            input_principal = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_principal');
+        }
+        let r = confirm("¿Esta seguro de Eliminar la Venta")
+        if (r === true) {
+            $.ajax({
+                url: '/sales/delete_warehouse_sale/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'order_id': _order_id},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        _correlative.val("");
+                        _div_sale.removeClass('d-none');
+                        _div_cancel.addClass('d-none');
+                        check_sold.prop('disabled', false);
+                        if (input_principal) {
+                            input_principal.prop('disabled', false);
+                        }
+                        input_units.prop('disabled', false);
+                        toastr.warning(response.message, '¡Operación Correcta!');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON, '¡ERROR!');
+                }
+
+            });
+        }
+    });
+
+    /********* END QUANTITY SOLD  ***********/
+
+    /*function calculateQuantity(entered_principal, entered_units, returned_principal, returned_units, sold_principal,
+                               sold_units, quantity_missing, current_quantity_missing,
+                               quantity_minimum, q_principal, q_unit, q_in_units_principal) {
+        if (entered_principal) {
+            let sum_quantities = q_in_units_principal + Number(q_unit)
+            if (sum_quantities > Number(current_quantity_missing.val())) {
+                toastr.warning("La cantidad INGRESADA no puede superar a la cantidad COMPRADA", '¡MENSAJE!', {
+                    positionClass: "toast-center",
+                });
+                q_principal.val('')
+                quantity_missing.val(current_quantity_missing.val())
+                return false;
+            } else {
+                let new_q_missing = Number(current_quantity_missing.val()) - sum_quantities
+                quantity_missing.val(new_q_missing.toFixed(2))
+            }
+        }
+        if (entered_units) {
+            let sum_quantities = q_in_units_principal + Number(q_unit.val())
+            if (sum_quantities > Number(current_quantity_missing.val())) {
+                toastr.warning("La cantidad INGRESADA no puede superar a la cantidad COMPRADA", '¡MENSAJE!', {
+                    positionClass: "toast-center",
+                });
+                q_principal.val('')
+                quantity_missing.val(current_quantity_missing.val())
+                return false;
+            } else {
+                let new_q_missing = Number(current_quantity_missing.val()) - sum_quantities
+                quantity_missing.val(new_q_missing.toFixed(2))
+            }
+        }
+        if (returned_principal) {
+            let sum_quantities = q_in_units_principal + Number(q_unit)
+            if (sum_quantities > Number(quantity_missing.val())) {
+                toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
+                    positionClass: "toast-center",
+                });
+                q_principal.val('')
+                return false;
+            } else {
+                let new_q_missing = Number(quantity_missing.val()) - sum_quantities
+                quantity_missing.val(new_q_missing.toFixed(2))
+            }
+        }
+        if (returned_units) {
+            let sum_quantities = q_in_units_principal + Number(q_unit.val())
+            if (sum_quantities > Number(quantity_missing.val())) {
+                toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
+                    positionClass: "toast-center",
+                });
+                q_unit.val('')
+                return false;
+            } else {
+                let new_q_missing = Number(quantity_missing.val()) - sum_quantities
+                quantity_missing.val(new_q_missing.toFixed(2))
+            }
+        }
+        if (sold_principal) {
+            let sum_quantities = q_in_units_principal + Number(q_unit)
+            if (sum_quantities > Number(quantity_missing.val())) {
+                toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
+                    positionClass: "toast-center",
+                });
+                q_principal.val('')
+                return false;
+            } else {
+                let new_q_missing = Number(quantity_missing.val()) - sum_quantities
+                quantity_missing.val(new_q_missing.toFixed(2))
+            }
+        }
+        if (sold_units) {
+            let sum_quantities = q_in_units_principal + Number(q_unit.val())
+            if (sum_quantities > Number(quantity_missing.val())) {
+                toastr.warning("La cantidad VENDIDA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
+                    positionClass: "toast-center",
+                });
+                q_unit.val('')
+                return false;
+            } else {
+                let new_q_missing = Number(quantity_missing.val()) - sum_quantities
+                quantity_missing.val(new_q_missing.toFixed(2))
+            }
+        }
+
+    }*/
+
+
+</script>

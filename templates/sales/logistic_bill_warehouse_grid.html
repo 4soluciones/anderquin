@@ -12,8 +12,9 @@
                     <th class="th-sm align-middle" style="width: 10%" rowspan="2">Fecha de Expiracion</th>
                     <th class="th-sm align-middle" style="width: 10%" rowspan="2">Número de Factura</th>
                     <th class="th-sm align-middle" style="width: 10%" rowspan="2">Número de Pedido</th>
-                    <th class="th-sm align-middle" style="width: 20%" rowspan="2">Proveedor</th>
-                    <th class="th-sm align-middle" style="width: 25%" rowspan="2">Direccion de Entrega</th>
+                    <th class="th-sm align-middle" style="width: 15%" rowspan="2">Proveedor</th>
+                    <th class="th-sm align-middle" style="width: 20%" rowspan="2">Direccion de Entrega</th>
+                    <th class="th-sm align-middle" style="width: 10%" rowspan="2">Estado</th>
                     <th class="th-sm align-middle" style="width: 10%" rowspan="2">Acciones</th>
                 </tr>
                 </thead>
@@ -26,8 +27,15 @@
                         <td class="align-middle text-center">{{ b.order_number|upper }}</td>
                         <td class="align-middle text-center">{{ b.supplier_name }}</td>
                         <td class="align-middle text-center">{{ b.delivery_address }}</td>
+                        <td class="align-middle text-center font-weight-bold" {% if b.status_store == 'S' %}
+                            style="background-color: #f6dfdf" {% else %}style="background-color: #b2fac4"{% endif %}>
+                            {% if b.refund %}
+                                {{ b.status_store_text }} <span class="text-danger">(NC)</span>
+                            {% else %}
+                                {{ b.status_store_text }}
+                            {% endif %}
+                        </td>
                         <td class="align-middle text-center font-weight-bold">
-
                             <div class="btn-group" role="group" aria-label="Basic example">
                                 <button type="button" class="btn btn-sm btn-outline-secondary assignment-store" pk="{{ b.id }}">
                                 <i class="fas fa-warehouse"></i> Ingreso
