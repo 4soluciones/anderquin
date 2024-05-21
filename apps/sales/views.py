@@ -3677,11 +3677,6 @@ def save_detail_to_warehouse(request):
             unit_min_product = ProductDetail.objects.get(product=product_obj, unit=unit_obj).quantity_minimum
             price_purchase = decimal.Decimal(d['PricePurchase'])
 
-            try:
-                product_store_obj = ProductStore.objects.get(product=product_obj, subsidiary_store=subsidiary_store_obj)
-            except ProductStore.DoesNotExist:
-                product_store_obj = None
-
             unit_und_obj = Unit.objects.get(name='UND')
 
             # ----------------------------------- QUANTITY ENTERED --------------------------------------------------
@@ -3694,6 +3689,12 @@ def save_detail_to_warehouse(request):
                 detail_entered_obj = BillDetail.objects.create(quantity=entered_quantity_principal, unit=unit_obj,
                                                                price_unit=price_purchase, product=product_obj,
                                                                status_quantity='I', bill=bill_obj)
+                try:
+                    product_store_obj = ProductStore.objects.get(product=product_obj,
+                                                                 subsidiary_store=subsidiary_store_obj)
+                except ProductStore.DoesNotExist:
+                    product_store_obj = None
+
                 if product_store_obj is None:
                     new_product_store_obj = ProductStore.objects.create(product=product_obj,
                                                                         subsidiary_store=subsidiary_store_obj,
@@ -3709,6 +3710,12 @@ def save_detail_to_warehouse(request):
                                                                      price_unit=price_purchase, unit=unit_und_obj,
                                                                      product=product_obj, status_quantity='I',
                                                                      bill=bill_obj)
+                try:
+                    product_store_obj = ProductStore.objects.get(product=product_obj,
+                                                                 subsidiary_store=subsidiary_store_obj)
+                except ProductStore.DoesNotExist:
+                    product_store_obj = None
+
                 if product_store_obj is None:
                     new_product_store_obj = ProductStore.objects.create(product=product_obj,
                                                                         subsidiary_store=subsidiary_store_obj,
@@ -3745,6 +3752,7 @@ def save_detail_to_warehouse(request):
                                           product=product_obj, status_quantity='V', bill=bill_obj, order=order_sale_obj)
 
             if sold_quantity_units != 0 and sold_quantity_units != '':
+                order_sale_obj = Order.objects.get(id=int(sold_order_id))
                 BillDetail.objects.create(quantity=sold_quantity_units, price_unit=price_purchase, unit=unit_und_obj,
                                           product=product_obj, status_quantity='V', bill=bill_obj, order=order_sale_obj)
 

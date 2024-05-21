@@ -357,6 +357,26 @@
 
 <script type="text/javascript">
 
+    function checkSold() {
+        let check = false;
+        $('#details tr.sold-quantity-units td.item-check-sold input[type="checkbox"]').each(function () {
+            if ($(this).prop('checked')) {
+                check = true;
+            }
+        });
+        return check;
+    }
+    function checkCodeSale() {
+        let check = false;
+        $('#details tr.sold-quantity div.item-sale input.sale-cod').each(function () {
+            if ($(this).val() === '') {
+                check = true;
+            }
+        });
+        return check;
+    }
+
+
     $('#assignment-changes').click(function () {
 
         let store = $('#store');
@@ -365,6 +385,13 @@
         if (store.val() === '0' || store.val() === null) {
             toastr.warning('¡Seleccionar el Almacen de Destino!', 'Error de Datos');
             return false;
+        }
+
+        if (checkSold() === true) {
+            if (checkCodeSale() === true) {
+                toastr.warning('¡Primero genere el Código de Venta antes de Guardar!', 'Error de Llenado!');
+                return false;
+            }
         }
         /*if (batch.val() === '') {
             toastr.warning('¡Ingresar el Numero de lote!', 'Error de Datos');
@@ -423,7 +450,7 @@
 
         });
         $('#assignment-changes').prop('disabled', true);
-        console.log(details_bill);
+        //console.log(details_bill);
         $.ajax({
             url: '/sales/save_detail_to_warehouse/',
             async: true,
@@ -797,7 +824,7 @@
 
     $('.btn-cancel-sold').click(function () {
         let _correlative = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod');
-        let _order_id = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id').val()
+        let _order_id = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id');
         let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
         let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
         let check_sold = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.item-check-sold input.check-quantity-sold')
@@ -812,12 +839,13 @@
                 url: '/sales/delete_warehouse_sale/',
                 dataType: 'json',
                 type: 'GET',
-                data: {'order_id': _order_id},
+                data: {'order_id': _order_id.val()},
                 contentType: 'application/json;charset=UTF-8',
                 headers: {"X-CSRFToken": '{{ csrf_token }}'},
                 success: function (response, textStatus, xhr) {
                     if (xhr.status === 200) {
                         _correlative.val("");
+                        _order_id.val("");
                         _div_sale.removeClass('d-none');
                         _div_cancel.addClass('d-none');
                         check_sold.prop('disabled', false);

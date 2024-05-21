@@ -18,12 +18,12 @@
                 {{ dt.get_status_quantity_display }}
                 <input type="hidden" value="{{ purchase_obj.id }}">
             </td>
-            <td> - {{ dt.product.name }}</td>
-
+            <td> - {{ dt.product.name }}
+                {% if dt.order %}<span class="text-warning"> - Orden: {{ dt.order.correlative }}</span></td>{% endif %}
             <td class="text-center">
-                {% if dt.status_quantity == 'I' %}{{ dt.purchase.batch_number|upper|default:'-'|default_if_none:'-' }}{% endif %}</td>
+                {% if dt.status_quantity == 'I' and dt.bill.batch_number %}{{ dt.bill.batch_number|upper|default:'-'|default_if_none:'-' }}{% endif %}</td>
             <td class="text-center">
-                {% if dt.status_quantity == 'I' %}{{ dt.purchase.batch_expiration_date|date:'d-m-Y' }}{% endif %}</td>
+                {% if dt.status_quantity == 'I' and dt.bill.batch_number %}{{ dt.bill.batch_expiration_date|date:'d-m-Y' }}{% endif %}</td>
 
             <td class="text-center">{{ dt.quantity|floatformat:0 }}</td>
             <td class="text-center">{{ dt.unit.description }}</td>
