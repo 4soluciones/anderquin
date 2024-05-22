@@ -1,4 +1,5 @@
 {% load static %}
+{% load operations %}
 <div class="modal-dialog modal-xl" role="document">
 
     <div class="modal-content">
@@ -82,32 +83,66 @@
                                            value=""
                                            name="nro-dates" placeholder="-">
                                 </div>
-                                <div class="col-sm-4 col-md-4 col-lg-4">
-                                    <label class="font-weight-light" for="product_add_id">Producto:</label>
-                                    <select id="product_add_id" class="form-control form-control-sm">' +
-                                        <option value="0">Seleccione</option>
-                                        {% for p in product_set %}
-                                            <option value="{{ p.id }}">{{ p.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">
-                                    <label class="font-weight-light" for="quantity_add">Cantidad</label>
-                                    <input type="text" class="form-control form-control-sm text-right"
-                                           id="quantity_add"
-                                           name="quantity-add" placeholder="0.00">
-                                </div>
-                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">
-                                    <label class="font-weight-light" for="price_unit">Precio Unit.</label>
-                                    <input type="text" class="form-control form-control-sm text-right"
-                                           id="price_unit"
-                                           name="price-unit-add" placeholder="0.00">
-                                </div>
-                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">
-                                    <label class="font-weight-light" for="total">Total</label>
-                                    <input type="text" class="form-control form-control-sm text-right"
-                                           id="total"
-                                           name="total-add" placeholder="0.00">
+                                <div class="col-sm-7 col-md-7 col-lg-7 pr-0">
+                                    <table id="table-product-add-update"
+                                           class="table table-sm align-content-center table-borderless mb-0">
+                                        <thead>
+                                        <tr class="">
+                                            <th scope="col" class="align-middle font-weight-light pb-0"
+                                                style="width: 50%; color: #3e4676">
+                                                Producto
+                                            </th>
+                                            <th scope="col" class="align-middle font-weight-light pb-0 text-right"
+                                                style="width: 14%; color: #3e4676">
+                                                Cantidad
+                                            </th>
+                                            <th scope="col" class="align-middle font-weight-light pb-0 text-right"
+                                                style="width: 13%; color: #3e4676">
+                                                Precio Unit.
+                                            </th>
+                                            <th scope="col" class="align-middle font-weight-light pb-0 text-right"
+                                                style="width: 15%; color: #3e4676">
+                                                Monto
+                                            </th>
+                                            <th scope="col" class="align-middle font-weight-light pb-0 text-right"
+                                                style="width: 8%; color: #3e4676"></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="tbody-product-add-update">
+                                        <tr class="text-center" i="1">
+                                            <td class="item-product-add-update align-middle text-center">
+                                                <select id="product_add-id-update"
+                                                        class="form-control form-control-sm product-add-update">
+                                                    <option value="0">Seleccione</option>
+                                                    {% for p in product_set %}
+                                                        <option value="{{ p.id }}">{{ p.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                            <td class="item-quantity-add-update align-middle text-center pt-0">
+                                                <input type="text"
+                                                       class="form-control form-control-sm text-right quantity-add-update"
+                                                       placeholder="0.00" autocomplete="off">
+                                            </td>
+                                            <td class="item-price-unit-add-update align-middle text-center pt-0">
+                                                <input type="text"
+                                                       class="form-control form-control-sm text-right price-unit-add-update"
+                                                       placeholder="0.00" autocomplete="off">
+                                            </td>
+                                            <td class="item-amount-add-update align-middle text-center pt-0">
+                                                <input type="text"
+                                                       class="form-control form-control-sm text-right amount-add-update"
+                                                       placeholder="0.00" autocomplete="off">
+                                            </td>
+                                            <td class="align-middle pt-0">
+                                                <button type="button" onclick="addProductHeaderUpdate()"
+                                                        class="btn btn-outline-success btn-block btn-sm">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                                 <div class="col-sm-2 col-md-2 col-lg-2">
                                     <label class="" for="btn-add-dates">&nbsp;</label>
@@ -121,6 +156,45 @@
                                             class="btn btn-sm btn-danger btn-block">Limpiar
                                     </button>
                                 </div>
+                                {#                                <div class="col-sm-4 col-md-4 col-lg-4">#}
+                                {#                                    <label class="font-weight-light" for="product_add_id">Producto:</label>#}
+                                {#                                    <select id="product_add_id" class="form-control form-control-sm">' +#}
+                                {#                                        <option value="0">Seleccione</option>#}
+                                {#                                        {% for p in product_set %}#}
+                                {#                                            <option value="{{ p.id }}">{{ p.name }}</option>#}
+                                {#                                        {% endfor %}#}
+                                {#                                    </select>#}
+                                {#                                </div>#}
+                                {#                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">#}
+                                {#                                    <label class="font-weight-light" for="quantity_add">Cantidad</label>#}
+                                {#                                    <input type="text" class="form-control form-control-sm text-right"#}
+                                {#                                           id="quantity_add"#}
+                                {#                                           name="quantity-add" placeholder="0.00">#}
+                                {#                                </div>#}
+                                {#                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">#}
+                                {#                                    <label class="font-weight-light" for="price_unit">Precio Unit.</label>#}
+                                {#                                    <input type="text" class="form-control form-control-sm text-right"#}
+                                {#                                           id="price_unit"#}
+                                {#                                           name="price-unit-add" placeholder="0.00">#}
+                                {#                                </div>#}
+                                {#                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">#}
+                                {#                                    <label class="font-weight-light" for="total">Total</label>#}
+                                {#                                    <input type="text" class="form-control form-control-sm text-right"#}
+                                {#                                           id="total"#}
+                                {#                                           name="total-add" placeholder="0.00">#}
+                                {#                                </div>#}
+                                {#                                <div class="col-sm-2 col-md-2 col-lg-2">#}
+                                {#                                    <label class="" for="btn-add-dates">&nbsp;</label>#}
+                                {#                                    <button type="button" id="btn-add-dates"#}
+                                {#                                            class="btn btn-sm btn-success btn-block" onclick="addDates()">Agregar Fechas#}
+                                {#                                    </button>#}
+                                {#                                </div>#}
+                                {#                                <div class="col-sm-2 col-md-2 col-lg-2">#}
+                                {#                                    <label class="" for="clean-dates">&nbsp;</label>#}
+                                {#                                    <button type="button" id="clean-dates"#}
+                                {#                                            class="btn btn-sm btn-danger btn-block">Limpiar#}
+                                {#                                    </button>#}
+                                {#                                </div>#}
                             </div>
 
                             <div class="d-flex pt-4 pb-3">
@@ -132,55 +206,57 @@
                             <div class="row pt-2">
                                 <div class="col-sm-12 col-md-12 col-lg-12 dates-quotas">
                                     {% for c in contract_obj.contractdetail_set.all %}
-                                        {% for cd in c.contractdetailitem_set.all %}
-                                            <div class="card mb-2 main-dates" style="border-color: #848d9f">
-                                                <div class="card-header pt-1 pb-1">
-                                                    <div class="row">
-                                                        <div class="col-sm-2 col-md-2 col-lg-2 text-left item-number">
-                                                            <label for="date-quota" class="mt-2 font-weight-bold"> FECHA
-                                                                DE ENTREGA {{ c.nro_quota }} </label>
-                                                            <input type=hidden class="number-quota" value="{{ c.nro_quota }}">
-                                                        </div>
-                                                        <div class="col-sm-3 col-md-3 col-lg-3 item-date-quota">
-                                                            <input type="date"
-                                                                   class="form-control date-quota text-center"
-                                                                   id="date-quota" value="{{ c.date|date:'Y-m-d' }}">
-                                                        </div>
+                                        <div class="card mb-2 main-dates" style="border-color: #848d9f">
+                                            <div class="card-header pt-1 pb-1">
+                                                <div class="row">
+                                                    <div class="col-sm-2 col-md-2 col-lg-2 text-left item-number">
+                                                        <label for="date-quota" class="mt-2 font-weight-bold"> FECHA
+                                                            DE ENTREGA {{ c.nro_quota }} </label>
+                                                        <input type=hidden class="number-quota"
+                                                               value="{{ c.nro_quota }}">
+                                                    </div>
+                                                    <div class="col-sm-3 col-md-3 col-lg-3 item-date-quota">
+                                                        <input type="date"
+                                                               class="form-control date-quota text-center"
+                                                               id="date-quota" value="{{ c.date|date:'Y-m-d' }}">
                                                     </div>
                                                 </div>
-                                                <div class="card-body p-1">
-                                                    <table id="table-date-{{ c.nro_quota }}"
-                                                           class="table table-hover table-sm align-content-center table-bordered mb-0">
-                                                        <thead>
-                                                        <tr class="text-center text-white" style="background: #1a77c8">
-                                                            <th scope="col" class="align-middle font-weight-normal"
-                                                                style="width: 10%;">Item
-                                                            </th>
-                                                            <th scope="col" class="align-middle font-weight-normal"
-                                                                style="width: 50%;">Producto
-                                                            </th>
-                                                            <th scope="col" class="align-middle font-weight-normal"
-                                                                style="width: 10%;">Cantidad
-                                                            </th>
-                                                            <th scope="col" class="align-middle font-weight-normal"
-                                                                style="width: 10%;">P. U.
-                                                            </th>
-                                                            <th scope="col" class="align-middle font-weight-normal"
-                                                                style="width: 10%;">Monto
-                                                            </th>
-                                                            <th scope="col" class="align-middle font-weight-normal"
-                                                                style="width: 10%;"></th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody id="details-table-date-{{ c.nro_quota }}" number="{{ c.nro_quota }}">
+                                            </div>
+                                            <div class="card-body p-1">
+                                                <table id="table-date-{{ c.nro_quota }}"
+                                                       class="table table-hover table-sm align-content-center table-bordered mb-0">
+                                                    <thead>
+                                                    <tr class="text-center text-white" style="background: #1a77c8">
+                                                        <th scope="col" class="align-middle font-weight-normal"
+                                                            style="width: 10%;">Item
+                                                        </th>
+                                                        <th scope="col" class="align-middle font-weight-normal"
+                                                            style="width: 60%;">Producto
+                                                        </th>
+                                                        <th scope="col" class="align-middle font-weight-normal"
+                                                            style="width: 10%;">Cantidad
+                                                        </th>
+                                                        <th scope="col" class="align-middle font-weight-normal"
+                                                            style="width: 10%;">P. U.
+                                                        </th>
+                                                        <th scope="col" class="align-middle font-weight-normal"
+                                                            style="width: 10%;">Monto
+                                                        </th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody id="details-table-date-{{ c.nro_quota }}"
+                                                           number="{{ c.nro_quota }}">
+                                                    {% for cd in c.contractdetailitem_set.all %}
                                                         <tr class="text-center">
                                                             <td class="item-number align-middle text-center">1</td>
                                                             <td class="item-product align-middle text-center">
                                                                 <label for="product_id" class="sr-only">Producto</label>
-                                                                <select id="product_id" class="form-control form-control-sm product">
+                                                                <select id="product_id"
+                                                                        class="form-control form-control-sm product">
                                                                     {% for p in product_set %}
                                                                         {% if p.id == cd.product.id %}
-                                                                            <option value="{{ p.id }}" selected>{{ p.name }}</option>
+                                                                            <option value="{{ p.id }}"
+                                                                                    selected>{{ p.name }}</option>
                                                                         {% else %}
                                                                             <option value="{{ p.id }}">{{ p.name }}</option>
                                                                         {% endif %}
@@ -190,30 +266,27 @@
                                                             <td class="item-quantity align-middle text-center">
                                                                 <input type="text"
                                                                        class="form-control text-right quantity"
-                                                                       autocomplete="off" value="{{ cd.quantity|safe }}">
+                                                                       autocomplete="off"
+                                                                       value="{{ cd.quantity|replace_round }}">
                                                             </td>
                                                             <td class="item-price-unit align-middle text-center">
                                                                 <input type="text"
                                                                        class="form-control text-right price-unit"
-                                                                       value="{{ cd.price_unit|safe }}"
+                                                                       value="{{ cd.price_unit|replace_round }}"
                                                                        autocomplete="off">
                                                             </td>
                                                             <td class="item-amount align-middle text-center">
                                                                 <input type="text"
                                                                        class="form-control text-right amount"
+                                                                       value="{{ cd.amount|replace_round }}"
                                                                        placeholder="0.00" autocomplete="off">
                                                             </td>
-                                                            <td class="align-middle">
-                                                                <button type="button" onclick="addItem()"
-                                                                        class="btn btn-outline-success btn-block"><i
-                                                                        class="fas fa-plus"></i></button>
-                                                            </td>
                                                         </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
                                             </div>
-                                        {% endfor %}
+                                        </div>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -260,7 +333,7 @@
         <div class="modal-footer bg-light p-2">
             <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
             &nbsp;
-            <button id="btn-save-contract" type="button" class="btn btn-primary font-weight-light">Registrar
+            <button id="btn-save-contract" type="button" class="btn btn-warning font-weight-light">Actualizar
             </button>
         </div>
 
@@ -281,3 +354,46 @@
         </div>
     </div>
 </div>
+
+<script>
+
+    function addProductHeaderUpdate() {
+        let _products = '{% for p in product_set %}' + '<option value="{{ p.id }}">{{ p.name }}</option>' +
+            '{% endfor %}'
+        $('#table-product-add-update > tbody').append(
+            '<tr class="text-center">' +
+            '<td class="item-product-add-update align-middle text-center">' +
+            '<select id="product_add-id-update" class="form-control form-control-sm product-add-update">' +
+            '<option value="0">Seleccione</option>' + _products + '</select>' +
+            '</td>' +
+            '<td class="item-quantity-add-update align-middle text-center pt-0">' +
+            '<input type="text" class="form-control form-control-sm text-right quantity-add-update" placeholder="0.00" autocomplete="off">' +
+            '</td>' +
+            '<td class="item-price-unit-add-update align-middle text-center pt-0">' +
+            '<input type="text" class="form-control form-control-sm text-right price-unit-add-update" placeholder="0.00" autocomplete="off">' +
+            '</td>' +
+            '<td class="item-amount-add-update align-middle text-center pt-0">' +
+            '<input type="text" class="form-control form-control-sm text-right amount-add-update" placeholder="0.00" autocomplete="off">' +
+            '</td>' +
+            '<td class="align-middle pt-0">' +
+            '<button type="button" onclick="deleteItemHeader(this)" class="btn btn-danger btn-sm delete-detail-update"><i class="fa fa-trash"></i></button>' +
+            '</td>' +
+            '</tr>'
+        );
+        counterHeader()
+    }
+
+    function deleteItemHeader(btn) {
+        btn.parentNode.parentNode.remove();
+        counterHeader()
+    }
+
+    function counterHeader() {
+        let l = 1;
+        $(`#tbody-product-add-update tr`).each(function () {
+            $(this).attr('i', l);
+            l++;
+        });
+    }
+
+</script>

@@ -4,8 +4,10 @@
     <div class="modal-content">
         <div class="modal-header text-left">
             <h5 class="modal-title roboto-condensed-regular font-weight-bold col-sm-4">INGRESO A ALMACEN:</h5>
-            <h4 class="modal-title roboto-condensed-regular font-weight-bold col-sm-7 text-success">
+            <h4 class="modal-title roboto-condensed-regular font-weight-bold col-sm-4 text-success">
                 FACTURA: {{ bill_obj }}</h4>
+            <h4 class="modal-title roboto-condensed-regular font-weight-bold col-sm-4">
+                {{ bill_obj.supplier.name }}</h4>
             <button type="button" class="close col-sm-1" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -26,10 +28,10 @@
                     </div>
 
                     <div class="col-sm-4 col-md-4 col-lg-4">
-                        <label for="assign_date" class="">Fecha de Ingreso:</label>
+                        <label for="assign_date" class="">Fecha de Ingreso: (fecha de factura)</label>
                         <input type="date" class="form-control form-control-sm" id="assign_date"
                                name="assign_date"
-                               value="{{ formatdate }}" required>
+                               value="{{ bill_obj.register_date|date:'Y-m-d' }}" required>
                     </div>
 
                     <div class="col-sm-4 col-md-4 col-lg-4">

@@ -2338,7 +2338,7 @@ def get_purchases_with_bill(request):
             if b.sum_quantity_invoice() != b.sum_quantity_purchased():
                 status = 'INCOMPLETO'
 
-            rowspan = b.billdetail_set.count()
+            rowspan = b.billdetail_set.filter(status_quantity='C').count()
 
             if b.billdetail_set.count() == 0:
                 rowspan = 1

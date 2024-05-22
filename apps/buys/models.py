@@ -192,6 +192,9 @@ class ContractDetailItem(models.Model):
 
     def __str__(self):
         return str(self.id)
+    
+    def amount(self):
+        return decimal.Decimal(self.quantity) * decimal.Decimal(self.price_unit)
 
 
 class ContractDetailPurchase(models.Model):
