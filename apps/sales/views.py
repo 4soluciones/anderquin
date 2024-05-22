@@ -3312,7 +3312,7 @@ def create_warehouse_sale(request):
 
         product_obj = Product.objects.get(id=int(product_id))
         product_detail = ProductDetail.objects.filter(product=product_obj)
-        if unit_principal and quantity_principal != '0':
+        if unit_principal and quantity_principal != '0' and quantity_principal != '':
             unit_obj = Unit.objects.get(id=int(unit_principal))
             product_detail_unit_principal = product_detail.filter(unit=unit_obj).last()
             detail_principal = OrderDetail(
@@ -3324,7 +3324,7 @@ def create_warehouse_sale(request):
                 status='P'
             )
             detail_principal.save()
-        elif unit_id and quantity_unit != '0':
+        if unit_id and quantity_unit != '0' and quantity_unit != '':
             unit_obj = Unit.objects.get(id=int(unit_id))
             product_detail_unit_principal = product_detail.filter(unit=unit_obj).last()
             detail_principal = OrderDetail(

@@ -4,7 +4,8 @@
     <div class="modal-content">
         <div class="modal-header text-left">
             <h5 class="modal-title roboto-condensed-regular font-weight-bold col-sm-4">INGRESO A ALMACEN:</h5>
-            <h4 class="modal-title roboto-condensed-regular font-weight-bold col-sm-7 text-success">FACTURA: {{ bill_obj }}</h4>
+            <h4 class="modal-title roboto-condensed-regular font-weight-bold col-sm-7 text-success">
+                FACTURA: {{ bill_obj }}</h4>
             <button type="button" class="close col-sm-1" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -55,13 +56,13 @@
                                value="{{ formatdate }}" required>
                     </div>
 
-{#                    <div class="col-sm-4 col-md-4 col-lg-4">#}
-{#                        <label for="bill_number" class="font-weight-bold">Nº de Factura:</label>#}
-{#                        <input type="text" class="form-control form-control-sm text-uppercase font-weight-bold"#}
-{#                               id="bill_number"#}
-{#                               name="bill_number" readonly#}
-{#                               value="{{ bill_number }}">#}
-{#                    </div>#}
+                    {#                    <div class="col-sm-4 col-md-4 col-lg-4">#}
+                    {#                        <label for="bill_number" class="font-weight-bold">Nº de Factura:</label>#}
+                    {#                        <input type="text" class="form-control form-control-sm text-uppercase font-weight-bold"#}
+                    {#                               id="bill_number"#}
+                    {#                               name="bill_number" readonly#}
+                    {#                               value="{{ bill_number }}">#}
+                    {#                    </div>#}
 
                 </div>
 
@@ -71,10 +72,12 @@
                             <thead>
                             <tr class="text-white bg-info text-uppercase">
                                 <th class="align-middle text-center" style="width: 23%">Producto</th>
-                                <th class="align-middle text-center bg-warning text-dark" style="width: 10%">Cantidad Comprada </th>
+                                <th class="align-middle text-center bg-warning text-dark" style="width: 10%">Cantidad
+                                    Comprada
+                                </th>
                                 <th class="align-middle text-center bg-warning text-dark" style="width: 5%">Unidad</th>
-{#                                <th class="align-middle text-center" style="width: 10%">Precio unit.</th>#}
-{#                                <th class="align-middle text-center" style="width: 8%">Importe</th>#}
+                                {#                                <th class="align-middle text-center" style="width: 10%">Precio unit.</th>#}
+                                {#                                <th class="align-middle text-center" style="width: 8%">Importe</th>#}
                                 <th class="align-middle text-center bg-warning text-dark" style="width: 30%"
                                     colspan="2">Cantidad Ingresada
                                 </th>
@@ -101,17 +104,6 @@
 
                                     <td class="align-middle item-unit text-center" pu="{{ d.unit_id }}"
                                         rowspan="4">{{ d.unit_description }}</td>
-{#                                    <td class="align-middle item-price text-center" rowspan="4">#}
-{#                                        <div class="input-icon">#}
-{#                                            <input type="text" style="background-color: #b8daff"#}
-{#                                                   class="form-control text-right text-uppercase price-unit-purchase border-0"#}
-{#                                                   value="{{ d.price_unit }}"#}
-{#                                                   id="price_unit_sold">#}
-{#                                            <i class="change-money">S/</i>#}
-{#                                        </div>#}
-{#                                    </td>#}
-{#                                    <td class="align-middle text-center" rowspan="4">#}
-{#                                        S/ {{ d.amount|replace_round }}</td>#}
                                 </tr>
                                 <tr class="entered-quantity">
                                     <td class="align-middle text-right">
@@ -123,7 +115,7 @@
                                             <tbody>
                                             {% if d.unit_name == 'UND' %}
                                                 <tr class="quantity-und">
-                                                    <td style="width: 50%">{{ unit_name }}</td>
+                                                    <td style="width: 50%">{{ d.unit_description }}</td>
                                                     <td class="item-quantity-entered" style="width: 50%">
                                                         <input type="text"
                                                                class="form-control form-control-sm text-center quantity_entered_units"
@@ -136,7 +128,7 @@
                                                 </tr>
                                             {% else %}
                                                 <tr class="quantity-principal">
-                                                    <td style="width: 50%">{{ unit_name }}</td>
+                                                    <td style="width: 50%">{{ d.unit_description }}</td>
                                                     <td style="width: 50%">
                                                         <input type="text"
                                                                class="form-control form-control-sm text-center quantity_entered_principal"
@@ -180,7 +172,8 @@
                                                 <input class="form-check-input returned-quantity-check"
                                                        type="checkbox" value=""
                                                        id="returnedQuantityCheck" required>
-                                                <label class="form-check-label" for="returnedQuantityCheck">Devuelta</label>
+                                                <label class="form-check-label"
+                                                       for="returnedQuantityCheck">Devuelta</label>
                                             </div>
                                         </div>
                                     </td>
@@ -189,7 +182,7 @@
                                             <tbody>
                                             {% if d.unit_name == 'UND' %}
                                                 <tr class="returned-quantity-und">
-                                                    <td style="width: 50%">{{ unit_name }}</td>
+                                                    <td style="width: 50%">{{ d.unit_description }}</td>
                                                     <td class="item-quantity-entered" style="width: 50%">
                                                         <input type="text"
                                                                class="form-control form-control-sm text-center returned_quantity_entered_units"
@@ -204,7 +197,7 @@
                                                 </tr>
                                             {% else %}
                                                 <tr class="returned-quantity-principal">
-                                                    <td style="width: 50%">{{ unit_name }}</td>
+                                                    <td style="width: 50%">{{ d.unit_description }}</td>
                                                     <td style="width: 50%">
                                                         <input type="text"
                                                                class="form-control form-control-sm text-center returned_quantity_entered_principal"
@@ -305,8 +298,8 @@
                                     </td>
                                 </tr>
                                 <tr class="d-none sold sold-quantity">
-                                    <td colspan="3" rowspan="2"></td>
-                                    <td colspan="2" rowspan="2">
+                                    <td colspan="3"></td>
+                                    <td colspan="2">
                                         <div class="row m-0">
                                             <div class="col-md-6 text-uppercase sale pl-0">
                                                 <button type="button"
@@ -366,6 +359,7 @@
         });
         return check;
     }
+
     function checkCodeSale() {
         let check = false;
         $('#details tr.sold-quantity div.item-sale input.sale-cod').each(function () {
@@ -506,10 +500,13 @@
     });
 
     $('.check-quantity-sold').change(function () {
-        let _input_entered_unit = $(this).closest('tr').parent('tbody#details').find('tr.entered-quantity td.quantity-entered input.quantity_entered_units').val()
-        let _input_entered_principal = $(this).closest('tr').parent('tbody#details').find('tr.entered-quantity td.quantity-entered input.quantity_entered_principal').val()
+        let _tr = $(this).closest('tr.sold-quantity-units');
+        // let _tbody = _tr.parent('tbody#details');
+        let _input_entered_principal = _tr.prevUntil('tr.entered-quantity').prev('tr.entered-quantity').find('td.quantity-entered input.quantity_entered_principal').val()
+        let _input_entered_unit = _tr.prevUntil('tr.entered-quantity').prev('tr.entered-quantity').find('td.quantity-entered input.quantity_entered_units').val()
+        let _tr_sold = _tr.next('tr.sold');
 
-        let _table = $(this).closest('tr').find('td.quantity-sold table.table-sold');
+        let _table = _tr.find('td.quantity-sold table.table-sold');
         let _input_und = _table.find('tr.sold-quantity-und input.quantity_sold_units');
         let _input_principal = _table.find('tr.sold-quantity-principal input.quantity_sold_principal');
 
@@ -520,13 +517,12 @@
                 return;
             }
         }
-
         if ($(this).is(':checked')) {
             _input_und.prop('disabled', false);
             _input_principal.prop('disabled', false);
-            $('.sold').removeClass('d-none')
+            _tr_sold.removeClass('d-none')
         } else {
-            $('.sold').addClass('d-none')
+            _tr_sold.addClass('d-none')
             _input_und.prop('disabled', true);
             _input_principal.prop('disabled', true);
             _input_und.val('0');
@@ -543,56 +539,18 @@
 
     $('.quantity_entered_principal').keyup(function () {
 
-        let _quantity_missing = $(this).parent('td').closest('table').parent('td').parent('tr').find('td.item-quantity-missing input.quantity-missing')
-        let _current_quantity_missing = $(this).parent('td').closest('table').parent('td').parent('tr').find('td.item-quantity-missing input.current-quantity-missing')
-        let quantity_minimum = $(this).parent('td').find('input.quantity-minimum').val();
-        let _q_principal = $(this);
-        let _q_unit = $(this).closest('tr').parent('tbody').find('tr.quantity-und input.quantity_entered_units').val();
-        let q_in_units_principal = Number(_q_principal.val()) * Number(quantity_minimum)
-
-        let sum_quantities = q_in_units_principal + Number(_q_unit)
-        if (sum_quantities > Number(_current_quantity_missing.val())) {
-            toastr.warning("La cantidad INGRESADA no puede superar a la cantidad COMPRADA", '¡MENSAJE!', {
-                positionClass: "toast-center",
-            });
-            $(this).val('')
-            _quantity_missing.val(_current_quantity_missing.val())
-            return false;
-        } else {
-            let new_q_missing = Number(_current_quantity_missing.val()) - sum_quantities
-            _quantity_missing.val(new_q_missing.toFixed(2))
-        }
-        /*calculateQuantity(true, false, false, false, false, false, _quantity_missing, _current_quantity_missing,
-            quantity_minimum, _q_principal, _q_unit, q_in_units_principal)*/
+        let _tr = $(this).closest('tr.entered-quantity');
+        let _tr_returned = _tr.next('tr.returned-quantity');
+        let _tr_sold = _tr.nextUntil('tr.sold-quantity-units').next('tr.sold-quantity-units');
+        sumQuantitiesMissing(_tr, _tr_returned, _tr_sold, 'pri', 'in')
     });
 
     $('.quantity_entered_units').keyup(function () {
 
-        let _quantity_missing = $(this).parent('td').closest('table').parent('td').parent('tr').find('td.item-quantity-missing input.quantity-missing')
-        let _current_quantity_missing = $(this).parent('td').closest('table').parent('td').parent('tr').find('td.item-quantity-missing input.current-quantity-missing')
-        let quantity_minimum = $(this).closest('tr').parent('tbody').find('tr.quantity-und input.quantity-minimum').val();
-        let _q_unit = $(this);
-        let _q_principal = 0
-        if ($(this).closest('tr').parent('tbody').find('tr.quantity-principal input.quantity_entered_principal').val() !== undefined) {
-            _q_principal = $(this).closest('tr').parent('tbody').find('tr.quantity-principal input.quantity_entered_principal').val();
-        }
-
-        let q_in_units_principal = Number(_q_principal) * Number(quantity_minimum)
-
-        let sum_quantities = q_in_units_principal + Number(_q_unit.val())
-        if (sum_quantities > Number(_current_quantity_missing.val())) {
-            toastr.warning("La cantidad INGRESADA no puede superar a la cantidad COMPRADA", '¡MENSAJE!', {
-                positionClass: "toast-center",
-            });
-            $(this).val('')
-            _quantity_missing.val(_current_quantity_missing.val())
-            return false;
-        } else {
-            let new_q_missing = Number(_current_quantity_missing.val()) - sum_quantities
-            _quantity_missing.val(new_q_missing.toFixed(2))
-        }
-        /*calculateQuantity(false, true, false, false, false, false, _quantity_missing, _current_quantity_missing,
-            quantity_minimum, _q_principal, _q_unit, q_in_units_principal)*/
+        let _tr = $(this).closest('tr.entered-quantity');
+        let _tr_returned = _tr.next('tr.returned-quantity');
+        let _tr_sold = _tr.nextUntil('tr.sold-quantity-units').next('tr.sold-quantity-units');
+        sumQuantitiesMissing(_tr, _tr_returned, _tr_sold, 'und', 'in')
     });
 
     /********* END QUANTITY ENTERED  ***********/
@@ -601,156 +559,60 @@
 
     $('.returned_quantity_entered_principal').keyup(function () {
 
-        let _quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.quantity-missing')
-        //let _current_quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.current-quantity-missing')
-        let quantity_minimum = $(this).parent('td').find('input.returned-quantity-minimum').val();
-        let _q_principal = $(this);
-        let _q_unit = $(this).closest('tr').parent('tbody').find('tr.returned-quantity-und input.returned_quantity_entered_units').val();
-
-        let q_in_units_principal = Number(_q_principal.val()) * Number(quantity_minimum)
-
-        let sum_quantities = q_in_units_principal + Number(_q_unit)
-        $('.quantity_entered_principal').trigger('keyup')
-        $('.quantity_entered_units').trigger('keyup')
-        if (sum_quantities > Number(_quantity_missing.val())) {
-            toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
-                positionClass: "toast-center",
-            });
-            $(this).val('')
-            return false;
-        } else {
-            let new_q_missing = Number(_quantity_missing.val()) - sum_quantities
-            _quantity_missing.val(new_q_missing.toFixed(2))
-        }
-        /*calculateQuantity(false, false, true, false, false, false, _quantity_missing, null,
-            quantity_minimum, _q_principal, _q_unit, q_in_units_principal)*/
-
+        let _tr = $(this).closest('tr.returned-quantity');
+        let _tr_entered = _tr.prev('tr.entered-quantity');
+        let _tr_sold = _tr.next('tr.sold-quantity-units');
+        sumQuantitiesMissing(_tr_entered, _tr, _tr_sold, 'pri', 'return')
     });
 
     $('.returned_quantity_entered_units').keyup(function () {
 
-        let _quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.quantity-missing')
-        //let _current_quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.current-quantity-missing')
-        let quantity_minimum = $(this).parent('td').find('input.returned-quantity-minimum').val();
-        let _q_unit = $(this);
-        let _q_principal = 0
-
-        if ($(this).closest('tr').parent('tbody').find('tr.returned-quantity-principal input.returned_quantity_entered_principal').val()) {
-            _q_principal = $(this).closest('tr').parent('tbody').find('tr.returned-quantity-principal input.returned_quantity_entered_principal').val();
-        }
-
-        let q_in_units_principal = Number(_q_principal) * Number(quantity_minimum)
-
-        let sum_quantities = q_in_units_principal + Number(_q_unit.val())
-        $('.quantity_entered_principal').trigger('keyup')
-        $('.quantity_entered_units').trigger('keyup')
-        if (sum_quantities > Number(_quantity_missing.val())) {
-            toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
-                positionClass: "toast-center",
-            });
-            $(this).val('')
-            return false;
-        } else {
-            // console.log("_quantity_missing.val()", _quantity_missing.val())
-            //console.log("sum_quantities", sum_quantities)
-            let new_q_missing = Number(_quantity_missing.val()) - sum_quantities
-            _quantity_missing.val(new_q_missing.toFixed(2))
-            //console.log("_quantity_missing", _quantity_missing.val())
-        }
-        /*calculateQuantity(false, false, false, true, false, false, _quantity_missing, null,
-            quantity_minimum, _q_principal, _q_unit, q_in_units_principal)*/
-
+        let _tr = $(this).closest('tr.returned-quantity');
+        let _tr_entered = _tr.prev('tr.entered-quantity');
+        let _tr_sold = _tr.next('tr.sold-quantity-units');
+        sumQuantitiesMissing(_tr_entered, _tr, _tr_sold, 'und', 'return')
     });
 
     /********* END QUANTITY RETURNED  ***********/
 
     /********* QUANTITY SOLD  ***********/
 
-
-    /*$('.unit-product-sold').change(function () {
-        let _price = $(this).closest('tr').find('td.item-price-sold input.price-unit-sold');
-        //let unit_id = $(this).val();
-        //let quantity_minimum = $(this).find('option:selected').attr('qm');
-        let _new_price = Number($(this).find('option:selected').attr('p'));
-        _price.val(_new_price.toFixed(6));
-        $('.quantity-purchased-sold').trigger('keyup');
-    });*/
-
     $('.quantity_sold_principal').keyup(function () {
 
-        let _quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.quantity-missing')
-        //let _current_quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.current-quantity-missing')
-        let quantity_minimum = $(this).parent('td').find('input.sold-quantity-minimum').val();
-        let _q_principal = $(this);
-        let _q_unit = $(this).closest('tr').parent('tbody').find('tr.sold-quantity-und input.quantity_sold_units').val();
-
-        let q_in_units_principal = Number(_q_principal.val()) * Number(quantity_minimum)
-
-        let sum_quantities = q_in_units_principal + Number(_q_unit)
-
-        $('.returned_quantity_entered_principal').trigger('keyup')
-        $('.returned_quantity_entered_units').trigger('keyup')
-
-        if (sum_quantities > Number(_quantity_missing.val())) {
-            toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
-                positionClass: "toast-center",
-            });
-            $(this).val('')
-            return false;
-        } else {
-            let new_q_missing = Number(_quantity_missing.val()) - sum_quantities
-            _quantity_missing.val(new_q_missing.toFixed(2))
-        }
-        /*calculateQuantity(false, false, false, false, true, false, _quantity_missing, null,
-            quantity_minimum, _q_principal, _q_unit, q_in_units_principal)*/
+        let _tr = $(this).closest('tr.sold-quantity-units');
+        let _tr_entered = _tr.prevUntil('tr.entered-quantity').prev('tr.entered-quantity');
+        let _tr_return = _tr.prev('tr.returned-quantity');
+        sumQuantitiesMissing(_tr_entered, _tr_return, _tr, 'pri', 'sold')
     });
 
     $('.quantity_sold_units').keyup(function () {
 
-        let _quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.quantity-missing')
-        //let _current_quantity_missing = $(this).closest('table').parent('td').parent('tr').parent('tbody#details').find('tr.entered-quantity td.item-quantity-missing input.current-quantity-missing')
-        let quantity_minimum = $(this).parent('td').find('input.sold-quantity-minimum').val();
-        let _q_unit = $(this);
-        let _q_principal = 0
-
-        if ($(this).closest('tr').parent('tbody').find('tr.sold-quantity-principal input.quantity_sold_principal').val()) {
-            _q_principal = $(this).closest('tr').parent('tbody').find('tr.sold-quantity-principal input.quantity_sold_principal').val();
-        }
-        $('.returned_quantity_entered_principal').trigger('keyup')
-        $('.returned_quantity_entered_units').trigger('keyup')
-        let q_in_units_principal = Number(_q_principal) * Number(quantity_minimum)
-        let sum_quantities = q_in_units_principal + Number(_q_unit.val())
-        if (sum_quantities > Number(_quantity_missing.val())) {
-            toastr.warning("La cantidad VENDIDA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
-                positionClass: "toast-center",
-            });
-            $(this).val('')
-            return false;
-        } else {
-            let new_q_missing = Number(_quantity_missing.val()) - sum_quantities
-            _quantity_missing.val(new_q_missing.toFixed(2))
-        }
-        /*calculateQuantity(false, false, false, false, false, true, _quantity_missing, null,
-            quantity_minimum, _q_principal, _q_unit, q_in_units_principal)*/
+        let _tr = $(this).closest('tr.sold-quantity-units');
+        let _tr_entered = _tr.prevUntil('tr.entered-quantity').prev('tr.entered-quantity');
+        let _tr_return = _tr.prev('tr.returned-quantity');
+        sumQuantitiesMissing(_tr_entered, _tr_return, _tr, 'und', 'sold')
     });
 
     $('.btn-generate-sold').click(function () {
 
         let r = confirm("¿Esta seguro de Generar la Venta? ")
         if (r === true) {
-            let _product_id = $(this).closest('tr').parent('tbody#details').find('tr.detail').attr('product');
-            let _button = $(this);
-            let check_sold = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.item-check-sold input.check-quantity-sold')
+            let _tr = $(this).closest('tr.sold-quantity')
+            let _tr_detail = _tr.prevUntil('tr.detail').prev('tr.detail');
+            let _tr_sold = _tr.prev('tr.sold-quantity-units');
+            let _product_id = _tr_detail.attr('product');
+            //let _button = $(this);
+            let check_sold = _tr_sold.find('td.item-check-sold input.check-quantity-sold')
             let input_principal_val = 0
             let input_principal
             let unit_principal
-            if ($(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_principal').val()) {
-                input_principal_val = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_principal').val();
-                input_principal = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_principal');
-                unit_principal = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold tr.sold-quantity-principal').attr('unit');
+            if (_tr_sold.find('td.quantity-sold input.quantity_sold_principal').val()) {
+                input_principal_val = _tr_sold.find('td.quantity-sold input.quantity_sold_principal').val();
+                input_principal = _tr_sold.find('td.quantity-sold input.quantity_sold_principal');
+                unit_principal = _tr_sold.find('td.quantity-sold tr.sold-quantity-principal').attr('unit');
             }
-            let input_units = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold input.quantity_sold_units');
-            let unit_id = $(this).closest('tr').parent('tbody#details').find('tr.sold-quantity-units td.quantity-sold tr.sold-quantity-und').attr('unit');
+            let input_units = _tr_sold.find('td.quantity-sold input.quantity_sold_units');
+            let unit_id = _tr_sold.find('td.quantity-sold tr.sold-quantity-und').attr('unit');
 
             let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
             let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
@@ -866,91 +728,118 @@
 
     /********* END QUANTITY SOLD  ***********/
 
-    /*function calculateQuantity(entered_principal, entered_units, returned_principal, returned_units, sold_principal,
-                               sold_units, quantity_missing, current_quantity_missing,
-                               quantity_minimum, q_principal, q_unit, q_in_units_principal) {
-        if (entered_principal) {
-            let sum_quantities = q_in_units_principal + Number(q_unit)
-            if (sum_quantities > Number(current_quantity_missing.val())) {
+    function sumQuantitiesMissing(_tr_in, tr_return, tr_sold, type_unit, type_op) {
+
+        let _quantity_missing = _tr_in.find('td.item-quantity-missing input.quantity-missing');
+        let _quantity_missing_val = _quantity_missing.val();
+        let _current_quantity_missing = _tr_in.find('td.item-quantity-missing input.current-quantity-missing');
+        let _quantity_minimum = _tr_in.find('input.quantity-minimum').val();
+
+        let _quantity_principal;
+        let _quantity_principal_val = 0;
+        let _q_unit = _tr_in.find('tr.quantity-und input.quantity_entered_units');
+
+        let _quantity_returned_principal;
+        let _quantity_returned_principal_val = 0
+        let _q_returned_unit = tr_return.find('tr.returned-quantity-und input.returned_quantity_entered_units');
+
+        let _quantity_sold_principal;
+        let _quantity_sold_principal_val = 0
+        let _q_sold_unit = tr_sold.find('tr.sold-quantity-und input.quantity_sold_units');
+
+        if (_tr_in.find('input.quantity_entered_principal').val() !== undefined){
+            _quantity_principal = _tr_in.find('input.quantity_entered_principal');
+            _quantity_principal_val = _tr_in.find('input.quantity_entered_principal').val();
+        }
+        if (tr_return.find('input.returned_quantity_entered_principal').val() !== undefined){
+            _quantity_returned_principal = tr_return.find('input.returned_quantity_entered_principal');
+            _quantity_returned_principal_val = tr_return.find('input.returned_quantity_entered_principal').val();
+        }
+        if (tr_sold.find('input.quantity_sold_principal').val() !== undefined){
+            _quantity_sold_principal = tr_sold.find('input.quantity_sold_principal');
+            _quantity_sold_principal_val = tr_sold.find('input.quantity_sold_principal').val();
+        }
+
+        let q_in_units_principal_entered = Number(_quantity_principal_val) * Number(_quantity_minimum)
+        let q_in_units_principal_returned = Number(_quantity_returned_principal_val) * Number(_quantity_minimum)
+        let q_in_units_principal_sold = Number(_quantity_sold_principal_val) * Number(_quantity_minimum)
+        let sum_quantities_entered = q_in_units_principal_entered + Number(_q_unit.val())
+        let sum_quantities_returned = q_in_units_principal_returned + Number(_q_returned_unit.val())
+        let sum_quantities_sold = q_in_units_principal_sold + Number(_q_sold_unit.val())
+
+        let sum_total_quantities = sum_quantities_entered + sum_quantities_returned + sum_quantities_sold
+
+        if (type_op === 'in') {
+            if (sum_total_quantities > Number(_current_quantity_missing.val())) {
                 toastr.warning("La cantidad INGRESADA no puede superar a la cantidad COMPRADA", '¡MENSAJE!', {
                     positionClass: "toast-center",
                 });
-                q_principal.val('')
-                quantity_missing.val(current_quantity_missing.val())
+                if (type_unit === 'und') {
+                    _q_unit.val('')
+                    let sum_new = Number(q_in_units_principal_entered) + Number(sum_quantities_returned) + Number(sum_quantities_sold)
+                    let new_q_missing = Number(sum_new) - Number(_current_quantity_missing.val())
+                    _quantity_missing_val = Math.abs(new_q_missing).toFixed(2)
+                    _quantity_missing.val(_quantity_missing_val)
+                } else {
+                    _quantity_principal.val('')
+                    let new_q_missing = (Number(_q_unit.val()) + Number(sum_quantities_returned) + Number(sum_quantities_sold)) - Number(_current_quantity_missing.val())
+                    _quantity_missing_val = Math.abs(new_q_missing).toFixed(2)
+                    _quantity_missing.val(_quantity_missing_val)
+                }
                 return false;
             } else {
-                let new_q_missing = Number(current_quantity_missing.val()) - sum_quantities
-                quantity_missing.val(new_q_missing.toFixed(2))
+                let new_q_missing = Number(_current_quantity_missing.val()) - Number(sum_total_quantities)
+                _quantity_missing.val(new_q_missing.toFixed(2))
             }
         }
-        if (entered_units) {
-            let sum_quantities = q_in_units_principal + Number(q_unit.val())
-            if (sum_quantities > Number(current_quantity_missing.val())) {
-                toastr.warning("La cantidad INGRESADA no puede superar a la cantidad COMPRADA", '¡MENSAJE!', {
-                    positionClass: "toast-center",
-                });
-                q_principal.val('')
-                quantity_missing.val(current_quantity_missing.val())
-                return false;
-            } else {
-                let new_q_missing = Number(current_quantity_missing.val()) - sum_quantities
-                quantity_missing.val(new_q_missing.toFixed(2))
-            }
-        }
-        if (returned_principal) {
-            let sum_quantities = q_in_units_principal + Number(q_unit)
-            if (sum_quantities > Number(quantity_missing.val())) {
+        else if (type_op === 'return') {
+            if (sum_total_quantities > Number(_current_quantity_missing.val())) {
                 toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
                     positionClass: "toast-center",
                 });
-                q_principal.val('')
+                if (type_unit === 'und') {
+                    _q_returned_unit.val('')
+                    let sum_new = Number(sum_quantities_entered) + Number(q_in_units_principal_returned) + Number(sum_quantities_sold)
+                    let new_q_missing =  Number(sum_new) - Number(_current_quantity_missing.val())
+                    _quantity_missing.val(Math.abs(new_q_missing).toFixed(2))
+                } else {
+                    _quantity_returned_principal.val('')
+                    let new_q_missing = (Number(sum_quantities_entered) + Number(_q_returned_unit.val()) + Number(sum_quantities_sold)) - Number(_current_quantity_missing.val())
+                    _quantity_missing_val = Math.abs(new_q_missing).toFixed(2)
+                    _quantity_missing.val(_quantity_missing_val)
+                }
                 return false;
             } else {
-                let new_q_missing = Number(quantity_missing.val()) - sum_quantities
-                quantity_missing.val(new_q_missing.toFixed(2))
+                let new_q_missing = Number(_current_quantity_missing.val()) - Number(sum_total_quantities)
+                _quantity_missing.val(new_q_missing.toFixed(2))
             }
         }
-        if (returned_units) {
-            let sum_quantities = q_in_units_principal + Number(q_unit.val())
-            if (sum_quantities > Number(quantity_missing.val())) {
-                toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
-                    positionClass: "toast-center",
-                });
-                q_unit.val('')
-                return false;
-            } else {
-                let new_q_missing = Number(quantity_missing.val()) - sum_quantities
-                quantity_missing.val(new_q_missing.toFixed(2))
-            }
-        }
-        if (sold_principal) {
-            let sum_quantities = q_in_units_principal + Number(q_unit)
-            if (sum_quantities > Number(quantity_missing.val())) {
-                toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
-                    positionClass: "toast-center",
-                });
-                q_principal.val('')
-                return false;
-            } else {
-                let new_q_missing = Number(quantity_missing.val()) - sum_quantities
-                quantity_missing.val(new_q_missing.toFixed(2))
-            }
-        }
-        if (sold_units) {
-            let sum_quantities = q_in_units_principal + Number(q_unit.val())
-            if (sum_quantities > Number(quantity_missing.val())) {
+        else if (type_op === 'sold') {
+            if (sum_total_quantities > Number(_current_quantity_missing.val())) {
                 toastr.warning("La cantidad VENDIDA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
                     positionClass: "toast-center",
                 });
-                q_unit.val('')
+                if (type_unit === 'und') {
+                    _q_sold_unit.val('')
+                    let sum_new = Number(sum_quantities_entered) + Number(sum_quantities_returned) + Number(q_in_units_principal_sold)
+                    let new_q_missing =  Number(sum_new) - Number(_current_quantity_missing.val())
+                    _quantity_missing.val(Math.abs(new_q_missing).toFixed(2))
+                } else {
+                    _quantity_sold_principal.val('');
+                    let new_q_missing = (Number(sum_quantities_entered) + Number(sum_quantities_returned) +  Number(_q_sold_unit.val())) - Number(_current_quantity_missing.val())
+                    _quantity_missing_val = Math.abs(new_q_missing).toFixed(2)
+                    _quantity_missing.val(_quantity_missing_val)
+                }
                 return false;
             } else {
-                let new_q_missing = Number(quantity_missing.val()) - sum_quantities
-                quantity_missing.val(new_q_missing.toFixed(2))
+                let new_q_missing = Number(_current_quantity_missing.val()) - Number(sum_total_quantities)
+                _quantity_missing.val(new_q_missing.toFixed(2))
             }
         }
-
-    }*/
-
+    }
 
 </script>
+
+
+
+
