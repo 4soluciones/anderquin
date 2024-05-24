@@ -19,20 +19,20 @@
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="row p-1">
-                                <div class="col-9">
+                                <div class="col-6">
                                     <label class="font-weight-light" for="client_id">Cliente:</label>
                                     <input type="text" aria-label="..."
-                                           class="form-control form-control-sm text-uppercase client-table dropdown-toggle"
+                                           class="form-control form-control-sm text-uppercase client-table-update dropdown-toggle"
                                            data-toggle="dropdown" aria-expanded="false"
                                            value="{{ contract_obj.client }}"
                                            placeholder="Ingrese cliente y presione enter...">
                                     <div class="dropdown-menu"></div>
                                     <input type="hidden"
                                            value="{{ contract_obj.client.id }}"
-                                           id="client_id"
+                                           id="client_id_update"
                                            name="client">
                                 </div>
-                                <div class="col-lg-3">
+                                <div class="col-lg-6">
                                     <label class="font-weight-light"
                                            for="number_contract">Nº de Contrato:</label>
                                     <div class="input-group">
@@ -55,13 +55,6 @@
                                     <input type="date" class="form-control form-control-sm" id="register_date"
                                            name="register-name" value="{{ contract_obj.register_date|date:'Y-m-d' }}">
                                 </div>
-                                <div class="col-sm-6 col-md-6 col-lg-6">
-                                    <label for="observations" class="">Observaciones:</label>
-                                    <input type="text" class="form-control form-control-sm" id="observations"
-                                           name="observations"
-                                           value="{{ contract_obj.observation }}"
-                                           placeholder="...">
-                                </div>
                                 <div class="col-sm-3 col-md-3 col-lg-3">
                                     <label for="user_id">Vendedor:</label>
                                     <select id="user_id" name="user" class="form-control form-control-sm">
@@ -75,11 +68,19 @@
                                         {% endfor %}
                                     </select>
                                 </div>
+                                <div class="col-sm-6 col-md-6 col-lg-6">
+                                    <label for="observations" class="">Observaciones:</label>
+                                    <input type="text" class="form-control form-control-sm" id="observations"
+                                           name="observations"
+                                           value="{{ contract_obj.observation }}"
+                                           placeholder="...">
+                                </div>
                             </div>
                             <div class="row p-1">
                                 <div class="col-sm-1 col-md-1 col-lg-1 pr-0">
-                                    <label class="font-weight-light" for="nro_dates">Nº entregas:</label>
-                                    <input type="text" class="form-control form-control-sm text-center" id="nro_dates"
+                                    <label class="font-weight-light" for="nro_dates-update">Nº entregas:</label>
+                                    <input type="text" class="form-control form-control-sm text-center"
+                                           id="nro_dates-update"
                                            value=""
                                            name="nro-dates" placeholder="-">
                                 </div>
@@ -145,14 +146,15 @@
                                     </table>
                                 </div>
                                 <div class="col-sm-2 col-md-2 col-lg-2">
-                                    <label class="" for="btn-add-dates">&nbsp;</label>
-                                    <button type="button" id="btn-add-dates"
-                                            class="btn btn-sm btn-success btn-block" onclick="addDates()">Agregar Fechas
+                                    <label class="" for="btn-add-dates-update">&nbsp;</label>
+                                    <button type="button" id="btn-add-dates-update"
+                                            class="btn btn-sm btn-success btn-block" disabled
+                                            onclick="addDatesUpdate()">Agregar Fechas
                                     </button>
                                 </div>
                                 <div class="col-sm-2 col-md-2 col-lg-2">
-                                    <label class="" for="clean-dates">&nbsp;</label>
-                                    <button type="button" id="clean-dates"
+                                    <label class="" for="clean-dates-update">&nbsp;</label>
+                                    <button type="button" id="clean-dates-update"
                                             class="btn btn-sm btn-danger btn-block">Limpiar
                                     </button>
                                 </div>
@@ -184,8 +186,8 @@
                                 {#                                           name="total-add" placeholder="0.00">#}
                                 {#                                </div>#}
                                 {#                                <div class="col-sm-2 col-md-2 col-lg-2">#}
-                                {#                                    <label class="" for="btn-add-dates">&nbsp;</label>#}
-                                {#                                    <button type="button" id="btn-add-dates"#}
+                                {#                                    <label class="" for="btn-add-dates-update">&nbsp;</label>#}
+                                {#                                    <button type="button" id="btn-add-dates-update"#}
                                 {#                                            class="btn btn-sm btn-success btn-block" onclick="addDates()">Agregar Fechas#}
                                 {#                                    </button>#}
                                 {#                                </div>#}
@@ -204,18 +206,19 @@
                             </div>
 
                             <div class="row pt-2">
-                                <div class="col-sm-12 col-md-12 col-lg-12 dates-quotas">
+                                <div class="col-sm-12 col-md-12 col-lg-12 dates-quotas-update">
                                     {% for c in contract_obj.contractdetail_set.all %}
-                                        <div class="card mb-2 main-dates" style="border-color: #848d9f">
+                                        <div class="card mb-2 main-dates-update" style="border-color: #848d9f">
                                             <div class="card-header pt-1 pb-1">
                                                 <div class="row">
-                                                    <div class="col-sm-2 col-md-2 col-lg-2 text-left item-number">
-                                                        <label for="date-quota" class="mt-2 font-weight-bold"> FECHA
+                                                    <div class="col-sm-2 col-md-2 col-lg-2 text-left item-number-update">
+                                                        <label for="number-quota-update" class="mt-2 font-weight-bold">
+                                                            FECHA
                                                             DE ENTREGA {{ c.nro_quota }} </label>
-                                                        <input type=hidden class="number-quota"
+                                                        <input type=hidden class="number-quota-update"
                                                                value="{{ c.nro_quota }}">
                                                     </div>
-                                                    <div class="col-sm-3 col-md-3 col-lg-3 item-date-quota">
+                                                    <div class="col-sm-3 col-md-3 col-lg-3 item-date-quota-update">
                                                         <input type="date"
                                                                class="form-control date-quota text-center"
                                                                id="date-quota" value="{{ c.date|date:'Y-m-d' }}">
@@ -223,7 +226,7 @@
                                                 </div>
                                             </div>
                                             <div class="card-body p-1">
-                                                <table id="table-date-{{ c.nro_quota }}"
+                                                <table id="table-date-update-{{ c.nro_quota }}"
                                                        class="table table-hover table-sm align-content-center table-bordered mb-0">
                                                     <thead>
                                                     <tr class="text-center text-white" style="background: #1a77c8">
@@ -244,15 +247,16 @@
                                                         </th>
                                                     </tr>
                                                     </thead>
-                                                    <tbody id="details-table-date-{{ c.nro_quota }}"
+                                                    <tbody id="details-table-date-update-{{ c.nro_quota }}"
                                                            number="{{ c.nro_quota }}">
                                                     {% for cd in c.contractdetailitem_set.all %}
                                                         <tr class="text-center">
-                                                            <td class="item-number align-middle text-center">1</td>
-                                                            <td class="item-product align-middle text-center">
+                                                            <td class="item-number-update align-middle text-center">1
+                                                            </td>
+                                                            <td class="item-product-add-update align-middle text-center">
                                                                 <label for="product_id" class="sr-only">Producto</label>
                                                                 <select id="product_id"
-                                                                        class="form-control form-control-sm product">
+                                                                        class="form-control form-control-sm product-add-update">
                                                                     {% for p in product_set %}
                                                                         {% if p.id == cd.product.id %}
                                                                             <option value="{{ p.id }}"
@@ -263,21 +267,21 @@
                                                                     {% endfor %}
                                                                 </select>
                                                             </td>
-                                                            <td class="item-quantity align-middle text-center">
+                                                            <td class="item-quantity-add-update align-middle text-center">
                                                                 <input type="text"
-                                                                       class="form-control text-right quantity"
+                                                                       class="form-control text-right quantity-add-update"
                                                                        autocomplete="off"
                                                                        value="{{ cd.quantity|replace_round }}">
                                                             </td>
-                                                            <td class="item-price-unit align-middle text-center">
+                                                            <td class="item-price-unit-add-update align-middle text-center">
                                                                 <input type="text"
-                                                                       class="form-control text-right price-unit"
+                                                                       class="form-control text-right price-unit-add-update"
                                                                        value="{{ cd.price_unit|replace_round }}"
                                                                        autocomplete="off">
                                                             </td>
-                                                            <td class="item-amount align-middle text-center">
+                                                            <td class="item-amount-add-update align-middle text-center">
                                                                 <input type="text"
-                                                                       class="form-control text-right amount"
+                                                                       class="form-control text-right amount-add-update"
                                                                        value="{{ cd.amount|replace_round }}"
                                                                        placeholder="0.00" autocomplete="off">
                                                             </td>
@@ -308,17 +312,25 @@
                                             TOTAL CANTIDAD
                                         </td>
                                         <td class="align-middle">
-                                            <input type="text" class="form-control text-center font-weight-bold"
-                                                   id="total-quantity" aria-label="..."
-                                                   placeholder="0.00" readonly>
+                                            <div class="input-icon font-weight-bold">
+                                                <input type="text" class="form-control text-center font-weight-bold"
+                                                       id="total-quantity-update" aria-label="..."
+                                                       value="{{ sum_quantity|replace_round }}"
+                                                       placeholder="0.00" readonly>
+                                                <i class="change-money">S/</i>
+                                            </div>
                                         </td>
                                         <td class="text-center align-middle text-right font-weight-bold">
                                             TOTAL MONTO
                                         </td>
                                         <td class="align-middle" style="width: 10%">
-                                            <input type="text" class="form-control text-center font-weight-bold"
-                                                   id="total-amount" aria-label="..."
-                                                   placeholder="0.00" readonly>
+                                            <div class="input-icon font-weight-bold">
+                                                <input type="text" class="form-control text-center font-weight-bold"
+                                                       id="total-amount-update" aria-label="..."
+                                                       value="{{ sum_amount|replace_round }}"
+                                                       placeholder="0.00" readonly>
+                                                <i class="change-money">S/</i>
+                                            </div>
                                         </td>
                                     </tr>
                                     </tbody>
@@ -354,6 +366,40 @@
         </div>
     </div>
 </div>
+
+<style>
+
+    .input-icon {
+        position: relative;
+    }
+
+    .input-icon > i {
+    {#content: "$";#} position: absolute;
+        display: block;
+        transform: translate(0, -50%);
+        top: 50%;
+        pointer-events: none;
+        width: 25px;
+        text-align: center;
+        font-style: normal;
+    }
+
+    .input-icon > input {
+        padding-left: 25px;
+        padding-right: 8px;
+    }
+
+    .input-icon-right > i {
+        right: 0;
+    }
+
+    .input-icon-right > input {
+        padding-left: 0;
+        padding-right: 25px;
+        text-align: right;
+    }
+
+</style>
 
 <script>
 
@@ -395,5 +441,260 @@
             l++;
         });
     }
+
+    $(document).on('keyup', '.quantity-add-update', function (e) {
+        calculateTotalHeaderUpdate($(this));
+    });
+
+    $(document).on('keyup', '.price-unit-add-update', function (e) {
+        calculateTotalHeaderUpdate($(this));
+    });
+
+    function calculateTotalHeaderUpdate(input) {
+        let _tr = input.closest('tr');
+        let _quantity = Number(_tr.find('.quantity-add-update').val());
+        let _price_unit = Number(_tr.find('.price-unit-add-update').val());
+        let _total = _quantity * _price_unit;
+        _tr.find('.amount-add-update').val(_total.toFixed(2));
+
+    }
+
+    function calculateTotalUpdate() {
+        let sum_quantity = 0;
+        let sum_amount = 0;
+        $('.dates-quotas-update td.item-quantity-add-update input.quantity-add-update').each(function () {
+            let quantity = Number($(this).val())
+            sum_quantity = sum_quantity + quantity
+        });
+        $('.dates-quotas-update td.item-amount-add-update input.amount-add-update').each(function () {
+            let amount = Number($(this).val())
+            sum_amount = sum_amount + amount
+        });
+        $("#total-quantity-update").val(sum_quantity.toFixed(2));
+        $("#total-amount-update").val(sum_amount.toFixed(2));
+    }
+
+    $(document).on('keyup', '.quantity-add-update', function () {
+        let _tr = $(this).parent('td').parent('tr');
+        let _quantity_row = Number($(this).val());
+        let _price_unit_row = Number(_tr.find('td.item-price-unit-add-update input.price-unit-add-update').val());
+        let _amount = _tr.find('td.item-amount-add-update input.amount-add-update');
+        let _new_amount = _quantity_row * _price_unit_row
+        _amount.val(_new_amount.toFixed(2))
+        calculateTotalUpdate()
+    });
+
+    $(document).on('click', '#clean-dates-update', function () {
+        $('.dates-quotas-update').empty();
+        $('#nro_dates-update').val('');
+        $('#nro_dates-update').focus();
+
+        $('#total-quantity-update').val('');
+        $('#total-amount-update').val('');
+        $('#tbody-product-add-update tr:not([i="1"])').remove();
+        $('#tbody-product-add-update tr[i="1"]').find('input').val('');
+
+        $('#btn-add-dates-update').removeAttr('disabled');
+        $('#product_add-id-update').val('0');
+    });
+
+    function validateHeaderUpdate() {
+        let flag = true;
+
+        $('#tbody-product-add-update tr').each(function () {
+            let $tr = $(this);
+            let product = $tr.find('.product-add-update').val();
+            let quantity = $tr.find('.quantity-add-update').val();
+            let price = $tr.find('.price-unit-add-update').val();
+
+            if (product === '0' || quantity === '' || price === '') {
+                toastr.warning('Por favor, complete todos los campos antes de continuar: Producto, Cantidad y Precio Unitario');
+                flag = false;
+                return false;
+            }
+        });
+
+        return flag;
+    }
+
+    function addDatesUpdate() {
+        let _nro_dates = $('#nro_dates-update');
+        //let product = $('#product_add_id').val();
+        //let _quantity = $('#quantity_add');
+        //let _price_unit = $('#price_unit');
+        let _btn_add = $('#btn-add-dates-update');
+        if (_nro_dates.val().length === 0) {
+            toastr.warning('Favor de ingresar una numero de fechas', 'Error de llenado');
+            _nro_dates.focus();
+            _btn_add.removeAttr('disabled');
+            return false;
+        }
+        _btn_add.attr('disabled', true);
+
+        if (!validateHeaderUpdate()) {
+            _btn_add.removeAttr('disabled');
+            return false;
+        }
+
+        for (let i = 0; i < _nro_dates.val(); i++) {
+            let _number = i + 1;
+            let _date_quota = '{{ date_now }}';
+
+            $('.dates-quotas-update').append(
+                '<div class="card mb-2 main-dates-update" style="border-color: #848d9f">' +
+                '<div class="card-header pt-1 pb-1">' +
+                '<div class="row">' +
+                '<div class="col-sm-2 col-md-2 col-lg-2 text-left item-number-update">' +
+                '<label for="number-quota-update" class="mt-2 font-weight-bold">' + 'FECHA DE ENTREGA ' + _number + '</label>' +
+                '<input type=hidden class="number-quota-update" value="' + _number + '">' +
+                '</div>' +
+                '<div class="col-sm-3 col-md-3 col-lg-3 item-date-quota-update">' +
+                '<input type="date" class="form-control date-quota-update text-center" id="date-quota-update" value="' + _date_quota + '">' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '<div class="card-body p-1">' +
+                '<table id="table-date-update-' + _number + '" class="table table-hover table-sm align-content-center table-bordered mb-0">' +
+                '<thead>' +
+                '<tr class="text-center text-white" style="background: #1a77c8">' +
+                '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Item' + '</th>' +
+                '<th scope="col" class="align-middle font-weight-normal" style="width: 60%;">' + 'Producto' + '</th>' +
+                '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Cantidad' + '</th>' +
+                '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'P. U.' + '</th>' +
+                '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Monto' + '</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody id="details-table-date-update-' + _number + '" number="' + _number + '">' +
+                '</tbody>' +
+                '</table>' +
+                '</div>' +
+                '</div>'
+            );
+
+            $('#tbody-product-add-update tr').each(function () {
+                let selectOptions = '';
+                let _tr = $(this);
+                let item = _tr.attr("i");
+                let product = _tr.find('td.item-product-add-update select.product-add-update').val()
+                let _quantity = _tr.find('td.item-quantity-add-update input.quantity-add-update');
+                let _quantity_add = Number(_quantity.val()) / Number(_nro_dates.val());
+                let _price_unit = _tr.find('td.item-price-unit-add-update input.price-unit-add-update');
+                let _amount = _quantity_add * Number(_price_unit.val())
+
+                for (let j = 0; j < product_set.length; j++) {
+                    let productId = product_set[j][0];
+                    if (productId === product) {
+                        selectOptions += '<option value="' + productId + '" selected>' + product_set[j][1] + '</option>';
+                    } else {
+                        selectOptions += '<option value="' + productId + '">' + product_set[j][1] + '</option>';
+                    }
+                }
+                $('#details-table-date-update-' + _number).append(
+                    '<tr class="text-center">' +
+                    '<td class="item-number-update align-middle text-center">' + item + '</td>' +
+                    '<td class="item-product-add-update align-middle text-center">' +
+                    '<select id="product_id" class="form-control form-control-sm product-add-update">' + selectOptions +
+                    '</select>' +
+                    '</td>' +
+                    '<td class="item-quantity-add-update align-middle text-center">' +
+                    '<input type="text" class="form-control text-right quantity-add-update" placeholder="0.00" autocomplete="off" value="' + _quantity_add.toFixed(2) + ' ">' +
+                    '</td>' +
+                    '<td class="item-price-unit-add-update align-middle text-center">' +
+                    '<input type="text" class="form-control text-right price-unit-add-update" placeholder="0.00" autocomplete="off" value="' + _price_unit.val() + ' ">' +
+                    '</td>' +
+                    '<td class="item-amount-add-update align-middle text-center">' +
+                    '<input type="text" class="form-control text-right amount-add-update" placeholder="0.00" autocomplete="off" value="' + _amount.toFixed(2) + '">' +
+                    '</td>' +
+                    '</tr>');
+            });
+
+        }
+        calculateTotalUpdate()
+    }
+
+
+    $('.client-table-update').on('focusin', function (e) {
+        $(this).parent('div').find('div.dropdown-menu').css({
+            'background-color': 'transparent',
+            'border': 'transparent',
+        })
+        //$(this).val('');
+        //$('#id_unit_product').val('0')
+        //$('#id_sender').val('');
+        //$('#id-nro-document-sender').val('');
+        //$('#id_address').val('');
+        //$('#document_type_sender').val('0');
+        //$('#document_type_sender').trigger('change');
+    });
+
+    $(document).on('keypress', '.client-table-update', function (e) {
+        $(this).parent('div').find('div.dropdown-menu').empty()
+
+        if (e.keyCode === 13) {
+
+            e.preventDefault()
+
+            $(this).trigger("enterKey");
+            let _client_name = $(this).val();
+            {#let _td = $(this).parent('td')#}
+            let _menu = $(this).parent('div').find('div.dropdown-menu')
+
+            if (_client_name.length > 3) {
+
+                $.ajax({
+                    url: '/sales/get_clients_by_criteria/',
+                    async: true,
+                    dataType: 'json', // for response
+                    type: 'GET',
+                    data: {
+                        'value': _client_name,
+                    },
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            let list = response.client_list;
+                            _menu.css({'background-color': '#fff', 'border': '1px solid rgba(0,0,0,.15)'})
+                            for (let i = 0; i < list.length; i++) {
+                                _menu.append(`<a class="dropdown-item client-item-update" client_name="${list[i].client_names}" client_document_number="${list[i].client_document_number}" client_address="${list[i].client_address}" client_type_document="${list[i].client_type_document}" href="#" data-id="${list[i].client_id}">cliente: ${list[i].client_names} - RUC: ${list[i].client_document_number}</a>`)
+                            }
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        if (jqXhr.status === 500) {
+                            toastr.error(jqXhr.responseJSON.error, 'Mensaje');
+                        } else {
+                            if (textStatus === 'timeout') {
+                                toastr.error('Failed from timeout', 'Mensaje');
+                            } else {
+                                console.log(" STATUS: " + xhr + " " + textStatus);
+                            }
+                        }
+                    }
+                });
+            } else {
+
+                toastr.warning('Para la busqueda ingrese minimo 3 caracteres', 'Error de llenado');
+                return false;
+            }
+        }
+    });
+
+    $(document).on('click', '.client-item-update', function (e) {
+
+        let _client_id = $(this).attr('data-id');
+        let _client_address = $(this).attr('client_address');
+        let _client_name = $(this).attr('client_name');
+        let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
+        let _td = $(this).parent('div.dropdown-menu').parent('td')
+        let _client_type_document = $(this).attr('client_type_document')
+        let _client_document_number = $(this).attr('client_document_number')
+
+        $("#client_id_update").val(_client_id);
+        $(".client-table-update").val(_client_name);
+
+        $(this).parent('div.dropdown-menu').empty()
+        $(this).parent('div.dropdown-menu').addClass('hide')
+    });
 
 </script>

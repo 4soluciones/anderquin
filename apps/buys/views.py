@@ -1536,13 +1536,30 @@ def modal_update_contract(request):
         date_now = my_date.strftime("%Y-%m-%d")
         pk = int(request.GET.get('pk', ''))
         contract_obj = Contract.objects.get(id=pk)
+        sum_quantity = contract_obj.sum_quantity_contract_detail()
+        sum_amount = contract_obj.sum_amount_contract_detail()
+        # contract_detail_dict = []
+        # for cd in contract_obj.contractdetail_set:
+        #     item_contract_detail = {
+        #         'id': cd.id,
+        #         'nro_quota': cd.nro_quota,
+        #         'date': cd.date
+        #     }
+        #     for ci in cd.contractdetailitem_set:
+        #         item_c_item = {
+        #             'id': ci.id,
+        #             'quantity': ci.quantity
+        #         }
+
         t = loader.get_template('buys/contract_update.html')
         c = ({
             'date_now': date_now,
             'client_set': Client.objects.all(),
             'product_set': Product.objects.filter(is_enabled=True),
             'user_set': User.objects.filter(is_active=True, is_superuser=False),
-            'contract_obj': contract_obj
+            'contract_obj': contract_obj,
+            'sum_quantity': sum_quantity,
+            'sum_amount': sum_amount
         })
         return JsonResponse({
             'form': t.render(c, request),

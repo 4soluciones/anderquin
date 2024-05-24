@@ -172,6 +172,24 @@ class Contract(models.Model):
     def __str__(self):
         return str(self.contract_number)
 
+    def sum_quantity_contract_detail(self):
+        quantity_total = 0
+        contract_detail_set = ContractDetail.objects.filter(contract__id=self.id)
+        for cd in contract_detail_set:
+            contract_detail_item_set = ContractDetailItem.objects.filter(contract_detail=cd)
+            for ci in contract_detail_item_set:
+                quantity_total += ci.quantity
+        return quantity_total
+
+    def sum_amount_contract_detail(self):
+        amount_total = 0
+        contract_detail_set = ContractDetail.objects.filter(contract__id=self.id)
+        for cd in contract_detail_set:
+            contract_detail_item_set = ContractDetailItem.objects.filter(contract_detail=cd)
+            for ci in contract_detail_item_set:
+                amount_total += ci.amount()
+        return amount_total
+
 
 class ContractDetail(models.Model):
     id = models.AutoField(primary_key=True)
