@@ -11,6 +11,10 @@
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
+            <input type="hidden"
+                   value="{{ contract_obj.id }}"
+                   id="contract_id"
+                   name="contract">
         </div>
 
         <div class="modal-body p-2">
@@ -42,7 +46,7 @@
                                             </span>
                                         </div>
                                         <input type="text" class="form-control form-control-sm number-contract"
-                                               id="number_contract"
+                                               id="number_contract_update"
                                                value="{{ contract_obj.contract_number }}"
                                                name="number-contract" autocomplete="off">
                                     </div>
@@ -52,12 +56,12 @@
                                 <div class="col-lg-3">
                                     <label class="font-weight-light" for="register_date">Fecha de
                                         registro</label>
-                                    <input type="date" class="form-control form-control-sm" id="register_date"
+                                    <input type="date" class="form-control form-control-sm" id="register_date_update"
                                            name="register-name" value="{{ contract_obj.register_date|date:'Y-m-d' }}">
                                 </div>
                                 <div class="col-sm-3 col-md-3 col-lg-3">
-                                    <label for="user_id">Vendedor:</label>
-                                    <select id="user_id" name="user" class="form-control form-control-sm">
+                                    <label for="user_id_update">Vendedor:</label>
+                                    <select id="user_id_update" name="user" class="form-control form-control-sm">
                                         <option selected disabled value="0">Seleccione..</option>
                                         {% for u in user_set %}
                                             {% if u.id == contract_obj.user.id %}
@@ -69,9 +73,9 @@
                                     </select>
                                 </div>
                                 <div class="col-sm-6 col-md-6 col-lg-6">
-                                    <label for="observations" class="">Observaciones:</label>
-                                    <input type="text" class="form-control form-control-sm" id="observations"
-                                           name="observations"
+                                    <label for="observations_update" class="">Observaciones:</label>
+                                    <input type="text" class="form-control form-control-sm" id="observations_update"
+                                           name="observations_update"
                                            value="{{ contract_obj.observation }}"
                                            placeholder="...">
                                 </div>
@@ -220,8 +224,8 @@
                                                     </div>
                                                     <div class="col-sm-3 col-md-3 col-lg-3 item-date-quota-update">
                                                         <input type="date"
-                                                               class="form-control date-quota text-center"
-                                                               id="date-quota" value="{{ c.date|date:'Y-m-d' }}">
+                                                               class="form-control date-quota-update text-center"
+                                                               id="date-quota-update" value="{{ c.date|date:'Y-m-d' }}">
                                                     </div>
                                                 </div>
                                             </div>
@@ -345,7 +349,7 @@
         <div class="modal-footer bg-light p-2">
             <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
             &nbsp;
-            <button id="btn-save-contract" type="button" class="btn btn-warning font-weight-light">Actualizar
+            <button id="btn-update-contract" type="button" class="btn btn-warning font-weight-light">Actualizar
             </button>
         </div>
 
@@ -696,5 +700,69 @@
         $(this).parent('div.dropdown-menu').empty()
         $(this).parent('div.dropdown-menu').addClass('hide')
     });
+
+    $('#btn-update-contract').on('click', function (e) {
+        updateContract()
+    })
+
+    function updateContract() {
+        let _contract = $('#contract_id').val()
+        let _number_contract = $('#number_contract_update').val()
+        let _register_date = $('#register_date_update').val()
+        let _client = $('#client_id_update').val();
+        let _observations = $('#observations_update').val()
+        let _nro_dates = $('#nro_dates-update').val()
+        let _user = $('#user_id_update').val()
+
+        if (_number_contract.length === 0) {
+            toastr.warning('¡Favor de ingresar el numero de contrato!', 'Error de Datos');
+            return false;
+        }
+        if (_register_date.length === 0) {
+            toastr.warning('¡Favor de seleccionar una fecha valida', 'Error de Datos!');
+            return false;
+        }
+        if (_client === '') {
+            toastr.warning('¡Favor de seleccionar un cliente', 'Error de Datos!');
+            return false;
+        }
+        if (_nro_dates === '0') {
+            toastr.warning('¡Ingrese al menos una Fecha de entrega', 'Error de Datos!');
+            return false;
+        }
+        if (_user === '0') {
+            toastr.warning('¡Favor de seleccionar el vendedor', 'Error de Datos!');
+            return false;
+        }
+        let contract_update = {
+            "contract": _contract,
+            "number_contract": _number_contract,
+            'register_date': _register_date,
+            'client': _client,
+            'observation': _observations,
+            'user': _user,
+            "dates": []
+        };
+        let dateUpdateObj = {};
+        let itemUpdateObj = {};
+        $('#main-dates-update').each(function () {
+            let nro_quota = $(this).find("div.item-number-update input.number-quota-update").val()
+            dateUpdateObj = {
+                "nro_quota": nro_quota,
+                "date_quota": $(this).find("div.item-date-quota-update input.date-quota-update").val(),
+                "items": []
+            }
+            $(`tbody#details-table-date-update-${nro_quota} tr`).each(function () {
+                itemUpdateObj = {
+                    "product": $(this).find("td.item-product-add-update select.product-add-update").val(),
+                    "quantity": $(this).find("td.item-quantity-add-update input.quantity-add-update").val(),
+                    "price_unit": $(this).find("td.item-price-unit-add-update input.price-unit-add-update").val(),
+                }
+                dateUpdateObj.items.push(itemUpdateObj)
+            });
+            contract_update.dates.push(dateUpdateObj);
+        })
+        console.log(contract_update)
+    }
 
 </script>

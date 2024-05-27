@@ -1566,6 +1566,11 @@ def modal_update_contract(request):
         })
 
 
+def save_update_contract(request):
+    if request.method == 'GET':
+        print("update_contract")
+
+
 def assign_store_modal(request):
     if request.method == 'GET':
         array_purchases = request.GET.get('array_purchases', '')
