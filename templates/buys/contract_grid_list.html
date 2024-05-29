@@ -1,7 +1,7 @@
 {% load app_filters %}
 {% if contract_set %}
-    <div class="card-body p-2 table-responsive small">
-        <table id="client-data-grid" class="table table-bordered align-content-center w-100 h-100 roboto-condensed-regular">
+    <div class="card-body p-1 table-responsive small">
+        <table id="client-data-grid" class="table table-bordered align-content-center w-100 h-100 roboto-condensed-regular table-responsive-sm">
                 <thead>
                 <tr class="text-center text-white text-uppercase " style="background: #3e6787; font-size: 12px;">
                     <th class="th-sm align-middle" style="width: 1%">#</th>
@@ -13,7 +13,7 @@
                     <th class="th-sm align-middle" style="width: 10%">Observaciones</th>
                 </tr>
                 </thead>
-                <tbody style="font-size: 13px;">
+                <tbody style="font-size: 11px;">
                 {% for c in contract_set %}
                     <tr class="text-center" pk="{{ c.id }}">
                         <td class="align-middle">
@@ -58,8 +58,8 @@
                                             </div>
                                         </div>
                                         <div class="card-body p-0">
-                                            <table class="table table-bordered table-sm dates roboto-condensed-regular m-0"
-                                                   style="background-color: #bfdecb; font-size: 11px">
+                                            <table class="table table-bordered table-sm dates roboto-condensed-regular m-0 table-responsive-sm"
+                                                   style="background-color: #bfdecb; font-size: 10px">
                                                 <thead>
                                                 <tr class="text-center font-weight-bold text-uppercase bg-light align-middle">
                                                     <th class="th-sm" style="width: 5%"><i class="fas fa-check"></i>
@@ -67,9 +67,9 @@
                                                     <th class="th-sm" style="width: 5%">#</th>
                                                     <th class="th-sm" style="width: 10%">Fecha</th>
                                                     {#                                    <th class="th-sm" style="width: 10%">O/C</th>#}
-                                                    <th class="th-sm" style="width: 65%">Producto</th>
+                                                    <th class="th-sm" style="width: 50%">Producto</th>
                                                     <th class="th-sm" style="width: 15%">Orden de Compra</th>
-                                                    {#                                                    <th class="th-sm" style="width: 15%">Guia de remision</th>#}
+                                                    <th class="th-sm" style="width: 15%">Guia de remision</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
@@ -98,7 +98,7 @@
                                                         {#                                            {% endif %}#}
                                                         {#                                        </td>#}
                                                         <td class="items-table">
-                                                            <table class="table table-borderless table-sm mb-2 items"
+                                                            <table class="table table-borderless table-sm mb-0 items"
                                                                    style="background-color: #bfdecb">
                                                                 <tbody>
                                                                 {% for e in d.contractdetailitem_set.all %}
@@ -108,8 +108,6 @@
                                                                         <td class="align-middle text-left p-0 m-0">UND
                                                                         </td>
                                                                         <td class="align-middle text-left p-0 m-0">{{ e.product.name }}</td>
-
-
                                                                     </tr>
                                                                 {% endfor %}
                                                                 </tbody>
@@ -117,7 +115,7 @@
                                                         </td>
                                                         <td class="align-middle">
                                                             {% if d.contractdetailpurchase_set.last.purchase %}
-                                                                <a class="btn btn-sm btn-success font-weight-light"
+                                                                <a class="btn btn-sm btn-success font-weight-light" style="font-size: 10px"
                                                                    href="{% url 'buys:print_pdf_purchase_order' d.contractdetailpurchase_set.last.purchase.id %}">
                                                                     {{ d.contractdetailpurchase_set.last.purchase.bill_number }}</a>
                                                             {% endif %}
@@ -135,19 +133,18 @@
                                                         {#                                                                    O/C</a>#}
                                                         {#                                                            {% endif %}#}
                                                         {#                                                        </td>#}
-                                                        {#                                                        <td class="align-middle">#}
-                                                        {#                                                            {% if d.guide_set.all %}#}
-                                                        {#                                                                <a class="btn btn-sm btn-danger font-weight-light"#}
-                                                        {#                                                                   href="{% url 'comercial:guide' d.guide_set.all.last.id %}">#}
-                                                        {#                                                                    {{ d.guide_set.all.last.serial }}-{{ d.guide_set.all.last.correlative|zfill:5 }}</a>#}
-                                                        {#                                                            {% else %}#}
-                                                        {#                                                                <a class="btn btn-sm btn-primary font-weight-light"#}
-                                                        {#                                                                   href="{% url 'comercial:new_guide' d.id %}">#}
-                                                        {#                                                                    <i class="fas fa-folder-plus"></i> Generar Guia</a>#}
-                                                        {#                                                            {% endif %}#}
-                                                        {#                                                        </td>#}
+                                                        <td class="align-middle">
+                                                            {% if d.guide_set.all %}
+                                                                <a class="btn btn-sm btn-danger font-weight-light" style="font-size: 10px"
+                                                                   href="{% url 'comercial:guide' d.guide_set.all.last.id %}">
+                                                                    {{ d.guide_set.all.last.serial }}-{{ d.guide_set.all.last.correlative|zfill:5 }}</a>
+                                                            {% else %}
+                                                                <a class="btn btn-sm btn-primary font-weight-light" style="font-size: 10px"
+                                                                   href="{% url 'comercial:new_guide' d.id %}">
+                                                                    <i class="fas fa-folder-plus"></i> Generar Guia</a>
+                                                            {% endif %}
+                                                        </td>
                                                     </tr>
-
                                                 {% endfor %}
                                                 </tbody>
                                             </table>

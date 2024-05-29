@@ -460,7 +460,7 @@ def new_guide(request, contract_detail=None):
     product_obj = Product.objects.all()
     my_date = datetime.now()
     formatdate = my_date.strftime("%Y-%m-%d")
-    motive_set = GuideMotive.objects.filter(type='S')
+    motive_set = GuideMotive.objects.filter(type='S').order_by('id')
 
     return render(request, 'comercial/guide.html', {
         'supplier_obj': supplier_obj,

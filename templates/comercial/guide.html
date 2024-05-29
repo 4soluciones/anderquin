@@ -5,19 +5,19 @@
 
 {% block body %}
 
-    <div class="card m-3">
+    <div class="card m-3 roboto-condensed-regular">
         <div class="card-header pt-0">
             <div class="row">
                 <div class="col-sm-4 col-md-4 col-lg-4 mb-0" style="background: #1a77c8">
                     {% if contract_detail_obj %}
                         <input type="hidden" id="contract_detail_id" name="contract-detail"
                                value="{{ contract_detail_obj.id }}">
-                        <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                        <h6 class="roboto-condensed-regular text-white font-weight-bold mt-4 mb-0">
                             <label>{{ contract_detail_obj.contract.contract_number }} -
                                 FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
                         </h6>
                     {% else %}
-                        <h6 class="montserrat text-white font-weight-bold mt-4 mb-0">
+                        <h6 class="text-white font-weight-bold mt-4 mb-0">
                             <label>GUÍA DE REMISIÓN REMITENTE:</label>
                         </h6>
                     {% endif %}
@@ -62,7 +62,7 @@
             <div class="row col-md-12 mt-3 pr-0">
                 <div class="col-md-2">
                     <label for="id_motive" class="text-primary">Motivo de Traslado</label>
-                    <select class="form-control combo" id="id_motive"
+                    <select class="form-control" id="id_motive"
                             name="id-motive">
                         <option selected disabled value="0">Seleccione</option>
                         {% for m in motive_set %}
@@ -72,27 +72,40 @@
                 </div>
                 <div class="col-md-2">
                     <input type="hidden" id="client_id" value="{{ contract_detail_obj.contract.client.id }}">
-                    {% if contract_detail_obj %}
-                        <label for="document-client" class="text-primary">RUC (Destinatario)</label>
-                        <input type="text"
-                               class="form-control" name="document-client" id="document-client" disabled
-                               required
+                    <label for="person-names" class="text-primary">RUC (Destinatario)</label>
+                    <div id="autocomplete-client" class="autocomplete">
+                        <input class="form-control autocomplete-input"
+                               type="text"
+                               id="person-names"
+                               name="person-names"
+                               maxlength="200"
+                               autocomplete="off"
                                value="{{ contract_detail_obj.contract.client.clienttype_set.last.document_number }}"
-                               maxlength="200">
-                    {% else %}
-                        <label for="person-names">RUC (Destinatario)</label>
-                        <div id="autocomplete-client" class="autocomplete">
-                            <input class="form-control autocomplete-input"
-                                   type="text"
-                                   id="person-names"
-                                   name="person-names"
-                                   maxlength="200"
-                                   autocomplete="off"
-                                   value=""
-                                   placeholder="Buscar Cliente..."/>
-                            <ul class="autocomplete-result-list"></ul>
-                        </div>
-                    {% endif %}
+                               {% if contract_detail_obj %}disabled{% endif %}
+                               placeholder="Buscar Cliente..."/>
+                        <ul class="autocomplete-result-list"></ul>
+                    </div>
+{#                    {% if contract_detail_obj %}#}
+{#                        <label for="document-client" class="text-primary">RUC (Destinatario)</label>#}
+{#                        <input type="text"#}
+{#                               class="form-control" name="document-client" id="document-client" disabled#}
+{#                               required#}
+{#                               value="{{ contract_detail_obj.contract.client.clienttype_set.last.document_number }}"#}
+{#                               maxlength="200">#}
+{#                    {% else %}#}
+{#                        <label for="person-names">RUC (Destinatario)</label>#}
+{#                        <div id="autocomplete-client" class="autocomplete">#}
+{#                            <input class="form-control autocomplete-input"#}
+{#                                   type="text"#}
+{#                                   id="person-names"#}
+{#                                   name="person-names"#}
+{#                                   maxlength="200"#}
+{#                                   autocomplete="off"#}
+{#                                   value=""#}
+{#                                   placeholder="Buscar Cliente..."/>#}
+{#                            <ul class="autocomplete-result-list"></ul>#}
+{#                        </div>#}
+{#                    {% endif %}#}
                 </div>
                 <div class="col-md-8">
                     <label for="name-client" class="text-primary">Razón Social (Destinatario)</label>

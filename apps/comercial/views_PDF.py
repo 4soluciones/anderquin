@@ -136,7 +136,7 @@ pdfmetrics.registerFont(TTFont('Dot-line-Light', 'DotlineLight-XXeo.ttf'))
 pdfmetrics.registerFont(TTFont('Jd-Lcd-Rounded', 'JdLcdRoundedRegular-vXwE.ttf'))
 pdfmetrics.registerFont(TTFont('All-Star-Resort', 'All Star Resort.ttf'))
 
-logo = "static/assests/img/logo-anderquin.png"
+logo = "static/assets/avatar/logo-anderquin-original.png"
 
 
 def guide_print(self, pk=None):
