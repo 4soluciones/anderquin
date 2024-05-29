@@ -64,6 +64,8 @@ urlpatterns = [
     path('save_contract/', save_contract, name='save_contract'),
     path('modal_update_contract/', modal_update_contract, name='modal_update_contract'),
     path('get_buys_by_contract/', login_required(get_buys_by_contract), name='get_buys_by_contract'),
+    path('check_oc_update/', login_required(check_oc_update), name='check_oc_update'),
+    path('save_update_contract/', login_required(save_update_contract), name='save_update_contract'),
 
     # ASIGNAR ALMACEN
     # path('assign_store_modal/', assign_store_modal, name='assign_store_modal'),

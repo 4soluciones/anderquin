@@ -1,4 +1,5 @@
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db import transaction
 from django.db.models.functions import Coalesce
 from django.shortcuts import render
 import decimal
@@ -589,6 +590,9 @@ def update_state_annular_purchase(request):
     if request.method == 'GET':
         id_purchase = request.GET.get('pk', '')
         purchase_obj = Purchase.objects.get(pk=int(id_purchase))
+        contract_detail_purchase = ContractDetailPurchase.objects.filter(purchase=purchase_obj)
+        contract_detail_purchase.delete()
+
         if purchase_obj.status == 'A':
             data = {'error': 'LA COMPRA YA ESTA APROBADA NO ES POSIBLE ANULAR'}
             response = JsonResponse(data)
@@ -1444,7 +1448,7 @@ def contract_list(request):
 
         return render(request, 'buys/contract_list.html', {
             'date_now': formatdate,
-            'contract_set': contract_set,
+            'contract_set': contract_set.order_by('id'),
             'product_set': Product.objects.filter(is_enabled=True)
         })
 
@@ -1566,9 +1570,81 @@ def modal_update_contract(request):
         })
 
 
-def save_update_contract(request):
+def check_oc_update(request):
     if request.method == 'GET':
-        print("update_contract")
+        contract = int(request.GET.get('contract', ''))
+        flag = False
+        contract_detail_set = ContractDetail.objects.filter(contract__id=contract)
+        for c in contract_detail_set:
+            contract_detail_purchase_set = ContractDetailPurchase.objects.filter(contract_detail=c)
+            if contract_detail_purchase_set.exists():
+                flag = True
+            return JsonResponse({
+                'status': 'OK',
+                'flag': flag,
+            }, status=HTTPStatus.OK)
+
+
+@csrf_exempt
+def save_update_contract(request):
+    if request.method == 'POST':
+        _contract = request.POST.get('contract', '')
+        _number_contract = request.POST.get('number_contract_update', '')
+        _register_date = request.POST.get('register_date_update', '')
+        _client = request.POST.get('client', '')
+        _observation = request.POST.get('observations_update', '')
+        # _nro_date = request.POST.get('nro-dates', '')
+        _user = request.POST.get('user_update', '')
+        detail_update = json.loads(request.POST.get('detail_update', ''))
+
+        user_obj = User.objects.get(id=int(_user))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        contract_update_obj = Contract.objects.get(id=int(_contract))
+        client_obj = Client.objects.get(id=int(_client))
+
+        contract_update_obj.contract_number = _number_contract
+        contract_update_obj.client = client_obj
+        contract_update_obj.register_date = _register_date
+        contract_update_obj.subsidiary = subsidiary_obj
+        contract_update_obj.observation = _observation
+        contract_update_obj.user = user_obj
+        contract_update_obj.save()
+
+        with transaction.atomic():
+            contract_detail_to_delete = ContractDetail.objects.filter(contract=contract_update_obj)
+            if contract_detail_to_delete.exists():
+                contract_detail_item_to_delete = ContractDetailItem.objects.filter(
+                    contract_detail__in=contract_detail_to_delete)
+                contract_detail_item_to_delete.delete()
+                contract_detail_to_delete.delete()
+
+        for d in detail_update:
+            # contract_detail = int(d['contract_detail'])
+            nro_quota = str(d['nro_quota'])
+            date_quota = str(d['date_quota'])
+            new_contract_detail_obj = ContractDetail(
+                contract=contract_update_obj,
+                nro_quota=nro_quota,
+                date=date_quota,
+            )
+            new_contract_detail_obj.save()
+            for i in d['items']:
+                product = i['product']
+                quantity = i['quantity']
+                price_unit = decimal.Decimal(i['price_unit'])
+                product_obj = Product.objects.get(id=int(product))
+                new_contract_detail_item_obj = ContractDetailItem(
+                    quantity=quantity,
+                    product=product_obj,
+                    contract_detail=new_contract_detail_obj,
+                    price_unit=price_unit
+                )
+                new_contract_detail_item_obj.save()
+        return JsonResponse({
+            'success': True,
+            'message': 'CONTRATO ACTUALIZADO'
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error contactar con sistemas'}, status=HTTPStatus.BAD_REQUEST)
 
 
 def assign_store_modal(request):
@@ -2159,7 +2235,8 @@ def save_credit_note(request):
             purchase_obj = purchase_detail_obj.purchase
             # parent_purchase_id = purchase_obj.parent_purchase.id
         bill_obj = Bill.objects.get(serial=bill_serial, correlative=bill_correlative)
-        CreditNote.objects.create(nro_document=nro_document, issue_date=date_issue, bill=bill_obj, purchase=purchase_obj)
+        CreditNote.objects.create(nro_document=nro_document, issue_date=date_issue, bill=bill_obj,
+                                  purchase=purchase_obj)
 
         return JsonResponse({
             'message': 'Nota de Credito registrada',
@@ -2169,23 +2246,3 @@ def save_credit_note(request):
             'bill': str(bill_obj)
         }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

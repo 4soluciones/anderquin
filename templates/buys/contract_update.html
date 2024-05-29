@@ -11,348 +11,359 @@
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
-            <input type="hidden"
-                   value="{{ contract_obj.id }}"
-                   id="contract_id"
-                   name="contract">
         </div>
-
-        <div class="modal-body p-2">
-            <div class="card">
-                <div class="card-body bg-light">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div class="row p-1">
-                                <div class="col-6">
-                                    <label class="font-weight-light" for="client_id">Cliente:</label>
-                                    <input type="text" aria-label="..."
-                                           class="form-control form-control-sm text-uppercase client-table-update dropdown-toggle"
-                                           data-toggle="dropdown" aria-expanded="false"
-                                           value="{{ contract_obj.client }}"
-                                           placeholder="Ingrese cliente y presione enter...">
-                                    <div class="dropdown-menu"></div>
-                                    <input type="hidden"
-                                           value="{{ contract_obj.client.id }}"
-                                           id="client_id_update"
-                                           name="client">
-                                </div>
-                                <div class="col-lg-6">
-                                    <label class="font-weight-light"
-                                           for="number_contract">Nº de Contrato:</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
+        <form id="contract-update-form" action="{% url 'buys:save_update_contract' %}" method="POST">
+            {% csrf_token %}
+            <div class="modal-body p-2">
+                <div class="card">
+                    <div class="card-body bg-light">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="row p-1">
+                                    <div class="col-6">
+                                        <input type="hidden"
+                                               value="{{ contract_obj.id }}"
+                                               id="contract_id"
+                                               name="contract">
+                                        <label class="font-weight-light" for="client_id">Cliente:</label>
+                                        <input type="text" aria-label="..."
+                                               class="form-control form-control-sm text-uppercase client-table-update dropdown-toggle"
+                                               data-toggle="dropdown" aria-expanded="false"
+                                               value="{{ contract_obj.client }}" required
+                                               placeholder="Ingrese cliente y presione enter...">
+                                        <div class="dropdown-menu"></div>
+                                        <input type="hidden"
+                                               value="{{ contract_obj.client.id }}"
+                                               id="client_id_update"
+                                               name="client">
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label class="font-weight-light"
+                                               for="number_contract">Nº de Contrato:</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
                                             <span class="input-group-text">
                                                 <i class="fas fa-id-badge"></i>
                                             </span>
+                                            </div>
+                                            <input type="text" class="form-control form-control-sm number-contract"
+                                                   id="number_contract_update" required
+                                                   value="{{ contract_obj.contract_number }}"
+                                                   name="number_contract_update" autocomplete="off">
                                         </div>
-                                        <input type="text" class="form-control form-control-sm number-contract"
-                                               id="number_contract_update"
-                                               value="{{ contract_obj.contract_number }}"
-                                               name="number-contract" autocomplete="off">
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row p-1">
-                                <div class="col-lg-3">
-                                    <label class="font-weight-light" for="register_date">Fecha de
-                                        registro</label>
-                                    <input type="date" class="form-control form-control-sm" id="register_date_update"
-                                           name="register-name" value="{{ contract_obj.register_date|date:'Y-m-d' }}">
+                                <div class="row p-1">
+                                    <div class="col-lg-3">
+                                        <label class="font-weight-light" for="register_date">Fecha de
+                                            registro</label>
+                                        <input type="date" class="form-control form-control-sm"
+                                               id="register_date_update"
+                                               name="register_date_update" required
+                                               value="{{ contract_obj.register_date|date:'Y-m-d' }}">
+                                    </div>
+                                    <div class="col-sm-3 col-md-3 col-lg-3">
+                                        <label for="user_id_update">Vendedor:</label>
+                                        <select id="user_id_update" name="user_update" required class="form-control form-control-sm">
+                                            <option selected disabled value="0">Seleccione..</option>
+                                            {% for u in user_set %}
+                                                {% if u.id == contract_obj.user.id %}
+                                                    <option selected value="{{ u.id }}">{{ u.username|upper }}</option>
+                                                {% else %}
+                                                    <option value="{{ u.id }}">{{ u.username|upper }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+                                        <label for="observations_update" class="">Observaciones:</label>
+                                        <input type="text" class="form-control form-control-sm" id="observations_update"
+                                               name="observations_update"
+                                               value="{{ contract_obj.observation }}"
+                                               placeholder="...">
+                                    </div>
                                 </div>
-                                <div class="col-sm-3 col-md-3 col-lg-3">
-                                    <label for="user_id_update">Vendedor:</label>
-                                    <select id="user_id_update" name="user" class="form-control form-control-sm">
-                                        <option selected disabled value="0">Seleccione..</option>
-                                        {% for u in user_set %}
-                                            {% if u.id == contract_obj.user.id %}
-                                                <option selected value="{{ u.id }}">{{ u.username|upper }}</option>
-                                            {% else %}
-                                                <option value="{{ u.id }}">{{ u.username|upper }}</option>
-                                            {% endif %}
+                                <div class="row p-1">
+                                    <div class="col-sm-1 col-md-1 col-lg-1 pr-0">
+                                        <label class="font-weight-light" for="nro_dates-update">Nº entregas:</label>
+                                        <input type="text" class="form-control form-control-sm text-center"
+                                               id="nro_dates-update"
+                                               value=""
+                                               name="nro-dates" placeholder="-">
+                                    </div>
+                                    <div class="col-sm-7 col-md-7 col-lg-7 pr-0">
+                                        <table id="table-product-add-update"
+                                               class="table table-sm align-content-center table-borderless mb-0">
+                                            <thead>
+                                            <tr class="">
+                                                <th scope="col" class="align-middle font-weight-light pb-0"
+                                                    style="width: 50%; color: #3e4676">
+                                                    Producto
+                                                </th>
+                                                <th scope="col" class="align-middle font-weight-light pb-0 text-right"
+                                                    style="width: 14%; color: #3e4676">
+                                                    Cantidad
+                                                </th>
+                                                <th scope="col" class="align-middle font-weight-light pb-0 text-right"
+                                                    style="width: 13%; color: #3e4676">
+                                                    Precio Unit.
+                                                </th>
+                                                <th scope="col" class="align-middle font-weight-light pb-0 text-right"
+                                                    style="width: 15%; color: #3e4676">
+                                                    Monto
+                                                </th>
+                                                <th scope="col" class="align-middle font-weight-light pb-0 text-right"
+                                                    style="width: 8%; color: #3e4676"></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody id="tbody-product-add-update">
+                                            <tr class="text-center" i="1">
+                                                <td class="item-product-add-update align-middle text-center">
+                                                    <select id="product_add-id-update"
+                                                            class="form-control form-control-sm product-add-update">
+                                                        <option value="0">Seleccione</option>
+                                                        {% for p in product_set %}
+                                                            <option value="{{ p.id }}">{{ p.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                                <td class="item-quantity-add-update align-middle text-center pt-0">
+                                                    <input type="text"
+                                                           class="form-control form-control-sm text-right quantity-add-update"
+                                                           placeholder="0.00" autocomplete="off">
+                                                </td>
+                                                <td class="item-price-unit-add-update align-middle text-center pt-0">
+                                                    <input type="text"
+                                                           class="form-control form-control-sm text-right price-unit-add-update"
+                                                           placeholder="0.00" autocomplete="off">
+                                                </td>
+                                                <td class="item-amount-add-update align-middle text-center pt-0">
+                                                    <input type="text"
+                                                           class="form-control form-control-sm text-right amount-add-update"
+                                                           placeholder="0.00" autocomplete="off">
+                                                </td>
+                                                <td class="align-middle pt-0">
+                                                    <button type="button" onclick="addProductHeaderUpdate()"
+                                                            class="btn btn-outline-success btn-block btn-sm">
+                                                        <i class="fas fa-plus"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="col-sm-2 col-md-2 col-lg-2">
+                                        <label class="" for="btn-add-dates-update">&nbsp;</label>
+                                        <button type="button" id="btn-add-dates-update"
+                                                class="btn btn-sm btn-success btn-block" disabled
+                                                onclick="addDatesUpdate()">Agregar Fechas
+                                        </button>
+                                    </div>
+                                    <div class="col-sm-2 col-md-2 col-lg-2">
+                                        <label class="" for="clean-dates-update">&nbsp;</label>
+                                        <button type="button" id="clean-dates-update"
+                                                class="btn btn-sm btn-danger btn-block">Limpiar
+                                        </button>
+                                    </div>
+                                    {#                                <div class="col-sm-4 col-md-4 col-lg-4">#}
+                                    {#                                    <label class="font-weight-light" for="product_add_id">Producto:</label>#}
+                                    {#                                    <select id="product_add_id" class="form-control form-control-sm">' +#}
+                                    {#                                        <option value="0">Seleccione</option>#}
+                                    {#                                        {% for p in product_set %}#}
+                                    {#                                            <option value="{{ p.id }}">{{ p.name }}</option>#}
+                                    {#                                        {% endfor %}#}
+                                    {#                                    </select>#}
+                                    {#                                </div>#}
+                                    {#                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">#}
+                                    {#                                    <label class="font-weight-light" for="quantity_add">Cantidad</label>#}
+                                    {#                                    <input type="text" class="form-control form-control-sm text-right"#}
+                                    {#                                           id="quantity_add"#}
+                                    {#                                           name="quantity-add" placeholder="0.00">#}
+                                    {#                                </div>#}
+                                    {#                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">#}
+                                    {#                                    <label class="font-weight-light" for="price_unit">Precio Unit.</label>#}
+                                    {#                                    <input type="text" class="form-control form-control-sm text-right"#}
+                                    {#                                           id="price_unit"#}
+                                    {#                                           name="price-unit-add" placeholder="0.00">#}
+                                    {#                                </div>#}
+                                    {#                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">#}
+                                    {#                                    <label class="font-weight-light" for="total">Total</label>#}
+                                    {#                                    <input type="text" class="form-control form-control-sm text-right"#}
+                                    {#                                           id="total"#}
+                                    {#                                           name="total-add" placeholder="0.00">#}
+                                    {#                                </div>#}
+                                    {#                                <div class="col-sm-2 col-md-2 col-lg-2">#}
+                                    {#                                    <label class="" for="btn-add-dates-update">&nbsp;</label>#}
+                                    {#                                    <button type="button" id="btn-add-dates-update"#}
+                                    {#                                            class="btn btn-sm btn-success btn-block" onclick="addDates()">Agregar Fechas#}
+                                    {#                                    </button>#}
+                                    {#                                </div>#}
+                                    {#                                <div class="col-sm-2 col-md-2 col-lg-2">#}
+                                    {#                                    <label class="" for="clean-dates">&nbsp;</label>#}
+                                    {#                                    <button type="button" id="clean-dates"#}
+                                    {#                                            class="btn btn-sm btn-danger btn-block">Limpiar#}
+                                    {#                                    </button>#}
+                                    {#                                </div>#}
+                                </div>
+
+                                <div class="d-flex pt-4 pb-3">
+                                    <hr class="my-auto flex-grow-1 bg-primary border-dark">
+                                    <div class="px-3 font-weight-bold" style="font-size: 1.1375rem;">FECHAS DE ENTREGA
+                                    </div>
+                                    <hr class="my-auto flex-grow-1 bg-primary border-dark">
+                                </div>
+
+                                <div class="row pt-2">
+                                    <div class="col-sm-12 col-md-12 col-lg-12 dates-quotas-update">
+                                        {% for c in contract_obj.contractdetail_set.all %}
+                                            <div class="card mb-2 main-dates-update" style="border-color: #848d9f">
+                                                <div class="card-header pt-1 pb-1">
+                                                    <div class="row">
+                                                        <div class="col-sm-2 col-md-2 col-lg-2 text-left item-number-update">
+                                                            <label for="number-quota-update"
+                                                                   class="mt-2 font-weight-bold">
+                                                                FECHA
+                                                                DE ENTREGA {{ c.nro_quota }} </label>
+                                                            <input type=hidden class="number-quota-update"
+                                                                   value="{{ c.nro_quota }}">
+                                                            <input type="hidden" class="contract_detail"
+                                                                   value="{{ c.id }}">
+                                                        </div>
+                                                        <div class="col-sm-3 col-md-3 col-lg-3 item-date-quota-update">
+                                                            <input type="date"
+                                                                   class="form-control date-quota-update text-center"
+                                                                   id="date-quota-update"
+                                                                   value="{{ c.date|date:'Y-m-d' }}">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body p-1">
+                                                    <table id="table-date-update-{{ c.nro_quota }}"
+                                                           class="table table-hover table-sm align-content-center table-bordered mb-0">
+                                                        <thead>
+                                                        <tr class="text-center text-white" style="background: #1a77c8">
+                                                            <th scope="col" class="align-middle font-weight-normal"
+                                                                style="width: 10%;">Item
+                                                            </th>
+                                                            <th scope="col" class="align-middle font-weight-normal"
+                                                                style="width: 60%;">Producto
+                                                            </th>
+                                                            <th scope="col" class="align-middle font-weight-normal"
+                                                                style="width: 10%;">Cantidad
+                                                            </th>
+                                                            <th scope="col" class="align-middle font-weight-normal"
+                                                                style="width: 10%;">P. U.
+                                                            </th>
+                                                            <th scope="col" class="align-middle font-weight-normal"
+                                                                style="width: 10%;">Monto
+                                                            </th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody id="details-table-date-update-{{ c.nro_quota }}"
+                                                               number="{{ c.nro_quota }}">
+                                                        {% for cd in c.contractdetailitem_set.all %}
+                                                            <tr class="text-center">
+                                                                <td class="item-number-update align-middle text-center">{{ forloop.counter }}
+                                                                    <input type="hidden" class="contract-detail-item"
+                                                                           value="{{ cd.id }}">
+                                                                </td>
+                                                                <td class="item-product-add-update align-middle text-center">
+                                                                    <label for="product_id"
+                                                                           class="sr-only">Producto</label>
+                                                                    <select id="product_id"
+                                                                            class="form-control form-control-sm product-add-update">
+                                                                        {% for p in product_set %}
+                                                                            {% if p.id == cd.product.id %}
+                                                                                <option value="{{ p.id }}"
+                                                                                        selected>{{ p.name }}</option>
+                                                                            {% else %}
+                                                                                <option value="{{ p.id }}">{{ p.name }}</option>
+                                                                            {% endif %}
+                                                                        {% endfor %}
+                                                                    </select>
+                                                                </td>
+                                                                <td class="item-quantity-add-update align-middle text-center">
+                                                                    <input type="text"
+                                                                           class="form-control text-right quantity-add-update"
+                                                                           autocomplete="off"
+                                                                           value="{{ cd.quantity|replace_round }}">
+                                                                </td>
+                                                                <td class="item-price-unit-add-update align-middle text-center">
+                                                                    <input type="text"
+                                                                           class="form-control text-right price-unit-add-update"
+                                                                           value="{{ cd.price_unit|replace_round }}"
+                                                                           autocomplete="off">
+                                                                </td>
+                                                                <td class="item-amount-add-update align-middle text-center">
+                                                                    <input type="text"
+                                                                           class="form-control text-right amount-add-update"
+                                                                           value="{{ cd.amount|replace_round }}"
+                                                                           placeholder="0.00" autocomplete="off">
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
                                         {% endfor %}
-                                    </select>
+                                    </div>
                                 </div>
-                                <div class="col-sm-6 col-md-6 col-lg-6">
-                                    <label for="observations_update" class="">Observaciones:</label>
-                                    <input type="text" class="form-control form-control-sm" id="observations_update"
-                                           name="observations_update"
-                                           value="{{ contract_obj.observation }}"
-                                           placeholder="...">
-                                </div>
-                            </div>
-                            <div class="row p-1">
-                                <div class="col-sm-1 col-md-1 col-lg-1 pr-0">
-                                    <label class="font-weight-light" for="nro_dates-update">Nº entregas:</label>
-                                    <input type="text" class="form-control form-control-sm text-center"
-                                           id="nro_dates-update"
-                                           value=""
-                                           name="nro-dates" placeholder="-">
-                                </div>
-                                <div class="col-sm-7 col-md-7 col-lg-7 pr-0">
-                                    <table id="table-product-add-update"
-                                           class="table table-sm align-content-center table-borderless mb-0">
+                                <div class="row pt-2">
+                                    <table id="table-totals" class="table table-sm align-content-center">
                                         <thead>
-                                        <tr class="">
-                                            <th scope="col" class="align-middle font-weight-light pb-0"
-                                                style="width: 50%; color: #3e4676">
-                                                Producto
-                                            </th>
-                                            <th scope="col" class="align-middle font-weight-light pb-0 text-right"
-                                                style="width: 14%; color: #3e4676">
-                                                Cantidad
-                                            </th>
-                                            <th scope="col" class="align-middle font-weight-light pb-0 text-right"
-                                                style="width: 13%; color: #3e4676">
-                                                Precio Unit.
-                                            </th>
-                                            <th scope="col" class="align-middle font-weight-light pb-0 text-right"
-                                                style="width: 15%; color: #3e4676">
-                                                Monto
-                                            </th>
-                                            <th scope="col" class="align-middle font-weight-light pb-0 text-right"
-                                                style="width: 8%; color: #3e4676"></th>
+                                        <tr>
+                                            <th style="width: 10%;"></th>
+                                            <th style="width: 50%;"></th>
+                                            <th style="width: 10%;"></th>
+                                            <th style="width: 10%;"></th>
+                                            <th style="width: 10%;"></th>
+                                            <th style="width: 10%;"></th>
                                         </tr>
                                         </thead>
-                                        <tbody id="tbody-product-add-update">
-                                        <tr class="text-center" i="1">
-                                            <td class="item-product-add-update align-middle text-center">
-                                                <select id="product_add-id-update"
-                                                        class="form-control form-control-sm product-add-update">
-                                                    <option value="0">Seleccione</option>
-                                                    {% for p in product_set %}
-                                                        <option value="{{ p.id }}">{{ p.name }}</option>
-                                                    {% endfor %}
-                                                </select>
+                                        <tbody>
+                                        <tr class="">
+                                            <td class="align-middle text-right font-weight-bold" colspan="2">
+                                                TOTAL CANTIDAD
                                             </td>
-                                            <td class="item-quantity-add-update align-middle text-center pt-0">
-                                                <input type="text"
-                                                       class="form-control form-control-sm text-right quantity-add-update"
-                                                       placeholder="0.00" autocomplete="off">
+                                            <td class="align-middle">
+                                                <div class="input-icon font-weight-bold">
+                                                    <input type="text" class="form-control text-center font-weight-bold"
+                                                           id="total-quantity-update" aria-label="..."
+                                                           value="{{ sum_quantity|replace_round }}"
+                                                           placeholder="0.00" readonly>
+                                                    <i class="change-money">S/</i>
+                                                </div>
                                             </td>
-                                            <td class="item-price-unit-add-update align-middle text-center pt-0">
-                                                <input type="text"
-                                                       class="form-control form-control-sm text-right price-unit-add-update"
-                                                       placeholder="0.00" autocomplete="off">
+                                            <td class="text-center align-middle text-right font-weight-bold">
+                                                TOTAL MONTO
                                             </td>
-                                            <td class="item-amount-add-update align-middle text-center pt-0">
-                                                <input type="text"
-                                                       class="form-control form-control-sm text-right amount-add-update"
-                                                       placeholder="0.00" autocomplete="off">
-                                            </td>
-                                            <td class="align-middle pt-0">
-                                                <button type="button" onclick="addProductHeaderUpdate()"
-                                                        class="btn btn-outline-success btn-block btn-sm">
-                                                    <i class="fas fa-plus"></i>
-                                                </button>
+                                            <td class="align-middle" style="width: 10%">
+                                                <div class="input-icon font-weight-bold">
+                                                    <input type="text" class="form-control text-center font-weight-bold"
+                                                           id="total-amount-update" aria-label="..."
+                                                           value="{{ sum_amount|replace_round }}"
+                                                           placeholder="0.00" readonly>
+                                                    <i class="change-money">S/</i>
+                                                </div>
                                             </td>
                                         </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                                <div class="col-sm-2 col-md-2 col-lg-2">
-                                    <label class="" for="btn-add-dates-update">&nbsp;</label>
-                                    <button type="button" id="btn-add-dates-update"
-                                            class="btn btn-sm btn-success btn-block" disabled
-                                            onclick="addDatesUpdate()">Agregar Fechas
-                                    </button>
-                                </div>
-                                <div class="col-sm-2 col-md-2 col-lg-2">
-                                    <label class="" for="clean-dates-update">&nbsp;</label>
-                                    <button type="button" id="clean-dates-update"
-                                            class="btn btn-sm btn-danger btn-block">Limpiar
-                                    </button>
-                                </div>
-                                {#                                <div class="col-sm-4 col-md-4 col-lg-4">#}
-                                {#                                    <label class="font-weight-light" for="product_add_id">Producto:</label>#}
-                                {#                                    <select id="product_add_id" class="form-control form-control-sm">' +#}
-                                {#                                        <option value="0">Seleccione</option>#}
-                                {#                                        {% for p in product_set %}#}
-                                {#                                            <option value="{{ p.id }}">{{ p.name }}</option>#}
-                                {#                                        {% endfor %}#}
-                                {#                                    </select>#}
-                                {#                                </div>#}
-                                {#                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">#}
-                                {#                                    <label class="font-weight-light" for="quantity_add">Cantidad</label>#}
-                                {#                                    <input type="text" class="form-control form-control-sm text-right"#}
-                                {#                                           id="quantity_add"#}
-                                {#                                           name="quantity-add" placeholder="0.00">#}
-                                {#                                </div>#}
-                                {#                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">#}
-                                {#                                    <label class="font-weight-light" for="price_unit">Precio Unit.</label>#}
-                                {#                                    <input type="text" class="form-control form-control-sm text-right"#}
-                                {#                                           id="price_unit"#}
-                                {#                                           name="price-unit-add" placeholder="0.00">#}
-                                {#                                </div>#}
-                                {#                                <div class="col-sm-1 col-md-1 col-lg-1 text-right pr-0">#}
-                                {#                                    <label class="font-weight-light" for="total">Total</label>#}
-                                {#                                    <input type="text" class="form-control form-control-sm text-right"#}
-                                {#                                           id="total"#}
-                                {#                                           name="total-add" placeholder="0.00">#}
-                                {#                                </div>#}
-                                {#                                <div class="col-sm-2 col-md-2 col-lg-2">#}
-                                {#                                    <label class="" for="btn-add-dates-update">&nbsp;</label>#}
-                                {#                                    <button type="button" id="btn-add-dates-update"#}
-                                {#                                            class="btn btn-sm btn-success btn-block" onclick="addDates()">Agregar Fechas#}
-                                {#                                    </button>#}
-                                {#                                </div>#}
-                                {#                                <div class="col-sm-2 col-md-2 col-lg-2">#}
-                                {#                                    <label class="" for="clean-dates">&nbsp;</label>#}
-                                {#                                    <button type="button" id="clean-dates"#}
-                                {#                                            class="btn btn-sm btn-danger btn-block">Limpiar#}
-                                {#                                    </button>#}
-                                {#                                </div>#}
-                            </div>
-
-                            <div class="d-flex pt-4 pb-3">
-                                <hr class="my-auto flex-grow-1 bg-primary border-dark">
-                                <div class="px-3 font-weight-bold" style="font-size: 1.1375rem;">FECHAS DE ENTREGA</div>
-                                <hr class="my-auto flex-grow-1 bg-primary border-dark">
-                            </div>
-
-                            <div class="row pt-2">
-                                <div class="col-sm-12 col-md-12 col-lg-12 dates-quotas-update">
-                                    {% for c in contract_obj.contractdetail_set.all %}
-                                        <div class="card mb-2 main-dates-update" style="border-color: #848d9f">
-                                            <div class="card-header pt-1 pb-1">
-                                                <div class="row">
-                                                    <div class="col-sm-2 col-md-2 col-lg-2 text-left item-number-update">
-                                                        <label for="number-quota-update" class="mt-2 font-weight-bold">
-                                                            FECHA
-                                                            DE ENTREGA {{ c.nro_quota }} </label>
-                                                        <input type=hidden class="number-quota-update"
-                                                               value="{{ c.nro_quota }}">
-                                                    </div>
-                                                    <div class="col-sm-3 col-md-3 col-lg-3 item-date-quota-update">
-                                                        <input type="date"
-                                                               class="form-control date-quota-update text-center"
-                                                               id="date-quota-update" value="{{ c.date|date:'Y-m-d' }}">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="card-body p-1">
-                                                <table id="table-date-update-{{ c.nro_quota }}"
-                                                       class="table table-hover table-sm align-content-center table-bordered mb-0">
-                                                    <thead>
-                                                    <tr class="text-center text-white" style="background: #1a77c8">
-                                                        <th scope="col" class="align-middle font-weight-normal"
-                                                            style="width: 10%;">Item
-                                                        </th>
-                                                        <th scope="col" class="align-middle font-weight-normal"
-                                                            style="width: 60%;">Producto
-                                                        </th>
-                                                        <th scope="col" class="align-middle font-weight-normal"
-                                                            style="width: 10%;">Cantidad
-                                                        </th>
-                                                        <th scope="col" class="align-middle font-weight-normal"
-                                                            style="width: 10%;">P. U.
-                                                        </th>
-                                                        <th scope="col" class="align-middle font-weight-normal"
-                                                            style="width: 10%;">Monto
-                                                        </th>
-                                                    </tr>
-                                                    </thead>
-                                                    <tbody id="details-table-date-update-{{ c.nro_quota }}"
-                                                           number="{{ c.nro_quota }}">
-                                                    {% for cd in c.contractdetailitem_set.all %}
-                                                        <tr class="text-center">
-                                                            <td class="item-number-update align-middle text-center">1
-                                                            </td>
-                                                            <td class="item-product-add-update align-middle text-center">
-                                                                <label for="product_id" class="sr-only">Producto</label>
-                                                                <select id="product_id"
-                                                                        class="form-control form-control-sm product-add-update">
-                                                                    {% for p in product_set %}
-                                                                        {% if p.id == cd.product.id %}
-                                                                            <option value="{{ p.id }}"
-                                                                                    selected>{{ p.name }}</option>
-                                                                        {% else %}
-                                                                            <option value="{{ p.id }}">{{ p.name }}</option>
-                                                                        {% endif %}
-                                                                    {% endfor %}
-                                                                </select>
-                                                            </td>
-                                                            <td class="item-quantity-add-update align-middle text-center">
-                                                                <input type="text"
-                                                                       class="form-control text-right quantity-add-update"
-                                                                       autocomplete="off"
-                                                                       value="{{ cd.quantity|replace_round }}">
-                                                            </td>
-                                                            <td class="item-price-unit-add-update align-middle text-center">
-                                                                <input type="text"
-                                                                       class="form-control text-right price-unit-add-update"
-                                                                       value="{{ cd.price_unit|replace_round }}"
-                                                                       autocomplete="off">
-                                                            </td>
-                                                            <td class="item-amount-add-update align-middle text-center">
-                                                                <input type="text"
-                                                                       class="form-control text-right amount-add-update"
-                                                                       value="{{ cd.amount|replace_round }}"
-                                                                       placeholder="0.00" autocomplete="off">
-                                                            </td>
-                                                        </tr>
-                                                    {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            <div class="row pt-2">
-                                <table id="table-totals" class="table table-sm align-content-center">
-                                    <thead>
-                                    <tr>
-                                        <th style="width: 10%;"></th>
-                                        <th style="width: 50%;"></th>
-                                        <th style="width: 10%;"></th>
-                                        <th style="width: 10%;"></th>
-                                        <th style="width: 10%;"></th>
-                                        <th style="width: 10%;"></th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr class="">
-                                        <td class="align-middle text-right font-weight-bold" colspan="2">
-                                            TOTAL CANTIDAD
-                                        </td>
-                                        <td class="align-middle">
-                                            <div class="input-icon font-weight-bold">
-                                                <input type="text" class="form-control text-center font-weight-bold"
-                                                       id="total-quantity-update" aria-label="..."
-                                                       value="{{ sum_quantity|replace_round }}"
-                                                       placeholder="0.00" readonly>
-                                                <i class="change-money">S/</i>
-                                            </div>
-                                        </td>
-                                        <td class="text-center align-middle text-right font-weight-bold">
-                                            TOTAL MONTO
-                                        </td>
-                                        <td class="align-middle" style="width: 10%">
-                                            <div class="input-icon font-weight-bold">
-                                                <input type="text" class="form-control text-center font-weight-bold"
-                                                       id="total-amount-update" aria-label="..."
-                                                       value="{{ sum_amount|replace_round }}"
-                                                       placeholder="0.00" readonly>
-                                                <i class="change-money">S/</i>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
                             </div>
                         </div>
                     </div>
+                    <!-- /.card -->
                 </div>
-                <!-- /.card -->
+            </div><!-- modal-body -->
+            <div class="modal-footer bg-light p-2">
+                <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="btn-update-contract" type="submit" class="btn btn-warning font-weight-light">Actualizar
+                </button>
             </div>
-        </div><!-- modal-body -->
-        <div class="modal-footer bg-light p-2">
-            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
-            &nbsp;
-            <button id="btn-update-contract" type="button" class="btn btn-warning font-weight-light">Actualizar
-            </button>
-        </div>
-
+        </form>
         <div class="mr-3 ml-0" style="
                 display: none;
                 position: fixed;
@@ -701,68 +712,54 @@
         $(this).parent('div.dropdown-menu').addClass('hide')
     });
 
-    $('#btn-update-contract').on('click', function (e) {
-        updateContract()
-    })
-
-    function updateContract() {
-        let _contract = $('#contract_id').val()
-        let _number_contract = $('#number_contract_update').val()
-        let _register_date = $('#register_date_update').val()
-        let _client = $('#client_id_update').val();
-        let _observations = $('#observations_update').val()
-        let _nro_dates = $('#nro_dates-update').val()
-        let _user = $('#user_id_update').val()
-
-        if (_number_contract.length === 0) {
-            toastr.warning('¡Favor de ingresar el numero de contrato!', 'Error de Datos');
-            return false;
-        }
-        if (_register_date.length === 0) {
-            toastr.warning('¡Favor de seleccionar una fecha valida', 'Error de Datos!');
-            return false;
-        }
-        if (_client === '') {
-            toastr.warning('¡Favor de seleccionar un cliente', 'Error de Datos!');
-            return false;
-        }
-        if (_nro_dates === '0') {
-            toastr.warning('¡Ingrese al menos una Fecha de entrega', 'Error de Datos!');
-            return false;
-        }
-        if (_user === '0') {
-            toastr.warning('¡Favor de seleccionar el vendedor', 'Error de Datos!');
-            return false;
-        }
-        let contract_update = {
-            "contract": _contract,
-            "number_contract": _number_contract,
-            'register_date': _register_date,
-            'client': _client,
-            'observation': _observations,
-            'user': _user,
-            "dates": []
-        };
-        let dateUpdateObj = {};
-        let itemUpdateObj = {};
-        $('#main-dates-update').each(function () {
+    $('#contract-update-form').submit(function (event) {
+        event.preventDefault();
+        let detailsUpdate = [];
+        //let itemUpdateObj = {};
+        $('.main-dates-update').each(function () {
             let nro_quota = $(this).find("div.item-number-update input.number-quota-update").val()
-            dateUpdateObj = {
+            let detailsObj = {
+                "contract_detail": $(this).find("div.item-number-update input.contract_detail").val(),
                 "nro_quota": nro_quota,
                 "date_quota": $(this).find("div.item-date-quota-update input.date-quota-update").val(),
                 "items": []
             }
             $(`tbody#details-table-date-update-${nro_quota} tr`).each(function () {
-                itemUpdateObj = {
+                let itemUpdateObj = {
+                    "contract_detail_item": $(this).find("td.item-number-update input.contract-detail-item").val(),
                     "product": $(this).find("td.item-product-add-update select.product-add-update").val(),
                     "quantity": $(this).find("td.item-quantity-add-update input.quantity-add-update").val(),
                     "price_unit": $(this).find("td.item-price-unit-add-update input.price-unit-add-update").val(),
                 }
-                dateUpdateObj.items.push(itemUpdateObj)
+                detailsObj.items.push(itemUpdateObj)
             });
-            contract_update.dates.push(dateUpdateObj);
-        })
-        console.log(contract_update)
-    }
+            detailsUpdate.push(detailsObj);
+        });
+        let data = new FormData($('#contract-update-form').get(0));
+        data.append('detail_update', JSON.stringify(detailsUpdate));
+        $('#btn-update-contract').attr('disabled', true);
+        $.ajax({
+            url: $(this).attr('action'),
+            type: $(this).attr('method'),
+            async: true,
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                }
+            },
+            error: function (response) {
+                toastr.error(response.message, "Guardado Fallido");
+            }
+        });
+    });
+
 
 </script>

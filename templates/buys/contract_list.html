@@ -61,7 +61,7 @@
                     </div>
                     <div class="row mb-1 mt-0">
                         <div class="col-lg-12">
-{#                            <div id="purchases-with-bill-grid">{% include "accounting/purchase_grid_list_bill_finances.html" %}</div>#}
+                            {#                            <div id="purchases-with-bill-grid">{% include "accounting/purchase_grid_list_bill_finances.html" %}</div>#}
                         </div>
                     </div>
                 </div>
@@ -115,22 +115,45 @@
             });
         }
 
-        $(document).on('click', '.btn-edit-contract', function () {
-            let _pk = $(this).attr('pk');
-            $.ajax({
-                url: '/buys/modal_update_contract/',
-                dataType: 'json',
-                type: 'GET',
-                data: {'pk': _pk},
-                success: function (response) {
-                    $('#modal-contract-update').html(response.form);
-                    $('#modal-contract-update').modal('show');
-                },
-                fail: function (response) {
-                    toastr.error('Error en la peticion', '¡Mensaje!');
-                }
-            });
+        function checkOCUpdate(contract) {
+            return new Promise(function (resolve, reject) {
+                $.ajax({
+                    url: '/buys/check_oc_update/',
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'contract': contract},
+                    success: function (response) {
+                        resolve(response.flag)
+                    },
+                    fail: function (response) {
+                        toastr.error('Error en la peticion', '¡Mensaje!');
+                    }
+                });
+            })
+        }
 
+        $(document).on('click', '.btn-edit-contract', async function () {
+            let _pk = $(this).attr('pk');
+            let flag = await checkOCUpdate(_pk).then(e => {
+                return e
+            });
+            if (flag === true) {
+                toastr.error('No se puede editar un contrato con Orden de compra Anule todas las Ordenes de compra primero antes de editar', '¡Mensaje!');
+            } else {
+                $.ajax({
+                    url: '/buys/modal_update_contract/',
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'pk': _pk},
+                    success: function (response) {
+                        $('#modal-contract-update').html(response.form);
+                        $('#modal-contract-update').modal('show');
+                    },
+                    fail: function (response) {
+                        toastr.error('Error en la peticion', '¡Mensaje!');
+                    }
+                });
+            }
         });
 
         {#$(document).on('click', '.delete-row-address', function () {#}
