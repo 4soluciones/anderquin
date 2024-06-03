@@ -34,30 +34,20 @@
 
             <td class="align-middle text-primary" >{{ kardex.id }}</td>
             <td class="align-middle text-primary text-center" >{{ kardex.create_at|date:"d/m/Y" }}</td>
-            <td class="align-middle text-primary text-center small font-weight-bolder" >
-                {% if kardex.programming_invoice %}
-                    <span class="text-danger">PI:{{ kardex.programming_invoice.id }}</span><br>
-                    Proc. :<br>
-                    {{ kardex.programming_invoice.requirement_buys.subsidiary.name }}<br>
-                    {{ kardex.programming_invoice.kardex_set.first.product_store.subsidiary_store.name }}<br>
-
-                {% elif kardex.purchase_detail.id %}
-                    <span class="text-success">COMPRA</span>
-{#                    <span class="text-success">COMPRA[PD]:{{ kardex.purchase_detail.id }}</span>#}
+            <td class="align-middle text-primary text-left small font-weight-bolder"style="font-size: 10px">
+                {% if kardex.bill_detail.id %}
+                    <span class="text-success">COMPRA</span><br>
+                    <span class="text-success">{{ kardex.bill_detail.bill }}</span>
                 {% elif kardex.order_detail.id %}
                     <span class="text-success">VENTA</span>
-{#                    <span class="text-success">VENTA[{{ kardex.order_detail.order.type }}][OD]:{{ kardex.order_detail.id }}</span>#}
-{#                {% elif kardex.distribution_detail.id %}#}
-{#                    <span class="text-primary">DISTRIBUCION[DD]:{{ kardex.distribution_detail.id }}</span><br>#}
-{#                    <span class="text-primary">PLACA: {{ kardex.distribution_detail.distribution_mobil.truck.license_plate }}</span>#}
-                    <span class="text-warning">GUIA[GD]:{{ kardex.guide_detail.id }}</span><br>
-                    {% if kardex.guide_detail.guide.programming is None %}
-                        {% if kardex.guide_detail.guide.guide_motive.type == 'E' %}
-                            NOTA DE ENTRADA:<br>[{{ kardex.guide_detail.guide.get_serial }}-{{ kardex.guide_detail.guide.code }}]
-                        {% elif kardex.guide_detail.guide.guide_motive.type == 'S' %}
-                            NOTA DE SALIDA:<br>[{{ kardex.guide_detail.guide.get_serial }}-{{ kardex.guide_detail.guide.code }}]
-                        {% endif %}
-                    {% endif %}
+                    <span class="text-success">{{ kardex.order_detail.order.serial }}-{{ kardex.order_detail.order.correlative }}</span>
+{#                    {% if kardex.guide_detail.guide.programming is None %}#}
+{#                        {% if kardex.guide_detail.guide.guide_motive.type == 'E' %}#}
+{#                            NOTA DE ENTRADA:<br>[{{ kardex.guide_detail.guide.get_serial }}-{{ kardex.guide_detail.guide.code }}]#}
+{#                        {% elif kardex.guide_detail.guide.guide_motive.type == 'S' %}#}
+{#                            NOTA DE SALIDA:<br>[{{ kardex.guide_detail.guide.get_serial }}-{{ kardex.guide_detail.guide.code }}]#}
+{#                        {% endif %}#}
+{#                    {% endif %}#}
                 {% endif %}
             </td>
             <td class="align-middle text-primary" >{{ kardex.get_operation_display }}</td>

@@ -106,6 +106,9 @@ urlpatterns = [
     path('get_product_grid/', login_required(get_product_grid), name='get_product_grid'),
     path('check_stock/', login_required(check_stock), name='check_stock'),
 
+    # SALES GUIDE
+    path('sales/<int:guide>/', get_sales_list, name='sales'),
+
     # CREATE_SALE_WAREHOUSE
     path('create_warehouse_sale/', login_required(create_warehouse_sale), name='create_warehouse_sale'),
     path('delete_warehouse_sale/', login_required(delete_warehouse_sale), name='delete_warehouse_sale'),

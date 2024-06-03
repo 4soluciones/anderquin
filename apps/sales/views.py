@@ -389,19 +389,10 @@ def get_list_kardex(request):
                 product_store=product_store[0], create_at__date__range=[start_date, end_date]
             ).select_related(
                 'product_store__product',
-                'requirement_detail',
                 'purchase_detail',
-                'manufacture_detail',
-                'manufacture_recipe',
                 'order_detail__order',
-                'distribution_detail__distribution_mobil__truck',
                 'loan_payment',
-                'ball_change',
                 'guide_detail__guide__guide_motive',
-                'advance_detail__client_advancement__client',
-            ).prefetch_related(
-                Prefetch('programming_invoice__kardex_set',
-                         queryset=Kardex.objects.select_related('product_store__subsidiary_store')),
             ).order_by('id')
 
         t = loader.get_template('sales/kardex_grid_list.html')
@@ -669,7 +660,7 @@ class SalesOrder(View):
             series_set = Subsidiary.objects.filter(id=subsidiary_obj.id)
             cash_set = Cash.objects.filter(subsidiary=subsidiary_obj, accounting_account__code__startswith='101')
             cash_deposit_set = Cash.objects.filter(accounting_account__code__startswith='104')
-            family_set = ProductFamily.objects.all()
+            # family_set = ProductFamily.objects.all()
             users_set = User.objects.filter(is_superuser=False, is_staff=True)
 
             selected_choices = 'EC', 'L', 'Y'
@@ -678,8 +669,8 @@ class SalesOrder(View):
             context['error'] = error
             context['sales_store'] = sales_store
             context['subsidiary'] = subsidiary_obj
-            context['family_set'] = family_set
-            context['districts'] = District.objects.all()
+            # context['family_set'] = family_set
+            # context['districts'] = District.objects.all()
             context['document_types'] = document_types
             context['date'] = formatdate
             context['choices_payments'] = [(k, v) for k, v in TransactionPayment._meta.get_field('type').choices
@@ -3875,3 +3866,64 @@ def bill_create_credit_note(request):
             'bill': str(bill_obj)
         }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_sales_list(request, guide=None):
+    user_id = request.user.id
+    user_obj = User.objects.get(id=user_id)
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+
+    if guide is not None:
+        guide_obj = Guide.objects.get(id=int(guide))
+        guide_detail_set = GuideDetail.objects.filter(guide=guide_obj)
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+        cash_set = Cash.objects.filter(subsidiary=subsidiary_obj, accounting_account__code__startswith='101')
+        cash_deposit_set = Cash.objects.filter(accounting_account__code__startswith='104')
+        error = ""
+        sales_store = ""
+        if subsidiary_obj is None:
+            error = "No tiene una Sede o Almacen para vender"
+        else:
+            sales_store = SubsidiaryStore.objects.filter(
+                subsidiary=subsidiary_obj, category='V').first()
+        return render(request, 'sales/sales_list.html', {
+            'choices_payments': [(k, v) for k, v in TransactionPayment._meta.get_field('type').choices
+                                 if k not in ['EC', 'L', 'Y']],
+            'formatdate': formatdate,
+            'document_types': DocumentType.objects.all(),
+            'error': error,
+            'sales_store': sales_store,
+            'cash_set': cash_set,
+            'cash_deposit_set': cash_deposit_set,
+            'guide_obj': guide_obj,
+            'subsidiary_obj': subsidiary_obj,
+            'guide_detail_set': guide_detail_set,
+            'series_set': Subsidiary.objects.filter(id=subsidiary_obj.id),
+            'order_set': Order._meta.get_field('order_type').choices,
+            'users': User.objects.filter(is_superuser=False, is_staff=True)
+        })
+    return JsonResponse({'message': 'Error actualice o contacte con sistemas.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

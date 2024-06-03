@@ -13,32 +13,34 @@
             <p>{{ error }}</p>
             <hr>
         </div>
-    {% endif %}
+    {% else %}
+        <div class="card-group" style="display: flex;">
+            <div class="card p-0 pl-2 pt-2" style="flex: 0 0 48%;" id="tab-two">
+                {% include "sales/sales_grid_tab1.html" %}
+            </div>
+            <div class="card p-0 mt-2" style="flex: 0 0 52%;">
+                <div class="col-sm-12 m-0 p-0 pr-2 align-items-center">
+                    <div id="product_list_sales">
 
-    <div class="card-group" style="display: flex;">
-        <div class="card p-0 pl-2 pt-2" style="flex: 0 0 48%;" id="tab-two">
-            {% include "sales/sales_grid_tab1.html" %}
-        </div>
-        <div class="card p-0 mt-2" style="flex: 0 0 52%;">
-            <div class="col-sm-12 m-0 p-0 pr-2 align-items-center">
-                <div id="product_list_sales">
-
-                    <div class="card text-center roboto-condensed-regular p-3 border-info m-3">
-                        <div class="card-header font-weight-bold text-black-50" style="background-color: #88a3b9 ">
-                            Atencion!
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title text-info roboto-condensed-regular font-weight-bold">Ingrese un texto
-                                para comenzar la búsqueda...</h5>
+                        <div class="card text-center roboto-condensed-regular p-3 border-info m-3">
+                            <div class="card-header font-weight-bold text-black-50" style="background-color: #88a3b9 ">
+                                Atencion!
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title text-info roboto-condensed-regular font-weight-bold">Ingrese un
+                                    texto
+                                    para comenzar la búsqueda...</h5>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div class="loader-container col-auto" id="loader-product" style="display: none;">
+                    <div class="loader"></div>
+                </div>
             </div>
-            <div class="loader-container col-auto" id="loader-product" style="display: none;">
-                <div class="loader"></div>
-            </div>
-        </div>
-    </div><!-- card-group -->
+        </div><!-- card-group -->
+    {% endif %}
+
 
 
 {% endblock body %}
@@ -664,7 +666,7 @@
             e.preventDefault();
 
             let _transaction_payment_type = $('#transaction_payment_type')
-             if ($('#client-id').val() === '') {
+            if ($('#client-id').val() === '') {
                 toastr.warning('!Seleccione un cliente o busquelo por Numero de documento¡', 'Error de Llenado');
                 return false;
             }
