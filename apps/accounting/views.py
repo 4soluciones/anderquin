@@ -18,7 +18,7 @@ from datetime import datetime
 from django.db import DatabaseError, IntegrityError
 import json
 from django.core import serializers
-from django.db.models import Min, Sum, F, Prefetch, Subquery, OuterRef, Value
+from django.db.models import Min, Sum, F, Prefetch, Subquery, OuterRef, Value, Q
 
 
 class Home(TemplateView):
@@ -114,9 +114,10 @@ def get_dict_purchases(bill_set):
         loan_payment = ''
 
         cash_flow_set = CashFlow.objects.filter(bill_id=b.id)
+        loan_payment_set = b.loanpayment_set.all()
         operation_code = '-'
         cash_name = '-'
-        if cash_flow_set.exists():
+        if cash_flow_set.exists() and loan_payment_set:
             has_payment = True
             cash_flow_obj = cash_flow_set.first()
             transaction_date = cash_flow_obj.transaction_date
@@ -144,7 +145,7 @@ def get_dict_purchases(bill_set):
         new['difference_payed'] = round(difference_payed, 2)
         # new['row_count_payment'] = row_count_payment
         sum_total_loan_pay = sum_total_loan_pay + sum_payed
-
+        print(has_payment)
         for d in b.billpurchase_set.all():
             item_detail = {
                 'id': d.id,
@@ -183,6 +184,7 @@ def get_purchases_pay(request):
         # detail_purchase_obj = PurchaseDetail.objects.filter(purchase=purchase_obj)
         cash_set = Cash.objects.filter(accounting_account__code__startswith='101')
         cash_deposit_set = Cash.objects.filter(accounting_account__code__startswith='104')
+        all_cashes = Cash.objects.filter(Q(accounting_account__code__startswith='101') | Q(accounting_account__code__startswith='104'))
         mydate = datetime.now()
         formatdate = mydate.strftime("%Y-%m-%d")
         tpl = loader.get_template('accounting/new_pay_purchase.html')
@@ -193,6 +195,7 @@ def get_purchases_pay(request):
             'total_debt': '{:,}'.format(round(decimal.Decimal(bill_obj.bill_total_total), 2)),
             'choices_account': cash_set,
             'choices_account_bank': cash_deposit_set,
+            'all_cashes': all_cashes,
             'date': formatdate,
             'start_date': start_date,
             'end_date': end_date
@@ -276,9 +279,10 @@ def new_payment_purchase(request):
             cash_flow_obj.save()
 
             loan_payment_obj = LoanPayment(
-                price=bill_pay,
+                pay=bill_pay,
                 type='C',
-                bill=bill_obj
+                bill=bill_obj,
+                operation_date=cash_flow_transact_date_deposit
             )
             loan_payment_obj.save()
 

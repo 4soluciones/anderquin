@@ -25,53 +25,46 @@
     <tbody>
     {% for p in dictionary %}
         <tr pk="{{ p.id }}" class="text-center bill">
-            <td class="align-middle text-center font-weight-bold"
-                rowspan="{{ p.row_count_payment }}">{{ p.serial }}-{{ p.correlative }}</td>
-            <td class="align-middle text-center"
-                rowspan="{{ p.row_count_payment }}">{{ p.order_number|default_if_none:'-' }}</td>
-            <td class="align-middle text-center"
-                rowspan="{{ p.row_count_payment }}">{{ p.register_date|date:"d-m-Y" }}</td>
-            <td class="align-middle text-center"
-                rowspan="{{ p.row_count_payment }}">{{ p.expiration_date|date:"d-m-Y" }}</td>
-            <td class="align-middle text-center text-danger font-weight-bold"
-                rowspan="{{ p.row_count_payment }}">{{ p.days_difference }}</td>
-            {#            <td class="align-middle text-center">#}
-            {#                {% for b in p.bill_purchase %}#}
-            {#                    <span class="font-weight-bold">{{ b.bill_number }}</span>{% if not forloop.last %},{% endif %}#}
-            {#                {% endfor %}#}
-            {#            </td>#}
-            <td class="align-middle text-right" rowspan="{{ p.row_count_payment }}">
+            <td class="align-middle text-center font-weight-bold">{{ p.serial }}-{{ p.correlative }}</td>
+            <td class="align-middle text-center">{{ p.order_number|default_if_none:'-' }}</td>
+            <td class="align-middle text-center">{{ p.register_date|date:"d-m-Y" }}</td>
+            <td class="align-middle text-center">{{ p.expiration_date|date:"d-m-Y" }}</td>
+            <td class="align-middle text-center text-danger font-weight-bold">{{ p.days_difference }}</td>
+            <td class="align-middle text-right">
                 <div class="input-icon">
                     <input type="text" readonly
-                           style="background-color: #e4ece3; color: #0b43a4"
+                           style="background-color: #e4ece3; color: #0b43a4" aria-label="..."
                            class="form-control form-control-sm font-weight-bold text-right total"
                            value="{{ p.bill_total|thousands_separator }}"><i
                         class="change-money font-weight-bold">S/</i>
                 </div>
             </td>
-            {% for l in p.loan_payment_set %}
-                <td class="align-middle text-center pay-row font-weight-bold"
-                        {% if p.has_payment != False %}
-                    style="background-color: #aaebb9"
-                        {% endif %}
-                >{{ l.pay|thousands_separator }}</td>
-{#                <td class="align-middle text-center">{{ p.difference_payed|thousands_separator }}</td>#}
-                <td class="align-middle text-center">{{ l.date|date:"d-m-y" }}</td>
-                <td class="align-middle text-center">{{ l.operation_code }}</td>
-                </tr>
-            {% empty %}
-                <td class="align-middle text-center text-danger font-weight-bold" colspan="3">SIN PAGOS</td>
-            {% endfor %}
-        <td class="align-middle text-center button-pay p-1" rowspan="">
-            {% if p.has_payment == False %}
+            <td class="align-middle text-center text-danger font-weight-bold p-0" colspan="3">
+                {% if p.has_payment == False %}
+                    SIN PAGOS
+                {% else %}
+                    <table class="table table-bordered table-sm mb-0 items-pay"
+                           style="background-color: #bfdecb">
+                        <tbody>
+                        {% for l in p.loan_payment_set %}
+                            <tr class="p-0 m-0 text-center">
+                                <td class="align-middle text-center p-0 m-0 item-pay" style="width: 33%;">{{ l.pay|thousands_separator }}</td>
+                                <td class="align-middle text-center p-0 m-0" style="width: 33%;">{{ l.date|date:"d-m-y" }}</td>
+                                <td class="align-middle text-center p-0 m-0" style="width: 33%;">{{ l.operation_code }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </td>
+            <td class="align-middle text-center button-pay p-1">
                 <button type="button"
                         class="btn btn-success btn-show-payments btn-sm"
                         data-toggle="modal"
                         data-target="#modal-payment-purchase"
                         pk="{{ p.id }}"><i class="fas fa-shopping-cart"></i>
                 </button>
-            {% endif %}
-        </td>
+            </td>
         </tr>
     {% endfor %}
     </tbody>

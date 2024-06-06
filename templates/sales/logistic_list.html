@@ -8,9 +8,14 @@
 
     <div class="card m-2 border-dark">
         <div class="card-header bg-warning border-dark">
-            <h4 class="card-title text-center font-weight-bold roboto-condensed-regular">LOGÍSTICA - LISTADO DE FACTURAS POR INGRESAR</h4>
+            <h4 class="card-title text-center font-weight-bold roboto-condensed-regular">LOGÍSTICA - LISTADO DE FACTURAS
+                POR INGRESAR</h4>
         </div>
         <div class="card-body p-0">
+            <div class="card-body p-2">
+                <input id="myInput" type="text" placeholder="Ingrese factura a buscar..." aria-label="..."
+                       class="form-control form-control-lg text-uppercase">
+            </div>
             <div class="" id="purchase-grid-list">{% include "sales/logistic_list_grid.html" %}</div>
         </div>
     </div>
@@ -119,6 +124,36 @@
         function closeDetail($td) {
             $td.parent('tr').slideUp("fast");
         }
+
+        $(document).ready(function () {
+
+            $("#myInput").on("keyup", function () {
+                $("#purchase-list-with-bill tbody tr td").closest("tr").hide()
+                var value = $(this).val().toUpperCase();
+                if (value) {
+                    $("#purchase-list-with-bill tbody tr td:contains('" + value + "')").each(function (index) {
+                        //console.log(index)
+                        const parent = $(this).closest("tr")
+                        const rowspan = $(this).attr("rowspan")
+                        //console.log(rowspan)
+                        if (rowspan !== undefined) {
+                            var current = parent
+                            for (var i = 0; i < rowspan; i++) {
+                                console.log(current.text())
+                                current.show()
+                                current = current.next()
+                            }
+                        } else {
+                            parent.show()
+                        }
+                    })
+                } else {
+                    //$("#purchase-list-with-bill tbody tr td").closest("tr").show()
+                    $("#purchase-list-with-bill tbody tr").next("tr.details").show()
+                }
+            });
+        });
+
 
     </script>
 

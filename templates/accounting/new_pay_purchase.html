@@ -1,182 +1,152 @@
 {% load operations %}
-<form id="purchase-payment-form" class="roboto-condensed-regular" action="" method="POST">
-    {% csrf_token %}
+{% load static %}
+<div class="modal-content">
+    <div class="modal-header text-center">
+        <h5 class="modal-title roboto-condensed-regular font-weight-bold">PAGO A PROVEEDOR: &nbsp;&nbsp;&nbsp;
+            <span class="modal-title roboto-condensed-regular font-weight-bold text-success">{{ bill.supplier.name }}</span>
+        </h5>
+        <button type="button" class="close ml-0" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body bg-light roboto-condensed-regular">
+        <form id="purchase-payment-form" action="" method="POST">
+            {% csrf_token %}
+            <input type="hidden" id="bill_id" name="bill" value="{{ bill.id }}">
+            <input type="hidden" id="date-ini" name="date-ini" value="{{ start_date }}">
+            <input type="hidden" id="date-fin" name="date-fin" value="{{ end_date }}">
 
-{#    <input type="hidden" id="id_detail_purchase" name="detail_purchase" value="{{ detail_purchase.id }}">#}
-    <input type="hidden" id="bill_id" name="bill" value="{{ bill.id }}">
-{#    <input type="hidden" id="id_price_unit" name="price_unit" value="{{ detail.price_unit }}">#}
-{#    <input type="hidden" id="id_quantity" name="quantity" value="{{ detail_purchase.count }}">#}
-    <input type="hidden" id="date-ini" name="date-ini" value="{{ start_date }}">
-    <input type="hidden" id="date-fin" name="date-fin" value="{{ end_date }}">
-
-    <table class="table table-sm pay-options bg-light table-bordered mb-2">
-
-        <thead>
-        <tr class="text-uppercase font-weight-lighter">
-            <th class="border-bottom-0 border-right border-left align-middle text-center">PROVEEDOR:</th>
-            <th class="border-bottom-0 border-right align-middle text-right">Deuda Total:</th>
-            <th class="border-bottom-0 border-right align-middle text-right">Monto a pagar:</th>
-            <th class="border-bottom-0 border-right align-middle text-right">Tipo de Pago:</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td class="border-top-0 border-bottom border-left border-right align-middle text-center "
-                style="width: 30%">
-
-                <div class="text-uppercase text-center">
-                    <input type="text" aria-label="..."
-                           class="form-control form-control-sm text-center" value="{{ bill.supplier.name }}"
-                           id="supplier_name" name="supplier-name" readonly>
+            <div class="card text-center">
+                <div class="card-header pt-1 pb-1 font-weight-bold">
+                    Deuda Total:
                 </div>
-
-            </td>
-
-            <td class="border-top-0 border-bottom border-right align-middle pay-loan" style="width: 20%;">
-
-                 <div class="input-icon">
-                    <input type="text" readonly
-                           style="background-color: #eed0d0" aria-label="..."
-                           class="form-control form-control-sm font-weight-bold text-right text-dark"
-                           id="total_debt" name="total-debt"
-                           value="{{ total_debt }}"><i
-                        class="change-money font-weight-bold">S/</i>
+                <div class="card-body pt-2 pb-0 mb-2 text-center d-flex justify-content-center">
+                    <div class="input-icon">
+                        <input type="text" readonly
+                               style="background-color: #eed0d0; font-size: 18px" aria-label="..."
+                               class="form-control form-control-sm font-weight-bold text-center text-dark"
+                               id="total_debt" name="total-debt"
+                               value="{{ total_debt }}"><i
+                            class="change-money font-weight-bold">S/</i>
+                    </div>
                 </div>
-            </td>
+            </div>
 
-            <td class="border-top-0 border-bottom border-right align-middle" style="width: 20%">
+            <table class="table table-sm pay-options bg-light table-bordered mb-2">
+                <thead>
+                <tr class="text-uppercase font-weight-lighter">
+                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CUENTA ANDERQUIN:</th>
+                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">Monto a pagar:</th>
+                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">Tipo de Pago:</th>
+                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">Fecha de pago:</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="border-top-0 border-bottom border-right align-middle">
+                        <select id="id_cash_deposit" name="id_cash_deposit" aria-label="..."
+                                class="form-control form-control-sm text-uppercase"
+                                aria-selected="Text input with radio button">
+                            {% for c in all_cashes %}
+                                <option value="{{ c.id }}"
+                                >{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td class="border-top-0 border-bottom border-right align-middle">
+                        <div class="input-icon">
+                            <input type="text"
+                                   id="bill_pay" name="bill-pay"
+                                   autocomplete="off"
+                                   style="background-color: #d0eedc" aria-label="..."
+                                   class="form-control form-control-sm font-weight-bold text-right text-dark"><i
+                                class="change-money font-weight-bold">S/</i>
+                        </div>
+                    </td>
+                    <td class="border-top-0 border-bottom border-right align-middle">
+                        <select id="id_transaction_payment_type"
+                                aria-label="..."
+                                name="transaction_payment_type"
+                                class="form-control form-control-sm">
+                            <option disabled selected value="0">Seleccione</option>
+                            <option value="E">CONTADO</option>
+                            <option value="D">DEPÓSITO</option>
+                        </select>
+                    </td>
+                    <td class="border-top-0 border-bottom border-right align-middle text-left text-danger">
+                        <input type="date" aria-label="..."
+                               id="id_date_deposit"
+                               name="id_date_deposit"
+                               value="{{ date }}"
+                               class="form-control form-control-sm">
+                    </td>
 
-                <div class="input-icon">
-                    <input type="text"
-                           id="bill_pay" name="bill-pay"
-                           autocomplete="off"
-                           style="background-color: #d0eedc" aria-label="..."
-                           class="form-control form-control-sm font-weight-bold text-right text-dark"><i
-                        class="change-money font-weight-bold">S/</i>
-                </div>
-            </td>
+                </tr>
+                </tbody>
+            </table>
+            <table class="table table-sm bg-light table-bordered mb-0" id="deposit">
+                <thead>
+                <tr class="text-uppercase font-weight-lighter">
+                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CUENTA DEL PROVEEDOR:</th>
+                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">DESCRIPCIÓN DEL PAGO:</th>
+                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">COD-OP:</th>
+                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">ESCANEO DEPOSITO:</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="border-top-0 border-bottom border-right align-middle">
+                        <input type="text"
+                               aria-label="..."
+                               class="form-control form-control-sm"
+                               id="id_description_deposit"
+                               name="description_deposit"
+                               value="">
+                    </td>
+                    <td class="border-top-0 border-bottom border-right align-middle">
+                        <input type="text"
+                               aria-label="..."
+                               class="form-control form-control-sm"
+                               id="id_description_deposit"
+                               name="description_deposit"
+                               value="PAGO A LA FACTURA: {{ bill.serial }}-{{ bill.correlative }}">
+                    </td>
+                    <td class="border-top-0 border-bottom border-right align-middle">
+                        <input type="text" aria-label="..."
+                               class="form-control form-control-sm"
+                               id="id_code_operation"
+                               name="code_operation">
+                    </td>
+                    <td class="border-top-0 border-bottom border-right align-middle">
+                        <div class="form-group m-0 w-100">
+                            <div class="input-group w-100">
+                                <div class="custom-file w-100">
+                                    <input type="file" class="form-control"
+                                           id="exampleInputEditFile"
+                                           name="exampleInputFile"
+                                           onchange="readURL(this);">
+                                    <label class="custom-file-label" for="exampleInputEditFile">
+                                        Subir Imagen
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
 
-            <td class="border-top-0 border-bottom border-right align-middle" style="width: 30%">
 
-                <select id="id_transaction_payment_type"
-                        aria-label="..."
-                        name="transaction_payment_type"
-                        class="form-control form-control-sm">
-                    <option disabled selected value="0">Seleccione</option>
-                    <option value="E">CONTADO</option>
-                    <option value="D">DEPÓSITO</option>
-                   <!--{% for item in choices_payments %}
-                        {% if item.0 != 'F' %}
-                            <option value="{{ item.0 }}">{{ item.1 }}</option>
-                        {% endif %}
-                    {% endfor %}-->
-                </select>
-            </td>
-        </tr>
-        </tbody>
-        {#            CUANDO ES EFECTIVO EN LOS PAGOS SIMPLES#}
-        <table class="table table-sm bg-light table-bordered mb-0" id="cash" style="display: none">
-            <thead>
-            <tr class="text-uppercase font-weight-lighter">
-                <th class="border-bottom-0 border-right align-middle">CAJA SELECCIONADA:</th>
-                <th class="border-bottom-0 border-right align-middle code">FECHA DE CAJA:</th>
-                <th class="border-bottom-0 border-right align-middle voucher">DESCRIPCIÓN DEL PAGO:</th>
-            </tr>
-            </thead>
-            <tbody>
-
-            <tr>
-                <td class="border-top-0 border-bottom border-right align-middle"
-                    style="width: 20%">
-                    <select id="id_cash" name="cash" aria-label="..."
-                            class="form-control form-control-sm text-uppercase"
-                            aria-selected="Text input with radio button">
-                        {% for c in choices_account %}
-                            <option value="{{ c.id }}"
-                            >{{ c.name }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td class="border-top-0 border-bottom border-right align-middle text-left text-danger pay-loan"
-                    style="width: 10%">
-                    <input type="date" aria-label="..."
-                           id="id_date"
-                           name="id_date"
-                           class="form-control form-control-sm">
-                </td>
-
-                <td class="border-top-0 border-bottom border-right align-middle" style="width: 70%">
-                    <input type="text" aria-label="..."
-                           id="id_description"
-                           name="description_cash"
-                           autocomplete="off"
-                           value="PAGO DE LA FACTURA: {{ bill.serial }}-{{ bill.correlative }}"
-                           class="form-control form-control-sm text-uppercase">
-                </td>
-
-            </tr>
-
-            </tbody>
-        </table>
-        {#            CUANDO ES DEPOSITO EN LOS PAGOS SIMPLE#}
-        <table class="table table-sm bg-light table-bordered mb-0" id="deposit" style="display: none">
-            <thead>
-            <tr class="text-uppercase font-weight-lighter">
-                <th class="border-bottom-0 border-right align-middle">CUENTA BANCARIA:</th>
-                <th class="border-bottom-0 border-right align-middle code">FECHA DEL PAGO:</th>
-                <th class="border-bottom-0 border-right align-middle code">DESCRIPCIÓN DEL PAGO:</th>
-                <th class="border-bottom-0 border-right align-middle code">COD-OP:</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td class="border-top-0 border-bottom border-right align-middle"
-                    style="width: 30%">
-                    <select id="id_cash_deposit" name="id_cash_deposit" aria-label="..."
-                            class="form-control form-control-sm text-uppercase"
-                            aria-selected="Text input with radio button">
-                        {% for c in choices_account_bank %}
-                            <option value="{{ c.id }}"
-                            >{{ c.name }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td class="border-top-0 border-bottom border-right align-middle text-left text-danger"
-                    style="width: 10%">
-                    <input type="date" aria-label="..."
-                           id="id_date_deposit"
-                           name="id_date_deposit"
-                           value="{{ date }}"
-                           class="form-control form-control-sm">
-                </td>
-                <td class="border-top-0 border-bottom border-right align-middle" style="width: 40%">
-                    <input type="text"
-                           aria-label="..."
-                           class="form-control form-control-sm"
-                           id="id_description_deposit"
-                           name="description_deposit"
-                           value="DEPOSITO A LA FACTURA Nro: {{ bill.serial }}-{{ bill.correlative }}">
-                </td>
-                <td class="border-top-0 border-bottom border-right align-middle" style="width: 20%">
-                    <input type="text" aria-label="..."
-                           class="form-control form-control-sm"
-                           id="id_code_operation"
-                           name="code_operation">
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </table>
-
-    <div class="modal-footer">
-        <button type="submit" id="btn-save" class="btn btn-primary">Guardar pago</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-      </div>
-
-</form>
+        </form>
+        <div class="modal-footer">
+            <button type="submit" id="btn-save" class="btn btn-primary">Guardar pago</button>
+            <button type="button" class="btn btn-secondary" id="close-modal" data-dismiss="modal">Cerrar
+            </button>
+        </div>
+    </div>
+</div>
 
 <script type="text/javascript">
-
 
     $(document).ready(function () {
         setTimeout(function () {
@@ -184,7 +154,25 @@
         }, 500);
     });
 
-    $('#id_transaction_payment_type').change(function () {
+    function readURL(input) {
+        let url = input.value;
+        let ext = url.substring(url.lastIndexOf('.') + 1).toLowerCase();
+        if (input.files && input.files[0] && (ext == "gif" || ext == "png" || ext == "jpeg" || ext == "jpg")) {
+            let reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#blah').attr('src', e.target.result);
+            }
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            $('#blah').attr('src', '{% static 'images/img/iamge_placeholder.jpg' %}');
+        }
+    }
+    $('.new_btn').bind("click", function () {
+        $('#exampleInputFile').trigger('click');
+    });
+
+    /*$('#id_transaction_payment_type').change(function () {
 
         let type = $('#id_transaction_payment_type').val();
         if (type === 'E') {
@@ -202,7 +190,11 @@
             $('#deposit').css('display', 'none');
         }
 
-    });
+    });*/
+
+    /*$('#id_transaction_payment_type').change(function () {
+        $('#deposit').css('display', 'table');
+    });*/
 
     $('#purchase-payment-form').submit(function (event) {
 
@@ -211,8 +203,9 @@
         let bill_id = $('#bill_id').val();
         let _total_debt = $('#total_debt').val().replace(/,/g, '');
         let _bill_pay = $('#bill_pay').val().replace(/,/g, '');
-        if (Number(_bill_pay) > Number(_total_debt) || Number(_bill_pay) < Number(_total_debt)){
-            toastr.warning('El monto a pagar no puede ser mayor o menor a la Deuda', 'Mensaje')
+        if (Number(_bill_pay) > Number(_total_debt) || Number(_bill_pay) < Number(_total_debt)) {
+            toastr.warning('El monto a pagar no puede ser mayor o menor a la Deuda', 'Mensaje');
+            return false
         }
 
         $('#btn-save').attr("disabled", "true");
@@ -230,7 +223,7 @@
                     $('#modal-payment-purchase').modal('hide');
                     {#$('#table-list-purchase').html(response['grid']);#}
                     toastr.success(response['message'], '¡Bien hecho!');
-                    let _row = $('tr.bill[pk="'+ bill_id +'"]')
+                    let _row = $('tr.bill[pk="' + bill_id + '"]')
                     _row.find('td.pay-row').text(response.pay).css({'background-color': 'rgb(170,235,185)',});
                     _row.find('td.pay-row-date').text(response.pay_date);
                     _row.find('td.button-pay').hide();

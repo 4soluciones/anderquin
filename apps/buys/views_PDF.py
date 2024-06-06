@@ -350,7 +350,7 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         # ('GRID', (0, 0), (-1, -1), 1, colors.black),
     ]
 
-    FECHA = date.today()
+    FECHA = purchase_obj.purchase_date
 
     if FECHA.day < 10:
         FECHA_DAY = f'0{FECHA.day}'
