@@ -3591,13 +3591,14 @@ def assign_to_warehouse(request):
             product_detail_get = ProductDetail.objects.filter(unit=bd.unit, product=bd.product).last()
             quantity_minimum = product_detail_get.quantity_minimum
             quantity_in_units = bd.quantity * quantity_minimum
+
             unit_description = bd.unit.description
             item = {
                 'id': bd.id,
                 'product_id': bd.product.id,
                 'product_name': bd.product.name,
                 'quantity': bd.quantity,
-                'quantity_in_units': str(round(quantity_in_units, 2)),
+                'quantity_in_units': str(quantity_in_units.quantize(decimal.Decimal('0.0'), rounding=decimal.ROUND_HALF_EVEN)),
                 'quantity_minimum': str(quantity_minimum),
                 'unit_id': bd.unit.id,
                 'unit_name': bd.unit.name,
