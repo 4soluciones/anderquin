@@ -331,21 +331,13 @@ def get_kardex_by_product(request):
             response = JsonResponse(data)
             response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
             return response
-        products = Product.objects.all()
         subsidiaries = Subsidiary.objects.all()
         subsidiaries_stores = SubsidiaryStore.objects.all()
-
-        # check product detail
-        basic_product_detail = ProductDetail.objects.filter(
-            product=product, quantity_minimum=1)
-        # kardex = Kardex.objects.filter(product_id=pk)
         t = loader.get_template('sales/kardex.html')
         c = ({
             'product': product,
             'subsidiaries': subsidiaries,
-            'basic_product_detail': basic_product_detail,
             'subsidiaries_stores': subsidiaries_stores,
-            'products': products,
             'date_now': formatdate,
         })
 
@@ -383,6 +375,8 @@ def get_list_kardex(request):
             response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
             return response
 
+        price_purchase_unit = ProductDetail.objects.get(product=product, unit__name='UND').price_purchase
+
         inventories = None
         if product_store.count() > 0:
             inventories = Kardex.objects.filter(
@@ -394,6 +388,23 @@ def get_list_kardex(request):
                 'loan_payment',
                 'guide_detail__guide__guide_motive',
             ).order_by('id')
+
+            for i in inventories:
+                quantity = i.quantity
+                remaining_quantity = i.remaining_quantity
+                kardex_obj = Kardex.objects.get(id=i.id)
+                if i.operation == 'C':
+                    kardex_obj.remaining_price = price_purchase_unit
+                    kardex_obj.remaining_price_total = remaining_quantity * price_purchase_unit
+                    kardex_obj.save()
+                else:
+                    kardex_obj.price_unit = price_purchase_unit
+                    kardex_obj.price_total = quantity * price_purchase_unit
+
+                    kardex_obj.remaining_price = price_purchase_unit
+                    kardex_obj.remaining_price_total = remaining_quantity * price_purchase_unit
+
+                    kardex_obj.save()
 
         t = loader.get_template('sales/kardex_grid_list.html')
         c = ({'product': product, 'inventories': inventories})
@@ -3666,6 +3677,8 @@ def save_detail_to_warehouse(request):
             product_obj = Product.objects.get(id=product_id)
             unit_id = int(d['UnitPurchase'])
             unit_obj = Unit.objects.get(id=unit_id)
+            price_purchase_unit = ProductDetail.objects.get(product=product_obj, unit__name='UND').price_purchase
+
             unit_min_product = ProductDetail.objects.get(product=product_obj, unit=unit_obj).quantity_minimum
             price_purchase = decimal.Decimal(d['PricePurchase'])
 
@@ -3691,15 +3704,15 @@ def save_detail_to_warehouse(request):
                     new_product_store_obj = ProductStore.objects.create(product=product_obj,
                                                                         subsidiary_store=subsidiary_store_obj,
                                                                         stock=entered_quantity_in_units)
-                    kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase,
+                    kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase_unit,
                                    bill_detail_obj=detail_entered_obj)
                 else:
-                    kardex_input(product_store_obj.id, entered_quantity_in_units, price_purchase,
+                    kardex_input(product_store_obj.id, entered_quantity_in_units, price_purchase_unit,
                                  bill_detail_obj=detail_entered_obj)
 
             if entered_quantity_units != 0 and entered_quantity_units != '':
                 detail_entered_units_obj = BillDetail.objects.create(quantity=entered_quantity_units,
-                                                                     price_unit=price_purchase, unit=unit_und_obj,
+                                                                     price_unit=price_purchase_unit, unit=unit_und_obj,
                                                                      product=product_obj, status_quantity='I',
                                                                      bill=bill_obj)
                 try:
@@ -3713,10 +3726,10 @@ def save_detail_to_warehouse(request):
                                                                         subsidiary_store=subsidiary_store_obj,
                                                                         stock=entered_quantity_units)
                     new_product_store_obj.save()
-                    kardex_initial(new_product_store_obj, entered_quantity_units, price_purchase,
+                    kardex_initial(new_product_store_obj, entered_quantity_units, price_purchase_unit,
                                    bill_detail_obj=detail_entered_units_obj)
                 else:
-                    kardex_input(product_store_obj.id, entered_quantity_units, price_purchase,
+                    kardex_input(product_store_obj.id, entered_quantity_units, price_purchase_unit,
                                  bill_detail_obj=detail_entered_units_obj)
 
             # ----------------------------------- QUANTITY RETURNED --------------------------------------------------

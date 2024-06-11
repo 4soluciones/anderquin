@@ -48,7 +48,14 @@ def thousands_separator(value):
 @register.filter(name='replace_round')
 def replace_round(value):
     if value is not None and value != '':
-        return str(round(value, 2)).replace(',', '.')
+        value = float(value)
+        decimal_part = value - int(value)
+        decimal_str = f"{decimal_part:.3f}"[2:]  # Esto nos da solo la parte decimal como una cadena
+        if int(decimal_str[2]) > 0:
+            rounded_value = round(value, 3)
+        else:
+            rounded_value = round(decimal.Decimal(value), 2)
+        return str(rounded_value).replace(',', '.')
     return value
 
 
