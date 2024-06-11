@@ -389,22 +389,24 @@ def get_list_kardex(request):
                 'guide_detail__guide__guide_motive',
             ).order_by('id')
 
-            for i in inventories:
-                quantity = i.quantity
-                remaining_quantity = i.remaining_quantity
-                kardex_obj = Kardex.objects.get(id=i.id)
-                if i.operation == 'C':
-                    kardex_obj.remaining_price = price_purchase_unit
-                    kardex_obj.remaining_price_total = remaining_quantity * price_purchase_unit
-                    kardex_obj.save()
-                else:
-                    kardex_obj.price_unit = price_purchase_unit
-                    kardex_obj.price_total = quantity * price_purchase_unit
+            # CODE FOR REPAIR KARDEX PRICE_UNIT
 
-                    kardex_obj.remaining_price = price_purchase_unit
-                    kardex_obj.remaining_price_total = remaining_quantity * price_purchase_unit
-
-                    kardex_obj.save()
+            # for i in inventories:
+            #     quantity = i.quantity
+            #     remaining_quantity = i.remaining_quantity
+            #     kardex_obj = Kardex.objects.get(id=i.id)
+            #     if i.operation == 'C':
+            #         kardex_obj.remaining_price = price_purchase_unit
+            #         kardex_obj.remaining_price_total = remaining_quantity * price_purchase_unit
+            #         kardex_obj.save()
+            #     else:
+            #         kardex_obj.price_unit = price_purchase_unit
+            #         kardex_obj.price_total = quantity * price_purchase_unit
+            #
+            #         kardex_obj.remaining_price = price_purchase_unit
+            #         kardex_obj.remaining_price_total = remaining_quantity * price_purchase_unit
+            #
+            #         kardex_obj.save()
 
         t = loader.get_template('sales/kardex_grid_list.html')
         c = ({'product': product, 'inventories': inventories})

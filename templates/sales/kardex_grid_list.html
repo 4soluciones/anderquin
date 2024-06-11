@@ -1,9 +1,10 @@
+{% load operations %}
 {% if inventories %}
 
 <table class="table table-bordered table-sm table-striped roboto-condensed-regular">
     <thead>
         <tr>
-            <th scope="col" style="text-transform: uppercase;" colspan="5" class="bg-primary text-center text-white-50 h6">Descripcion</th>
+            <th scope="col" style="text-transform: uppercase;" colspan="4" class="bg-primary text-center text-white-50 h6">Descripcion</th>
             <th scope="col" style="text-transform: uppercase;" colspan="3" class="bg-secondary text-center text-white-50 h6">Entradas</th>
             <th scope="col" style="text-transform: uppercase;" colspan="3" class="bg-success text-center text-white-50 h6">Salidas</th>
             <th scope="col" style="text-transform: uppercase;" colspan="3" class="bg-danger text-white-50 text-center h6">Saldo</th>
@@ -52,17 +53,17 @@
             </td>
             <td class="align-middle text-primary" >{{ kardex.get_operation_display }}</td>
 
-            <td class="align-middle text-secondary text-center" >{% if kardex.operation == 'E' %}{{ kardex.quantity }}{% else %}0{% endif %}</td>
-            <td class="align-middle text-secondary text-right" >{% if kardex.operation == 'E' %}{{ kardex.price_unit|floatformat:2 }}{% else %}0{% endif %}</td>
-            <td class="align-middle text-secondary text-right" >{% if kardex.operation == 'E' %}{{ kardex.price_total|floatformat:2 }}{% else %}0{% endif %}</td>
+            <td class="align-middle text-secondary text-center" >{% if kardex.operation == 'E' %}{{ kardex.quantity|replace_round_separator }}{% else %}0{% endif %}</td>
+            <td class="align-middle text-secondary text-right" >{% if kardex.operation == 'E' %}{{ kardex.price_unit|replace_round }}{% else %}0{% endif %}</td>
+            <td class="align-middle text-secondary text-right" >{% if kardex.operation == 'E' %}{{ kardex.price_total|replace_round_separator }}{% else %}0{% endif %}</td>
 
-            <td class="align-middle text-success text-center" >{% if kardex.operation == 'S' %}{{ kardex.quantity }}{% else %}0{% endif %}</td>
-            <td class="align-middle text-success text-right" >{% if kardex.operation == 'S' %}{{ kardex.price_unit|floatformat:2 }}{% else %}0{% endif %}</td>
-            <td class="align-middle text-success text-right" >{% if kardex.operation == 'S' %}{{ kardex.price_total|floatformat:2 }}{% else %}0{% endif %}</td>
+            <td class="align-middle text-success text-center" >{% if kardex.operation == 'S' %}{{ kardex.quantity|replace_round }}{% else %}0{% endif %}</td>
+            <td class="align-middle text-success text-right" >{% if kardex.operation == 'S' %}{{ kardex.price_unit|replace_round }}{% else %}0{% endif %}</td>
+            <td class="align-middle text-success text-right" >{% if kardex.operation == 'S' %}{{ kardex.price_total|replace_round }}{% else %}0{% endif %}</td>
 
-            <td class="align-middle text-danger text-center" >{{ kardex.remaining_quantity }}</td>
-            <td class="align-middle text-danger text-right" >{{ kardex.remaining_price|floatformat:2 }}</td>
-            <td class="align-middle text-danger text-right" >{{ kardex.remaining_price_total|floatformat:2 }}</td>
+            <td class="align-middle text-danger text-center" >{{ kardex.remaining_quantity|replace_round_separator }}</td>
+            <td class="align-middle text-danger text-right" >{{ kardex.remaining_price|replace_round_separator }}</td>
+            <td class="align-middle text-danger text-right" >{{ kardex.remaining_price_total|replace_round_separator }}</td>
 
         </tr>
         {% endfor %}
