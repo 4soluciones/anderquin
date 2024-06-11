@@ -184,7 +184,8 @@ def get_purchases_pay(request):
         # detail_purchase_obj = PurchaseDetail.objects.filter(purchase=purchase_obj)
         cash_set = Cash.objects.filter(accounting_account__code__startswith='101')
         cash_deposit_set = Cash.objects.filter(accounting_account__code__startswith='104')
-        all_cashes = Cash.objects.filter(Q(accounting_account__code__startswith='101') | Q(accounting_account__code__startswith='104'))
+        # all_cashes = Cash.objects.filter(Q(accounting_account__code__startswith='101') | Q(accounting_account__code__startswith='104'))
+        all_cashes = Cash.objects.all()
         mydate = datetime.now()
         formatdate = mydate.strftime("%Y-%m-%d")
         tpl = loader.get_template('accounting/new_pay_purchase.html')
@@ -2334,7 +2335,7 @@ def save_bill(request):
 
 def get_purchases_with_bill(request):
     if request.method == 'GET':
-        bill_set = Bill.objects.all().order_by('-id')
+        bill_set = Bill.objects.filter(status__in=['S', 'E']).order_by('-id')
         bill_dict = []
 
         for b in bill_set:

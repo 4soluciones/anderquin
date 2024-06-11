@@ -3598,7 +3598,7 @@ def assign_to_warehouse(request):
                 'product_id': bd.product.id,
                 'product_name': bd.product.name,
                 'quantity': bd.quantity,
-                'quantity_in_units': str(quantity_in_units.quantize(decimal.Decimal('0.0'), rounding=decimal.ROUND_HALF_EVEN)),
+                'quantity_in_units': str(quantity_in_units.quantize(decimal.Decimal('0'), rounding=decimal.ROUND_HALF_UP)),
                 'quantity_minimum': str(quantity_minimum),
                 'unit_id': bd.unit.id,
                 'unit_name': bd.unit.name,
