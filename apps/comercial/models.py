@@ -11,7 +11,7 @@ from django.db.models import Q
 
 class Owner(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField('Nombre', max_length=100, unique=True)
+    name = models.CharField('Nombre', max_length=500, unique=True)
     ruc = models.CharField(max_length=11)
     address = models.CharField('Dirección', max_length=100, null=True, blank=True)
 

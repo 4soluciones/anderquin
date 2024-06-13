@@ -145,7 +145,6 @@ def get_dict_purchases(bill_set):
         new['difference_payed'] = round(difference_payed, 2)
         # new['row_count_payment'] = row_count_payment
         sum_total_loan_pay = sum_total_loan_pay + sum_payed
-        print(has_payment)
         for d in b.billpurchase_set.all():
             item_detail = {
                 'id': d.id,
