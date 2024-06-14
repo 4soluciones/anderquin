@@ -2199,6 +2199,7 @@ def modal_new_carrier(request):
         c = ({
             'date': formatdate,
             'subsidiary_obj': subsidiary_obj,
+            'owner_set': Owner.objects.all()
         })
         return JsonResponse({
             'success': True,
@@ -2295,7 +2296,8 @@ def modal_new_driver(request):
         c = ({
             'date': formatdate,
             'subsidiary_obj': subsidiary_obj,
-            'license_type': Driver._meta.get_field('license_type').choices
+            'license_type': Driver._meta.get_field('license_type').choices,
+            'driver_set': Driver.objects.all()
         })
         return JsonResponse({
             'success': True,

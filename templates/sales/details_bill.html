@@ -3,11 +3,12 @@
     <thead>
     <tr class="text-center bg-dark text-white m-0 p-0 text-uppercase">
         <td class="text-center" style="width: 10%">Estado</td>
-        <td class="text-center" style="width: 35%">Producto</td>
+        <td class="text-center" style="width: 25%">Producto</td>
         <td class="text-center" style="width: 5%">Lote</td>
         <td class="text-center" style="width: 10%">Fecha Venc. Lote</td>
         <td class="text-center" style="width: 5%">Cantidad</td>
         <td class="text-center" style="width: 10%">Tipo Unidad</td>
+        <td class="text-center" style="width: 10%">Almacen</td>
         <td class="text-center" style="width: 13%">Nota de Crédito</td>
     </tr>
     </thead>
@@ -27,6 +28,7 @@
 
             <td class="text-center">{{ dt.quantity|replace_round }}</td>
             <td class="text-center">{{ dt.unit.description }}</td>
+            <td class="text-center">{{ dt.kardex_set.all.last.product_store.subsidiary_store.name|default:'-'|default_if_none:'-' }}</td>
             <td class="text-center p-1 credit-note">
                 {% if dt.status_quantity == 'D' %}
                     {% if dt.bill.creditnote_set.all %}

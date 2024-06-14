@@ -382,6 +382,15 @@ class Bill(models.Model):
                     response = True
         return response
 
+    def repay_loan(self):
+        from apps.sales.models import LoanPayment
+        response = 0
+        loan_payment_set = LoanPayment.objects.filter(bill=self.pk).values(
+            'bill').annotate(totals=Sum('pay'))
+        if loan_payment_set.count() > 0:
+            response = loan_payment_set[0].get('totals')
+        return response
+
 
 class BillPurchase(models.Model):
     id = models.AutoField(primary_key=True)

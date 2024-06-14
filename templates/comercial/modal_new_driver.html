@@ -8,7 +8,7 @@
         <form id="form-driver" action="{% url 'comercial:create_driver' %}"
               method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-            <div class="modal-body">
+            <div class="modal-body roboto-condensed-regular">
                 <div class="card-body bg-light">
                     <div class="row mt-3">
                         <div class="col-md-4">
@@ -17,22 +17,6 @@
                                    class="form-control" name="document-driver" id="document_driver"
                                    required placeholder="DNI"
                                    value="" maxlength="500">
-
-                            {#                            <div class="input-group">#}
-                            {#                                <input type="text"#}
-                            {#                                       class="form-control"#}
-                            {#                                       placeholder="Documento"#}
-                            {#                                       aria-label="Search"#}
-                            {#                                       aria-describedby="basic-addon2"#}
-                            {#                                       id="document_number" autocomplete="off"#}
-                            {#                                       name="document_number" maxlength="20">#}
-                            {#                                <div class="input-group-append">#}
-                            {#                                    <button class="btn btn-secondary btn-sm" id="search"#}
-                            {#                                            type="button">#}
-                            {#                                        <i class="fas fa-search fa-sm"></i>#}
-                            {#                                    </button>#}
-                            {#                                </div>#}
-                            {#                            </div>#}
                         </div>
                         <div class="col-md-8">
                             <label for="name_driver" class="text-primary">Nombres</label>
@@ -68,6 +52,39 @@
                             <input type="date"
                                    class="form-control" name="expiration-date" id="expiration_date"
                                    value="{{ date }}">
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header font-weight-bold">
+                                    Listado de Conductores Registrados
+                                </div>
+                                <div class="card-body p-2">
+                                    <table class="table table-bordered table-sm table-striped roboto-condensed-regular">
+                                        <thead>
+                                        <tr>
+                                            <th class="bg-primary text-center text-white">Nombres</th>
+                                            <th class="bg-primary text-center text-white">DNI</th>
+                                            <th class="bg-primary text-center text-white">Tipo Lic.</th>
+                                            <th class="bg-primary text-center text-white">Licencia</th>
+                                            <th class="bg-primary text-center text-white">Fecha Exp.</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for d in driver_set %}
+                                            <tr>
+                                                <td class="align-middle text-dark">{{ d.names }}</td>
+                                                <td class="align-middle text-dark text-center">{{ d.document_driver }}</td>
+                                                <td class="align-middle text-dark text-center">{{ d.get_license_type_display }}</td>
+                                                <td class="align-middle text-dark text-center">{{ d.n_license }}</td>
+                                                <td class="align-middle text-dark text-center">{{ d.license_expiration_date|date:'d-m-Y' }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

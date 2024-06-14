@@ -53,8 +53,9 @@ def get_purchases_by_date(request):
         subsidiary_obj = get_subsidiary_by_user(user_obj)
         # purchases_set = Purchase.objects.filter(purchase_date__range=[start_date, end_date], subsidiary=subsidiary_obj,
         #                                         status='A', supplier=supplier_obj).order_by('purchase_date')
-        bill_set = Bill.objects.filter(register_date__range=[start_date, end_date],
-                                       supplier=supplier_obj).order_by('register_date')
+        # bill_set = Bill.objects.filter(register_date__range=[start_date, end_date],
+        #                                supplier=supplier_obj).order_by('register_date')
+        bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier', 'store_destiny__subsidiary').order_by('register_date')
 
         return JsonResponse({
             'grid': get_dict_purchases(bill_set),
@@ -70,24 +71,18 @@ def get_dict_purchases(bill_set):
     transaction_date = ''
 
     for b in bill_set:
-        status = 'COMPLETO'
-        if b.sum_quantity_invoice() != b.sum_quantity_purchased():
-            status = 'INCOMPLETO'
 
         has_payment = False
-
-        rowspan = b.billpurchase_set.count()
-        row_count_payment = b.loanpayment_set.count()
-        if b.billpurchase_set.count() == 0:
-            rowspan = 1
-        if b.loanpayment_set.count() == 0:
-            row_count_payment = 1
-
-        expiration_date = datetime.strptime(str(b.expiration_date), '%Y-%m-%d')
-        date_now = datetime.now()
-        difference_date = date_now - expiration_date
-        days_difference = difference_date.days
+        repay_loan = decimal.Decimal(b.repay_loan())
+        bill_total = decimal.Decimal(b.bill_total_total)
+        days_difference = '-'
+        if bill_total != repay_loan:
+            expiration_date = datetime.strptime(str(b.expiration_date), '%Y-%m-%d')
+            date_now = datetime.now()
+            difference_date = date_now - expiration_date
+            days_difference = difference_date.days
         sum_payed = 0
+        missing_payment = round(bill_total, 2) - round(repay_loan, 2)
         new = {
             'id': b.id,
             'register_date': b.register_date,
@@ -97,33 +92,24 @@ def get_dict_purchases(bill_set):
             'serial': b.serial,
             'correlative': str(b.correlative).zfill(7),
             'supplier_name': b.supplier.name,
-            'delivery_address': b.delivery_address,
             'bill_base_total': b.bill_base_total,
             'bill_igv_total': b.bill_igv_total,
             'bill_total': b.bill_total_total,
+            'missing_payment': missing_payment,
             'sum_quantity_invoice': b.sum_quantity_invoice(),
             'sum_quantity_purchased': b.sum_quantity_purchased(),
-            'status': status,
-            'bill_purchase': [],
             'loan_payment_set': [],
-            'row_count': rowspan,
-            'row_count_payment': row_count_payment,
             'has_payment': '',
             'difference_payed': 0
         }
-        loan_payment = ''
-
         cash_flow_set = CashFlow.objects.filter(bill_id=b.id)
         loan_payment_set = b.loanpayment_set.all()
-        operation_code = '-'
         cash_name = '-'
         if cash_flow_set.exists() and loan_payment_set:
             has_payment = True
             cash_flow_obj = cash_flow_set.first()
             transaction_date = cash_flow_obj.transaction_date
             cash_name = cash_flow_obj.cash.name
-            if cash_flow_obj.operation_code is not None:
-                operation_code = cash_flow_obj.operation_code
         for lp in b.loanpayment_set.all():
             _payment_type = '-'
             _operation_code = '-'
@@ -143,18 +129,9 @@ def get_dict_purchases(bill_set):
             new.get('loan_payment_set').append(loan_payment)
         difference_payed = decimal.Decimal(b.bill_total_total) - decimal.Decimal(sum_payed)
         new['difference_payed'] = round(difference_payed, 2)
-        # new['row_count_payment'] = row_count_payment
         sum_total_loan_pay = sum_total_loan_pay + sum_payed
-        for d in b.billpurchase_set.all():
-            item_detail = {
-                'id': d.id,
-                'bill_number': d.purchase_detail.purchase.bill_number,
-                'client_reference': d.purchase_detail.purchase.client_reference,
-                'client_reference_entity': d.purchase_detail.purchase.client_reference_entity
-            }
-            new.get('bill_purchase').append(item_detail)
-            # new['rowspan'] = new['rowspan'] + rowspan
-            new['has_payment'] = has_payment
+
+        new['has_payment'] = has_payment
         dictionary.append(new)
 
         sum_total = sum_total + b.bill_total_total

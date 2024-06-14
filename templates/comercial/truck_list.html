@@ -19,15 +19,14 @@
 
         {% if trucks %}
 
-            <div class="card">
+            <div class="card roboto-condensed-regular">
                 <div class="card-header">
-                    <h5 class="card-title">Lista de Vehiculos</h5>
+                    <h5 class="card-title roboto-condensed-regular">Listado de Vehiculos</h5>
                     <h6 class="card-subtitle text-muted"></h6>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive montserrat">
-                        <table id="truck-data-grid" class="table table-bordered table-striped text-uppercase small"
-                               cellspacing="0" width="100%">
+                    <div class="table-responsive">
+                        <table id="truck-data-grid" class="table table-bordered table-striped text-uppercase">
                             <thead>
                             <tr class="text-center text-white bg-primary">
                                 <th class="th-sm align-middle">#</th>
@@ -51,7 +50,7 @@
                                     {#                                    <td class="align-middle">{{ truck.plan.name }}</td>#}
                                     <td class="align-middle">
                                         {% for d in truck.truckassociate_set.all %}
-                                            <button class="btn btn-sm btn-block btn-outline-primary">{{ d.driver.names|upper }}</button>
+                                            <button class="btn btn-sm btn-block btn-primary disabled text-white">{{ d.driver.names|upper }}</button>
                                         {% endfor %}
                                         {#                                    </td>#}
                                     <td class="align-middle">{{ truck.get_drive_type_display }}</td>
@@ -94,7 +93,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Conductor asociado</h5>
+                    <h5 class="modal-title">Asociar Conductor</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -104,16 +103,16 @@
                     {% csrf_token %}
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="tc_license_plate">Nombres</label>
+                            <label for="tc_license_plate">Placa de la Unidad:</label>
                             <input type="text" class="form-control" name="tc_license_plate" id="tc_license_plate">
                         </div>
 
                         <input type="hidden" id="tc_truck_id" name="tc_truck_id" value="0">
 
                         <div class="form-group">
-                            <label for="driver_id">Asociar conductor</label>
+                            <label for="driver_id">Asociar conductor:</label>
                             <select id="driver_id" name="driver" class="form-control" multiple="multiple">
-                                <option value="0">SELECCIONAR</option>
+                                <option disabled value="0">SELECCIONAR</option>
                                 {% for d in driver_set %}
                                     <option value="{{ d.id }}">{{ d.names|upper }}</option>
                                 {% endfor %}

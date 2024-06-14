@@ -1,5 +1,5 @@
 {% load operations %}
-<table class="table table-sm table-bordered roboto-condensed-regular bg-light" id="table-dictionary">
+<table class="table table-sm table-bordered table-hover roboto-condensed-regular" id="table-dictionary">
     <thead>
     <tr class="text-white small text-uppercase">
         <th class="bg-primary text-center align-middle" style="width: 10%;">REFERENCIA</th>
@@ -15,7 +15,8 @@
         {#        <th class="bg-info text-center" style="width: 12%;">PRECIO UNITARIO</th>#}
         <th class="bg-primary text-center align-middle" style="width: 10%;">IMPORTE DEL DOC</th>
         {#        <th class="bg-success text-center align-middle" style="width: 8%;">ENTIDAD</th>#}
-        <th class="bg-success text-center align-middle" style="width: 10%;">IMPORTE VENCIDO</th>
+        <th class="bg-success text-center align-middle" style="width: 10%;">IMPORTE FALTANTE</th>
+        <th class="bg-success text-center align-middle" style="width: 10%;">IMPORTE PAGADO</th>
         {#        <th class="bg-success text-center align-middle" style="width: 10%;">TOTAL DEUDA</th>#}
         <th class="bg-success text-center align-middle" style="width: 10%;">FECHA DE PAGO</th>
         <th class="bg-success text-center align-middle" style="width: 10%;">NRO OPERACIÓN</th>
@@ -29,7 +30,7 @@
             <td class="align-middle text-center">{{ p.order_number|default_if_none:'-' }}</td>
             <td class="align-middle text-center">{{ p.register_date|date:"d-m-Y" }}</td>
             <td class="align-middle text-center">{{ p.expiration_date|date:"d-m-Y" }}</td>
-            <td class="align-middle text-center text-danger font-weight-bold">{{ p.days_difference }}</td>
+            <td class="align-middle text-center font-weight-bold text-danger">{{ p.days_difference }}</td>
             <td class="align-middle text-right">
                 <div class="input-icon">
                     <input type="text" readonly
@@ -39,16 +40,34 @@
                         class="change-money font-weight-bold">S/</i>
                 </div>
             </td>
+            <td class="align-middle text-right">
+                <div class="input-icon">
+                    <input type="text" readonly
+                           style="background-color: #e4ece3; color: #9f4242" aria-label="..."
+                           class="form-control form-control-sm font-weight-bold text-right total"
+                           value="{{ p.missing_payment|thousands_separator }}"><i
+                        class="change-money font-weight-bold">S/</i>
+                </div>
+            </td>
             <td class="align-middle text-center text-danger font-weight-bold p-0" colspan="3">
                 {% if p.has_payment == False %}
                     SIN PAGOS
                 {% else %}
                     <table class="table table-bordered table-sm mb-0 items-pay"
-                           style="background-color: #bfdecb">
+                           >
                         <tbody>
                         {% for l in p.loan_payment_set %}
                             <tr class="p-0 m-0 text-center">
-                                <td class="align-middle text-center p-0 m-0 item-pay" style="width: 33%;">{{ l.pay|thousands_separator }}</td>
+                                <td class="align-middle text-center p-0 m-0 item-pay" style="width: 33%;">
+{#                                    {{ l.pay|thousands_separator }}#}
+                                    <div class="input-icon">
+                                        <input type="text" readonly
+                                               style="background-color: #bfdecb" aria-label="..."
+                                               class="form-control form-control-sm text-dark font-weight-bold text-right"
+                                               value="{{ l.pay|thousands_separator }}"><i
+                                            class="change-money font-weight-bold">S/</i>
+                                    </div>
+                                </td>
                                 <td class="align-middle text-center p-0 m-0" style="width: 33%;">{{ l.date|date:"d-m-y" }}</td>
                                 <td class="align-middle text-center p-0 m-0" style="width: 33%;">{{ l.operation_code }}</td>
                             </tr>

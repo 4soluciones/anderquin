@@ -2802,7 +2802,7 @@ def save_quotation(request):
         order_sale_quotation_obj = None
 
         order_obj = Order(
-            type='T',
+            order_type='T',
             client=client_obj,
             user=user_obj,
             total=sale_total,
@@ -3111,7 +3111,7 @@ def get_sales_quotation_by_subsidiary(request):
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
         if subsidiary_obj is not None:
-            orders = Order.objects.filter(subsidiary=subsidiary_obj, type='T').exclude(status='A')
+            orders = Order.objects.filter(subsidiary=subsidiary_obj, order_type='T').exclude(status='A')
             start_date = str(request.POST.get('start-date'))
             end_date = str(request.POST.get('end-date'))
 
@@ -3166,7 +3166,7 @@ def get_dict_order_quotation(order_set):
             'observation': o.observation,
             'way_to_pay_type': o.get_way_to_pay_type_display(),
             'order_sale_quotation': order_sale_quotation,
-            'type': o.get_type_display(),
+            'type': o.get_order_type_display(),
             'has_quotation_order': o.has_quotation_order,
             'order_detail_set': [],
             'details': _order_detail.count()

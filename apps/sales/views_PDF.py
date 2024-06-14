@@ -240,7 +240,7 @@ def pdf_get_orders_for_status_account(request):
     return create_pdf(header=header, body=body, footer=footer, title=title, cols=4)
 
 
-logo = "static/assests/img/logo-anderquin.png"
+logo = "static/assets/avatar/logo-anderquin-original.png"
 
 
 def print_quotation(request, pk=None, t=None):
