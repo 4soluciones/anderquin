@@ -72,8 +72,66 @@
                                             </span>
                                         </div>
                                         <input type="text" class="form-control text-uppercase" id="contact_name"
-                                               name="contact_name" value="{{ supplier_obj.contact_names|default_if_none:"-" }}">
+                                               name="contact_name"
+                                               value="{{ supplier_obj.contact_names|default_if_none:"-" }}">
                                     </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <div class="row">
+                                        <div class="col-10 pr-1">
+                                            <label class="mb-1 mt-2 font-weight-light" for="account_number_update">Nro
+                                                de
+                                                Cuenta:</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-money-check"></i>
+                                            </span>
+                                                </div>
+                                                <input type="text" class="form-control address"
+                                                       id="account_number_update"
+                                                       name="account_number" autocomplete="off">
+                                            </div>
+                                        </div>
+                                        <div class="col-2 p-0">
+                                            <label class="mb-2 mt-2 font-weight-light"
+                                                   for="add-account-update">&nbsp;</label>
+                                            <button type="button" class="btn btn-primary btn-sm btn-block"
+                                                    id="add-account-update">
+                                                <i class="fas fa-plus"></i></button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="col-sm-5 pr-1">
+                                    <table class="table table-bordered table-sm mt-2 table-hover bg-white"
+                                           id="table-account-update">
+                                        <thead>
+                                        <tr>
+                                            <th class="align-middle text-center p-0 m-0" style="width: 90%">Numeros de
+                                                Cuenta
+                                            </th>
+                                            <th class="align-middle text-center p-0 m-0" style="width: 10%"><i
+                                                    class="fas fa-trash"></i>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="tbody-account-update">
+                                        {% for a in supplier_obj.supplieraccounts_set.all %}
+                                            <tr>
+                                                <td class="align-middle text-center account-update">{{ a.account }}</td>
+                                                <td class="align-middle text-center">
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-warning delete-account-update">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                             <div class="row ruc d-none">
@@ -279,6 +337,26 @@
 </div>
 <script type="text/javascript">
 
+    $("#add-account-update").click(function () {
+        let accountNumber = $('#account_number_update');
+        if (accountNumber.val() === '') {
+            toastr.warning('¡No puede ingresar un datos en blanco!', 'Error');
+            return false;
+        }
+        $('#tbody-account-update').append(`<tr>
+            <td class="align-middle text-center account-update">${accountNumber.val()}</td>
+            <td class="align-middle text-center">
+            <button type="button" class="btn btn-sm btn-outline-warning delete-account-update">
+                <i class="fas fa-trash"></i>
+            </button>
+            </td>
+        </tr>`);
+        accountNumber.val('')
+    });
+
+    $(document).on('click', '.delete-account-update', function () {
+        $(this).closest('tr').remove();
+    });
 
 
 </script>

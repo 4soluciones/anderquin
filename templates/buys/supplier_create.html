@@ -1,5 +1,5 @@
 {% load static %}
-<div class="modal-dialog modal-xl" role="document">
+<div class="modal-dialog modal-xl roboto-condensed-regular" role="document">
 
     <div class="modal-content">
         <div id="modal-loader" class="overlay" style="display: none">
@@ -45,8 +45,8 @@
                             </div>
                             <div class="row dni">
                                 <div class="col-lg-3">
-                                    <label class="mb-1 mt-2 font-weight-light"
-                                           for="phone">Telefono</label>
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="phone">Telefono:</label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                                         <span class="input-group-text"><i
@@ -57,7 +57,7 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-5 pr-1">
-                                    <label class="mb-1 mt-2 font-weight-light" for="email">Correo</label>
+                                    <label class="mb-1 mt-1 font-weight-light" for="email">Correo:</label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                                         <span class="input-group-text"><i
@@ -81,17 +81,55 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="row ruc d-none">
-                                <div class="col-lg-12">
-                                    <label class="mb-1 mt-1 font-weight-light" for="business_name">Razón
-                                        Social</label>
-                                    <input type="text" class="form-control" id="business_name"
-                                           name="business-name" placeholder="">
+                            {#                            <div class="row ruc d-none">#}
+                            {#                                <div class="col-lg-12">#}
+                            {#                                    <label class="mb-1 mt-1 font-weight-light" for="business_name">Razón#}
+                            {#                                        Social:</label>#}
+                            {#                                    <input type="text" class="form-control" id="business_name"#}
+                            {#                                           name="business-name" placeholder="">#}
+                            {#                                </div>#}
+                            {#                            </div>#}
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <div class="row">
+                                        <div class="col-10 pr-1">
+                                            <label class="mb-1 mt-2 font-weight-light" for="account_number">Nro de
+                                                Cuenta:</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-money-check"></i>
+                                            </span>
+                                                </div>
+                                                <input type="text" class="form-control address" id="account_number"
+                                                       name="account_number" autocomplete="off">
+                                            </div>
+                                        </div>
+                                        <div class="col-2 p-0">
+                                            <label class="mb-2 mt-2 font-weight-light"
+                                                   for="add-account">&nbsp;</label>
+                                            <button type="button" class="btn btn-primary btn-sm btn-block" id="add-account">
+                                                <i class="fas fa-plus"></i></button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="col-sm-5 pr-1">
+                                    <table class="table table-bordered table-sm mt-2 table-hover bg-white" id="table-account">
+                                        <thead>
+                                        <tr>
+                                            <th class="align-middle text-center p-0 m-0" style="width: 90%">Numeros de Cuenta</th>
+                                            <th class="align-middle text-center p-0 m-0" style="width: 10%"><i class="fas fa-trash"></i>
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="tbody-account"></tbody>
+                                    </table>
                                 </div>
                             </div>
                             <div class="row addresses main">
                                 <div class="col-sm-7 col-md-7 col-lg-7 pr-1">
-                                    <label class="mb-1 mt-2 font-weight-light" for="address">Dirección</label>
+                                    <label class="mb-1 mt-2 font-weight-light" for="address">Dirección:</label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">
@@ -104,11 +142,11 @@
                                 </div>
 
                                 <div class="col-sm-1 col-md-1 col-lg-1 pl-2">
-                                    <div class="custom-control custom-checkbox mt-3">
-                                        <input class="form-check-input mt-3 type-address" type="radio"
+                                    <div class="custom-control custom-checkbox mt-4">
+                                        <input class="form-check-input mt-4 type-address" type="radio"
                                                name="radio_type_address" id="type_address"
                                                value="P">
-                                        <label class="form-check-label mt-3"
+                                        <label class="form-check-label mt-4"
                                                for="type_address">Principal?</label>
                                     </div>
                                 </div>
@@ -294,7 +332,8 @@
             'phone': _phone,
             'email': _mail,
             'contact_name': _contact_name,
-            "Addresses": []
+            "Addresses": [],
+            "accountNumbers": []
         };
 
         let addresseeObj = {};
@@ -309,6 +348,14 @@
                 "type_address": _type
             }
             supplier.Addresses.push(addresseeObj);
+        });
+        $('#tbody-account tr').each(function (){
+            let _tr = $(this);
+            let _account = _tr.find('td.account').text();
+            let accountObj = {
+                "account": _account
+            }
+            supplier.accountNumbers.push(accountObj)
         });
         //console.log(supplier)
         $.ajax({
@@ -334,6 +381,26 @@
             }
         });
     }
+    $("#add-account").click(function () {
+        let accountNumber = $('#account_number');
+        if (accountNumber.val() === ''){
+            toastr.warning('¡No puede ingresar un datos en blanco!', 'Error');
+            return false;
+        }
+        $('#tbody-account').append(`<tr>
+            <td class="align-middle text-center account">${accountNumber.val()}</td>
+            <td class="align-middle text-center">
+            <button type="button" class="btn btn-sm btn-outline-warning delete-account">
+                <i class="fas fa-trash"></i>
+            </button>
+            </td>
+        </tr>`);
+        accountNumber.val('')
+    });
+
+    $(document).on('click', '.delete-account', function () {
+        $(this).closest('tr').remove();
+    });
 
 
 </script>

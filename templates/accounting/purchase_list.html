@@ -12,15 +12,15 @@
                 <table>
                     <tr>
                         <td class="pl-2 pr-2 text-dark">Seleccione Proveedor</td>
-{#                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_initial"#}
-{##}
-{#                                                     value="{{ date }}" required>#}
-{#                        </td>#}
-{#                        <td class="pl-2 pr-2 text-dark">Fecha final</td>#}
-{#                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_final"#}
-{##}
-{#                                                     value="{{ date }}" required>#}
-{#                        </td>#}
+                        {#                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_initial"#}
+                        {##}
+                        {#                                                     value="{{ date }}" required>#}
+                        {#                        </td>#}
+                        {#                        <td class="pl-2 pr-2 text-dark">Fecha final</td>#}
+                        {#                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_final"#}
+                        {##}
+                        {#                                                     value="{{ date }}" required>#}
+                        {#                        </td>#}
                         <td class="pl-2 pr-2">
                             <select class="form-control" id="id-supplier" name="supplier">
                                 <option disabled selected value=""> Seleccione</option>
@@ -49,6 +49,22 @@
         <div class="modal-dialog modal-xl" id="pay-purchase"></div>
     </div>
 
+    <div class="modal fade" id="fileModal" tabindex="-1" role="dialog" aria-labelledby="fileModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content bg-light">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fileModalLabel">Archivo Subido</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="fileContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock body %}
 
@@ -105,6 +121,48 @@
                 }
             });
         });
+
+        function loadFile(fileUrl) {
+            var fileContainer = document.getElementById("fileContainer");
+            fileContainer.innerHTML = '';
+            console.log(fileUrl)
+            if (fileUrl === '/mediafiles/img/image_placeholder.jpg' ) {
+                fileContainer.innerHTML = '<p>No se subio ningun archivo.</p>';
+                return;
+            }
+            if (fileUrl.endsWith('.pdf')) {
+                showPDF(fileUrl, 400, 500);
+            } else {
+                var img = document.createElement('img');
+                img.src = fileUrl;
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
+                fileContainer.appendChild(img);
+            }
+        }
+
+         function showPDF(pdfUrl, width, height) {
+            var fileContainer = document.getElementById("fileContainer");
+            fileContainer.innerHTML = '<canvas id="pdfViewer"></canvas>';
+            var canvas = document.getElementById('pdfViewer');
+            var ctx = canvas.getContext('2d');
+
+            pdfjsLib.getDocument(pdfUrl).promise.then(function(pdf) {
+                pdf.getPage(1).then(function(page) {
+                    var viewport = page.getViewport({scale: 1});
+                    var scale = Math.min(width / viewport.width, height / viewport.height);
+                    var scaledViewport = page.getViewport({scale: scale});
+
+                    canvas.width = scaledViewport.width;
+                    canvas.height = scaledViewport.height;
+
+                    page.render({
+                        canvasContext: ctx,
+                        viewport: scaledViewport
+                    });
+                });
+            });
+        }
 
     </script>
 {% endblock extrajs %}

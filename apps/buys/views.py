@@ -26,7 +26,7 @@ from .views_PDF import query_apis_net_money
 from ..accounting.models import BillPurchase, Bill
 from ..comercial.models import GuideMotive
 from ..sales.models import Product, Unit, Supplier, SubsidiaryStore, ProductStore, ProductDetail, Kardex, Cash, \
-    CashFlow, TransactionPayment, SupplierAddress, Order
+    CashFlow, TransactionPayment, SupplierAddress, Order, SupplierAccounts
 from ..sales.views_SUNAT import query_apis_net_dni_ruc
 
 
@@ -1371,6 +1371,15 @@ def save_supplier(request):
             )
             supplier_address_obj.save()
 
+        if data_supplier['accountNumbers'] != '':
+            for a in data_supplier['accountNumbers']:
+                account_number = str(a['account'])
+                supplier_account_obj = SupplierAccounts(
+                    account=account_number,
+                    supplier=supplier_obj,
+                )
+                supplier_account_obj.save()
+
         return JsonResponse({
             'success': True,
             'message': 'Proveedor Registrado',
@@ -1432,6 +1441,18 @@ def update_supplier(request):
                     type_address=type_address
                 )
                 supplier_address_obj.save()
+
+            if data_supplier['accountNumbers'] != '':
+                supplier_account_to_delete = SupplierAccounts.objects.filter(supplier=supplier_obj)
+                supplier_account_to_delete.delete()
+
+                for a in data_supplier['accountNumbers']:
+                    account_number = str(a['account'])
+                    supplier_account_obj = SupplierAccounts(
+                        account=account_number,
+                        supplier=supplier_obj,
+                    )
+                    supplier_account_obj.save()
 
             return JsonResponse({
                 'success': True,

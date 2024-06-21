@@ -18,16 +18,31 @@
 
             <div class="card text-center">
                 <div class="card-header pt-1 pb-1 font-weight-bold">
-                    Deuda Total:
-                </div>
-                <div class="card-body pt-2 pb-0 mb-2 text-center d-flex justify-content-center">
-                    <div class="input-icon">
-                        <input type="text" readonly
-                               style="background-color: #eed0d0; font-size: 18px" aria-label="..."
-                               class="form-control form-control-sm font-weight-bold text-center text-dark"
-                               id="total_debt" name="total-debt"
-                               value="{{ total_debt }}"><i
-                            class="change-money font-weight-bold">S/</i>
+                    <div class="row">
+                        <div class="col-6">
+                            <label>Deuda Total:</label>
+                            <div class="input-icon">
+                                <input type="text" readonly
+                                       style="background-color: #e57070; font-size: 18px" aria-label="..."
+                                       class="form-control form-control-sm font-weight-bold text-center text-dark"
+                                       id="total_debt" name="total-debt"
+                                       value="{{ total_debt }}"><i
+                                    class="change-money font-weight-bold">S/</i>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label>Saldo Restante:</label>
+                            <div class="input-icon">
+                                <input type="text" readonly
+                                       style="background-color: #eed0d0; font-size: 18px" aria-label="..."
+                                       class="form-control form-control-sm font-weight-bold text-center text-dark"
+                                       id="repay_loan_text" name="repay-loan-text"
+                                       value="{{ bill.remaining_balance|replace_round_separator }}"><i
+                                    class="change-money font-weight-bold">S/</i>
+                                <input type="hidden" id="repay_loan" name="repay_loan"
+                                       value="{{ bill.remaining_balance }}">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -44,7 +59,7 @@
                 <tbody>
                 <tr>
                     <td class="border-top-0 border-bottom border-right align-middle">
-                        <select id="id_cash_deposit" name="id_cash_deposit" aria-label="..."
+                        <select id="cash" name="cash" aria-label="..."
                                 class="form-control form-control-sm text-uppercase"
                                 aria-selected="Text input with radio button">
                             {% for c in all_cashes %}
@@ -64,9 +79,9 @@
                         </div>
                     </td>
                     <td class="border-top-0 border-bottom border-right align-middle">
-                        <select id="id_transaction_payment_type"
+                        <select id="way_to_pay"
                                 aria-label="..."
-                                name="transaction_payment_type"
+                                name="way_to_pay"
                                 class="form-control form-control-sm">
                             <option disabled selected value="0">Seleccione</option>
                             <option value="E">CONTADO</option>
@@ -75,8 +90,8 @@
                     </td>
                     <td class="border-top-0 border-bottom border-right align-middle text-left text-danger">
                         <input type="date" aria-label="..."
-                               id="id_date_deposit"
-                               name="id_date_deposit"
+                               id="pay_date"
+                               name="pay_date"
                                value="{{ date }}"
                                class="form-control form-control-sm">
                     </td>
@@ -84,31 +99,38 @@
                 </tr>
                 </tbody>
             </table>
-            <table class="table table-sm bg-light table-bordered mb-0" id="deposit">
+            <table class="table table-sm bg-light table-bordered mb-0">
                 <thead>
                 <tr class="text-uppercase font-weight-lighter">
                     <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CUENTA DEL PROVEEDOR:</th>
                     <th class="border-bottom-0 border-right align-middle" style="width: 25%;">DESCRIPCIÓN DEL PAGO:</th>
-                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">COD-OP:</th>
+                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CÓDIGO DE OPERACIÓN:</th>
                     <th class="border-bottom-0 border-right align-middle" style="width: 25%;">ESCANEO DEPOSITO:</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr>
                     <td class="border-top-0 border-bottom border-right align-middle">
-                        <input type="text"
-                               aria-label="..."
-                               class="form-control form-control-sm"
-                               id="id_description_deposit"
-                               name="description_deposit"
-                               value="">
+                        <select id="account_supplier" name="account_supplier" aria-label="..."
+                                class="form-control form-control-sm"
+                                aria-selected="Text input with radio button">
+                            <option disabled selected value="0">Seleccione..</option>
+                            {% for c in accounts_supplier %}
+                                <option value="{{ c.id }}">{{ c.account }}</option>
+                            {% endfor %}
+                        </select>
+                        {#                        <input type="text"#}
+                        {#                               aria-label="..."#}
+                        {#                               class="form-control form-control-sm"#}
+                        {#                               id="account_supplier"#}
+                        {#                               name="account_supplier">#}
                     </td>
                     <td class="border-top-0 border-bottom border-right align-middle">
                         <input type="text"
                                aria-label="..."
                                class="form-control form-control-sm"
-                               id="id_description_deposit"
-                               name="description_deposit"
+                               id="pay_description"
+                               name="pay_description"
                                value="PAGO A LA FACTURA: {{ bill.serial }}-{{ bill.correlative }}">
                     </td>
                     <td class="border-top-0 border-bottom border-right align-middle">
@@ -121,13 +143,7 @@
                         <div class="form-group m-0 w-100">
                             <div class="input-group w-100">
                                 <div class="custom-file w-100">
-                                    <input type="file" class="form-control"
-                                           id="exampleInputEditFile"
-                                           name="exampleInputFile"
-                                           onchange="readURL(this);">
-                                    <label class="custom-file-label" for="exampleInputEditFile">
-                                        Subir Imagen
-                                    </label>
+                                    <input type="file" name="file" id="file" style="font-size: 12px"/>
                                 </div>
                             </div>
                         </div>
@@ -136,15 +152,15 @@
                 </tbody>
             </table>
 
-            <div class="row">
-                <div class="col-lg-12 d-flex justify-content-center align-self-center">
-                    <label class="open-edit-file border rounded-lg m-0 p-0 mt-2"
-                           style="cursor: pointer">
-                        <img id="blah" class="img-thumbnail" width="160px" height="160px"
-                             src="{% static 'images/img/image_placeholder.jpg' %}">
-                    </label>
-                </div>
-            </div>
+            {#            <div class="row">#}
+            {#                <div class="col-lg-12 d-flex justify-content-center align-self-center">#}
+            {#                    <label class="open-edit-file border rounded-lg m-0 p-0 mt-2"#}
+            {#                           style="cursor: pointer">#}
+            {#                        <img id="blah" class="img-thumbnail" width="160px" height="160px"#}
+            {#                             src="{% static 'images/img/image_placeholder.jpg' %}">#}
+            {#                    </label>#}
+            {#                </div>#}
+            {#            </div>#}
 
             <div class="modal-footer">
                 <button type="submit" id="btn-save" class="btn btn-primary">Guardar pago</button>
@@ -156,6 +172,7 @@
     </div>
 </div>
 
+
 <script type="text/javascript">
 
     $(document).ready(function () {
@@ -163,48 +180,11 @@
             $('#bill_pay').focus();
         }, 500);
     });
-
-    function readURL(input) {
-        let url = input.value;
-        let ext = url.substring(url.lastIndexOf('.') + 1).toLowerCase();
-        if (input.files && input.files[0] && (ext == "gif" || ext == "png" || ext == "jpeg" || ext == "jpg")) {
-            let reader = new FileReader();
-
-            reader.onload = function (e) {
-                $('#blah').attr('src', e.target.result);
-            }
-            reader.readAsDataURL(input.files[0]);
-        } else {
-            $('#blah').attr('src', '{% static 'images/img/iamge_placeholder.jpg' %}');
-        }
-    }
-    $('.new_btn').bind("click", function () {
-        $('#exampleInputFile').trigger('click');
+    $('#exampleInputEditFile').change(function () {
+        var i = $(this).prev('label').clone();
+        var file = $('#exampleInputEditFile')[0].files[0].name;
+        $(this).prev('label').text(file);
     });
-
-    /*$('#id_transaction_payment_type').change(function () {
-
-        let type = $('#id_transaction_payment_type').val();
-        if (type === 'E') {
-            $('#cash').css('display', 'table');
-            $('#deposit').css('display', 'none');
-            $('#id_cash').trigger('change');
-        } else if (type === 'D') {
-            $('#deposit').css('display', 'table');
-            $('#cash').css('display', 'none');
-        } else if (type === 'F') {
-            $('#cash').css('display', 'none');
-            $('#deposit').css('display', 'none');
-        } else if (type === 'V' || type === 'C') {
-            $('#cash').css('display', 'none');
-            $('#deposit').css('display', 'none');
-        }
-
-    });*/
-
-    /*$('#id_transaction_payment_type').change(function () {
-        $('#deposit').css('display', 'table');
-    });*/
 
     $('#purchase-payment-form').submit(function (event) {
 
@@ -213,12 +193,25 @@
         let bill_id = $('#bill_id').val();
         let _total_debt = $('#total_debt').val().replace(/,/g, '');
         let _bill_pay = $('#bill_pay').val().replace(/,/g, '');
-        if (Number(_bill_pay) > Number(_total_debt) || Number(_bill_pay) < Number(_total_debt)) {
-            toastr.warning('El monto a pagar no puede ser mayor o menor a la Deuda', 'Mensaje');
+        let _repay_loan = $('#repay_loan').val().replace(/,/g, '.');
+        if (_bill_pay === '') {
+            toastr.warning('Ingrese un monto antes de Guardar el Pago', 'Mensaje');
+            return false
+        }
+        if ($('#way_to_pay').val() === null) {
+            toastr.warning('Seleccione un metodo de Pago', 'Mensaje');
+            return false
+        }
+        if (Number(_bill_pay) > Number(_total_debt)) {
+            toastr.warning('El monto a pagar no puede ser mayor a la Deuda Total', 'Mensaje');
+            return false
+        }
+        if (Number(_bill_pay) > Number(_repay_loan)) {
+            toastr.warning('El monto a pagar no puede ser mayor al saldo restante', 'Mensaje');
             return false
         }
 
-        $('#btn-save').attr("disabled", "true");
+        $('#btn-save').attr("disabled", true);
 
         $.ajax({
             url: '/accounting/new_payment_purchase/',
@@ -229,23 +222,24 @@
             contentType: false,
             success: function (response, textStatus, xhr) {
                 if (xhr.status === 200) {
-                    // $('#product-detail-grid').html(response.grid);
                     $('#modal-payment-purchase').modal('hide');
-                    {#$('#table-list-purchase').html(response['grid']);#}
                     toastr.success(response['message'], '¡Bien hecho!');
-                    let _row = $('tr.bill[pk="' + bill_id + '"]')
+                    $("#id_btn_show").trigger('click');
+                    /*let _row = $('tr.bill[pk="' + bill_id + '"]')
                     _row.find('td.pay-row').text(response.pay).css({'background-color': 'rgb(170,235,185)',});
                     _row.find('td.pay-row-date').text(response.pay_date);
-                    _row.find('td.button-pay').hide();
+                    _row.find('td.button-pay').hide();*/
+                    $('#btn-save').removeAttr("disabled", false);
                 }
             },
             error: function (jqXhr, textStatus, xhr) {
                 if (jqXhr.status === 500) {
                     toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    $('#btn-save').removeAttr("disabled", false);
                 }
             }
         });
-        $('#btn-save').removeAttr("disabled", "false");
+
 
     });
 

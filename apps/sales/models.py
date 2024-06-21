@@ -250,6 +250,15 @@ class SupplierAddress(models.Model):
         verbose_name_plural = 'Direcciones de los Proveedores'
 
 
+class SupplierAccounts(models.Model):
+    id = models.AutoField(primary_key=True)
+    account = models.CharField('Account Number', max_length=50, null=True, blank=True)
+    supplier = models.ForeignKey('Supplier', on_delete=models.CASCADE, null=True, blank=True,)
+
+    def __str__(self):
+        return str(self.account)
+
+
 class City(models.Model):
     name = models.CharField('Ciudad', max_length=50)
 
@@ -526,6 +535,7 @@ class LoanPayment(models.Model):
     type = models.CharField('Tipo de Operacion', max_length=1, choices=TYPE_CHOICES, default='V', )
     bill = models.ForeignKey('accounting.Bill', on_delete=models.SET_NULL, null=True, blank=True)
     operation_date = models.DateField('Fecha de operacion', null=True, blank=True)
+    file = models.FileField(upload_to='files/', default='img/image_placeholder.jpg', blank=True)
 
     def __str__(self):
         return str(self.id)

@@ -19,12 +19,14 @@ from django.db import DatabaseError, IntegrityError
 import json
 from django.core import serializers
 from django.db.models import Min, Sum, F, Prefetch, Subquery, OuterRef, Value, Q
+from django.views.decorators.clickjacking import xframe_options_exempt
 
 
 class Home(TemplateView):
     template_name = 'accounting/home.html'
 
 
+@xframe_options_exempt
 def get_purchases_list(request):
     if request.method == 'GET':
         user_id = request.user.id
@@ -42,6 +44,7 @@ def get_purchases_list(request):
         })
 
 
+@xframe_options_exempt
 def get_purchases_by_date(request):
     if request.method == 'GET':
         user_id = request.user.id
@@ -55,7 +58,9 @@ def get_purchases_by_date(request):
         #                                         status='A', supplier=supplier_obj).order_by('purchase_date')
         # bill_set = Bill.objects.filter(register_date__range=[start_date, end_date],
         #                                supplier=supplier_obj).order_by('register_date')
-        bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier', 'store_destiny__subsidiary').order_by('register_date')
+        bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier',
+                                                                             'store_destiny__subsidiary').order_by(
+            'register_date')
 
         return JsonResponse({
             'grid': get_dict_purchases(bill_set),
@@ -75,7 +80,7 @@ def get_dict_purchases(bill_set):
         has_payment = False
         repay_loan = decimal.Decimal(b.repay_loan())
         bill_total = decimal.Decimal(b.bill_total_total)
-        days_difference = '-'
+        days_difference = 0
         if bill_total != repay_loan:
             expiration_date = datetime.strptime(str(b.expiration_date), '%Y-%m-%d')
             date_now = datetime.now()
@@ -124,7 +129,8 @@ def get_dict_purchases(bill_set):
                 'date': transaction_date,
                 'operation_code': _operation_code,
                 'pay': round(lp.pay, 2),
-                'type': lp.type
+                'type': lp.type,
+                'file': lp.file
             }
             new.get('loan_payment_set').append(loan_payment)
         difference_payed = decimal.Decimal(b.bill_total_total) - decimal.Decimal(sum_payed)
@@ -175,7 +181,8 @@ def get_purchases_pay(request):
             'all_cashes': all_cashes,
             'date': formatdate,
             'start_date': start_date,
-            'end_date': end_date
+            'end_date': end_date,
+            'accounts_supplier': bill_obj.supplier.supplieraccounts_set.all()
         })
 
         return JsonResponse({
@@ -188,31 +195,26 @@ def new_payment_purchase(request):
     if request.method == 'POST':
         user_id = request.user.id
         user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        # purchase_total = str(request.POST.get('purchase_total'))
+
+        cash = int(request.POST.get('cash'))
         bill_pay = decimal.Decimal(request.POST.get('bill-pay').replace(',', ''))
-        start_date = str(request.POST.get('date-ini'))
-        end_date = str(request.POST.get('date-fin'))
-        transaction_payment_type = str(request.POST.get('transaction_payment_type'))
-        bill_id = int(request.POST.get('bill'))
-        bill_obj = Bill.objects.get(id=bill_id)
-        # purchases_set = Purchase.objects.filter(purchase_date__range=[start_date, end_date], subsidiary=subsidiary_obj,
-        #                                         status='A')
-        date_converter = ''
-        cash_flow_date = str(request.POST.get('id_date'))
-        cash_flow_transact_date_deposit = str(request.POST.get('id_date_deposit'))
-        date_converter = datetime.strptime(cash_flow_transact_date_deposit, '%Y-%m-%d').date()
+        way_to_pay = str(request.POST.get('way_to_pay'))
+        pay_date = str(request.POST.get('pay_date'))
+        date_converter = datetime.strptime(pay_date, '%Y-%m-%d').date()
         formatdate = date_converter.strftime("%d-%m-%y")
+        pay_description = str(request.POST.get('pay_description'))
+        code_operation = str(request.POST.get('code_operation'))
+        file = request.FILES.get('file', False)
+        bill_id = int(request.POST.get('bill'))
 
-        if transaction_payment_type == 'E':
-            cash_id = str(request.POST.get('cash'))
-            cash_obj = Cash.objects.get(id=cash_id)
-            cash_flow_description = str(request.POST.get('description_cash'))
+        bill_obj = Bill.objects.get(id=bill_id)
+        cash_obj = Cash.objects.get(id=cash)
 
+        if way_to_pay == 'E':
             cash_flow_obj = CashFlow(
-                transaction_date=cash_flow_date,
+                transaction_date=pay_date,
                 document_type_attached='O',
-                description=cash_flow_description,
+                description=pay_description,
                 bill=bill_obj,
                 type='S',
                 total=bill_pay,
@@ -222,30 +224,27 @@ def new_payment_purchase(request):
             cash_flow_obj.save()
 
             loan_payment_obj = LoanPayment(
-                price=bill_pay,
+                pay=bill_pay,
                 type='C',
-                bill=bill_obj
+                bill=bill_obj,
             )
+            if file:
+                loan_payment_obj.file = file
+
             loan_payment_obj.save()
 
             transaction_payment_obj = TransactionPayment(
                 payment=bill_pay,
-                type=transaction_payment_type,
+                type=way_to_pay,
                 loan_payment=loan_payment_obj
             )
             transaction_payment_obj.save()
-        code_operation = ''
-        if transaction_payment_type == 'D':
-            cash_flow_description = str(request.POST.get('description_deposit'))
 
-            cash_id = str(request.POST.get('id_cash_deposit'))
-            cash_obj = Cash.objects.get(id=cash_id)
-            code_operation = str(request.POST.get('code_operation'))
-
+        if way_to_pay == 'D':
             cash_flow_obj = CashFlow(
-                transaction_date=cash_flow_transact_date_deposit,
+                transaction_date=pay_date,
                 document_type_attached='O',
-                description=cash_flow_description,
+                description=pay_description,
                 bill=bill_obj,
                 type='R',
                 operation_code=code_operation,
@@ -259,13 +258,16 @@ def new_payment_purchase(request):
                 pay=bill_pay,
                 type='C',
                 bill=bill_obj,
-                operation_date=cash_flow_transact_date_deposit
+                operation_date=pay_date,
             )
+            if file:
+                loan_payment_obj.file = file
+
             loan_payment_obj.save()
 
             transaction_payment_obj = TransactionPayment(
                 payment=bill_pay,
-                type=transaction_payment_type,
+                type=way_to_pay,
                 loan_payment=loan_payment_obj,
                 operation_code=code_operation
             )
@@ -276,7 +278,6 @@ def new_payment_purchase(request):
             'pay': round(bill_pay, 2),
             'pay_date': formatdate,
             'cod_op': code_operation,
-            # 'grid': get_dict_purchases(purchases_set),
 
         }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
@@ -2418,23 +2419,3 @@ def get_bill(request):
             'success': True,
             'grid': t.render(c, request),
         }, status=HTTPStatus.OK)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

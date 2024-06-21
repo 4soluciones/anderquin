@@ -79,9 +79,9 @@
                 '                            </div>' +
                 '                       </div>' +
                 '<div class="col-sm-1 col-md-1 col-lg-1 pl-2">' +
-                '<div class="custom-control custom-checkbox mt-3">' +
-                '<input class="form-check-input mt-3 type-address" type="radio" name="radio_type_address" id="type_address" value="P">' +
-                '<label class="form-check-label mt-3" for="type_address">Principal?</label>' +
+                '<div class="custom-control custom-checkbox mt-4">' +
+                '<input class="form-check-input mt-4 type-address" type="radio" name="radio_type_address" id="type_address" value="P">' +
+                '<label class="form-check-label mt-4" for="type_address">Principal?</label>' +
                 '</div>' +
                 '</div>' +
                 '                       <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-2">' +
@@ -136,9 +136,9 @@
                 '                            </div>' +
                 '                       </div>' +
                 '<div class="col-sm-1 col-md-1 col-lg-1 pl-2">' +
-                '<div class="custom-control custom-checkbox mt-3">' +
-                '<input class="form-check-input mt-3 type-address" type="radio" name="radio_type_address" id="type_address" value="P">' +
-                '<label class="form-check-label mt-3" for="type_address">Principal?</label>' +
+                '<div class="custom-control custom-checkbox mt-4">' +
+                '<input class="form-check-input mt-4 type-address" type="radio" name="radio_type_address" id="type_address" value="P">' +
+                '<label class="form-check-label mt-4" for="type_address">Principal?</label>' +
                 '</div>' +
                 '</div>' +
                 '                       <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-2">' +
@@ -193,7 +193,8 @@
                 'phone': _phone,
                 'email': _mail,
                 'contact_name': _contact_name,
-                "Addresses": []
+                "Addresses": [],
+                "accountNumbers": []
             };
 
             let addresseeObj = {};
@@ -208,6 +209,14 @@
                     "type_address": _type
                 }
                 supplier.Addresses.push(addresseeObj);
+            });
+            $('#tbody-account-update tr').each(function () {
+                let _tr = $(this);
+                let _account = _tr.find('td.account-update').text();
+                let accountObj = {
+                    "account": _account
+                }
+                supplier.accountNumbers.push(accountObj)
             });
             //console.log(supplier)
             $.ajax({

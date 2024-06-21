@@ -45,6 +45,13 @@ def thousands_separator(value):
     return ''
 
 
+@register.filter(name='mod_number')
+def mod_number(value):
+    if value is not None and value != '':
+        return abs(value)
+    return ''
+
+
 @register.filter(name='replace_round')
 def replace_round(value):
     if value is not None and value != '':

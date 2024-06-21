@@ -391,6 +391,9 @@ class Bill(models.Model):
             response = loan_payment_set[0].get('totals')
         return response
 
+    def remaining_balance(self):
+        return decimal.Decimal(self.bill_total_total) - decimal.Decimal(self.repay_loan())
+
 
 class BillPurchase(models.Model):
     id = models.AutoField(primary_key=True)
