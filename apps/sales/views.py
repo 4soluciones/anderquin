@@ -91,7 +91,7 @@ class ProductList(View):
 
 class JsonProductList(View):
     def get(self, request):
-        products = Product.objects.filter(is_enabled=True)
+        products = Product.objects.filter(is_enabled=True).order_by('id')
         user = self.request.user.id
         user_obj = User.objects.get(id=int(user))
         subsidiary_obj = get_subsidiary_by_user(user_obj)

@@ -85,27 +85,27 @@
                                placeholder="Buscar Cliente..."/>
                         <ul class="autocomplete-result-list"></ul>
                     </div>
-{#                    {% if contract_detail_obj %}#}
-{#                        <label for="document-client" class="text-primary">RUC (Destinatario)</label>#}
-{#                        <input type="text"#}
-{#                               class="form-control" name="document-client" id="document-client" disabled#}
-{#                               required#}
-{#                               value="{{ contract_detail_obj.contract.client.clienttype_set.last.document_number }}"#}
-{#                               maxlength="200">#}
-{#                    {% else %}#}
-{#                        <label for="person-names">RUC (Destinatario)</label>#}
-{#                        <div id="autocomplete-client" class="autocomplete">#}
-{#                            <input class="form-control autocomplete-input"#}
-{#                                   type="text"#}
-{#                                   id="person-names"#}
-{#                                   name="person-names"#}
-{#                                   maxlength="200"#}
-{#                                   autocomplete="off"#}
-{#                                   value=""#}
-{#                                   placeholder="Buscar Cliente..."/>#}
-{#                            <ul class="autocomplete-result-list"></ul>#}
-{#                        </div>#}
-{#                    {% endif %}#}
+                    {#                    {% if contract_detail_obj %}#}
+                    {#                        <label for="document-client" class="text-primary">RUC (Destinatario)</label>#}
+                    {#                        <input type="text"#}
+                    {#                               class="form-control" name="document-client" id="document-client" disabled#}
+                    {#                               required#}
+                    {#                               value="{{ contract_detail_obj.contract.client.clienttype_set.last.document_number }}"#}
+                    {#                               maxlength="200">#}
+                    {#                    {% else %}#}
+                    {#                        <label for="person-names">RUC (Destinatario)</label>#}
+                    {#                        <div id="autocomplete-client" class="autocomplete">#}
+                    {#                            <input class="form-control autocomplete-input"#}
+                    {#                                   type="text"#}
+                    {#                                   id="person-names"#}
+                    {#                                   name="person-names"#}
+                    {#                                   maxlength="200"#}
+                    {#                                   autocomplete="off"#}
+                    {#                                   value=""#}
+                    {#                                   placeholder="Buscar Cliente..."/>#}
+                    {#                            <ul class="autocomplete-result-list"></ul>#}
+                    {#                        </div>#}
+                    {#                    {% endif %}#}
                 </div>
                 <div class="col-md-8">
                     <label for="name-client" class="text-primary">Razón Social (Destinatario)</label>
@@ -226,13 +226,20 @@
             <div class="row col-md-12 mt-1 pr-0">
                 <div class="col-md-2">
                     <label for="weight" class="text-primary">Peso bruto total (KGM)</label>
-                    <input type="text"
-                           class="form-control" name="weight" id="weight"
-                           placeholder="" required
-                           value="" maxlength="20">
+{#                    <input type="text"#}
+{#                           class="form-control" name="weight" id="weight"#}
+{#                           placeholder="" required#}
+{#                           value="{{ weight_total }}" maxlength="20">#}
+                    <div class="input-icon">
+                        <input type="text"
+                               name="weight" id="weight"
+                               class="form-control text-right text-uppercase total-detail" style="padding-right: 33px"
+                               value="{% if weight_total > '0' %}{{ weight_total }}{% endif %}">
+                        <i class="change-money">Kg</i>
+                    </div>
                 </div>
                 <div class="col-md-2">
-                    <label for="weight" class="text-primary">Numero Bultos</label>
+                    <label for="id-package" class="text-primary">Numero Bultos</label>
                     <input type="text"
                            class="form-control" name="id-package" id="id-package"
                            placeholder="" required
@@ -260,9 +267,10 @@
                             <thead class="text-uppercase small text-center">
                             <tr class="text-white" style="background: #0783d6">
                                 <th scope="col" class="font-weight-normal" style="width: 10%;">Nº</th>
-                                <th scope="col" class="font-weight-normal" style="width: 50%;">Descripcion</th>
+                                <th scope="col" class="font-weight-normal" style="width: 45%;">Descripcion</th>
                                 <th scope="col" class="font-weight-normal" style="width: 15%;">Cantidad</th>
                                 <th scope="col" class="font-weight-normal" style="width: 15%;">Unidad</th>
+                                <th scope="col" class="font-weight-normal" style="width: 15%; background-color: #518d86">Cant. / U. M.</th>
                                 {#                                <th scope="col" class="font-weight-normal" style="width: 10%;">Eliminar</th>#}
                             </tr>
                             </thead>
@@ -298,6 +306,12 @@
                                                 {% endfor %}
                                             </select>
                                         </td>
+                                        <td class="align-middle quantity-minimum">
+                                            <input type="text"
+                                                   style="background-color: #bde7e2"
+                                                   class="form-control text-center quantity-minimum-val text-uppercase"
+                                                   placeholder="0">
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             {% endif %}
@@ -315,6 +329,40 @@
          aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
     <div class="modal fade" id="modal-carrier" data-backdrop="static" data-keyboard="false" tabindex="-1"
          aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
+
+    <style>
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon > i {
+            position: absolute;
+            display: block;
+            transform: translate(0, -50%);
+            top: 50%;
+            pointer-events: none;
+            width: 520px;
+            text-align: center;
+            font-style: normal;
+        }
+
+        /*.input-icon > input {
+            padding-left: 25px;
+            padding-right: 8px;
+        }*/
+
+        .input-icon-right > i {
+            right: 0;
+        }
+
+        .input-icon-right > input {
+            /*padding-left: 0;
+            padding-right: 33px;*/
+            text-align: center;
+        }
+
+    </style>
 
 {% endblock body %}
 
@@ -528,7 +576,7 @@
                 };
                 Guide.Details.push(detailObj);
             });
-            //console.log(Guide)
+            console.log(Guide)
             $.ajax({
                 url: '/comercial/save_guide/',
                 async: true,
@@ -543,10 +591,10 @@
                         let guide_id = response.pk
                         window.location.href = "/comercial/guide/" + guide_id + "/";
                         if (response.contract) {
-                            //console.log("contract")
-                            setTimeout(() => {
+                            console.log("contract")
+                            /*setTimeout(() => {
                                 window.open("/buys/contracts/", '_self');
-                            }, 2000);
+                            }, 2000);*/
                         } else {
                             //console.log("Order")
                             setTimeout(() => {
@@ -559,7 +607,52 @@
                     toastr.error("ERROR. ", '¡INCONCEBIBLE!');
                 }
             });
+        }
 
+        $(document).on('change', '.unit-product', async function (e) {
+            let unit_id = $(this).val();
+            let product_id = $(this).parent('td').parent('tr').attr('product')
+            let _quantity = Number($(this).parent('td').parent('tr').find('td.item-quantity input.quantity-product').val())
+            let _tr = $(this).parent('td').parent('tr')
+            let _select_quantity_unit = _tr.find('td.item-quantity-x-unit select.quantity-unit');
+            if (unit_id !== '0') {
+                await getQuantityMinimumByProduct(product_id, unit_id, _tr, _quantity)
+                if (unit_id === '1') { /*optimizar*/
+                    _select_quantity_unit.val('1').change();
+                }
+            } else {
+                toastr.warning('Seleccione una unidad valida', 'Error de llenado');
+                $(this).val(1).change();
+                return false;
+            }
+
+        });
+
+        async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
+            let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum-val');
+            let _price_unit_product = _tr.find('td.item-price input.price-unit-product');
+            _input_quantity_minimum.val('')
+            if (product_id !== '0') {
+                $.ajax({
+                    url: '/buys/get_quantity_minimum/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {
+                        'product_id': product_id,
+                        'unit_id': _unit
+                    },
+                    success: function (response) {
+                        let _quantity_minimum = Number(response.quantity_minimum).toFixed(2)
+                        if (_quantity_minimum && _quantity) {
+                            let _q_x_u = _quantity / _quantity_minimum
+                            _input_quantity_minimum.val(_q_x_u.toFixed(2))
+                        }
+                        _price_unit_product.val(response.price_purchase);
+                        $('.price-unit-product').trigger('keyup');
+                    },
+                });
+            }
         }
 
 

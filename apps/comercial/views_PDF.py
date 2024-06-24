@@ -26,6 +26,8 @@ import os
 import datetime
 
 from ..sales.format_dates import utc_to_local
+from ..sales.models import ProductDetail
+from ..sales.views import calculate_minimum_unit
 
 PAGE_HEIGHT = defaultPageSize[1]
 PAGE_WIDTH = defaultPageSize[0]
@@ -1606,7 +1608,7 @@ def guide(request, pk=None):
     document_header.setStyle(TableStyle(header_style))
     # ------------------------------------------------------------------
     pdf_person = Table(
-        [('Fecha de Emisión', ': ' + str(date.strftime("%d/%m/%Y")), 'Doc. Relacionado', 'Nº O/C', 'Doc. Referencia', '')] +
+        [('Fecha de Emisión', ': ' + str(date.strftime("%d/%m/%Y")), 'Doc. Relacionado', 'Nº O/C: ' , 'Doc. Referencia', '')] +
         [('Destinatario', ': ' + client, '', '', 'Doc. Identidad', ': ' + client_type_document + ' ' + client_document_number)] +
         [('Dirección', ': ' + client_address.title(), '', '', '', '')] +
         [('Ref. Llegada', '', '', '', '', '')],
@@ -1752,7 +1754,12 @@ def guide(request, pk=None):
                             styles["Left-text"])
         code = str(d.product.code)
         unit = str(d.unit.description)
-        quantity = round(decimal.Decimal(d.quantity), 2)
+        product_detail_get = ProductDetail.objects.filter(unit=d.unit, product=d.product).last()
+        quantity_minimum = product_detail_get.quantity_minimum
+        quantity_in_units = d.quantity / quantity_minimum
+
+        # quantity = round(decimal.Decimal(d.quantity), 2)
+        quantity = round(decimal.Decimal(quantity_in_units), 2)
         weight = str(round(decimal.Decimal(guide_obj.weight), 2))
         row.append((code, quantity, unit, product, str(weight) + ' ' + 'KGM'))
     if len(row) <= 0:

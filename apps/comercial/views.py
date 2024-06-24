@@ -411,6 +411,7 @@ def new_guide(request, contract_detail=None):
     contract_detail_item_set = None
     contract_dict = []
     client = []
+    weight_total = 0
     if contract_detail is not None:
         contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail))
         contract_detail_item_set = ContractDetailItem.objects.filter(contract_detail__id=contract_detail)
@@ -437,6 +438,7 @@ def new_guide(request, contract_detail=None):
             })
 
         for counter, d in enumerate(contract_detail_item_set, start=1):
+            weight_total += decimal.Decimal(d.product.weight) * d.quantity
             item_contract = {
                 'contract_detail_id': d.contract_detail.id,
                 'id': d.id,
@@ -445,6 +447,7 @@ def new_guide(request, contract_detail=None):
                 'product_brand': d.product.product_brand.name,
                 'quantity': d.quantity,
                 'counter': counter,
+                'weight': d.product.weight,
                 'units': []
             }
             for pd in ProductDetail.objects.filter(product_id=d.product.id).all():
@@ -460,7 +463,7 @@ def new_guide(request, contract_detail=None):
     product_obj = Product.objects.all()
     my_date = datetime.now()
     formatdate = my_date.strftime("%Y-%m-%d")
-    motive_set = GuideMotive.objects.filter(type='S').order_by('id')
+    motive_set = GuideMotive.objects.filter(type='S', code__isnull=False).order_by('id')
 
     return render(request, 'comercial/guide.html', {
         'supplier_obj': supplier_obj,
@@ -477,6 +480,7 @@ def new_guide(request, contract_detail=None):
         'contract_dict': contract_dict,
         'motive_set': motive_set,
         'date_now': date_now,
+        'weight_total': str(round(weight_total / 1000, 2)),
     })
 
 
@@ -660,60 +664,60 @@ def get_quantity_product(request):
         }, status=HTTPStatus.OK)
 
 
-def create_guide(request):
-    if request.method == 'GET':
-        guides_request = request.GET.get('guides', '')
-        data_guides = json.loads(guides_request)
-        print(data_guides)
-        user_id = request.user.id
-        user_obj = User.objects.get(pk=int(user_id))
-        serial = str(data_guides["Serial"])
-        code = str(data_guides["Code"])
-        minimal_cost = float(data_guides["Minimal_cost"])
-        programming = int(data_guides["Programming"])
-        programming_obj = Programming.objects.get(pk=programming)
-
-        new_guide = {
-            'serial': serial,
-            'code': code,
-            # 'minimal_cost': minimal_cost,
-            'user': user_obj,
-            'programming': programming_obj,
-        }
-        guide_obj = Guide.objects.create(**new_guide)
-        guide_obj.save()
-
-        for detail in data_guides['Details']:
-            quantity = int(detail['Quantity'])
-
-            # recuperamos del producto
-            product_id = int(detail['Product'])
-            product_obj = Product.objects.get(id=product_id)
-
-            # recuperamos la unidad
-            unit_id = int(detail['Unit'])
-            unit_obj = Unit.objects.get(id=unit_id)
-            _type = detail["type"]
-            new_detail_guide = {
-                'guide': guide_obj,
-                'product': product_obj,
-                'quantity': quantity,
-                'unit_measure': unit_obj,
-                'type': _type,
-
-            }
-            new_detail_guide_obj = GuideDetail.objects.create(**new_detail_guide)
-            new_detail_guide_obj.save()
-
-            # recuperamos del almacen
-            store_id = int(detail['Store'])
-
-            kardex_ouput(store_id, quantity, guide_detail_obj=new_detail_guide_obj)
-        return JsonResponse({
-            'message': 'Se guardo la guia correctamente.',
-            'programming': programming_obj.id,
-            'guide': guide_obj.id
-        }, status=HTTPStatus.OK)
+# def create_guide(request):
+#     if request.method == 'GET':
+#         guides_request = request.GET.get('guides', '')
+#         data_guides = json.loads(guides_request)
+#         print(data_guides)
+#         user_id = request.user.id
+#         user_obj = User.objects.get(pk=int(user_id))
+#         serial = str(data_guides["Serial"])
+#         code = str(data_guides["Code"])
+#         minimal_cost = float(data_guides["Minimal_cost"])
+#         programming = int(data_guides["Programming"])
+#         programming_obj = Programming.objects.get(pk=programming)
+#
+#         new_guide = {
+#             'serial': serial,
+#             'code': code,
+#             # 'minimal_cost': minimal_cost,
+#             'user': user_obj,
+#             'programming': programming_obj,
+#         }
+#         guide_obj = Guide.objects.create(**new_guide)
+#         guide_obj.save()
+#
+#         for detail in data_guides['Details']:
+#             quantity = int(detail['Quantity'])
+#
+#             # recuperamos del producto
+#             product_id = int(detail['Product'])
+#             product_obj = Product.objects.get(id=product_id)
+#
+#             # recuperamos la unidad
+#             unit_id = int(detail['Unit'])
+#             unit_obj = Unit.objects.get(id=unit_id)
+#             _type = detail["type"]
+#             new_detail_guide = {
+#                 'guide': guide_obj,
+#                 'product': product_obj,
+#                 'quantity': quantity,
+#                 'unit_measure': unit_obj,
+#                 'type': _type,
+#
+#             }
+#             new_detail_guide_obj = GuideDetail.objects.create(**new_detail_guide)
+#             new_detail_guide_obj.save()
+#
+#             # recuperamos del almacen
+#             store_id = int(detail['Store'])
+#
+#             kardex_ouput(store_id, quantity, guide_detail_obj=new_detail_guide_obj)
+#         return JsonResponse({
+#             'message': 'Se guardo la guia correctamente.',
+#             'programming': programming_obj.id,
+#             'guide': guide_obj.id
+#         }, status=HTTPStatus.OK)
 
 
 def guide_detail_list(request):
