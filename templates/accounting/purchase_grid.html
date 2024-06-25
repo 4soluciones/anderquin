@@ -25,7 +25,7 @@
     </thead>
     <tbody>
     {% for p in dictionary %}
-        <tr pk="{{ p.id }}" class="text-center bill">
+        <tr pk="{{ p.id }}" class="text-center bill" {% if p.missing_payment == 0 %}style="background-color: #dde2e5" {% else %}{% endif %}>
             <td class="align-middle text-center font-weight-bold">{{ p.serial }}-{{ p.correlative }}</td>
             <td class="align-middle text-center">{{ p.order_number|default_if_none:'-' }}</td>
             <td class="align-middle text-center">{{ p.register_date|date:"d-m-Y" }}</td>

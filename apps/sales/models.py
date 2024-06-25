@@ -253,6 +253,7 @@ class SupplierAddress(models.Model):
 class SupplierAccounts(models.Model):
     id = models.AutoField(primary_key=True)
     account = models.CharField('Account Number', max_length=50, null=True, blank=True)
+    bank = models.CharField('Bank', max_length=100, null=True, blank=True)
     supplier = models.ForeignKey('Supplier', on_delete=models.CASCADE, null=True, blank=True,)
 
     def __str__(self):

@@ -1374,8 +1374,10 @@ def save_supplier(request):
         if data_supplier['accountNumbers'] != '':
             for a in data_supplier['accountNumbers']:
                 account_number = str(a['account'])
+                bank = str(a['bank'])
                 supplier_account_obj = SupplierAccounts(
                     account=account_number,
+                    bank=bank,
                     supplier=supplier_obj,
                 )
                 supplier_account_obj.save()
@@ -1448,8 +1450,10 @@ def update_supplier(request):
 
                 for a in data_supplier['accountNumbers']:
                     account_number = str(a['account'])
+                    bank = str(a['bank'])
                     supplier_account_obj = SupplierAccounts(
                         account=account_number,
+                        bank=bank.upper(),
                         supplier=supplier_obj,
                     )
                     supplier_account_obj.save()
