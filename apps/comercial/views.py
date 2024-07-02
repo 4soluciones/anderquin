@@ -2492,9 +2492,10 @@ def save_guide(request):
             product_id = int(detail['Product'])
             product_obj = Product.objects.get(id=product_id)
             quantity = decimal.Decimal(detail['Quantity'])
+            quantity_unit = decimal.Decimal(detail['QuantityUnit'])
             unit_id = int(detail['Unit'])
             unit_obj = Unit.objects.get(id=unit_id)
-            GuideDetail.objects.create(guide=guide_obj, product=product_obj, quantity=quantity, unit=unit_obj)
+            GuideDetail.objects.create(guide=guide_obj, product=product_obj, quantity=quantity_unit, unit=unit_obj)
 
         return JsonResponse({
             'pk': guide_obj.id,

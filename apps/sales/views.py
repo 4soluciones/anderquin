@@ -7,10 +7,10 @@ from django.forms.models import model_to_dict
 from django.http import JsonResponse, HttpResponse
 from http import HTTPStatus
 from .format_dates import validate
-from django.db.models import Q
+from django.db.models import Q, Case, When
 from .models import *
 from .forms import *
-from apps.hrm.models import Subsidiary, District, DocumentType, Employee, Worker
+from apps.hrm.models import Subsidiary, District, DocumentType, Employee, Worker, SubsidiarySerial
 from apps.comercial.models import DistributionMobil, Truck, DistributionDetail, \
     Programming, Route, Guide, GuideDetail
 from django.contrib.auth.models import User
@@ -30,7 +30,7 @@ from django.core import serializers
 from apps.sales.views_SUNAT import send_bill_nubefact, send_receipt_nubefact, query_apis_net_dni_ruc
 from apps.sales.number_to_letters import numero_a_letras, numero_a_moneda
 from django.utils import timezone
-from django.db.models import Min, Sum, Max, Q, F, Prefetch, Subquery, OuterRef, Value
+from django.db.models import Min, Sum, Max, Q, F, Prefetch, Subquery, OuterRef, Value, IntegerField
 from django.db.models.functions import Greatest
 from django.db.models.functions import (
     ExtractDay, ExtractMonth, ExtractQuarter, ExtractWeek,
@@ -38,7 +38,7 @@ from django.db.models.functions import (
 )
 
 from ..accounting.models import Bill, BillPurchase, BillDetail
-from ..buys.models import PurchaseDetail, Purchase, CreditNote
+from ..buys.models import PurchaseDetail, Purchase, CreditNote, ContractDetail
 from apps.sales.funtions import *
 
 
@@ -670,7 +670,7 @@ class SalesOrder(View):
                 subsidiary=subsidiary_obj, category='V').first()
 
             document_types = DocumentType.objects.all()
-            series_set = Subsidiary.objects.filter(id=subsidiary_obj.id)
+            # series_set = Subsidiary.objects.all()
             cash_set = Cash.objects.filter(subsidiary=subsidiary_obj, accounting_account__code__startswith='101')
             cash_deposit_set = Cash.objects.filter(accounting_account__code__startswith='104')
             # family_set = ProductFamily.objects.all()
@@ -684,11 +684,12 @@ class SalesOrder(View):
             context['subsidiary'] = subsidiary_obj
             # context['family_set'] = family_set
             # context['districts'] = District.objects.all()
+            context['series'] = SubsidiarySerial.objects.filter(subsidiary=subsidiary_obj)
             context['document_types'] = document_types
             context['date'] = formatdate
             context['choices_payments'] = [(k, v) for k, v in TransactionPayment._meta.get_field('type').choices
                                            if k not in selected_choices]
-            context['series'] = series_set
+            # context['series'] = series_set
             context['order_set'] = Order._meta.get_field('order_type').choices
             context['users'] = users_set
 
@@ -879,6 +880,29 @@ def get_rate_product(request):
         }, status=HTTPStatus.OK)
 
 
+def get_correlative(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        serial = request.GET.get('serial', '')
+        correlative = get_correlative_by_subsidiary(subsidiary_obj=subsidiary_obj, serial=serial)
+
+        return JsonResponse({'correlative': correlative}, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_correlative_by_subsidiary(subsidiary_obj=None, serial=None):
+    result = ''
+    search = SubsidiarySerial.objects.filter(subsidiary=subsidiary_obj, serial=serial)
+    if search.exists():
+        subsidiary_serial_obj = search.last()
+        correlative = subsidiary_serial_obj.correlative
+        correlative = correlative + 1
+        result = str(correlative).zfill(6)
+    return result
+
+
 @csrf_exempt
 def save_order(request):
     if request.method == 'POST':
@@ -886,9 +910,14 @@ def save_order(request):
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
 
+        _guide_id = request.POST.get('guide_id', '')
         _client_id = request.POST.get('client-id', '')
         _type_payment = request.POST.get('transaction_payment_type', '')
-        _serial = request.POST.get('serial', '')
+        # _serial = request.POST.get('serial', '')
+        _serial_text = request.POST.get('serial_text', '')
+        _correlative = request.POST.get('correlative', '')
+        _observation = request.POST.get('observation', '')
+        _type_document = request.POST.get('type_document', '')
         _date = request.POST.get('date', '')
         _sum_total = request.POST.get('sum-total', '')
 
@@ -898,15 +927,18 @@ def save_order(request):
         order_obj = Order(
             order_type='V',
             client=client_obj,
-            serial=_serial,
+            serial=_serial_text,
             user=user_obj,
             total=decimal.Decimal(_sum_total),
             status='C',
             subsidiary_store=subsidiary_store_sales_obj,
             subsidiary=subsidiary_obj,
             create_at=_date,
-            correlative=get_correlative_order(subsidiary_obj, 'V'),
-            way_to_pay_type=_type_payment
+            # correlative=get_correlative_order(subsidiary_obj, 'V'),
+            correlative=_correlative,
+            way_to_pay_type=_type_payment,
+            observation=_observation,
+            type_document=_type_document
         )
         order_obj.save()
 
@@ -931,57 +963,69 @@ def save_order(request):
                 quantity_sold=quantity,
                 price_unit=price,
                 unit=unit_obj,
-                status='V'
+                status='V',
+                commentary=product_obj.name + ' - ' + product_obj.product_brand.name
             )
             order_detail_obj.save()
 
             kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj)
 
-            code_operation = '-'
+        code_operation = '-'
 
-            cash_obj = None
-            if _type_payment == 'E':
-                cash_casing_id = request.POST.get('cash_id', '')
-                date_cash_casing = request.POST.get('date_cash', '')
-                cash_obj = Cash.objects.get(id=int(cash_casing_id))
-            elif _type_payment == 'D':
-                cash_deposit_id = request.POST.get('id_cash_deposit', '')
-                cash_obj = Cash.objects.get(id=int(cash_deposit_id))
-                date = request.POST.get('date', '')
-                code_operation = request.POST.get('code-operation', '')
+        cash_obj = None
+        if _type_payment == 'E':
+            cash_casing_id = request.POST.get('cash_id', '')
+            date_cash_casing = request.POST.get('date_cash', '')
+            cash_obj = Cash.objects.get(id=int(cash_casing_id))
+        elif _type_payment == 'D':
+            cash_deposit_id = request.POST.get('id_cash_deposit', '')
+            cash_obj = Cash.objects.get(id=int(cash_deposit_id))
+            date = request.POST.get('date', '')
+            code_operation = request.POST.get('code-operation', '')
 
-            if _type_payment == 'E' or _type_payment == 'D':
-                loan_payment_obj = LoanPayment(
-                    pay=decimal.Decimal(_sum_total),
-                    order_detail=order_detail_obj,
-                    create_at=_date,
-                    type='V',
-                    operation_date=_date
-                )
-                loan_payment_obj.save()
+        if _type_payment == 'E' or _type_payment == 'D':
+            loan_payment_obj = LoanPayment(
+                pay=decimal.Decimal(_sum_total),
+                order=order_obj,
+                create_at=_date,
+                type='V',
+                operation_date=_date
+            )
+            loan_payment_obj.save()
 
-                transaction_payment_obj = TransactionPayment(
-                    payment=decimal.Decimal(_sum_total),
-                    type=_type_payment,
-                    order=order_obj,
-                    operation_code=code_operation,
-                    loan_payment=loan_payment_obj
-                )
-                transaction_payment_obj.save()
+            transaction_payment_obj = TransactionPayment(
+                payment=decimal.Decimal(_sum_total),
+                type=_type_payment,
+                operation_code=code_operation,
+                loan_payment=loan_payment_obj
+            )
+            transaction_payment_obj.save()
 
-                cash_flow_obj = CashFlow(
-                    transaction_date=_date,
-                    description='VENTA: ' + str(order_obj.subsidiary.serial) + '-' + str(
-                        order_obj.correlative).zfill(6),
-                    document_type_attached='T',
-                    type=_type_payment,
-                    total=_sum_total,
-                    operation_code=code_operation,
-                    order=order_obj,
-                    user=user_obj,
-                    cash=cash_obj
-                )
-                cash_flow_obj.save()
+            cash_flow_obj = CashFlow(
+                transaction_date=_date,
+                description='VENTA: ' + str(order_obj.subsidiary.serial) + '-' + str(
+                    order_obj.correlative).zfill(6),
+                document_type_attached='T',
+                type=_type_payment,
+                total=_sum_total,
+                operation_code=code_operation,
+                order=order_obj,
+                user=user_obj,
+                cash=cash_obj
+            )
+            cash_flow_obj.save()
+
+        correlative_no_zeros = _correlative.lstrip('0')
+        subsidiary_serial = SubsidiarySerial.objects.filter(subsidiary=subsidiary_obj, serial=_serial_text,
+                                                            type_document=_type_document).last()
+        subsidiary_serial.correlative = int(correlative_no_zeros)
+        subsidiary_serial.save()
+
+        if _guide_id:
+            guide_obj = Guide.objects.get(pk=int(_guide_id))
+            contract_detail_obj = ContractDetail.objects.get(id=guide_obj.contract_detail.id)
+            contract_detail_obj.order = order_obj
+            contract_detail_obj.save()
 
         # if _type == 'E':
         #     if _bill_type == 'F':
@@ -1052,6 +1096,8 @@ def save_order(request):
 
         return JsonResponse({
             'message': 'Venta generada',
+            'order_id': order_obj.id,
+            'guide': _guide_id
             # 'msg_sunat': msg_sunat,
             # 'sunat_pdf': sunat_pdf,
         }, status=HTTPStatus.OK)
@@ -3199,9 +3245,9 @@ def get_product_grid(request):
         user_id = request.user.id
         user_obj = User.objects.get(pk=int(user_id))
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        sales_store = SubsidiaryStore.objects.filter(
-            subsidiary=subsidiary_obj, category='V').first()
-        last_kardex = Kardex.objects.filter(product_store=OuterRef('id')).order_by('-id')[:1]
+        # sales_store = SubsidiaryStore.objects.filter(
+        #     subsidiary=subsidiary_obj, category='V').first()
+        # last_kardex = Kardex.objects.filter(product_store=OuterRef('id')).order_by('-id')[:1]
         product_set = None
 
         value = request.GET.get('value', '')
@@ -3212,7 +3258,7 @@ def get_product_grid(request):
             product_query = Product.objects
             full_query = None
 
-            product_brand_set = ProductBrand.objects.filter(name__icontains=value.upper())
+            # product_brand_set = ProductBrand.objects.filter(name__icontains=value.upper())
 
             for i in range(0, len(array_value)):
                 q = Q(name__icontains=array_value[i]) | Q(product_brand__name__icontains=array_value[i])
@@ -3222,14 +3268,19 @@ def get_product_grid(request):
                     full_query = full_query & q
 
             product_set = product_query.filter(full_query).select_related(
-                'product_family', 'product_brand').prefetch_related(
+                'product_family', 'product_brand'
+            ).prefetch_related(
                 Prefetch(
                     'productstore_set',
-                    queryset=ProductStore.objects.select_related('subsidiary_store__subsidiary').exclude(
-                        subsidiary_store__subsidiary=3)
+                    queryset=ProductStore.objects.select_related('subsidiary_store__subsidiary')
                         .annotate(
-                        last_remaining_quantity=Subquery(last_kardex.values('remaining_quantity'))
+                        is_primary_store=Case(
+                            When(subsidiary_store__subsidiary=subsidiary_obj.id, then=Value(0)),
+                            default=Value(1),
+                            output_field=IntegerField()
+                        )
                     )
+                        .order_by('is_primary_store', 'id')
                 ),
                 Prefetch(
                     'productdetail_set', queryset=ProductDetail.objects.select_related('unit')
@@ -3238,14 +3289,19 @@ def get_product_grid(request):
 
         if value == '' and barcode != '':
             product_set = Product.objects.filter(barcode=barcode).select_related(
-                'product_family', 'product_brand').prefetch_related(
+                'product_family', 'product_brand'
+            ).prefetch_related(
                 Prefetch(
                     'productstore_set',
-                    queryset=ProductStore.objects.select_related('subsidiary_store__subsidiary').exclude(
-                        subsidiary_store__subsidiary=3)
+                    queryset=ProductStore.objects.select_related('subsidiary_store__subsidiary')
                         .annotate(
-                        last_remaining_quantity=Subquery(last_kardex.values('remaining_quantity'))
+                        is_primary_store=Case(
+                            When(subsidiary_store__subsidiary=subsidiary_obj.id, then=Value(0)),
+                            default=Value(1),
+                            output_field=IntegerField()
+                        )
                     )
+                        .order_by('is_primary_store', 'id')
                 ),
                 Prefetch(
                     'productdetail_set', queryset=ProductDetail.objects.select_related('unit')
@@ -3898,6 +3954,33 @@ def get_sales_list(request, guide=None):
         cash_deposit_set = Cash.objects.filter(accounting_account__code__startswith='104')
         error = ""
         sales_store = ""
+        guide_detail_dict = []
+        total = 0
+        subsidiary_store_obj = SubsidiaryStore.objects.get(subsidiary=subsidiary_obj, category='V')
+        for gd in guide_detail_set:
+            product_detail_get = ProductDetail.objects.get(product=gd.product, unit=gd.unit)
+            product_store_get = ProductStore.objects.get(product=gd.product, subsidiary_store=subsidiary_store_obj)
+            price_purchase = product_detail_get.price_purchase
+            price_sale = product_detail_get.price_sale
+            quantity_minimum = product_detail_get.quantity_minimum
+            sub_total = round(price_sale * gd.quantity, 2)
+            item_guide = {
+                'id': gd.id,
+                'quantity': str(round(gd.quantity, 2)),
+                'product_id': gd.product.id,
+                'product_name': gd.product.name,
+                'unit_id': gd.unit.id,
+                'unit': gd.unit.name,
+                'price_purchase': price_purchase,
+                'price_sale': str(round(price_sale, 2)),
+                'subtotal': str(sub_total),
+                'quantity_minimum': str(quantity_minimum),
+                'store_product': product_store_get.id,
+                'stock': product_store_get.stock
+            }
+            total += sub_total
+            guide_detail_dict.append(item_guide)
+
         if subsidiary_obj is None:
             error = "No tiene una Sede o Almacen para vender"
         else:
@@ -3906,18 +3989,20 @@ def get_sales_list(request, guide=None):
         return render(request, 'sales/sales_list.html', {
             'choices_payments': [(k, v) for k, v in TransactionPayment._meta.get_field('type').choices
                                  if k not in ['EC', 'L', 'Y']],
-            'formatdate': formatdate,
+            'date': formatdate,
             'document_types': DocumentType.objects.all(),
             'error': error,
             'sales_store': sales_store,
-            'cash_set': cash_set,
-            'cash_deposit_set': cash_deposit_set,
+            'choices_account': cash_set,
+            'choices_account_bank': cash_deposit_set,
             'guide_obj': guide_obj,
             'subsidiary_obj': subsidiary_obj,
             'guide_detail_set': guide_detail_set,
-            'series_set': Subsidiary.objects.filter(id=subsidiary_obj.id),
+            'guide_detail_dict': guide_detail_dict,
+            'series': SubsidiarySerial.objects.filter(subsidiary=subsidiary_obj),
             'order_set': Order._meta.get_field('order_type').choices,
-            'users': User.objects.filter(is_superuser=False, is_staff=True)
+            'users': User.objects.filter(is_superuser=False, is_staff=True),
+            'total': str(round(total, 2))
         })
     return JsonResponse({'message': 'Error actualice o contacte con sistemas.'}, status=HTTPStatus.BAD_REQUEST)
 

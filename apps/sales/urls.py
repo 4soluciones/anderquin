@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 
 from apps.sales.views import *
 from apps.sales.views_SUNAT import query_dni
-from apps.sales.views_PDF import product_print, kardex_glp_pdf, account_order_list_pdf, \
-    pdf_get_orders_for_status_account, print_quotation
+from apps.sales.views_PDF import product_print, account_order_list_pdf, \
+    pdf_get_orders_for_status_account, print_quotation, print_order_bill
 
 urlpatterns = [
     path('product_list/', login_required(ProductList.as_view()), name='product_list'),
@@ -56,7 +56,6 @@ urlpatterns = [
     path('stock_product_all/', login_required(get_stock_product_store_all), name='stock_product_all'),
 
     # PDFKIT
-    path('kardex_glp_pdf/<int:pk>/', login_required(kardex_glp_pdf), name='kardex_glp_pdf'),
     path('account_order_list_pdf/<int:pk>/',
          login_required(account_order_list_pdf), name='account_order_list_pdf'),
 
@@ -105,6 +104,8 @@ urlpatterns = [
     # SALES NEW
     path('get_product_grid/', login_required(get_product_grid), name='get_product_grid'),
     path('check_stock/', login_required(check_stock), name='check_stock'),
+    path('print_order_bill/<int:pk>/', print_order_bill, name='print_order_bill'),
+    path('get_correlative/', login_required(get_correlative), name='get_correlative'),
 
     # SALES GUIDE
     path('sales/<int:guide>/', get_sales_list, name='sales'),

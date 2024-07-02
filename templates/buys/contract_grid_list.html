@@ -14,7 +14,7 @@
                 </tr>
                 </thead>
                 <tbody style="font-size: 11px;">
-                {% for c in contract_set %}
+                {% for c in contract_dict %}
                     <tr class="text-center" pk="{{ c.id }}">
 {#                        <td class="align-middle">                            {{ forloop.counter }}                        </td>#}
                         <td class="align-middle font-weight-bold p-0">
@@ -29,7 +29,7 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="align-middle p-0">{{ c.client.names }}</td>
+                        <td class="align-middle p-0">{{ c.client }}</td>
                         <td class="align-middle p-0">{{ c.register_date|date:'d-m-Y' }}</td>
                         <td class="align-middle text-center">
                             <div id="accordion">
@@ -71,10 +71,10 @@
                                                 </tr>
                                                 </thead>
                                                 <tbody>
-                                                {% for d in c.contractdetail_set.all %}
+                                                {% for d in c.contract_detail %}
                                                     <tr class="text-center" pk="{{ c.id }}">
                                                         <td class="align-middle item-check">
-                                                            {% if not d.contractdetailpurchase_set.last.purchase %}
+                                                            {% if not d.purchase %}
                                                                 <div class="form-check">
                                                                     <input class="form-check-input check-dates"
                                                                            style="transform: scale(1.4);"
@@ -100,23 +100,23 @@
                                                             <table class="table table-borderless table-sm mb-0 items"
                                                                    style="background-color: #bfdecb">
                                                                 <tbody>
-                                                                {% for e in d.contractdetailitem_set.all %}
+                                                                {% for e in d.contract_detail_item %}
                                                                     <tr class="p-0 m-0" cd="{{ d.id }}" cdi="{{ e.id }}"
-                                                                        product="{{ e.product.id }}">
+                                                                        product="{{ e.product_id }}">
                                                                         <td class="align-middle text-left p-0 m-0 item-quantity" style="width: 20%">{{ e.quantity|floatformat:0 }} UND</td>
 {#                                                                        <td class="align-middle text-left p-0 m-0">UND#}
 {#                                                                        </td>#}
-                                                                        <td class="align-middle text-left p-0 m-0" style="width: 80%">{{ e.product.name }}</td>
+                                                                        <td class="align-middle text-left p-0 m-0" style="width: 80%">{{ e.product_name }}</td>
                                                                     </tr>
                                                                 {% endfor %}
                                                                 </tbody>
                                                             </table>
                                                         </td>
                                                         <td class="align-middle">
-                                                            {% if d.contractdetailpurchase_set.last.purchase %}
+                                                            {% if d.purchase %}
                                                                 <a class="btn btn-sm btn-success font-weight-light" style="font-size: 10px"
-                                                                   href="{% url 'buys:print_pdf_purchase_order' d.contractdetailpurchase_set.last.purchase.id %}">
-                                                                    {{ d.contractdetailpurchase_set.last.purchase.bill_number }}</a>
+                                                                   href="{% url 'buys:print_pdf_purchase_order' d.purchase %}">
+                                                                    {{ d.bill_number }}</a>
                                                             {% endif %}
                                                         </td>
                                                         {#                                                        <td class="align-middle">#}
@@ -133,10 +133,10 @@
                                                         {#                                                            {% endif %}#}
                                                         {#                                                        </td>#}
                                                         <td class="align-middle">
-                                                            {% if d.guide_set.all %}
+                                                            {% if d.guide %}
                                                                 <a class="btn btn-sm btn-danger font-weight-light" style="font-size: 10px"
-                                                                   href="{% url 'comercial:guide' d.guide_set.all.last.id %}">
-                                                                    {{ d.guide_set.all.last.serial }}-{{ d.guide_set.all.last.correlative|zfill:5 }}</a>
+                                                                   href="{% url 'comercial:guide' d.guide %}">
+                                                                    {{ d.guide_serial }}-{{ d.guide_correlative|zfill:5 }}</a>
                                                             {% else %}
                                                                 <a class="btn btn-sm btn-primary font-weight-light" style="font-size: 10px"
                                                                    href="{% url 'comercial:new_guide' d.id %}">
@@ -144,9 +144,16 @@
                                                             {% endif %}
                                                         </td>
                                                         <td class="align-middle text-center">
-                                                            {% if d.guide_set.all %}
-                                                                <a class="btn btn-sm btn-warning font-weight-light" style="font-size: 10px"
-                                                                   href="{% url 'sales:sales' d.guide_set.all.last.id %}"> Generar Factura</a>
+                                                            {% if d.guide %}
+                                                                {% if d.order %}
+                                                                    <a class="btn btn-sm btn-warning font-weight-bold" style="font-size: 10px"
+                                                                       href="{% url 'sales:print_order_bill' d.order %}">
+                                                                        {{ d.order_serial }}-{{ d.order_correlative|zfill:5 }}</a>
+                                                                {% else %}
+                                                                    <a class="btn btn-sm btn-warning font-weight-light" style="font-size: 10px"
+                                                                       href="{% url 'sales:sales' d.guide %}">
+                                                                        Generar Factura</a>
+                                                                {% endif %}
                                                             {% endif %}
                                                         </td>
                                                     </tr>
@@ -159,7 +166,7 @@
                             </div>
 
                         </td>
-                        <td class="align-middle p-0">{{ c.get_status_display }}</td>
+                        <td class="align-middle p-0">{{ c.status }}</td>
                         <td class="align-middle p-0">{{ c.observation|default_if_none:'-'|upper }}</td>
                         {#                        <td class="align-middle">#}
                         {#                            <button type="button" class="btn btn-warning btn-sm item-edit"#}

@@ -1607,8 +1607,11 @@ def guide(request, pk=None):
     ]
     document_header.setStyle(TableStyle(header_style))
     # ------------------------------------------------------------------
+    # purchase_order = '-'
+    # if guide_obj.contract_detail.contractdetailpurchase_set.exists():
+    #     purchase_order = guide_obj.contract_detail.contractdetailpurchase_set.last().purchase.bill_number
     pdf_person = Table(
-        [('Fecha de Emisión', ': ' + str(date.strftime("%d/%m/%Y")), 'Doc. Relacionado', 'Nº O/C: ' , 'Doc. Referencia', '')] +
+        [('Fecha de Emisión', ': ' + str(date.strftime("%d/%m/%Y")), 'Doc. Relacionado', 'Nº O/C: ', 'Doc. Referencia', '')] +
         [('Destinatario', ': ' + client, '', '', 'Doc. Identidad', ': ' + client_type_document + ' ' + client_document_number)] +
         [('Dirección', ': ' + client_address.title(), '', '', '', '')] +
         [('Ref. Llegada', '', '', '', '', '')],
@@ -1761,7 +1764,7 @@ def guide(request, pk=None):
         # quantity = round(decimal.Decimal(d.quantity), 2)
         quantity = round(decimal.Decimal(quantity_in_units), 2)
         weight = str(round(decimal.Decimal(guide_obj.weight), 2))
-        row.append((code, quantity, unit, product, str(weight) + ' ' + 'KGM'))
+        row.append((code, str(d.quantity), unit, product, str(weight) + ' ' + 'KGM'))
     if len(row) <= 0:
         row.append(('', '', '', '', ''))
     pdf_detail = Table(row, colWidths=[w * 8 / 100, w * 8 / 100, w * 8 / 100, w * 66 / 100, w * 10 / 100])

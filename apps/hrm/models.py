@@ -122,8 +122,8 @@ class Employee(models.Model):
     GENDER_CHOICES = (('1', 'masculino'), ('2', 'femenino'),)
     CENTER_INDICATOR_CHOICES = (('1', 'direccion 1'), ('2', 'direccion 2'),)
     LICENSE_TYPE_CHOICES = (
-    ('1', 'A-I'), ('2', 'A-IIB'), ('3', 'A-IIIC'), ('4', 'A-IIIB'), ('5', 'A-IVA'), ('6', 'A-IIA'),
-    ('7', 'A-IIIA'), ('8', 'B-I'), ('9', 'B-IIA'), ('10', 'B-IIB'), ('11', 'B-IIC'), ('12', 'SIN LICENCIA'),)
+        ('1', 'A-I'), ('2', 'A-IIB'), ('3', 'A-IIIC'), ('4', 'A-IIIB'), ('5', 'A-IVA'), ('6', 'A-IIA'),
+        ('7', 'A-IIIA'), ('8', 'B-I'), ('9', 'B-IIA'), ('10', 'B-IIB'), ('11', 'B-IIC'), ('12', 'SIN LICENCIA'),)
     ESSALUD_ASSISTANCE_CHOICES = (('1', 'dirección 1'), ('2', ' dirección 2'),)
 
     document_type = models.ForeignKey('DocumentType', on_delete=models.CASCADE)
@@ -759,3 +759,21 @@ class Beneficiary(models.Model):
     class Meta:
         verbose_name = 'Derechohabiente'
         verbose_name_plural = 'Derechohabientes'
+
+
+class SubsidiarySerial(models.Model):
+    TYPE_DOCUMENT = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'))
+    id = models.AutoField(primary_key=True)
+    subsidiary = models.ForeignKey('Subsidiary', on_delete=models.SET_NULL, null=True, blank=True)
+    serial = models.CharField('Serial', max_length=4, null=True, blank=True)
+    correlative = models.IntegerField('Correlative', default=0)
+    short_name = models.CharField(max_length=100, null=True, blank=True)
+    original_name = models.CharField(max_length=100, null=True, blank=True)
+    type_document = models.CharField('Document Type', max_length=1, choices=TYPE_DOCUMENT, default='T')
+
+    def __str__(self):
+        return '{} - {}'.format(self.short_name, self.subsidiary)
+
+    class Meta:
+        verbose_name = 'Sucursal Serial'
+        verbose_name_plural = 'Sucursales Seriales'

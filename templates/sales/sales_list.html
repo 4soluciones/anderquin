@@ -28,7 +28,7 @@
                             </div>
                             <div class="card-body">
                                 <h5 class="card-title text-info roboto-condensed-regular font-weight-bold">Ingrese un
-                                    texto
+                                    producto
                                     para comenzar la búsqueda...</h5>
                             </div>
                         </div>
@@ -250,15 +250,23 @@
         }
 
         function deleteItem($product, $unit) {
-            let quantity_delete = 0
-            let quantity_min = 0
+            //let quantity_delete = 0
+            //let quantity_min = 0
             let rows = $('#sales-details').find("tr[product=" + $product + "][pu=" + $unit + "]");
-            quantity_delete = parseFloat(rows.find('td.item-quantity input.input-quantity').val());
-            quantity_min = parseFloat(rows.find('td.item-unit').attr('unit_min'));
+            let quantity_delete = parseFloat(rows.find('td.item-quantity input.input-quantity').val());
+            let quantity_min = parseFloat(rows.find('td.item-unit').attr('unit_min'));
             $('#sales-details').find("tr[product=" + $product + "][pu=" + $unit + "]").remove();
             let _row = $('table#product-data-grid tbody tr[product=' + $product + ']');
-            let old_stock = parseFloat(_row.find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text());
-            _row.find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text((old_stock + (quantity_delete * quantity_min)).toFixed(2));
+            //let old_stock = parseFloat(_row.find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text());
+            //_row.find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text((old_stock + (quantity_delete * quantity_min)).toFixed(2));
+            let quantity_minimum_calculate = quantity_min * quantity_delete
+            _row.find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock div.row').each(function () {
+                let current_stock = $(this).find('span.current-stock').text();
+                let quantity_minimum = $(this).attr('qm');
+                let difference = quantity_minimum_calculate / quantity_minimum
+                let new_stock = Number(current_stock) + Number(difference)
+                $(this).find('span.current-stock').text(new_stock.toFixed(2))
+            })
             calculateTotal();
             counterStrike();
         }
@@ -307,10 +315,21 @@
                 return false;
             }
             let _flag_stock = await check_stock(quantity, product_id)
-
+            //console.log("unit_id", unit_id)
+            //console.log("name_unit", name_unit)
+            //console.log("quantity", quantity)
+            //console.log("quantity_minim", quantity_minim)
+            let quantity_minimum_calculate = quantity_minim * quantity
+            //console.log("quantity_minimum_calculate", quantity_minimum_calculate)
             if (_flag_stock === true) {
                 addDetail(unit_id, product_id, quantity, price, name_unit, unescape(name_product), store_id, quantity_minim, product_brand);
-                tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text((stock - quantity * quantity_minim).toFixed(2));
+                //tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text((stock - quantity * quantity_minim).toFixed(2));
+                tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock div.row').each(function () {
+                    let current_stock = $(this).find('span.current-stock').text();
+                    let quantity_minimum = $(this).attr('qm');
+                    let new_stock = current_stock - (quantity_minimum_calculate / quantity_minimum)
+                    $(this).find('span.current-stock').text(new_stock.toFixed(2))
+                })
             } else {
                 toastr.warning('STOCK INSUFICIENTE EN ALMACEN');
             }
@@ -331,8 +350,8 @@
             let _product_store = g
             let _quantity_minim = parseFloat(h)
 
-            console.log(_quantity)
-            console.log(_price.toFixed(2))
+            //console.log(_quantity)
+            //console.log(_price.toFixed(2))
 
             $('#sales-details').append(
                 '<tr detail_id="' + 'NaN' + '" product="' + _product_id + '" store_p="' + _product_store + '" pu="' + _unit_id + '" class="text-uppercase small text-center" style="font-size: 14px;">' +
@@ -484,6 +503,59 @@
                 let new_n_order = await get_last_number_others();
                 $('#document_number_client').val(new_n_order);
             }
+        });
+
+        var serial_set = [
+            {% for s in series %}
+                [
+                    '{{ s.id }}',
+                    '{{ s.serial }}',
+                    '{{ s.correlative }}',
+                    '{{ s.type_document }}'
+                ],
+            {% endfor %}
+        ]
+
+        $(document).on('change', '#type_document', async function () {
+            let _val = $(this).val();
+            let filteredSerials = serial_set.filter(function (item) {
+                return item[3] === _val;
+            });
+            let $idSerial = $('#id_serial');
+            $idSerial.empty();
+            $idSerial.append('<option selected disabled value="0">Seleccione</option>');
+            filteredSerials.forEach(function (item) {
+                $idSerial.append(new Option(item[1], item[0]));
+            });
+        });
+
+        $(document).on('change', '#id_serial', async function () {
+            let _val = $('#id_serial option:selected').text();
+            $.ajax({
+                url: '/sales/get_correlative/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {'serial': _val},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        $('#correlative').val(response.correlative)
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Error de Consulta!');
+                    } else {
+                        if (textStatus === 'timeout') {
+                            toastr.error('Failed from timeout', '¡Error de Consulta!');
+                        } else {
+                            console.log(" STATUS: " + xhr + " " + textStatus);
+                        }
+                    }
+                }
+            });
         });
 
         $("#document_number_client").attr('maxlength', 8);
@@ -752,9 +824,12 @@
                 };
                 detailOrder.push(detailObj);
             });
-            console.log(detailOrder)
+            let selectElement = document.getElementById('id_serial');
+            let selectedOptionText = selectElement.options[selectElement.selectedIndex].text;
+            //console.log(detailOrder)
             let data = new FormData($('#order-form').get(0));
             data.append('detail', JSON.stringify(detailOrder));
+            data.append('serial_text', selectedOptionText);
             $.ajax({
                 url: '/sales/save_order/',
                 async: true,
@@ -773,6 +848,17 @@
                             toastr.success(response.message + response.msg_sunat, '¡Mensaje!');
                         } else {
                             toastr.success(response.message, '¡Mensaje!');
+                        }
+                        let order_id = response.order_id
+                        window.location.href = "/sales/print_order_bill/" + order_id + "/";
+                        if (response.guide) {
+                            setTimeout(() => {
+                                window.open("/buys/contracts/", '_self');
+                            }, 2000);
+                        } else {
+                            setTimeout(() => {
+                                location.reload();
+                            }, 2000);
                         }
                     }
                 },

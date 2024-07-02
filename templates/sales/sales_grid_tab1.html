@@ -20,20 +20,27 @@
                     </div>
                 </div>
                 <div class="col-sm-3 col-md-3 col-lg-3 pt-2">
-                    <div class="input-group">
-                        <input id="search_sale" type="text"
-                               class="form-control text-right" aria-label="..."
-                               style="border-color: #96a494">
-                        <input id="order_id" type="hidden" aria-label="...">
-                        <span class="input-group-btn">
-                        <button id="btn-search-quotation"
-                                class="btn btn-success"
-                                type="button"
-                                onclick="searchSale()">
-                            Buscar <span class="fa fa-search"></span>
-                        </button>
-                    </span>
-                    </div>
+                    {% if guide_obj %}
+                        <h4 class="roboto-condensed-regular text-warning font-weight-bold mt-1 mb-1">
+                            Nª GUÍA : {{ guide_obj }}
+                        </h4>
+                        <input type="hidden" value="{{ guide_obj.id }}" id="guide_id" name="guide_id">
+                    {% else %}
+                        <div class="input-group">
+                            <input id="search_sale" type="text"
+                                   class="form-control text-right" aria-label="..."
+                                   style="border-color: #96a494">
+                            <input id="order_id" type="hidden" aria-label="...">
+                            <span class="input-g roup-btn">
+                                <button id="btn-search-quotation"
+                                        class="btn btn-success"
+                                        type="button"
+                                        onclick="searchSale()">
+                                    Buscar <span class="fa fa-search"></span>
+                                </button>
+                            </span>
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="col-sm-4 col-md-4 col-lg-4 align-middle border border-white">
@@ -126,7 +133,8 @@
                                                             {% endif %}
                                                         {% endfor %}
                                                     </select>
-                                                    <input type="hidden" id="client-id" name="client-id">
+                                                    <input type="hidden" value="{{ guide_obj.client.id }}"
+                                                           id="client-id" name="client-id">
 
                                                 </th>
                                                 <th class="border-top-0 align-middle text-right p-0" style="width: 60%">
@@ -163,46 +171,52 @@
                                                                placeholder="Buscar Cliente..."/>
                                                         <ul class="autocomplete-result-list"></ul>
                                                     </div>
-                                                    <input type="hidden" id="id-client" name="id-client">
                                                 </td>
                                             </tr>
                                         </table>
                                     </div>
                                     <div class="form-row pl-1 pr-3">
-                                        <div class="form-group col-md-5 text-uppercase small">
+                                        <div class="form-group col-md-5 mb-2 text-uppercase small">
                                             <label class="mb-2 text-center font-weight-bold"
                                                    for="client_name" style="font-size: 1.3em">Cliente
                                                 - Nombres/Razón social:</label>
                                             <input type="text" class="form-control form-control-sm text-uppercase"
+                                                   value="{{ guide_obj.client.names }}"
                                                    id="client_name" required
-                                                   name="client_name" readonly
-                                                   placeholder="">
+                                                   name="client_name" readonly>
                                         </div>
-                                        <div class="form-group col-md-7 text-uppercase small">
+                                        <div class="form-group col-md-7 mb-2 text-uppercase small">
                                             <label class="mb-2 text-center font-weight-bold"
                                                    for="client_address" style="font-size: 1.3em"> Dirección:</label>
                                             <input type="text" class="form-control form-control-sm text-uppercase"
                                                    id="client_address"
-                                                   name="name_address"
-                                                   placeholder="">
+                                                   value="{{ guide_obj.client.clientaddress_set.last.address }}"
+                                                   name="name_address" readonly>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="form-row mt-1 ml-0 mr-2">
-                            <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                        <div class="form-row mt-0 ml-0 mr-2">
+                            <div class="col-md-3 text-uppercase small pl-1 pr-0">
                                 <label for="transaction_payment_type" class="mb-0">Pago</label>
-                                <select id="transaction_payment_type" name="transaction_payment_type" class="form-control form-control-sm">
-                                    <option value="0">Seleccione</option>
+                                <select id="transaction_payment_type" name="transaction_payment_type"
+                                        class="form-control form-control-sm">
+                                    <option selected value="0">Seleccione</option>
                                     {% for item in choices_payments %}
                                         <option value="{{ item.0 }}">{{ item.1 }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-5 text-uppercase small pl-0 pr-0">
+                            <div class="col-md-2 text-uppercase small pl-1 pr-0">
+                                <label for="pay_condition" class="mb-0">Condicion de pago</label>
+                                <input type="text" class="form-control form-control-sm text-uppercase"
+                                       id="pay_condition"
+                                       name="pay_condition">
+                            </div>
+                            <div class="col-md-7 text-uppercase small pl-0 pr-0">
                                 <div class="row col-sm-12 m-0 p-0" id="cash" style="display: none">
-                                    <div class="col-sm-6 pl-1 pr-0">
+                                    <div class="col-sm-5 pl-1 pr-0">
                                         <label for="cash_id" class="mb-0">Caja destino</label>
                                         <select id="cash_id" name="cash_id"
                                                 class="form-control form-control-sm text-uppercase"
@@ -213,7 +227,7 @@
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <div class="col-sm-6 pl-1 pr-1">
+                                    <div class="col-sm-7 pl-1 pr-1">
                                         <label for="id_date_cash" class="mb-0">Fecha Caja</label>
                                         <input type="date"
                                                id="id_date_cash"
@@ -223,7 +237,7 @@
                                     </div>
                                 </div>
                                 <div class="row col-sm-12 m-0 p-0" id="deposit" style="display: none">
-                                    <div class="col-sm-6 pl-1 pr-0">
+                                    <div class="col-sm-5 pl-1 pr-0">
                                         <label for="id_cash_deposit" class="mb-0">Deposito a cuenta</label>
                                         <select id="id_cash_deposit" name="id_cash_deposit"
                                                 class="form-control form-control-sm text-uppercase"
@@ -234,7 +248,7 @@
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <div class="col-sm-6 pl-1 pr-0">
+                                    <div class="col-sm-7 pl-1 pr-0">
                                         <label for="code-operation" class="mb-0">Codigo operacion</label>
                                         <input type="text" class="form-control form-control-sm" id="code-operation"
                                                name="code-operation"
@@ -248,83 +262,59 @@
                                            value="Credito del cliente" readonly>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="form-row mt-1 ml-0 mr-2">
+                            <div class="col-md-3 text-uppercase small pl-1 pr-1">
+                                <label for="type_document" class="mb-0">Tipo de Documento</label>
+                                <select id="type_document" name="type_document"
+                                        class="form-control form-control-sm"
+                                        aria-selected="Text input with radio button">
+                                    <option selected disabled value="0">Seleccione</option>
+                                    <option value="F">FACTURA</option>
+                                    <option value="B">BOLETA</option>
+                                    <option value="T">TICKET</option>
+                                </select>
+                            </div>
                             <div class="col-md-2 text-uppercase small pl-1 pr-1">
                                 <label for="id_serial" class="mb-0">Serie</label>
                                 <select id="id_serial" name="serial"
                                         class="form-control form-control-sm"
                                         aria-selected="Text input with radio button">
-                                    <option selected value="0">Seleccione...</option>
-                                    {% for serie in series %}
-                                        {% if serie.serial %}
-                                            <option selected value="{{ serie.id }}">{{ serie.serial|zfill:4 }}</option>
-                                        {% endif %}
-                                    {% endfor %}
+                                    <option selected value="0">Seleccione</option>
+                                    {#                                        {% for s in series %}#}
+                                    {#                                            {% if s.id == subsidiary.id %}#}
+                                    {#                                                <option selected value="{{ s.id }}">{{ s.serial|zfill:3 }}</option>#}
+                                    {#                                            {% else %}#}
+                                    {#                                                <option value="{{ s.id }}">{{ s.serial|zfill:3 }}</option>#}
+                                    {#                                            {% endif %}#}
+                                    {#                                        {% endfor %}#}
                                 </select>
                             </div>
-                            <div class="col-md-3 text-uppercase small pl-0 pr-0">
-                                <label for="date" class="mb-0">Fecha</label>
+                            <div class="col-md-3 text-uppercase small pl-1 pr-1">
+                                <label for="correlative" class="mb-0">Correlativo</label>
+                                <input type="text" class="form-control form-control-sm text-right" id="correlative" name="correlative">
+                            </div>
+
+                            <div class="col-md-4 text-uppercase small pl-0 pr-0">
+                                <label for="date" class="mb-0">Fecha de emisión</label>
                                 <input type="date" class="form-control form-control-sm" id="date" name="date"
                                        value="{{ date }}"
                                        readonly>
                             </div>
                         </div>
-
-                        <div class="form-row mt-1 ml-0 mr-2" id="form_quotation" style="display: none">
-                            <div class="col-md-2 text-uppercase small pl-1 pr-0">
-                                <label for="id_validity_date" class="mb-0">Valido hasta:</label>
-                                <input type="date" class="form-control form-control-sm" id="id_validity_date"
-                                       value="{{ date }}">
-                            </div>
-                            <div class="col-md-2 text-uppercase small pl-1 pr-0">
-                                <label for="id_date_completion" class="mb-0">Tiempo entrega dias</label>
-                                <input type="number" class="form-control form-control-sm"
-                                       id="id_date_completion"
-                                       name="date_completion"
-                                       placeholder="0">
-                            </div>
-                            <div class="col-md-8 text-uppercase small pl-1 pr-1">
-                                <label for="id_place_delivery" class="mb-0">Lugar de entrega</label>
-                                <input type="text" class="form-control form-control-sm text-uppercase"
-                                       id="id_place_delivery"
-                                       name="place_delivery"
-                                       placeholder="">
-                            </div>
-
-                        </div>
-
-                        <div class="form-row mt-1 ml-0 mr-2" id="form_quotation_row2" style="display: none">
-                            <div class="col-md-2 text-uppercase small pl-1 pr-0">
-                                <label for="id_type_quotation" class="mb-0">Tipo de Cotización</label>
-                                <select id="id_type_quotation" name="type_quotation"
-                                        class="form-control form-control-sm"
-                                        aria-selected="Text input with radio button">
-                                    <option selected value="0">Seleccione...</option>
-                                    <option value="P">PROYECTO</option>
-                                    <option value="O">OBRA</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2 text-uppercase small pl-1 pr-1">
-                                <label for="id_name_type_quotation" class="mb-0">Nombre de Proyecto / Obra</label>
-                                <input type="text" class="form-control form-control-sm text-uppercase"
-                                       id="id_name_type_quotation"
-                                       name="name_type_quotation"
-                                       placeholder="">
-                            </div>
-                            <div class="col-md-8 text-uppercase small pl-1 pr-1">
-                                <label for="id_observation" class="mb-0">Observación</label>
-                                <input type="text" class="form-control form-control-sm text-uppercase"
-                                       id="id_observation"
-                                       name="observation" value="PRECIO SUJETO A VARIACIÓN POR EL MERCADO"
-                                       placeholder="">
+                        <div class="form-row mt-1 ml-0 mr-2">
+                            <div class="col-md-12 text-uppercase small pl-1 pr-1">
+                                <label for="observation" class="mb-0">Observaciones</label>
+                                <input type="text" class="form-control form-control-sm text-left" id="observation" name="observation">
                             </div>
                         </div>
 
                     </div> <!-- card-body -->
+
                 </div>     <!-- card -->
 
-
             </div><!-- card-group -->
-
 
             {% include "sales/sales_detail.html" %}
 

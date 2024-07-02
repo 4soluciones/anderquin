@@ -277,7 +277,7 @@
                             <tbody id="guide-details">
                             {% if contract_detail_obj %}
                                 {% for c in contract_dict %}
-                                    <tr class="" product="{{ c.product_id }}" unit_id="">
+                                    <tr product="{{ c.product_id }}" unit_id="">
                                         <td class="item-numero align-middle text-center">{{ c.counter }}</td>
                                         <td class="align-middle text-left product-item-table">
                                             <input type="text"
@@ -573,10 +573,11 @@
                     "Product": $(this).attr('product'),
                     "Quantity": $(this).find("td.item-quantity input.quantity-product").val(),
                     "Unit": $(this).find("td.unit select.unit-product").val(),
+                    "QuantityUnit": $(this).find("td.quantity-minimum input.quantity-minimum-val").val(),
                 };
                 Guide.Details.push(detailObj);
             });
-            console.log(Guide)
+            //console.log(Guide)
             $.ajax({
                 url: '/comercial/save_guide/',
                 async: true,
@@ -591,10 +592,10 @@
                         let guide_id = response.pk
                         window.location.href = "/comercial/guide/" + guide_id + "/";
                         if (response.contract) {
-                            console.log("contract")
-                            /*setTimeout(() => {
+                            //console.log("contract")
+                            setTimeout(() => {
                                 window.open("/buys/contracts/", '_self');
-                            }, 2000);*/
+                            }, 2000);
                         } else {
                             //console.log("Order")
                             setTimeout(() => {

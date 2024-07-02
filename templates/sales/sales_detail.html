@@ -17,7 +17,7 @@
                         style="width: 10%;">Unidad
                     </th>
                     <th scope="col" class="border-right border-top border-bottom font-weight-normal"
-                        style="width: 15%;">Precio
+                        style="width: 15%;">Precio Venta
                     </th>
                     <th scope="col" class="border-right border-top border-bottom font-weight-normal"
                         style="width: 15%;">Total
@@ -28,7 +28,39 @@
                     </th>
                 </tr>
                 </thead>
-                <tbody id="sales-details"></tbody>
+                <tbody id="sales-details">
+                {% if guide_detail_dict %}
+                    {% for gd in guide_detail_dict %}
+                        <tr guide_detail_id="{{ gd.id }}" product="{{ gd.product_id }}" store_p="{{ gd.store_product }}" pu="{{ gd.unit_id }}"
+                            i="1"
+                            class="text-uppercase small text-center" style="font-size: 14px;">
+                            <td class="align-middle">{{ forloop.counter }}</td>
+                            <td class="align-middle text-left item-product">
+                                <input type="text"
+                                       class="form-control form-control-sm input-product-name"
+                                       value="{{ gd.product_name }}">
+                            </td>
+                            <td class="align-middle item-quantity">
+                                <input type="text"
+                                       class="form-control form-control-sm text-right input-quantity" disabled
+                                       value="{{ gd.quantity }}">
+                            </td>
+                            <td class="align-middle item-unit" pu="{{ gd.unit_id }}"
+                                unit_min="{{ gd.quantity_minimum }}">{{ gd.unit }}</td>
+                            <td class="align-middle item-price">
+                                <input type="text"
+                                       class="form-control form-control-sm text-right input-price"
+                                       value="{{ gd.price_sale }}">
+                            </td>
+                            <td class="align-middle item-total">
+                                <input type="text"
+                                       class="form-control form-control-sm text-right input-total-detail"
+                                       value="{{ gd.subtotal }}">
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+                </tbody>
             </table>
         </div>
         <div class="card col-sm-12  mt-2">
@@ -46,6 +78,7 @@
                             <input type="text"
                                    class="form-control form-control-sm sum-total text-right font-weight-bold"
                                    id="sum-total"
+                                   value="{{ total }}"
                                    name="sum-total" style="font-size: 15px;"
                                    placeholder="0.00" readonly>
                         </div>

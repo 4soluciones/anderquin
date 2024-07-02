@@ -196,6 +196,7 @@ class ContractDetail(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, null=True, blank=True)
     nro_quota = models.CharField('Numero de Quota', max_length=45, null=True, blank=True)
     date = models.DateField('Fecha', null=True, blank=True)
+    order = models.ForeignKey('sales.Order', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return str(self.id)

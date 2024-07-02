@@ -387,8 +387,10 @@ class Order(models.Model):
     TYPE_CHOICES_PAYMENT = (('E', 'EFECTIVO'), ('D', 'DEPOSITO'), ('C', 'CREDITO'))
     STATUS_CHOICES = (('P', 'PENDIENTE'), ('C', 'COMPLETADO'), ('A', 'ANULADO'))
     HAS_ORDER_QUOTATION = (('S', 'SIN VENTA'), ('C', 'CON VENTA'), ('0', 'SOLO VENTA'))
+    TYPE_DOCUMENT = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'))
     order_type = models.CharField('Tipo de Orden', max_length=1, choices=ORDER_TYPE_CHOICES, default='V')
     sale_type = models.CharField('Tipo de Venta', max_length=2, choices=SALE_TYPE_CHOICES, default='VC')
+    type_document = models.CharField('Tipo Documento', max_length=1, choices=TYPE_DOCUMENT, default='T')
     subsidiary_store = models.ForeignKey('SubsidiaryStore', verbose_name='Almacen Sucursal', on_delete=models.SET_NULL,
                                          null=True, blank=True)
     client = models.ForeignKey('Client', verbose_name='Cliente', on_delete=models.SET_NULL, null=True, blank=True)
@@ -398,7 +400,7 @@ class Order(models.Model):
     update_at = models.DateTimeField(auto_now=True)
     total = models.DecimalField('Total', max_digits=10, decimal_places=2, default=0)
     discount = models.DecimalField('Descuento', max_digits=10, decimal_places=2, default=0)
-    correlative = models.IntegerField('Correlativo', default=0)
+    correlative = models.CharField('Correlativo', max_length=10, null=True, blank=True, default=0)
     subsidiary = models.ForeignKey('hrm.Subsidiary', on_delete=models.SET_NULL, null=True, blank=True)
     validity_date = models.DateField('Fecha de validación hasta', null=True, blank=True)
     date_completion = models.CharField('Tiempo de entrega', max_length=100, null=True, blank=True, default=0)
@@ -410,6 +412,7 @@ class Order(models.Model):
     order_sale_quotation = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
                                              related_name="order_quotation")
     serial = models.CharField('Serie', max_length=5, null=True, blank=True)
+    pay_condition = models.CharField('Payment Condition', max_length=50, null=True, blank=True)
 
     def __str__(self):
         return str(self.pk)
@@ -531,7 +534,7 @@ class LoanPayment(models.Model):
     TYPE_CHOICES = (('V', 'Venta'), ('C', 'Compra'),)
     id = models.AutoField(primary_key=True)
     pay = models.DecimalField('Pago', max_digits=30, decimal_places=15, default=0)
-    order_detail = models.ForeignKey('OrderDetail', on_delete=models.SET_NULL, null=True, blank=True)
+    order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True)
     create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     type = models.CharField('Tipo de Operacion', max_length=1, choices=TYPE_CHOICES, default='V', )
     bill = models.ForeignKey('accounting.Bill', on_delete=models.SET_NULL, null=True, blank=True)
@@ -547,20 +550,20 @@ class TransactionPayment(models.Model):
     id = models.AutoField(primary_key=True)
     payment = models.DecimalField('Pago', max_digits=10, decimal_places=2, default=0)
     type = models.CharField('Tipo de pago', max_length=1, choices=TYPE_CHOICES, default='E', )
-    order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True)
+    # order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True)
     operation_code = models.CharField(
         verbose_name='Codigo de operación', max_length=45, null=True, blank=True)
     loan_payment = models.ForeignKey('LoanPayment', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return str(self.order.id) + " - " + str(self.type) + " - " + str(self.payment)
+        return str(self.type) + " - " + str(self.payment)
 
     def get_cash_flow(self):
         response = None
         if self.type == 'D':
             cash_flow_set = CashFlow.objects.filter(type='D',
                                                     total=self.payment,
-                                                    order=self.loan_payment.order_detail.order,
+                                                    order=self.loan_payment.order,
                                                     operation_code=self.operation_code)
             if cash_flow_set:
                 response = cash_flow_set.last()

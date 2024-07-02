@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from apps.hrm.models import Subsidiary, Employee
-from apps.sales.models import Client, Product, Unit, SubsidiaryStore, Order, OrderDetail
+from apps.sales.models import Client, Product, Unit, SubsidiaryStore, Order, OrderDetail, ProductDetail
 from django.db.models import Sum
 from django.db.models import Q
 
