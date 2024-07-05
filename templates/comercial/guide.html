@@ -42,16 +42,26 @@
             </div>
         </div>
         <div class="card-body bg-light p-0">
-            <div class="row col-md-12 mb-3 mt-2 m-0 p-0">
+            <div class="row col-md-12 mb-3 mt-2 pr-0">
                 <div class="col-md-2">
-                    <label for="issue" class="text-primary">Fecha Emisión</label>
+                    <label for="issue" class="text-primary">Fecha Emisión:</label>
                     <input class="form-control" type="date" value="{{ date_now }}" id="issue"
                            name="issue" required>
                 </div>
                 <div class="col-md-2">
-                    <label for="transfer" class="text-primary">Fecha Traslado</label>
+                    <label for="transfer" class="text-primary">Fecha Traslado:</label>
                     <input class="form-control" type="date" value="{{ date_now }}" id="transfer"
                            name="transfer" required>
+                </div>
+                 <div class="col-md-2">
+                    <label for="store_id" class="text-primary">Seleccione Almacen:</label>
+                    <select class="form-control font-weight-bold" style="background-color: #dbeaee" id="store_id"
+                            name="store">
+                        <option selected disabled value="0">Seleccione</option>
+                        {% for s in subsidiary_store_set %}
+                            <option value="{{ s.id }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
             </div>
             {#            <div class="d-flex">#}
@@ -61,7 +71,7 @@
             {#            </div>#}
             <div class="row col-md-12 mt-3 pr-0">
                 <div class="col-md-2">
-                    <label for="id_motive" class="text-primary">Motivo de Traslado</label>
+                    <label for="id_motive" class="text-primary">Motivo de Traslado:</label>
                     <select class="form-control" id="id_motive"
                             name="id-motive">
                         <option selected disabled value="0">Seleccione</option>
@@ -72,7 +82,7 @@
                 </div>
                 <div class="col-md-2">
                     <input type="hidden" id="client_id" value="{{ contract_detail_obj.contract.client.id }}">
-                    <label for="person-names" class="text-primary">RUC (Destinatario)</label>
+                    <label for="person-names" class="text-primary">RUC (Destinatario):</label>
                     <div id="autocomplete-client" class="autocomplete">
                         <input class="form-control autocomplete-input"
                                type="text"
@@ -108,7 +118,7 @@
                     {#                    {% endif %}#}
                 </div>
                 <div class="col-md-8">
-                    <label for="name-client" class="text-primary">Razón Social (Destinatario)</label>
+                    <label for="name-client" class="text-primary">Razón Social (Destinatario):</label>
                     <input type="text"
                            class="form-control" name="name-client" id="name-client" disabled
                            value="{{ contract_detail_obj.contract.client.names }}" maxlength="500">
@@ -116,20 +126,20 @@
             </div>
             <div class="row col-md-12 mt-3 pr-0">
                 <div class="col-md-2">
-                    <label for="btn-add-origin" class="text-primary mb-3">Agrega el punto de partida</label>
+                    <label for="btn-add-origin" class="text-primary mb-3">Agrega el punto de partida:</label>
                     <button id="btn-add-origin" class="btn btn-sm btn-block btn-primary" type="button"
                             onclick="AddOrigin('modal_guide_origin')">
                         <i class="fas fa-plus"></i> Agregar
                     </button>
                 </div>
                 <div class="col-md-2">
-                    <label for="location-origin" class="text-primary mb-3">Ubigeo Origen</label>
+                    <label for="location-origin" class="text-primary mb-3">Ubigeo Origen:</label>
                     <input type="text"
                            class="form-control" name="location-origin" id="location-origin"
                            placeholder="" disabled value="">
                 </div>
                 <div class="col-md-8">
-                    <label for="origin-address" class="text-primary mb-3">Direccion de partida</label>
+                    <label for="origin-address" class="text-primary mb-3">Direccion de partida:</label>
                     <input type="text"
                            class="form-control" name="origin-address" id="origin-address"
                            placeholder="" disabled value="">
@@ -137,20 +147,20 @@
             </div>
             <div class="row col-md-12 mt-3 pr-0">
                 <div class="col-md-2">
-                    <label for="btn-add-origin" class="text-primary mb-3">Agrega el punto de llegada</label>
+                    <label for="btn-add-origin" class="text-primary mb-3">Agrega el punto de llegada:</label>
                     <button id="btn-add-origin" class="btn btn-sm btn-block btn-primary" type="button"
                             onclick="AddDestiny('modal_guide_destiny')">
                         <i class="fas fa-plus"></i> Agregar
                     </button>
                 </div>
                 <div class="col-md-2">
-                    <label for="location-destiny" class="text-primary mb-3">Ubigeo Destino</label>
+                    <label for="location-destiny" class="text-primary mb-3">Ubigeo Destino:</label>
                     <input type="text"
                            class="form-control" name="location-destiny" id="location-destiny"
                            placeholder="" disabled value="">
                 </div>
                 <div class="col-md-8">
-                    <label for="destiny-address" class="text-primary mb-3">Direccion de Destino</label>
+                    <label for="destiny-address" class="text-primary mb-3">Direccion de Destino:</label>
                     <input type="text"
                            class="form-control" name="destiny-address" id="destiny-address"
                            placeholder="" disabled value="">
@@ -158,7 +168,7 @@
             </div>
             <div class="row col-md-12 mt-3 pr-0">
                 <div class="col-md-2">
-                    <label for="transport-modality" class="text-primary">Modalidad de Transporte</label>
+                    <label for="transport-modality" class="text-primary">Modalidad de Transporte:</label>
                     <select class="form-control" id="transport-modality"
                             name="transport-modality">
                         <option selected disabled value="0">Seleccione</option>
@@ -167,7 +177,7 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label for="transport-modality" class="text-primary">Agregar Transportista</label>
+                    <label for="transport-modality" class="text-primary">Agregar Transportista:</label>
                     <button id="btn-add-origin" class="btn btn-sm btn-block btn-success" type="button"
                             onclick="AddCarrier('modal_guide_carrier')">
                         <i class="fas fa-plus"></i> Agregar
@@ -175,7 +185,7 @@
                 </div>
 
                 <div class="col-md-2">
-                    <label for="document-transport" class="text-primary">Número de Documento (Transportista)</label>
+                    <label for="document-transport" class="text-primary">Número de Documento (Transportista):</label>
                     <input type="text"
                            class="form-control" name="document-transport" id="document-transport"
                            placeholder="" disabled
@@ -183,7 +193,7 @@
                     <input type="hidden" id="guide_carrier_id">
                 </div>
                 <div class="col-md-6">
-                    <label for="name-transport" class="text-primary">Razón Social (Transportista)</label>
+                    <label for="name-transport" class="text-primary">Razón Social (Transportista):</label>
                     <input type="text"
                            class="form-control" name="name-transport" id="name-transport"
                            placeholder="" disabled
@@ -192,7 +202,7 @@
             </div>
             <div class="row col-md-12 mt-1 pr-0">
                 <div class="col-md-2">
-                    <label for="plate" class="text-primary">Vehiculo (Placa)</label>
+                    <label for="plate" class="text-primary">Vehiculo (Placa):</label>
                     <input type="text"
                            class="form-control" name="plate" id="plate"
                            placeholder="" disabled
@@ -200,7 +210,7 @@
                     <input type="hidden" id="guide_vehicle_id">
                 </div>
                 <div class="col-md-2">
-                    <label for="document-driver" class="text-primary">DNI (Conductor)</label>
+                    <label for="document-driver" class="text-primary">DNI (Conductor):</label>
                     <input type="text"
                            class="form-control" name="document-driver" id="document-driver"
                            placeholder="" disabled
@@ -208,14 +218,14 @@
                     <input type="hidden" id="driver_id">
                 </div>
                 <div class="col-md-2">
-                    <label for="license-driver" class="text-primary">Nro Licencia (Conductor)</label>
+                    <label for="license-driver" class="text-primary">Nro Licencia (Conductor):</label>
                     <input type="text"
                            class="form-control" name="license-driver" id="license-driver"
                            placeholder="" disabled
                            value="" maxlength="20">
                 </div>
                 <div class="col-md-6">
-                    <label for="names-driver" class="text-primary">Nombres y Apellidos (Conductor)</label>
+                    <label for="names-driver" class="text-primary">Nombres y Apellidos (Conductor):</label>
                     <input type="text"
                            class="form-control" name="names-driver" id="names-driver"
                            placeholder="" disabled
@@ -225,7 +235,7 @@
 
             <div class="row col-md-12 mt-1 pr-0">
                 <div class="col-md-2">
-                    <label for="weight" class="text-primary">Peso bruto total (KGM)</label>
+                    <label for="weight" class="text-primary">Peso bruto total (KGM):</label>
 {#                    <input type="text"#}
 {#                           class="form-control" name="weight" id="weight"#}
 {#                           placeholder="" required#}
@@ -239,14 +249,14 @@
                     </div>
                 </div>
                 <div class="col-md-2">
-                    <label for="id-package" class="text-primary">Numero Bultos</label>
+                    <label for="id-package" class="text-primary">Numero Bultos:</label>
                     <input type="text"
                            class="form-control" name="id-package" id="id-package"
                            placeholder="" required
                            value="" maxlength="20">
                 </div>
                 <div class="col-md-8 align-self-center">
-                    <label for="id_observation" class="text-primary">Observaciones</label>
+                    <label for="id_observation" class="text-primary">Observaciones:</label>
                     <input type="text"
                            class="form-control" name="id-observation" id="id_observation"
                            placeholder="" required
@@ -515,6 +525,12 @@
             let _n_package = $('#id-package').val();
             let _observations = $('#id_observation').val();
 
+            let _store = $('#store_id').val();
+
+            if (_store === null) {
+                toastr.warning('¡Seleccione el Almacen!', 'Mensaje');
+                return false;
+            }
             if (_motive === null) {
                 toastr.warning('¡Seleccione Motivo de Traslado!', 'Mensaje');
                 return false;
@@ -566,6 +582,7 @@
                 "weight": _weight,
                 "n_package": _n_package,
                 "observations": _observations,
+                "store": _store
             }
 
             $("#id-table-detail-guide tbody#guide-details tr").each(function () {

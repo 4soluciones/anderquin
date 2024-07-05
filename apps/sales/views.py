@@ -910,6 +910,7 @@ def save_order(request):
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
 
+        _order_id = request.POST.get('order', '')
         _guide_id = request.POST.get('guide_id', '')
         _client_id = request.POST.get('client-id', '')
         _type_payment = request.POST.get('transaction_payment_type', '')
@@ -924,51 +925,57 @@ def save_order(request):
         subsidiary_store_sales_obj = SubsidiaryStore.objects.get(subsidiary=subsidiary_obj, category='V')
         client_obj = Client.objects.get(pk=int(_client_id))
 
-        order_obj = Order(
-            order_type='V',
-            client=client_obj,
-            serial=_serial_text,
-            user=user_obj,
-            total=decimal.Decimal(_sum_total),
-            status='C',
-            subsidiary_store=subsidiary_store_sales_obj,
-            subsidiary=subsidiary_obj,
-            create_at=_date,
-            # correlative=get_correlative_order(subsidiary_obj, 'V'),
-            correlative=_correlative,
-            way_to_pay_type=_type_payment,
-            observation=_observation,
-            type_document=_type_document
-        )
-        order_obj.save()
-
         detail = json.loads(request.POST.get('detail', ''))
 
-        for detail in detail:
-            product_id = int(detail['product'])
-            unit_id = int(detail['unit'])
-            quantity = decimal.Decimal(detail['quantity'])
-            price = decimal.Decimal(detail['price'])
-            total = decimal.Decimal(detail['detailTotal'])
-            store_product_id = int(detail['store'])
-
-            product_obj = Product.objects.get(id=product_id)
-            unit_obj = Unit.objects.get(id=unit_id)
-            product_store_obj = ProductStore.objects.get(id=store_product_id)
-            quantity_minimum_unit = calculate_minimum_unit(quantity, unit_obj, product_obj)
-
-            order_detail_obj = OrderDetail(
-                order=order_obj,
-                product=product_obj,
-                quantity_sold=quantity,
-                price_unit=price,
-                unit=unit_obj,
-                status='V',
-                commentary=product_obj.name + ' - ' + product_obj.product_brand.name
+        if _order_id == '':
+            order_obj = Order(
+                order_type='V',
+                client=client_obj,
+                serial=_serial_text,
+                user=user_obj,
+                total=decimal.Decimal(_sum_total),
+                status='C',
+                subsidiary_store=subsidiary_store_sales_obj,
+                subsidiary=subsidiary_obj,
+                create_at=_date,
+                # correlative=get_correlative_order(subsidiary_obj, 'V'),
+                correlative=_correlative,
+                way_to_pay_type=_type_payment,
+                observation=_observation,
+                type_document=_type_document
             )
-            order_detail_obj.save()
+            order_obj.save()
 
-            kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj)
+            for detail in detail:
+                product_id = int(detail['product'])
+                unit_id = int(detail['unit'])
+                quantity = decimal.Decimal(detail['quantity'])
+                price = decimal.Decimal(detail['price'])
+                total = decimal.Decimal(detail['detailTotal'])
+                store_product_id = int(detail['store'])
+
+                product_obj = Product.objects.get(id=product_id)
+                unit_obj = Unit.objects.get(id=unit_id)
+                product_store_obj = ProductStore.objects.get(id=store_product_id)
+                quantity_minimum_unit = calculate_minimum_unit(quantity, unit_obj, product_obj)
+
+                order_detail_obj = OrderDetail(
+                    order=order_obj,
+                    product=product_obj,
+                    quantity_sold=quantity,
+                    price_unit=price,
+                    unit=unit_obj,
+                    status='V',
+                    commentary=product_obj.name + ' - ' + product_obj.product_brand.name
+                )
+                order_detail_obj.save()
+
+                # kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj)
+
+        else:
+            order_obj = save_order_with_order_id(_order_id, client_obj, _serial_text, user_obj, _sum_total, _date,
+                                                 _correlative, _type_payment, _observation, _type_document,
+                                                 subsidiary_store_sales_obj, detail)
 
         code_operation = '-'
 
@@ -1102,6 +1109,62 @@ def save_order(request):
             # 'sunat_pdf': sunat_pdf,
         }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_total, _date, _correlative,
+                             _type_payment, _observation, _type_document, subsidiary_store_sales_obj, detail):
+    order_obj = Order.objects.get(id=int(order_id))
+    order_obj.client = client_obj
+    order_obj.serial = _serial_text
+    order_obj.user = user_obj
+    order_obj.total = decimal.Decimal(_sum_total)
+    order_obj.status = 'C'
+    order_obj.create_at = _date
+    order_obj.correlative = _correlative
+    order_obj.way_to_pay_type = _type_payment
+    order_obj.observation = _observation
+    order_obj.type_document = _type_document
+    order_obj.save()
+
+    for d in detail:
+        detail_id = int(d['detail'])
+        if detail_id:
+            detail_obj = OrderDetail.objects.get(id=int(detail_id))
+            detail_obj.price_unit = decimal.Decimal(d['price'])
+            detail_obj.status = 'V'
+            detail_obj.commentary = detail_obj.product.name + ' - ' + detail_obj.product.product_brand.name
+            detail_obj.save()
+
+            quantity_minimum_unit = calculate_minimum_unit(detail_obj.quantity_sold, detail_obj.unit,
+                                                           detail_obj.product)
+            product_store_obj = ProductStore.objects.get(product=detail_obj.product,
+                                                         subsidiary_store=subsidiary_store_sales_obj)
+            kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=detail_obj)
+        else:
+            product_id = int(detail['product'])
+            unit_id = int(detail['unit'])
+            quantity = decimal.Decimal(detail['quantity'])
+            price = decimal.Decimal(detail['price'])
+            store_product_id = int(detail['store'])
+
+            product_obj = Product.objects.get(id=product_id)
+            unit_obj = Unit.objects.get(id=unit_id)
+            product_store_obj = ProductStore.objects.get(id=store_product_id)
+            quantity_minimum_unit = calculate_minimum_unit(quantity, unit_obj, product_obj)
+
+            order_detail_obj = OrderDetail(
+                order=order_obj,
+                product=product_obj,
+                quantity_sold=quantity,
+                price_unit=price,
+                unit=unit_obj,
+                status='V',
+                commentary=product_obj.name + ' - ' + product_obj.product_brand.name
+            )
+            order_detail_obj.save()
+            kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj)
+
+    return order_obj
 
 
 def calculate_minimum_unit(quantity, unit_obj, product_obj):
@@ -3349,6 +3412,7 @@ def create_warehouse_sale(request):
     order_obj = None
     if request.method == 'GET':
         product_id = request.GET.get('product_id', '')
+        store = request.GET.get('store', '')
         unit_principal = request.GET.get('unit_principal', '')
         quantity_principal = request.GET.get('input_principal_val', '')
         unit_id = request.GET.get('unit_id', '')
@@ -3358,12 +3422,14 @@ def create_warehouse_sale(request):
         user_id = request.user.id
         user_obj = User.objects.get(pk=int(user_id))
         subsidiary_obj = get_subsidiary_by_user(user_obj)
+        subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(store))
 
         order_obj = Order(
             order_type='V',
             status='P',
             sale_type='VA',
-            correlative=get_correlative_order(subsidiary_obj, 'V'),
+            subsidiary_store=subsidiary_store_obj,
+            # correlative=get_correlative_order(subsidiary_obj, 'V'),
             subsidiary=subsidiary_obj,
             create_at=create_date,
             user=user_obj
@@ -3417,74 +3483,81 @@ def delete_warehouse_sale(request):
     }, status=HTTPStatus.OK)
 
 
-def get_order_by_correlative(request):
+def get_order_by_id(request):
     if request.method == 'GET':
-        correlative = request.GET.get('correlative', '')
+        order_id = request.GET.get('order_id', '')
         user_id = request.user.id
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        order_set = Order.objects.filter(subsidiary=subsidiary_obj, correlative=int(correlative), sale_type='VA')
+        order_set = Order.objects.filter(id=int(order_id))
         if order_set.exists():
             order_obj = order_set.first()
-            # type_document = order_obj.client.clienttype_set.last().document_type.id
-            # document_number = order_obj.client.clienttype_set.last().document_number
-            # client_name = order_obj.client.names
-            # validity_date = order_obj.validity_date
-            # date_completion = order_obj.date_completion
-            # place_delivery = order_obj.place_delivery
-            # type_quotation = order_obj.type_quotation
-            # type_name_quotation = order_obj.type_name_quotation
-            transaction_payment_type = order_obj.way_to_pay_type
-            # observation = order_obj.observation
-            correlative = order_obj.correlative
-            order_detail_set = OrderDetail.objects.filter(order=order_obj)
-            detail = []
-            for d in order_detail_set:
-                quantity_minimum_unit = calculate_minimum_unit(d.quantity_sold, d.unit, d.product)
-                # stock = 0
-                # product_store_id = None
-                # product_store_set = ProductStore.objects.filter(product=d.product,
-                #                                                 subsidiary_store=d.order.subsidiary_store)
+            if order_obj.status == 'C' and order_obj.sale_type == 'VA' and order_obj.serial != '':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'La Orden ya se encuentra registrada, ',
+                    'bill': 'Comprobante ' + str(order_obj.serial) + '-' + str(order_obj.correlative),
+                }, status=HTTPStatus.OK)
+            else:
+                # type_document = order_obj.client.clienttype_set.last().document_type.id
+                # document_number = order_obj.client.clienttype_set.last().document_number
+                # client_name = order_obj.client.names
+                # validity_date = order_obj.validity_date
+                # date_completion = order_obj.date_completion
+                # place_delivery = order_obj.place_delivery
+                # type_quotation = order_obj.type_quotation
+                # type_name_quotation = order_obj.type_name_quotation
+                transaction_payment_type = order_obj.way_to_pay_type
+                # observation = order_obj.observation
+                correlative = order_obj.correlative
+                order_detail_set = OrderDetail.objects.filter(order=order_obj)
+                detail = []
+                for d in order_detail_set:
+                    quantity_minimum_unit = calculate_minimum_unit(d.quantity_sold, d.unit, d.product)
+                    # stock = 0
+                    # product_store_id = None
+                    # product_store_set = ProductStore.objects.filter(product=d.product,
+                    #                                                 subsidiary_store=d.order.subsidiary_store)
 
-                # if product_store_set.exists():
-                #     product_store_obj = product_store_set.last()
-                #     product_store_id = product_store_obj.id
-                #     stock = product_store_obj.stock
+                    # if product_store_set.exists():
+                    #     product_store_obj = product_store_set.last()
+                    #     product_store_id = product_store_obj.id
+                    #     stock = product_store_obj.stock
 
-                new_row = {
-                    'id': d.id,
-                    'product_id': d.product.id,
-                    'product_name': d.product.name,
-                    'product_brand': d.product.product_brand.name,
-                    'unit_id': d.unit.id,
-                    'unit_name': d.unit.name,
-                    'quantity': d.quantity_sold,
-                    'price': d.price_unit,
-                    # 'store': product_store_id,
-                    # 'stock': round(stock, 0),
-                    'unit_min': quantity_minimum_unit,
-                }
-                detail.append(new_row)
-            return JsonResponse({
-                'success': True,
-                'order_id': order_obj.id,
-                # 'document_type': type_document,
-                # 'document_number': document_number,
-                # 'client_name': client_name,
-                # 'validity_date': validity_date,
-                # 'date_completion': date_completion,
-                # 'place_delivery': place_delivery,
-                # 'type_quotation': type_quotation,
-                # 'type_name_quotation': type_name_quotation,
-                # 'observation': observation,
-                'transaction_payment_type': transaction_payment_type,
-                'correlative': correlative,
-                'detail': detail,
-            }, status=HTTPStatus.OK)
+                    new_row = {
+                        'id': d.id,
+                        'product_id': d.product.id,
+                        'product_name': d.product.name,
+                        'product_brand': d.product.product_brand.name,
+                        'unit_id': d.unit.id,
+                        'unit_name': d.unit.name,
+                        'quantity': d.quantity_sold,
+                        'price': d.price_unit,
+                        # 'store': product_store_id,
+                        # 'stock': round(stock, 0),
+                        'unit_min': quantity_minimum_unit,
+                    }
+                    detail.append(new_row)
+                return JsonResponse({
+                    'success': True,
+                    'order_id': order_obj.id,
+                    # 'document_type': type_document,
+                    # 'document_number': document_number,
+                    # 'client_name': client_name,
+                    # 'validity_date': validity_date,
+                    # 'date_completion': date_completion,
+                    # 'place_delivery': place_delivery,
+                    # 'type_quotation': type_quotation,
+                    # 'type_name_quotation': type_name_quotation,
+                    # 'observation': observation,
+                    'transaction_payment_type': transaction_payment_type,
+                    'correlative': correlative,
+                    'detail': detail,
+                }, status=HTTPStatus.OK)
         else:
             return JsonResponse({
                 'success': False,
-                'message': 'No se encontro la Cotización Numero: ' + str(correlative),
+                'message': 'No se encontro la Venta Numero: ' + str(order_id),
             }, status=HTTPStatus.OK)
 
 
@@ -3638,7 +3711,7 @@ def get_purchases_bills(request):
             bill_dict.append(item_bill)
 
         return render(request, 'sales/logistic_list.html', {
-             'bill_dict': bill_dict,
+            'bill_dict': bill_dict,
         })
     return JsonResponse({'message': 'Error de peticion'}, status=HTTPStatus.BAD_REQUEST)
 
@@ -3667,7 +3740,8 @@ def assign_to_warehouse(request):
                 'product_id': bd.product.id,
                 'product_name': bd.product.name,
                 'quantity': bd.quantity,
-                'quantity_in_units': str(quantity_in_units.quantize(decimal.Decimal('0'), rounding=decimal.ROUND_HALF_UP)),
+                'quantity_in_units': str(
+                    quantity_in_units.quantize(decimal.Decimal('0'), rounding=decimal.ROUND_HALF_UP)),
                 'quantity_minimum': str(quantity_minimum),
                 'unit_id': bd.unit.id,
                 'unit_name': bd.unit.name,
@@ -3885,7 +3959,7 @@ def get_bills_in_warehouse(request):
             bill_dict.append(item_bill)
 
         return render(request, 'sales/logistic_bill_warehouse.html', {
-             'bill_dict': bill_dict,
+            'bill_dict': bill_dict,
         })
     return JsonResponse({'message': 'Error de peticion'}, status=HTTPStatus.BAD_REQUEST)
 
@@ -4005,26 +4079,3 @@ def get_sales_list(request, guide=None):
             'total': str(round(total, 2))
         })
     return JsonResponse({'message': 'Error actualice o contacte con sistemas.'}, status=HTTPStatus.BAD_REQUEST)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

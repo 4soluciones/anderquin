@@ -400,7 +400,7 @@ class Order(models.Model):
     update_at = models.DateTimeField(auto_now=True)
     total = models.DecimalField('Total', max_digits=10, decimal_places=2, default=0)
     discount = models.DecimalField('Descuento', max_digits=10, decimal_places=2, default=0)
-    correlative = models.CharField('Correlativo', max_length=10, null=True, blank=True, default=0)
+    correlative = models.CharField('Correlativo', max_length=10, null=True, blank=True)
     subsidiary = models.ForeignKey('hrm.Subsidiary', on_delete=models.SET_NULL, null=True, blank=True)
     validity_date = models.DateField('Fecha de validación hasta', null=True, blank=True)
     date_completion = models.CharField('Tiempo de entrega', max_length=100, null=True, blank=True, default=0)

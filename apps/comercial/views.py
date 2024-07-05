@@ -473,6 +473,7 @@ def new_guide(request, contract_detail=None):
         'formatdate': formatdate,
         'supplier_set': Supplier.objects.all(),
         'client_set': Client.objects.all(),
+        'subsidiary_store_set': SubsidiaryStore.objects.filter(category='V'),
         'subsidiary_set': Subsidiary.objects.all().order_by('id'),
         'contract_detail_obj': contract_detail_obj,
         'client': json.dumps(client),
@@ -2444,6 +2445,8 @@ def save_guide(request):
         n_package = data_guide["n_package"]
         observations = data_guide["observations"]
 
+        store = data_guide["store"]
+
         contract_detail_obj = None
         if contract_detail:
             contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail))
@@ -2463,6 +2466,8 @@ def save_guide(request):
             carrier_obj = Owner.objects.get(id=int(carrier))
             vehicle_obj = Truck.objects.get(id=int(vehicle))
             driver_obj = Driver.objects.get(id=int(driver))
+
+        store_obj = SubsidiaryStore.objects.get(id=int(store))
 
         guide_obj = Guide(
             serial='T001',
@@ -2495,7 +2500,10 @@ def save_guide(request):
             quantity_unit = decimal.Decimal(detail['QuantityUnit'])
             unit_id = int(detail['Unit'])
             unit_obj = Unit.objects.get(id=unit_id)
-            GuideDetail.objects.create(guide=guide_obj, product=product_obj, quantity=quantity_unit, unit=unit_obj)
+            new_detail_guide_obj = GuideDetail.objects.create(guide=guide_obj, product=product_obj,
+                                                              quantity=quantity_unit, unit=unit_obj)
+            product_store_id = ProductStore.objects.filter(product=product_obj, subsidiary_store=store_obj).last().id
+            kardex_ouput(product_store_id, quantity, guide_detail_obj=new_detail_guide_obj)
 
         return JsonResponse({
             'pk': guide_obj.id,

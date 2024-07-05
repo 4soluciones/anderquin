@@ -597,6 +597,12 @@
 
     $('.btn-generate-sold').click(function () {
 
+        let store = $('#store');
+        if (store.val() === '0' || store.val() === null) {
+            toastr.warning('¡Seleccione el Almacen de Destino!', 'Error de Datos');
+            return false;
+        }
+
         let r = confirm("¿Esta seguro de Generar la Venta? ")
         if (r === true) {
             let _tr = $(this).closest('tr.sold-quantity')
@@ -635,6 +641,7 @@
                     'unit_principal': unit_principal ? unit_principal : null,
                     'input_principal_val': input_principal_val,
                     'unit_id': unit_id,
+                    'store': store.val(),
                     'input_units': input_units.val(),
                 },
                 contentType: 'application/json;charset=UTF-8',
@@ -643,7 +650,7 @@
                     if (xhr.status === 200) {
                         let correlative_sale = response.correlative
                         let order_id = response.order_id
-                        _input_correlative.val(correlative_sale);
+                        _input_correlative.val(order_id);
                         _input_order.val(order_id);
                         _div_sale.addClass('d-none');
                         _div_cancel.removeClass('d-none');

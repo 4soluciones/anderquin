@@ -41,6 +41,20 @@
         </div><!-- card-group -->
     {% endif %}
 
+    <style>
+        /* Chrome, Safari, Edge, Opera */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+
 
 
 {% endblock body %}
@@ -81,7 +95,7 @@
         sessionStorage.setItem('BillType', 'V');
 
         $(document).on('click', '#btn-new-form', function () {
-            location.reload();
+            window.location.href = '/sales/sales_list';
         });
 
         if ($("#radio2").is(':checked')) {
@@ -667,13 +681,13 @@
         });
 
         function searchSale() {
-            let correlative = $('#search_sale').val();
+            let order_id = $('#search_sale').val();
             $.ajax({
-                url: '/sales/get_order_by_correlative/',
+                url: '/sales/get_order_by_id/',
                 async: true,
                 dataType: 'json',
                 type: 'GET',
-                data: {'correlative': correlative},
+                data: {'order_id': order_id},
                 success: function (response) {
                     if (response.success) {
                         $(".sale").addClass('d-none');
@@ -682,14 +696,15 @@
                         $('#transaction_payment_type').val(response.transaction_payment_type)
                         $("#transaction_payment_type").trigger('change');
                         let Detail = response['detail'];
-                        console.log(Detail)
+                        //console.log(Detail)
                         $('table#id-table-detail-order tbody#sales-details').empty();
                         Detail.forEach(
                             e =>
                                 addOrderDetail(e.id, e.product_id, e.product_name, e.quantity, e.price, e.unit_id, e.unit_name, e.unit_min)
                         )
                     } else {
-                        toastr.error(response.message);
+                        toastr.error(response.bill, response.message);
+
                     }
                 },
                 fail: function (response) {
@@ -701,15 +716,17 @@
         function addOrderDetail(detail, product_id, product_name, quantity, price, unit, unit_name, unit_min) {
 
             let _total = quantity * price
+            let disabledAttr = detail ? 'disabled' : '';
+
             $('#sales-details').append(
                 '<tr detail_id="' + detail + '" product="' + product_id + '" unit="' + unit + '" class="text-uppercase small text-center" style="font-size: 14px;">' +
                 '<td class="align-middle">' + '</td>' +
-                '<td class="align-middle text-left item-product">' + '<input type="text" class="form-control form-control-sm input-product-name" value="' + product_name + '">' + '</td>' +
-                '<td class="align-middle item-quantity">' + '<input type="number" class="form-control form-control-sm text-right input-quantity" value="' + Number(quantity).toFixed(0) + '">' + '</td>' +
+                '<td class="align-middle text-left item-product">' + '<input type="text" class="form-control form-control-sm input-product-name"  value="' + product_name + '" ' + disabledAttr + '>' + '</td>' +
+                '<td class="align-middle item-quantity">' + '<input type="number" class="form-control form-control-sm text-right input-quantity" value="' + Number(quantity).toFixed(0) + '" ' + disabledAttr + '>' + '</td>' +
                 '<td class="align-middle item-unit" unit="' + unit + '" unit_min="' + unit_min + '">' + unit_name + '</td>' +
                 '<td class="align-middle item-price">' + '<input type="number" class="form-control form-control-sm text-right input-price" value="' + Number(price).toFixed(2) + '">' + '</td>' +
                 '<td class="align-middle item-total">' + '<input type="number" class="form-control form-control-sm text-right input-total-detail" value="' + Number(_total).toFixed(2) + '">' + '</td>' +
-                '<td>' + '<button type="button" onclick="deleteItem(' + product_id + ',' + unit + ')" class="btn btn-danger btn-sm">' +
+                //'<td>' + '<button type="button" onclick="deleteItem(' + product_id + ',' + unit + ')" class="btn btn-danger btn-sm">' +
                 '<i class="fa fa-trash"></i></button>' + '</td>' +
                 '</tr>'
             );
@@ -815,6 +832,7 @@
                     return false
                 }
                 let detailObj = {
+                    detail: $(this).attr('detail_id'),
                     product: $(this).attr('product'),
                     unit: $(this).find("td.item-unit").attr('pu'),
                     quantity: parseFloat($(this).find("td.item-quantity input.input-quantity").val()).toFixed(2),

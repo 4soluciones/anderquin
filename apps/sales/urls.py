@@ -115,7 +115,7 @@ urlpatterns = [
     path('delete_warehouse_sale/', login_required(delete_warehouse_sale), name='delete_warehouse_sale'),
 
     # SEARCH SALE
-    path('get_order_by_correlative/', login_required(get_order_by_correlative), name='get_order_by_correlative'),
+    path('get_order_by_id/', login_required(get_order_by_id), name='get_order_by_id'),
     path('get_name_business/', login_required(get_name_business), name='get_name_business'),
 
     # LOGISTIC

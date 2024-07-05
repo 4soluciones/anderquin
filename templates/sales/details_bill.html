@@ -14,13 +14,18 @@
     </thead>
     <tbody>
     {% for dt in details_bill %}
-        <tr class="col-form-label bg-secondary text-white p-0 m-0" detail="{{ dt.id }}">
+        <tr class="col-form-label text-white p-0 m-0" detail="{{ dt.id }}" {% if dt.status_quantity == 'C' %} style="background-color: #83ab79" {% else %} style="background-color: #6c757d" {% endif %}>
             <td class="text-center">
                 {{ dt.get_status_quantity_display }}
                 <input type="hidden" value="{{ purchase_obj.id }}">
             </td>
             <td> - {{ dt.product.name }}
-                {% if dt.order %}<span class="text-warning"> - Orden: {{ dt.order.correlative }}</span></td>{% endif %}
+                {% if dt.order %}
+                    <br>
+                    <span class="text-warning"> - Nro Orden: {{ dt.order.id }}</span>
+                    <span class="" style="color: #9fb7cf"> - Nro Comprobante: {{ dt.order.serial|default:'' }} - {{ dt.order.correlative|default:'' }}</span>
+                {% endif %}
+            </td>
             <td class="text-center">
                 {% if dt.status_quantity == 'I' and dt.bill.batch_number %}{{ dt.bill.batch_number|upper|default:'-'|default_if_none:'-' }}{% endif %}</td>
             <td class="text-center">
