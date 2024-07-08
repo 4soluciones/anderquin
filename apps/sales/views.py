@@ -953,7 +953,6 @@ def save_order(request):
                 price = decimal.Decimal(detail['price'])
                 total = decimal.Decimal(detail['detailTotal'])
                 store_product_id = int(detail['store'])
-
                 product_obj = Product.objects.get(id=product_id)
                 unit_obj = Unit.objects.get(id=unit_id)
                 product_store_obj = ProductStore.objects.get(id=store_product_id)
@@ -969,6 +968,13 @@ def save_order(request):
                     commentary=product_obj.name + ' - ' + product_obj.product_brand.name
                 )
                 order_detail_obj.save()
+
+                guide_detail_id = detail['guide_detail']
+                if guide_detail_id:
+                    # guide_detail_obj = GuideDetail.objects.get(id=detail_id)
+                    kardex_obj = Kardex.objects.get(guide_detail_id=int(guide_detail_id))
+                    kardex_obj.order_detail = order_detail_obj
+                    kardex_obj.save()
 
                 # kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj)
 
@@ -4079,3 +4085,59 @@ def get_sales_list(request, guide=None):
             'total': str(round(total, 2))
         })
     return JsonResponse({'message': 'Error actualice o contacte con sistemas.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def kardex_list(request):
+    user_id = request.user.id
+    user_obj = User.objects.get(id=user_id)
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+    subsidiaries = Subsidiary.objects.all()
+    subsidiaries_stores = SubsidiaryStore.objects.all()
+    if request.method == 'GET':
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+
+        return render(request, 'sales/new_kardex_list.html', {
+            'formatdate': formatdate,
+            'product_set': Product.objects.filter(is_enabled=True),
+            'subsidiaries': subsidiaries,
+            'subsidiaries_stores': subsidiaries_stores,
+        })
+
+    elif request.method == 'POST':
+        product_id = request.POST.get('product')
+        subsidiary_id = request.POST.get('subsidiary')
+        subsidiary_store = request.POST.get('subsidiary_store')
+
+        product_store_obj = ProductStore.objects.get(product_id=product_id, subsidiary_store_id=subsidiary_store)
+
+        kardex_set = Kardex.objects.filter(product_store=product_store_obj).select_related(
+            'product_store__product',
+            'purchase_detail',
+            'order_detail__order',
+            'loan_payment',
+            'guide_detail__guide__guide_motive',
+            ).order_by('id')
+
+        kardex_dict = []
+
+        for k in kardex_set:
+
+            item = {
+                'id': k.id,
+                'period': k.create_at.strftime("%Y-%m"),
+                'date': k.create_at,
+                'type_document': k.type_document,
+                'serial': k.order_detail.order.serial,
+                'number': k.order_detail.order.correlative
+            }
+
+
+
+        tpl = loader.get_template('sales/new_kardex_grid_list.html')
+        context = ({
+            'product_id': product_id,
+        })
+        return JsonResponse({
+            'grid': tpl.render(context, request),
+        }, status=HTTPStatus.OK)

@@ -1,0 +1,119 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    Kardex
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid mt-3 roboto-condensed-regular">
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class=" roboto-condensed-regular font-weight-bold">KARDEX</h5>
+                <h6 class=" roboto-condensed-regular">Registro de inventario permanente valorizado - detalle
+                    del inventario valorizado</h6>
+            </div>
+            <div class="card-body bg-light roboto-condensed-regular">
+                <form  id="kardex-form" action="{% url 'sales:kardex' %}" method="POST" style="width: 80rem;">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label for="product_id">Seleccione Producto :</label>
+                            <select class="form-control form-control-sm" name="product" id="product_id">
+                                <option value="0">--</option>
+                                {% for p in product_set %}
+                                    <option value="{{ p.id }}">{{ p.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <label for="id_subsidiary" class="">Sede :</label>
+                            <select class="form-control form-control-sm" name="subsidiary" id="id_subsidiary">
+                                <option value="">--</option>
+                                {% for subsidiary in subsidiaries %}
+                                    <option value="{{ subsidiary.id }}">{{ subsidiary.name }}</option>
+                                {% empty %}
+                                    Lo sentimos, no hay sedes registradas.
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <label for="id_subsidiary_store" class="">Almacen :</label>
+                            <select class="form-control form-control-sm" name="subsidiary_store" id="id_subsidiary_store">
+                                <option value="">--</option>
+                                {% for subsidiary_store in subsidiaries_stores %}
+                                    <option value="{{ subsidiary_store.id }}"
+                                            data-chained="{{ subsidiary_store.subsidiary.id }}">{{ subsidiary_store.name }}</option>
+                                {% empty %}
+                                    Lo sentimos, no hay sedes registradas.
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <label for="btn-search" class="">&nbsp;</label>
+                            <button type="submit" id="btn-search" class="btn btn-block btn-sm btn-primary">Buscar
+                            </button>
+                        </div>
+                    </div>
+                    {#                    <div class="form-group row mx-sm-3">#}
+                    {#                        <label for="id_date_initial" class="col-sm-2 col-form-label">Rango de Búsqueda:</label>#}
+                    {#                        <label for="id_date_initial" class="col-sm-1 col-form-label">Desde:</label>#}
+                    {##}
+                    {#                        <div class="col-sm-3">#}
+                    {#                            <input type="date"#}
+                    {#                                   class="form-control"#}
+                    {#                                   name="start-date"#}
+                    {#                                   id="id_date_initial"#}
+                    {#                                   value="{{ date_now }}" required>#}
+                    {##}
+                    {#                        </div>#}
+                    {#                        <label for="id_date_final" class="col-sm-1 col-form-label">Hasta:</label>#}
+                    {#                        <div class="col-sm-3">#}
+                    {#                            <input type="date"#}
+                    {#                                   class="form-control"#}
+                    {#                                   name="end-date"#}
+                    {#                                   id="id_date_final"#}
+                    {#                                   value="{{ date_now }}" required>#}
+                    {#                        </div>#}
+                    {#                    </div>#}
+                </form>
+
+            </div>
+        </div>
+    <div id="kardex-grid-list"></div>
+
+    </div>
+
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+        $("#id_subsidiary_store").chained("#id_subsidiary");
+
+        $('#kardex-form').submit(function (e) {
+            e.preventDefault();
+            let data = new FormData($('#kardex-form').get(0));
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        $('#kardex-grid-list').html(response.grid);
+                    }
+                },
+                fail: function (response) {
+                    console.log(response);
+                }
+            });
+        });
+
+    </script>
+{% endblock extrajs %}

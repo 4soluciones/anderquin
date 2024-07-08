@@ -254,7 +254,7 @@ class SupplierAccounts(models.Model):
     id = models.AutoField(primary_key=True)
     account = models.CharField('Account Number', max_length=50, null=True, blank=True)
     bank = models.CharField('Bank', max_length=100, null=True, blank=True)
-    supplier = models.ForeignKey('Supplier', on_delete=models.CASCADE, null=True, blank=True,)
+    supplier = models.ForeignKey('Supplier', on_delete=models.CASCADE, null=True, blank=True, )
 
     def __str__(self):
         return str(self.account)
@@ -447,7 +447,7 @@ class Order(models.Model):
 class OrderDetail(models.Model):
     STATUS_CHOICES = (('P', 'PENDIENTE'), ('E', 'EN PROCESO'),
                       ('C', 'COMPRADO'), ('V', 'VENDIDO'), ('A', 'ANULADO'),)
-    order = models.ForeignKey('Order', on_delete=models.CASCADE, null=True, blank=True)
+    order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True)
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     quantity_sold = models.DecimalField('Cantidad vendida', max_digits=10, decimal_places=2, default=0)
     price_unit = models.DecimalField('Precio unitario', max_digits=10, decimal_places=2, default=0)
@@ -475,10 +475,16 @@ class OrderDetail(models.Model):
 
 
 class Kardex(models.Model):
-    OPERATION_CHOICES = (('E', 'Entrada'), ('S', 'Salida'), ('C', 'Inventario inicial'),)
+    OPERATION_CHOICES = (('E', 'Entrada'), ('S', 'Salida'), ('C', 'Inventario inicial'))
+    TYPE_DOCUMENT = (('00', 'OTROS'), ('01', 'FACTURA'), ('03', 'BOLETA DE VENTA'), ('07', 'NOTE DE CREDITO'),
+                     ('08', 'NOTA DE DEBITO'), ('09', 'GUIA DE REMISION'))
+    TYPE_OPERATION = (('01', 'VENTA'), ('02', 'COMPRA'), ('05', 'DEVOLUCION RECIBIDA'), ('06', 'DEVOLUCION ENTREGADA'),
+                      ('11', 'TRANSFERENCIA ENTRE ALMACENES'), ('12', 'RETIRO'), ('13', 'MERMAS'),
+                      ('16', 'SALDO INICIAL'), ('09', 'DONACION'), ('99', 'OTROS'))
     id = models.AutoField(primary_key=True)
-    operation = models.CharField('Tipo de operación', max_length=1,
-                                 choices=OPERATION_CHOICES, default='C', )
+    operation = models.CharField('operación', max_length=1, choices=OPERATION_CHOICES, default='C')
+    type_document = models.CharField('Tipo de documento', max_length=2, choices=TYPE_DOCUMENT, default='00')
+    type_operation = models.CharField('Tipo de operación', max_length=2, choices=TYPE_DOCUMENT, default='99')
     quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
     price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=15, default=0)
     price_total = models.DecimalField('Precio total', max_digits=30, decimal_places=15, default=0)
