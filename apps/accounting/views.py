@@ -73,7 +73,7 @@ def get_dict_purchases(bill_set):
     sum_total = 0
     sum_total_loan_pay = 0
     sum_total_difference = 0
-    transaction_date = ''
+    # transaction_date = ''
 
     for b in bill_set:
 
@@ -113,7 +113,7 @@ def get_dict_purchases(bill_set):
         if cash_flow_set.exists() and loan_payment_set:
             has_payment = True
             cash_flow_obj = cash_flow_set.first()
-            transaction_date = cash_flow_obj.transaction_date
+            # transaction_date = cash_flow_obj.transaction_date
             cash_name = cash_flow_obj.cash.name
         for lp in b.loanpayment_set.all():
             _payment_type = '-'
@@ -126,11 +126,12 @@ def get_dict_purchases(bill_set):
             loan_payment = {
                 'id': lp.id,
                 'cash_name': cash_name,
-                'date': transaction_date,
+                'date': lp.operation_date,
                 'operation_code': _operation_code,
                 'pay': round(lp.pay, 2),
                 'type': lp.type,
-                'file': lp.file
+                'file': lp.file,
+                'observation': lp.observation
             }
             new.get('loan_payment_set').append(loan_payment)
         difference_payed = decimal.Decimal(b.bill_total_total) - decimal.Decimal(sum_payed)
@@ -204,6 +205,7 @@ def new_payment_purchase(request):
         formatdate = date_converter.strftime("%d-%m-%y")
         pay_description = str(request.POST.get('pay_description'))
         code_operation = str(request.POST.get('code_operation'))
+        observation = request.POST.get('observation')
         file = request.FILES.get('file', False)
         bill_id = int(request.POST.get('bill'))
 
@@ -227,6 +229,7 @@ def new_payment_purchase(request):
                 pay=bill_pay,
                 type='C',
                 bill=bill_obj,
+                observation=observation
             )
             if file:
                 loan_payment_obj.file = file
@@ -259,6 +262,7 @@ def new_payment_purchase(request):
                 type='C',
                 bill=bill_obj,
                 operation_date=pay_date,
+                observation=observation
             )
             if file:
                 loan_payment_obj.file = file
@@ -2419,3 +2423,36 @@ def get_bill(request):
             'success': True,
             'grid': t.render(c, request),
         }, status=HTTPStatus.OK)
+
+@csrf_exempt
+def edit_file(request):
+    import os
+    from django.conf import settings
+    if request.method == 'POST':
+        new_file = request.FILES.get('file')
+        loan_payment_id = request.POST.get('loan_payment')
+
+        if not new_file or not loan_payment_id:
+            return JsonResponse({'message': 'Parámetros inválidos'}, status=HTTPStatus.BAD_REQUEST)
+
+        try:
+            loan_payment_obj = LoanPayment.objects.get(id=int(loan_payment_id))
+            file_name = new_file.name
+            final_path = os.path.join(settings.MEDIA_ROOT, 'files', file_name)
+            with open(final_path, 'wb') as f:
+                f.write(request.FILES['file'].read())
+
+            loan_payment_obj.file = 'files/' + new_file.name
+            loan_payment_obj.save()
+
+            return JsonResponse({
+                'message': 'Archivo modificado correctamente',
+                'success': True,
+            }, status=HTTPStatus.OK)
+
+        except LoanPayment.DoesNotExist:
+            return JsonResponse({'message': 'LoanPayment no encontrado'}, status=HTTPStatus.NOT_FOUND)
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    return JsonResponse({'message': 'Método no permitido'}, status=HTTPStatus.METHOD_NOT_ALLOWED)

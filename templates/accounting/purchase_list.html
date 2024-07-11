@@ -38,9 +38,11 @@
                 </table>
             </div>
         </div>
-        <div class="table-responsive" id="table-list-purchase">
-
+        <div class="loader-container col-auto" id="loader-bill"
+             style="display: none; opacity: 1.5; width: 100%; padding-top: 3em;">
+            <div class="loader"></div>
         </div>
+        <div class="table-responsive" id="table-list-purchase"></div>
     </div>
 
 
@@ -54,13 +56,48 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content bg-light">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="fileModalLabel">Archivo Subido</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <input type="hidden" id="loan_payment" value="">
+                    <h5 class="modal-title col-sm-6" id="fileModalLabel">Archivo Subido</h5>
+                    <div class="col-sm-5">
+                        <button type="button" id="btn_edit_container" class=" btn-sm btn btn-outline-info">Editar
+                            Archivo
+                        </button>
+                    </div>
+                    <button type="button" id="closeModal" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body text-center">
-                    <div id="fileContainer"></div>
+                <div class="modal-body text-left">
+                    <div class="card m-2 d-none" id="editContainer">
+                        <table class="table table-sm bg-light mb-0">
+                            <thead>
+                            <tr class="text-uppercase font-weight-lighter">
+                                <th class="border-bottom-0 align-middle">SUBIR NUEVO ESCANEO
+                                    DEPOSITO:
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td class="border-top-0 border-bottom align-middle">
+                                    <div class="form-group m-0 w-100">
+                                        <div class="input-group w-100">
+                                            <div class="custom-file w-100">
+                                                <input type="file" name="file" id="file_edit" style="font-size: 12px"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="border-top-0 align-middle text-center">
+                                    <button type="button" id="btn-edit-file"
+                                            class="btn btn-block btn-sm btn-warning">Guardar
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card m-2" id="fileContainer"></div>
                 </div>
             </div>
         </div>
@@ -71,11 +108,26 @@
 {% block extrajs %}
     <script type="text/javascript">
 
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p><strong>Cargando..</strong></p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
         $("#id_btn_show").click(function () {
             let _start_date = $('#id_date_initial').val();
             let _end_date = $('#id_date_final').val();
             let _combo = $('#id-supplier').val();
             if (_combo > 0) {
+                $('#table-list-purchase').empty();
+                $('#loader-bill').html(loader).show()
                 $.ajax({
                     url: '/accounting/get_purchases_by_date/',
                     async: true,
@@ -87,11 +139,13 @@
                     success: function (response, textStatus, xhr) {
                         if (xhr.status === 200) {
                             $('#table-list-purchase').html(response.grid);
+                            $('#loader-bill').hide();
                         }
                     },
                     error: function (jqXhr, textStatus, xhr) {
                         {#$('#table-list-purchase').html(jqXhr.grid);#}
                         toastr.error(jqXhr.responseJSON.detalle, '¡MENSAJE!');
+                        $('#loader-bill').hide();
                     }
                 });
             } else {
@@ -101,7 +155,6 @@
 
         $(document).on('click', '.btn-show-payments', function () {
             let _bill_id = $(this).attr('pk');
-
             {#$('#lending').empty();#}
             $.ajax({
                 url: '/accounting/get_purchases_pay/',
@@ -122,11 +175,12 @@
             });
         });
 
-        function loadFile(fileUrl) {
+        function loadFile(fileUrl, loanPayment) {
             var fileContainer = document.getElementById("fileContainer");
             fileContainer.innerHTML = '';
-            console.log(fileUrl)
-            if (fileUrl === '/mediafiles/img/image_placeholder.jpg' ) {
+            document.getElementById("loan_payment").value = loanPayment;
+            //console.log(fileUrl)
+            if (fileUrl === '/mediafiles/img/image_placeholder.jpg') {
                 fileContainer.innerHTML = '<p>No se subio ningun archivo.</p>';
                 return;
             }
@@ -141,14 +195,14 @@
             }
         }
 
-         function showPDF(pdfUrl, width, height) {
+        function showPDF(pdfUrl, width, height) {
             var fileContainer = document.getElementById("fileContainer");
             fileContainer.innerHTML = '<canvas id="pdfViewer"></canvas>';
             var canvas = document.getElementById('pdfViewer');
             var ctx = canvas.getContext('2d');
 
-            pdfjsLib.getDocument(pdfUrl).promise.then(function(pdf) {
-                pdf.getPage(1).then(function(page) {
+            pdfjsLib.getDocument(pdfUrl).promise.then(function (pdf) {
+                pdf.getPage(1).then(function (page) {
                     var viewport = page.getViewport({scale: 1});
                     var scale = Math.min(width / viewport.width, height / viewport.height);
                     var scaledViewport = page.getViewport({scale: scale});
@@ -163,6 +217,53 @@
                 });
             });
         }
+
+        $(document).on('click', '#btn_edit_container', function () {
+            $('#editContainer').removeClass('d-none');
+            {#$('#fileContainer').addClass('d-none')#}
+        });
+        $(document).on('click', '#closeModal', function () {
+            $('#editContainer').addClass('d-none');
+            {#$('#fileContainer').removeClass('d-none')#}
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('btn-edit-file').addEventListener('click', function () {
+                var fileInput = document.getElementById('file_edit');
+                var file = fileInput.files[0];
+                var loanPayment = document.getElementById('loan_payment').value;
+                if (!file) {
+                    alert('Por favor selecciona un archivo.');
+                    return;
+                }
+                var formData = new FormData();
+                formData.append('file', file);
+                formData.append('loan_payment', loanPayment);
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '/accounting/edit_file/', true);
+
+                xhr.onload = function () {
+                    if (xhr.status >= 200 && xhr.status < 400) {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.success) {
+                            $('#fileModal').modal('hide');
+                            toastr.success(response['message'], '¡Bien hecho!');
+                            $("#id_btn_show").trigger('click');
+                        } else {
+                            alert(response.message);
+                        }
+                    } else {
+                        alert('Error: ' + xhr.statusText);
+                    }
+                };
+                xhr.onerror = function () {
+                    alert('Error de red al intentar enviar el archivo');
+                };
+
+                xhr.send(formData);
+            });
+        });
+
 
     </script>
 {% endblock extrajs %}

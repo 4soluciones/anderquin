@@ -2,30 +2,32 @@
 <table class="table table-sm table-bordered table-hover roboto-condensed-regular" id="table-dictionary">
     <thead>
     <tr class="text-white small text-uppercase">
-        <th class="bg-primary text-center align-middle" style="width: 10%;">REFERENCIA</th>
-        {#        <th class="bg-primary text-center align-middle" style="width: 10%;">PROVEEDOR</th>#}
-        <th class="bg-primary text-center align-middle" style="width: 10%;">Nª DE DOC</th>
-        <th class="bg-primary text-center align-middle" style="width: 10%;">FECHA BASE</th>
-        <th class="bg-primary text-center" style="width: 10%;">FECHA VENCIMIENTO</th>
+        <th class="bg-primary text-center align-middle" style="width: 9%;">REFERENCIA</th>
+        {#        <th class="bg-primary text-center align-middle" style="width: 9%;">PROVEEDOR</th>#}
+        <th class="bg-primary text-center align-middle" style="width: 9%;">Nª DE DOC</th>
+        <th class="bg-primary text-center align-middle" style="width: 9%;">FECHA BASE</th>
+        <th class="bg-primary text-center" style="width: 9%;">FECHA VENCIMIENTO</th>
         <th class="bg-primary text-center align-middle" style="width: 5%;">MORO</th>
         {#        <th class="bg-primary text-center align-middle" style="width: 15%;">ORDENES DE COMPRA</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">PRODUCTO</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">TIPO UND.</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">CANTIDAD</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">PRECIO UNITARIO</th>#}
-        <th class="bg-primary text-center align-middle" style="width: 10%;">IMPORTE DEL DOC</th>
+        <th class="bg-primary text-center align-middle" style="width: 9%;">IMPORTE DEL DOC</th>
         {#        <th class="bg-success text-center align-middle" style="width: 8%;">ENTIDAD</th>#}
-        <th class="bg-success text-center align-middle" style="width: 10%;">IMPORTE FALTANTE</th>
-        <th class="bg-success text-center align-middle" style="width: 10%;">IMPORTE PAGADO</th>
-        {#        <th class="bg-success text-center align-middle" style="width: 10%;">TOTAL DEUDA</th>#}
-        <th class="bg-success text-center align-middle" style="width: 10%;">FECHA DE PAGO</th>
-        <th class="bg-success text-center align-middle" style="width: 10%;">NRO OPERACIÓN</th>
+        <th class="bg-success text-center align-middle" style="width: 9%;">IMPORTE FALTANTE</th>
+        <th class="bg-success text-center align-middle" style="width: 9%;">IMPORTE PAGADO</th>
+        {#        <th class="bg-success text-center align-middle" style="width: 9%;">TOTAL DEUDA</th>#}
+        <th class="bg-success text-center align-middle" style="width: 9%;">FECHA DE PAGO</th>
+        <th class="bg-success text-center align-middle" style="width: 9%;">NRO OPERACIÓN</th>
+        <th class="bg-success text-center align-middle" style="width: 8%;">OBSERVACION</th>
         <th class="bg-success text-center align-middle" style="width: 5%;">PAGAR</th>
     </tr>
     </thead>
     <tbody>
     {% for p in dictionary %}
-        <tr pk="{{ p.id }}" class="text-center bill" {% if p.missing_payment == 0 %}style="background-color: #dde2e5" {% else %}{% endif %}>
+        <tr pk="{{ p.id }}" class="text-center bill"
+            {% if p.missing_payment == 0 %}style="background-color: #dde2e5" {% else %}{% endif %}>
             <td class="align-middle text-center font-weight-bold">{{ p.serial }}-{{ p.correlative }}</td>
             <td class="align-middle text-center">{{ p.order_number|default_if_none:'-' }}</td>
             <td class="align-middle text-center">{{ p.register_date|date:"d-m-Y" }}</td>
@@ -57,7 +59,7 @@
                         class="change-money font-weight-bold">S/</i>
                 </div>
             </td>
-            <td class="align-middle text-center text-danger font-weight-bold p-0" colspan="3">
+            <td class="align-middle text-center text-danger font-weight-bold p-0" colspan="4">
                 {% if p.has_payment == False %}
                     SIN PAGOS
                 {% else %}
@@ -65,7 +67,7 @@
                         <tbody>
                         {% for l in p.loan_payment_set %}
                             <tr class="p-0 m-0 text-center">
-                                <td class="align-middle text-center p-0 m-0 item-pay" style="width: 31%;">
+                                <td class="align-middle text-center p-0 m-0 item-pay" style="width: 25%;">
                                     <div class="input-icon">
                                         <input type="text" readonly
                                                style="background-color: #e4ece3; color: #56ad2b" aria-label="..."
@@ -74,15 +76,23 @@
                                             class="change-money font-weight-bold">S/</i>
                                     </div>
                                 </td>
-                                <td class="align-middle text-center p-0 m-0" style="width: 31%;">{{ l.date|date:"d-m-y" }}</td>
-                                <td class="align-middle text-center p-0 m-0" style="width: 33%;">{{ l.operation_code }}</td>
-                                <td class="align-middle text-center p-0 m-0" style="width: 5%;">
-                                    <button type="button" class="btn btn-sm btn-show-file"
-                                            data-toggle="modal"
-                                            data-target="#fileModal"
-                                            onclick="loadFile('{{ l.file.url }}')">
-                                        <i class="fas fa-file"></i>
-                                    </button>
+                                <td class="align-middle text-center p-0 m-0" style="width: 25%;">{{ l.date|date:"d-m-y" }}</td>
+                                <td class="align-middle text-center p-0 m-0" style="width: 25%;">
+                                    <div class="row">
+                                        <div class="col-8 text-right"> {{ l.operation_code }}</div>
+                                        <div class="col-4">
+                                            <button type="button" class="btn btn-sm btn-show-file"
+                                                    data-toggle="modal"
+                                                    data-target="#fileModal"
+                                                    onclick="loadFile('{{ l.file.url }}', {{ l.id }})">
+                                                <i class="fas fa-file"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                </td>
+                                <td class="align-middle text-center p-0 m-0" style="width: 22%;">
+                                    {{ l.observation|default_if_none:'-' }}
                                 </td>
                             </tr>
                         {% endfor %}
@@ -184,7 +194,6 @@
 
 </style>
 <script type="text/javascript">
-
 
 
 </script>

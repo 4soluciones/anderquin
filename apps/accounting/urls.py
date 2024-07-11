@@ -11,6 +11,7 @@ urlpatterns = [
     path('new_opening_balance/', login_required(new_opening_balance), name='new_opening_balance'),
     path('get_purchases_pay/', login_required(get_purchases_pay), name='get_purchases_pay'),
     path('new_payment_purchase/', login_required(new_payment_purchase), name='new_payment_purchase'),
+    path('edit_file/', login_required(edit_file), name='edit_file'),
 
     # cash
     path('get_cash_control_list/', login_required(get_cash_control_list), name='get_cash_control_list'),

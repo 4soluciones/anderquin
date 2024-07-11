@@ -4110,7 +4110,6 @@ def kardex_list(request):
         subsidiary_store = request.POST.get('subsidiary_store')
 
         product_store_obj = ProductStore.objects.get(product_id=product_id, subsidiary_store_id=subsidiary_store)
-
         kardex_set = Kardex.objects.filter(product_store=product_store_obj).select_related(
             'product_store__product',
             'purchase_detail',
@@ -4122,18 +4121,29 @@ def kardex_list(request):
         kardex_dict = []
 
         for k in kardex_set:
+            serial = ''
+            number = ''
+            if k.type_operation == '02':
+                serial = k.bill_detail.bill.serial
+                number = k.bill_detail.bill.correlative
+            elif k.type_operation == '01':
+                serial = k.order_detail.order.serial
+                number = k.order_detail.order.correlative
 
             item = {
                 'id': k.id,
                 'period': k.create_at.strftime("%Y-%m"),
-                'date': k.create_at,
+                'date': k.create_at.strftime("%Y-%m-%d"),
                 'type_document': k.type_document,
-                'serial': k.order_detail.order.serial,
-                'number': k.order_detail.order.correlative
+                'serial': serial,
+                'number': number,
+                'type_operation': k.type_operation,
+                'quantity': k.quantity,
+                'unit_cost': k.price_unit,
+                'total_cost': k.price_total
             }
-
-
-
+            kardex_dict.append(item)
+        print(kardex_dict)
         tpl = loader.get_template('sales/new_kardex_grid_list.html')
         context = ({
             'product_id': product_id,

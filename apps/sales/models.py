@@ -546,6 +546,7 @@ class LoanPayment(models.Model):
     bill = models.ForeignKey('accounting.Bill', on_delete=models.SET_NULL, null=True, blank=True)
     operation_date = models.DateField('Fecha de operacion', null=True, blank=True)
     file = models.FileField(upload_to='files/', default='img/image_placeholder.jpg', blank=True)
+    observation = models.CharField('Observacion', max_length=100, null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
