@@ -4104,6 +4104,54 @@ def kardex_list(request):
             'subsidiaries_stores': subsidiaries_stores,
         })
 
+    # elif request.method == 'POST':
+    #     product_id = request.POST.get('product')
+    #     subsidiary_id = request.POST.get('subsidiary')
+    #     subsidiary_store = request.POST.get('subsidiary_store')
+    #
+    #     product_store_obj = ProductStore.objects.get(product_id=product_id, subsidiary_store_id=subsidiary_store)
+    #     kardex_set = Kardex.objects.filter(product_store=product_store_obj).select_related(
+    #         'product_store__product',
+    #         'purchase_detail',
+    #         'order_detail__order',
+    #         'loan_payment',
+    #         'guide_detail__guide__guide_motive',
+    #         ).order_by('id')
+    #
+    #     kardex_dict = []
+    #
+    #     for k in kardex_set:
+    #         serial = ''
+    #         number = ''
+    #         if k.type_operation == '02':
+    #             serial = k.bill_detail.bill.serial
+    #             number = k.bill_detail.bill.correlative
+    #         elif k.type_operation == '01':
+    #             serial = k.order_detail.order.serial
+    #             number = k.order_detail.order.correlative
+    #
+    #         item = {
+    #             'id': k.id,
+    #             'period': k.create_at.strftime("%Y-%m"),
+    #             'date': k.create_at.strftime("%Y-%m-%d"),
+    #             'type_document': k.type_document,
+    #             'serial': serial,
+    #             'number': number,
+    #             'type_operation': k.type_operation,
+    #             'quantity': k.quantity,
+    #             'unit_cost': k.price_unit,
+    #             'total_cost': k.price_total
+    #         }
+    #         kardex_dict.append(item)
+    #     print(kardex_dict)
+    #     tpl = loader.get_template('sales/new_kardex_grid_list.html')
+    #     context = ({
+    #         'product_id': product_id,
+    #     })
+    #     return JsonResponse({
+    #         'grid': tpl.render(context, request),
+    #     }, status=HTTPStatus.OK)
+
     elif request.method == 'POST':
         product_id = request.POST.get('product')
         subsidiary_id = request.POST.get('subsidiary')
@@ -4119,8 +4167,37 @@ def kardex_list(request):
             ).order_by('id')
 
         kardex_dict = []
+        remaining_quantity = decimal.Decimal(0.0)
+        remaining_price_total = decimal.Decimal(0.0)
+        initial_operation = next((k for k in kardex_set if k.operation == 'C'), None)
+
+        if initial_operation:
+            remaining_quantity = initial_operation.remaining_quantity
+            remaining_price = initial_operation.remaining_price
+            remaining_price_total = initial_operation.remaining_price_total
+
+            item = {
+                'id': initial_operation.id,
+                'operation': initial_operation.operation,
+                'period': initial_operation.create_at.strftime("%Y-%m"),
+                'date': initial_operation.create_at.strftime("%Y-%m-%d"),
+                'type_document': initial_operation.type_document,
+                'serial': '',
+                'number': '',
+                'type_operation': initial_operation.type_operation,
+                'quantity': initial_operation.quantity,
+                'unit_cost': initial_operation.price_unit,
+                'total_cost': initial_operation.price_total,
+                'remaining_quantity': remaining_quantity,
+                'remaining_price': remaining_price,
+                'remaining_price_total': remaining_price_total
+            }
+            kardex_dict.append(item)
 
         for k in kardex_set:
+            if k.operation == 'C':
+                continue
+
             serial = ''
             number = ''
             if k.type_operation == '02':
@@ -4130,8 +4207,18 @@ def kardex_list(request):
                 serial = k.order_detail.order.serial
                 number = k.order_detail.order.correlative
 
+            if k.operation == 'E':
+                remaining_quantity += k.quantity
+                remaining_price_total += k.price_total
+            elif k.operation == 'S':
+                remaining_quantity -= k.quantity
+                remaining_price_total -= k.price_total
+
+            remaining_price = remaining_price_total / remaining_quantity if remaining_quantity != 0 else 0
+
             item = {
                 'id': k.id,
+                'operation': k.operation,
                 'period': k.create_at.strftime("%Y-%m"),
                 'date': k.create_at.strftime("%Y-%m-%d"),
                 'type_document': k.type_document,
@@ -4140,9 +4227,13 @@ def kardex_list(request):
                 'type_operation': k.type_operation,
                 'quantity': k.quantity,
                 'unit_cost': k.price_unit,
-                'total_cost': k.price_total
+                'total_cost': k.price_total,
+                'remaining_quantity': remaining_quantity,
+                'remaining_price': remaining_price,
+                'remaining_price_total': remaining_price_total
             }
             kardex_dict.append(item)
+
         print(kardex_dict)
         tpl = loader.get_template('sales/new_kardex_grid_list.html')
         context = ({
