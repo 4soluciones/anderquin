@@ -276,3 +276,18 @@ class CreditNote(models.Model):
 
     def __str__(self):
         return str(self.nro_document)
+
+
+class CreditNoteDetail(models.Model):
+    id = models.AutoField(primary_key=True)
+    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
+    price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
+    credit_note = models.ForeignKey(CreditNote, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.id)
+
+    def multiply(self):
+        return self.quantity * self.price_unit

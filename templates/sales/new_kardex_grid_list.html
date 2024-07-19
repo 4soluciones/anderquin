@@ -1,9 +1,11 @@
 {% load operations %}
-
-<table class="table table-bordered table-sm table-striped roboto-condensed-regular text-uppercase">
+{% if kardex_dict %}
+    <table class="table table-bordered table-sm table-striped roboto-condensed-regular text-uppercase">
     <thead>
         <tr style="background-color: #0B3040" class="text-white">
-            <th scope="col" colspan="5" class="align-middle text-center small">DOCUMENTO DE TRASLADO, COMPROBANTE DE PAGO, DOCUMENTO INTERNO O SIMILAR</th>
+            <th scope="col" colspan="5" class="align-middle text-center small">
+                DOCUMENTO DE TRASLADO, COMPROBANTE DE PAGO, DOCUMENTO INTERNO O SIMILAR
+            </th>
             <th scope="col" colspan="1" class="align-middle text-center small"></th>
             <th scope="col" colspan="3" class="align-middle text-center small">Entradas</th>
             <th scope="col" colspan="3" class="align-middle text-center small">Salidas</th>
@@ -31,44 +33,49 @@
         </tr>
     </thead>
     <tbody>
-        <tr class="detail">
-        {% for kardex in inventories %}
-        <tr class="detail" ps="{{ kardex.product_store.id }}">
+        {% for k in kardex_dict %}
+        <tr class="detail" ps="{{ k.product_store }}" k_id="{{ k.id }}">
+            <td class="align-middle text-center">{{ k.period }}</td>
+            <td class="align-middle text-center">{{ k.date }}</td>
+            <td class="align-middle text-center">{{ k.type_document }}</td>
+            <td class="align-middle text-center">{{ k.serial }}</td>
+            <td class="align-middle text-center">{{ k.number }}</td>
 
-            <td class="align-middle text-primary" >{{ kardex.id }}</td>
-            <td class="align-middle text-primary text-center" >{{ kardex.create_at|date:"d/m/Y" }}</td>
-            <td class="align-middle text-primary text-left small font-weight-bolder"style="font-size: 10px">
-                {% if kardex.bill_detail.id %}
-                    <span class="text-success">COMPRA</span><br>
-                    <span class="text-success">{{ kardex.bill_detail.bill }}</span>
-                {% elif kardex.order_detail.id %}
-                    <span class="text-success">VENTA</span>
-                    <span class="text-success">{{ kardex.order_detail.order.serial }}-{{ kardex.order_detail.order.correlative }}</span>
-{#                    {% if kardex.guide_detail.guide.programming is None %}#}
-{#                        {% if kardex.guide_detail.guide.guide_motive.type == 'E' %}#}
-{#                            NOTA DE ENTRADA:<br>[{{ kardex.guide_detail.guide.get_serial }}-{{ kardex.guide_detail.guide.code }}]#}
-{#                        {% elif kardex.guide_detail.guide.guide_motive.type == 'S' %}#}
-{#                            NOTA DE SALIDA:<br>[{{ kardex.guide_detail.guide.get_serial }}-{{ kardex.guide_detail.guide.code }}]#}
-{#                        {% endif %}#}
-{#                    {% endif %}#}
-                {% endif %}
-            </td>
-            <td class="align-middle text-primary" >{{ kardex.get_operation_display }}</td>
-
-            <td class="align-middle text-secondary text-center" >{% if kardex.operation == 'E' %}{{ kardex.quantity|replace_round_separator }}{% else %}0{% endif %}</td>
-            <td class="align-middle text-secondary text-right" >{% if kardex.operation == 'E' %}{{ kardex.price_unit|replace_round }}{% else %}0{% endif %}</td>
-            <td class="align-middle text-secondary text-right" >{% if kardex.operation == 'E' %}{{ kardex.price_total|replace_round_separator }}{% else %}0{% endif %}</td>
-
-            <td class="align-middle text-success text-center" >{% if kardex.operation == 'S' %}{{ kardex.quantity|replace_round }}{% else %}0{% endif %}</td>
-            <td class="align-middle text-success text-right" >{% if kardex.operation == 'S' %}{{ kardex.price_unit|replace_round }}{% else %}0{% endif %}</td>
-            <td class="align-middle text-success text-right" >{% if kardex.operation == 'S' %}{{ kardex.price_total|replace_round }}{% else %}0{% endif %}</td>
-
-            <td class="align-middle text-danger text-center" >{{ kardex.remaining_quantity|replace_round_separator }}</td>
-            <td class="align-middle text-danger text-right" >{{ kardex.remaining_price|replace_round_separator }}</td>
-            <td class="align-middle text-danger text-right" >{{ kardex.remaining_price_total|replace_round_separator }}</td>
-
+            <td class="align-middle text-center">{{ k.type_operation }}</td>
+            <td class="align-middle text-center">{% if k.operation == 'E' %}{{ k.quantity|replace_round_separator }}{% else %}-{% endif %}</td>
+            <td class="align-middle text-center">{% if k.operation == 'E' %}{{ k.unit_cost }}{% else %}-{% endif %}</td>
+            <td class="align-middle text-center">{% if k.operation == 'E' %}{{ k.total_cost|replace_round_separator }}{% else %}-{% endif %}</td>
+            <td class="align-middle text-center">{% if k.operation == 'S' %}{{ k.quantity|replace_round_separator }}{% else %}-{% endif %}</td>
+            <td class="align-middle text-center">{% if k.operation == 'S' %}{{ k.unit_cost }}{% else %}-{% endif %}</td>
+            <td class="align-middle text-center">{% if k.operation == 'S' %}{{ k.total_cost|replace_round_separator }}{% else %}-{% endif %}</td>
+            <td class="align-middle text-center" {% if k.operation == 'C' %} style="background-color: #D0D0D0; font-weight: bold" {% endif %}>
+                {{ k.remaining_quantity|replace_round_separator }}</td>
+            <td class="align-middle text-center" {% if k.operation == 'C' %} style="background-color: #D0D0D0; font-weight: bold" {% endif %}>
+                {{ k.remaining_price }}</td>
+            <td class="align-middle text-center" {% if k.operation == 'C' %} style="background-color: #D0D0D0; font-weight: bold" {% endif %}>
+                {{ k.remaining_price_total|replace_round_separator }}</td>
         </tr>
         {% endfor %}
-
+        <tr>
+            <td class="align-middle text-center font-weight-bold">Total</td>
+            <td class="align-middle text-center" colspan="5" style="border-bottom-color: #ffffff"></td>
+            <td class="align-middle text-center font-weight-bold">{{ sum_quantities_entries|replace_round_separator }}</td>
+            <td class="align-middle text-center" style="background-color: #595959"></td>
+            <td class="align-middle text-center font-weight-bold">{{ sum_total_cost_entries|replace_round_separator }}</td>
+            <td class="align-middle text-center font-weight-bold">{{ sum_quantities_exits|replace_round_separator }}</td>
+            <td class="align-middle text-center" style="background-color: #595959"></td>
+            <td class="align-middle text-center font-weight-bold">{{ sum_total_cost_exits|replace_round_separator }}</td>
+            <td class="align-middle text-center font-weight-bold" style="background-color: #D0D0D0">{{ sum_remaining_quantity|replace_round_separator }}</td>
+            <td class="align-middle text-center font-weight-bold" style="background-color: #D0D0D0">{{ sum_remaining_price }}</td>
+            <td class="align-middle text-center font-weight-bold" style="background-color: #D0D0D0">{{ sum_remaining_price_total|replace_round_separator }}</td>
+        </tr>
     </tbody>
 </table>
+{% else %}
+    <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+        <strong>Atencion!</strong> El producto no cuenta operaciones registradas en la sede y almacen seleccionados.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+{% endif %}

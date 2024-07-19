@@ -38,7 +38,7 @@ from django.db.models.functions import (
 )
 
 from ..accounting.models import Bill, BillPurchase, BillDetail
-from ..buys.models import PurchaseDetail, Purchase, CreditNote, ContractDetail
+from ..buys.models import PurchaseDetail, Purchase, CreditNote, ContractDetail, CreditNoteDetail
 from apps.sales.funtions import *
 
 
@@ -383,9 +383,7 @@ def get_list_kardex(request):
                 product_store=product_store[0], create_at__date__range=[start_date, end_date]
             ).select_related(
                 'product_store__product',
-                'purchase_detail',
                 'order_detail__order',
-                'loan_payment',
                 'guide_detail__guide__guide_motive',
             ).order_by('id')
 
@@ -1145,7 +1143,15 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
                                                            detail_obj.product)
             product_store_obj = ProductStore.objects.get(product=detail_obj.product,
                                                          subsidiary_store=subsidiary_store_sales_obj)
-            kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=detail_obj)
+            if _type_document == 'F':
+                type_document = '01'
+            elif _type_payment == 'B':
+                type_document = '03'
+            else:
+                type_document = '00'
+
+            kardex_ouput(product_store_obj.id, quantity_minimum_unit, detail_obj.multiply(),
+                         order_detail_obj=detail_obj, type_document=type_document, type_operation='01')
         else:
             product_id = int(detail['product'])
             unit_id = int(detail['unit'])
@@ -1168,7 +1174,18 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
                 commentary=product_obj.name + ' - ' + product_obj.product_brand.name
             )
             order_detail_obj.save()
-            kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj)
+
+            _type_document = order_detail_obj.order.type_document
+
+            if _type_document == 'F':
+                type_document = '01'
+            elif _type_payment == 'B':
+                type_document = '03'
+            else:
+                type_document = '00'
+
+            kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj.multiply(),
+                         order_detail_obj=order_detail_obj, type_document=type_document, type_operation='01')
 
     return order_obj
 
@@ -1188,79 +1205,75 @@ def kardex_initial(
         product_store_obj,
         stock,
         price_unit,
-        purchase_detail_obj=None,
-        guide_detail_obj=None,
-        distribution_detail_obj=None,
+        bill_detail_obj=None,
         order_detail_obj=None,
-        loan_payment_obj=None,
-        bill_detail_obj=None
+        guide_detail_obj=None,
 ):
-    new_kardex = {
-        'operation': 'C',
-        'quantity': 0,
-        'price_unit': 0,
-        'price_total': 0,
-        'remaining_quantity': decimal.Decimal(stock),
-        'remaining_price': decimal.Decimal(price_unit),
-        'remaining_price_total': decimal.Decimal(stock) * decimal.Decimal(price_unit),
-        'distribution_detail': distribution_detail_obj,
-        'guide_detail': guide_detail_obj,
-        'order_detail': order_detail_obj,
-        'product_store': product_store_obj,
-        'purchase_detail': purchase_detail_obj,
-        'loan_payment': loan_payment_obj,
-        'bill_detail': bill_detail_obj,
-    }
-    kardex = Kardex.objects.create(**new_kardex)
-    kardex.save()
+    Kardex.objects.create(
+        operation='C',
+        quantity=0,
+        price_unit=0,
+        price_total=0,
+        remaining_quantity=decimal.Decimal(stock),
+        remaining_price=decimal.Decimal(price_unit),
+        remaining_price_total=decimal.Decimal(stock) * decimal.Decimal(price_unit),
+        order_detail=order_detail_obj,
+        product_store=product_store_obj,
+        guide_detail=guide_detail_obj,
+        bill_detail=bill_detail_obj,
+        type_document='00',
+        type_operation='16'
+    )
 
 
 def kardex_input(
         product_store_id,
-        quantity_purchased,
-        price_unit,
-        purchase_detail_obj=None,
-        guide_detail_obj=None,
-        distribution_detail_obj=None,
+        quantity,
+        total_cost,
         order_detail_obj=None,
-        loan_payment_obj=None,
-        bill_detail_obj=None
+        guide_detail_obj=None,
+        bill_detail_obj=None,
+        type_document='00',
+        type_operation='99',
+        credit_note_detail_obj=None
+        # distribution_detail_obj=None,
 ):
     product_store = ProductStore.objects.get(pk=int(product_store_id))
-
     old_stock = product_store.stock
-    new_quantity = decimal.Decimal(quantity_purchased)
-    new_stock = old_stock + new_quantity  # Cantidad nueva de stock
-    new_price_unit = decimal.Decimal(price_unit)
-    new_price_total = new_quantity * new_price_unit
+    new_stock = old_stock + quantity
+
+    price_unit = decimal.Decimal(total_cost) / quantity
+
+    # new_quantity = decimal.Decimal(quantity_purchased)
+    # new_price_unit = decimal.Decimal(price_unit)
+    # new_price_total = quantity * new_price_unit
 
     last_kardex = Kardex.objects.filter(product_store_id=product_store.id).last()
     last_remaining_quantity = last_kardex.remaining_quantity
     last_remaining_price_total = last_kardex.remaining_price_total
-
-    new_remaining_quantity = last_remaining_quantity + new_quantity
+    old_price_unit = last_kardex.remaining_price
+    # print(old_price_unit)
+    new_remaining_quantity = last_remaining_quantity + quantity
     new_remaining_price = (decimal.Decimal(last_remaining_price_total) +
-                           new_price_total) / new_remaining_quantity
+                           total_cost) / new_remaining_quantity
     new_remaining_price_total = new_remaining_quantity * new_remaining_price
 
-    new_kardex = {
-        'operation': 'E',
-        'quantity': new_quantity,
-        'price_unit': new_price_unit,
-        'price_total': new_price_total,
-        'remaining_quantity': new_remaining_quantity,
-        'remaining_price': new_remaining_price,
-        'remaining_price_total': new_remaining_price_total,
-        'distribution_detail': distribution_detail_obj,
-        'guide_detail': guide_detail_obj,
-        'order_detail': order_detail_obj,
-        'product_store': product_store,
-        'purchase_detail': purchase_detail_obj,
-        'loan_payment': loan_payment_obj,
-        'bill_detail': bill_detail_obj,
-    }
-    kardex = Kardex.objects.create(**new_kardex)
-    kardex.save()
+    Kardex.objects.create(
+        operation='E',
+        quantity=quantity,
+        price_unit=price_unit,
+        price_total=total_cost,
+        remaining_quantity=new_remaining_quantity,
+        remaining_price=new_remaining_price,
+        remaining_price_total=new_remaining_price_total,
+        guide_detail=guide_detail_obj,
+        order_detail=order_detail_obj,
+        product_store=product_store,
+        bill_detail=bill_detail_obj,
+        type_document=type_document,
+        type_operation=type_operation,
+        credit_note_detail=credit_note_detail_obj
+    )
 
     product_store.stock = new_stock
     product_store.save()
@@ -1268,43 +1281,90 @@ def kardex_input(
 
 def kardex_ouput(
         product_store_id,
-        quantity_sold,
+        quantity,
+        total_cost,
         order_detail_obj=None,
         guide_detail_obj=None,
-        distribution_detail_obj=None,
-        loan_payment_obj=None,
+        bill_detail_obj=None,
+        type_document='00',
+        type_operation='99',
+        credit_note_detail_obj=None
+        # distribution_detail_obj=None,
 ):
     product_store = ProductStore.objects.get(pk=int(product_store_id))
-
     old_stock = product_store.stock
-    new_stock = old_stock - decimal.Decimal(quantity_sold)
-    new_quantity = decimal.Decimal(quantity_sold)
+    new_stock = old_stock - decimal.Decimal(quantity)
+
+    price_unit = decimal.Decimal(total_cost) / quantity
+
+    # new_quantity = decimal.Decimal(quantity)
 
     last_kardex = Kardex.objects.filter(product_store_id=product_store.id).last()
     last_remaining_quantity = last_kardex.remaining_quantity
+    last_remaining_price_total = last_kardex.remaining_price_total
     old_price_unit = last_kardex.remaining_price
 
-    new_price_total = old_price_unit * new_quantity
+    # new_price_total = old_price_unit * quantity
 
-    new_remaining_quantity = last_remaining_quantity - new_quantity
-    new_remaining_price = old_price_unit
+    new_remaining_quantity = last_remaining_quantity - quantity
+    new_remaining_price = (last_remaining_price_total - total_cost) / new_remaining_quantity
+    print(new_remaining_price)
+    print(old_price_unit)
     new_remaining_price_total = new_remaining_quantity * new_remaining_price
-    new_kardex = {
-        'operation': 'S',
-        'quantity': new_quantity,
-        'price_unit': old_price_unit,
-        'price_total': new_price_total,
-        'remaining_quantity': new_remaining_quantity,
-        'remaining_price': new_remaining_price,
-        'remaining_price_total': new_remaining_price_total,
-        'distribution_detail': distribution_detail_obj,
-        'guide_detail': guide_detail_obj,
-        'order_detail': order_detail_obj,
-        'product_store': product_store,
-        'loan_payment': loan_payment_obj,
-    }
-    kardex = Kardex.objects.create(**new_kardex)
-    kardex.save()
+
+    Kardex.objects.create(
+        operation='S',
+        quantity=quantity,
+        price_unit=price_unit,
+        price_total=total_cost,
+        remaining_quantity=new_remaining_quantity,
+        remaining_price=new_remaining_price,
+        remaining_price_total=new_remaining_price_total,
+        guide_detail=guide_detail_obj,
+        order_detail=order_detail_obj,
+        product_store=product_store,
+        bill_detail=bill_detail_obj,
+        type_document=type_document,
+        type_operation=type_operation,
+        credit_note_detail=credit_note_detail_obj
+    )
+
+    product_store.stock = new_stock
+    product_store.save()
+
+
+def kardex_credit_note_input(
+        product_store_id,
+        quantity,
+        total_cost,
+        type_document='00',
+        type_operation='99',
+        credit_note_detail_obj=None
+):
+    product_store = ProductStore.objects.get(pk=int(product_store_id))
+    old_stock = product_store.stock
+    new_stock = old_stock - decimal.Decimal(quantity)
+    last_kardex = Kardex.objects.filter(product_store_id=product_store.id).last()
+    last_remaining_quantity = last_kardex.remaining_quantity
+    last_remaining_price_total = last_kardex.remaining_price_total
+    price_unit = decimal.Decimal(total_cost) / decimal.Decimal(quantity)
+    new_remaining_quantity = last_remaining_quantity - quantity
+    new_remaining_price = (last_remaining_price_total + total_cost) / new_remaining_quantity
+    new_remaining_price_total = new_remaining_quantity * new_remaining_price
+
+    Kardex.objects.create(
+        operation='E',
+        quantity=-quantity,
+        price_unit=price_unit,
+        price_total=-total_cost,
+        remaining_quantity=new_remaining_quantity,
+        remaining_price=new_remaining_price,
+        remaining_price_total=new_remaining_price_total,
+        product_store=product_store,
+        type_document=type_document,
+        type_operation=type_operation,
+        credit_note_detail=credit_note_detail_obj
+    )
 
     product_store.stock = new_stock
     product_store.save()
@@ -3845,8 +3905,9 @@ def save_detail_to_warehouse(request):
                     kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase_unit,
                                    bill_detail_obj=detail_entered_obj)
                 else:
-                    kardex_input(product_store_obj.id, entered_quantity_in_units, price_purchase_unit,
-                                 bill_detail_obj=detail_entered_obj)
+                    total_cost = decimal.Decimal(entered_quantity_in_units) * decimal.Decimal(price_purchase_unit)
+                    kardex_input(product_store_obj.id, entered_quantity_in_units, total_cost,
+                                 type_document='01', type_operation='02', bill_detail_obj=detail_entered_obj)
 
             if entered_quantity_units != 0 and entered_quantity_units != '':
                 detail_entered_units_obj = BillDetail.objects.create(quantity=entered_quantity_units,
@@ -3867,8 +3928,9 @@ def save_detail_to_warehouse(request):
                     kardex_initial(new_product_store_obj, entered_quantity_units, price_purchase_unit,
                                    bill_detail_obj=detail_entered_units_obj)
                 else:
-                    kardex_input(product_store_obj.id, entered_quantity_units, price_purchase_unit,
-                                 bill_detail_obj=detail_entered_units_obj)
+                    total_cost = decimal.Decimal(entered_quantity_units) * decimal.Decimal(price_purchase_unit)
+                    kardex_input(product_store_obj.id, entered_quantity_units, total_cost, type_document='01',
+                                 type_operation='02', bill_detail_obj=detail_entered_units_obj)
 
             # ----------------------------------- QUANTITY RETURNED --------------------------------------------------
 
@@ -3997,18 +4059,37 @@ def bill_create_credit_note(request):
     if request.method == 'POST':
         nro_document = request.POST.get('nro-document', '')
         date_issue = request.POST.get('date-issue', '')
-        bill_id = request.POST.get('bill', '')
         bill_serial = request.POST.get('bill-serial', '')
         bill_correlative = request.POST.get('bill-correlative', '')
+        subsidiary_store = request.POST.get('subsidiary_store', '')
         detail = json.loads(request.POST.get('detail', ''))
-        # purchase_obj = None
-        # purchase_detail_id = ''
-        # for detail in detail:
-        #     purchase_detail_id = int(detail['purchaseDetail'])
-        #     purchase_detail_obj = PurchaseDetail.objects.get(id=int(purchase_detail_id))
-        #     purchase_obj = purchase_detail_obj.purchase
-        bill_obj = Bill.objects.get(id=int(bill_id))
-        CreditNote.objects.create(nro_document=nro_document, issue_date=date_issue, bill=bill_obj)
+        purchase_detail_id = ''
+        subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(subsidiary_store))
+
+        bill_set = Bill.objects.filter(serial=bill_serial, correlative=bill_correlative)
+        if bill_set.exists():
+            bill_obj = bill_set.last()
+            credit_note_obj = CreditNote.objects.create(nro_document=nro_document, issue_date=date_issue, bill=bill_obj)
+            for d in detail:
+                bill_detail_id = int(d['billDetail'])
+                bill_detail_obj = BillDetail.objects.get(id=int(bill_detail_id))
+                credit_note_detail_obj = CreditNoteDetail.objects.create(quantity=bill_detail_obj.quantity,
+                                                                         product=bill_detail_obj.product,
+                                                                         unit=bill_detail_obj.unit,
+                                                                         price_unit=bill_detail_obj.price_unit,
+                                                                         credit_note=credit_note_obj)
+                product_store_id = ProductStore.objects.get(product=bill_detail_obj.product,
+                                                            subsidiary_store=subsidiary_store_obj).id
+                quantity_minimum = ProductDetail.objects.filter(product=bill_detail_obj.product,
+                                                                unit=bill_detail_obj.unit).last().quantity_minimum
+                total_cost = bill_detail_obj.quantity * bill_detail_obj.price_unit
+                kardex_credit_note_input(product_store_id, quantity_minimum, total_cost, type_document='07',
+                                         type_operation='06', credit_note_detail_obj=credit_note_detail_obj)
+        else:
+            data = {'error': "La Factura no Existe, ingrese una factura correcta"}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
 
         return JsonResponse({
             'message': 'Nota de Credito registrada',
@@ -4099,7 +4180,7 @@ def kardex_list(request):
 
         return render(request, 'sales/new_kardex_list.html', {
             'formatdate': formatdate,
-            'product_set': Product.objects.filter(is_enabled=True),
+            'product_set': Product.objects.filter(is_enabled=True).order_by('id'),
             'subsidiaries': subsidiaries,
             'subsidiaries_stores': subsidiaries_stores,
         })
@@ -4157,88 +4238,130 @@ def kardex_list(request):
         subsidiary_id = request.POST.get('subsidiary')
         subsidiary_store = request.POST.get('subsidiary_store')
 
-        product_store_obj = ProductStore.objects.get(product_id=product_id, subsidiary_store_id=subsidiary_store)
-        kardex_set = Kardex.objects.filter(product_store=product_store_obj).select_related(
-            'product_store__product',
-            'purchase_detail',
-            'order_detail__order',
-            'loan_payment',
-            'guide_detail__guide__guide_motive',
+        product_store_set = ProductStore.objects.filter(product_id=product_id, subsidiary_store_id=subsidiary_store)
+        if product_store_set.exists():
+            product_store_obj = product_store_set.last()
+            kardex_set = Kardex.objects.filter(product_store=product_store_obj).select_related(
+                'product_store',
+                'order_detail__order',
+                'guide_detail',
+                'bill_detail__bill',
+                'credit_note_detail__credit_note'
             ).order_by('id')
 
-        kardex_dict = []
-        remaining_quantity = decimal.Decimal(0.0)
-        remaining_price_total = decimal.Decimal(0.0)
-        initial_operation = next((k for k in kardex_set if k.operation == 'C'), None)
+            kardex_dict = []
 
-        if initial_operation:
-            remaining_quantity = initial_operation.remaining_quantity
-            remaining_price = initial_operation.remaining_price
-            remaining_price_total = initial_operation.remaining_price_total
+            sum_quantities_entries = 0
+            sum_total_cost_entries = 0
+            sum_quantities_exits = 0
+            sum_total_cost_exits = 0
 
-            item = {
-                'id': initial_operation.id,
-                'operation': initial_operation.operation,
-                'period': initial_operation.create_at.strftime("%Y-%m"),
-                'date': initial_operation.create_at.strftime("%Y-%m-%d"),
-                'type_document': initial_operation.type_document,
-                'serial': '',
-                'number': '',
-                'type_operation': initial_operation.type_operation,
-                'quantity': initial_operation.quantity,
-                'unit_cost': initial_operation.price_unit,
-                'total_cost': initial_operation.price_total,
-                'remaining_quantity': remaining_quantity,
-                'remaining_price': remaining_price,
-                'remaining_price_total': remaining_price_total
-            }
-            kardex_dict.append(item)
+            sum_remaining_quantity = 0
+            sum_remaining_price = 0
+            sum_remaining_price_total = 0
 
-        for k in kardex_set:
-            if k.operation == 'C':
-                continue
+            remaining_quantity = decimal.Decimal(0.0)
+            remaining_price_total = decimal.Decimal(0.0)
+            initial_operation = next((k for k in kardex_set if k.operation == 'C'), None)
 
-            serial = ''
-            number = ''
-            if k.type_operation == '02':
-                serial = k.bill_detail.bill.serial
-                number = k.bill_detail.bill.correlative
-            elif k.type_operation == '01':
-                serial = k.order_detail.order.serial
-                number = k.order_detail.order.correlative
+            if initial_operation:
+                remaining_quantity = initial_operation.remaining_quantity
+                remaining_price = initial_operation.remaining_price
+                remaining_price_total = initial_operation.remaining_price_total
 
-            if k.operation == 'E':
-                remaining_quantity += k.quantity
-                remaining_price_total += k.price_total
-            elif k.operation == 'S':
-                remaining_quantity -= k.quantity
-                remaining_price_total -= k.price_total
+                sum_remaining_quantity += remaining_quantity
+                sum_remaining_price += remaining_price
+                sum_remaining_price_total += remaining_price_total
 
-            remaining_price = remaining_price_total / remaining_quantity if remaining_quantity != 0 else 0
+                item = {
+                    'id': initial_operation.id,
+                    'operation': initial_operation.operation,
+                    'period': initial_operation.create_at.strftime("%Y-%m"),
+                    'date': initial_operation.create_at.strftime("%d/%m/%Y"),
+                    'type_document': initial_operation.type_document,
+                    'serial': '',
+                    'number': '',
+                    'type_operation': initial_operation.type_operation,
+                    'quantity': initial_operation.quantity,
+                    'unit_cost': initial_operation.price_unit,
+                    'total_cost': initial_operation.price_total,
+                    'remaining_quantity': remaining_quantity,
+                    'remaining_price': round(remaining_price, 4),
+                    'remaining_price_total': remaining_price_total
+                }
+                kardex_dict.append(item)
 
-            item = {
-                'id': k.id,
-                'operation': k.operation,
-                'period': k.create_at.strftime("%Y-%m"),
-                'date': k.create_at.strftime("%Y-%m-%d"),
-                'type_document': k.type_document,
-                'serial': serial,
-                'number': number,
-                'type_operation': k.type_operation,
-                'quantity': k.quantity,
-                'unit_cost': k.price_unit,
-                'total_cost': k.price_total,
-                'remaining_quantity': remaining_quantity,
-                'remaining_price': remaining_price,
-                'remaining_price_total': remaining_price_total
-            }
-            kardex_dict.append(item)
+            for k in kardex_set:
+                if k.operation == 'C':
+                    continue
 
-        print(kardex_dict)
-        tpl = loader.get_template('sales/new_kardex_grid_list.html')
-        context = ({
-            'product_id': product_id,
-        })
-        return JsonResponse({
-            'grid': tpl.render(context, request),
-        }, status=HTTPStatus.OK)
+                serial = ''
+                number = ''
+                if k.type_operation == '02':
+                    serial = k.bill_detail.bill.serial
+                    number = k.bill_detail.bill.correlative
+                elif k.type_operation == '01':
+                    serial = k.order_detail.order.serial
+                    number = k.order_detail.order.correlative
+                elif k.type_operation == '06':
+                    nro_document = k.credit_note_detail.credit_note.nro_document
+                    serial, number = nro_document.split('-')
+
+                if k.operation == 'E':
+                    remaining_quantity += k.quantity
+                    remaining_price_total += k.price_total
+                    sum_quantities_entries += k.quantity
+                    sum_total_cost_entries += k.price_total
+                elif k.operation == 'S':
+                    remaining_quantity -= k.quantity
+                    remaining_price_total -= k.price_total
+                    sum_quantities_exits += k.quantity
+                    sum_total_cost_exits += k.price_total
+
+                remaining_price = remaining_price_total / remaining_quantity if remaining_quantity != 0 else 0
+
+                sum_remaining_quantity += remaining_quantity
+                sum_remaining_price += remaining_price
+                sum_remaining_price_total += remaining_price_total
+
+                item = {
+                    'id': k.id,
+                    'product_store': k.product_store.id,
+                    'operation': k.operation,
+                    'period': k.create_at.strftime("%Y-%m"),
+                    'date': k.create_at.strftime("%d/%m/%Y"),
+                    'type_document': k.type_document,
+                    'serial': serial,
+                    'number': number.zfill(7),
+                    'type_operation': k.type_operation,
+                    'quantity': k.quantity,
+                    'unit_cost': round(k.price_unit, 4),
+                    'total_cost': k.price_total,
+                    'remaining_quantity': remaining_quantity,
+                    'remaining_price': round(remaining_price, 4),
+                    'remaining_price_total': remaining_price_total
+                }
+                kardex_dict.append(item)
+            tpl = loader.get_template('sales/new_kardex_grid_list.html')
+            context = ({
+                'product_id': product_id,
+                'kardex_dict': kardex_dict,
+                'sum_quantities_entries': sum_quantities_entries,
+                'sum_total_cost_entries': sum_total_cost_entries,
+                'sum_quantities_exits': sum_quantities_exits,
+                'sum_total_cost_exits': sum_total_cost_exits,
+                'sum_remaining_quantity': sum_remaining_quantity,
+                'sum_remaining_price': round(sum_remaining_price, 4),
+                'sum_remaining_price_total': sum_remaining_price_total,
+            })
+            return JsonResponse({
+                'grid': tpl.render(context, request),
+            }, status=HTTPStatus.OK)
+
+        else:
+            data = {'error': "El Producto no cuenta con kardex en el Almacen Seleccionado"}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+
+    return JsonResponse({'message': 'Error actualice o contacte con sistemas.'}, status=HTTPStatus.BAD_REQUEST)

@@ -496,13 +496,12 @@ class Kardex(models.Model):
     product_store = models.ForeignKey(
         'ProductStore', on_delete=models.SET_NULL, null=True, blank=True)
     order_detail = models.ForeignKey('OrderDetail', on_delete=models.SET_NULL, null=True, blank=True)
-    purchase_detail = models.ForeignKey('buys.PurchaseDetail', on_delete=models.SET_NULL, null=True, blank=True)
     guide_detail = models.ForeignKey('comercial.GuideDetail', on_delete=models.SET_NULL, null=True, blank=True)
     create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    distribution_detail = models.ForeignKey('comercial.DistributionDetail', on_delete=models.SET_NULL, null=True,
-                                            blank=True)
-    loan_payment = models.ForeignKey('LoanPayment', on_delete=models.SET_NULL, null=True, blank=True)
+    # distribution_detail = models.ForeignKey('comercial.DistributionDetail', on_delete=models.SET_NULL, null=True,
+    #                                         blank=True)
     bill_detail = models.ForeignKey('accounting.BillDetail', on_delete=models.SET_NULL, null=True, blank=True)
+    credit_note_detail = models.ForeignKey('buys.CreditNoteDetail', on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name = 'Registro de Kardex'

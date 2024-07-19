@@ -15,12 +15,13 @@
                     del inventario valorizado</h6>
             </div>
             <div class="card-body bg-light roboto-condensed-regular">
-                <form  id="kardex-form" action="{% url 'sales:kardex' %}" method="POST" style="width: 80rem;">
+                <form id="kardex-form" action="{% url 'sales:kardex' %}" method="POST" style="width: 80rem;">
                     {% csrf_token %}
-                    <div class="row">
+                    <div class="form-row">
                         <div class="col-sm-6">
                             <label for="product_id">Seleccione Producto :</label>
-                            <select class="form-control form-control-sm" name="product" id="product_id">
+                            <select class="form-control form-control-sm"
+                                    name="product" id="product_id">
                                 <option value="0">--</option>
                                 {% for p in product_set %}
                                     <option value="{{ p.id }}">{{ p.name }}</option>
@@ -30,7 +31,7 @@
                         <div class="col-sm-2">
                             <label for="id_subsidiary" class="">Sede :</label>
                             <select class="form-control form-control-sm" name="subsidiary" id="id_subsidiary">
-                                <option value="">--</option>
+                                <option value="0">--</option>
                                 {% for subsidiary in subsidiaries %}
                                     <option value="{{ subsidiary.id }}">{{ subsidiary.name }}</option>
                                 {% empty %}
@@ -40,8 +41,9 @@
                         </div>
                         <div class="col-sm-2">
                             <label for="id_subsidiary_store" class="">Almacen :</label>
-                            <select class="form-control form-control-sm" name="subsidiary_store" id="id_subsidiary_store">
-                                <option value="">--</option>
+                            <select class="form-control form-control-sm" name="subsidiary_store"
+                                    id="id_subsidiary_store">
+                                <option value="0">--</option>
                                 {% for subsidiary_store in subsidiaries_stores %}
                                     <option value="{{ subsidiary_store.id }}"
                                             data-chained="{{ subsidiary_store.subsidiary.id }}">{{ subsidiary_store.name }}</option>
@@ -81,7 +83,11 @@
 
             </div>
         </div>
-    <div id="kardex-grid-list"></div>
+        <div class="loader-container col-auto" id="loader-bill"
+             style="display: none; opacity: 1.5; width: 100%; padding-top: 3em;">
+            <div class="loader"></div>
+        </div>
+        <div id="kardex-grid-list"></div>
 
     </div>
 
@@ -90,12 +96,41 @@
 
 {% block extrajs %}
     <script type="text/javascript">
+
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p><strong>Cargando Kardex..</strong></p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
         $("#id_subsidiary_store").chained("#id_subsidiary");
 
         $('#kardex-form').submit(function (e) {
             e.preventDefault();
-            let data = new FormData($('#kardex-form').get(0));
 
+            if ($('#product_id').val() === '0') {
+                toastr.warning('¡favor de seleccionar un producto', 'Error de Datos!');
+                return false;
+            }
+            if ($('#id_subsidiary').val() === '0') {
+                toastr.warning('¡favor de seleccionar una Sede', 'Error de Datos!');
+                return false;
+            }
+            if ($('#id_subsidiary_store').val() === '0') {
+                toastr.warning('¡favor de seleccionar un Almacen', 'Error de Datos!');
+                return false;
+            }
+
+            let data = new FormData($('#kardex-form').get(0));
+            $('#loader-bill').html(loader).show()
+            $('#kardex-grid-list').empty();
             $.ajax({
                 url: $(this).attr('action'),
                 type: $(this).attr('method'),
@@ -107,10 +142,12 @@
                 success: function (response, textStatus, xhr) {
                     if (xhr.status === 200) {
                         $('#kardex-grid-list').html(response.grid);
+                        $('#loader-bill').hide();
                     }
                 },
-                fail: function (response) {
-                    console.log(response);
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.error, '¡ERROR!');
+                    $('#loader-bill').hide();
                 }
             });
         });
