@@ -2246,14 +2246,18 @@ def report_contracts(request):
                 'nro_quota': c.nro_quota,
                 'date': c.date,
                 'difference_date': difference_date,
-                # ''
             }
             contract_detail_dict.append(item)
 
         return render(request, 'buys/report_contracts_detail.html', {
             'formatdate': formatdate,
             'contract_detail_dict': contract_detail_dict,
-            'contracts': Contract.objects.all().order_by('id'),
+            'contracts': Contract.objects.all().prefetch_related(
+                Prefetch('contractdetail_set', queryset=ContractDetail.objects.select_related('order').prefetch_related(
+                    Prefetch('contractdetailitem_set', queryset=ContractDetailItem.objects.select_related('product')),
+                    Prefetch('contractdetailpurchase_set', queryset=ContractDetailPurchase.objects.select_related('purchase'))
+                ).order_by('id'))
+            ).order_by('id'),
         })
 
 
