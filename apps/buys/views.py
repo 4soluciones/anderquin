@@ -1526,7 +1526,7 @@ def contract_list(request):
                 item_contract.get('contract_detail').append(item_detail)
 
             contract_dict.append(item_contract)
-        print(contract_dict)
+        # print(contract_dict)
 
         return render(request, 'buys/contract_list.html', {
             'date_now': formatdate,
@@ -2245,13 +2245,15 @@ def report_contracts(request):
                 'client': c.contract.client.names,
                 'nro_quota': c.nro_quota,
                 'date': c.date,
-                'difference_date': difference_date
+                'difference_date': difference_date,
+                # ''
             }
             contract_detail_dict.append(item)
 
         return render(request, 'buys/report_contracts_detail.html', {
             'formatdate': formatdate,
             'contract_detail_dict': contract_detail_dict,
+            'contracts': Contract.objects.all().order_by('id'),
         })
 
 

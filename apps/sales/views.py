@@ -966,15 +966,21 @@ def save_order(request):
                     commentary=product_obj.name + ' - ' + product_obj.product_brand.name
                 )
                 order_detail_obj.save()
+                if _type_document == 'F':
+                    type_document = '01'
+                elif _type_payment == 'B':
+                    type_document = '03'
+                else:
+                    type_document = '00'
+                kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
+                             type_document=type_document, type_operation='01')
 
                 guide_detail_id = detail['guide_detail']
                 if guide_detail_id:
-                    # guide_detail_obj = GuideDetail.objects.get(id=detail_id)
-                    kardex_obj = Kardex.objects.get(guide_detail_id=int(guide_detail_id))
-                    kardex_obj.order_detail = order_detail_obj
+                    guide_detail_obj = GuideDetail.objects.get(id=guide_detail_id)
+                    kardex_obj = Kardex.objects.get(order_detail=order_detail_obj)
+                    kardex_obj.guide_detail = guide_detail_obj
                     kardex_obj.save()
-
-                # kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj)
 
         else:
             order_obj = save_order_with_order_id(_order_id, client_obj, _serial_text, user_obj, _sum_total, _date,
@@ -1150,8 +1156,8 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
             else:
                 type_document = '00'
 
-            kardex_ouput(product_store_obj.id, quantity_minimum_unit, detail_obj.multiply(),
-                         order_detail_obj=detail_obj, type_document=type_document, type_operation='01')
+            kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=detail_obj,
+                         type_document=type_document, type_operation='01')
         else:
             product_id = int(detail['product'])
             unit_id = int(detail['unit'])
@@ -1184,8 +1190,8 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
             else:
                 type_document = '00'
 
-            kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj.multiply(),
-                         order_detail_obj=order_detail_obj, type_document=type_document, type_operation='01')
+            kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
+                         type_document=type_document, type_operation='01')
 
     return order_obj
 
@@ -1282,7 +1288,7 @@ def kardex_input(
 def kardex_ouput(
         product_store_id,
         quantity,
-        total_cost,
+        # total_cost,
         order_detail_obj=None,
         guide_detail_obj=None,
         bill_detail_obj=None,
@@ -1294,28 +1300,23 @@ def kardex_ouput(
     product_store = ProductStore.objects.get(pk=int(product_store_id))
     old_stock = product_store.stock
     new_stock = old_stock - decimal.Decimal(quantity)
-
-    price_unit = decimal.Decimal(total_cost) / quantity
-
+    # price_unit = decimal.Decimal(total_cost) / quantity
     # new_quantity = decimal.Decimal(quantity)
-
     last_kardex = Kardex.objects.filter(product_store_id=product_store.id).last()
     last_remaining_quantity = last_kardex.remaining_quantity
-    last_remaining_price_total = last_kardex.remaining_price_total
+    # last_remaining_price_total = last_kardex.remaining_price_total
     old_price_unit = last_kardex.remaining_price
-
+    total_cost = decimal.Decimal(quantity) * old_price_unit
     # new_price_total = old_price_unit * quantity
 
     new_remaining_quantity = last_remaining_quantity - quantity
-    new_remaining_price = (last_remaining_price_total - total_cost) / new_remaining_quantity
-    print(new_remaining_price)
-    print(old_price_unit)
+    new_remaining_price = last_kardex.remaining_price
     new_remaining_price_total = new_remaining_quantity * new_remaining_price
 
     Kardex.objects.create(
         operation='S',
         quantity=quantity,
-        price_unit=price_unit,
+        price_unit=old_price_unit,
         price_total=total_cost,
         remaining_quantity=new_remaining_quantity,
         remaining_price=new_remaining_price,

@@ -1081,7 +1081,7 @@ def create_output_transfer(request):
 
             if motive != 4:
                 product_store_obj = ProductStore.objects.get(id=product_store_id)
-                kardex_ouput(product_store_obj.id, quantity_request, guide_detail_obj=new_guide_detail_obj)
+                # kardex_ouput(product_store_obj.id, quantity_request, guide_detail_obj=new_guide_detail_obj)
 
         return JsonResponse({
             'message': 'La operación se Realizo correctamente.',
@@ -1353,7 +1353,7 @@ def new_input_from_output(request):
                 # output kardex
                 output_product_store_obj = ProductStore.objects.get(
                     product=output_guide_detail_obj.product, subsidiary_store=subsidiary_store_origin_obj)
-                kardex_ouput(output_product_store_obj.id, quantity, guide_detail_obj=output_guide_detail_obj)
+                # kardex_ouput(output_product_store_obj.id, quantity, guide_detail_obj=output_guide_detail_obj)
                 # output kardex
 
                 # register input guide detail
@@ -1465,8 +1465,8 @@ def distribution_mobil_save(request):
                 product_store_obj = ProductStore.objects.get(product=product_obj,
                                                              subsidiary_store=subsidiary_store_obj)
                 quantity_minimum_unit = calculate_minimum_unit(quantity, unit_obj, product_obj)
-                kardex_ouput(product_store_obj.id, quantity_minimum_unit,
-                             distribution_detail_obj=new_detail_distribution)
+                # kardex_ouput(product_store_obj.id, quantity_minimum_unit,
+                #              distribution_detail_obj=new_detail_distribution)
 
         return JsonResponse({
             'message': 'DISTRIBUCION REALIZADA.',
@@ -2500,10 +2500,10 @@ def save_guide(request):
             quantity_unit = decimal.Decimal(detail['QuantityUnit'])
             unit_id = int(detail['Unit'])
             unit_obj = Unit.objects.get(id=unit_id)
-            new_detail_guide_obj = GuideDetail.objects.create(guide=guide_obj, product=product_obj,
-                                                              quantity=quantity_unit, unit=unit_obj)
-            product_store_id = ProductStore.objects.filter(product=product_obj, subsidiary_store=store_obj).last().id
-            kardex_ouput(product_store_id, quantity, guide_detail_obj=new_detail_guide_obj)
+            GuideDetail.objects.create(guide=guide_obj, product=product_obj,
+                                       quantity=quantity_unit, unit=unit_obj)
+            # product_store_id = ProductStore.objects.filter(product=product_obj, subsidiary_store=store_obj).last().id
+            # kardex_ouput(product_store_id, quantity, guide_detail_obj=new_detail_guide_obj,)
 
         return JsonResponse({
             'pk': guide_obj.id,
