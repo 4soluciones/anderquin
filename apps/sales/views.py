@@ -1523,26 +1523,25 @@ def order_list(request):
 def get_dict_orders(client_obj=None, start_date=None, end_date=None):
     sum_quantity_total = 0
     order_set = Order.objects.filter(
-        client=client_obj, create_at__date__range=[start_date, end_date], type__in=['V', 'R']
+        client=client_obj, create_at__date__range=[start_date, end_date], order_type__in=['V']
     ).prefetch_related(
         Prefetch(
             'orderdetail_set', queryset=OrderDetail.objects.select_related('product', 'unit').prefetch_related(
-                Prefetch(
-                    'loanpayment_set',
-                    queryset=LoanPayment.objects.select_related('order_detail__order').prefetch_related(
-                        Prefetch(
-                            'transactionpayment_set',
-                            queryset=TransactionPayment.objects.select_related('loan_payment__order_detail__order')
-                        )
-                    )
-                ),
-                Prefetch('ballchange_set'),
+                # Prefetch(
+                #     'loanpayment_set',
+                #     queryset=LoanPayment.objects.select_related('order_detail__order').prefetch_related(
+                #         Prefetch(
+                #             'transactionpayment_set',
+                #             queryset=TransactionPayment.objects.select_related('loan_payment__order_detail__order')
+                #         )
+                #     )
+                # ),
             )
         ),
         Prefetch(
             'cashflow_set', queryset=CashFlow.objects.select_related('cash')
         ),
-    ).select_related('distribution_mobil__truck', 'distribution_mobil__pilot', 'client').order_by('id')
+    ).select_related('subsidiary_store', 'subsidiary', 'client').order_by('id')
 
     dictionary = []
 
@@ -1552,7 +1551,7 @@ def get_dict_orders(client_obj=None, start_date=None, end_date=None):
             cash_flow_set = o.cashflow_set.all()
             new = {
                 'id': o.id,
-                'type': o.get_type_display(),
+                'type': o.get_order_type_display(),
                 'client': o.client.names,
                 'user': o.user.username,
                 'date': o.create_at,
@@ -1560,57 +1559,54 @@ def get_dict_orders(client_obj=None, start_date=None, end_date=None):
                 'status': o.get_status_display(),
                 'total': o.total,
                 'subtotal': 0,
-                'total_repay_loan': '{:,}'.format(
-                    total_remaining_repay_loan(order_detail_set=order_detail_set).quantize(decimal.Decimal('0.00'),
-                                                                                           rounding=decimal.ROUND_HALF_EVEN)),
-                'total_remaining_repay_loan': '{:,}'.format(
-                    total_remaining_repay_loan(order_detail_set=order_detail_set).quantize(decimal.Decimal('0.00'),
-                                                                                           rounding=decimal.ROUND_HALF_EVEN)),
+                # 'total_repay_loan': '{:,}'.format(total_remaining_repay_loan(order_detail_set=order_detail_set).quantize(decimal.Decimal('0.00'),
+                #                                                                            rounding=decimal.ROUND_HALF_EVEN)),
+                # 'total_remaining_repay_loan': '{:,}'.format(total_remaining_repay_loan(order_detail_set=order_detail_set).quantize(decimal.Decimal('0.00'),
+                #                                                                            rounding=decimal.ROUND_HALF_EVEN)),
                 'total_spending': '{:,}'.format(
                     total_cash_flow_spending(cashflow_set=cash_flow_set).quantize(decimal.Decimal('0.00'),
                                                                                   rounding=decimal.ROUND_HALF_EVEN)),
                 'details_count': order_detail_set.count(),
                 'rowspan': 0,
-                'is_review': o.is_review,
                 'has_loans': False
             }
             subtotal = 0
 
             for d in order_detail_set:
                 _type = '-'
-                loan_payment_set = []
-                for lp in d.loanpayment_set.all():
-                    _payment_type = '-'
-                    _cash_flow = None
-                    transaction_payment_set = lp.transactionpayment_set.all()
-                    if transaction_payment_set.exists():
-                        transaction_payment = None
-                        for t in transaction_payment_set:
-                            transaction_payment = t
-                        _cash_flow = get_cash_flow(order=o, transactionpayment=transaction_payment)
-                        _payment_type = transaction_payment.get_type_display()
+                # loan_payment_set = []
+                # for lp in d.loanpayment_set.all():
+                #     _payment_type = '-'
+                #     _cash_flow = None
+                #     transaction_payment_set = lp.transactionpayment_set.all()
+                #     if transaction_payment_set.exists():
+                #         transaction_payment = None
+                #         for t in transaction_payment_set:
+                #             transaction_payment = t
+                #         _cash_flow = get_cash_flow(order=o, transactionpayment=transaction_payment)
+                #         _payment_type = transaction_payment.get_type_display()
+                #
+                #     loan_payment = {
+                #         'id': lp.id,
+                #         'quantity': lp.quantity,
+                #         'date': lp.create_at,
+                #         'operation_date': lp.operation_date,
+                #         'price': '{:,}'.format(
+                #             lp.price.quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_EVEN)),
+                #         'type': _payment_type,
+                #         'cash_flow': _cash_flow,
+                #         'is_review_pay': lp.is_check
+                #     }
+                #     loan_payment_set.append(loan_payment)
 
-                    loan_payment = {
-                        'id': lp.id,
-                        'quantity': lp.quantity,
-                        'date': lp.create_at,
-                        'operation_date': lp.operation_date,
-                        'price': '{:,}'.format(
-                            lp.price.quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_EVEN)),
-                        'type': _payment_type,
-                        'cash_flow': _cash_flow,
-                        'is_review_pay': lp.is_check
-                    }
-                    loan_payment_set.append(loan_payment)
+                # loans_count = d.loanpayment_set.all().count()
 
-                loans_count = d.loanpayment_set.all().count()
-
-                if loans_count == 0:
-                    rowspan = 1
-                else:
-                    rowspan = loans_count
-                    if not new['has_loans']:
-                        new['has_loans'] = True
+                # if loans_count == 0:
+                #     rowspan = 1
+                # else:
+                #     rowspan = loans_count
+                #     if not new['has_loans']:
+                #         new['has_loans'] = True
 
                 order_detail = {
                     'id': d.id,
@@ -1622,16 +1618,16 @@ def get_dict_orders(client_obj=None, start_date=None, end_date=None):
                     'quantity_sold': d.quantity_sold,
                     'price_unit': str(round(d.price_unit, 6)),
                     'multiply': d.multiply,
-                    'repay_loan': '{:,}'.format(round(repay_loan(loan_payment_set=d.loanpayment_set.all())), 2),
-                    'loan_payment_set': loan_payment_set,
-                    'loans_count': loans_count,
-                    'rowspan': rowspan,
+                    # 'repay_loan': '{:,}'.format(round(repay_loan(loan_payment_set=d.loanpayment_set.all())), 2),
+                    # 'loan_payment_set': loan_payment_set,
+                    # 'loans_count': loans_count,
+                    # 'rowspan': rowspan,
                     'has_spending': False
                 }
                 subtotal += d.quantity_sold * d.price_unit
 
                 new.get('order_detail_set').append(order_detail)
-                new['rowspan'] = new['rowspan'] + rowspan
+                # new['rowspan'] = new['rowspan'] + rowspan
 
                 if d.unit.name == 'G' and o.distribution_mobil:
                     order_detail['has_spending'] = True
@@ -1651,7 +1647,7 @@ def get_dict_orders(client_obj=None, start_date=None, end_date=None):
         for o in order_set:
             order_detail_set = o.orderdetail_set.all()
             cash_flow_set = o.cashflow_set.all()
-            sum_total_repay_loan += total_repay_loan(order_detail_set=order_detail_set)
+            # sum_total_repay_loan += total_repay_loan(order_detail_set=order_detail_set)
             sum_total_remaining_repay_loan += total_remaining_repay_loan(order_detail_set=order_detail_set)
             sum_total_cash_flow_spending += total_cash_flow_spending(cashflow_set=cash_flow_set)
             total_quantity_set = order_detail_set.values('quantity_sold').annotate(

@@ -461,13 +461,13 @@ class OrderDetail(models.Model):
     def multiply(self):
         return self.quantity_sold * self.price_unit
 
-    def repay_loan(self):
-        response = 0
-        loan_payment_set = LoanPayment.objects.filter(order_detail=self.pk, quantity=0).values(
-            'order_detail').annotate(totals=Sum('price'))
-        if loan_payment_set.count() > 0:
-            response = loan_payment_set[0].get('totals')
-        return response
+    # def repay_loan(self):
+    #     response = 0
+    #     loan_payment_set = LoanPayment.objects.filter(order_detail=self.pk, quantity=0).values(
+    #         'order_detail').annotate(totals=Sum('price'))
+    #     if loan_payment_set.count() > 0:
+    #         response = loan_payment_set[0].get('totals')
+    #     return response
 
     class Meta:
         verbose_name = 'Detalle orden'
