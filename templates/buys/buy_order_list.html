@@ -9,11 +9,24 @@
 
     <div class="card m-0 ml-1 mr-1">
         <div class="card-header" style="background: #3e6787">
-            <h4 class="card-title text-center text-white roboto-condensed-regular">LISTA DE ORDENES DE COMPRAS</h4>
+            <h4 class="card-title text-center text-white roboto-condensed-regular">LISTADO DE ORDENES DE COMPRAS</h4>
         </div>
-        <div class="card-body p-0">
-            <div class="" id="purchase-grid-list">{% include "buys/buy_order_grid_list.html" %}</div>
+        <form id="report-form" action="{% url 'buys:buy_order_list' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="value" id="value-field">
+            <div class="card-body" style="background: #bfd3e3">
+                <button type="button" class="btn roboto-condensed-regular text-white" onclick="sendOption('T')" style="background: #3e6787">Todos</button>
+                <button type="button" class="btn roboto-condensed-regular text-white" onclick="sendOption('A')" style="background: #3e6787">En Almacen</button>
+                <button type="button" class="btn roboto-condensed-regular text-white" onclick="sendOption('S')" style="background: #3e6787">Sin Almacen</button>
+                <button type="button" class="btn roboto-condensed-regular text-white" onclick="sendOption('N')" style="background: #3e6787">Anulados</button>
+            </div>
+        </form>
+        <div class="loader-container col-auto" id="loader-bill"
+             style="display: none; opacity: 1.5; width: 100%; padding-top: 3em;">
+            <div class="loader"></div>
         </div>
+        <div class="" id="purchase-grid-list"></div>
+
     </div>
 
     <div class="modal fade" id="assignment" data-backdrop="static" data-keyboard="false"
@@ -24,9 +37,9 @@
          aria-labelledby="ModalHelpTitle"
          aria-hidden="true"></div>
 
-{#    <div class="modal fade" id="modal-assign-store" tabindex="-1" role="dialog"#}
-{#         aria-labelledby="ModalHelpTitle"#}
-{#         aria-hidden="true"></div>#}
+    {#    <div class="modal fade" id="modal-assign-store" tabindex="-1" role="dialog"#}
+    {#         aria-labelledby="ModalHelpTitle"#}
+    {#         aria-hidden="true"></div>#}
 
     <style>
         .input-icon {
@@ -66,6 +79,47 @@
 {% block extrajs %}
 
     <script type="text/javascript">
+
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p><strong>Cargando..</strong></p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        function sendOption(value) {
+            let data = new FormData($('#order-form').get(0));
+            data.append('value', value);
+            $('#purchase-grid-list').empty();
+            $('#loader-bill').html(loader).show()
+            $.ajax({
+                url: '/buys/buy_order_list/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'POST',
+                cache: false,
+                processData: false,
+                data: data,
+                contentType: false,
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        $('#purchase-grid-list').html(response.grid);
+                        $('#loader-bill').hide();
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    toastr.error(jqXhr.responseJSON.error, '¡ERROR!');
+                    $('#loader-bill').hide();
+                }
+            });
+        }
 
         $(document).on('click', '.assignment-store', function () {
             let search = $(this).attr('pk');
@@ -186,7 +240,7 @@
                 async: true,
                 dataType: 'json',
                 type: 'GET',
-                data: {'parent_id': parent_id,'purchase_id': purchase_id},
+                data: {'parent_id': parent_id, 'purchase_id': purchase_id},
                 success: function (response) {
                     _table.html(response.grid);
                     _table.parent('tr').slideDown("fast");

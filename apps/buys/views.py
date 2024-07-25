@@ -297,11 +297,9 @@ def save_detail_buy_order_store(request):
                         stock=entered_quantity_in_units
                     )
                     new_product_store_obj.save()
-                    kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase,
-                                   purchase_detail_obj=detail_entered_obj)
+                    kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase)
                 else:
-                    kardex_input(product_store_obj.id, entered_quantity_in_units, price_purchase,
-                                 purchase_detail_obj=detail_entered_obj)
+                    kardex_input(product_store_obj.id, entered_quantity_in_units, price_purchase)
 
             if entered_quantity_units != 0 and entered_quantity_units != '':
                 detail_entered_units_obj = PurchaseDetail.objects.create(quantity=entered_quantity_units,
@@ -315,11 +313,9 @@ def save_detail_buy_order_store(request):
                         stock=entered_quantity_units
                     )
                     new_product_store_obj.save()
-                    kardex_initial(new_product_store_obj, entered_quantity_units, price_purchase,
-                                   purchase_detail_obj=detail_entered_units_obj)
+                    kardex_initial(new_product_store_obj, entered_quantity_units, price_purchase)
                 else:
-                    kardex_input(product_store_obj.id, entered_quantity_units, price_purchase,
-                                 purchase_detail_obj=detail_entered_units_obj)
+                    kardex_input(product_store_obj.id, entered_quantity_units, price_purchase)
 
             # ----------------------------------- QUANTITY RETURNED --------------------------------------------------
 
@@ -363,22 +359,49 @@ def save_detail_buy_order_store(request):
 
 
 def get_buy_order_list(request):
-    user_id = request.user.id
-    user_obj = User.objects.get(id=user_id)
-    subsidiary_obj = get_subsidiary_by_user(user_obj)
-    # purchases = Purchase.objects.filter(status='S')
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        return render(request, 'buys/buy_order_list.html', {
+            'subsidiary_obj': subsidiary_obj
+        })
+
+    elif request.method == 'POST':
+        option = request.POST.get('value')
+
+        status_filter = {
+            'T': ['S', 'A', 'N'],
+            'S': ['S'],
+            'A': ['A'],
+            'N': ['N']
+        }.get(option, [])
+
+        if status_filter:
+            purchase_set = Purchase.objects.filter(bill_number__isnull=False, status__in=status_filter
+                                                   ).select_related('subsidiary').prefetch_related(
+                Prefetch('purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')),
+                Prefetch('billpurchase_set', queryset=BillPurchase.objects.select_related('bill'))
+            ).select_related('supplier', 'subsidiary', 'client_reference', 'client_reference_entity',
+                             'delivery_supplier',
+                             'delivery_subsidiary', 'delivery_client', 'store_destiny', 'user').annotate(
+                sum_total=Subquery(
+                    PurchaseDetail.objects.filter(purchase_id=OuterRef('id')).annotate(
+                        return_sum_total=Sum(F('quantity') * F('price_unit'))).values('return_sum_total')[:1]
+                )
+            ).order_by('correlative')
+
+            return JsonResponse({
+                'grid': get_dict_order_list(purchase_set),
+            }, status=HTTPStatus.OK)
+
+        else:
+            data = {'error': "Opción no válida"}
+            return JsonResponse(data, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_dict_order_list(purchase_set):
     purchase_dict = []
-    purchase_set = Purchase.objects.filter(bill_number__isnull=False, status__in=['S', 'A']
-                                           ).select_related('subsidiary').prefetch_related(
-        Prefetch('purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')),
-        Prefetch('billpurchase_set', queryset=BillPurchase.objects.select_related('bill'))
-    ).select_related('supplier', 'subsidiary', 'client_reference', 'client_reference_entity', 'delivery_supplier',
-                     'delivery_subsidiary', 'delivery_client', 'store_destiny', 'user').annotate(
-        sum_total=Subquery(
-            PurchaseDetail.objects.filter(purchase_id=OuterRef('id')).annotate(
-                return_sum_total=Sum(F('quantity') * F('price_unit'))).values('return_sum_total')[:1]
-        )
-    ).order_by('correlative')
 
     for p in purchase_set:
         client_reference_entity = None
@@ -420,9 +443,11 @@ def get_buy_order_list(request):
         }
         purchase_dict.append(item_purchase)
 
-    return render(request, 'buys/buy_order_list.html', {
+    tpl = loader.get_template('buys/buy_order_grid_list.html')
+    context = ({
         'purchases': purchase_dict
     })
+    return tpl.render(context)
 
 
 def get_buy_order_store_list(request):
@@ -553,12 +578,14 @@ def get_quantity_minimum(request):
             price_sale = product_detail_obj.price_sale
             price_purchase = product_detail_obj.price_purchase
             unit_name = product_detail_obj.unit.name
+            unit_description = product_detail_obj.unit.description
 
             return JsonResponse({
                 'quantity_minimum': round(quantity_minimum, 0),
                 'price_sale': price_sale,
                 'price_purchase': price_purchase,
-                'unit_name': unit_name
+                'unit_name': unit_name,
+                'unit_description': unit_description
             }, status=HTTPStatus.OK)
         else:
             return JsonResponse({
@@ -1662,10 +1689,11 @@ def check_oc_update(request):
             contract_detail_purchase_set = ContractDetailPurchase.objects.filter(contract_detail=c)
             if contract_detail_purchase_set.exists():
                 flag = True
-            return JsonResponse({
-                'status': 'OK',
-                'flag': flag,
-            }, status=HTTPStatus.OK)
+                break
+        return JsonResponse({
+            'status': 'OK',
+            'flag': flag,
+        }, status=HTTPStatus.OK)
 
 
 @csrf_exempt

@@ -53,7 +53,7 @@
                     <input class="form-control" type="date" value="{{ date_now }}" id="transfer"
                            name="transfer" required>
                 </div>
-                 <div class="col-md-2">
+                <div class="col-md-2">
                     <label for="store_id" class="text-primary">Seleccione Almacen:</label>
                     <select class="form-control font-weight-bold" style="background-color: #dbeaee" id="store_id"
                             name="store">
@@ -62,6 +62,19 @@
                             <option value="{{ s.id }}">{{ s.name }}</option>
                         {% endfor %}
                     </select>
+                </div>
+                <div class="col-md-1">
+                    <label for="plate" class="text-primary">Serie:</label>
+                    <input type="text"
+                           class="form-control" name="serial" id="serial"
+                           placeholder="" disabled
+                           value="EG07">
+                </div>
+                <div class="col-md-1">
+                    <label for="plate" class="text-primary">Correlativo:</label>
+                    <input type="text"
+                           class="form-control text-right" name="correlative" id="correlative"
+                           value="">
                 </div>
             </div>
             {#            <div class="d-flex">#}
@@ -236,10 +249,10 @@
             <div class="row col-md-12 mt-1 pr-0">
                 <div class="col-md-2">
                     <label for="weight" class="text-primary">Peso bruto total (KGM):</label>
-{#                    <input type="text"#}
-{#                           class="form-control" name="weight" id="weight"#}
-{#                           placeholder="" required#}
-{#                           value="{{ weight_total }}" maxlength="20">#}
+                    {#                    <input type="text"#}
+                    {#                           class="form-control" name="weight" id="weight"#}
+                    {#                           placeholder="" required#}
+                    {#                           value="{{ weight_total }}" maxlength="20">#}
                     <div class="input-icon">
                         <input type="text"
                                name="weight" id="weight"
@@ -280,7 +293,9 @@
                                 <th scope="col" class="font-weight-normal" style="width: 45%;">Descripcion</th>
                                 <th scope="col" class="font-weight-normal" style="width: 15%;">Cantidad</th>
                                 <th scope="col" class="font-weight-normal" style="width: 15%;">Unidad</th>
-                                <th scope="col" class="font-weight-normal" style="width: 15%; background-color: #518d86">Cant. / U. M.</th>
+                                <th scope="col" class="font-weight-normal"
+                                    style="width: 15%; background-color: #518d86">Cant. / U. M.
+                                </th>
                                 {#                                <th scope="col" class="font-weight-normal" style="width: 10%;">Eliminar</th>#}
                             </tr>
                             </thead>
@@ -310,8 +325,9 @@
                                                 <option value="0">Seleccione</option>
                                                 {% for u in c.units %}
                                                     <option value="{{ u.unit_id }}"
-                                                            qm="{{ u.quantity_minimum }}">{{ u.unit_name }}
-                                                        ({{ u.quantity_minimum }}UND)
+                                                            qm="{{ u.quantity_minimum }}"
+                                                            unit="{{ u.unit_description }}">{{ u.unit_name }}
+                                                        ({{ u.quantity_minimum }}{{ u.unit_name }})
                                                     </option>
                                                 {% endfor %}
                                             </select>
@@ -525,6 +541,9 @@
             let _n_package = $('#id-package').val();
             let _observations = $('#id_observation').val();
 
+            let _serial = $('#serial').val();
+            let _correlative = $('#correlative').val();
+
             let _store = $('#store_id').val();
 
             if (_store === null) {
@@ -559,6 +578,10 @@
                 toastr.warning('¡Agregue la cantidad de bultos!', 'Mensaje');
                 return false;
             }
+            if (_correlative === '') {
+                toastr.warning('¡El correlativo no puede estar vacio!', 'Mensaje');
+                return false;
+            }
             if (checkUnitGuide() === true) {
                 toastr.warning('¡Selecione el tipo de unidad en los productos!', 'Mensaje');
                 return false;
@@ -582,7 +605,9 @@
                 "weight": _weight,
                 "n_package": _n_package,
                 "observations": _observations,
-                "store": _store
+                "store": _store,
+                "serial": _serial,
+                "correlative": _correlative
             }
 
             $("#id-table-detail-guide tbody#guide-details tr").each(function () {
@@ -646,6 +671,33 @@
 
         });
 
+        function sumQuantities() {
+            let n_package = 0;
+            let item_quantity_sum = 0;
+            let _qm_total = 0;
+            let _unit_name = '';
+            let _text = '';
+            $('tbody#guide-details tr').each(function () {
+                let _unit = $(this).find('td.unit select.unit-product').val();
+                _unit_name = $(this).find('td.unit select.unit-product option:selected').attr('unit');
+                if (_unit_name !== 'KILOS' && _unit !== '0') {
+                    let _item_quantity = $(this).find('td.item-quantity input.quantity-product').val();
+                    let _quantity_x_u = $(this).find('td.quantity-minimum input.quantity-minimum-val').val();
+                    _unit_name = $(this).find('td.unit select.unit-product option:selected').attr('unit');
+                    let _qm = $(this).find('td.unit select.unit-product option:selected').attr('qm');
+                    n_package += parseInt(_quantity_x_u);
+                    item_quantity_sum += parseFloat(_item_quantity)
+                    _qm_total = parseFloat(_qm)
+                    let _q_x_u = item_quantity_sum / _qm_total
+                    let _q_x_u_decimal = item_quantity_sum % _qm_total
+                    _text = 'SON ' + (parseInt(_q_x_u)).toString() + ' ' + _unit_name + ' Y ' + _q_x_u_decimal.toString() + ' UND'
+                }
+            });
+
+            $('#id-package').val(n_package);
+            $('#id_observation').val(_text);
+        }
+
         async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
             let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum-val');
             let _price_unit_product = _tr.find('td.item-price input.price-unit-product');
@@ -664,7 +716,9 @@
                         let _quantity_minimum = Number(response.quantity_minimum).toFixed(2)
                         if (_quantity_minimum && _quantity) {
                             let _q_x_u = _quantity / _quantity_minimum
-                            _input_quantity_minimum.val(_q_x_u.toFixed(2))
+                            //let _q_x_u_decimal = _quantity % 48
+                            _input_quantity_minimum.val(parseInt(_q_x_u).toString())
+                            sumQuantities()
                         }
                         _price_unit_product.val(response.price_purchase);
                         $('.price-unit-product').trigger('keyup');

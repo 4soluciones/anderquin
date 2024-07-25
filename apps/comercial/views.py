@@ -455,6 +455,7 @@ def new_guide(request, contract_detail=None):
                     'id': pd.id,
                     'unit_id': pd.unit.id,
                     'unit_name': pd.unit.name,
+                    'unit_description': pd.unit.description,
                     'quantity_minimum': round(pd.quantity_minimum, 0),
                 }
                 item_contract.get('units').append(item_units)
@@ -2447,6 +2448,9 @@ def save_guide(request):
 
         store = data_guide["store"]
 
+        serial = data_guide["serial"]
+        correlative = str(data_guide["correlative"])
+
         contract_detail_obj = None
         if contract_detail:
             contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail))
@@ -2470,8 +2474,8 @@ def save_guide(request):
         store_obj = SubsidiaryStore.objects.get(id=int(store))
 
         guide_obj = Guide(
-            serial='T001',
-            correlative=get_correlative_guide_by_subsidiary(subsidiary_obj),
+            serial=serial,
+            correlative=correlative,
             date_issue=issue_date,
             transfer_date=transfer_date,
             client=client_obj,

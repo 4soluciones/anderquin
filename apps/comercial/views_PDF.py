@@ -1841,6 +1841,9 @@ def guide(request, pk=None):
         ['Ind. retorno vehi. con envases o embalajes vacíos  : NO'],
         ['Ind. retorno vehiculo vacio  : NO'],
     ]
+    qr_center = [
+        [pdf_observation]
+    ]
 
     # pdf_link_uno = 'Representación impresa de la ' + str(
     #     guide_obj.get_add_display()).upper() + ' REMITENTE ELECTRÓNICA, para ver el documento visita'
@@ -1854,6 +1857,7 @@ def guide(request, pk=None):
 
     # -----------------------------------------------------------------------------------------------
     qr_l = Table(qr_left, colWidths=[w * 40 / 100], rowHeights=[inch * 0.15, inch * 0.15, inch * 0.15, inch * 0.15])
+    qr_c = Table(qr_center, colWidths=[w * 40 / 100])
 
     style_qr1 = [
         ('FONTNAME', (0, 0), (-1, -1), 'Square'),
@@ -1865,9 +1869,10 @@ def guide(request, pk=None):
         # ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
     ]
     qr_l.setStyle(TableStyle(style_qr1))
+    qr_c.setStyle(TableStyle(style_qr1))
 
     qr_row = [
-        [get_qr(code_qr), '', qr_l],
+        [get_qr(code_qr), qr_c, qr_l],
     ]
     qr_table = Table(qr_row, colWidths=[w * 16 / 100, w * 44 / 100, w * 40 / 100])
     style_qr = [
