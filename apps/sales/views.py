@@ -920,10 +920,16 @@ def save_order(request):
         _date = request.POST.get('date', '')
         _sum_total = request.POST.get('sum-total', '')
 
+        _condition_days = request.POST.get('condition_days', '')
+        _order_buy = request.POST.get('order_buy', '')
+        _cod_unit_exe = request.POST.get('cod_unit_exe', '')
+        _n_contract = request.POST.get('n_contract', '')
+
         subsidiary_store_sales_obj = SubsidiaryStore.objects.get(subsidiary=subsidiary_obj, category='V')
         client_obj = Client.objects.get(pk=int(_client_id))
 
         detail = json.loads(request.POST.get('detail', ''))
+        credit = json.loads(request.POST.get('credit', ''))
 
         if _order_id == '':
             order_obj = Order(
@@ -940,7 +946,9 @@ def save_order(request):
                 correlative=_correlative,
                 way_to_pay_type=_type_payment,
                 observation=_observation,
-                type_document=_type_document
+                type_document=_type_document,
+                pay_condition=_condition_days,
+                order_buy=_order_buy
             )
             order_obj.save()
 
@@ -988,19 +996,14 @@ def save_order(request):
                                                  subsidiary_store_sales_obj, detail)
 
         code_operation = '-'
-
         cash_obj = None
-        if _type_payment == 'E':
-            cash_casing_id = request.POST.get('cash_id', '')
-            date_cash_casing = request.POST.get('date_cash', '')
-            cash_obj = Cash.objects.get(id=int(cash_casing_id))
-        elif _type_payment == 'D':
-            cash_deposit_id = request.POST.get('id_cash_deposit', '')
-            cash_obj = Cash.objects.get(id=int(cash_deposit_id))
-            date = request.POST.get('date', '')
-            code_operation = request.POST.get('code-operation', '')
+        if _type_payment in ['E', 'D']:
+            cash_id = request.POST.get('cash_id' if _type_payment == 'E' else 'id_cash_deposit', '')
+            cash_obj = Cash.objects.get(id=int(cash_id))
 
-        if _type_payment == 'E' or _type_payment == 'D':
+            if _type_payment == 'D':
+                code_operation = request.POST.get('code-operation', '')
+
             loan_payment_obj = LoanPayment(
                 pay=decimal.Decimal(_sum_total),
                 order=order_obj,
@@ -1020,8 +1023,7 @@ def save_order(request):
 
             cash_flow_obj = CashFlow(
                 transaction_date=_date,
-                description='VENTA: ' + str(order_obj.subsidiary.serial) + '-' + str(
-                    order_obj.correlative).zfill(6),
+                description=f"{order_obj.subsidiary.serial}-{str(order_obj.correlative).zfill(6)}",
                 document_type_attached='T',
                 type=_type_payment,
                 total=_sum_total,
@@ -1031,6 +1033,11 @@ def save_order(request):
                 cash=cash_obj
             )
             cash_flow_obj.save()
+
+        elif _type_payment == 'C':
+            for c in credit:
+                PaymentFees.objects.create(date=c['date'], order=order_obj,
+                                           amount=decimal.Decimal(c['amount']))
 
         correlative_no_zeros = _correlative.lstrip('0')
         subsidiary_serial = SubsidiarySerial.objects.filter(subsidiary=subsidiary_obj, serial=_serial_text,

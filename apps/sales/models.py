@@ -413,6 +413,7 @@ class Order(models.Model):
                                              related_name="order_quotation")
     serial = models.CharField('Serie', max_length=5, null=True, blank=True)
     pay_condition = models.CharField('Payment Condition', max_length=50, null=True, blank=True)
+    order_buy = models.CharField('Order Buy', max_length=50, null=True, blank=True)
 
     def __str__(self):
         return str(self.pk)
@@ -578,3 +579,13 @@ class TransactionPayment(models.Model):
     class Meta:
         verbose_name = 'Transacción de pago'
         verbose_name_plural = 'Transacciones de pago'
+
+
+class PaymentFees(models.Model):
+    id = models.AutoField(primary_key=True)
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True)
+    date = models.DateField(null=True, blank=True)
+    amount = models.DecimalField('Importe', max_digits=30, decimal_places=15, default=0)
+
+    def __str__(self):
+        return str(self.id)

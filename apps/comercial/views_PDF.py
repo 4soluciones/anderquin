@@ -1523,15 +1523,12 @@ def guide(request, pk=None):
     client_document_number = guide_obj.contract_detail.contract.client.clienttype_set.last().document_number
     client_address = guide_obj.contract_detail.contract.client.clientaddress_set.last().address
     client_obj = guide_obj.client
-    # title_business = str(subsidiary_obj.name) + '\n' + str(subsidiary_obj.business_name) + '\n' + str(
-    #     subsidiary_obj.address) + '\n RUC ' + str(
-    #     subsidiary_obj.ruc)
+
     date = utc_to_local(guide_obj.date_issue)
     date_transfer = utc_to_local(guide_obj.transfer_date)
     document_type = 'GUÍA DE REMISIÓN ELECTRÓNICA REMITENTE'
     document_number = (str(guide_obj.serial) + '-' + str(guide_obj.correlative).zfill(
         7 - len(str(guide_obj.correlative)))).upper()
-    line = '__________________________________________________________________________________________________________________________'
     I = Image(logo)
     I.drawHeight = 1.1 * inch / 2.9
     I.drawWidth = 1.1 * inch / 2.9
@@ -1555,23 +1552,6 @@ def guide(request, pk=None):
         ('SPAN', (0, 1), (1, 1))
     ]
     header_l.setStyle(TableStyle(left_header_style))
-
-    # ------------------------------------------------------------------
-    # business_center = [
-    #     [Paragraph(str(subsidiary_obj.business_name), styles["narrow_b_tittle_justify"])],
-    #     [Paragraph(str(subsidiary_obj.address), styles["narrow_b_justify"])],
-    #     # [Paragraph('Correo: ' + str(subsidiary_obj.email), styles['narrow_b_justify'])],
-    #     [Paragraph('Telefono: ' + str(subsidiary_obj.phone), styles['narrow_b_justify'])],
-    # ]
-    # T = Table(business_center)
-    # title_style = [
-    #     # ('GRID', (0, 3), (0, 3), 0.9, colors.red),
-    #     # ('TEXTCOLOR', (0, 0), (-1, -1), colors.red)
-    #     ('FONTNAME', (0, 0), (-1, -1), 'Narrow-b'),
-    #     ('FONTSIZE', (0, 0), (-1, -1), 10),
-    #     ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-    # ]
-    # T.setStyle(TableStyle(title_style))
 
     business_right = [
         [Paragraph('R.U.C. Nº ' + str(subsidiary_obj.ruc), styles["narrow_a_center"])],
@@ -1606,12 +1586,9 @@ def guide(request, pk=None):
         # Establezca el color de la línea izquierda de la tabla en
     ]
     document_header.setStyle(TableStyle(header_style))
-    # ------------------------------------------------------------------
-    # purchase_order = '-'
-    # if guide_obj.contract_detail.contractdetailpurchase_set.exists():
-    #     purchase_order = guide_obj.contract_detail.contractdetailpurchase_set.last().purchase.bill_number
+
     pdf_person = Table(
-        [('Fecha de Emisión', ': ' + str(date.strftime("%d/%m/%Y")), 'Doc. Relacionado', 'Nº O/C: ', 'Doc. Referencia', '')] +
+        [('Fecha de Emisión', ': ' + str(date.strftime("%d/%m/%Y")), 'Doc. Relacionado', 'Nº O/C: ' + guide_obj.order_buy, 'Doc. Referencia', '')] +
         [('Destinatario', ': ' + client, '', '', 'Doc. Identidad', ': ' + client_type_document + ' ' + client_document_number)] +
         [('Dirección', ': ' + client_address.title(), '', '', '', '')] +
         [('Ref. Llegada', '', '', '', '', '')],
@@ -1647,41 +1624,45 @@ def guide(request, pk=None):
         [(Paragraph('Fecha Entrega bienes al transportista', styles["narrow_b_normal_justify"]), ': ' + date_transfer.strftime("%d/%m/%Y"), '')] +
         [('Motivo de traslado: ', ': ' + guide_obj.guide_motive.description.upper(), '', '', '', '', 'Modalidad Traslado', ': ' + 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
         [('Transportista: ', ': ' + guide_obj.carrier.name.upper(), '', '', '', '', 'RUC', ': ' + guide_obj.carrier.ruc)] +
-        [('Placa:', ': ' + guide_obj.vehicle.license_plate.upper(), 'Marca', '', 'CIMTC', '', 'Lic. Conducir', ': ' + str(guide_obj.driver.n_license))],
+        [('Placa:', ': ' + guide_obj.vehicle.license_plate.upper(), 'Marca', guide_obj.vehicle.truck_model.truck_brand.name, 'CIMTC', guide_obj.register_mtc, 'Lic. Conducir', ': ' + str(guide_obj.driver.n_license))],
         # [('FECHA INICIO DE TRASLADO: ', date_transfer.strftime("%d/%m/%Y"))] +
         # [('MODALIDAD DE TRANSPORTE: ', 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
         # [('PESO BRUTO TOTAL (KGM): ', round(decimal.Decimal(guide_obj.weight), 2))] +
         # [('NÚMERO DE BULTOS: ', round(decimal.Decimal(guide_obj.package), 0))],
-        colWidths=[w * 15 / 100, w * 10 / 100, w * 10 / 100, w * 15 / 100, w * 10 / 100, w * 10 / 100,
+        colWidths=[w * 15 / 100, w * 10 / 100, w * 10 / 100, w * 15 / 100, w * 6 / 100, w * 14 / 100,
                    w * 13 / 100, w * 17 / 100],
         rowHeights=[inch * 0.18, inch * 0.27,  inch * 0.18, inch * 0.18, inch * 0.18])
     style_transfer = [
         # ('GRID', (0, 0), (-1, -1), 0.9, colors.black),
         ('FONTNAME', (0, 0), (-1, -1), 'Narrow-b'),  # all columns
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('FONTNAME', (1, 0), (1, 4), 'Narrow-a'),
         ('FONTNAME', (3, 0), (3, 4), 'Narrow-a'),
         ('FONTNAME', (7, 0), (7, 4), 'Narrow-a'),
+        ('FONTNAME', (3, 4), (3, 4), 'Narrow-a'),
+        ('FONTNAME', (5, 4), (5, 4), 'Narrow-a'),
         # ('FONTNAME', (0, 0), (-1, 0), 'Ticketing'),  # all columns
         ('FONTSIZE', (0, 0), (-1, -1), 8),  # all columns
         ('FONTSIZE', (1, 0), (1, 4), 6),  # all columns
         ('FONTSIZE', (7, 0), (7, 4), 6),  # all columns
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # all columns
+        ('FONTSIZE', (3, 4), (3, 4), 6),  # all columns
+        ('FONTSIZE', (5, 4), (5, 4), 6),  # all columns
+        ('TOPPADDING', (3, 4), (3, 4), 7),  # all columns
+        ('TOPPADDING', (5, 4), (5, 4), 6),  # all columns
         # ('LEFTPADDING', (0, 0), (-1, -1), 2),  # first column
         ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),  # second column
-        ('BOX', (0, 0), (-1, -1), 0.9, colors.black)
+        ('ALIGNMENT', (2, 4), (2, 4), 'RIGHT'),  # second column
+        ('BOX', (0, 0), (-1, -1), 0.9, colors.black),
         # ('TOPPADDING', (0, 0), (-1, -1), 0),
         # ('BOTTOMPADDING', (0, 0), (-1, -1), -2),
-        # ('BACKGROUND', (0, 0), (-1, 0), HexColor('#0362BB')),
+        # ('BACKGROUND', (3, 4), (3, 4), colors.green ),
         # ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         # ('TOPPADDING', (0, 0), (-1, 0), 2),
         # ('BOTTOMPADDING', (0, 0), (-1, 0), 1),
         # ('GRID', (0, 0), (-1, -1), 0.5, HexColor('#0362BB')),  # all columns
     ]
     pdf_transfer.setStyle(TableStyle(style_transfer))
-    # ----------------------------------------------------------------
-    # ----------------------------------------------------------------
-    row_origin = '(' + str(guide_obj.origin) + ')' + ' - ' + str(guide_obj.origin_address.upper())
-    row_destiny = '(' + str(guide_obj.destiny) + ')' + ' - ' + str(guide_obj.destiny_address.upper())
+
     pdf_address = Table(
         [('Punto de partida', ': ' + str(guide_obj.origin_address.title()), 'Ubigeo', ': ' + guide_obj.origin)] +
         [('Punto de Llegada', ': ' + str(guide_obj.destiny_address.title()), 'Ubigeo', ': ' + guide_obj.destiny)],
@@ -1707,33 +1688,7 @@ def guide(request, pk=None):
         # ('GRID', (0, 0), (-1, -1), 0.5, HexColor('#0362BB')),  # all columns
     ]
     pdf_address.setStyle(TableStyle(style_address))
-    # ----------------------------------------------------------------
-    # ----------------------------------------------------------------
-    # pdf_transportation = Table(
-    #     [('DATOS DEL TRANSPORTE', '')] +
-    #     [('TRANSPORTISTA:', Paragraph(guide_obj.carrier.name.upper(), styles["Left-text"]))] +
-    #     [('VEHÍCULO: ', Paragraph(guide_obj.vehicle.license_plate.upper(), styles["Left-text"]))] +
-    #     [('CONDUCTOR: ',
-    #       Paragraph('DNI: ' + str(guide_obj.driver.document_driver) + ' - ' + 'NRO LICENCIA: ' + str(
-    #           guide_obj.driver.n_license) + ' - ' + str(guide_obj.driver.names.upper()),
-    #                 styles["Left-text"]))],
-    #     colWidths=[w * 22 / 100, w * 78 / 100])
-    # style_transportation = [
-    #     ('FONTNAME', (0, 0), (-1, -1), 'Square'),  # all columns
-    #     ('FONTNAME', (0, 0), (-1, 0), 'Ticketing'),  # all columns
-    #     ('FONTSIZE', (0, 0), (-1, 0), 10),  # all columns
-    #     ('FONTSIZE', (0, 0), (-1, -1), 8),  # all columns
-    #     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # all columns
-    #     ('LEFTPADDING', (0, 0), (-1, -1), 2),  # first column
-    #     ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),  # second column
-    #     ('TOPPADDING', (0, 0), (-1, -1), 0),
-    #     ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-    #     ('BACKGROUND', (0, 0), (-1, 0), HexColor('#0362BB')),
-    #     ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-    #     # ('GRID', (0, 0), (-1, -1), 0.5, HexColor('#0362BB')),  # all columns
-    # ]
-    # pdf_transportation.setStyle(TableStyle(style_transportation))
-    # ----------------------------------------------------------------
+
     style_header = [
         ('FONTNAME', (0, 0), (-1, -1), 'Narrow-b'),  # all columns
         ('FONTSIZE', (0, 0), (-1, -1), 8),  # all columns

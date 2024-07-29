@@ -2451,6 +2451,9 @@ def save_guide(request):
         serial = data_guide["serial"]
         correlative = str(data_guide["correlative"])
 
+        oc = data_guide["oc"]
+        register_mtc = data_guide["register_mtc"]
+
         contract_detail_obj = None
         if contract_detail:
             contract_detail_obj = ContractDetail.objects.get(id=int(contract_detail))
@@ -2493,7 +2496,9 @@ def save_guide(request):
             observation=observations,
             user=user_obj,
             subsidiary=subsidiary_obj,
-            contract_detail=contract_detail_obj
+            contract_detail=contract_detail_obj,
+            order_buy=oc,
+            register_mtc=register_mtc,
         )
         guide_obj.save()
 

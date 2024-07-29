@@ -656,16 +656,52 @@ def print_order_bill(request, pk=None):
     if email is None:
         email = '-'
     info_address = ''
-    loan_payment_get = LoanPayment.objects.filter(order=order_obj).last()
-    transaction_payment_get = TransactionPayment.objects.filter(loan_payment=loan_payment_get).last()
-    payment = transaction_payment_get.get_type_display()
+    payment = '-'
+    detail_credit = []
+    credit_list = None
+    pay_condition = '-'
+    if order_obj.pay_condition:
+        pay_condition = f"{order_obj.pay_condition} Días"
+
+    if order_obj.way_to_pay_type in ['E', 'D']:
+        loan_payment_get = LoanPayment.objects.filter(order=order_obj).last()
+        transaction_payment_get = TransactionPayment.objects.filter(loan_payment=loan_payment_get).last()
+        payment = transaction_payment_get.get_type_display()
+
+    elif order_obj.way_to_pay_type == 'C':
+        cnt = 0
+        detail_credit.append(
+            ('MODALIDAD DE PAGO', 'CUOTAS ', 'FECHA',
+             'IMPORTE'))
+        for c in order_obj.paymentfees_set.all():
+            amount = c.amount
+            # if order_bill_obj.is_detraction:
+            #     value_d = round(decimal.Decimal(amount * int(order_bill_obj.percentage) / 100), 2)
+            #     amount = c.amount - value_d
+            cnt = cnt + 1
+            detail_credit.append(
+                ('CREDITO POR PAGAR', 'CUOTA ' + str(cnt), str(c.date.strftime('%d-%m-%Y')),
+                 str(round(amount, 2))))
+        credit_list = Table(detail_credit,
+                            colWidths=[_bts * 60 / 100,
+                                       _bts * 10 / 100,
+                                       _bts * 20 / 100,
+                                       _bts * 10 / 100])
+        style_credit = [
+            ('ALIGNMENT', (0, 0), (2, -1), 'CENTER'),
+            ('ALIGNMENT', (3, 0), (-1, -1), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('SPAN', (0, 1), (0, -1)),
+            ('FONTNAME', (0, 0), (-1, -1), 'Square'),
+            ('GRID', (0, 0), (-1, -1), 0.3, colors.darkgray),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.darkgray),  # four column
+            # ('BACKGROUND', (4, 0), (4, -1), colors.blue),  # four column
+        ]
+        credit_list.setStyle(TableStyle(style_credit))
 
     if type_client == '06':
         info_address = client_obj.clientaddress_set.last().address
-
-    pay_condition = '-'
-    if order_obj.pay_condition:
-        pay_condition = order_obj.pay_condition
 
     tbl2_col1 = [
         ['Señor(es) :', Paragraph(str(client_obj.names), styles['Left_Square'])],
@@ -683,12 +719,15 @@ def print_order_bill(request, pk=None):
         ('LEFTPADDING', (0, 0), (0, -1), 13),  # first column
     ]
     tbl2_col_1.setStyle(TableStyle(style_table2_col1))
-
+    cod_siaf = '-'
+    if order_obj.client.cod_siaf:
+        cod_siaf = order_obj.client.cod_siaf
     tbl2_col2 = [
+        ['Cod. Unid. Ejecutora: ', Paragraph(str(cod_siaf), styles['Left_Square'])],
         ['Fecha Emision: ', Paragraph(order_obj.create_at.strftime("%d-%m-%Y"), styles['Left_Square'])],
         ['Vendedor: ', Paragraph(order_obj.user.username.upper(), styles['Left_Square'])],
         # ['Moneda: ', 'coin'],
-        ['Cond. Venta: ', Paragraph(str(payment.upper()), styles['Left_Square'])],
+        ['Ordern de Compra: ', Paragraph(str(order_obj.order_buy), styles['Left_Square'])],
         # ['Nº Compra Cliente: ', Paragraph(str(nro_purchase_client), styles['Left_Square'])]
     ]
     tbl2_col_2 = Table(tbl2_col2, colWidths=[_bts * 18 / 100, _bts * 14 / 100])
@@ -699,9 +738,9 @@ def print_order_bill(request, pk=None):
     header2_page = Table(_tbl_header2, colWidths=[_bts * 66 / 100, _bts * 34 / 100])
     style_table_header = [
         # ('GRID', (0, 0), (-1, -1), 0.9, colors.blue),  # all columns
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # all columns
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),  # all columns
         ('ALIGNMENT', (0, 0), (0, -1), 'CENTER'),  # first column
-        ('SPAN', (0, 0), (0, 0)),  # first row
+        # ('SPAN', (0, 0), (0, 0)),  # first row
         # ('GRID', (0, 0), (-1, -1), 2, colors.lightgrey),
         # ('GRID', (0, 0), (0, 1), 3.5, colors.red)
     ]
@@ -924,11 +963,11 @@ def print_order_bill(request, pk=None):
     dictionary.append(detail_body)
     dictionary.append(Spacer(1, 5))
     dictionary.append(total_page)
-    # if cash_flow_set.last().type_payment == 'C':
-    #     dictionary.append(credit_list)
+    if order_obj.way_to_pay_type == 'C':
+        dictionary.append(credit_list)
     dictionary.append(Spacer(1, 5))
     dictionary.append(total_footer)
-    dictionary.append(Paragraph('Gracias por su confianza', styles["Center_Newgot"]))
+    dictionary.append(Paragraph('Industrias Anderquin', styles["Center_Newgot"]))
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="{}.pdf"'.format(str(type_bill) + ' ' + str(serial) + '-' + str(correlative))
     doc.build(dictionary)

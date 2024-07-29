@@ -42,20 +42,21 @@
             </div>
         </div>
         <div class="card-body bg-light p-0">
-            <div class="row col-md-12 mb-3 mt-2 pr-0">
+            <div class="row col-md-12 mb-1 mt-1 pr-0">
                 <div class="col-md-2">
                     <label for="issue" class="text-primary">Fecha Emisión:</label>
-                    <input class="form-control" type="date" value="{{ date_now }}" id="issue"
+                    <input class="form-control form-control-sm" type="date" value="{{ date_now }}" id="issue"
                            name="issue" required>
                 </div>
                 <div class="col-md-2">
                     <label for="transfer" class="text-primary">Fecha Traslado:</label>
-                    <input class="form-control" type="date" value="{{ date_now }}" id="transfer"
+                    <input class="form-control form-control-sm" type="date" value="{{ date_now }}" id="transfer"
                            name="transfer" required>
                 </div>
                 <div class="col-md-2">
-                    <label for="store_id" class="text-primary">Seleccione Almacen:</label>
-                    <select class="form-control font-weight-bold" style="background-color: #dbeaee" id="store_id"
+                    <label for="store_id" class="text-primary">Almacen:</label>
+                    <select class="form-control form-control-sm font-weight-bold" style="background-color: #dbeaee"
+                            id="store_id"
                             name="store">
                         <option selected disabled value="0">Seleccione</option>
                         {% for s in subsidiary_store_set %}
@@ -63,18 +64,29 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-1">
-                    <label for="plate" class="text-primary">Serie:</label>
+                <div class="col-md-1 pl-0 pr-1">
+                    <label for="serial" class="text-primary">Serie:</label>
                     <input type="text"
-                           class="form-control" name="serial" id="serial"
+                           class="form-control form-control-sm text-center" name="serial" id="serial"
                            placeholder="" disabled
                            value="EG07">
                 </div>
-                <div class="col-md-1">
-                    <label for="plate" class="text-primary">Correlativo:</label>
-                    <input type="text"
-                           class="form-control text-right" name="correlative" id="correlative"
+                <div class="col-md-1 pr-0 ">
+                    <label for="correlative" class="text-primary">Correlativo:</label>
+                    <input type="text" autocomplete="off"
+                           class="form-control form-control-sm text-right" name="correlative" id="correlative"
                            value="">
+                </div>
+                <div class="col-md-2">
+                    <label for="oc" class="text-primary">Nº O/C:</label>
+                    <input class="form-control form-control-sm" type="text" value="" id="oc"
+                           placeholder="Orden de Compra"
+                           name="oc" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="bill" class="text-primary">Doc. Referencia:</label>
+                    <input class="form-control form-control-sm" type="text" value="" id="bill" placeholder="Factura"
+                           name="bill" required>
                 </div>
             </div>
             {#            <div class="d-flex">#}
@@ -82,10 +94,10 @@
             {#                <div class="px-2 font-weight-bold" style="font-size: .8375rem;">DATOS DEL DESTINATARIO</div>#}
             {#                <hr class="my-auto flex-grow-1 bg-lightblue">#}
             {#            </div>#}
-            <div class="row col-md-12 mt-3 pr-0">
+            <div class="row col-md-12 mb-1 mt-2 pr-0">
                 <div class="col-md-2">
                     <label for="id_motive" class="text-primary">Motivo de Traslado:</label>
-                    <select class="form-control" id="id_motive"
+                    <select class="form-control form-control-sm" id="id_motive"
                             name="id-motive">
                         <option selected disabled value="0">Seleccione</option>
                         {% for m in motive_set %}
@@ -97,7 +109,7 @@
                     <input type="hidden" id="client_id" value="{{ contract_detail_obj.contract.client.id }}">
                     <label for="person-names" class="text-primary">RUC (Destinatario):</label>
                     <div id="autocomplete-client" class="autocomplete">
-                        <input class="form-control autocomplete-input"
+                        <input class="form-control form-control-sm autocomplete-input"
                                type="text"
                                id="person-names"
                                name="person-names"
@@ -111,14 +123,14 @@
                     {#                    {% if contract_detail_obj %}#}
                     {#                        <label for="document-client" class="text-primary">RUC (Destinatario)</label>#}
                     {#                        <input type="text"#}
-                    {#                               class="form-control" name="document-client" id="document-client" disabled#}
+                    {#                               class="form-control form-control-sm" name="document-client" id="document-client" disabled#}
                     {#                               required#}
                     {#                               value="{{ contract_detail_obj.contract.client.clienttype_set.last.document_number }}"#}
                     {#                               maxlength="200">#}
                     {#                    {% else %}#}
                     {#                        <label for="person-names">RUC (Destinatario)</label>#}
                     {#                        <div id="autocomplete-client" class="autocomplete">#}
-                    {#                            <input class="form-control autocomplete-input"#}
+                    {#                            <input class="form-control form-control-sm autocomplete-input"#}
                     {#                                   type="text"#}
                     {#                                   id="person-names"#}
                     {#                                   name="person-names"#}
@@ -133,56 +145,56 @@
                 <div class="col-md-8">
                     <label for="name-client" class="text-primary">Razón Social (Destinatario):</label>
                     <input type="text"
-                           class="form-control" name="name-client" id="name-client" disabled
+                           class="form-control form-control-sm" name="name-client" id="name-client" disabled
                            value="{{ contract_detail_obj.contract.client.names }}" maxlength="500">
                 </div>
             </div>
-            <div class="row col-md-12 mt-3 pr-0">
+            <div class="row col-md-12 mb-1 mt-2 pr-0">
                 <div class="col-md-2">
-                    <label for="btn-add-origin" class="text-primary mb-3">Agrega el punto de partida:</label>
+                    <label for="btn-add-origin" class="text-primary">Punto de partida:</label>
                     <button id="btn-add-origin" class="btn btn-sm btn-block btn-primary" type="button"
                             onclick="AddOrigin('modal_guide_origin')">
                         <i class="fas fa-plus"></i> Agregar
                     </button>
                 </div>
                 <div class="col-md-2">
-                    <label for="location-origin" class="text-primary mb-3">Ubigeo Origen:</label>
+                    <label for="location-origin" class="text-primary">Ubigeo Origen:</label>
                     <input type="text"
-                           class="form-control" name="location-origin" id="location-origin"
+                           class="form-control form-control-sm" name="location-origin" id="location-origin"
                            placeholder="" disabled value="">
                 </div>
                 <div class="col-md-8">
-                    <label for="origin-address" class="text-primary mb-3">Direccion de partida:</label>
+                    <label for="origin-address" class="text-primary">Direccion de partida:</label>
                     <input type="text"
-                           class="form-control" name="origin-address" id="origin-address"
+                           class="form-control form-control-sm" name="origin-address" id="origin-address"
                            placeholder="" disabled value="">
                 </div>
             </div>
-            <div class="row col-md-12 mt-3 pr-0">
+            <div class="row col-md-12 mb-1 mt-1 pr-0">
                 <div class="col-md-2">
-                    <label for="btn-add-origin" class="text-primary mb-3">Agrega el punto de llegada:</label>
+                    <label for="btn-add-origin" class="text-primary">Punto de llegada:</label>
                     <button id="btn-add-origin" class="btn btn-sm btn-block btn-primary" type="button"
                             onclick="AddDestiny('modal_guide_destiny')">
                         <i class="fas fa-plus"></i> Agregar
                     </button>
                 </div>
                 <div class="col-md-2">
-                    <label for="location-destiny" class="text-primary mb-3">Ubigeo Destino:</label>
+                    <label for="location-destiny" class="text-primary">Ubigeo Destino:</label>
                     <input type="text"
-                           class="form-control" name="location-destiny" id="location-destiny"
+                           class="form-control form-control-sm" name="location-destiny" id="location-destiny"
                            placeholder="" disabled value="">
                 </div>
                 <div class="col-md-8">
-                    <label for="destiny-address" class="text-primary mb-3">Direccion de Destino:</label>
+                    <label for="destiny-address" class="text-primary">Direccion de Destino:</label>
                     <input type="text"
-                           class="form-control" name="destiny-address" id="destiny-address"
+                           class="form-control form-control-sm" name="destiny-address" id="destiny-address"
                            placeholder="" disabled value="">
                 </div>
             </div>
-            <div class="row col-md-12 mt-3 pr-0">
+            <div class="row col-md-12 mb-1 mt-1 pr-0">
                 <div class="col-md-2">
                     <label for="transport-modality" class="text-primary">Modalidad de Transporte:</label>
-                    <select class="form-control" id="transport-modality"
+                    <select class="form-control form-control-sm" id="transport-modality"
                             name="transport-modality">
                         <option selected disabled value="0">Seleccione</option>
                         <option value="1">PUBLICO</option>
@@ -198,26 +210,32 @@
                 </div>
 
                 <div class="col-md-2">
-                    <label for="document-transport" class="text-primary">Número de Documento (Transportista):</label>
+                    <label for="document-transport" class="text-primary">Nº de Documento (Transportista):</label>
                     <input type="text"
-                           class="form-control" name="document-transport" id="document-transport"
+                           class="form-control form-control-sm" name="document-transport" id="document-transport"
                            placeholder="" disabled
                            value="" maxlength="200">
                     <input type="hidden" id="guide_carrier_id">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label for="name-transport" class="text-primary">Razón Social (Transportista):</label>
                     <input type="text"
-                           class="form-control" name="name-transport" id="name-transport"
+                           class="form-control form-control-sm" name="name-transport" id="name-transport"
                            placeholder="" disabled
                            value="" maxlength="500">
                 </div>
+                <div class="col-md-2">
+                    <label for="register_mtc" class="text-primary">Nº Registro MTC:</label>
+                    <input type="text"
+                           class="form-control form-control-sm" name="register_mtc" id="register_mtc"
+                           value="" maxlength="500">
+                </div>
             </div>
-            <div class="row col-md-12 mt-1 pr-0">
+            <div class="row col-md-12 mb-1 mt-1 pr-0">
                 <div class="col-md-2">
                     <label for="plate" class="text-primary">Vehiculo (Placa):</label>
                     <input type="text"
-                           class="form-control" name="plate" id="plate"
+                           class="form-control form-control-sm" name="plate" id="plate"
                            placeholder="" disabled
                            value="" maxlength="20">
                     <input type="hidden" id="guide_vehicle_id">
@@ -225,38 +243,39 @@
                 <div class="col-md-2">
                     <label for="document-driver" class="text-primary">DNI (Conductor):</label>
                     <input type="text"
-                           class="form-control" name="document-driver" id="document-driver"
+                           class="form-control form-control-sm" name="document-driver" id="document-driver"
                            placeholder="" disabled
                            value="" maxlength="20">
                     <input type="hidden" id="driver_id">
                 </div>
                 <div class="col-md-2">
-                    <label for="license-driver" class="text-primary">Nro Licencia (Conductor):</label>
+                    <label for="license-driver" class="text-primary">Nº Licencia (Conductor):</label>
                     <input type="text"
-                           class="form-control" name="license-driver" id="license-driver"
+                           class="form-control form-control-sm" name="license-driver" id="license-driver"
                            placeholder="" disabled
                            value="" maxlength="20">
                 </div>
                 <div class="col-md-6">
                     <label for="names-driver" class="text-primary">Nombres y Apellidos (Conductor):</label>
                     <input type="text"
-                           class="form-control" name="names-driver" id="names-driver"
+                           class="form-control form-control-sm" name="names-driver" id="names-driver"
                            placeholder="" disabled
                            value="" maxlength="20">
                 </div>
             </div>
 
-            <div class="row col-md-12 mt-1 pr-0">
+            <div class="row col-md-12 mb-1 mt-1 pr-0">
                 <div class="col-md-2">
                     <label for="weight" class="text-primary">Peso bruto total (KGM):</label>
                     {#                    <input type="text"#}
-                    {#                           class="form-control" name="weight" id="weight"#}
+                    {#                           class="form-control form-control-sm" name="weight" id="weight"#}
                     {#                           placeholder="" required#}
                     {#                           value="{{ weight_total }}" maxlength="20">#}
                     <div class="input-icon">
                         <input type="text"
                                name="weight" id="weight"
-                               class="form-control text-right text-uppercase total-detail" style="padding-right: 33px"
+                               class="form-control form-control-sm text-right text-uppercase total-detail"
+                               style="padding-right: 33px"
                                value="{% if weight_total > '0' %}{{ weight_total }}{% endif %}">
                         <i class="change-money">Kg</i>
                     </div>
@@ -264,15 +283,15 @@
                 <div class="col-md-2">
                     <label for="id-package" class="text-primary">Numero Bultos:</label>
                     <input type="text"
-                           class="form-control" name="id-package" id="id-package"
-                           placeholder="" required
+                           class="form-control form-control-sm" name="id-package" id="id-package"
+                           autocomplete="off" required
                            value="" maxlength="20">
                 </div>
                 <div class="col-md-8 align-self-center">
                     <label for="id_observation" class="text-primary">Observaciones:</label>
                     <input type="text"
-                           class="form-control" name="id-observation" id="id_observation"
-                           placeholder="" required
+                           class="form-control form-control-sm" name="id-observation" id="id_observation"
+                           autocomplete="off" required
                            value="" maxlength="20">
                 </div>
             </div>
@@ -546,6 +565,9 @@
 
             let _store = $('#store_id').val();
 
+            let _oc = $('#oc').val();
+            let _register_mtc = $('#register_mtc').val();
+
             if (_store === null) {
                 toastr.warning('¡Seleccione el Almacen!', 'Mensaje');
                 return false;
@@ -607,7 +629,9 @@
                 "observations": _observations,
                 "store": _store,
                 "serial": _serial,
-                "correlative": _correlative
+                "correlative": _correlative,
+                "oc": _oc,
+                "register_mtc": _register_mtc
             }
 
             $("#id-table-detail-guide tbody#guide-details tr").each(function () {
@@ -672,17 +696,29 @@
         });
 
         function sumQuantities() {
-            let n_package = 0;
-            let item_quantity_sum = 0;
-            let _qm_total = 0;
+            let _q_x_u = 0;
+            let _q_x_u_decimal = 0;
             let _unit_name = '';
-            let _text = '';
+            let text = '';
             $('tbody#guide-details tr').each(function () {
-                let _unit = $(this).find('td.unit select.unit-product').val();
                 _unit_name = $(this).find('td.unit select.unit-product option:selected').attr('unit');
-                if (_unit_name !== 'KILOS' && _unit !== '0') {
+                if (_unit_name !== 'KILOS') {
+                    let validOption = $(this).find('td.unit select.unit-product option').filter(function () {
+                        return $(this).attr('unit') !== 'UNIDAD(ES)';
+                    }).last();
+                    let qmValue = validOption.attr('qm');
+                    let qmUnit = validOption.attr('unit');
                     let _item_quantity = $(this).find('td.item-quantity input.quantity-product').val();
-                    let _quantity_x_u = $(this).find('td.quantity-minimum input.quantity-minimum-val').val();
+                    _q_x_u = _item_quantity / qmValue
+                    _q_x_u_decimal = _item_quantity % qmValue
+
+                    if (_q_x_u_decimal === 0){
+                        text = (parseInt(_q_x_u)).toString() + ' ' + qmUnit
+                    }
+                    else {
+                        text = (parseInt(_q_x_u)).toString() + ' ' + qmUnit + ' / ' + _q_x_u_decimal.toString() + ' UND'
+                    }
+                    /*let _quantity_x_u = $(this).find('td.quantity-minimum input.quantity-minimum-val').val();
                     _unit_name = $(this).find('td.unit select.unit-product option:selected').attr('unit');
                     let _qm = $(this).find('td.unit select.unit-product option:selected').attr('qm');
                     n_package += parseInt(_quantity_x_u);
@@ -690,12 +726,12 @@
                     _qm_total = parseFloat(_qm)
                     let _q_x_u = item_quantity_sum / _qm_total
                     let _q_x_u_decimal = item_quantity_sum % _qm_total
-                    _text = 'SON ' + (parseInt(_q_x_u)).toString() + ' ' + _unit_name + ' Y ' + _q_x_u_decimal.toString() + ' UND'
+                    _text = 'SON ' + (parseInt(_q_x_u)).toString() + ' ' + _unit_name + ' Y ' + _q_x_u_decimal.toString() + ' UND'*/
                 }
             });
 
-            $('#id-package').val(n_package);
-            $('#id_observation').val(_text);
+            $('#id-package').val(parseInt(_q_x_u));
+            $('#id_observation').val(text);
         }
 
         async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {

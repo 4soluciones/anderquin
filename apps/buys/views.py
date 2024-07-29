@@ -379,16 +379,12 @@ def get_buy_order_list(request):
 
         if status_filter:
             purchase_set = Purchase.objects.filter(bill_number__isnull=False, status__in=status_filter
-                                                   ).select_related('subsidiary').prefetch_related(
+                                                   ).select_related('supplier', 'subsidiary', 'client_reference',
+                                                                    'client_reference_entity', 'delivery_supplier',
+                                                                    'delivery_subsidiary', 'delivery_client',
+                                                                    'store_destiny', 'user').prefetch_related(
                 Prefetch('purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')),
                 Prefetch('billpurchase_set', queryset=BillPurchase.objects.select_related('bill'))
-            ).select_related('supplier', 'subsidiary', 'client_reference', 'client_reference_entity',
-                             'delivery_supplier',
-                             'delivery_subsidiary', 'delivery_client', 'store_destiny', 'user').annotate(
-                sum_total=Subquery(
-                    PurchaseDetail.objects.filter(purchase_id=OuterRef('id')).annotate(
-                        return_sum_total=Sum(F('quantity') * F('price_unit'))).values('return_sum_total')[:1]
-                )
             ).order_by('correlative')
 
             return JsonResponse({
@@ -404,24 +400,23 @@ def get_dict_order_list(purchase_set):
     purchase_dict = []
 
     for p in purchase_set:
-        client_reference_entity = None
+        client_reference_entity = p.client_reference_entity.names if p.client_reference_entity else None
         purchase_parent = ''
         guide_number = '-'
         bill_numbers = []
-        if p.client_reference_entity:
-            client_reference_entity = p.client_reference_entity.names
         parent_purchase_set = Purchase.objects.filter(parent_purchase_id=p.id).select_related('parent_purchase')
         if parent_purchase_set.exists():
             parent_purchase_get = parent_purchase_set.last()
             guide_number = parent_purchase_get.guide_number
             purchase_parent = parent_purchase_get.id
-        for pd in PurchaseDetail.objects.filter(purchase=p):
-            for bp in BillPurchase.objects.filter(purchase_detail=pd):
-                item_bp = {
-                    'id': bp.id,
-                    'bill_number': bp.bill.serial + '-' + bp.bill.correlative
-                }
-                bill_numbers.append(item_bp)
+
+        # for pd in PurchaseDetail.objects.filter(purchase=p):
+        #     for bp in BillPurchase.objects.filter(purchase_detail=pd):
+        #         item_bp = {
+        #             'id': bp.id,
+        #             'bill_number': bp.bill.serial + '-' + bp.bill.correlative
+        #         }
+        #         bill_numbers.append(item_bp)
 
         item_purchase = {
             'id': p.id,

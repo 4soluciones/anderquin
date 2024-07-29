@@ -769,6 +769,12 @@
                     return false;
                 }
             }
+            if (_transaction_payment_type.val() === 'C') {
+                if (hasRowDetailsCredits() === false) {
+                    toastr.warning('Registre las cuotas de pago y la condicion de pago');
+                    return false
+                }
+            }
             /*if (($('#type').val() === 'E') && ($('#id_serie').val() === '0')) {
                 toastr.warning('¡Favor de completar la serie!', 'Mensaje');
                 $('#id_serie').focus();
@@ -819,6 +825,7 @@
             };*/
 
             let detailOrder = []
+            let creditDict = []
 
             $("#sales-details tr").each(function () {
                 let _quantity = $(this).find("td.item-quantity input.input-quantity").val();
@@ -843,12 +850,21 @@
                 };
                 detailOrder.push(detailObj);
             });
+            $("#credit_details tr").each(function () {
+                let creditObj = {
+                    date: $(this).find("td.item-date-credit input.input-date").val(),
+                    amount: $(this).find("td.item-amount-credit input.input-amount").val(),
+                };
+                creditDict.push(creditObj);
+            });
+
             let selectElement = document.getElementById('id_serial');
             let selectedOptionText = selectElement.options[selectElement.selectedIndex].text;
             //console.log(detailOrder)
             let data = new FormData($('#order-form').get(0));
             data.append('detail', JSON.stringify(detailOrder));
             data.append('serial_text', selectedOptionText);
+            data.append('credit', JSON.stringify(creditDict));
             $.ajax({
                 url: '/sales/save_order/',
                 async: true,
@@ -886,6 +902,88 @@
                 }
             });
         });
+
+        function AddDetailsCredit() {
+            let _amount = 0
+            let total = parseFloat($('#sum-total').val()).toFixed(2);
+            let valor = parseFloat($('#amount-credit-total').val()).toFixed(2);
+            let _days = isNaN(parseInt($('#condition_days').val(), 10)) ? 0 : parseInt($('#condition_days').val(), 10);
+            let dateInput = $('#date');
+            let currentDate = new Date(dateInput.val())
+            currentDate.setDate(currentDate.getDate() + 1);
+            currentDate.setDate(currentDate.getDate() + _days);
+            let year = currentDate.getFullYear();
+            let month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+            let day = currentDate.getDate().toString().padStart(2, '0');
+            let formattedDate = `${year}-${month}-${day}`;
+
+            _amount = parseFloat(total - valor).toFixed(2)
+            if (_amount > 0) {
+                $('#credit_details').append(
+                    '<tr class="text-uppercase small text-center" style="font-size: 14px;">' +
+                    '<td class="align-middle">' + '</td>' +
+                    '<td class="align-middle item-date-credit">' + '<input type="date" class="form-control form-control-sm input-date" value="' + formattedDate + '">' + '</td>' +
+                    '<td class="align-middle item-amount-credit">' + '<input type="text" step="0.01" class="form-control form-control-sm text-right input-amount" value="' + _amount + '">' + '</td>' +
+                    '<td class="align-middle item-delete">' + '<button type="button"  class="btn btn-secondary btn-sm">' +
+                    '<i class="fa fa-trash"></i></button>' + '</td>' +
+                    '</tr>'
+                );
+                calculateTotalPayment();
+                counterStrikePayment();
+            } else {
+                toastr.warning('Monto completado')
+            }
+
+
+        }
+
+        function calculateTotalPayment() {
+            let sum = 0;
+            $('#credit_details tr td.item-amount-credit input.input-amount').each(function () {
+                sum = sum + parseFloat($(this).val());
+                if (sum > $('#id-total-guide').val()) {
+                    toastr.warning('Monto superado')
+                    sum = sum - parseFloat($(this).val());
+                    $(this).val('')
+                }
+            });
+            $('#amount-credit-total').val(sum.toFixed(2))
+        }
+
+        function counterStrikePayment() {
+            let ind = 1;
+            $('#credit_details tr').each(function () {
+                $(this).attr('i', ind);
+                $(this).children('td:first').text(ind);
+                $(this).find('td.item-delete button').attr('onclick', 'deleteItemCredit(' + ind + ')')
+                ind++;
+            });
+        }
+
+        function deleteItemCredit($pk) {
+            $('#credit_details').find("tr[i=" + $pk + "]").remove();
+            calculateTotalPayment();
+            counterStrikePayment();
+        }
+
+        $(document).on('keyup', '#credit_details tr td.item-amount-credit input.input-amount', function (e) {
+            let val = $(this).val();
+            if (isNaN(val)) {
+                $(this).val('')
+            } else {
+                if (val !== '') {
+                    calculateTotalPayment();
+                }
+            }
+        })
+
+        function hasRowDetailsCredits() {
+            var _response = false;
+            if ($("#credit_details tr").length > 0) {
+                _response = true;
+            }
+            return _response;
+        }
 
     </script>
 
