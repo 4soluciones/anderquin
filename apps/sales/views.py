@@ -1,5 +1,5 @@
 import pytz
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, Cast
 from django.shortcuts import render
 from django.views.generic import TemplateView, View, CreateView, UpdateView
 from django.views.decorators.csrf import csrf_exempt
@@ -3027,7 +3027,8 @@ def save_quotation(request):
 
 def get_correlative_order(subsidiary_obj=None, _type=None):
     correlative = Order.objects.filter(subsidiary=subsidiary_obj, order_type=_type).aggregate(
-        r=Coalesce(Max('correlative'), 0))
+        r=Coalesce(Cast(Max('correlative'), output_field=IntegerField()), Value(0))
+    )
     return str(correlative['r'] + 1)
 
 
