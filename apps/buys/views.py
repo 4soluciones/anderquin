@@ -1,3 +1,4 @@
+import pytz
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 from django.db.models.functions import Coalesce
@@ -2257,24 +2258,93 @@ def report_contracts(request):
     if request.method == 'GET':
         my_date = datetime.now()
         formatdate = my_date.strftime("%d-%m-%Y")
-        contract_detail_set = ContractDetail.objects.all().select_related('contract', 'contract__client')
-        contract_detail_dict = []
-        for c in contract_detail_set:
-            c_datetime = datetime.combine(c.date, datetime.min.time())
-            difference_date = (c_datetime - my_date).days
-            item = {
+
+        contract_set = Contract.objects.all().prefetch_related(
+            Prefetch('contractdetail_set', queryset=ContractDetail.objects.select_related('order').prefetch_related(
+                Prefetch('contractdetailitem_set', queryset=ContractDetailItem.objects.select_related('product')),
+                Prefetch('contractdetailpurchase_set', queryset=ContractDetailPurchase.objects.select_related('purchase'))
+            ).order_by('id'))
+        ).order_by('id')
+        local_tz = pytz.timezone('America/Lima')
+        contract_dict = []
+        for c in contract_set:
+            item_contract = {
                 'id': c.id,
-                'contract_number': c.contract.contract_number,
-                'client': c.contract.client.names,
-                'nro_quota': c.nro_quota,
-                'date': c.date,
-                'difference_date': difference_date,
+                'contract_number': c.contract_number,
+                'client': c.client.names,
+                'register_date': c.register_date,
+                'status': c.get_status_display(),
+                'contract_detail': []
             }
-            contract_detail_dict.append(item)
+            for d in c.contractdetail_set.all().order_by('id'):
+                purchase = None
+                bill_number = '-'
+                guide = None
+                guide_number = '-'
+                guide_created = None
+                order = None
+                order_serial = None
+                order_correlative = None
+                order_number = '-'
+                days_difference = None
+                days_difference_two = '-'
+                order_created = None
+
+                if d.contractdetailpurchase_set.last():
+                    purchase = d.contractdetailpurchase_set.last().purchase.id
+                    bill_number = d.contractdetailpurchase_set.last().purchase.bill_number
+                guide_obj = d.guide_set.all().last()
+                if guide_obj:
+                    guide = guide_obj.id
+                    guide_serial = guide_obj.serial
+                    guide_correlative = guide_obj.correlative
+                    guide_number = guide_serial + '-' + guide_correlative
+                    guide_created = guide_obj.created_at
+                    guide_created_datetime = datetime.combine(guide_created, datetime.min.time())
+                    days_difference_two = (guide_created_datetime - my_date).days
+                else:
+                    c_datetime = datetime.combine(d.date, datetime.min.time())
+                    days_difference = (c_datetime - my_date).days
+                    # register_datetime = local_tz.localize(datetime.combine(d.date, datetime.min.time()))
+                    # days_difference = (register_datetime - guide_obj.created_at).days
+                if d.order:
+                    order = d.order.id
+                    order_serial = d.order.serial
+                    order_correlative = d.order.correlative
+                    order_number = d.order.serial + '-' + order_correlative
+                    order_created = d.order.create_at
+                item_detail = {
+                    'id': d.id,
+                    'nro_quota': d.nro_quota,
+                    'date': d.date,
+                    'purchase': purchase,
+                    'bill_number': bill_number,
+                    'guide': guide,
+                    'guide_number': guide_number,
+                    'guide_created': guide_created,
+                    'order': order,
+                    'order_serial': order_serial,
+                    'order_correlative': order_correlative,
+                    'order_number': order_number,
+                    'order_created': order_created,
+                    'days_difference': days_difference,
+                    'days_difference_two': days_difference_two,
+                    'contract_detail_item': []
+                }
+                for e in d.contractdetailitem_set.all():
+                    item = {
+                        'id': e.id,
+                        'product_id': e.product.id,
+                        'quantity': e.quantity,
+                        'product_name': e.product.name
+                    }
+                    item_detail.get('contract_detail_item').append(item)
+                item_contract.get('contract_detail').append(item_detail)
+            contract_dict.append(item_contract)
 
         return render(request, 'buys/report_contracts_detail.html', {
             'formatdate': formatdate,
-            'contract_detail_dict': contract_detail_dict,
+            'contract_dict': contract_dict,
             'contracts': Contract.objects.all().prefetch_related(
                 Prefetch('contractdetail_set', queryset=ContractDetail.objects.select_related('order').prefetch_related(
                     Prefetch('contractdetailitem_set', queryset=ContractDetailItem.objects.select_related('product')),

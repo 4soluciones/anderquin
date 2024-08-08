@@ -662,6 +662,8 @@ def print_order_bill(request, pk=None):
     pay_condition = '-'
     if order_obj.pay_condition:
         pay_condition = f"{order_obj.pay_condition} Días"
+    else:
+        pay_condition = order_obj.get_way_to_pay_type_display()
 
     if order_obj.way_to_pay_type in ['E', 'D']:
         loan_payment_get = LoanPayment.objects.filter(order=order_obj).last()

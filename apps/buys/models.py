@@ -197,6 +197,12 @@ class ContractDetail(models.Model):
     nro_quota = models.CharField('Numero de Quota', max_length=45, null=True, blank=True)
     date = models.DateField('Fecha', null=True, blank=True)
     order = models.ForeignKey('sales.Order', on_delete=models.CASCADE, null=True, blank=True)
+    phase_c = models.BooleanField(default=False)
+    date_c = models.DateField('Date Phase C', null=True, blank=True)
+    phase_d = models.BooleanField(default=False)
+    date_d = models.DateField('Date Phase D', null=True, blank=True)
+    phase_g = models.BooleanField(default=False)
+    date_g = models.DateField('Date Phase G', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)

@@ -1,0 +1,70 @@
+{% if subsidiary_set %}
+    <div class="card">
+        <div class="card-header text-center border-dark" style="background-color: #3e6787">
+            <h5 class="card-title font-weight-bold roboto-condensed-regular text-white mt-2">LISTA DE SEDES</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive dataTables_wrapper bg-light">
+                <table id="ss-data-grid" class="table table-bordered roboto-condensed-regular table-hover mb-0">
+                    <thead>
+                    <tr class="text-center text-uppercase">
+                        <th style="width: 5%">#</th>
+                        <th style="width: 5%" scope="col">Serie</th>
+                        <th style="width: 10%" scope="col">sede</th>
+                        <th style="width: 20%" scope="col">Empresa</th>
+                        <th style="width: 30%" scope="col">Dirección</th>
+                        <th style="width: 10%" scope="col">Distrito</th>
+                        <th style="width: 5%" scope="col">Ubigeo</th>
+                        <th style="width: 10%" scope="col">Sede principal</th>
+                        <th style="width: 5%" scope="col">Editar</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for s in subsidiary_set %}
+                        <tr>
+                            <th class="text-center align-middle">{{ forloop.counter }}</th>
+                            <td class="align-middle text-center">{{ s.serial }}</td>
+                            <td class="align-middle">{{ s.name }}</td>
+                            <td class="align-middle">{{ s.business_name }}</td>
+                            <td class="align-middle">{{ s.address }}</td>
+                            <td class="align-middle text-center">{{ s.district.description }}</td>
+                            <td class="align-middle text-center">{{ s.district.ubigeo }}</td>
+                            <td class="align-middle text-center">
+                                {% if s.is_main %}
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="customCheck1" checked
+                                               disabled>
+                                        <label class="custom-control-label" for="customCheck1"></label>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td class="align-middle text-center">
+                                <button class="btn btn-sm btn-edit-subsidiary mb-1" pk="{{ s.id }}">
+                                    <i class="fas fa-edit" style="color: #ffc107;"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr class="text-center text-uppercase">
+                        <th style="width: 5%">#</th>
+                        <th style="width: 5%" scope="col">Serie</th>
+                        <th style="width: 10%" scope="col">sede</th>
+                        <th style="width: 20%" scope="col">Empresa</th>
+                        <th style="width: 30%" scope="col">Dirección</th>
+                        <th style="width: 10%" scope="col">Distrito</th>
+                        <th style="width: 5%" scope="col">Ubigeo</th>
+                        <th style="width: 10%" scope="col">Sede principal</th>
+                        <th style="width: 5%" scope="col">Editar</th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <h1>Lo sentimos, No existen almacenes</h1>
+{% endif %}
+
+

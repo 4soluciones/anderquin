@@ -1,5 +1,6 @@
 from django.db import DatabaseError
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, View, CreateView, UpdateView
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
@@ -937,3 +938,56 @@ def update_worker(request):
             'success': True,
             # 'form': t.render(c),
         }, status=HTTPStatus.OK)
+
+
+def get_subsidiary(request):
+    user_id = request.user.id
+    user_obj = User.objects.get(id=user_id)
+    subsidiary_set = Subsidiary.objects.all().order_by('id')
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+    return render(request, 'hrm/get_subsidiaries.html', {
+        'subsidiary_obj': subsidiary_obj,
+        'subsidiary_set': subsidiary_set,
+    })
+
+
+def modal_subsidiary_edit(request):
+    if request.method == 'GET':
+        pk = int(request.GET.get('pk', ''))
+        subsidiary_obj = Subsidiary.objects.get(id=pk)
+        t = loader.get_template('hrm/subsidiary_update.html')
+        c = ({
+            'subsidiary_obj': subsidiary_obj,
+            'districts': District.objects.all().select_related('province', 'province__department')
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })
+
+
+@csrf_exempt
+def update_subsidiary(request):
+    if request.method == 'POST':
+        subsidiary = request.POST.get('subsidiary', '')
+        subsidiary_serial = request.POST.get('subsidiary_serial', '')
+        subsidiary_name = request.POST.get('subsidiary_name', '')
+        subsidiary_address = request.POST.get('subsidiary_address', '')
+        district = request.POST.get('district', '')
+        is_main = request.POST.get('is_main', '')
+        _is_main = False
+        if is_main:
+            _is_main = True
+        subsidiary_obj = Subsidiary.objects.get(id=subsidiary)
+        district_obj = District.objects.get(id=int(district))
+        subsidiary_obj.serial = subsidiary_serial
+        subsidiary_obj.name = subsidiary_name
+        subsidiary_obj.address = subsidiary_address
+        subsidiary_obj.district = district_obj
+        subsidiary_obj.is_main = _is_main
+        subsidiary_obj.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'SEDE ACTUALIZADA'
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error contactar con sistemas'}, status=HTTPStatus.BAD_REQUEST)

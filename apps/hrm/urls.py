@@ -18,4 +18,8 @@ urlpatterns = [
     path('update_worker_user/', update_worker_user, name='update_worker_user'),
     path('edit_worker_designation/', edit_worker_designation, name='edit_worker_designation'),
     path('update_worker/', login_required(update_worker), name='update_worker'),
+
+    path('subsidiary/', get_subsidiary, name='get_subsidiary'),
+    path('modal_subsidiary_edit/', modal_subsidiary_edit, name='modal_subsidiary_edit'),
+    path('update_subsidiary/', update_subsidiary, name='update_subsidiary'),
 ]

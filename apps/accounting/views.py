@@ -2424,6 +2424,7 @@ def get_bill(request):
             'grid': t.render(c, request),
         }, status=HTTPStatus.OK)
 
+
 @csrf_exempt
 def edit_file(request):
     import os

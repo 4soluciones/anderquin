@@ -1,49 +1,75 @@
+{% load operations %}
 {% load app_filters %}
-{% if contract_detail_dict %}
+{% if contract_dict %}
     <div class="card roboto-condensed-regular">
-{#        <table id="contract-detail-grid" class="table table-bordered align-content-center w-100 h-100 roboto-condensed-regular">#}
-{#                <thead>#}
-{#                <tr class="text-center text-white text-uppercase " style="background: #3e6787; font-size: 12px;">#}
-{#                    <th class="th-sm align-middle" style="width: 20%">Nro Contrato</th>#}
-{#                    <th class="th-sm align-middle" style="width: 20%">Cliente</th>#}
-{#                    <th class="th-sm align-middle" style="width: 20%">Nro de Cuota</th>#}
-{#                    <th class="th-sm align-middle" style="width: 20%">Fecha de Vencimiento</th>#}
-{#                    <th class="th-sm align-middle" style="width: 20%">Dias</th>#}
-{#                </tr>#}
-{#                </thead>#}
-{#                <tbody style="font-size: 13px;">#}
-{#                {% for c in contract_detail_dict %}#}
-{#                    <tr class="text-center" pk="{{ c.id }}">#}
-{#                        <td class="align-middle">{{ c.contract_number }}</td>#}
-{#                        <td class="align-middle">{{ c.client }}</td>#}
-{#                        <td class="align-middle">{{ c.nro_quota }}</td>#}
-{#                        <td class="align-middle">{{ c.date|date:'d-m-Y' }}</td>#}
-{#                        <td style="font-size: 15px;" class="align-middle font-weight-bold {% if c.difference_date < 0 %}bg-danger{% else %}bg-success{% endif %} ">#}
-{#                            {{ c.difference_date }} días#}
-{#                        </td>#}
-{#                    </tr>#}
-{#                {% endfor %}#}
-{#                </tbody>#}
-{#            </table>#}
+        {#        <table id="contract-detail-grid" class="table table-bordered align-content-center w-100 h-100 roboto-condensed-regular">#}
+        {#                <thead>#}
+        {#                <tr class="text-center text-white text-uppercase " style="background: #3e6787; font-size: 12px;">#}
+        {#                    <th class="th-sm align-middle" style="width: 20%">Nro Contrato</th>#}
+        {#                    <th class="th-sm align-middle" style="width: 20%">Cliente</th>#}
+        {#                    <th class="th-sm align-middle" style="width: 20%">Nro de Cuota</th>#}
+        {#                    <th class="th-sm align-middle" style="width: 20%">Fecha de Vencimiento</th>#}
+        {#                    <th class="th-sm align-middle" style="width: 20%">Dias</th>#}
+        {#                </tr>#}
+        {#                </thead>#}
+        {#                <tbody style="font-size: 13px;">#}
+        {#                {% for c in contract_detail_dict %}#}
+        {#                    <tr class="text-center" pk="{{ c.id }}">#}
+        {#                        <td class="align-middle">{{ c.contract_number }}</td>#}
+        {#                        <td class="align-middle">{{ c.client }}</td>#}
+        {#                        <td class="align-middle">{{ c.nro_quota }}</td>#}
+        {#                        <td class="align-middle">{{ c.date|date:'d-m-Y' }}</td>#}
+        {#                        <td style="font-size: 15px;" class="align-middle font-weight-bold {% if c.difference_date < 0 %}bg-danger{% else %}bg-success{% endif %} ">#}
+        {#                            {{ c.difference_date }} días#}
+        {#                        </td>#}
+        {#                    </tr>#}
+        {#                {% endfor %}#}
+        {#                </tbody>#}
+        {#            </table>#}
         <div class="card-body overflow-auto p-0 m-0">
             <div class="container-fluid pl-0 ml-0 pr-0 mr-1">
                 <div class="row text-white m-0" style="background-color: #3e6787; font-size: 12px;">
-                    <div class="col-1 border-right py-3 d-flex justify-content-center align-items-center">Nro Contrato</div>
+                    <div class="col-1 border-right py-3 d-flex justify-content-center align-items-center">Nro Contrato
+                    </div>
                     <div class="col-2 border-right py-3 d-flex justify-content-center align-items-center">Cliente</div>
                     <div class="col-9 border-right d-flex flex-column">
                         <div class="row flex-fill">
-                            <div class="col-1 border-right py-3 d-flex justify-content-center align-items-center">Nro de Cuota</div>
-                            <div class="col-1 border-right py-3 d-flex justify-content-center align-items-center text-center">Fecha de Vencimiento</div>
+                            <div class="col-1 border-right py-3 d-flex justify-content-center align-items-center">Nro de
+                                Cuota
+                            </div>
+                            <div class="col-1 border-right py-3 d-flex justify-content-center align-items-center text-center">
+                                Fecha de Vencimiento
+                            </div>
                             <div class="col-10 border-right d-flex flex-column">
                                 <div class="row flex-fill">
-                                    <div class="col-12 d-flex justify-content-center align-items-center">Fechas de Entrega</div>
+                                    <div class="col-12 d-flex justify-content-center align-items-center">Fechas de
+                                        Entrega
+                                    </div>
                                 </div>
                                 <div class="row flex-fill">
-                                    <div class="col-1 border-right border-top d-flex justify-content-center align-items-center">Cantidad</div>
-                                    <div class="col-4 border-right border-top d-flex justify-content-center align-items-center">Producto</div>
-                                    <div class="col-2 border-top d-flex justify-content-center align-items-center">Orden de Compra</div>
-                                    <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">Guia</div>
-                                    <div class="col-3 border-left border-top d-flex justify-content-center align-items-center">Factura</div>
+                                    <div class="col-1 border-right border-top d-flex justify-content-center align-items-center">
+                                        Cantidad
+                                    </div>
+                                    <div class="col-3 border-right border-top d-flex justify-content-center align-items-center">
+                                        Producto
+                                    </div>
+                                    <div class="col-1 border-top d-flex justify-content-center align-items-center">O/C
+                                    </div>
+                                    <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">
+                                        Guia
+                                    </div>
+                                    <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">
+                                        Factura
+                                    </div>
+                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center text-center">
+                                        Fase C<br>(Compromiso)
+                                    </div>
+                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center text-center">
+                                        Fase D<br>(De Vengado)
+                                    </div>
+                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center text-center">
+                                        Fase G<br>(Girado)
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -52,24 +78,63 @@
                 </div>
             </div>
             <div class="container-fluid table-like pl-0 ml-0 pr-0 mr-1 bg-light">
-                {% for c in contracts %}
+                {% for c in contract_dict %}
                     <div class="row m-0 border-top border-dark">
                         <div class="col-1 border-right id d-flex  align-items-center text-left"
                              data-sort-value="original-order">{{ c.contract_number }}</div>
-                        <div class="col-2 border-right d-flex justify-content-center align-items-center font-weight-bold">{{ c.client.names }}</div>
+                        <div class="col-2 border-right d-flex justify-content-center align-items-center font-weight-bold">{{ c.client }}</div>
                         <div class="col-9 border-right d-flex flex-column">
-                            {% for cd in c.contractdetail_set.all %}
+                            {% for cd in c.contract_detail %}
                                 <div class="row flex-fill">
                                     <div class="col-1 border-right border-bottom d-flex flex-column justify-content-center text-center">{{ cd.nro_quota }}</div>
                                     <div class="col-1 border-right border-bottom d-flex flex-column justify-content-center text-center">{{ cd.date|date:'d-m-Y' }}</div>
                                     <div class="col-10 border-right border-bottom d-flex flex-column justify-content-center">
-                                        {% for e in cd.contractdetailitem_set.all %}
+                                        {% for e in cd.contract_detail_item %}
                                             <div class="row flex-fill">
-                                                <div class="col-1 border-right d-flex justify-content-center align-items-center">{{ e.quantity }}</div>
-                                                <div class="col-4 border-right d-flex justify-content-center align-items-center">{{ e.product.name }}</div>
-                                                <div class="col-2 border-top d-flex justify-content-center align-items-center font-weight-bold">{{ cd.contractdetailpurchase_set.last.purchase.bill_number }}</div>
-                                                <div class="col-2 border-left border-top d-flex justify-content-center align-items-center font-weight-bold" style="background-color: #adcdd3">{{ cd.guide_set.all.last.serial }}-{{ cd.guide_set.all.last.correlative }}</div>
-                                                <div class="col-3 border-left border-top d-flex justify-content-center align-items-center font-weight-bold" style="background-color: #adcdd3">{{ cd.order.serial }}-{{ cd.order.correlative }}</div>
+                                                <div class="col-1 border-right border-top d-flex justify-content-center align-items-center">{{ e.quantity }}</div>
+                                                <div class="col-3 border-right border-top d-flex justify-content-center align-items-center">{{ e.product_name }}</div>
+                                                <div class="col-1 border-top d-flex justify-content-center align-items-center font-weight-bold">{{ cd.bill_number }}</div>
+                                                <div class="col-2 border-left border-top d-flex justify-content-center align-items-center font-weight-bold"
+                                                     style="background-color: #adcdd3">
+                                                    <div class="row flex-fill">
+                                                        <div class="col-6 border-left border-top d-flex justify-content-center align-items-center">{{ cd.guide_number }}</div>
+                                                        <!----- Es el mismo DIV ---->
+                                                        {% if cd.guide_created is not None %}
+                                                            <div class="col-6 border-left border-top d-flex justify-content-center align-items-center">
+                                                                {{ cd.guide_created|date:'d-m-Y' }}
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="col-6 border-left border-top d-flex justify-content-center align-items-center {% if cd.days_difference > 0 %}text-success{% elif cd.days_difference < 0 %}text-danger{% elif cd.days_difference == 0 %}text-dark{% endif %}">
+                                                                {{ cd.days_difference }}
+                                                            </div>
+                                                        {% endif %}
+                                                        <!----- END ---->
+                                                    </div>
+                                                </div>
+                                                <div class="col-2 border-left border-top d-flex justify-content-center align-items-center font-weight-bold"
+                                                     style="background-color: #adcdd3">
+                                                    <div class="row flex-fill">
+                                                        <div class="col-6 border-left border-top d-flex justify-content-center align-items-center">{{ cd.order_number }}</div>
+                                                        <!----- Es el mismo DIV ---->
+                                                        {% if cd.order_created is not None %}
+                                                            <div class="col-6 border-left border-top d-flex justify-content-center align-items-center">{{ cd.order_created|date:'d-m-Y' }}</div>
+                                                        {% else %}
+                                                            <div class="col-6 border-left border-top d-flex justify-content-center align-items-center {% if cd.days_difference_two > 0 %}text-success{% elif cd.days_difference_two < 0 %}text-danger{% elif cd.days_difference_two == 0 %}text-dark{% endif %}">
+                                                                {{ cd.days_difference_two }}
+                                                            </div>
+                                                        {% endif %}
+                                                        <!----- END ---->
+                                                    </div>
+                                                </div>
+                                                <div class="col-1 border-left border-top d-flex justify-content-center align-items-center">
+                                                    {% if cd.order_created %}<input class="align-middle check-c" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.0);">{% endif %}
+                                                </div>
+                                                <div class="col-1 border-left border-top d-flex justify-content-center align-items-center">
+                                                    {% if cd.order_created %}<input class="align-middle check-d" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.0);">{% endif %}
+                                                </div>
+                                                <div class="col-1 border-left border-top d-flex justify-content-center align-items-center">
+                                                    {% if cd.order_created %}<input class="align-middle check-g" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.0);">{% endif %}
+                                                </div>
                                             </div>
                                         {% endfor %}
                                     </div>
