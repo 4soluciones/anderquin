@@ -22,7 +22,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form id="store-form" action="" method="POST">
+                <form id="subsidiary-form" action="" method="POST">
                     {% csrf_token %}
                     <div class="modal-body p-2 roboto-condensed-regular">
                         <div class="card">
@@ -33,37 +33,58 @@
                                             <table class="table table-borderless">
                                                 <tbody>
                                                 <tr>
-                                                    <td class="align-middle">Nombre de la Sucursal:</td>
+                                                    <td class="align-middle">Serie:</td>
                                                     <td>
-                                                        <input type="text" name="name-store" aria-label=""
+                                                        <input type="text" name="serial" aria-label=""
                                                                class="form-control form-control-sm text-uppercase"
-                                                               placeholder="Ingrese nombre del nuevo almacen"
+                                                               placeholder="Ingrese serie"
                                                                required autocomplete="off"
-                                                               id="name_store">
+                                                               value=""
+                                                               id="serial">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="align-middle">Nombre de la Sede:</td>
+                                                    <td>
+                                                        <input type="text" name="name" aria-label=""
+                                                               class="form-control form-control-sm text-uppercase"
+                                                               placeholder="Ingrese nombre de la nueva sede"
+                                                               required autocomplete="off"
+                                                               id="name">
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td class="align-middle">Direccion:</td>
                                                     <td>
-                                                        <select id="category_id" name="category" aria-label=""
-                                                                class="form-control form-control-sm">
-                                                            <option selected disabled value="0">Seleccione..</option>
-                                                            {% for c in categories %}
-                                                                <option value="{{ c.0 }}">{{ c.1 }}</option>
+                                                        <input type="text" name="address" aria-label=""
+                                                               class="form-control form-control-sm text-uppercase"
+                                                               placeholder="Ingrese direccion completa"
+                                                               required autocomplete="off"
+                                                               value=""
+                                                               id="address">
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="align-middle">Distrito:</td>
+                                                    <td>
+                                                        <select id="district_id" name="district_id" aria-label=""
+                                                                class="form-control form-control-sm" required>
+                                                            <option value="0">Seleccione..</option>
+                                                            {% for d in districts %}
+                                                                <option value="{{ d.id }}">{{ d.description }}</option>
                                                             {% endfor %}
                                                         </select>
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="align-middle">Serie:</td>
+                                                    <td class="align-middle">Sede Principal:</td>
                                                     <td>
-                                                        <select id="subsidiary_id" name="subsidiary" aria-label=""
-                                                                class="form-control form-control-sm">
-                                                            <option selected disabled value="0">Seleccione..</option>
-                                                            {% for s in subsidiary_set %}
-                                                                <option value="{{ s.id }}">{{ s.name }}</option>
-                                                            {% endfor %}
-                                                        </select>
+                                                        <div class="custom-control custom-checkbox">
+                                                            <input type="checkbox" name="is_principal"
+                                                                   class="custom-control-input"
+                                                                   id="is_principal" >
+                                                            <label class="custom-control-label" for="is_principal"></label>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 </tbody>
@@ -76,7 +97,7 @@
                     </div>
                     <div class="modal-footer bg-light p-2">
                         <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar
-                        </button> &nbsp;
+                        </button>
                         <button id="btn-save" type="submit" class="btn btn-primary font-weight-light">Registrar
                             Almacen
                         </button>
@@ -96,7 +117,7 @@
 {% block extrajs %}
 
     <script type="text/javascript">
-
+        $('#district_id').select2()
         /*let stores =
             [{% for ss in subsidiary_stores %}
                 {
@@ -109,21 +130,18 @@
 
             {% endfor %}];*/
 
-        $('#store-form').submit(function (event) {
+        $('#subsidiary-form').submit(function (event) {
             event.preventDefault();
-            let data = new FormData($('#store-form').get(0));
+            let data = new FormData($('#subsidiary-form').get(0));
             $('#btn-save').prop("disabled", "true");
-            let _category = $('#category_id').val();
-            let _category_name = $('#category_id option:selected').text();
-            let _subsidiary = $('#subsidiary_id').val();
-            let _subsidiary_name = $('#subsidiary_id option:selected').text();
-            if (checkStore(_category, _subsidiary)) {
-                toastr.warning('Ya existe un almacén con categoría ' + _category_name + ' en la ' + _subsidiary_name, '¡Atención!');
+            let _district_id = $('#district_id').val();
+            if (_district_id === '0') {
+                toastr.warning('Seleccione un distrito', '¡Atención!');
                 $('#btn-save').removeAttr("disabled");
                 return false;
             }
             $.ajax({
-                url: '/comercial/new_store/',
+                url: '/hrm/new_subsidiary/',
                 type: "POST",
                 data: data,
                 cache: false,
