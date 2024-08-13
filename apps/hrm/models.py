@@ -556,7 +556,7 @@ class Period(models.Model):
 
 class Subsidiary(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, null=True, blank=True)
     business_name = models.CharField('Razon social', max_length=200, null=True, blank=True)
     address = models.CharField(max_length=200, null=True, blank=True)
     district = models.ForeignKey(District, on_delete=models.SET_NULL, null=True, blank=True)
@@ -569,6 +569,8 @@ class Subsidiary(models.Model):
     legal_representative_surname = models.CharField(max_length=100, null=True, blank=True)
     legal_representative_dni = models.CharField(max_length=45, null=True, blank=True)
     is_main = models.BooleanField('Sede principal', default=False)
+    is_subsidiary = models.BooleanField('sede', default=False)
+    is_address = models.BooleanField('direccion', default=False)
 
     def __str__(self):
         return self.name

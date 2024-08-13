@@ -1619,19 +1619,30 @@ def guide(request, pk=None):
     ]
     pdf_person.setStyle(TableStyle(style_person))
     # ----------------------------------------------------------------
-    pdf_transfer = Table(
-        [('Fecha Inicio traslado', ': ' + date_transfer.strftime("%d/%m/%Y"), 'Observaciones', '')] +
-        [(Paragraph('Fecha Entrega bienes al transportista', styles["narrow_b_normal_justify"]), ': ' + date_transfer.strftime("%d/%m/%Y"), '')] +
-        [('Motivo de traslado: ', ': ' + guide_obj.guide_motive.description.upper(), '', '', '', '', 'Modalidad Traslado', ': ' + 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
-        [('Transportista: ', ': ' + guide_obj.carrier.name.upper(), '', '', '', '', 'RUC', ': ' + guide_obj.carrier.ruc)] +
-        [('Placa:', ': ' + guide_obj.vehicle.license_plate.upper(), 'Marca', guide_obj.vehicle.truck_model.truck_brand.name, 'CIMTC', guide_obj.register_mtc, 'Lic. Conducir', ': ' + str(guide_obj.driver.n_license))],
-        # [('FECHA INICIO DE TRASLADO: ', date_transfer.strftime("%d/%m/%Y"))] +
-        # [('MODALIDAD DE TRANSPORTE: ', 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
-        # [('PESO BRUTO TOTAL (KGM): ', round(decimal.Decimal(guide_obj.weight), 2))] +
-        # [('NÚMERO DE BULTOS: ', round(decimal.Decimal(guide_obj.package), 0))],
-        colWidths=[w * 15 / 100, w * 10 / 100, w * 10 / 100, w * 15 / 100, w * 6 / 100, w * 14 / 100,
-                   w * 13 / 100, w * 17 / 100],
-        rowHeights=[inch * 0.18, inch * 0.27,  inch * 0.18, inch * 0.18, inch * 0.18])
+    if guide_obj.vehicle is not None and guide_obj.driver is not None:
+        pdf_transfer = Table(
+            [('Fecha Inicio traslado', ': ' + date_transfer.strftime("%d/%m/%Y"), 'Observaciones', '')] +
+            [(Paragraph('Fecha Entrega bienes al transportista', styles["narrow_b_normal_justify"]), ': ' + date_transfer.strftime("%d/%m/%Y"), '')] +
+            [('Motivo de traslado: ', ': ' + guide_obj.guide_motive.description.upper(), '', '', '', '', 'Modalidad Traslado', ': ' + 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
+            [('Transportista: ', ': ' + guide_obj.carrier.name.upper(), '', '', '', '', 'RUC', ': ' + guide_obj.carrier.ruc)] +
+            [('Placa:', ': ' + guide_obj.vehicle.license_plate.upper(), 'Marca', guide_obj.vehicle.truck_model.truck_brand.name, 'CIMTC', guide_obj.register_mtc, 'Lic. Conducir', ': ' + str(guide_obj.driver.n_license))],
+            # [('FECHA INICIO DE TRASLADO: ', date_transfer.strftime("%d/%m/%Y"))] +
+            # [('MODALIDAD DE TRANSPORTE: ', 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
+            # [('PESO BRUTO TOTAL (KGM): ', round(decimal.Decimal(guide_obj.weight), 2))] +
+            # [('NÚMERO DE BULTOS: ', round(decimal.Decimal(guide_obj.package), 0))],
+            colWidths=[w * 15 / 100, w * 10 / 100, w * 10 / 100, w * 15 / 100, w * 6 / 100, w * 14 / 100,
+                       w * 13 / 100, w * 17 / 100],
+            rowHeights=[inch * 0.18, inch * 0.27,  inch * 0.18, inch * 0.18, inch * 0.18])
+    else:
+        pdf_transfer = Table(
+            [('Fecha Inicio traslado', ': ' + date_transfer.strftime("%d/%m/%Y"), 'Observaciones', '')] +
+            [(Paragraph('Fecha Entrega bienes al transportista', styles["narrow_b_normal_justify"]), ': ' + date_transfer.strftime("%d/%m/%Y"), '')] +
+            [('Motivo de traslado: ', ': ' + guide_obj.guide_motive.description.upper(), '', '', '', '', 'Modalidad Traslado', ': ' + 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
+            [('Transportista: ', ': ' + guide_obj.carrier.name.upper(), '', '', 'CIMTC', guide_obj.register_mtc, 'RUC', ': ' + guide_obj.carrier.ruc)],
+            colWidths=[w * 15 / 100, w * 10 / 100, w * 10 / 100, w * 15 / 100, w * 6 / 100, w * 14 / 100,
+                       w * 13 / 100, w * 17 / 100],
+            rowHeights=[inch * 0.18, inch * 0.27, inch * 0.18, inch * 0.18])
+
     style_transfer = [
         # ('GRID', (0, 0), (-1, -1), 0.9, colors.black),
         ('FONTNAME', (0, 0), (-1, -1), 'Narrow-b'),  # all columns

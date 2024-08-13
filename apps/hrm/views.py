@@ -943,7 +943,7 @@ def update_worker(request):
 def get_subsidiary(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
-    subsidiary_set = Subsidiary.objects.all().order_by('serial')
+    subsidiary_set = Subsidiary.objects.all().order_by('id', 'serial')
     subsidiary_obj = get_subsidiary_by_user(user_obj)
     return render(request, 'hrm/get_subsidiaries.html', {
         'subsidiary_obj': subsidiary_obj,
@@ -964,7 +964,7 @@ def new_subsidiary(request):
         if is_principal:
             _is_principal = True
 
-        Subsidiary.objects.create(serial=serial, name=name, address=address,
+        Subsidiary.objects.create(serial=serial, name=name, address=address, is_subsidiary=True,
                                   business_name='INDUSTRIAS ANDERQUIN EMPRESA INDIVIDUAL DE RESPONSABILIDAD LIMITADA',
                                   district=district_obj, is_main=_is_principal)
 
@@ -1008,6 +1008,7 @@ def update_subsidiary(request):
         subsidiary_obj.address = subsidiary_address
         subsidiary_obj.district = district_obj
         subsidiary_obj.is_main = _is_main
+        subsidiary_obj.is_subsidiary = True
         subsidiary_obj.save()
 
         return JsonResponse({

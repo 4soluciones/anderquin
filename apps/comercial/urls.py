@@ -98,6 +98,7 @@ urlpatterns = [
     path('get_guide', login_required(new_guide), name='new_guide'),
     path('new_guide/<int:contract_detail>/', new_guide, name='new_guide'),
     path('modal_guide_origin/', modal_guide_origin, name='modal_guide_origin'),
+    path('save_new_address_origin/', save_new_address_origin, name='save_new_address_origin'),
     path('modal_guide_destiny/', modal_guide_destiny, name='modal_guide_destiny'),
     path('save_new_address_client/', save_new_address_client, name='save_new_address_client'),
     path('modal_guide_carrier/', modal_guide_carrier, name='modal_guide_carrier'),

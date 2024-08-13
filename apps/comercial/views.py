@@ -496,7 +496,7 @@ def modal_guide_origin(request):
         truck_set = Truck.objects.all()
         # pilot_set = Driver.objects.all()
         motive_set = GuideMotive.objects.filter(type='S')
-        subsidiary_set = Subsidiary.objects.all().order_by('serial')
+        subsidiary_set = Subsidiary.objects.all().order_by('id', 'serial')
         t = loader.get_template('comercial/modal_guide_origin.html')
         c = ({
             'truck_set': truck_set,
@@ -2469,8 +2469,9 @@ def save_guide(request):
         if motive:
             motive_obj = GuideMotive.objects.get(id=int(motive))
 
-        if carrier and vehicle and driver:
+        if carrier:
             carrier_obj = Owner.objects.get(id=int(carrier))
+        if vehicle and driver:
             vehicle_obj = Truck.objects.get(id=int(vehicle))
             driver_obj = Driver.objects.get(id=int(driver))
 
@@ -2564,9 +2565,17 @@ def new_store(request):
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
-
-
-
+def save_new_address_origin(request):
+    if request.method == 'GET':
+        address = request.GET.get('address')
+        district = request.GET.get('district')
+        district_obj = District.objects.get(id=int(district))
+        Subsidiary.objects.create(name='DIRECCION', address=address, district=district_obj, is_address=True)
+        return JsonResponse({
+            'success': True,
+            'ubigeo': district_obj.ubigeo
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
 
