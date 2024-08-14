@@ -4124,10 +4124,12 @@ def get_sales_list(request, guide=None):
         total = 0
         subsidiary_store_obj = SubsidiaryStore.objects.get(subsidiary=subsidiary_obj, category='V')
         for gd in guide_detail_set:
-            product_detail_get = ProductDetail.objects.get(product=gd.product, unit=gd.unit)
             product_store_get = ProductStore.objects.get(product=gd.product, subsidiary_store=subsidiary_store_obj)
-            price_purchase = product_detail_get.price_purchase
-            price_sale = product_detail_get.price_sale
+            price_sale = gd.guide.contract_detail.contractdetailitem_set.last().price_unit
+            product_detail_get = ProductDetail.objects.get(product=gd.product, unit=gd.unit)
+            # price_purchase = product_detail_get.price_purchase
+            # price_sale = product_detail_get.price_sale
+
             quantity_minimum = product_detail_get.quantity_minimum
             sub_total = round(price_sale * gd.quantity, 2)
             item_guide = {
@@ -4137,7 +4139,7 @@ def get_sales_list(request, guide=None):
                 'product_name': gd.product.name,
                 'unit_id': gd.unit.id,
                 'unit': gd.unit.name,
-                'price_purchase': price_purchase,
+                # 'price_purchase': price_purchase,
                 'price_sale': str(round(price_sale, 2)),
                 'subtotal': str(sub_total),
                 'quantity_minimum': str(quantity_minimum),

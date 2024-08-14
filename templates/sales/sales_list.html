@@ -109,32 +109,26 @@
 
         $("#radio1,#radio2").click(function () {
             if ($("#radio1").is(':checked')) {
-                $("#id_client_name").attr('disabled', 'disabled');
+                $("#person-names").val('');
+                $("#person-names").attr('disabled', 'disabled');
                 $("#document_type_sender").removeAttr('disabled');
-                $("#id-nro-document-sender").attr('readonly', false);
-                $("#id_client_name").find('option[value]').removeAttr('selected');
-                $("#id_client_name").find('option[value="0"]').attr('selected', 'selected');
-                $("#id_client_name").trigger('change');
+                $("#id-nro-document-client").attr('readonly', false);
                 $('#document_type_sender').val(0);
-                $("#id_sender").val('');
-                $("#id-nro-document-sender").val('');
-                $("#id_address").val('');
-                $(".client-table").val('');
-                $(".client-table").attr('placeholder', '')
-                $(".client-table").attr('disabled', 'disabled');
+                $("#client-id").val('');
+                $("#client_address").val('');
+                $("#client_name").val('');
 
             } else if ($("#radio2").is(':checked')) {
                 $("#document_type_sender").attr('disabled', 'disabled');
-                $("#id_client_name").removeAttr('disabled');
                 $("#document_type_sender").find('option[value]').removeAttr('selected');
                 $("#document_type_sender").find('option[value="0"]').attr('selected', 'selected');
-                $("#id_sender").val('');
-                $("#id_address").val('');
                 $("#document_type_sender").trigger('change');
-                $("#id-nro-document-sender").val('');
-                $("#id-nro-document-sender").attr('readonly', true);
-                $(".client-table").attr('placeholder', 'INGRESE CLIENTE Y PRESIONE ENTER...')
-                $(".client-table").removeAttr('disabled');
+                $("#person-names").removeAttr('disabled');
+                $("#client-id").val('');
+                $("#client_address").val('');
+                $("#client_name").val('');
+                $("#id-nro-document-client").val('');
+                $("#id-nro-document-client").attr('readonly', true);
             }
         });
 
@@ -187,12 +181,18 @@
             }
         });
 
-        $('#id-nro-document-sender').keypress(function (e) {
+        $('#id-nro-document-client').keypress(function (e) {
 
             if (e.keyCode === 13) {
                 e.preventDefault()
                 $(this).trigger("enterKey");
-                let _document_number = $('#id-nro-document-sender').val();
+
+                if ($('#document_type_sender').val() === '0' || $('#document_type_sender').val() === null) {
+                    toastr.warning('¡Favor seleecionar un tipo de documento!', 'Error de Datos');
+                    return false;
+                }
+
+                let _document_number = $('#id-nro-document-client').val();
                 if ((sessionStorage.getItem('document') === '01') && (_document_number.length !== 8)) {
                     toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
                     return false;
@@ -201,10 +201,6 @@
                         toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
                         return false;
                     }
-                }
-                if ($('#document_type_sender').val() === '0') {
-                    toastr.warning('¡Favor seleecionar un tipo de documento!', 'Error de Datos');
-                    return false;
                 }
 
                 $('#loading-666').html(loader).show()
@@ -215,7 +211,7 @@
                     dataType: 'json', // for response
                     type: 'GET',
                     data: {
-                        'nro_document': $('#id-nro-document-sender').val(),
+                        'nro_document': $('#id-nro-document-client').val(),
                         'type': $('#document_type_sender').val()
                     },
                     contentType: 'application/json;charset=UTF-8',
@@ -865,6 +861,7 @@
             data.append('detail', JSON.stringify(detailOrder));
             data.append('serial_text', selectedOptionText);
             data.append('credit', JSON.stringify(creditDict));
+            $('#save-order').prop('disabled', true)
             $.ajax({
                 url: '/sales/save_order/',
                 async: true,

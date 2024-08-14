@@ -448,7 +448,7 @@ class Order(models.Model):
 class OrderDetail(models.Model):
     STATUS_CHOICES = (('P', 'PENDIENTE'), ('E', 'EN PROCESO'),
                       ('C', 'COMPRADO'), ('V', 'VENDIDO'), ('A', 'ANULADO'),)
-    order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True)
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True)
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     quantity_sold = models.DecimalField('Cantidad vendida', max_digits=10, decimal_places=2, default=0)
     price_unit = models.DecimalField('Precio unitario', max_digits=10, decimal_places=2, default=0)

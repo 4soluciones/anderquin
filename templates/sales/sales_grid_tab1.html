@@ -2,9 +2,9 @@
 <form id="order-form" action="{% url 'sales:save_order' %}" method="POST">
     {% csrf_token %}
     <div class="card col-sm-12 p-1 roboto-condensed-regular" style="border-color: #3e6787">
-        <div class="card-header text-center pb-3" style="background: #3e6787">
+        <div class="card-header text-center pb-1" style="background: #3e6787">
             <div class="row align-self-center">
-                <div class="col-sm-5 pl-0 pt-2">
+                <div class="col-sm-12 pt-1 pb-1">
                     <div class="card header mb-2 border-bottom-2 text-center font-weight-bold sale"
                          style="background-color: #aaccf3">
                         <h4 class="roboto-condensed-regular text-dark font-weight-bold mt-1 mb-1">
@@ -18,54 +18,110 @@
                         </h4>
                     </div>
                 </div>
-                <div class="col-sm-3 col-md-3 col-lg-3 pt-2 pl-0">
+{#                <div class="col-sm-3 col-md-3 col-lg-3 pt-2 pl-0">#}
+{#                    {% if guide_obj %}#}
+{#                        <h4 class="roboto-condensed-regular text-warning font-weight-bold mt-1 mb-1">#}
+{#                            Nº GUÍA : {{ guide_obj }}#}
+{#                        </h4>#}
+{#                        <input type="hidden" value="{{ guide_obj.id }}" id="guide_id" name="guide_id">#}
+{#                    {% else %}#}
+{#                        <div class="input-group">#}
+{#                            <input id="search_sale" type="text" autocomplete="off"#}
+{#                                   class="form-control text-right" aria-label="..."#}
+{#                                   style="border-color: #96a494">#}
+{#                            <input id="order_id" name="order" type="hidden" aria-label="...">#}
+{#                            <span class="input-g roup-btn">#}
+{#                                <button id="btn-search-quotation"#}
+{#                                        class="btn btn-success"#}
+{#                                        type="button"#}
+{#                                        onclick="searchSale()">#}
+{#                                    Buscar <span class="fa fa-search"></span>#}
+{#                                </button>#}
+{#                            </span>#}
+{#                        </div>#}
+{#                    {% endif %}#}
+{#                </div>#}
+
+{#                <div class="col-sm-4 col-md-4 col-lg-4 align-middle border border-white">#}
+{#                    <div class="row pt-2 pb-0">#}
+{#                        <div class="col-sm-6 col-md-6 col-lg-6 pl-4 pb-2">#}
+{#                            <div class="row save-order">#}
+{#                                <button type="submit" id="save-order"#}
+{#                                        class="btn btn-primary btn-sm btn-block mt-1 text-uppercase text-center">#}
+{#                                    <i class="fas fa-save"></i> Guardar#}
+{#                                </button>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="col-sm-6 col-md-6 col-lg-6">#}
+{#                            <button type="button"#}
+{#                                    class="btn btn-warning btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"#}
+{#                                    id="btn-new-form"><i class="far fa-check-circle"></i>#}
+{#                                Nuevo#}
+{#                            </button>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+
+            </div>
+        </div>
+
+
+        <div class="card-body pl-2 pr-2 pt-0 pb-0">
+            <div class="row mt-2 mb-1 ml-0 mr-0 bg-light">
+                <div class="col-sm-6 col-md-6 col-lg-6 pb-2 border border-box p-1">
                     {% if guide_obj %}
-                        <h4 class="roboto-condensed-regular text-warning font-weight-bold mt-1 mb-1">
+                        <h4 class="roboto-condensed-regular text-warning font-weight-bold mt-1 mb-1 text-center">
                             Nº GUÍA : {{ guide_obj }}
                         </h4>
                         <input type="hidden" value="{{ guide_obj.id }}" id="guide_id" name="guide_id">
                     {% else %}
-                        <div class="input-group">
-                            <input id="search_sale" type="text" autocomplete="off"
-                                   class="form-control text-right" aria-label="..."
-                                   style="border-color: #96a494">
-                            <input id="order_id" name="order" type="hidden" aria-label="...">
-                            <span class="input-g roup-btn">
-                                <button id="btn-search-quotation"
-                                        class="btn btn-success"
-                                        type="button"
-                                        onclick="searchSale()">
-                                    Buscar <span class="fa fa-search"></span>
-                                </button>
-                            </span>
+                        <div class="row pt-1 pb-0 pr-4 pl-2">
+                            <div class="col-sm-4 text-right">
+                                <label for="inputPassword6" class="mt-2">Ingrese Venta:</label>
+                            </div>
+                            <div class="col-sm-8">
+                                <div class="input-group mx-sm-3">
+                                    <input id="search_sale" type="text" autocomplete="off"
+                                           class="form-control text-right" aria-label="..."
+                                           style="border-color: #96a494">
+                                    <input id="order_id" name="order" type="hidden" aria-label="...">
+                                    <span class="input-g roup-btn">
+                                        <button id="btn-search-quotation"
+                                                class="btn btn-success"
+                                                type="button"
+                                                onclick="searchSale()">
+                                            Buscar <span class="fa fa-search"></span>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
+
                     {% endif %}
                 </div>
-
-                <div class="col-sm-4 col-md-4 col-lg-4 align-middle border border-white">
-                    <div class="row pt-2 pb-0">
-                        <div class="col-sm-6 col-md-6 col-lg-6 pl-4 pb-2">
-                            <div class="row save-order">
-                                <button type="submit" id="save-order"
-                                        class="btn btn-primary btn-sm btn-block mt-1 text-uppercase text-center">
-                                    <i class="fas fa-save"></i> Guardar
-                                </button>
-                            </div>
+                <div class="col-sm-6 col-md-6 col-lg-6 pb-2 border border-box p-1">
+                    <div class="row pt-1 pb-0">
+                        <div class="col-sm-6 col-md-6 col-lg-6 pl-4 pb-0">
+                            <button type="submit" id="save-order"
+                                    class="btn btn-primary btn-sm btn-block mt-1 text-uppercase text-center">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
                         </div>
                         <div class="col-sm-6 col-md-6 col-lg-6">
                             <button type="button"
-                                    class="btn btn-warning btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"
+                                    class="btn btn-warning btn-sm text-uppercase btn-block text-center mt-1"
                                     id="btn-new-form"><i class="far fa-check-circle"></i>
                                 Nuevo
                             </button>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
+
+
         <div class="card-body p-0 pr-1">
-            <div class="form-row mt-1 mb-2 ml-0 mr-0">
+            <div class="form-row mt-0 mb-2 ml-0 mr-0">
                 <div class="form-group col-md-12 text-uppercase small mt-2 mb-0">
                     <div class="col-sm-12 col-sm-12 col-lg-12 p-3" style="background-color: #d8e0e7">
                         <div class="row">
@@ -104,7 +160,7 @@
                                     <select id="document_type_sender" name="document_type_sender"
                                             class="form-control form-control-sm" aria-label="..."
                                             style="font-size: .8375rem;">
-                                        <option selected value="0">Seleccione...</option>
+                                        <option selected disabled value="0">Seleccione...</option>
                                         {% for type in document_types %}
                                             {% if type.id == '01' %}
                                                 <option value="{{ type.id }}">DNI</option>
@@ -119,7 +175,7 @@
                                 <th class="border-top-0 align-middle text-right p-0" style="width: 60%">
                                     <input type="text" aria-label="..."
                                            class="form-control form-control-sm text-uppercase"
-                                           id="id-nro-document-client"
+                                           id="id-nro-document-client" readonly
                                            name="nro-document-client" style="width: 100%">
                                 </th>
                             <tr>
@@ -310,7 +366,7 @@
                     <div class="col-md-3 text-uppercase small pl-1 pr-1">
                         <label for="correlative" class="mb-0">Correlativo</label>
                         <input type="text" class="form-control form-control-sm text-right" id="correlative"
-                               name="correlative">
+                               name="correlative" autocomplete="off">
                     </div>
 
                     <div class="col-md-4 text-uppercase small pl-0 pr-0">
@@ -410,22 +466,22 @@
                                 <div class="card-body mt-3 p-0">
                                     <table class="bg-light table-sm " id="id-table-credit"
                                            style="width: 100%;">
-{#                                        <thead class="text-uppercase small text-center">#}
-{#                                        <tr class="bg-info text-white">#}
-{#                                            <th scope="col" class="font-weight-normal" style="width: 15%;">#}
-{#                                                Nº#}
-{#                                            </th>#}
-{#                                            <th scope="col" class="font-weight-normal" style="width: 35%;">#}
-{#                                                Fecha#}
-{#                                            </th>#}
-{#                                            <th scope="col" class="font-weight-normal" style="width: 30%;">#}
-{#                                                Importe#}
-{#                                            </th>#}
-{#                                            <th scope="col" class="font-weight-normal" style="width: 20%;">#}
-{#                                                Eliminar#}
-{#                                            </th>#}
-{#                                        </tr>#}
-{#                                        </thead>#}
+                                        {#                                        <thead class="text-uppercase small text-center">#}
+                                        {#                                        <tr class="bg-info text-white">#}
+                                        {#                                            <th scope="col" class="font-weight-normal" style="width: 15%;">#}
+                                        {#                                                Nº#}
+                                        {#                                            </th>#}
+                                        {#                                            <th scope="col" class="font-weight-normal" style="width: 35%;">#}
+                                        {#                                                Fecha#}
+                                        {#                                            </th>#}
+                                        {#                                            <th scope="col" class="font-weight-normal" style="width: 30%;">#}
+                                        {#                                                Importe#}
+                                        {#                                            </th>#}
+                                        {#                                            <th scope="col" class="font-weight-normal" style="width: 20%;">#}
+                                        {#                                                Eliminar#}
+                                        {#                                            </th>#}
+                                        {#                                        </tr>#}
+                                        {#                                        </thead>#}
                                         <tbody id="credit_details"></tbody>
                                     </table>
                                 </div>
@@ -437,7 +493,7 @@
                     <div class="col-md-12 text-uppercase small pl-1 pr-1">
                         <label for="observation" class="mb-0">Observaciones</label>
                         <input type="text" class="form-control form-control-sm text-left" id="observation"
-                               name="observation">
+                               name="observation" autocomplete="off">
                     </div>
                 </div>
             </fieldset>
@@ -449,20 +505,20 @@
                     <div class="col-md-4 text-uppercase small pl-1 pr-1">
                         <label for="order_buy" class="mb-0">Orden de Compra</label>
                         <input type="text" class="form-control form-control-sm text-left"
-                               id="order_buy" placeholder="-"
+                               id="order_buy" placeholder="-" autocomplete="off"
                                name="order_buy">
                     </div>
                     <div class="col-md-4 text-uppercase small pl-1 pr-1">
                         <label for="cod_unit_exe" class="mb-0">Codigo Unidad Ejecutora</label>
                         <input type="text" class="form-control form-control-sm text-left"
                                id="cod_unit_exe" value="{{ guide_obj.client.cod_siaf|default_if_none:'-' }}"
-                               name="cod_unit_exe">
+                               name="cod_unit_exe" autocomplete="off">
                     </div>
                     <div class="col-md-4 text-uppercase small pl-1 pr-1">
                         <label for="n_contract" class="mb-0">Nº Contrato</label>
                         <input type="text" class="form-control form-control-sm text-left"
                                id="n_contract" placeholder="-"
-                               name="n_contract">
+                               name="n_contract" autocomplete="off">
                     </div>
                 </div>
             </fieldset>
