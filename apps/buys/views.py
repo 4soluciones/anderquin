@@ -1660,6 +1660,13 @@ def modal_update_contract(request):
         #             'id': ci.id,
         #             'quantity': ci.quantity
         #         }
+        check_oc = False
+        contract_detail_set = ContractDetail.objects.filter(contract=contract_obj)
+        for c in contract_detail_set:
+            contract_detail_purchase_set = ContractDetailPurchase.objects.filter(contract_detail=c)
+            if contract_detail_purchase_set.exists():
+                check_oc = True
+                break
 
         t = loader.get_template('buys/contract_update.html')
         c = ({
@@ -1669,7 +1676,8 @@ def modal_update_contract(request):
             'user_set': User.objects.filter(is_active=True, is_superuser=False),
             'contract_obj': contract_obj,
             'sum_quantity': sum_quantity,
-            'sum_amount': sum_amount
+            'sum_amount': sum_amount,
+            'check_oc': check_oc
         })
         return JsonResponse({
             'form': t.render(c, request),
@@ -1718,35 +1726,55 @@ def save_update_contract(request):
         contract_update_obj.save()
 
         with transaction.atomic():
-            contract_detail_to_delete = ContractDetail.objects.filter(contract=contract_update_obj)
-            if contract_detail_to_delete.exists():
-                contract_detail_item_to_delete = ContractDetailItem.objects.filter(
-                    contract_detail__in=contract_detail_to_delete)
-                contract_detail_item_to_delete.delete()
-                contract_detail_to_delete.delete()
+            # contract_detail_to_delete = ContractDetail.objects.filter(contract=contract_update_obj)
+            # if contract_detail_to_delete.exists():
+            #     contract_detail_item_to_delete = ContractDetailItem.objects.filter(
+            #         contract_detail__in=contract_detail_to_delete)
+            #     contract_detail_item_to_delete.delete()
+            #     contract_detail_to_delete.delete()
 
-        for d in detail_update:
-            # contract_detail = int(d['contract_detail'])
-            nro_quota = str(d['nro_quota'])
-            date_quota = str(d['date_quota'])
-            new_contract_detail_obj = ContractDetail(
-                contract=contract_update_obj,
-                nro_quota=nro_quota,
-                date=date_quota,
-            )
-            new_contract_detail_obj.save()
-            for i in d['items']:
-                product = i['product']
-                quantity = i['quantity']
-                price_unit = decimal.Decimal(i['price_unit'])
-                product_obj = Product.objects.get(id=int(product))
-                new_contract_detail_item_obj = ContractDetailItem(
-                    quantity=quantity,
-                    product=product_obj,
-                    contract_detail=new_contract_detail_obj,
-                    price_unit=price_unit
-                )
-                new_contract_detail_item_obj.save()
+            for d in detail_update:
+                type_detail = str(d['type'])
+                nro_quota = str(d['nro_quota'])
+                date_quota = str(d['date_quota'])
+
+                if type_detail == 'E':
+                    contract_detail = int(d['contract_detail'])
+                    contract_detail_obj = ContractDetail.objects.get(id=contract_detail)
+                    contract_detail_obj.nro_quota = nro_quota
+                    contract_detail_obj.date = date_quota
+                    contract_detail_obj.save()
+                    for i in d['items']:
+                        product = i['product']
+                        quantity = i['quantity']
+                        price_unit = decimal.Decimal(i['price_unit'])
+                        contract_detail_item = i['contract_detail_item']
+                        contract_detail_item_obj = ContractDetailItem.objects.get(id=int(contract_detail_item))
+                        product_obj = Product.objects.get(id=int(product))
+                        contract_detail_item_obj.quantity = quantity
+                        contract_detail_item_obj.product = product_obj
+                        contract_detail_item_obj.price_unit = price_unit
+                        contract_detail_item_obj.contract_detail = contract_detail_obj
+                        contract_detail_item_obj.save()
+                elif type_detail == 'N':
+                    new_contract_detail_obj = ContractDetail(
+                        contract=contract_update_obj,
+                        nro_quota=nro_quota,
+                        date=date_quota,
+                    )
+                    new_contract_detail_obj.save()
+                    for i in d['items']:
+                        product = i['product']
+                        quantity = i['quantity']
+                        price_unit = decimal.Decimal(i['price_unit'])
+                        product_obj = Product.objects.get(id=int(product))
+                        new_contract_detail_item_obj = ContractDetailItem(
+                            quantity=quantity,
+                            product=product_obj,
+                            contract_detail=new_contract_detail_obj,
+                            price_unit=price_unit
+                        )
+                        new_contract_detail_item_obj.save()
         return JsonResponse({
             'success': True,
             'message': 'CONTRATO ACTUALIZADO'

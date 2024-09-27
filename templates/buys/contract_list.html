@@ -134,7 +134,22 @@
 
         $(document).on('click', '.btn-edit-contract', async function () {
             let _pk = $(this).attr('pk');
-            let flag = await checkOCUpdate(_pk).then(e => {
+            $.ajax({
+                    url: '/buys/modal_update_contract/',
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'pk': _pk},
+                    success: function (response) {
+                        $('#modal-contract-update').html(response.form);
+                        $('#modal-contract-update').modal('show');
+                    },
+                    fail: function (response) {
+                        toastr.error('Error en la peticion', '¡Mensaje!');
+                    }
+                });
+
+
+            /*let flag = await checkOCUpdate(_pk).then(e => {
                 return e
             });
             if (flag === true) {
@@ -153,7 +168,7 @@
                         toastr.error('Error en la peticion', '¡Mensaje!');
                     }
                 });
-            }
+            }*/
         });
 
         {#$(document).on('click', '.delete-row-address', function () {#}

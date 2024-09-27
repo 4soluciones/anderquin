@@ -7,7 +7,8 @@
             <i class="fas fa-3x fa-sync fa-spin"></i>
         </div>
         <div class="modal-header bg-warning">
-            <h6 class="modal-title font-weight-bold text-danger">EDITAR: {{ contract_obj.contract_number }}</h6>
+            <h4 class="modal-title font-weight-bold roboto-condensed-regular text-dark">
+                EDITAR: {{ contract_obj.contract_number }}</h4>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -64,7 +65,8 @@
                                     </div>
                                     <div class="col-sm-3 col-md-3 col-lg-3">
                                         <label for="user_id_update">Vendedor:</label>
-                                        <select id="user_id_update" name="user_update" required class="form-control form-control-sm">
+                                        <select id="user_id_update" name="user_update" required
+                                                class="form-control form-control-sm">
                                             <option selected disabled value="0">Seleccione..</option>
                                             {% for u in user_set %}
                                                 {% if u.id == contract_obj.user.id %}
@@ -155,13 +157,14 @@
                                     <div class="col-sm-2 col-md-2 col-lg-2">
                                         <label class="" for="btn-add-dates-update">&nbsp;</label>
                                         <button type="button" id="btn-add-dates-update"
-                                                class="btn btn-sm btn-success btn-block" disabled
+                                                class="btn btn-sm btn-success btn-block"
                                                 onclick="addDatesUpdate()">Agregar Fechas
                                         </button>
                                     </div>
                                     <div class="col-sm-2 col-md-2 col-lg-2">
                                         <label class="" for="clean-dates-update">&nbsp;</label>
                                         <button type="button" id="clean-dates-update"
+                                                {% if check_oc %}disabled{% endif %}
                                                 class="btn btn-sm btn-danger btn-block">Limpiar
                                         </button>
                                     </div>
@@ -216,14 +219,18 @@
                                 <div class="row pt-2">
                                     <div class="col-sm-12 col-md-12 col-lg-12 dates-quotas-update">
                                         {% for c in contract_obj.contractdetail_set.all %}
-                                            <div class="card mb-2 main-dates-update" style="border-color: #848d9f">
-                                                <div class="card-header pt-1 pb-1">
+                                            <div class="card mb-2 main-dates-update"
+                                                 {% if c.contractdetailpurchase_set.last %} type="B" {% else %} type="E" cd="{{ c.id }}" {% endif %}
+                                                 style="border-color: #848d9f">
+                                                <div class="card-header pt-1 pb-1"
+                                                     {% if c.contractdetailpurchase_set.last %}style="background: #efc8c8"{% endif %}>
                                                     <div class="row">
                                                         <div class="col-sm-2 col-md-2 col-lg-2 text-left item-number-update">
                                                             <label for="number-quota-update"
                                                                    class="mt-2 font-weight-bold">
                                                                 FECHA
-                                                                DE ENTREGA {{ c.nro_quota }} </label>
+                                                                DE ENTREGA </label>
+                                                            <label class="font-weight-bold number">{{ c.nro_quota }}</label>
                                                             <input type=hidden class="number-quota-update"
                                                                    value="{{ c.nro_quota }}">
                                                             <input type="hidden" class="contract_detail"
@@ -231,13 +238,23 @@
                                                         </div>
                                                         <div class="col-sm-3 col-md-3 col-lg-3 item-date-quota-update">
                                                             <input type="date"
+                                                                   {% if c.contractdetailpurchase_set.last %}disabled{% endif %}
                                                                    class="form-control date-quota-update text-center"
                                                                    id="date-quota-update"
                                                                    value="{{ c.date|date:'Y-m-d' }}">
                                                         </div>
+                                                        {% if c.contractdetailpurchase_set.last %}
+                                                            <div class="col-sm-3 col-md-3 col-lg-3 item-date-quota-update">
+                                                                <input type="text" readonly aria-label="..."
+                                                                       style="background: #ffe9ce"
+                                                                       class="form-control text-center font-weight-bold"
+                                                                       value="{{ c.contractdetailpurchase_set.last.purchase.bill_number }}">
+                                                            </div>
+                                                        {% endif %}
                                                     </div>
                                                 </div>
-                                                <div class="card-body p-1">
+                                                <div class="card-body p-1"
+                                                     {% if c.contractdetailpurchase_set.last %}style="background: #efc8c8"{% endif %}>
                                                     <table id="table-date-update-{{ c.nro_quota }}"
                                                            class="table table-hover table-sm align-content-center table-bordered mb-0">
                                                         <thead>
@@ -271,6 +288,7 @@
                                                                     <label for="product_id"
                                                                            class="sr-only">Producto</label>
                                                                     <select id="product_id"
+                                                                            {% if c.contractdetailpurchase_set.last %}disabled{% endif %}
                                                                             class="form-control form-control-sm product-add-update">
                                                                         {% for p in product_set %}
                                                                             {% if p.id == cd.product.id %}
@@ -284,18 +302,21 @@
                                                                 </td>
                                                                 <td class="item-quantity-add-update align-middle text-center">
                                                                     <input type="text"
+                                                                           {% if c.contractdetailpurchase_set.last %}disabled{% endif %}
                                                                            class="form-control text-right quantity-add-update"
                                                                            autocomplete="off"
                                                                            value="{{ cd.quantity|replace_round }}">
                                                                 </td>
                                                                 <td class="item-price-unit-add-update align-middle text-center">
                                                                     <input type="text"
+                                                                           {% if c.contractdetailpurchase_set.last %}disabled{% endif %}
                                                                            class="form-control text-right price-unit-add-update"
                                                                            value="{{ cd.price_unit|replace_round }}"
                                                                            autocomplete="off">
                                                                 </td>
                                                                 <td class="item-amount-add-update align-middle text-center">
                                                                     <input type="text"
+                                                                           {% if c.contractdetailpurchase_set.last %}disabled{% endif %}
                                                                            class="form-control text-right amount-add-update"
                                                                            value="{{ cd.amount|replace_round }}"
                                                                            placeholder="0.00" autocomplete="off">
@@ -485,8 +506,9 @@
             let amount = Number($(this).val())
             sum_amount = sum_amount + amount
         });
-        $("#total-quantity-update").val(sum_quantity.toFixed(2));
-        $("#total-amount-update").val(sum_amount.toFixed(2));
+        $("#total-quantity-update").val(sum_quantity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        //_amount.val(sum_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        $("#total-amount-update").val(sum_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
     }
 
     $(document).on('keyup', '.quantity-add-update', function () {
@@ -550,18 +572,24 @@
             _btn_add.removeAttr('disabled');
             return false;
         }
+        let datesContainer = $('.dates-quotas-update');
+        let currentCount = datesContainer.children('.main-dates-update').length;
+
 
         for (let i = 0; i < _nro_dates.val(); i++) {
-            let _number = i + 1;
+            //let _number = i + 1;
+            let _number = currentCount + i + 1;
+
             let _date_quota = '{{ date_now }}';
 
-            $('.dates-quotas-update').append(
-                '<div class="card mb-2 main-dates-update" style="border-color: #848d9f">' +
+            datesContainer.append(
+                '<div class="card mb-2 main-dates-update" type="N" style="border-color: #848d9f">' +
                 '<div class="card-header pt-1 pb-1">' +
                 '<div class="row">' +
                 '<div class="col-sm-2 col-md-2 col-lg-2 text-left item-number-update">' +
-                '<label for="number-quota-update" class="mt-2 font-weight-bold">' + 'FECHA DE ENTREGA ' + _number + '</label>' +
+                '<label for="number-quota-update" class="mt-2 font-weight-bold">' + 'FECHA DE ENTREGA' + '</label>' + '<label class="font-weight-bold number pl-1"></label>' +
                 '<input type=hidden class="number-quota-update" value="' + _number + '">' +
+                '<input type=hidden class="contract_detail" value="">' +
                 '</div>' +
                 '<div class="col-sm-3 col-md-3 col-lg-3 item-date-quota-update">' +
                 '<input type="date" class="form-control date-quota-update text-center" id="date-quota-update" value="' + _date_quota + '">' +
@@ -606,7 +634,9 @@
                 }
                 $('#details-table-date-update-' + _number).append(
                     '<tr class="text-center">' +
-                    '<td class="item-number-update align-middle text-center">' + item + '</td>' +
+                    '<td class="item-number-update align-middle text-center">' + item +
+                    '<input type="hidden" class="contract-detail-item" value="">' +
+                    '</td>' +
                     '<td class="item-product-add-update align-middle text-center">' +
                     '<select id="product_id" class="form-control form-control-sm product-add-update">' + selectOptions +
                     '</select>' +
@@ -625,6 +655,15 @@
 
         }
         calculateTotalUpdate()
+        counterDates()
+    }
+
+    function counterDates() {
+        let l = 1;
+        $('.dates-quotas-update div.main-dates-update label.number').each(function () {
+            $(this).text(l);
+            l++;
+        });
     }
 
 
@@ -722,6 +761,7 @@
                 "contract_detail": $(this).find("div.item-number-update input.contract_detail").val(),
                 "nro_quota": nro_quota,
                 "date_quota": $(this).find("div.item-date-quota-update input.date-quota-update").val(),
+                "type": $(this).attr("type"),
                 "items": []
             }
             $(`tbody#details-table-date-update-${nro_quota} tr`).each(function () {
@@ -738,6 +778,7 @@
         let data = new FormData($('#contract-update-form').get(0));
         data.append('detail_update', JSON.stringify(detailsUpdate));
         $('#btn-update-contract').attr('disabled', true);
+        console.log(detailsUpdate)
         $.ajax({
             url: $(this).attr('action'),
             type: $(this).attr('method'),

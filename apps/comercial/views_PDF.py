@@ -101,7 +101,6 @@ styles.add(
     ParagraphStyle(name='narrow_b_normal_justify', alignment=TA_JUSTIFY, leading=10, fontName='Narrow-b', fontSize=8))
 styles.add(ParagraphStyle(name='narrow_b_left', alignment=TA_LEFT, leading=9, fontName='Narrow-b', fontSize=8))
 styles.add(ParagraphStyle(name='narrow_c_justify', alignment=TA_JUSTIFY, leading=10, fontName='Narrow-c', fontSize=10))
-styles.add(ParagraphStyle(name='narrow_d_justify', alignment=TA_JUSTIFY, leading=10, fontName='Narrow-d', fontSize=10))
 style = styles["Normal"]
 styles.add(ParagraphStyle(name='CenterNewgotBoldGuideNumber', alignment=TA_CENTER, leading=11, fontName='Newgot',
                           fontSize=11))
@@ -117,7 +116,7 @@ pdfmetrics.registerFont(TTFont('Narrow', 'Arial Narrow.ttf'))
 pdfmetrics.registerFont(TTFont('Narrow-a', 'ARIALN.TTF'))
 pdfmetrics.registerFont(TTFont('Narrow-b', 'ARIALNB.TTF'))
 pdfmetrics.registerFont(TTFont('Narrow-c', 'Arialnbi.ttf'))
-pdfmetrics.registerFont(TTFont('Narrow-d', 'ARIALNI.TTF'))
+# pdfmetrics.registerFont(TTFont('Narrow-d', 'ARIALNI.TTF'))
 pdfmetrics.registerFont(TTFont('Square', 'square-721-condensed-bt.ttf'))
 pdfmetrics.registerFont(TTFont('Square-Bold', 'sqr721bc.ttf'))
 pdfmetrics.registerFont(TTFont('Newgot', 'newgotbc.ttf'))
