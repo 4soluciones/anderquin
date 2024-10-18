@@ -300,7 +300,7 @@ def save_detail_buy_order_store(request):
                     new_product_store_obj.save()
                     kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase)
                 else:
-                    kardex_input(product_store_obj.id, entered_quantity_in_units, price_purchase)
+                    kardex_input(product_store_obj.id, entered_quantity_in_units, price_purchase * entered_quantity_in_units)
 
             if entered_quantity_units != 0 and entered_quantity_units != '':
                 detail_entered_units_obj = PurchaseDetail.objects.create(quantity=entered_quantity_units,
@@ -316,7 +316,7 @@ def save_detail_buy_order_store(request):
                     new_product_store_obj.save()
                     kardex_initial(new_product_store_obj, entered_quantity_units, price_purchase)
                 else:
-                    kardex_input(product_store_obj.id, entered_quantity_units, price_purchase)
+                    kardex_input(product_store_obj.id, entered_quantity_units, price_purchase * entered_quantity_units)
 
             # ----------------------------------- QUANTITY RETURNED --------------------------------------------------
 
