@@ -24,7 +24,7 @@
             <input type="hidden" id="date-ini" name="date-ini" value="{{ start_date }}">
             <input type="hidden" id="date-fin" name="date-fin" value="{{ end_date }}">
 
-            <div class="card text-center">
+            <div class="card text-center pt-3">
                 <div class="card-header pt-1 pb-1 font-weight-bold">
                     <div class="row">
                         <div class="col-6">
@@ -54,126 +54,251 @@
                     </div>
                 </div>
             </div>
-
-            <table class="table table-sm pay-options bg-light table-bordered mb-2">
-                <thead>
-                <tr class="text-uppercase font-weight-lighter">
-                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CUENTA ANDERQUIN:</th>
-                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">Monto a pagar:</th>
-                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">Tipo de Pago:</th>
-                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">Fecha de pago:</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td class="border-top-0 border-bottom border-right align-middle">
-                        <select id="cash" name="cash" aria-label="..."
-                                class="form-control form-control-sm text-uppercase"
-                                aria-selected="Text input with radio button">
-                            {% for c in all_cashes %}
-                                <option value="{{ c.id }}"
-                                >{{ c.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle">
-                        <div class="input-icon">
-                            <input type="text"
-                                   id="bill_pay" name="bill-pay"
-                                   autocomplete="off"
-                                   style="background-color: #d0eedc" aria-label="..."
-                                   class="form-control form-control-sm font-weight-bold text-right text-dark"><i
-                                class="change-money font-weight-bold">S/</i>
-                        </div>
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle">
-                        <select id="way_to_pay"
-                                aria-label="..."
-                                name="way_to_pay"
-                                class="form-control form-control-sm">
-                            <option disabled selected value="0">Seleccione</option>
-                            <option value="E">CONTADO</option>
-                            <option value="D">DEPÓSITO</option>
-                        </select>
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle text-left text-danger">
-                        <input type="date" aria-label="..."
-                               id="pay_date"
-                               name="pay_date"
-                               value="{{ date }}"
-                               class="form-control form-control-sm">
-                    </td>
-
-                </tr>
-                </tbody>
-            </table>
-            <table class="table table-sm bg-light table-bordered mb-0">
-                <thead>
-                <tr class="text-uppercase font-weight-lighter">
-                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CUENTA DEL PROVEEDOR:</th>
-                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">DESCRIPCIÓN DEL PAGO:</th>
-                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CÓDIGO DE OPERACIÓN:</th>
-                    <th class="border-bottom-0 border-right align-middle" style="width: 25%;">ESCANEO DEPOSITO:</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td class="border-top-0 border-bottom border-right align-middle">
-                        <select id="account_supplier" name="account_supplier" aria-label="..."
-                                class="form-control form-control-sm"
-                                aria-selected="Text input with radio button">
-                            <option disabled selected value="0">Seleccione..</option>
-                            {% for c in accounts_supplier %}
-                                <option value="{{ c.id }}">{{ c.bank|default_if_none:'-' }} : {{ c.account }} </option>
-                            {% endfor %}
-                        </select>
-                        {#                        <input type="text"#}
-                        {#                               aria-label="..."#}
-                        {#                               class="form-control form-control-sm"#}
-                        {#                               id="account_supplier"#}
-                        {#                               name="account_supplier">#}
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle">
-                        <input type="text"
-                               aria-label="..."
-                               class="form-control form-control-sm"
-                               id="pay_description"
-                               name="pay_description"
-                               value="PAGO A LA FACTURA: {{ bill.serial }}-{{ bill.correlative }}">
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle">
-                        <input type="text" aria-label="..."
-                               class="form-control form-control-sm"
-                               id="id_code_operation"
-                               name="code_operation">
-                    </td>
-                    <td class="border-top-0 border-bottom border-right align-middle">
-                        <div class="form-group m-0 w-100">
-                            <div class="input-group w-100">
-                                <div class="custom-file w-100">
-                                    <input type="file" name="file" id="file" style="font-size: 12px"/>
+            <div class="card text-center pt-3 bg-light">
+                <div class="card-body pt-0 pb-0 font-weight-bold">
+                    <div class="row">
+                        <div class="col-4"></div>
+                        <div class="col-4">
+                            <div class="form-group row">
+                                <label for="payment_method_id" class="col-sm-4 col-form-label">MODO DE PAGO: </label>
+                                <div class="col-sm-8">
+                                    <select id="payment_method_id" name="payment_method"
+                                            class="form-control form-control-sm text-uppercase text-center">
+                                        <option value="M" selected>EFECTIVO / DEPOSITO</option>
+                                        <option value="C">Nota de Credito</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-            <div class="card text-left">
-                <div class="card-header font-weight-bold">
-                    <div class="row">
-                        <div class="col-12 p-0">
-                            <label class="text-dark pl-1">OBSERVACIÓN: </label>
-                            <input type="text"
-                                   aria-label="..."
-                                   class="form-control form-control-sm font-weight-bold text-left"
-                                   id="observation" name="observation"
-                                   value="">
-                        </div>
+                        <div class="col-4"></div>
                     </div>
                 </div>
             </div>
 
+            <div class="money">
+                <table class="table table-sm pay-options bg-light table-bordered mb-2">
+                    <thead>
+                    <tr class="text-uppercase font-weight-lighter">
+                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CUENTA ANDERQUIN:</th>
+                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">Monto a pagar:</th>
+                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">Tipo de Pago:</th>
+                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">Fecha de pago:</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="border-top-0 border-bottom border-right align-middle">
+                            <select id="cash" name="cash" aria-label="..."
+                                    class="form-control form-control-sm text-uppercase"
+                                    aria-selected="Text input with radio button">
+                                {% for c in all_cashes %}
+                                    <option value="{{ c.id }}"
+                                    >{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td class="border-top-0 border-bottom border-right align-middle">
+                            <div class="input-icon">
+                                <input type="text"
+                                       id="bill_pay" name="bill-pay"
+                                       autocomplete="off"
+                                       style="background-color: #d0eedc" aria-label="..."
+                                       class="form-control form-control-sm font-weight-bold text-right text-dark"><i
+                                    class="change-money font-weight-bold">S/</i>
+                            </div>
+                        </td>
+                        <td class="border-top-0 border-bottom border-right align-middle">
+                            <select id="way_to_pay"
+                                    aria-label="..."
+                                    name="way_to_pay"
+                                    class="form-control form-control-sm">
+                                <option disabled selected value="0">Seleccione</option>
+                                <option value="E">CONTADO</option>
+                                <option value="D">DEPÓSITO</option>
+                            </select>
+                        </td>
+                        <td class="border-top-0 border-bottom border-right align-middle text-left text-danger">
+                            <input type="date" aria-label="..."
+                                   id="pay_date"
+                                   name="pay_date"
+                                   value="{{ date }}"
+                                   class="form-control form-control-sm">
+                        </td>
+
+                    </tr>
+                    </tbody>
+                </table>
+                <table class="table table-sm bg-light table-bordered mb-0">
+                    <thead>
+                    <tr class="text-uppercase font-weight-lighter">
+                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CUENTA DEL
+                            PROVEEDOR:
+                        </th>
+                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">DESCRIPCIÓN DEL
+                            PAGO:
+                        </th>
+                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CÓDIGO DE OPERACIÓN:
+                        </th>
+                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">ESCANEO DEPOSITO:</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="border-top-0 border-bottom border-right align-middle">
+                            <select id="account_supplier" name="account_supplier" aria-label="..."
+                                    class="form-control form-control-sm"
+                                    aria-selected="Text input with radio button">
+                                <option disabled selected value="0">Seleccione..</option>
+                                {% for c in accounts_supplier %}
+                                    <option value="{{ c.id }}">{{ c.bank|default_if_none:'-' }}
+                                        : {{ c.account }} </option>
+                                {% endfor %}
+                            </select>
+                            {#                        <input type="text"#}
+                            {#                               aria-label="..."#}
+                            {#                               class="form-control form-control-sm"#}
+                            {#                               id="account_supplier"#}
+                            {#                               name="account_supplier">#}
+                        </td>
+                        <td class="border-top-0 border-bottom border-right align-middle">
+                            <input type="text"
+                                   aria-label="..."
+                                   class="form-control form-control-sm"
+                                   id="pay_description"
+                                   name="pay_description"
+                                   value="PAGO A LA FACTURA: {{ bill.serial }}-{{ bill.correlative }}">
+                        </td>
+                        <td class="border-top-0 border-bottom border-right align-middle">
+                            <input type="text" aria-label="..."
+                                   class="form-control form-control-sm"
+                                   id="id_code_operation"
+                                   name="code_operation">
+                        </td>
+                        <td class="border-top-0 border-bottom border-right align-middle">
+                            <div class="form-group m-0 w-100">
+                                <div class="input-group w-100">
+                                    <div class="custom-file w-100">
+                                        <input type="file" name="file" id="file" style="font-size: 12px"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="card text-left">
+                    <div class="card-header font-weight-bold">
+                        <div class="row">
+                            <div class="col-12 p-0">
+                                <label class="text-dark pl-1">OBSERVACIÓN: </label>
+                                <input type="text"
+                                       aria-label="..."
+                                       class="form-control form-control-sm font-weight-bold text-left"
+                                       id="observation" name="observation"
+                                       value="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="credit-note d-none">
+                <div class="card p-2 bg-light">
+                    <div class="row m-1 mt-2 text-uppercase">
+                        <div class="col-md-3 p-1 border">
+                            <label for="credit-note-number" class="font-weight-bold">Número de Documento:</label>
+                            <input type="text" autocomplete="off"
+                                   class="form-control text-uppercase" name="credit-note-number" id="credit-note-number"
+                                   placeholder="Nº de nota de credito" required
+                                   value="" maxlength="200">
+                        </div>
+                        <div class="col-md-3 p-1 border">
+                            <label for="credit-note-date" class="font-weight-bold">Fecha de emisión:</label>
+                            <input type="date"
+                                   class="form-control" name="credit-note-date" id="credit-note-date"
+                                   placeholder="" required
+                                   value="{{ date }}">
+                        </div>
+                        <div class="col-md-3 p-1 border">
+                            <label for="bill_serial" class="font-weight-bold">Documento de Referencia:</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend col-6 pr-0 pl-0">
+                                    <input type="text"
+                                           class="form-control text-uppercase text-center font-weight-bold"
+                                           aria-label="" name="bill-serial" readonly
+                                           id="bill_serial" autocomplete="off" value="{{ bill.serial }}">
+                                    <span class="input-group-text bg-light border-0">-</span>
+                                </div>
+                                <input type="text" class="form-control col-6 font-weight-bold text-center"
+                                       aria-label="" name="bill-correlative" readonly
+                                       id="bill-correlative" autocomplete="off" value="{{ bill.correlative }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 p-1 border">
+                            <label for="credit_note_motive" class="font-weight-bold">Motivo:</label>
+                            <input type="text"
+                                   class="form-control" name="credit-note-motive" id="credit_note_motive"
+                                   placeholder="" required>
+                        </div>
+                    </div>
+                    <div class="row m-1 mt-2">
+                        <div class="col-sm-12 p-1">
+                            <div class="card col-sm-12 p-0">
+                                <table class="table-hover table-sm table-bordered" id="id-table-detail-note"
+                                       style="width: 100%;">
+                                    <thead class="text-uppercase small text-center">
+                                    <tr class="text-white" style="background: #0783d6">
+                                        <th scope="col" class="font-weight-normal" style="width: 10%;">Código</th>
+                                        <th scope="col" class="font-weight-normal" style="width: 10%;">Cantidad</th>
+                                        <th scope="col" class="font-weight-normal" style="width: 10%;">Unidad</th>
+                                        <th scope="col" class="font-weight-normal" style="width: 50%;">Descripción</th>
+                                        <th scope="col" class="font-weight-normal" style="width: 10%;">P. Unitario</th>
+                                        <th scope="col" class="font-weight-normal" style="width: 10%;">V. Venta Total
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="new-note-credit">
+                                    <tr>
+                                        <td class="text-center align-middle">
+                                            <input type="text" autocomplete="off" aria-label="..."
+                                                   class="form-control text-uppercase text-center" name="credit-code"
+                                                   id="credit-code" maxlength="200">
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="text" autocomplete="off" aria-label="..."
+                                                   class="form-control text-uppercase text-center"
+                                                   name="credit-quantity"
+                                                   id="credit-quantity" maxlength="200">
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="text" autocomplete="off" aria-label="..."
+                                                   class="form-control text-uppercase text-center" name="credit-unit"
+                                                   value="NIU-UND"
+                                                   id="credit-unit" maxlength="200">
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="text" autocomplete="off" aria-label="..."
+                                                   class="form-control text-uppercase" name="credit-description"
+                                                   id="credit-description" maxlength="200">
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="text" autocomplete="off" aria-label="..."
+                                                   class="form-control text-uppercase text-right"
+                                                   name="credit-price-unit"
+                                                   id="credit-price-unit" maxlength="200">
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="text" autocomplete="off" aria-label="..."
+                                                   class="form-control text-uppercase text-right" name="credit-total"
+                                                   id="credit-total" maxlength="200">
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {#            <div class="row">#}
             {#                <div class="col-lg-12 d-flex justify-content-center align-self-center">#}
@@ -217,21 +342,41 @@
         let _total_debt = $('#total_debt').val().replace(/,/g, '');
         let _bill_pay = $('#bill_pay').val().replace(/,/g, '');
         let _repay_loan = $('#repay_loan').val().replace(/,/g, '.');
-        if (_bill_pay === '') {
-            toastr.warning('Ingrese un monto antes de Guardar el Pago', 'Mensaje');
-            return false
+        let payment_method = $('#payment_method_id').val();
+        let credit_total = $('#credit-total').val();
+
+        if (payment_method === 'M') {
+            if (_bill_pay === '') {
+                toastr.warning('Ingrese un monto antes de Guardar el Pago', 'Mensaje');
+                return false
+            }
+            if ($('#way_to_pay').val() === null) {
+                toastr.warning('Seleccione un metodo de Pago', 'Mensaje');
+                return false
+            }
+            if (Number(_bill_pay) > Number(_total_debt)) {
+                toastr.warning('El monto a pagar no puede ser mayor a la Deuda Total', 'Mensaje');
+                return false
+            }
+            if (Number(_bill_pay) > Number(_repay_loan)) {
+                toastr.warning('El monto a pagar no puede ser mayor al saldo restante', 'Mensaje');
+                return false
+            }
         }
-        if ($('#way_to_pay').val() === null) {
-            toastr.warning('Seleccione un metodo de Pago', 'Mensaje');
-            return false
-        }
-        if (Number(_bill_pay) > Number(_total_debt)) {
-            toastr.warning('El monto a pagar no puede ser mayor a la Deuda Total', 'Mensaje');
-            return false
-        }
-        if (Number(_bill_pay) > Number(_repay_loan)) {
-            toastr.warning('El monto a pagar no puede ser mayor al saldo restante', 'Mensaje');
-            return false
+        else if (payment_method === 'C') {
+            if (credit_total === '') {
+                toastr.warning('Ingrese un monto antes de Guardar el Pago', 'Mensaje');
+                return false
+            }
+            if (Number(credit_total) > Number(_total_debt)) {
+                toastr.warning('El monto a pagar no puede ser mayor a la Deuda Total', 'Mensaje');
+                return false
+            }
+            if (Number(credit_total) > Number(_repay_loan)) {
+                toastr.warning('El monto a pagar no puede ser mayor al saldo restante', 'Mensaje');
+                return false
+            }
+
         }
 
         $('#btn-save').attr("disabled", true);
@@ -292,6 +437,21 @@
                     toastr.error("Error. ", '¡Inconcebible!');
                 }
             });
+        }
+    });
+
+    $('#payment_method_id').change(function () {
+
+        let payment_method = $(this).val();
+        let div_money = $('.money');
+        let div_credit = $('.credit-note');
+
+        if (payment_method === 'M') {
+            div_money.removeClass('d-none');
+            div_credit.addClass('d-none');
+        } else {
+            div_credit.removeClass('d-none');
+            div_money.addClass('d-none');
         }
     });
 

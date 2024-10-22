@@ -2,6 +2,8 @@ import decimal
 
 from django.db import models
 from django.contrib.auth.models import User
+
+from apps import accounting
 from apps.hrm.models import Subsidiary, District, DocumentType
 from apps.sales.models import Unit, Product, Supplier, SubsidiaryStore, LoanPayment, City
 from apps.comercial.models import Truck
@@ -279,6 +281,7 @@ class CreditNote(models.Model):
     issue_date = models.DateField('Fecha de Emision', null=True, blank=True)
     bill = models.ForeignKey('accounting.Bill', on_delete=models.CASCADE, null=True, blank=True)
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, null=True, blank=True)
+    motive = models.TextField('Motive', blank=True, null=True)
 
     def __str__(self):
         return str(self.nro_document)
@@ -286,11 +289,14 @@ class CreditNote(models.Model):
 
 class CreditNoteDetail(models.Model):
     id = models.AutoField(primary_key=True)
+    code = models.CharField('Codigo', max_length=50, null=True, blank=True)
+    description = models.CharField('Description', max_length=200, null=True, blank=True)
     quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
     price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
     credit_note = models.ForeignKey(CreditNote, on_delete=models.CASCADE, null=True, blank=True)
+    total = models.DecimalField('Total', max_digits=30, decimal_places=6, default=0)
 
     def __str__(self):
         return str(self.id)

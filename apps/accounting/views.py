@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from apps.hrm.views import get_subsidiary_by_user
 from apps.hrm.models import Worker, WorkerType, Employee
-from apps.buys.models import Purchase, PurchaseDetail
+from apps.buys.models import Purchase, PurchaseDetail, CreditNote, CreditNoteDetail
 from apps.sales.models import Subsidiary, SubsidiaryStore, Order, OrderDetail, TransactionPayment, LoanPayment, \
     Supplier, Client, ProductDetail, SupplierAddress
 from django.template import loader, Context
@@ -120,7 +120,8 @@ def get_dict_purchases(bill_set):
             _operation_code = '-'
             transaction_payment_set = lp.transactionpayment_set.all()
             if transaction_payment_set.exists():
-                _payment_type = transaction_payment_set.last().get_type_display()
+                _payment_type = transaction_payment_set.last().type
+                _payment_type_display = transaction_payment_set.last().get_type_display()
                 _operation_code = transaction_payment_set.last().operation_code if transaction_payment_set.last().operation_code is not None else '-'
             sum_payed += lp.pay
             loan_payment = {
@@ -131,7 +132,8 @@ def get_dict_purchases(bill_set):
                 'pay': round(lp.pay, 2),
                 'type': lp.type,
                 'file': lp.file,
-                'observation': lp.observation
+                'observation': lp.observation,
+                'payment_method': _payment_type
             }
             new.get('loan_payment_set').append(loan_payment)
         difference_payed = decimal.Decimal(b.bill_total_total) - decimal.Decimal(sum_payed)
@@ -197,88 +199,123 @@ def new_payment_purchase(request):
         user_id = request.user.id
         user_obj = User.objects.get(id=user_id)
 
-        cash = int(request.POST.get('cash'))
-        bill_pay = decimal.Decimal(request.POST.get('bill-pay').replace(',', ''))
-        way_to_pay = str(request.POST.get('way_to_pay'))
-        pay_date = str(request.POST.get('pay_date'))
-        date_converter = datetime.strptime(pay_date, '%Y-%m-%d').date()
-        formatdate = date_converter.strftime("%d-%m-%y")
-        pay_description = str(request.POST.get('pay_description'))
-        code_operation = str(request.POST.get('code_operation'))
-        observation = request.POST.get('observation')
-        file = request.FILES.get('file', False)
+        payment_method = str(request.POST.get('payment_method'))
+
         bill_id = int(request.POST.get('bill'))
-
         bill_obj = Bill.objects.get(id=bill_id)
-        cash_obj = Cash.objects.get(id=cash)
+        bill_pay = 0
+        formatdate = ''
+        code_operation = '-'
+        if payment_method == 'M':
+            cash = int(request.POST.get('cash'))
+            cash_obj = Cash.objects.get(id=cash)
+            bill_pay = decimal.Decimal(request.POST.get('bill-pay').replace(',', ''))
+            way_to_pay = str(request.POST.get('way_to_pay'))
+            pay_date = str(request.POST.get('pay_date'))
+            date_converter = datetime.strptime(pay_date, '%Y/%m/%d').date()
+            formatdate = date_converter.strftime("%d/%m/%y")
+            pay_description = str(request.POST.get('pay_description'))
+            code_operation = str(request.POST.get('code_operation'))
+            observation = request.POST.get('observation')
+            file = request.FILES.get('file', False)
 
-        if way_to_pay == 'E':
-            cash_flow_obj = CashFlow(
-                transaction_date=pay_date,
-                document_type_attached='O',
-                description=pay_description,
-                bill=bill_obj,
-                type='S',
-                total=bill_pay,
-                cash=cash_obj,
-                user=user_obj
-            )
-            cash_flow_obj.save()
+            if way_to_pay == 'E':
+                cash_flow_obj = CashFlow(
+                    transaction_date=pay_date,
+                    document_type_attached='O',
+                    description=pay_description,
+                    bill=bill_obj,
+                    type='S',
+                    total=bill_pay,
+                    cash=cash_obj,
+                    user=user_obj
+                )
+                cash_flow_obj.save()
 
-            loan_payment_obj = LoanPayment(
-                pay=bill_pay,
-                type='C',
-                bill=bill_obj,
-                observation=observation
-            )
-            if file:
-                loan_payment_obj.file = file
+                loan_payment_obj = LoanPayment(
+                    pay=bill_pay,
+                    type='C',
+                    bill=bill_obj,
+                    observation=observation
+                )
+                if file:
+                    loan_payment_obj.file = file
 
-            loan_payment_obj.save()
+                loan_payment_obj.save()
 
-            transaction_payment_obj = TransactionPayment(
-                payment=bill_pay,
-                type=way_to_pay,
-                loan_payment=loan_payment_obj
-            )
-            transaction_payment_obj.save()
+                transaction_payment_obj = TransactionPayment(
+                    payment=bill_pay,
+                    type=way_to_pay,
+                    loan_payment=loan_payment_obj
+                )
+                transaction_payment_obj.save()
 
-        if way_to_pay == 'D':
-            cash_flow_obj = CashFlow(
-                transaction_date=pay_date,
-                document_type_attached='O',
-                description=pay_description,
-                bill=bill_obj,
-                type='R',
-                operation_code=code_operation,
-                total=bill_pay,
-                cash=cash_obj,
-                user=user_obj
-            )
-            cash_flow_obj.save()
+            if way_to_pay == 'D':
+                cash_flow_obj = CashFlow(
+                    transaction_date=pay_date,
+                    document_type_attached='O',
+                    description=pay_description,
+                    bill=bill_obj,
+                    type='R',
+                    operation_code=code_operation,
+                    total=bill_pay,
+                    cash=cash_obj,
+                    user=user_obj
+                )
+                cash_flow_obj.save()
 
-            loan_payment_obj = LoanPayment(
-                pay=bill_pay,
-                type='C',
-                bill=bill_obj,
-                operation_date=pay_date,
-                observation=observation
-            )
-            if file:
-                loan_payment_obj.file = file
+                loan_payment_obj = LoanPayment(
+                    pay=bill_pay,
+                    type='C',
+                    bill=bill_obj,
+                    operation_date=pay_date,
+                    observation=observation
+                )
+                if file:
+                    loan_payment_obj.file = file
 
-            loan_payment_obj.save()
+                loan_payment_obj.save()
 
-            transaction_payment_obj = TransactionPayment(
-                payment=bill_pay,
-                type=way_to_pay,
-                loan_payment=loan_payment_obj,
-                operation_code=code_operation
-            )
-            transaction_payment_obj.save()
+                transaction_payment_obj = TransactionPayment(
+                    payment=bill_pay,
+                    type=way_to_pay,
+                    loan_payment=loan_payment_obj,
+                    operation_code=code_operation
+                )
+                transaction_payment_obj.save()
+
+        elif payment_method == 'C':
+            credit_note_number = str(request.POST.get('credit-note-number'))
+            credit_note_date = str(request.POST.get('credit-note-date'))
+            credit_note_motive = str(request.POST.get('credit_note_motive'))
+
+            credit_code = str(request.POST.get('credit-code'))
+            credit_quantity = str(request.POST.get('credit-quantity'))
+            credit_unit = str(request.POST.get('credit-unit'))
+            credit_description = str(request.POST.get('credit-description'))
+            credit_price_unit = decimal.Decimal(request.POST.get('credit-price-unit').replace(',', ''))
+            credit_total = decimal.Decimal(request.POST.get('credit-total').replace(',', ''))
+
+            credit_note_obj = CreditNote.objects.create(nro_document=credit_note_number, issue_date=credit_note_date,
+                                                        bill=bill_obj, motive=credit_note_motive)
+
+            CreditNoteDetail.objects.create(code=credit_code, quantity=credit_quantity, description=credit_description,
+                                            price_unit=credit_price_unit, total=credit_total,
+                                            credit_note=credit_note_obj)
+
+            loan_payment_obj = LoanPayment.objects.create(pay=credit_total, type='C', bill=bill_obj,
+                                                          operation_date=credit_note_date,
+                                                          observation='Nota de crédito ' + credit_note_number)
+
+            TransactionPayment.objects.create(payment=credit_total, type='C', operation_code=credit_note_number,
+                                              loan_payment=loan_payment_obj)
+            code_operation = credit_note_number
+            date_converter = datetime.strptime(credit_note_date, '%Y-%m-%d').date()
+            formatdate = date_converter.strftime("%d/%m/%y")
+            bill_pay = credit_total
 
         return JsonResponse({
-            'message': 'Cambios guardados con exito.',
+            'message': 'Pago registrado con exito.',
             'pay': round(bill_pay, 2),
             'pay_date': formatdate,
             'cod_op': code_operation,

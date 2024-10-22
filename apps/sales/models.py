@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Min, Sum
 
+from apps import accounting
 from apps.comercial import apps
 from apps.hrm.models import Subsidiary, District, DocumentType
 from apps.accounting.models import Cash, CashFlow
@@ -553,7 +554,7 @@ class LoanPayment(models.Model):
 
 
 class TransactionPayment(models.Model):
-    TYPE_CHOICES = (('E', 'Contado'), ('D', 'Deposito'), ('C', 'Credito'))
+    TYPE_CHOICES = (('E', 'Contado'), ('D', 'Deposito'), ('C', 'Nota de Credito'))
     id = models.AutoField(primary_key=True)
     payment = models.DecimalField('Pago', max_digits=10, decimal_places=2, default=0)
     type = models.CharField('Tipo de pago', max_length=1, choices=TYPE_CHOICES, default='E', )

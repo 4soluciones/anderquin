@@ -2,12 +2,12 @@
 <table class="table table-sm table-bordered table-hover roboto-condensed-regular" id="table-dictionary">
     <thead>
     <tr class="text-white small text-uppercase">
-        <th class="bg-primary text-center align-middle" style="width: 9%;">REFERENCIA</th>
+        <th class="bg-primary text-center align-middle" style="width: 8%;">REFERENCIA</th>
         {#        <th class="bg-primary text-center align-middle" style="width: 9%;">PROVEEDOR</th>#}
-        <th class="bg-primary text-center align-middle" style="width: 9%;">Nª DE DOC</th>
-        <th class="bg-primary text-center align-middle" style="width: 9%;">FECHA BASE</th>
-        <th class="bg-primary text-center" style="width: 9%;">FECHA VENCIMIENTO</th>
-        <th class="bg-primary text-center align-middle" style="width: 5%;">MORO</th>
+        <th class="bg-primary text-center align-middle" style="width: 6%;">Nª DE DOC</th>
+        <th class="bg-primary text-center align-middle" style="width: 6%;">FECHA BASE</th>
+        <th class="bg-primary text-center align-middle" style="width: 6%;">FECHA VENCIMIENTO</th>
+        <th class="bg-primary text-center align-middle" style="width: 3%;">MORO</th>
         {#        <th class="bg-primary text-center align-middle" style="width: 15%;">ORDENES DE COMPRA</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">PRODUCTO</th>#}
         {#        <th class="bg-info text-center" style="width: 12%;">TIPO UND.</th>#}
@@ -18,9 +18,9 @@
         <th class="bg-success text-center align-middle" style="width: 9%;">IMPORTE FALTANTE</th>
         <th class="bg-success text-center align-middle" style="width: 9%;">IMPORTE PAGADO</th>
         {#        <th class="bg-success text-center align-middle" style="width: 9%;">TOTAL DEUDA</th>#}
-        <th class="bg-success text-center align-middle" style="width: 9%;">FECHA DE PAGO</th>
+        <th class="bg-success text-center align-middle" style="width: 9%;">FECHA DE OPERACIÓN</th>
         <th class="bg-success text-center align-middle" style="width: 9%;">NRO OPERACIÓN</th>
-        <th class="bg-success text-center align-middle" style="width: 8%;">OBSERVACION</th>
+        <th class="bg-success text-center align-middle" style="width: 21%;">OBSERVACION</th>
         <th class="bg-success text-center align-middle" style="width: 5%;">PAGAR</th>
     </tr>
     </thead>
@@ -30,8 +30,8 @@
             {% if p.missing_payment == 0 %}style="background-color: #dde2e5" {% else %}{% endif %}>
             <td class="align-middle text-center font-weight-bold">{{ p.serial }}-{{ p.correlative }}</td>
             <td class="align-middle text-center">{{ p.order_number|default_if_none:'-' }}</td>
-            <td class="align-middle text-center">{{ p.register_date|date:"d-m-Y" }}</td>
-            <td class="align-middle text-center">{{ p.expiration_date|date:"d-m-Y" }}</td>
+            <td class="align-middle text-center">{{ p.register_date|date:"d/m/Y" }}</td>
+            <td class="align-middle text-center">{{ p.expiration_date|date:"d/m/Y" }}</td>
             <td class="align-middle text-center font-weight-bold {% if p.days_difference > 0 %}text-danger{% elif p.days_difference < 0 %}text-success{% elif p.days_difference == 0 %}text-dark{% endif %}">
                 {% if p.days_difference > 0 %}
                     {{ p.days_difference }}
@@ -67,7 +67,7 @@
                         <tbody>
                         {% for l in p.loan_payment_set %}
                             <tr class="p-0 m-0 text-center">
-                                <td class="align-middle text-center p-0 m-0 item-pay" style="width: 25%;">
+                                <td class="align-middle text-center p-0 m-0 item-pay" style="width: 18.8%;">
                                     <div class="input-icon">
                                         <input type="text" readonly
                                                style="background-color: #e4ece3; color: #56ad2b" aria-label="..."
@@ -76,23 +76,25 @@
                                             class="change-money font-weight-bold">S/</i>
                                     </div>
                                 </td>
-                                <td class="align-middle text-center p-0 m-0" style="width: 25%;">{{ l.date|date:"d-m-y" }}</td>
-                                <td class="align-middle text-center p-0 m-0" style="width: 25%;">
+                                <td class="align-middle text-center p-0 m-0" style="width: 18.8%;">{{ l.date|date:"d/m/y" }}</td>
+                                <td class="align-middle text-center p-0 m-0" style="width: 18.8%;">
                                     <div class="row">
                                         <div class="col-8 text-right"> {{ l.operation_code }}</div>
-                                        <div class="col-4">
-                                            <button type="button" class="btn btn-sm btn-show-file"
-                                                    data-toggle="modal"
-                                                    data-target="#fileModal"
-                                                    onclick="loadFile('{{ l.file.url }}', {{ l.id }})">
-                                                <i class="fas fa-file"></i>
-                                            </button>
-                                        </div>
+                                        {% if l.payment_method != 'C' %}
+                                            <div class="col-4">
+                                                <button type="button" class="btn btn-sm btn-show-file"
+                                                        data-toggle="modal"
+                                                        data-target="#fileModal"
+                                                        onclick="loadFile('{{ l.file.url }}', {{ l.id }})">
+                                                    <i class="fas fa-file"></i>
+                                                </button>
+                                            </div>
+                                        {% endif %}
                                     </div>
 
                                 </td>
-                                <td class="align-middle text-center p-0 m-0" style="width: 22%;">
-                                    {{ l.observation|default_if_none:'-' }}
+                                <td class="align-middle text-center" style="font-size: 0.8em">
+                                    {{ l.observation|upper|default_if_none:'-' }}
                                 </td>
                             </tr>
                         {% endfor %}
