@@ -13,37 +13,50 @@
                 <div class="card-body bg-light p-0">
                     <input type="hidden" name="bill" id="bill_id" value="{{ bill_obj.id }}">
                     <input type="hidden" name="subsidiary_store" id="subsidiary_store_id" value="{{ bill_obj.store_destiny.id }}">
+                    <input type="hidden" name="bill_detail" id="bill_detail_id" value="{{ bill_detail_obj.id }}">
                     <div class="row m-1 mt-2">
-                        <div class="col-md-4 p-1 border">
-                            <label for="nro-document" class="text-primary">Número de Documento:</label>
+                        <div class="col-md-2 p-1 border">
+                            <label for="credit-nro-document" class="text-primary">Número de Documento:</label>
                             <input type="text" autocomplete="off"
-                                   class="form-control text-uppercase" name="nro-document" id="nro-document"
+                                   class="form-control text-uppercase" name="credit-nro-document" id="credit-nro-document"
                                    placeholder="Nº de nota de credito" required
                                    value="" maxlength="200">
                         </div>
-                        <div class="col-md-4 p-1 border">
+                        <div class="col-md-2 p-1 border">
                             <label for="id-date-issue" class="text-primary">Fecha de emisión:</label>
                             <input type="date"
-                                   class="form-control" name="date-issue" id="id-date-issue"
+                                   class="form-control" name="credit-date-issue" id="id-date-issue"
                                    placeholder="" required
                                    value="{{ date }}">
                         </div>
-                        <div class="col-md-4 p-1 border">
-                            <label for="id_bill-applied" class="text-danger">Factura aplicada:</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend col-3 pr-0 pl-0">
-                                    <input type="text" class="form-control text-uppercase text-center font-weight-bold"
-                                           placeholder="F001" aria-label="" name="bill-serial"
-                                           id="bill_serial" autocomplete="off" value="{{ bill_serial }}">
-                                    <span class="input-group-text bg-light border-0">-</span>
-                                </div>
-                                <input type="text" class="form-control col-4 font-weight-bold" placeholder="001"
-                                       aria-label="" name="bill-correlative"
-                                       id="bill_correlative" autocomplete="off" value="{{ bill_correlative }}">
-                            </div>
+                        <div class="col-md-5 p-1 border">
+                            <label for="id_bill-applied" class="text-danger">Documento de Referencia:</label>
+                            <select class="form-control" id="id_bill-applied" name="credit-bill-applied">
+                                <option selected value="0">Sin documento de referencia</option>
+                                {% for b in bill_set %}
+                                    <option value="{{ b.id }}">{{ b.bill_number }} | {{ b.supplier }} | S/ {{ b.total|replace_round_separator }}</option>
+                                {% endfor %}
+                            </select>
+{#                            <div class="input-group">#}
+{#                                <div class="input-group-prepend col-6 pr-0 pl-0">#}
+{#                                    <input type="text" class="form-control text-uppercase text-center font-weight-bold"#}
+{#                                           placeholder="F001" aria-label="" name="bill-serial"#}
+{#                                           id="bill_serial" autocomplete="off" value="{{ bill_serial }}">#}
+{#                                    <span class="input-group-text bg-light border-0">-</span>#}
+{#                                </div>#}
+{#                                <input type="text" class="form-control col-6 font-weight-bold text-center" placeholder="001"#}
+{#                                       aria-label="" name="bill-correlative"#}
+{#                                       id="bill_correlative" autocomplete="off" value="{{ bill_correlative }}">#}
+{#                            </div>#}
                             {#                        <input type="text"#}
                             {#                               class="form-control" name="bill-applied" id="id_bill-applied" required#}
                             {#                               value="{{ bill_number }}">#}
+                        </div>
+                        <div class="col-md-3 p-1 border">
+                            <label for="credit_note_motive" class="text-primary">Motivo:</label>
+                            <input type="text"
+                                   class="form-control" name="credit-note-motive" id="credit_note_motive"
+                                   placeholder="" required>
                         </div>
                     </div>
                     <div class="row m-1 mt-2">
@@ -53,24 +66,52 @@
                                        style="width: 100%;">
                                     <thead class="text-uppercase small text-center">
                                     <tr class="text-white" style="background: #0783d6">
-                                        <th scope="col" class="font-weight-normal" style="width: 5%;">Nº</th>
+                                        <th scope="col" class="font-weight-normal" style="width: 10%;">Código</th>
                                         <th scope="col" class="font-weight-normal" style="width: 10%;">Cantidad</th>
                                         <th scope="col" class="font-weight-normal" style="width: 10%;">Unidad</th>
-                                        <th scope="col" class="font-weight-normal" style="width: 10%;">Código</th>
-                                        <th scope="col" class="font-weight-normal" style="width: 45%;">Descripción</th>
-                                        <th scope="col" class="font-weight-normal" style="width: 10%;">P/U</th>
-                                        <th scope="col" class="font-weight-normal" style="width: 10%;">Importe</th>
+                                        <th scope="col" class="font-weight-normal" style="width: 50%;">Descripción</th>
+                                        <th scope="col" class="font-weight-normal" style="width: 10%;">P. Unitario</th>
+                                        <th scope="col" class="font-weight-normal" style="width: 10%;">V. Venta Total
+                                        </th>
                                     </tr>
                                     </thead>
                                     <tbody id="new-note-credit">
-                                    <tr bill_detail="{{ bill_detail_obj.id }}">
-                                        <td class="text-center align-middle">1</td>
-                                        <td class="text-center align-middle">{{ bill_detail_obj.quantity|replace_round }}</td>
-                                        <td class="text-center align-middle">{{ bill_detail_obj.unit.name }}</td>
-                                        <td class="text-center align-middle">{{ bill_detail_obj.product.code }}</td>
-                                        <td class="text-center align-middle">{{ bill_detail_obj.product.name }}</td>
-                                        <td class="text-center align-middle">{{ bill_detail_obj.price_unit|replace_round }}</td>
-                                        <td class="text-center align-middle">{{ bill_detail_obj.amount|replace_round }}</td>
+                                    <tr>
+                                        <td class="text-center align-middle">
+                                            <input type="text" autocomplete="off" aria-label="..."
+                                                   class="form-control text-uppercase text-center" name="credit-code"
+                                                   id="credit-code" maxlength="200">
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="text" autocomplete="off" aria-label="..."
+                                                   class="form-control text-uppercase text-center"
+                                                   name="credit-quantity"
+                                                   id="credit-quantity" maxlength="200">
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="text" autocomplete="off" aria-label="..."
+                                                   class="form-control text-uppercase text-center" name="credit-unit"
+                                                   value="NIU-UND"
+                                                   id="credit-unit" maxlength="200">
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="text" autocomplete="off" aria-label="..."
+                                                   class="form-control text-uppercase" name="credit-description"
+                                                   id="credit-description" maxlength="200">
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="text" autocomplete="off" aria-label="..."
+                                                   class="form-control text-uppercase text-right"
+                                                   name="credit-price-unit"
+                                                   value="{{ bill_detail_obj.price_unit|replace_round }}"
+                                                   id="credit-price-unit" maxlength="200">
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="text" autocomplete="off" aria-label="..."
+                                                   class="form-control text-uppercase text-right" name="credit-total"
+                                                   value="{{ bill_detail_obj.amount|replace_round }}"
+                                                   id="credit-total" maxlength="200">
+                                        </td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -92,13 +133,13 @@
 <script type="text/javascript">
     $('#credit-form').submit(function (e) {
         e.preventDefault();
-        let detailCredit = []
+        /*let detailCredit = []
         $("#new-note-credit tr").each(function () {
             let detailObj = {billDetail: $(this).attr('bill_detail')};
             detailCredit.push(detailObj);
-        });
+        });*/
         let data = new FormData($('#credit-form').get(0));
-        data.append('detail', JSON.stringify(detailCredit));
+        //data.append('detail', JSON.stringify(detailCredit));
         $.ajax({
             url: '/sales/bill_create_credit_note/',
             async: true,
@@ -111,6 +152,7 @@
             headers: {"X-CSRFToken": '{{ csrf_token }}'},
             success: function (response, textStatus, xhr) {
                 if (xhr.status === 200) {
+
                     toastr.success(response.message, '¡Mensaje!');
                     setTimeout(() => {
                         location.reload();

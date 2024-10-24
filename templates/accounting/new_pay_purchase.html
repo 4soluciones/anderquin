@@ -205,11 +205,24 @@
                 <div class="card p-2 bg-light">
                     <div class="row m-1 mt-2 text-uppercase">
                         <div class="col-md-3 p-1 border">
-                            <label for="credit-note-number" class="font-weight-bold">Número de Documento:</label>
-                            <input type="text" autocomplete="off"
+                            <div class="row">
+                                <label class="font-weight-bold col-8">Nº Nota Credito:</label>
+                                <div class="form-check col-4 text-right">
+                                    <input type="checkbox" class="form-check-input" id="check_search_credit">
+                                    <label class="form-check-label" for="check_search_credit" style="font-size: 0.8em">Buscar
+                                        N/C:</label>
+                                </div>
+                            </div>
+                            <input type="text" autocomplete="off" aria-label=""
                                    class="form-control text-uppercase" name="credit-note-number" id="credit-note-number"
-                                   placeholder="Nº de nota de credito" required
-                                   value="" maxlength="200">
+                                   placeholder="Nº de nota de credito" maxlength="200">
+                            <select id="credit_search" name="credit-search" aria-label="..."
+                                    class="form-control d-none">
+                                <option disabled selected value="0">Seleccione N/C</option>
+                                {% for c in credit_note_pending_set %}
+                                    <option value="{{ c.id }}">{{ c.nro_document }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="col-md-3 p-1 border">
                             <label for="credit-note-date" class="font-weight-bold">Fecha de emisión:</label>
@@ -323,6 +336,30 @@
 
 <script type="text/javascript">
 
+
+    var credit_note_dict = [
+        {% for c in credit_note_pending_set %}
+            {
+                'id': '{{ c.id }}',
+                'nro_document': '{{ c.nro_document }}',
+                'issue_date': '{{ c.issue_date|date:'Y-m-d' }}',
+                'motive': '{{ c.motive }}',
+                'details': [
+                    {% for d in c.creditnotedetail_set.all %}
+                        {
+                            'code': '{{ d.code }}',
+                            'quantity': '{{ d.quantity }}',
+                            'description': '{{ d.description }}',
+                            'unit': '{{ d.unit.name }}',
+                            'price_unit': '{{ d.price_unit }}',
+                            'total': '{{ d.total }}'
+                        },
+                    {% endfor %}
+                ]
+            },
+        {% endfor %}
+    ];
+
     $(document).ready(function () {
         setTimeout(function () {
             $('#bill_pay').focus();
@@ -362,8 +399,7 @@
                 toastr.warning('El monto a pagar no puede ser mayor al saldo restante', 'Mensaje');
                 return false
             }
-        }
-        else if (payment_method === 'C') {
+        } else if (payment_method === 'C') {
             if (credit_total === '') {
                 toastr.warning('Ingrese un monto antes de Guardar el Pago', 'Mensaje');
                 return false
@@ -454,6 +490,49 @@
             div_money.addClass('d-none');
         }
     });
+
+    $('#check_search_credit').change(function () {
+        if ($(this).prop('checked')) {
+            $('#credit_search').removeClass('d-none');
+            $('#credit-note-number').addClass('d-none');
+        } else {
+            $('#credit_search').addClass('d-none');
+            $('#credit-note-number').removeClass('d-none');
+            $('#credit_search').val('0');
+            let today = new Date();
+            let year = today.getFullYear();
+            let month = ('0' + (today.getMonth() + 1)).slice(-2);
+            let day = ('0' + today.getDate()).slice(-2);
+            document.getElementById('credit-note-date').value = `${year}-${month}-${day}`;
+            document.getElementById('credit_note_motive').value = '';
+            document.getElementById('credit-code').value = '';
+            document.getElementById('credit-quantity').value = '';
+            document.getElementById('credit-description').value = '';
+            document.getElementById('credit-price-unit').value = '';
+            document.getElementById('credit-total').value = '';
+        }
+    });
+
+    document.getElementById('credit_search').addEventListener('change', function () {
+        let _credit_id = this.value;
+        let selectedCreditNote = credit_note_dict.find(function (note) {
+            return note.id === _credit_id;
+        });
+        if (selectedCreditNote) {
+            document.getElementById('credit-note-date').value = selectedCreditNote.issue_date;
+            document.getElementById('credit_note_motive').value = selectedCreditNote.motive.toUpperCase();
+            if (selectedCreditNote.details.length > 0) {
+                let firstDetail = selectedCreditNote.details[0];
+                document.getElementById('credit-code').value = firstDetail.code;
+                document.getElementById('credit-quantity').value = parseFloat(firstDetail.quantity).toFixed(2);
+                document.getElementById('credit-description').value = firstDetail.description;
+                document.getElementById('credit-price-unit').value = parseFloat(firstDetail.price_unit).toFixed(2);
+                document.getElementById('credit-total').value = parseFloat(firstDetail.total).toFixed(2);            }
+        } else {
+            document.getElementById('credit-note-date').value = '';
+            console.error('No se encontró una nota de crédito con el ID: ' + _credit_id);
+        }
+    })
 
 
 </script>

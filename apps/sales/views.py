@@ -3982,9 +3982,50 @@ def get_details_by_bill(request):
         bill_id = request.GET.get('bill_id', '')
         bill_obj = Bill.objects.get(pk=int(bill_id))
         details_bill = BillDetail.objects.filter(bill=bill_obj)
+
+        details_dict = []
+        for d in details_bill:
+
+            order_number = ''
+            order_number_bill = ''
+            store = ''
+            credit_number = ''
+            bill_applied = 'Sin Aplicar'
+
+            if d.order:
+                order_number = d.order.id
+                order_number_bill = d.order.serial + '-' + d.order.correlative
+            if d.kardex_set.all():
+                store = d.kardex_set.last().product_store.subsidiary_store.name
+
+            credit_note_set = CreditNote.objects.filter(bill_note=d.bill)
+            if credit_note_set.exists():
+                credit_note_obj = credit_note_set.last()
+                credit_number = credit_note_obj.nro_document
+                if credit_note_obj.bill is not None:
+                    bill_applied = credit_note_obj.bill
+
+            item = {
+                'id': d.id,
+                'product': d.product.name,
+                'quantity': d.quantity,
+                'unit': d.unit.description,
+                'price_unit': d.price_unit,
+                'status_quantity': d.status_quantity,
+                'status_display': d.get_status_quantity_display(),
+                'store': store,
+                'batch_number': d.bill.batch_number,
+                'batch_expiration': d.bill.batch_expiration_date,
+                'order_number': order_number,
+                'order_number_bill': order_number_bill,
+                'credit_note': credit_number,
+                'bill_applied': bill_applied
+            }
+            details_dict.append(item)
+        # print(details_dict)
         t = loader.get_template('sales/details_bill.html')
         c = ({
-            'details_bill': details_bill,
+            'details_dict': details_dict,
             'bill_obj': bill_obj,
         })
         return JsonResponse({
@@ -4047,6 +4088,22 @@ def bill_credit_note(request):
         bill_correlative = bill_obj.correlative
         my_date = datetime.now()
         date_now = my_date.strftime("%Y-%m-%d")
+
+        bill_set = Bill.objects.filter(status__in=['S', 'E']).order_by('register_date')
+
+        bill_new_dict = []
+        for b in bill_set:
+            repay_loan_total = decimal.Decimal(b.repay_loan())
+            bill_total = decimal.Decimal(b.bill_total_total)
+            if bill_total != repay_loan_total:
+                item = {
+                    'id': b.id,
+                    'bill_number': b,
+                    'supplier': b.supplier.business_name,
+                    'total': str(round(b.bill_total_total, 2))
+                }
+                bill_new_dict.append(item)
+
         t = loader.get_template('buys/modal_credit_note.html')
         c = ({
             'bill_detail_obj': bill_detail_obj,
@@ -4054,6 +4111,7 @@ def bill_credit_note(request):
             'bill_correlative': bill_correlative,
             'bill_obj': bill_obj,
             'date': date_now,
+            'bill_set': bill_new_dict,
         })
         return JsonResponse({
             'form': t.render(c, request),
@@ -4062,45 +4120,85 @@ def bill_credit_note(request):
 
 def bill_create_credit_note(request):
     if request.method == 'POST':
-        nro_document = request.POST.get('nro-document', '')
-        date_issue = request.POST.get('date-issue', '')
-        bill_serial = request.POST.get('bill-serial', '')
-        bill_correlative = request.POST.get('bill-correlative', '')
-        subsidiary_store = request.POST.get('subsidiary_store', '')
-        detail = json.loads(request.POST.get('detail', ''))
-        purchase_detail_id = ''
-        subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(subsidiary_store))
+        credit_nro_document = request.POST.get('credit-nro-document', '')
+        credit_date_issue = request.POST.get('credit-date-issue', '')
+        credit_bill = request.POST.get('credit-bill-applied', '')
+        credit_note_motive = request.POST.get('credit-note-motive', '')
 
-        bill_set = Bill.objects.filter(serial=bill_serial, correlative=bill_correlative)
-        if bill_set.exists():
-            bill_obj = bill_set.last()
-            credit_note_obj = CreditNote.objects.create(nro_document=nro_document, issue_date=date_issue, bill=bill_obj)
-            for d in detail:
-                bill_detail_id = int(d['billDetail'])
-                bill_detail_obj = BillDetail.objects.get(id=int(bill_detail_id))
-                credit_note_detail_obj = CreditNoteDetail.objects.create(quantity=bill_detail_obj.quantity,
-                                                                         product=bill_detail_obj.product,
-                                                                         unit=bill_detail_obj.unit,
-                                                                         price_unit=bill_detail_obj.price_unit,
-                                                                         credit_note=credit_note_obj)
-                product_store_id = ProductStore.objects.get(product=bill_detail_obj.product,
-                                                            subsidiary_store=subsidiary_store_obj).id
-                quantity_minimum = ProductDetail.objects.filter(product=bill_detail_obj.product,
-                                                                unit=bill_detail_obj.unit).last().quantity_minimum
-                total_cost = bill_detail_obj.quantity * bill_detail_obj.price_unit
-                kardex_credit_note_input(product_store_id, quantity_minimum, total_cost, type_document='07',
-                                         type_operation='06', credit_note_detail_obj=credit_note_detail_obj)
-        else:
-            data = {'error': "La Factura no Existe, ingrese una factura correcta"}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
+        # bill_correlative = request.POST.get('bill-correlative', '')
+        subsidiary_store = request.POST.get('subsidiary_store', '')
+        # detail = json.loads(request.POST.get('detail', ''))
+
+        credit_code = str(request.POST.get('credit-code'))
+        credit_quantity = str(request.POST.get('credit-quantity'))
+        credit_unit = str(request.POST.get('credit-unit'))
+        credit_description = str(request.POST.get('credit-description'))
+        credit_price_unit = decimal.Decimal(request.POST.get('credit-price-unit').replace(',', ''))
+        credit_total = decimal.Decimal(request.POST.get('credit-total').replace(',', ''))
+
+        bill_detail_id = request.POST.get('bill_detail', '')
+        bill_detail_obj = BillDetail.objects.get(id=int(bill_detail_id))
+
+        subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(subsidiary_store))
+        bill_obj = None
+        bill_note_obj = Bill.objects.get(id=int(credit_bill))
+        credit_note_obj = CreditNote.objects.create(nro_document=credit_nro_document, issue_date=credit_date_issue,
+                                                    bill_note=bill_note_obj, motive=credit_note_motive)
+
+        credit_note_detail_obj = CreditNoteDetail.objects.create(code=credit_code, quantity=credit_quantity,
+                                                                 description=credit_description,
+                                                                 price_unit=credit_price_unit, total=credit_total,
+                                                                 credit_note=credit_note_obj)
+        if credit_bill != '0':
+            bill_obj = Bill.objects.get(id=int(credit_bill))
+            credit_note_obj.status = 'E'
+            credit_note_obj.save()
+
+            loan_payment_obj = LoanPayment.objects.create(pay=credit_total, type='C', bill=bill_obj,
+                                                          operation_date=credit_date_issue,
+                                                          observation='Nota de crédito ' + credit_nro_document)
+
+            TransactionPayment.objects.create(payment=credit_total, type='C', operation_code=credit_nro_document,
+                                              loan_payment=loan_payment_obj)
+
+        product_store_id = ProductStore.objects.get(product=bill_detail_obj.product,
+                                                    subsidiary_store=subsidiary_store_obj).id
+        quantity_minimum = ProductDetail.objects.filter(product=bill_detail_obj.product,
+                                                        unit=bill_detail_obj.unit).last().quantity_minimum
+        total_cost = bill_detail_obj.quantity * bill_detail_obj.price_unit
+        kardex_credit_note_input(product_store_id, quantity_minimum, total_cost, type_document='07',
+                                 type_operation='06', credit_note_detail_obj=credit_note_detail_obj)
+
+        # bill_set = Bill.objects.filter(serial=bill_serial, correlative=bill_correlative)
+        # if bill_set.exists():
+        #     bill_obj = bill_set.last()
+        #     credit_note_obj = CreditNote.objects.create(nro_document=nro_document, issue_date=date_issue, bill=bill_obj)
+        #     for d in detail:
+        #         bill_detail_id = int(d['billDetail'])
+        #         bill_detail_obj = BillDetail.objects.get(id=int(bill_detail_id))
+        #         credit_note_detail_obj = CreditNoteDetail.objects.create(quantity=bill_detail_obj.quantity,
+        #                                                                  product=bill_detail_obj.product,
+        #                                                                  unit=bill_detail_obj.unit,
+        #                                                                  price_unit=bill_detail_obj.price_unit,
+        #                                                                  credit_note=credit_note_obj)
+        #         product_store_id = ProductStore.objects.get(product=bill_detail_obj.product,
+        #                                                     subsidiary_store=subsidiary_store_obj).id
+        #         quantity_minimum = ProductDetail.objects.filter(product=bill_detail_obj.product,
+        #                                                         unit=bill_detail_obj.unit).last().quantity_minimum
+        #         total_cost = bill_detail_obj.quantity * bill_detail_obj.price_unit
+        #         kardex_credit_note_input(product_store_id, quantity_minimum, total_cost, type_document='07',
+        #                                  type_operation='06', credit_note_detail_obj=credit_note_detail_obj)
+        # else:
+        #     data = {'error': "La Factura no Existe, ingrese una factura correcta"}
+        #     response = JsonResponse(data)
+        #     response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+        #     return response
 
         return JsonResponse({
             'message': 'Nota de Credito registrada',
             # 'parent': purchase_obj.id,
             # 'purchase_detail_id': purchase_detail_id,
-            'nro_document': nro_document,
+            'nro_document': credit_nro_document,
             'bill': str(bill_obj)
         }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)

@@ -110,8 +110,9 @@ def get_dict_purchases(bill_set):
         cash_flow_set = CashFlow.objects.filter(bill_id=b.id)
         loan_payment_set = b.loanpayment_set.all()
         cash_name = '-'
-        if cash_flow_set.exists() and loan_payment_set:
+        if loan_payment_set:
             has_payment = True
+        if cash_flow_set.exists():
             cash_flow_obj = cash_flow_set.first()
             # transaction_date = cash_flow_obj.transaction_date
             cash_name = cash_flow_obj.cash.name
@@ -171,6 +172,7 @@ def get_purchases_pay(request):
         cash_deposit_set = Cash.objects.filter(accounting_account__code__startswith='104')
         # all_cashes = Cash.objects.filter(Q(accounting_account__code__startswith='101') | Q(accounting_account__code__startswith='104'))
         all_cashes = Cash.objects.all()
+        credit_note_pending_set = CreditNote.objects.filter(status='P')
         mydate = datetime.now()
         formatdate = mydate.strftime("%Y-%m-%d")
         tpl = loader.get_template('accounting/new_pay_purchase.html')
@@ -185,7 +187,8 @@ def get_purchases_pay(request):
             'date': formatdate,
             'start_date': start_date,
             'end_date': end_date,
-            'accounts_supplier': bill_obj.supplier.supplieraccounts_set.all()
+            'accounts_supplier': bill_obj.supplier.supplieraccounts_set.all(),
+            'credit_note_pending_set': credit_note_pending_set,
         })
 
         return JsonResponse({
@@ -287,7 +290,7 @@ def new_payment_purchase(request):
         elif payment_method == 'C':
             credit_note_number = str(request.POST.get('credit-note-number'))
             credit_note_date = str(request.POST.get('credit-note-date'))
-            credit_note_motive = str(request.POST.get('credit_note_motive'))
+            credit_note_motive = str(request.POST.get('credit-note-motive'))
 
             credit_code = str(request.POST.get('credit-code'))
             credit_quantity = str(request.POST.get('credit-quantity'))
@@ -296,19 +299,26 @@ def new_payment_purchase(request):
             credit_price_unit = decimal.Decimal(request.POST.get('credit-price-unit').replace(',', ''))
             credit_total = decimal.Decimal(request.POST.get('credit-total').replace(',', ''))
 
-            credit_note_obj = CreditNote.objects.create(nro_document=credit_note_number, issue_date=credit_note_date,
-                                                        bill=bill_obj, motive=credit_note_motive)
+            if credit_note_number == '':
+                credit_search = int(request.POST.get('credit-search'))
+                credit_note_obj = CreditNote.objects.get(id=credit_search)
+                credit_note_obj.bill = bill_obj
+                credit_note_obj.status = 'E'
+                credit_note_obj.save()
+            else:
+                credit_note_obj = CreditNote.objects.create(nro_document=credit_note_number, issue_date=credit_note_date,
+                                                            bill=bill_obj, motive=credit_note_motive, status='E')
 
-            CreditNoteDetail.objects.create(code=credit_code, quantity=credit_quantity, description=credit_description,
-                                            price_unit=credit_price_unit, total=credit_total,
-                                            credit_note=credit_note_obj)
+                CreditNoteDetail.objects.create(code=credit_code, quantity=credit_quantity, total=credit_total,
+                                                description=credit_description, price_unit=credit_price_unit,
+                                                credit_note=credit_note_obj)
 
             loan_payment_obj = LoanPayment.objects.create(pay=credit_total, type='C', bill=bill_obj,
                                                           operation_date=credit_note_date,
-                                                          observation='Nota de crédito ' + credit_note_number)
+                                                          observation='Nota de crédito ' + credit_note_obj.nro_document)
 
-            TransactionPayment.objects.create(payment=credit_total, type='C', operation_code=credit_note_number,
-                                              loan_payment=loan_payment_obj)
+            TransactionPayment.objects.create(payment=credit_total, loan_payment=loan_payment_obj, type='C',
+                                              operation_code=credit_note_obj.nro_document)
             code_operation = credit_note_number
             date_converter = datetime.strptime(credit_note_date, '%Y-%m-%d').date()
             formatdate = date_converter.strftime("%d/%m/%y")

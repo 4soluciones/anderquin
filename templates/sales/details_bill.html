@@ -13,32 +13,32 @@
     </tr>
     </thead>
     <tbody>
-    {% for dt in details_bill %}
+    {% for dt in details_dict %}
         <tr class="col-form-label text-white p-0 m-0" detail="{{ dt.id }}" {% if dt.status_quantity == 'C' %} style="background-color: #83ab79" {% else %} style="background-color: #6c757d" {% endif %}>
             <td class="text-center">
-                {{ dt.get_status_quantity_display }}
+                {{ dt.status_display }}
                 <input type="hidden" value="{{ purchase_obj.id }}">
             </td>
-            <td> - {{ dt.product.name }}
-                {% if dt.order %}
+            <td> - {{ dt.product }}
+                {% if dt.order_number %}
                     <br>
-                    <span class="text-warning"> - Nro Orden: {{ dt.order.id }}</span>
-                    <span class="" style="color: #9fb7cf"> - Nro Comprobante: {{ dt.order.serial|default:'' }} - {{ dt.order.correlative|default:'' }}</span>
+                    <span class="text-warning"> - Nro Orden: {{ dt.order_number }}</span>
+                    <span class="" style="color: #9fb7cf"> - Nro Comprobante: {{ order_number_bill }}</span>
                 {% endif %}
             </td>
             <td class="text-center">
-                {% if dt.status_quantity == 'I' and dt.bill.batch_number %}{{ dt.bill.batch_number|upper|default:'-'|default_if_none:'-' }}{% endif %}</td>
+                {% if dt.status_quantity == 'I' and dt.batch_number %}{{ dt.batch_number|upper }}{% endif %}</td>
             <td class="text-center">
-                {% if dt.status_quantity == 'I' and dt.bill.batch_number %}{{ dt.bill.batch_expiration_date|date:'d-m-Y' }}{% endif %}</td>
+                {% if dt.status_quantity == 'I' and dt.batch_number %}{{ dt.batch_expiration|date:'d/m/Y' }}{% endif %}</td>
 
             <td class="text-center">{{ dt.quantity|replace_round }}</td>
-            <td class="text-center">{{ dt.unit.description }}</td>
-            <td class="text-center">{{ dt.kardex_set.all.last.product_store.subsidiary_store.name|default:'-'|default_if_none:'-' }}</td>
+            <td class="text-center">{{ dt.unit }}</td>
+            <td class="text-center">{{ dt.store }}</td>
             <td class="text-center p-1 credit-note">
                 {% if dt.status_quantity == 'D' %}
-                    {% if dt.bill.creditnote_set.all %}
-                        <span class="text-warning">{{ dt.bill.creditnote_set.all.last.nro_document|upper }}</span><br>
-                        Factura: <span class="text-warning">{{ dt.bill.creditnote_set.all.last.bill }}</span>
+                    {% if dt.credit_note %}
+                        Nota de Credito: <span class="text-warning">{{ dt.credit_note|upper }}</span><br>
+                        Factura: <span class="text-warning">{{ dt.bill_applied}}</span>
                     {% else %}
                         <button type="button" class="btn btn-danger btn-sm generate-credit-note" pk="{{ dt.id }}"
                                 bill="{{ bill_obj.id }}">Nota de Crédito
