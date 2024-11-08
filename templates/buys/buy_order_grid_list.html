@@ -1,4 +1,8 @@
 {% if purchases %}
+    <div class="card-body p-2">
+        <input id="myInput" type="text" placeholder="Ingrese un texto a buscar..." aria-label="..."
+               class="form-control form-control-lg text-uppercase">
+    </div>
     <div class="table-responsive roboto-condensed-regular">
         <table id="purchase-data-grid"
                class="table table-striped table-bordered table-dark text-dark align-content-center table-sm m-0"
@@ -33,17 +37,21 @@
                             {{ p.client_entity|default:'-'|default_if_none:'-' }}
                         {% endif %}
                     </td>
-                    <td class="align-middle text-left">{{ p.delivery_address|default:'-'|default_if_none:'-'|upper }}</td>
+                    <td class="align-middle text-left">
+                        {{ p.delivery_address|default:'-'|default_if_none:'-'|upper }}</td>
                     <td class="align-middle text-center">{{ p.user|upper }}</td>
                     <td class="align-middle text-center font-weight-bold">
                         {% for bp in p.bill_numbers %}
                             {{ bp.bill_number }}{% if not forloop.last %}<br>{% endif %}
                         {% endfor %}
-{#                        {{ p.bill_number }}#}
+                        {#                        {{ p.bill_number }}#}
                     </td>
-                    <td class="align-middle text-center font-weight-bold">{{ p.guide_number|default:'-'|default_if_none:'-'|upper }}</td>
+                    <td class="align-middle text-center font-weight-bold">
+                        {{ p.guide_number|default:'-'|default_if_none:'-'|upper }}</td>
                     <td class="align-middle text-center font-weight-bold" {% if p.status_store == 'S' %}
-                        style="background-color: #f3eeae" {% elif p.status_store == 'A' %}style="background-color: #b2fac4" {% else %}style="background-color: #f6dfdf"{% endif %}>
+                        style="background-color: #f3eeae"
+                        {% elif p.status_store == 'A' %}style="background-color: #b2fac4"
+                        {% else %}style="background-color: #f6dfdf"{% endif %}>
                         {% if p.refund %}
                             {{ p.status_store_text }} <span class="text-danger">(NC)</span>
                         {% else %}
@@ -51,47 +59,47 @@
                         {% endif %}
                     </td>
                     <td class="p-1">
-{#                        <div class="row">#}
-{#                            <div class="col-6 pr-0">#}
-                                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="fas fa-xs fa-bars"></i>
-                                </button>
-                                <div class="dropdown-menu bg-secondary font-italic">
-{#                                    {% if p.status_store == 'S' %}#}
-{#                                        <a class="dropdown-item assignment-store text-white" pk="{{ p.id }}">#}
-{#                                            <i class="fas fa-warehouse"></i> Ingreso Almacen </a>#}
-{#                                    {% endif %}#}
-                                    {% if p.status_store == 'S' and p.status_bill != 'C' %}
-                                        <a class="dropdown-item btn-update text-white" pk="{{ p.id }}"><i
-                                                class="fas fa-edit pr-1"></i>Editar </a>
-                                    {% endif %}
+                        {#                        <div class="row">#}
+                        {#                            <div class="col-6 pr-0">#}
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-xs fa-bars"></i>
+                        </button>
+                        <div class="dropdown-menu bg-secondary font-italic">
+                            {#                                    {% if p.status_store == 'S' %}#}
+                            {#                                        <a class="dropdown-item assignment-store text-white" pk="{{ p.id }}">#}
+                            {#                                            <i class="fas fa-warehouse"></i> Ingreso Almacen </a>#}
+                            {#                                    {% endif %}#}
+                            {% if p.status_store == 'S' and p.status_bill != 'C' %}
+                                <a class="dropdown-item btn-update text-white" pk="{{ p.id }}"><i
+                                        class="fas fa-edit pr-1"></i>Editar </a>
+                            {% endif %}
 
-                                    <a class="dropdown-item btn-download text-white"
-                                       href="{% url 'buys:print_pdf_purchase_order' p.id %}">
-                                        <i class="fas fa-download"></i> Descargar </a>
-                                    {% if p.status_store == 'S' and p.status_bill != 'C' %}
-                                        <a class="dropdown-item btn-annular text-white" pk="{{ p.id }}">
-                                            <i class="fas fa-ban"></i> Anular </a>
-                                    {% endif %}
-                                </div>
-{#                            </div>#}
-{#                            <div class="col-6 pl-0">#}
-{#                                {% if p.status_store == 'A' %}#}
-{#                                    <button type="button" class="btn btn-sm btn-show-detail btn-outline-success"#}
-{#                                            pk_parent="{{ p.purchase_parent }}" pk="{{ p.id }}">#}
-{#                                        <i class="fas fa-sort-down fa-lg see-icon"></i>#}
-{#                                    </button>#}
-{#                                {% endif %}#}
-{#                            </div>#}
-{#                        </div>#}
+                            <a class="dropdown-item btn-download text-white"
+                               href="{% url 'buys:print_pdf_purchase_order' p.id %}">
+                                <i class="fas fa-download"></i> Descargar </a>
+                            {% if p.status_store == 'S' and p.status_bill != 'C' %}
+                                <a class="dropdown-item btn-annular text-white" pk="{{ p.id }}">
+                                    <i class="fas fa-ban"></i> Anular </a>
+                            {% endif %}
+                        </div>
+                        {#                            </div>#}
+                        {#                            <div class="col-6 pl-0">#}
+                        {#                                {% if p.status_store == 'A' %}#}
+                        {#                                    <button type="button" class="btn btn-sm btn-show-detail btn-outline-success"#}
+                        {#                                            pk_parent="{{ p.purchase_parent }}" pk="{{ p.id }}">#}
+                        {#                                        <i class="fas fa-sort-down fa-lg see-icon"></i>#}
+                        {#                                    </button>#}
+                        {#                                {% endif %}#}
+                        {#                            </div>#}
+                        {#                        </div>#}
 
                     </td>
                 </tr>
-                <tr pk_parent="{{ p.purchase_parent }}" style="display: none">
-                    <td colspan="2"></td>
-                    <td colspan="7" class="table-details-purchase bg-white p-0"></td>
-                </tr>
+{#                <tr pk_parent="{{ p.purchase_parent }}" style="display: none">#}
+{#                    <td colspan="2"></td>#}
+{#                    <td colspan="7" class="table-details-purchase bg-white p-0"></td>#}
+{#                </tr>#}
             {% endfor %}
             </tbody>
         </table>
@@ -100,3 +108,36 @@
 {% else %}
     <h1>No existen compras registradas</h1>
 {% endif %}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $("#myInput").on("keyup", function () {
+            $("#purchase-data-grid tbody tr td").closest("tr").hide()
+            var value = $(this).val().toUpperCase();
+            if (value) {
+                $("#purchase-data-grid tbody tr td:contains('" + value + "')").each(function (index) {
+                    //console.log(index)
+                    const parent = $(this).closest("tr")
+                    const rowspan = $(this).attr("rowspan")
+                    //console.log(rowspan)
+                    if (rowspan !== undefined) {
+                        var current = parent
+                        for (var i = 0; i < rowspan; i++) {
+                            console.log(current.text())
+                            current.show()
+                            current = current.next()
+                        }
+                    } else {
+                        parent.show()
+                    }
+                })
+            } else {
+                $("#purchase-data-grid tbody tr td").closest("tr").show()
+                //$("#purchase-data-grid tbody tr").next("tr.details").show()
+            }
+        });
+    });
+
+</script>
