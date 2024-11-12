@@ -20,26 +20,26 @@
                     <th class="th-sm" colspan="4">Detalle de Factura</th>
                 </tr>
                 <tr class="font-weight-bold text-uppercase bg-warning text-center">
-                    <th class="th-sm" style="width: 16%">Producto</th>
-                    <th class="th-sm" style="width: 5%">Cantidad</th>
+                    <th class="th-sm" style="width: 18%">Producto</th>
+                    <th class="th-sm" style="width: 4%">Cant.</th>
                     <th class="th-sm" style="width: 5%">Unidad</th>
-                    <th class="th-sm" style="width: 6%">Precio Unit.</th>
+                    <th class="th-sm" style="width: 5%">Prec. Unit.</th>
                 </tr>
                 </thead>
                 <tbody id="body-finances-bill" style="font-size: 13px;">
                 {% for b in bill_dict %}
                     <tr class="text-center details" pk="{{ b.id }}">
-                        <td class="align-middle">{{ b.register_date|date:'d-m-Y' }}</td>
-                        <td class="align-middle">{{ b.expiration_date|date:'d-m-Y' }}</td>
-                        <td class="align-middle text-center">{{ b.order_number|upper }}</td>
-                        <td class="align-middle text-center font-weight-bold">{{ b.serial }} - {{ b.correlative }}</td>
-                        <td class="align-middle text-center">{{ b.supplier_name }}</td>
-                        <td class="align-middle text-center">{{ b.delivery_address }}</td>
-                        <td class="align-middle text-right font-weight-bold">S/ {{ b.bill_base_total|thousands_separator }}</td>
-                        <td class="align-middle text-right font-weight-bold">S/ {{ b.bill_igv_total|thousands_separator }}</td>
-                        <td class="align-middle text-right font-weight-bold">S/ {{ b.bill_total_total|thousands_separator }}</td>
-                        <td class="align-middle text-center font-weight-bold">
-                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.register_date|date:'d-m-Y' }}</td>
+                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.expiration_date|date:'d-m-Y' }}</td>
+                        <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.order_number|upper }}</td>
+                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">{{ b.serial }} - {{ b.correlative }}</td>
+                        <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.supplier_name }}</td>
+                        <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.delivery_address }}</td>
+                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_base_total|thousands_separator }}</td>
+                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_igv_total|thousands_separator }}</td>
+                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_total_total|thousands_separator }}</td>
+                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">
+                            <div class="btn-group btn-group-toggle" data-toggle="button">
                                 <button type="button" class="btn btn-danger btn-sm bill-cancel" pk="{{ b.id }}">
                                     <i class="fas fa-ban"></i>
                                 </button>

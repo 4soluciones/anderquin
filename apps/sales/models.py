@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Min, Sum
 
-from apps import accounting
+from apps import accounting, comercial, buys
 from apps.comercial import apps
 from apps.hrm.models import Subsidiary, District, DocumentType
 from apps.accounting.models import Cash, CashFlow
@@ -508,6 +508,20 @@ class Kardex(models.Model):
     class Meta:
         verbose_name = 'Registro de Kardex'
         verbose_name_plural = 'Registros de Kardex'
+
+
+class Batch(models.Model):
+    id = models.AutoField(primary_key=True)
+    create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    expiration_date = models.DateField('Fecha de vencimiento', null=True, blank=True)
+    batch_number = models.CharField('Numero de Lote', max_length=50, null=True, blank=True)
+    kardex = models.ForeignKey('Kardex', on_delete=models.SET_NULL, null=True, blank=True)
+    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
+    remaining_quantity = models.DecimalField('Cantidad restante', max_digits=10, decimal_places=2, default=0)
+    product_store = models.ForeignKey('ProductStore', on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.pk)
 
 
 class OrderBill(models.Model):

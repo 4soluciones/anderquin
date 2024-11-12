@@ -300,14 +300,31 @@
                 'bill_quantity': quantity_total.val(),
                 'billPurchases': []
             };
-            $('#bill-details tr').each(function () {
+            /*$('#bill-details tr').each(function () {
                 let details = {
                     'purchaseDetailID': $(this).attr('detail'),
                     'purchaseQuantity': $(this).find('td.item-quantity input.quantity-purchased').val(),
-                    'invoiceQuantity': $(this).find('td.item-quantity input.quantity-invoice').val()
+                    'invoiceQuantity': $(this).find('td.item-quantity input.quantity-invoice').val(),
+                    'product': $(this).attr('product'),
                 };
                 Bill.billPurchases.push(details)
-            })
+            })*/
+            let billPurchases = {};
+            $('#bill-details tr').each(function () {
+                let product_id = $(this).attr('product');
+                let details = {
+                    'unit_id': $(this).attr('unit_id'),
+                    'purchaseDetailID': $(this).attr('detail'),
+                    'purchaseID': $(this).attr('purchase'),
+                    'purchaseQuantity': $(this).find('td.item-quantity input.quantity-purchased').val(),
+                    'invoiceQuantity': $(this).find('td.item-quantity input.quantity-invoice').val()
+                };
+                if (!billPurchases[product_id]) {
+                    billPurchases[product_id] = [];
+                }
+                billPurchases[product_id].push(details);
+            });
+            Bill.billPurchases = billPurchases;
             console.log(Bill)
             //let purchases_array = JSON.parse(purchases.val())
             $('#btn-save-bill').prop('disabled', true)
@@ -335,7 +352,7 @@
                     $('#container-loading').css('display', 'none');
                 }
             });
-            $('#btn-save-bill').prop('disabled', false)
+            //$('#btn-save-bill').prop('disabled', false)
         });
 
         $(document).on('click', '.bill-cancel', function (e) {

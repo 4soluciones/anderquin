@@ -1222,7 +1222,7 @@ def kardex_initial(
         order_detail_obj=None,
         guide_detail_obj=None,
 ):
-    Kardex.objects.create(
+    kardex_obj = Kardex.objects.create(
         operation='C',
         quantity=0,
         price_unit=0,
@@ -1237,6 +1237,8 @@ def kardex_initial(
         type_document='00',
         type_operation='16'
     )
+
+    return kardex_obj
 
 
 def kardex_input(
@@ -1271,7 +1273,7 @@ def kardex_input(
                            total_cost) / new_remaining_quantity
     new_remaining_price_total = new_remaining_quantity * new_remaining_price
 
-    Kardex.objects.create(
+    kardex_obj = Kardex.objects.create(
         operation='E',
         quantity=quantity,
         price_unit=price_unit,
@@ -1290,6 +1292,8 @@ def kardex_input(
 
     product_store.stock = new_stock
     product_store.save()
+
+    return kardex_obj
 
 
 def kardex_ouput(
@@ -3856,8 +3860,8 @@ def save_detail_to_warehouse(request):
         bill_id = int(data_purchase["Bill"])
         bill_obj = Bill.objects.get(id=int(bill_id))
 
-        batch_number = data_purchase["Batch"]
-        batch_expiration_date = str(data_purchase["BatchExpirationDate"])
+        # batch_number = data_purchase["Batch"]
+        # batch_expiration_date = str(data_purchase["BatchExpirationDate"])
         guide_number = data_purchase["GuideNumber"]
         store = data_purchase["Store"]
 
@@ -3866,8 +3870,8 @@ def save_detail_to_warehouse(request):
         subsidiary_obj = get_subsidiary_by_user(user_obj)
         subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(store))
 
-        bill_obj.batch_number = batch_number
-        bill_obj.batch_expiration_date = batch_expiration_date
+        # bill_obj.batch_number = batch_number
+        # bill_obj.batch_expiration_date = batch_expiration_date
         bill_obj.guide_number = guide_number
         bill_obj.assign_date = assign_date
         bill_obj.store_destiny = subsidiary_store_obj
@@ -3907,12 +3911,22 @@ def save_detail_to_warehouse(request):
                     new_product_store_obj = ProductStore.objects.create(product=product_obj,
                                                                         subsidiary_store=subsidiary_store_obj,
                                                                         stock=entered_quantity_in_units)
-                    kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase_unit,
-                                   bill_detail_obj=detail_entered_obj)
+                    kardex_obj = kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase_unit,
+                                                bill_detail_obj=detail_entered_obj)
                 else:
                     total_cost = decimal.Decimal(entered_quantity_in_units) * decimal.Decimal(price_purchase_unit)
-                    kardex_input(product_store_obj.id, entered_quantity_in_units, total_cost,
-                                 type_document='01', type_operation='02', bill_detail_obj=detail_entered_obj)
+                    kardex_obj = kardex_input(product_store_obj.id, entered_quantity_in_units, total_cost,
+                                              type_document='01', type_operation='02',
+                                              bill_detail_obj=detail_entered_obj)
+                for batch in d['Batch']:
+                    batch_number = batch['batchNumber']
+                    batch_quantity = decimal.Decimal(batch['batchQuantity'])
+                    batch_expiration = batch['batchExpiration']
+
+                    Batch.objects.create(expiration_date=batch_expiration, batch_number=batch_number,
+                                         kardex=kardex_obj, quantity=batch_quantity * unit_min_product,
+                                         remaining_quantity=batch_quantity * unit_min_product,
+                                         product_store=product_store_obj)
 
             if entered_quantity_units != 0 and entered_quantity_units != '':
                 detail_entered_units_obj = BillDetail.objects.create(quantity=entered_quantity_units,
@@ -3934,8 +3948,8 @@ def save_detail_to_warehouse(request):
                                    bill_detail_obj=detail_entered_units_obj)
                 else:
                     total_cost = decimal.Decimal(entered_quantity_units) * decimal.Decimal(price_purchase_unit)
-                    kardex_input(product_store_obj.id, entered_quantity_units, total_cost, type_document='01',
-                                 type_operation='02', bill_detail_obj=detail_entered_units_obj)
+                    kardex_input(product_store_obj.id, entered_quantity_units, total_cost,
+                                 type_document='01', type_operation='02', bill_detail_obj=detail_entered_units_obj)
 
             # ----------------------------------- QUANTITY RETURNED --------------------------------------------------
 
@@ -4141,7 +4155,7 @@ def bill_create_credit_note(request):
 
         subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(subsidiary_store))
         bill_obj = None
-        bill_note_obj = Bill.objects.get(id=int(credit_bill))
+        bill_note_obj = bill_detail_obj.bill
         credit_note_obj = CreditNote.objects.create(nro_document=credit_nro_document, issue_date=credit_date_issue,
                                                     bill_note=bill_note_obj, motive=credit_note_motive)
 
@@ -4166,7 +4180,7 @@ def bill_create_credit_note(request):
         quantity_minimum = ProductDetail.objects.filter(product=bill_detail_obj.product,
                                                         unit=bill_detail_obj.unit).last().quantity_minimum
         total_cost = bill_detail_obj.quantity * bill_detail_obj.price_unit
-        kardex_credit_note_input(product_store_id, quantity_minimum, total_cost, type_document='07',
+        kardex_credit_note_input(product_store_id, quantity_minimum * bill_detail_obj.quantity, total_cost, type_document='07',
                                  type_operation='06', credit_note_detail_obj=credit_note_detail_obj)
 
         # bill_set = Bill.objects.filter(serial=bill_serial, correlative=bill_correlative)

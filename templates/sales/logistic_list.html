@@ -154,6 +154,35 @@
             });
         });
 
+        //$('.item-quantity-batch').keyup(function () {
+        $(document).on('keyup', '.item-quantity-batch', function () {
+            let quantity_batch = $(this);
+            let tr = $(this).closest('td').parent('tr.entered-quantity');
+            let _quantity_principal;
+            if (tr.find('input.quantity_entered_principal').val() !== undefined) {
+                _quantity_principal = tr.find('input.quantity_entered_principal');
+            } else {
+                _quantity_principal = tr.find('input.quantity_entered_units');
+            }
+            if (_quantity_principal.val() <= 0) {
+                toastr.warning("PRIMERO DIGITE LA CANTIDAD INGRESADA", '¡Error de datos!');
+                quantity_batch.val('');
+                return false;
+            }
+            let quantity_batch_in_units = $(this).closest('div.row.add-batch').find('input.item-quantity-units-batch')
+            let _quantity_minimum = tr.find('input.quantity-minimum').val();
+            quantity_batch_in_units.val(Number(quantity_batch.val()) * Number(_quantity_minimum))
+        });
+
+        $(document).on('keyup', '.item-quantity-units-batch', function () {
+            let quantity_batch_units = $(this);
+            let tr = $(this).closest('td').parent('tr.entered-quantity');
+            let quantity_batch_principal = $(this).closest('div.row.add-batch').find('input.item-quantity-batch');
+            let _quantity_minimum = tr.find('input.quantity-minimum').val();
+            let multiply = Number(quantity_batch_units.val()) / Number(_quantity_minimum)
+            quantity_batch_principal.val(multiply.toFixed(2))
+        });
+
 
     </script>
 

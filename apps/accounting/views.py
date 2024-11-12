@@ -5,7 +5,7 @@ from apps.hrm.views import get_subsidiary_by_user
 from apps.hrm.models import Worker, WorkerType, Employee
 from apps.buys.models import Purchase, PurchaseDetail, CreditNote, CreditNoteDetail
 from apps.sales.models import Subsidiary, SubsidiaryStore, Order, OrderDetail, TransactionPayment, LoanPayment, \
-    Supplier, Client, ProductDetail, SupplierAddress
+    Supplier, Client, ProductDetail, SupplierAddress, Product
 from django.template import loader, Context
 from django.http import JsonResponse
 from http import HTTPStatus
@@ -2307,50 +2307,50 @@ def save_bill(request):
             )
             bill_obj.save()
 
-            quantity_sum_invoice = 0
             product_obj = None
             unit_obj = None
             price_unit = None
+            for product_id, details_list in data_bill['billPurchases'].items():
+                quantity_sum_invoice = 0
+                for details in details_list:
+                    product_obj = Product.objects.get(id=product_id)
+                    unit_id = details.get('unit_id')
+                    purchase_detail_id = details.get('purchaseDetailID')
+                    purchase_id = details.get('purchaseID')
+                    quantity_purchased = decimal.Decimal(details.get('purchaseQuantity'))
+                    quantity_invoice = decimal.Decimal(details.get('invoiceQuantity'))
 
-            for b in data_bill['billPurchases']:
-                purchase_detail_id = int(b['purchaseDetailID'])
-                quantity_purchased = decimal.Decimal(b['purchaseQuantity'])
-                quantity_invoice = decimal.Decimal(b['invoiceQuantity'])
+                    purchase_detail_obj = PurchaseDetail.objects.get(id=int(purchase_detail_id))
+                    purchase_obj = purchase_detail_obj.purchase
+                    unit_obj = purchase_detail_obj.unit
+                    price_unit = purchase_detail_obj.price_unit
+                    quantity_difference = quantity_purchased - quantity_invoice
+                    if quantity_difference < 1:
+                        purchase_obj.bill_status = 'C'
+                    else:
+                        purchase_obj.bill_status = 'I'
+                    purchase_obj.save()
 
-                purchase_detail_obj = PurchaseDetail.objects.get(id=purchase_detail_id)
-                purchase_obj = purchase_detail_obj.purchase
-                product_obj = purchase_detail_obj.product
-                unit_obj = purchase_detail_obj.unit
-                price_unit = purchase_detail_obj.price_unit
+                    bill_purchase_obj = BillPurchase(
+                        purchase_detail=purchase_detail_obj,
+                        quantity_invoice=quantity_invoice,
+                        quantity_purchased=quantity_purchased,
+                        bill=bill_obj,
+                        purchase=purchase_detail_obj.purchase
+                    )
+                    bill_purchase_obj.save()
 
-                quantity_difference = quantity_purchased - quantity_invoice
+                    quantity_sum_invoice += quantity_invoice
 
-                if quantity_difference < 1:
-                    purchase_obj.bill_status = 'C'
-                else:
-                    purchase_obj.bill_status = 'I'
-                purchase_obj.save()
-
-                bill_purchase_obj = BillPurchase(
-                    purchase_detail=purchase_detail_obj,
-                    quantity_invoice=quantity_invoice,
-                    quantity_purchased=quantity_purchased,
+                bill_detail_obj = BillDetail(
                     bill=bill_obj,
-                    purchase=purchase_detail_obj.purchase
+                    product=product_obj,
+                    quantity=quantity_sum_invoice,
+                    unit=unit_obj,
+                    price_unit=price_unit,
+                    status_quantity='C',
                 )
-                bill_purchase_obj.save()
-
-                quantity_sum_invoice += quantity_invoice
-
-            bill_detail_obj = BillDetail(
-                bill=bill_obj,
-                product=product_obj,
-                quantity=quantity_sum_invoice,
-                unit=unit_obj,
-                price_unit=price_unit,
-                status_quantity='C',
-            )
-            bill_detail_obj.save()
+                bill_detail_obj.save()
 
             return JsonResponse({
                 'success': True,

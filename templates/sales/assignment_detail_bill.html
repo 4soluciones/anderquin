@@ -2,12 +2,15 @@
 <div class="modal-dialog modal-xl" role="document">
 
     <div class="modal-content">
-        <div class="modal-header text-left">
-            <h5 class="modal-title roboto-condensed-regular font-weight-bold col-sm-4">INGRESO A ALMACEN:</h5>
-            <h4 class="modal-title roboto-condensed-regular font-weight-bold col-sm-4 text-success">
-                FACTURA: {{ bill_obj }}</h4>
-            <h4 class="modal-title roboto-condensed-regular font-weight-bold col-sm-4">
-                {{ bill_obj.supplier.name }}</h4>
+        <div class="modal-header text-left pb-1 bg-light">
+            <div class="card-body p-0 ">
+                <h5 class="modal-title roboto-condensed-regular font-weight-bold">INGRESO A ALMACEN:</h5>
+                <h7 class="modal-title roboto-condensed-regular font-weight-bold">
+                    FACTURA: {{ bill_obj }}</h7>
+                <br>
+                <h7 class="modal-title roboto-condensed-regular font-weight-bold">
+                    {{ bill_obj.supplier.name }}</h7>
+            </div>
             <button type="button" class="close col-sm-1" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -43,56 +46,69 @@
                     </div>
 
                 </div>
-                <div class="row p-2 text-uppercase">
+                {#                <div class="row p-2 text-uppercase">#}
+                {##}
+                {#                    <div class="col-sm-4 col-md-4 col-lg-4">#}
+                {#                        <label for="batch" class="">Nº de Lote:</label>#}
+                {#                        <input type="text" class="form-control form-control-sm" id="batch"#}
+                {#                               name="batch" autocomplete="off">#}
+                {#                    </div>#}
+                {##}
+                {#                    <div class="col-sm-4 col-md-4 col-lg-4">#}
+                {#                        <label for="batch_expiration_date" class="">Fecha de vencimiento del Lote:</label>#}
+                {#                        <input type="date" class="form-control form-control-sm" id="batch_expiration_date"#}
+                {#                               name="batch_expiration_date"#}
+                {#                               value="{{ formatdate }}" required>#}
+                {#                    </div>#}
+                {##}
+                {#                </div>#}
 
-                    <div class="col-sm-4 col-md-4 col-lg-4">
-                        <label for="batch" class="">Nº de Lote:</label>
-                        <input type="text" class="form-control form-control-sm" id="batch"
-                               name="batch" autocomplete="off">
-                    </div>
-
-                    <div class="col-sm-4 col-md-4 col-lg-4">
-                        <label for="batch_expiration_date" class="">Fecha de vencimiento del Lote:</label>
-                        <input type="date" class="form-control form-control-sm" id="batch_expiration_date"
-                               name="batch_expiration_date"
-                               value="{{ formatdate }}" required>
-                    </div>
-
-                    {#                    <div class="col-sm-4 col-md-4 col-lg-4">#}
-                    {#                        <label for="bill_number" class="font-weight-bold">Nº de Factura:</label>#}
-                    {#                        <input type="text" class="form-control form-control-sm text-uppercase font-weight-bold"#}
-                    {#                               id="bill_number"#}
-                    {#                               name="bill_number" readonly#}
-                    {#                               value="{{ bill_number }}">#}
-                    {#                    </div>#}
-
-                </div>
-
-                <div class="card bg-light m-2">
-                    <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
+                <!--<div class="card bg-light m-2">
+{#                    <div class="table-responsive dataTables_wrapper roboto-condensed-regular">#}
                         <table class="table table-primary align-content-center table-bordered table-sm m-0">
-                            <thead>
-                            <tr class="text-white bg-info text-uppercase">
-                                <th class="align-middle text-center" style="width: 23%">Producto</th>
-                                <th class="align-middle text-center bg-warning text-dark" style="width: 10%">Cantidad
-                                    Comprada
-                                </th>
-                                <th class="align-middle text-center bg-warning text-dark" style="width: 5%">Unidad</th>
-                                {#                                <th class="align-middle text-center" style="width: 10%">Precio unit.</th>#}
-                                {#                                <th class="align-middle text-center" style="width: 8%">Importe</th>#}
-                                <th class="align-middle text-center bg-warning text-dark" style="width: 30%"
-                                    colspan="2">Cantidad Ingresada
-                                </th>
-                                <th class="align-middle text-center bg-warning text-dark" style="width: 14%"
-                                    colspan="3">Cantidad Faltante (UND)
-                                </th>
-                            </tr>
-                            </thead>
-                            <tbody id="details">
                             {% for d in detail_bill %}
+                                <thead>
+                                <tr class="bg-info text-uppercase">
+                                    <td class="text-center align-middle">
+                                        <span class="font-weight-bold">Cant. Comprada:</span>
+
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <input type="text" aria-label=""
+                                               class="form-control form-control-sm font-weight-bold text-center quantity-purchased-in-units"
+                                               id="quantity-purchased-in-units" autocomplete="off"
+                                               value="{{ d.quantity|replace_round }}" readonly>
+                                    </td>
+                                    <td class="text-left align-middle font-weight-bold" colspan="2">
+                                        {{ d.product_name }}<br>
+                                    </td>
+                                </tr>
+
+                                <tr class="text-white bg-info text-uppercase">
+                                    {#                                <th class="align-middle text-center" style="width: 23%">Producto</th>#}
+                                    {#                                <th class="align-middle text-center bg-warning text-dark" style="width: 10%">Cantidad#}
+                                    {#                                    Comprada#}
+                                    {#                                </th>#}
+                                    {#                                <th class="align-middle text-center bg-warning text-dark" style="width: 5%">Unidad</th>#}
+                                    {#                                <th class="align-middle text-center" style="width: 10%">Precio unit.</th>#}
+                                    {#                                <th class="align-middle text-center" style="width: 8%">Importe</th>#}
+                                    <th class="align-middle text-center bg-warning text-dark" colspan="2" style="width: 35%">
+                                        Despacho de Cantidades
+                                    </th>
+                                    <th class="align-middle text-center bg-warning text-dark" style="width: 10%">
+                                        Cantidad Faltante (UND)
+                                    </th>
+                                    <th class="align-middle text-center bg-warning text-dark" style="width: 55%">
+                                        Ingreso de Lotes
+                                    </th>
+                                </tr>
+                                {#                            <tr class="text-white bg-info text-uppercase">#}
+                                {#                                <th class="align-middle text-center" colspan="4">Producto</th>#}
+                                {#                            </tr>#}
+                                </thead>
+                                <tbody id="details">
                                 <tr class="detail" product="{{ d.product_id }}" purchase_detail="{{ d.id }}">
-                                    <td class="align-middle text-left" rowspan="4">{{ d.product_name }}</td>
-                                    <td class="align-middle item-quantity" rowspan="4">
+                                    <td class="align-middle item-quantity d-none" rowspan="4">
                                         <input type="text"
                                                class="form-control form-control-sm font-weight-bold text-center quantity-purchased-in-units"
                                                id="quantity-purchased-in-units" autocomplete="off"
@@ -103,8 +119,7 @@
                                         <input type="hidden" class="price-unit-purchase" value="{{ d.price_unit }}"
                                                id="price_unit_sold">
                                     </td>
-
-                                    <td class="align-middle item-unit text-center" pu="{{ d.unit_id }}"
+                                    <td class="align-middle item-unit text-center d-none" pu="{{ d.unit_id }}"
                                         rowspan="4">{{ d.unit_description }}</td>
                                 </tr>
                                 <tr class="entered-quantity">
@@ -112,7 +127,6 @@
                                         Cantidad Ingresada
                                     </td>
                                     <td class="align-middle text-center quantity-entered p-0">
-
                                         <table class="table table-info table-sm table-responsive-sm mb-0 table-entered">
                                             <tbody>
                                             {% if d.unit_name == 'UND' %}
@@ -165,6 +179,47 @@
                                                value="{{ d.quantity_in_units }}">
                                         <input type="hidden" id="current-quantity-missing"
                                                class="current-quantity-missing" value="{{ d.quantity_in_units }}">
+                                    </td>
+                                    <td class="align-top text-center batch-column" rowspan="4">
+                                        <div class="card-body table-primary p-1">
+                                            <div class="row p-1 add-batch main">
+                                                <div class="col-sm-1 text-right mt-3 pt-3 pr-0">
+                                                    <label class="item-number">1</label>
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <label for="batch" class="">Nº Lote:</label>
+                                                    <input type="text" id="batch"
+                                                           class="form-control text-center form-control-sm item-number-batch"
+                                                           autocomplete="off">
+                                                </div>
+                                                <div class="col-sm-2 quantity-batch-principal">
+                                                    <label for="quantity" class="">Cant:</label>
+                                                    <input type="text" id="quantity"
+                                                           class="form-control form-control-sm text-center item-quantity-batch"
+                                                           autocomplete="off">
+                                                </div>
+                                                <div class="col-sm-2 quantity-batch-units">
+                                                    <label for="quantity_und" class="">Cant.(UND):</label>
+                                                    <input type="text" id="quantity_und" style="background-color: #cacaca"
+                                                           class="form-control form-control-sm text-center item-quantity-units-batch"
+                                                           autocomplete="off">
+                                                </div>
+                                                <div class="col-sm-3">
+                                                    <label for="batch_expiration_date" class="">Fecha venc.
+                                                        Lote:</label>
+                                                    <input type="date"
+                                                           class="form-control form-control-sm item-expiration-batch"
+                                                           id="batch_expiration_date"
+                                                           value="{{ formatdate }}" required>
+                                                </div>
+                                                <div class="col-sm-2 pt-1 mt-1">
+                                                    <label for="batch_expiration_date" class=""></label>
+                                                    <button id="id_add_new_batch" type="button"
+                                                            class="btn btn-primary btn-sm btn-block btn-add-batch"><i
+                                                            class="fas fa-plus"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                                 <tr class="returned-quantity">
@@ -230,10 +285,6 @@
                                             </tbody>
                                         </table>
                                     </td>
-                                    {#                                        <input type="text" aria-label="..."#}
-                                    {#                                               class="form-control form-control-sm text-center"#}
-                                    {#                                               id="quantity_returned" disabled#}
-                                    {#                                               value="0">#}
                                 </tr>
                                 <tr class="sold-quantity-units">
                                     <td class="align-middle text-right item-check-sold">
@@ -292,16 +343,10 @@
                                             {% endif %}
                                             </tbody>
                                         </table>
-                                        {#                                        <input type="text"#}
-                                        {#                                               class="form-control form-control-sm text-center"#}
-                                        {#                                               id="quantity_sold"#}
-                                        {#                                               disabled#}
-                                        {#                                               value="0">#}
                                     </td>
                                 </tr>
                                 <tr class="d-none sold sold-quantity">
-                                    <td colspan="3"></td>
-                                    <td colspan="2">
+                                    <td colspan="3">
                                         <div class="row m-0">
                                             <div class="col-md-6 text-uppercase sale pl-0">
                                                 <button type="button"
@@ -325,10 +370,257 @@
                                         </div>
                                     </td>
                                 </tr>
+                                </tbody>
                             {% endfor %}
+                        </table>
+{#                    </div>#}
+                </div>-->
+
+                <div class="card bg-light m-2">
+                    {% for d in detail_bill %}
+                        <table class="table table-primary align-content-center table-bordered table-sm m-0">
+                            <thead>
+                            <tr class="bg-info text-uppercase">
+                                <td class="text-center align-middle">
+                                    <span class="font-weight-bold">Cant. Comprada:</span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <input type="text" aria-label=""
+                                           class="form-control form-control-sm font-weight-bold text-center quantity-purchased-in-units"
+                                           id="quantity-purchased-in-units" autocomplete="off"
+                                           value="{{ d.quantity|replace_round }}" readonly>
+                                    {#                                        {{ d.product_name }}#}
+                                </td>
+                            </tr>
+                            <tr class="text-white bg-info text-uppercase">
+                                <th class="align-middle text-center bg-warning text-dark" style="width: 90%">
+                                    Despacho de Cantidades
+                                </th>
+                                {#                                    <th class="align-middle text-center bg-warning text-dark" style="width: 15%">#}
+                                {#                                        Cantidad Faltante (UND)#}
+                                {#                                    </th>#}
+                                <th class="align-middle text-center bg-warning text-dark" style="width: 10%; font-size: 0.8em">
+                                    Cant. Falt. (UND)
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody id="details-product-{{ d.product_id }}">
+                            <tr class="detail" product="{{ d.product_id }}" purchase_detail="{{ d.id }}"
+                                qm="{{ d.quantity_minimum }}">
+                                <td class="align-middle item-quantity text-center">
+                                    <!--<div class="card-body table-primary p-1">
+                                        <div class="row p-1 add-batch main">
+                                            <div class="col-sm-1 text-center mt-3 pt-3 pr-0">
+                                                <label class="item-number">1</label>
+                                            </div>
+                                            <div class="col-sm-1 p-1">
+                                                <label for="batch" class="">Nº Lote:</label>
+                                                <input type="text" id="batch"
+                                                       class="form-control text-center form-control-sm item-number-batch"
+                                                       autocomplete="off">
+                                            </div>
+                                            <div class="col-sm-1 p-1 quantity-batch-principal">
+                                                <label for="quantity" class="">Cant:</label>
+                                                <input type="text" id="quantity"
+                                                       class="form-control form-control-sm text-center item-quantity-batch"
+                                                       autocomplete="off">
+                                            </div>
+                                            <div class="col-sm-1 p-1 quantity-batch-units">
+                                                <label for="quantity_und" class="">Cant.(UND):</label>
+                                                <input type="text" id="quantity_und" style="background-color: #cacaca"
+                                                       class="form-control form-control-sm text-center item-quantity-units-batch"
+                                                       autocomplete="off">
+                                            </div>
+                                            <div class="col-sm-1 p-1 quantity-batch-units">
+                                                <label for="quantity_und" class="">Cant devuelta (CJ):</label>
+                                                <input type="text" id="quantity_und" style="background-color: #cacaca"
+                                                       class="form-control form-control-sm text-center item-quantity-units-batch"
+                                                       autocomplete="off">
+                                            </div>
+                                            <div class="col-sm-1 p-1 quantity-batch-units">
+                                                <label for="quantity_und" class="">Cant. devuelta(UND):</label>
+                                                <input type="text" id="quantity_und" style="background-color: #cacaca"
+                                                       class="form-control form-control-sm text-center item-quantity-units-batch"
+                                                       autocomplete="off">
+                                            </div>
+                                            <div class="col-sm-1 p-1 quantity-batch-units">
+                                                <label for="quantity_und" class="">Cant.vendida (CJ):</label>
+                                                <input type="text" id="quantity_und" style="background-color: #cacaca"
+                                                       class="form-control form-control-sm text-center item-quantity-units-batch"
+                                                       autocomplete="off">
+                                            </div>
+                                            <div class="col-sm-1 p-1 quantity-batch-units">
+                                                <label for="quantity_und" class="">Cant. vendida (UND):</label>
+                                                <input type="text" id="quantity_und" style="background-color: #cacaca"
+                                                       class="form-control form-control-sm text-center item-quantity-units-batch"
+                                                       autocomplete="off">
+                                            </div>
+                                            <div class="col-sm-2">
+                                                <label for="batch_expiration_date" class="">Fecha venc.
+                                                    Lote:</label>
+                                                <input type="date"
+                                                       class="form-control form-control-sm item-expiration-batch"
+                                                       id="batch_expiration_date"
+                                                       value="{{ formatdate }}" required>
+                                            </div>
+                                            <div class="col-sm-1 pt-1 mt-1">
+                                                <label for="batch_expiration_date" class=""></label>
+                                                <button id="id_add_new_batch" type="button"
+                                                        class="btn btn-primary btn-sm btn-block btn-add-batch"><i
+                                                        class="fas fa-plus"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>-->
+                                    <table class="table table-info table-sm table-responsive-sm mb-0" id="table-product-{{ d.product_id }}">
+                                        <thead>
+                                        <tr class="text-uppercase title">
+                                            <td colspan="2"></td>
+                                            <td colspan="2" style="background-color: #8acbe9">Cantidad Ingresada</td>
+                                            <td colspan="2" style="background-color: #ddefa1">
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input check-returned"
+                                                           p="{{ d.product_id }} "id="check-returned">
+                                                    <label class="form-check-label" for="check-returned">Cantidad
+                                                        Devuelta</label>
+                                                </div>
+                                            </td>
+                                            <td class="title-sold" colspan="2" style="background-color: #efd692">
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input check-sold"
+                                                           p="{{ d.product_id }}" id="check-sold">
+                                                    <label class="form-check-label" for="check-sold">Cantidad
+                                                        Vendida</label>
+                                                </div>
+                                            </td>
+                                            <td colspan="2"></td>
+                                        </tr>
+                                        <tr class="sub-title">
+                                            {% if d.unit_name == 'UND' %}
+                                                <th class="font-weight-lighter" style="width: 3%">#</th>
+                                                <th class="font-weight-lighter" style="width: 9%">Nº Lote:</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #8acbe9">UNIDAD(ES)</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #ddefa1">UNIDAD(ES)</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #efd692">UNIDAD(ES)</th>
+                                                <th class="font-weight-lighter item-sold d-none" style="width: 16.5%; background-color: #efd692">VENTA</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%">VENC. LOTE:</th>
+                                                <th style="width: 5%"></th>
+                                            {% else %}
+                                                <th class="font-weight-lighter" style="width: 3%">#</th>
+                                                <th class="font-weight-lighter" style="width: 9%">Nº Lote:</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #8acbe9">{{ d.unit_description }}</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #8acbe9">UNIDAD(ES)</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #ddefa1">{{ d.unit_description }}</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #ddefa1">UNIDAD(ES)</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #efd692">{{ d.unit_description }}</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #efd692">UNIDAD(ES)</th>
+                                                <th class="font-weight-lighter item-sold d-none" style="width: 16.5%; background-color: #efd692">VENTA</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%">VENC. LOTE:</th>
+                                                <th style="width: 5%"></th>
+                                            {% endif %}
+                                        </tr>
+                                        </thead>
+                                        <tbody id="details-batch-{{ d.product_id }}">
+                                        <tr unit="{{ d.unit_id }}">
+                                            <td class="text-center align-middle item-correlative">1</td>
+                                            <td>
+                                                <input type="text" aria-label=""
+                                                       class="form-control text-center form-control-sm item-number-batch"
+                                                       p="{{ d.product_id }}"
+                                                       autocomplete="off">
+                                            </td>
+                                            <td>
+                                                <input type="text" aria-label=""
+                                                       class="form-control form-control-sm text-center entered-quantity-principal"
+                                                       p="{{ d.product_id }}"
+                                                       autocomplete="off">
+                                            </td>
+                                            <td>
+                                                <input type="text" aria-label=""
+                                                       class="form-control form-control-sm text-center entered-quantity-units"
+                                                       p="{{ d.product_id }}"
+                                                       autocomplete="off">
+                                            </td>
+                                            <td>
+                                                <input type="text" aria-label=""
+                                                       class="form-control form-control-sm text-center returned-quantity-principal"
+                                                       p="{{ d.product_id }}"
+                                                       disabled
+                                                       autocomplete="off">
+                                            </td>
+                                            <td>
+                                                <input type="text" aria-label=""
+                                                       class="form-control form-control-sm text-center returned-quantity-units"
+                                                       p="{{ d.product_id }}"
+                                                       disabled
+                                                       autocomplete="off">
+                                            </td>
+                                            <td>
+                                                <input type="text" aria-label=""
+                                                       class="form-control form-control-sm text-center sold-quantity-principal"
+                                                       p="{{ d.product_id }}"
+                                                       disabled
+                                                       autocomplete="off">
+                                            </td>
+                                            <td>
+                                                <input type="text" aria-label=""
+                                                       class="form-control form-control-sm text-center sold-quantity-units"
+                                                       p="{{ d.product_id }}"
+                                                       disabled
+                                                       autocomplete="off">
+                                            </td>
+                                            <td class="item-sold d-none">
+                                                <div class="row m-0">
+                                                    <div class="col-md-4 text-uppercase sale pl-0 pr-0">
+                                                        <button type="button"
+                                                                class="btn btn-success btn-sm btn-block btn-generate-sold">
+                                                            Cod.
+                                                        </button>
+                                                    </div>
+                                                    <div class="col-md-4 text-uppercase pl-0 delete-sale pr-1 d-none">
+                                                        <button type="button"
+                                                                class="btn btn-danger btn-sm btn-block btn-cancel-sold">
+                                                            <i class="fas fa-ban"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="col-md-8 text-uppercase pr-0 pl-0 item-sale">
+                                                        <input type="text" readonly aria-label=""
+                                                               class="form-control form-control-sm text-center font-weight-bold sale-cod"
+                                                               id="sale-cod" value=""
+                                                               name="sale-cod">
+                                                        <input type="hidden" class="sale-id" id="sale-id"
+                                                               name="sale-id">
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <input type="date" aria-label=""
+                                                       class="form-control form-control-sm item-expiration-batch"
+                                                       p="{{ d.product_id }}"
+                                                       id="batch_expiration_date"
+                                                       value="{{ formatdate }}" required>
+                                            </td>
+                                            <td>
+                                                <button id="id_add_new_batch" type="button" product="{{ d.product_id }}"
+                                                        class="btn btn-primary btn-sm btn-block btn-add-batch"><i
+                                                        class="fas fa-plus"></i></button>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <td class="align-middle text-center item-current-quantity">
+                                    <input type="text" id="quantity-missing" aria-label="..."
+                                           class="form-control form-control-sm font-weight-bold text-center quantity-missing"
+                                           readonly
+                                           style="background-color: #b8daff"
+                                           value="{{ d.quantity_in_units }}">
+                                    <input type="hidden" id="current-quantity-missing"
+                                           class="current-quantity-missing" value="{{ d.quantity_in_units }}">
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
-                    </div>
+                    {% endfor %}
                 </div>
 
             </div><!-- modal-body -->
@@ -402,8 +694,8 @@
             "Details": [],
             "Bill": $('#bill_id').val(),
             "AssignDate": $('#assign_date').val(),
-            "Batch": batch.val(),
-            "BatchExpirationDate": $('#batch_expiration_date').val(),
+            //"Batch": batch.val(),
+            //"BatchExpirationDate": $('#batch_expiration_date').val(),
             "GuideNumber": guide_number.val(),
             "Store": store.val(),
         };
@@ -440,14 +732,24 @@
 
                 "SoldQuantityPrincipal": Number(_sold_quantity_principal),
                 "SoldQuantityUnit": Number(_sold_quantity_units),
-                "SoldOrderId": _order
+                "SoldOrderId": _order,
+                "Batch": [],
             };
             details_bill.Details.push(detailObj);
-
+            let batch_column = $(this).parent('tbody#details').find('td.batch-column div.add-batch');
+            batch_column.each(function () {
+                let batchObj = {
+                    "batchNumber": $(this).find('input.item-number-batch').val(),
+                    "batchQuantity": $(this).find('input.item-quantity-batch').val(),
+                    "batchQuantityUnits": $(this).find('input.item-quantity-units-batch').val(),
+                    "batchExpiration": $(this).find('input.item-expiration-batch').val(),
+                };
+                detailObj.Batch.push(batchObj);
+            });
         });
         $('#assignment-changes').prop('disabled', true);
         //console.log(details_bill);
-        $.ajax({
+        /*$.ajax({
             url: '/sales/save_detail_to_warehouse/',
             async: true,
             dataType: 'json', // for response
@@ -468,7 +770,7 @@
                 //$('#assignment').modal('hide');
                 toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
             }
-        });
+        });*/
     })
 
 
@@ -605,7 +907,7 @@
 
         let r = confirm("¿Esta seguro de Generar la Venta? ")
         if (r === true) {
-            let _tr = $(this).closest('tr.sold-quantity')
+            /*let _tr = $(this).closest('tr.sold-quantity')
             let _tr_detail = _tr.prevUntil('tr.detail').prev('tr.detail');
             let _tr_sold = _tr.prev('tr.sold-quantity-units');
             let _product_id = _tr_detail.attr('product');
@@ -625,14 +927,17 @@
             let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
             let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
             let _input_correlative = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod');
-            let _input_order = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id');
+            let _input_order = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id');*/
+
+
+
             /*console.log('product_id', _product_id)
             console.log('unit_principal', unit_principal)
             console.log('unit_id', unit_id)
             console.log("input_principal", input_principal_val)
             console.log("input_units", input_units.val())*/
 
-            $.ajax({
+            /*$.ajax({
                 url: '/sales/create_warehouse_sale/',
                 dataType: 'json',
                 type: 'GET',
@@ -661,7 +966,12 @@
                     toastr.error(jqXhr.responseJSON.detalle, '¡ERROR!');
                 }
 
-            });
+            });*/
+
+            _input_correlative.val("1");
+            _input_order.val("2");
+            _div_sale.addClass('d-none');
+            _div_cancel.removeClass('d-none');
 
             if (input_principal) {
                 input_principal.prop('disabled', true);
@@ -756,15 +1066,15 @@
         let _quantity_sold_principal_val = 0
         let _q_sold_unit = tr_sold.find('tr.sold-quantity-und input.quantity_sold_units');
 
-        if (_tr_in.find('input.quantity_entered_principal').val() !== undefined){
+        if (_tr_in.find('input.quantity_entered_principal').val() !== undefined) {
             _quantity_principal = _tr_in.find('input.quantity_entered_principal');
             _quantity_principal_val = _tr_in.find('input.quantity_entered_principal').val();
         }
-        if (tr_return.find('input.returned_quantity_entered_principal').val() !== undefined){
+        if (tr_return.find('input.returned_quantity_entered_principal').val() !== undefined) {
             _quantity_returned_principal = tr_return.find('input.returned_quantity_entered_principal');
             _quantity_returned_principal_val = tr_return.find('input.returned_quantity_entered_principal').val();
         }
-        if (tr_sold.find('input.quantity_sold_principal').val() !== undefined){
+        if (tr_sold.find('input.quantity_sold_principal').val() !== undefined) {
             _quantity_sold_principal = tr_sold.find('input.quantity_sold_principal');
             _quantity_sold_principal_val = tr_sold.find('input.quantity_sold_principal').val();
         }
@@ -800,8 +1110,7 @@
                 let new_q_missing = Number(_current_quantity_missing.val()) - Number(sum_total_quantities)
                 _quantity_missing.val(new_q_missing.toFixed(2))
             }
-        }
-        else if (type_op === 'return') {
+        } else if (type_op === 'return') {
             if (sum_total_quantities > Number(_current_quantity_missing.val())) {
                 toastr.warning("La cantidad DEVUELTA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
                     positionClass: "toast-center",
@@ -809,7 +1118,7 @@
                 if (type_unit === 'und') {
                     _q_returned_unit.val('')
                     let sum_new = Number(sum_quantities_entered) + Number(q_in_units_principal_returned) + Number(sum_quantities_sold)
-                    let new_q_missing =  Number(sum_new) - Number(_current_quantity_missing.val())
+                    let new_q_missing = Number(sum_new) - Number(_current_quantity_missing.val())
                     _quantity_missing.val(Math.abs(new_q_missing).toFixed(2))
                 } else {
                     _quantity_returned_principal.val('')
@@ -822,8 +1131,7 @@
                 let new_q_missing = Number(_current_quantity_missing.val()) - Number(sum_total_quantities)
                 _quantity_missing.val(new_q_missing.toFixed(2))
             }
-        }
-        else if (type_op === 'sold') {
+        } else if (type_op === 'sold') {
             if (sum_total_quantities > Number(_current_quantity_missing.val())) {
                 toastr.warning("La cantidad VENDIDA no puede superar a la cantidad FALTANTE", '¡MENSAJE!', {
                     positionClass: "toast-center",
@@ -831,11 +1139,11 @@
                 if (type_unit === 'und') {
                     _q_sold_unit.val('')
                     let sum_new = Number(sum_quantities_entered) + Number(sum_quantities_returned) + Number(q_in_units_principal_sold)
-                    let new_q_missing =  Number(sum_new) - Number(_current_quantity_missing.val())
+                    let new_q_missing = Number(sum_new) - Number(_current_quantity_missing.val())
                     _quantity_missing.val(Math.abs(new_q_missing).toFixed(2))
                 } else {
                     _quantity_sold_principal.val('');
-                    let new_q_missing = (Number(sum_quantities_entered) + Number(sum_quantities_returned) +  Number(_q_sold_unit.val())) - Number(_current_quantity_missing.val())
+                    let new_q_missing = (Number(sum_quantities_entered) + Number(sum_quantities_returned) + Number(_q_sold_unit.val())) - Number(_current_quantity_missing.val())
                     _quantity_missing_val = Math.abs(new_q_missing).toFixed(2)
                     _quantity_missing.val(_quantity_missing_val)
                 }
@@ -844,6 +1152,283 @@
                 let new_q_missing = Number(_current_quantity_missing.val()) - Number(sum_total_quantities)
                 _quantity_missing.val(new_q_missing.toFixed(2))
             }
+        }
+    }
+
+    /*$('.btn-add-batch').click(function () {
+        let formattedDate = "{{ formatdate|escapejs }}";
+        let clickedRow = $(this).closest('.add-batch')
+        clickedRow.after(`
+            <div class="row p-1 add-batch">
+                <div class="col-sm-1 text-right pt-1 pr-0">
+                    <label class="item-number"></label>
+                </div>
+                <div class="col-sm-2">
+                    <input type="text" class="form-control text-center form-control-sm item-number-batch" autocomplete="off">
+                </div>
+                <div class="col-sm-2 quantity-batch-principal">
+                    <input type="text" class="form-control text-center form-control-sm item-quantity-batch" autocomplete="off">
+                </div>
+                <div class="col-sm-2 quantity-batch-units">
+                    <input type="text" style="background-color: #cacaca" class="form-control text-center form-control-sm item-quantity-units-batch" autocomplete="off">
+                </div>
+                <div class="col-sm-3">
+                    <input type="date" class="form-control form-control-sm item-expiration-batch" value="${formattedDate}">
+                </div>
+                <div class="col-sm-2">
+                    <button type="button" class="btn btn-outline-danger btn-sm btn-block btn-delete-row"><i class="fas fa-minus"></i></button>
+                </div>
+            </div>
+        `);
+        counterBatch(clickedRow);
+    });*/
+    $('.btn-add-batch').click(function () {
+        let product_id = $(this).attr("product");
+        let formattedDate = "{{ formatdate|escapejs }}";
+        let check_sold = $(this).closest('tr').parent('tbody').parent('table').find('thead tr td.title-sold input.check-sold');
+        let itemSoldClass = 'd-none';
+        let attrDisabled = 'disabled';
+        let attrRead = 'readonly';
+        if (check_sold.is(':checked')) {
+            itemSoldClass = '';
+            attrDisabled = '';
+            attrRead = '';
+        }
+        $(`tbody#details-batch-${product_id}`).append(`
+            <tr class="">
+                <td class="text-center align-middle item-correlative"></td>
+                <td><input type="text" class="form-control text-center form-control-sm item-number-batch" p="${product_id}"></td>
+                <td><input type="text" class="form-control form-control-sm text-center entered-quantity-principal" p="${product_id}"></td>
+                <td><input type="text" class="form-control form-control-sm text-center entered-quantity-units" p="${product_id}"></td>
+                <td><input type="text" class="form-control form-control-sm text-center returned-quantity-principal" p="${product_id}" disabled></td>
+                <td><input type="text" class="form-control form-control-sm text-center returned-quantity-units" p="${product_id}" disabled></td>
+                <td><input type="text" class="form-control form-control-sm text-center sold-quantity-principal" p="${product_id}" ${attrDisabled}></td>
+                <td><input type="text" class="form-control form-control-sm text-center sold-quantity-units" p="${product_id}" ${attrDisabled}></td>
+                <td class="item-sold ${itemSoldClass}">
+                    <div class="row m-0">
+                        <div class="col-md-4 text-uppercase sale pl-0 pr-0">
+                            <button type="button" class="btn btn-success btn-sm btn-block btn-generate-sold">Cod.</button>
+                        </div>
+                        <div class="col-md-4 text-uppercase pl-0 delete-sale pr-1 d-none">
+                            <button type="button" class="btn btn-danger btn-sm btn-block btn-cancel-sold"><i class="fas fa-ban"></i></button>
+                        </div>
+                        <div class="col-md-8 text-uppercase pr-0 pl-0 item-sale">
+                            <input type="text" ${attrRead} aria-label=""
+                                   class="form-control form-control-sm text-center font-weight-bold sale-cod"
+                                   id="sale-cod" value=""
+                                   name="sale-cod">
+                            <input type="hidden" class="sale-id" id="sale-id"
+                                   name="sale-id">
+                        </div>
+                    </div>
+                </td>
+                <td><input type="date" class="form-control form-control-sm item-expiration-batch" value="${formattedDate}"></td>
+                <td>
+                    <button type="button" product="${product_id}"
+                            class="btn btn-outline-danger btn-sm btn-block btn-delete-row">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
+        counterBatch(product_id);
+    });
+
+    /*function counterBatch(startRow) {
+        let l = 1;
+        startRow.nextAll('.add-batch').addBack().each(function () {
+            $(this).find('label.item-number').text(l);
+            l++;
+        });
+    }
+
+    $(document).on('click', '.btn-delete-row', function () {
+        let deletedRow = $(this).closest('.add-batch');
+        let mainRow = deletedRow.parent('div.card-body').find('div.add-batch.main')
+        deletedRow.remove();
+        counterBatch(mainRow);
+    });*/
+
+    function counterBatch(product_id) {
+        let l = 1;
+        $(`#details-batch-${product_id} tr`).each(function () {
+            $(this).attr('i', l);
+            $(this).children('td:nth-child(1)').text(l);
+            l++;
+        });
+    }
+    $(document).on('click', '.btn-delete-row', function () {
+        let product_id = $(this).attr('product');
+        let deletedRow = $(this).closest('tr');
+        deletedRow.remove();
+        counterBatch(product_id);
+    });
+
+
+    $('.check-returned').change(function () {
+        let product_id = $(this).attr('p');
+        let tbody = $(`#details-batch-${product_id}`);
+        if ($(this).is(':checked')) {
+            tbody.find('tr').each(function () {
+                $(this).find('input.returned-quantity-principal').prop('disabled', false);
+                $(this).find('input.returned-quantity-units').prop('disabled', false);
+            });
+        }
+        else {
+            tbody.find('tr').each(function () {
+                $(this).find('input.returned-quantity-principal').prop('disabled', true);
+                $(this).find('input.returned-quantity-units').prop('disabled', true);
+            });
+        }
+    });
+    $('.check-sold').change(function () {
+        let product_id = $(this).attr('p');
+        let tbody = $(`#details-batch-${product_id}`);
+        if ($(this).is(':checked')) {
+            tbody.find('tr').each(function () {
+                $(this).find('input.sold-quantity-principal').prop('disabled', false);
+                $(this).find('input.sold-quantity-units').prop('disabled', false);
+                $(this).find('input.sale-cod').prop('readonly', false);
+            });
+            tbody.find('td.item-sold').removeClass('d-none');
+            tbody.parent('table').find('thead tr.sub-title th.item-sold').removeClass('d-none');
+            tbody.parent('table').find('thead tr.title td.title-sold').attr('colspan', 3);
+        }
+        else {
+            tbody.find('tr').each(function () {
+                $(this).find('input.sold-quantity-principal').prop('disabled', true);
+                $(this).find('input.sold-quantity-units').prop('disabled', true);
+                $(this).find('input.sale-cod').prop('readonly', true);
+            });
+            tbody.find('td.item-sold').addClass('d-none');
+            tbody.parent('table').find('thead tr.sub-title th.item-sold').addClass('d-none');
+            tbody.parent('table').find('thead tr.title td.title-sold').attr('colspan', 2);
+        }
+    });
+
+    /********* QUANTITY ENTERED  ***********/
+
+    $(document).on('keyup', '.entered-quantity-principal', function () {
+        let product_id = $(this).attr('p');
+        let tbodyId = $(`#details-batch-${product_id}`);
+        let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
+        let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
+        if (result === false) {
+            $(this).val('');
+        }
+     });
+    $(document).on('keyup', '.entered-quantity-units', function () {
+        let product_id = $(this).attr('p');
+        let tbodyId = $(`#details-batch-${product_id}`);
+        let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
+        let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
+        if (result === false) {
+            $(this).val('');
+        }
+    });
+
+    /********* QUANTITY RETURNED  ***********/
+
+    $(document).on('keyup', '.returned-quantity-principal', function () {
+        let product_id = $(this).attr('p');
+        let tbodyId = $(`#details-batch-${product_id}`);
+        let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
+        let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
+        if (result === false) {
+            $(this).val('');
+        }
+    });
+    $(document).on('keyup', '.returned-quantity-units', function () {
+        let product_id = $(this).attr('p');
+        let tbodyId = $(`#details-batch-${product_id}`);
+        let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
+        let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
+        if (result === false) {
+            $(this).val('');
+        }
+    });
+
+     /********* QUANTITY SOLD  ***********/
+
+     $(document).on('keyup', '.sold-quantity-principal', function () {
+        let product_id = $(this).attr('p');
+        let tbodyId = $(`#details-batch-${product_id}`);
+        let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
+        let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
+         if (result === false) {
+            $(this).val('');
+        }
+    });
+    $(document).on('keyup', '.sold-quantity-units', function () {
+        let product_id = $(this).attr('p');
+        let tbodyId = $(`#details-batch-${product_id}`);
+        let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
+        let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
+        if (result === false) {
+            $(this).val('');
+        }
+    });
+
+    function sumQuantitiesBatch(tbody, quantity_minimum, product_id) {
+        /*** Quantity Entered ***/
+        let quantity_entered_principal = 0;
+        let quantity_entered_units = 0;
+        let tbody_product = $(`#details-product-${product_id}`);
+        let current_quantity = tbody_product.find('tr.detail td.item-current-quantity input.current-quantity-missing');
+        //let current_quantity_val = tbody_product.find('tr.detail td.item-current-quantity input.current-quantity-missing').val();
+        let quantity_missing = tbody_product.find('tr.detail td.item-current-quantity input.quantity-missing');
+        //let quantity_missing_val = tbody_product.find('tr.detail td.item-current-quantity input.quantity-missing').val();
+
+        tbody.find('tr').each(function () {
+            let value = parseFloat($(this).find('input.entered-quantity-principal').val()) || 0;
+            quantity_entered_principal += value;
+        });
+        let in_units_entered = Number(quantity_entered_principal) * Number(quantity_minimum)
+
+        tbody.find('tr').each(function () {
+            let value = parseFloat($(this).find('input.entered-quantity-units').val()) || 0;
+            quantity_entered_units += value;
+        });
+        let sum_entered = in_units_entered + Number(quantity_entered_units)
+        /*** Quantity Entered ***/
+        let quantity_returned_principal = 0;
+        let quantity_returned_units = 0;
+        tbody.find('tr').each(function () {
+            let value = parseFloat($(this).find('input.returned-quantity-principal').val()) || 0;
+            quantity_returned_principal += value;
+        });
+        let in_units_returned = Number(quantity_returned_principal) * Number(quantity_minimum)
+
+        tbody.find('tr').each(function () {
+            let value = parseFloat($(this).find('input.returned-quantity-units').val()) || 0;
+            quantity_returned_units += value;
+        });
+        let sum_returned = in_units_returned + Number(quantity_returned_units)
+        /*** Quantity Sold ***/
+        let quantity_sold_principal = 0;
+        let quantity_sold_units = 0;
+        tbody.find('tr').each(function () {
+            let value = parseFloat($(this).find('input.sold-quantity-principal').val()) || 0;
+            quantity_sold_principal += value;
+        });
+        let in_units_sold = Number(quantity_sold_principal) * Number(quantity_minimum)
+
+        tbody.find('tr').each(function () {
+            let value = parseFloat($(this).find('input.sold-quantity-units').val()) || 0;
+            quantity_sold_units += value;
+        });
+        let sum_sold = in_units_sold + Number(quantity_sold_units)
+
+        let sum_total_quantities =  sum_entered + sum_returned + sum_sold;
+
+        if (sum_total_quantities > Number(current_quantity.val())) {
+            toastr.warning("La cantidad ESCRITADA no puede superar a la cantidad COMPRADA", '¡MENSAJE!', {
+                positionClass: "toast-center",
+            });
+            return false;
+        } else {
+            let new_q_missing = Number(current_quantity.val()) - Number(sum_total_quantities)
+            quantity_missing.val(new_q_missing.toFixed(2))
         }
     }
 
