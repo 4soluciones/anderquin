@@ -1,5 +1,6 @@
 {% load operations %}
-<table class="table table-sm table-striped table-bordered roboto-condensed-regular table-details m-0" pk="{{ bill_obj.id }}">
+<table class="table table-sm table-striped table-bordered roboto-condensed-regular table-details m-0"
+       pk="{{ bill_obj.id }}">
     <thead>
     <tr class="text-center bg-dark text-white m-0 p-0 text-uppercase">
         <td class="text-center" style="width: 10%">Estado</td>
@@ -14,41 +15,69 @@
     </thead>
     <tbody>
     {% for dt in details_dict %}
-        <tr class="col-form-label text-white p-0 m-0" detail="{{ dt.id }}" {% if dt.status_quantity == 'C' %} style="background-color: #83ab79" {% else %} style="background-color: #6c757d" {% endif %}>
-            <td class="text-center">
-                {{ dt.status_display }}
-                <input type="hidden" value="{{ purchase_obj.id }}">
-            </td>
-            <td> - {{ dt.product }}
-                {% if dt.order_number %}
-                    <br>
-                    <span class="text-warning"> - Nro Orden: {{ dt.order_number }}</span>
-                    <span class="" style="color: #9fb7cf"> - Nro Comprobante: {{ order_number_bill }}</span>
-                {% endif %}
-            </td>
-            <td class="text-center">
-                {% if dt.status_quantity == 'I' and dt.batch_number %}{{ dt.batch_number|upper }}{% endif %}</td>
-            <td class="text-center">
-                {% if dt.status_quantity == 'I' and dt.batch_number %}{{ dt.batch_expiration|date:'d/m/Y' }}{% endif %}</td>
-
-            <td class="text-center">{{ dt.quantity|replace_round }}</td>
-            <td class="text-center">{{ dt.unit }}</td>
-            <td class="text-center">{{ dt.store }}</td>
-            <td class="text-center p-1 credit-note">
-                {% if dt.status_quantity == 'D' %}
-                    {% if dt.credit_note %}
-                        Nota de Credito: <span class="text-warning">{{ dt.credit_note|upper }}</span><br>
-                        Factura: <span class="text-warning">{{ dt.bill_applied}}</span>
-                    {% else %}
-                        <button type="button" class="btn btn-danger btn-sm generate-credit-note" pk="{{ dt.id }}"
-                                bill="{{ bill_obj.id }}">Nota de Crédito
-                        </button>
+        {% if dt.status_quantity == 'C' %}
+            <tr class="col-form-label text-white p-0 m-0" detail="{{ dt.id }}" style="background-color: #83ab79">
+                <td class="text-center">{{ dt.status_display }}<input type="hidden" value="{{ purchase_obj.id }}"></td>
+                <td> - {{ dt.product }}
+                    {% if dt.order_number %}
+                        <br>
+                        <span class="text-warning"> - Nro Orden: {{ dt.order_number }}</span>
+                        <span class="" style="color: #9fb7cf"> - Nro Comprobante: {{ order_number_bill }}</span>
                     {% endif %}
-                {% else %}
-                    -
-                {% endif %}
-            </td>
-        </tr>
+                </td>
+                <td class="text-center">{% if dt.status_quantity == 'I' and dt.batch_number %}{{ dt.batch_number|upper }}{% endif %}</td>
+                <td class="text-center">{% if dt.status_quantity == 'I' and dt.batch_number %}{{ dt.batch_expiration|date:'d/m/Y'}}{% endif %}</td>
+                <td class="text-center">{{ dt.quantity|replace_round }}</td>
+                <td class="text-center">{{ dt.unit }}</td>
+                <td class="text-center">{{ dt.store }}</td>
+                <td class="text-center p-1 credit-note">
+                    {% if dt.status_quantity == 'D' %}
+                        {% if dt.credit_note %}
+                            Nota de Credito: <span class="text-warning">{{ dt.credit_note|upper }}</span><br>
+                            Factura: <span class="text-warning">{{ dt.bill_applied }}</span>
+                        {% else %}
+                            <button type="button" class="btn btn-danger btn-sm generate-credit-note" pk="{{ dt.id }}"
+                                    bill="{{ bill_obj.id }}">Nota de Crédito
+                            </button>
+                        {% endif %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            {% for b in dt.details_batch %}
+                <tr class="col-form-label text-white p-0 m-0" detail="{{ dt.id }}" style="background-color: #6c757d">
+                    <td class="text-center">{{ dt.status_display }}<input type="hidden" value="{{ purchase_obj.id }}"></td>
+                    <td> - {{ dt.product }}
+                        {% if b.order_number %}
+                            <br>
+                            <span class="text-warning"> - Nro Orden: {{ dt.order_number }}</span>
+                            <span class="" style="color: #9fb7cf"> - Nro Comprobante: {{ order_number_bill }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ b.batch_number|upper }}</td>
+                    <td class="text-center">{% if dt.status_quantity == 'I' %}{{ b.batch_expiration|date:'d/m/Y'}}{% endif %}</td>
+                    <td class="text-center">{{ b.batch_quantity|replace_round }}</td>
+                    <td class="text-center">{{ b.batch_unit }}</td>
+                    <td class="text-center">{{ dt.store }}</td>
+                    <td class="text-center p-1 credit-note">
+                        {% if dt.status_quantity == 'D' %}
+                            {% if dt.credit_note %}
+                                Nota de Credito: <span class="text-warning">{{ dt.credit_note|upper }}</span><br>
+                                Factura: <span class="text-warning">{{ dt.bill_applied }}</span>
+                            {% else %}
+                                <button type="button" class="btn btn-danger btn-sm generate-credit-note" pk="{{ dt.id }}"
+                                        bill="{{ bill_obj.id }}">Nota de Crédito
+                                </button>
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        {% endif %}
     {% endfor %}
     </tbody>
 </table>

@@ -378,19 +378,38 @@
 
                 <div class="card bg-light m-2">
                     {% for d in detail_bill %}
-                        <table class="table table-primary align-content-center table-bordered table-sm m-0">
+                        <table class="table table-primary align-content-center table-bordered table-sm m-0" id="table-detail-product-{{ d.product_id }}">
                             <thead>
                             <tr class="bg-info text-uppercase">
-                                <td class="text-center align-middle">
-                                    <span class="font-weight-bold">Cant. Comprada:</span>
+                                <input type="hidden" class="unit-purchase" id="unit_purchase"
+                                       value="{{ d.unit_id }}">
+                                <input type="hidden" class="price-unit-purchase" value="{{ d.price_unit }}"
+                                       id="price_unit_sold">
+                                <td colspan="2" class="text-center align-middle text-dark">
+                                    <div class="row pr-2 pl-2 font-weight-bold">
+                                        <div class="col-sm-2 text-right pt-1">
+                                            Producto:
+                                        </div>
+                                        <div class="col-sm-5 text-left pt-1">
+                                            <span class="font-weight-bold">{{ d.product_name }}</span>
+                                        </div>
+                                        <div class="col-sm-3 text-right pt-1">
+                                            CANTIDAD COMPRADA:
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <input type="text" aria-label=""
+                                                   class="form-control form-control-sm font-weight-bold text-center quantity-purchased-in-units"
+                                                   id="quantity-purchased-in-units" autocomplete="off"
+                                                   value="{{ d.quantity|replace_round }}" readonly>
+                                        </div>
+                                    </div>
                                 </td>
-                                <td class="text-center align-middle">
-                                    <input type="text" aria-label=""
-                                           class="form-control form-control-sm font-weight-bold text-center quantity-purchased-in-units"
-                                           id="quantity-purchased-in-units" autocomplete="off"
-                                           value="{{ d.quantity|replace_round }}" readonly>
-                                    {#                                        {{ d.product_name }}#}
-                                </td>
+{#                                <td class="text-center align-middle">#}
+{#                                    <input type="text" aria-label=""#}
+{#                                           class="form-control form-control-sm font-weight-bold text-center quantity-purchased-in-units"#}
+{#                                           id="quantity-purchased-in-units" autocomplete="off"#}
+{#                                           value="{{ d.quantity|replace_round }}" readonly>#}
+{#                                </td>#}
                             </tr>
                             <tr class="text-white bg-info text-uppercase">
                                 <th class="align-middle text-center bg-warning text-dark" style="width: 90%">
@@ -406,7 +425,7 @@
                             </thead>
                             <tbody id="details-product-{{ d.product_id }}">
                             <tr class="detail" product="{{ d.product_id }}" purchase_detail="{{ d.id }}"
-                                qm="{{ d.quantity_minimum }}">
+                                qm="{{ d.quantity_minimum }}" unit="{{ d.unit_id }}" unit_name="{{ d.unit_name }}">
                                 <td class="align-middle item-quantity text-center">
                                     <!--<div class="card-body table-primary p-1">
                                         <div class="row p-1 add-batch main">
@@ -475,21 +494,19 @@
                                         <thead>
                                         <tr class="text-uppercase title">
                                             <td colspan="2"></td>
-                                            <td colspan="2" style="background-color: #8acbe9">Cantidad Ingresada</td>
-                                            <td colspan="2" style="background-color: #ddefa1">
+                                            <td {% if d.unit_name != 'UND' %}colspan="2"{% endif %} style="background-color: #d3f5ea">Ingresada</td>
+                                            <td class="title-return" {% if d.unit_name != 'UND' %}colspan="2"{% endif %} style="background-color: #ddefa1">
                                                 <div class="form-check">
                                                     <input type="checkbox" class="form-check-input check-returned"
                                                            p="{{ d.product_id }} "id="check-returned">
-                                                    <label class="form-check-label" for="check-returned">Cantidad
-                                                        Devuelta</label>
+                                                    <label class="form-check-label" for="check-returned">Devuelta</label>
                                                 </div>
                                             </td>
-                                            <td class="title-sold" colspan="2" style="background-color: #efd692">
+                                            <td class="title-sold" {% if d.unit_name != 'UND' %}colspan="2"{% endif %} style="background-color: #efd692">
                                                 <div class="form-check">
                                                     <input type="checkbox" class="form-check-input check-sold"
                                                            p="{{ d.product_id }}" id="check-sold">
-                                                    <label class="form-check-label" for="check-sold">Cantidad
-                                                        Vendida</label>
+                                                    <label class="form-check-label" for="check-sold">Vendida</label>
                                                 </div>
                                             </td>
                                             <td colspan="2"></td>
@@ -498,7 +515,7 @@
                                             {% if d.unit_name == 'UND' %}
                                                 <th class="font-weight-lighter" style="width: 3%">#</th>
                                                 <th class="font-weight-lighter" style="width: 9%">Nº Lote:</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #8acbe9">UNIDAD(ES)</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #d3f5ea">UNIDAD(ES)</th>
                                                 <th class="font-weight-lighter" style="width: 9.5%; background-color: #ddefa1">UNIDAD(ES)</th>
                                                 <th class="font-weight-lighter" style="width: 9.5%; background-color: #efd692">UNIDAD(ES)</th>
                                                 <th class="font-weight-lighter item-sold d-none" style="width: 16.5%; background-color: #efd692">VENTA</th>
@@ -507,8 +524,8 @@
                                             {% else %}
                                                 <th class="font-weight-lighter" style="width: 3%">#</th>
                                                 <th class="font-weight-lighter" style="width: 9%">Nº Lote:</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #8acbe9">{{ d.unit_description }}</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #8acbe9">UNIDAD(ES)</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #d3f5ea">{{ d.unit_description }}</th>
+                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #d3f5ea">UNIDAD(ES)</th>
                                                 <th class="font-weight-lighter" style="width: 9.5%; background-color: #ddefa1">{{ d.unit_description }}</th>
                                                 <th class="font-weight-lighter" style="width: 9.5%; background-color: #ddefa1">UNIDAD(ES)</th>
                                                 <th class="font-weight-lighter" style="width: 9.5%; background-color: #efd692">{{ d.unit_description }}</th>
@@ -528,25 +545,29 @@
                                                        p="{{ d.product_id }}"
                                                        autocomplete="off">
                                             </td>
-                                            <td>
-                                                <input type="text" aria-label=""
-                                                       class="form-control form-control-sm text-center entered-quantity-principal"
-                                                       p="{{ d.product_id }}"
-                                                       autocomplete="off">
-                                            </td>
+                                            {% if d.unit_name != 'UND' %}
+                                                <td>
+                                                    <input type="text" aria-label=""
+                                                           class="form-control form-control-sm text-center entered-quantity-principal"
+                                                           p="{{ d.product_id }}"
+                                                           autocomplete="off">
+                                                </td>
+                                            {% endif %}
                                             <td>
                                                 <input type="text" aria-label=""
                                                        class="form-control form-control-sm text-center entered-quantity-units"
                                                        p="{{ d.product_id }}"
                                                        autocomplete="off">
                                             </td>
-                                            <td>
-                                                <input type="text" aria-label=""
-                                                       class="form-control form-control-sm text-center returned-quantity-principal"
-                                                       p="{{ d.product_id }}"
-                                                       disabled
-                                                       autocomplete="off">
-                                            </td>
+                                            {% if d.unit_name != 'UND' %}
+                                                <td>
+                                                    <input type="text" aria-label=""
+                                                           class="form-control form-control-sm text-center returned-quantity-principal"
+                                                           p="{{ d.product_id }}"
+                                                           disabled
+                                                           autocomplete="off">
+                                                </td>
+                                            {% endif %}
                                             <td>
                                                 <input type="text" aria-label=""
                                                        class="form-control form-control-sm text-center returned-quantity-units"
@@ -554,17 +575,19 @@
                                                        disabled
                                                        autocomplete="off">
                                             </td>
-                                            <td>
-                                                <input type="text" aria-label=""
-                                                       class="form-control form-control-sm text-center sold-quantity-principal"
-                                                       p="{{ d.product_id }}"
-                                                       disabled
-                                                       autocomplete="off">
-                                            </td>
+                                            {% if d.unit_name != 'UND' %}
+                                                <td>
+                                                    <input type="text" aria-label=""
+                                                           class="form-control form-control-sm text-center sold-quantity-principal"
+                                                           p="{{ d.product_id }}"
+                                                           disabled
+                                                           autocomplete="off">
+                                                </td>
+                                            {% endif %}
                                             <td>
                                                 <input type="text" aria-label=""
                                                        class="form-control form-control-sm text-center sold-quantity-units"
-                                                       p="{{ d.product_id }}"
+                                                       unit="1" p="{{ d.product_id }}"
                                                        disabled
                                                        autocomplete="off">
                                             </td>
@@ -583,11 +606,11 @@
                                                         </button>
                                                     </div>
                                                     <div class="col-md-8 text-uppercase pr-0 pl-0 item-sale">
-                                                        <input type="text" readonly aria-label=""
+                                                        <input type="text" aria-label="" disabled
                                                                class="form-control form-control-sm text-center font-weight-bold sale-cod"
-                                                               id="sale-cod" value=""
+                                                               id="sale-cod" p="{{ d.product_id }}"
                                                                name="sale-cod">
-                                                        <input type="hidden" class="sale-id" id="sale-id"
+                                                        <input type="hidden" class="sale-id" id="sale-id" value="0"
                                                                name="sale-id">
                                                     </div>
                                                 </div>
@@ -646,15 +669,24 @@
 
     function checkSold() {
         let check = false;
-        $('#details tr.sold-quantity-units td.item-check-sold input[type="checkbox"]').each(function () {
+        $('table[id^="table-product-"] thead tr.title td.title-sold input[type="checkbox"]').each(function () {
             if ($(this).prop('checked')) {
                 check = true;
             }
         });
         return check;
     }
+    function checkBatch() {
+        let check = false;
+        $('tbody[id^="details-batch-"] tr input.item-number-batch').each(function () {
+            if ($(this).val() === '' || $(this).val() === '0') {
+                check = true;
+            }
+        });
+        return check;
+    }
 
-    function checkCodeSale() {
+    /*function checkCodeSale() {
         let check = false;
         $('#details tr.sold-quantity div.item-sale input.sale-cod').each(function () {
             if ($(this).val() === '') {
@@ -662,24 +694,45 @@
             }
         });
         return check;
-    }
+    }*/
 
+    /*function checkCodeSale() {
+        let check = false;
+        $('tbody[id^="details-batch-"] tr td.item-sold div.sale.d-none').each(function () {
+            let input_sold = $(this).parent('row').find('div.item-sale input.sale-cod');
+            console.log(input_sold.val())
+            if (input_sold.val() === '') {
+                check = true;
+            }
+        });
+        /*$('tbody[id^="details-batch-"] tr td.item-sold div.item-sale input.sale-cod').each(function () {
+            console.log("val", $(this).val())
+            if ($(this).val() === '') {
+                check = true;
+            }
+        })
+        return check;
+    }*/
 
     $('#assignment-changes').click(function () {
 
         let store = $('#store');
-        let batch = $('#batch');
+        //let batch = $('#batch');
         let guide_number = $('#guide_number');
         if (store.val() === '0' || store.val() === null) {
             toastr.warning('¡Seleccionar el Almacen de Destino!', 'Error de Datos');
             return false;
         }
 
-        if (checkSold() === true) {
+        /*if (checkSold() === true) {
             if (checkCodeSale() === true) {
-                toastr.warning('¡Primero genere el Código de Venta antes de Guardar!', 'Error de Llenado!');
+                toastr.warning('Primero genere el Código de Venta antes de Guardar', 'Error de Datos!');
                 return false;
             }
+        }*/
+        if (checkBatch() === true) {
+            toastr.warning('Ingresar el numero de Lote', 'Error de Datos!');
+            return false;
         }
         /*if (batch.val() === '') {
             toastr.warning('¡Ingresar el Numero de lote!', 'Error de Datos');
@@ -699,14 +752,13 @@
             "GuideNumber": guide_number.val(),
             "Store": store.val(),
         };
-        $("#details tr.detail").each(function () {
-            let _td_quantity_entered = $(this).parent('tbody#details').find('tr.entered-quantity td.quantity-entered');
-            //let _entered_quantity_principal = _td_quantity_entered.find('input.quantity_entered_principal').val();
+        $('table[id^="table-detail-product-"]').each(function () {
+            let tr = $(this).find('tbody tr.detail');
+            /*let _td_quantity_entered = $(this).parent('tbody#details').find('tr.entered-quantity td.quantity-entered');
             let _entered_quantity_principal = _td_quantity_entered.find('input.quantity_entered_principal').val() !== undefined ? _td_quantity_entered.find('input.quantity_entered_principal').val() : 0;
             let _entered_quantity_units = _td_quantity_entered.find('input.quantity_entered_units').val();
 
             let _td_quantity_returned = $(this).parent('tbody#details').find('tr.returned-quantity td.quantity-returned');
-            //let _returned_quantity_principal = _td_quantity_returned.find('input.returned_quantity_entered_principal').val();
             let _returned_quantity_principal = _td_quantity_returned.find('input.returned_quantity_entered_principal').val() !== undefined ? _td_quantity_returned.find('input.returned_quantity_entered_principal').val() : 0;
 
             let _returned_quantity_units = _td_quantity_returned.find('input.returned_quantity_entered_units').val();
@@ -715,16 +767,24 @@
             let _sold_quantity_principal = _td_quantity_sold.find('input.quantity_sold_principal').val() !== undefined ? _td_quantity_sold.find('input.quantity_sold_principal').val() : 0;
             let _sold_quantity_units = _td_quantity_sold.find('tr input.quantity_sold_units').val();
 
-            let _order = $(this).parent('tbody#details').find('tr.sold-quantity input.sale-id').val();
+            let _order = $(this).parent('tbody#details').find('tr.sold-quantity input.sale-id').val();*/
 
             let detailObj = {
-                "PurchaseDetail": $(this).attr('purchase_detail'),
-                "Product": $(this).attr('product'),
-                "UnitPurchase": $(this).find("td.item-unit").attr('pu'),
-                "PricePurchase": $(this).find("td.item-quantity input.price-unit-purchase").val(),
-                "QuantityPurchased": $(this).find("td.item-quantity input.quantity-purchased-in-units").val(),
-
-                "EnteredQuantityPrincipal": Number(_entered_quantity_principal),
+                "PurchaseDetail": tr.attr('purchase_detail'),
+                "Product": tr.attr('product'),
+                "UnitPurchase": $(this).find("input.unit-purchase").val(),
+                "PricePurchase": $(this).find("input.price-unit-purchase").val(),
+                "QuantityPurchased": $(this).find("input.quantity-purchased-in-units").val(),
+                "SumQuantityEnteredPrincipal": 0,
+                "SumQuantityEnteredUnits": 0,
+                "SumQuantityEnteredTotalInUnits": 0,
+                "SumQuantityReturnedPrincipal": 0,
+                "SumQuantityReturnedUnits": 0,
+                "SumQuantityReturnedTotalInUnits": 0,
+                "SumQuantitySoldPrincipal": 0,
+                "SumQuantitySoldUnits": 0,
+                "SumQuantitySoldTotalInUnits": 0,
+                /*"EnteredQuantityPrincipal": Number(_entered_quantity_principal),
                 "EnteredQuantityUnits": Number(_entered_quantity_units),
 
                 "ReturnedQuantityPrincipal": Number(_returned_quantity_principal),
@@ -732,24 +792,61 @@
 
                 "SoldQuantityPrincipal": Number(_sold_quantity_principal),
                 "SoldQuantityUnit": Number(_sold_quantity_units),
-                "SoldOrderId": _order,
+                "SoldOrderId": _order,*/
                 "Batch": [],
             };
             details_bill.Details.push(detailObj);
-            let batch_column = $(this).parent('tbody#details').find('td.batch-column div.add-batch');
-            batch_column.each(function () {
+            let SumQuantityEnteredPrincipal = 0
+            let SumQuantityEnteredUnits = 0
+            let SumQuantityReturnedPrincipal = 0
+            let SumQuantityReturnedUnits = 0
+            let SumQuantitySoldPrincipal = 0
+            let SumQuantitySoldUnits = 0
+            //let batch_column = $(this).parent('tbody#details').find('td.batch-column div.add-batch');
+            tr.find('tbody[id^="details-batch-"] tr').each(function () {
+                let _entered_quantity_principal = $(this).find('input.entered-quantity-principal').val() !== undefined ? $(this).find('input.entered-quantity-principal').val() : 0;
+                let _entered_quantity_units = $(this).find('input.entered-quantity-units').val();
+                let _returned_quantity_principal = $(this).find('input.returned-quantity-principal').val() !== undefined ? $(this).find('input.returned-quantity-principal').val() : 0;
+                let _returned_quantity_units = $(this).find('input.returned-quantity-units').val();
+                let _sold_quantity_principal = $(this).find('input.sold-quantity-principal').val() !== undefined ? $(this).find('input.sold-quantity-principal').val() : 0;
+                let _sold_quantity_units = $(this).find('input.sold-quantity-units').val();
+                let _order = $(this).find('td.item-sold input.sale-id').val();
+
+                SumQuantityEnteredPrincipal += Number(_entered_quantity_principal);
+                SumQuantityEnteredUnits += Number(_entered_quantity_units);
+                SumQuantityReturnedPrincipal += Number(_returned_quantity_principal);
+                SumQuantityReturnedUnits += Number(_returned_quantity_units);
+                SumQuantitySoldPrincipal += Number(_sold_quantity_principal);
+                SumQuantitySoldUnits += Number(_sold_quantity_units);
+
                 let batchObj = {
                     "batchNumber": $(this).find('input.item-number-batch').val(),
-                    "batchQuantity": $(this).find('input.item-quantity-batch').val(),
-                    "batchQuantityUnits": $(this).find('input.item-quantity-units-batch').val(),
+                    "EnteredQuantityPrincipal": Number(_entered_quantity_principal),
+                    "EnteredQuantityUnits": Number(_entered_quantity_units),
                     "batchExpiration": $(this).find('input.item-expiration-batch').val(),
+                    "ReturnedQuantityPrincipal": Number(_returned_quantity_principal),
+                    "ReturnedQuantityUnits": Number(_returned_quantity_units),
+                    "SoldQuantityPrincipal": Number(_sold_quantity_principal),
+                    "SoldQuantityUnit": Number(_sold_quantity_units),
+                    "SoldOrderId": _order,
                 };
                 detailObj.Batch.push(batchObj);
             });
+            detailObj.SumQuantityEnteredPrincipal = SumQuantityEnteredPrincipal;
+            detailObj.SumQuantityEnteredUnits = SumQuantityEnteredUnits;
+            detailObj.SumQuantityEnteredTotalInUnits = SumQuantityEnteredUnits + SumQuantityEnteredPrincipal;
+
+            detailObj.SumQuantityReturnedPrincipal = SumQuantityReturnedPrincipal;
+            detailObj.SumQuantityReturnedUnits = SumQuantityReturnedUnits;
+            detailObj.SumQuantityReturnedTotalInUnits = SumQuantityReturnedUnits + SumQuantityReturnedPrincipal;
+
+            detailObj.SumQuantitySoldPrincipal = SumQuantitySoldPrincipal;
+            detailObj.SumQuantitySoldUnits = SumQuantitySoldUnits;
+            detailObj.SumQuantitySoldTotalInUnits = SumQuantitySoldUnits + SumQuantitySoldPrincipal;
         });
-        $('#assignment-changes').prop('disabled', true);
-        //console.log(details_bill);
-        /*$.ajax({
+        //$('#assignment-changes').prop('disabled', true);
+        console.log(details_bill);
+        $.ajax({
             url: '/sales/save_detail_to_warehouse/',
             async: true,
             dataType: 'json', // for response
@@ -770,7 +867,7 @@
                 //$('#assignment').modal('hide');
                 toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
             }
-        });*/
+        });
     })
 
 
@@ -897,92 +994,7 @@
         sumQuantitiesMissing(_tr_entered, _tr_return, _tr, 'und', 'sold')
     });
 
-    $('.btn-generate-sold').click(function () {
-
-        let store = $('#store');
-        if (store.val() === '0' || store.val() === null) {
-            toastr.warning('¡Seleccione el Almacen de Destino!', 'Error de Datos');
-            return false;
-        }
-
-        let r = confirm("¿Esta seguro de Generar la Venta? ")
-        if (r === true) {
-            /*let _tr = $(this).closest('tr.sold-quantity')
-            let _tr_detail = _tr.prevUntil('tr.detail').prev('tr.detail');
-            let _tr_sold = _tr.prev('tr.sold-quantity-units');
-            let _product_id = _tr_detail.attr('product');
-            //let _button = $(this);
-            let check_sold = _tr_sold.find('td.item-check-sold input.check-quantity-sold')
-            let input_principal_val = 0
-            let input_principal
-            let unit_principal
-            if (_tr_sold.find('td.quantity-sold input.quantity_sold_principal').val()) {
-                input_principal_val = _tr_sold.find('td.quantity-sold input.quantity_sold_principal').val();
-                input_principal = _tr_sold.find('td.quantity-sold input.quantity_sold_principal');
-                unit_principal = _tr_sold.find('td.quantity-sold tr.sold-quantity-principal').attr('unit');
-            }
-            let input_units = _tr_sold.find('td.quantity-sold input.quantity_sold_units');
-            let unit_id = _tr_sold.find('td.quantity-sold tr.sold-quantity-und').attr('unit');
-
-            let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
-            let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
-            let _input_correlative = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod');
-            let _input_order = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id');*/
-
-
-
-            /*console.log('product_id', _product_id)
-            console.log('unit_principal', unit_principal)
-            console.log('unit_id', unit_id)
-            console.log("input_principal", input_principal_val)
-            console.log("input_units", input_units.val())*/
-
-            /*$.ajax({
-                url: '/sales/create_warehouse_sale/',
-                dataType: 'json',
-                type: 'GET',
-                data: {
-                    'product_id': _product_id,
-                    'unit_principal': unit_principal ? unit_principal : null,
-                    'input_principal_val': input_principal_val,
-                    'unit_id': unit_id,
-                    'store': store.val(),
-                    'input_units': input_units.val(),
-                },
-                contentType: 'application/json;charset=UTF-8',
-                headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                success: function (response, textStatus, xhr) {
-                    if (xhr.status === 200) {
-                        let correlative_sale = response.correlative
-                        let order_id = response.order_id
-                        _input_correlative.val(order_id);
-                        _input_order.val(order_id);
-                        _div_sale.addClass('d-none');
-                        _div_cancel.removeClass('d-none');
-                        toastr.success(response.message, '¡CODIGO DE VENTA GENERADO!');
-                    }
-                },
-                error: function (jqXhr, textStatus, xhr) {
-                    toastr.error(jqXhr.responseJSON.detalle, '¡ERROR!');
-                }
-
-            });*/
-
-            _input_correlative.val("1");
-            _input_order.val("2");
-            _div_sale.addClass('d-none');
-            _div_cancel.removeClass('d-none');
-
-            if (input_principal) {
-                input_principal.prop('disabled', true);
-            }
-            check_sold.prop('disabled', true);
-            input_units.prop('disabled', true);
-            //_button.prop('disabled', true);
-        }
-    });
-
-    function checkSaleCodAndCloseModal() {
+    /*function checkSaleCodAndCloseModal() {
         let allowClose = true;
 
         $(".sale-cod").each(function () {
@@ -991,7 +1003,7 @@
             }
         });
         return allowClose
-    }
+    }*/
 
     $('#close-modal, .close').click(function () {
         let allowClose = checkSaleCodAndCloseModal();
@@ -1003,7 +1015,7 @@
         }
     });
 
-    $('.btn-cancel-sold').click(function () {
+    /*$('.btn-cancel-sold').click(function () {
         let _correlative = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod');
         let _order_id = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id');
         let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
@@ -1016,7 +1028,7 @@
         }
         let r = confirm("¿Esta seguro de Eliminar la Venta")
         if (r === true) {
-            $.ajax({
+            /*$.ajax({
                 url: '/sales/delete_warehouse_sale/',
                 dataType: 'json',
                 type: 'GET',
@@ -1043,7 +1055,7 @@
 
             });
         }
-    });
+    });*/
 
     /********* END QUANTITY SOLD  ***********/
 
@@ -1186,24 +1198,36 @@
         let product_id = $(this).attr("product");
         let formattedDate = "{{ formatdate|escapejs }}";
         let check_sold = $(this).closest('tr').parent('tbody').parent('table').find('thead tr td.title-sold input.check-sold');
+        let check_return = $(this).closest('tr').parent('tbody').parent('table').find('thead tr td.title-return input.check-returned');
+        let unit_name = $(this).closest('table').parent('td').parent('tr').attr('unit_name');
         let itemSoldClass = 'd-none';
         let attrDisabled = 'disabled';
-        let attrRead = 'readonly';
+        let attrDisabledReturn = 'disabled';
+        let enteredQuantityPrincipalCell = '';
+        let returnedQuantityPrincipalCell = '';
+        let soldQuantityPrincipalCell = '';
         if (check_sold.is(':checked')) {
             itemSoldClass = '';
             attrDisabled = '';
-            attrRead = '';
+        }
+        if (check_return.is(':checked')) {
+            attrDisabledReturn = '';
+        }
+        if (unit_name !== 'UND') {
+            enteredQuantityPrincipalCell = `<td><input type="text" class="form-control form-control-sm text-center entered-quantity-principal" p="${product_id}"></td>`;
+            returnedQuantityPrincipalCell = `<td><input type="text" class="form-control form-control-sm text-center returned-quantity-principal" p="${product_id}" ${attrDisabledReturn}></td>`;
+            soldQuantityPrincipalCell = `<td><input type="text" class="form-control form-control-sm text-center sold-quantity-principal" p="${product_id}" ${attrDisabled}></td>`;
         }
         $(`tbody#details-batch-${product_id}`).append(`
             <tr class="">
                 <td class="text-center align-middle item-correlative"></td>
                 <td><input type="text" class="form-control text-center form-control-sm item-number-batch" p="${product_id}"></td>
-                <td><input type="text" class="form-control form-control-sm text-center entered-quantity-principal" p="${product_id}"></td>
+                ${enteredQuantityPrincipalCell}
                 <td><input type="text" class="form-control form-control-sm text-center entered-quantity-units" p="${product_id}"></td>
-                <td><input type="text" class="form-control form-control-sm text-center returned-quantity-principal" p="${product_id}" disabled></td>
-                <td><input type="text" class="form-control form-control-sm text-center returned-quantity-units" p="${product_id}" disabled></td>
-                <td><input type="text" class="form-control form-control-sm text-center sold-quantity-principal" p="${product_id}" ${attrDisabled}></td>
-                <td><input type="text" class="form-control form-control-sm text-center sold-quantity-units" p="${product_id}" ${attrDisabled}></td>
+                ${returnedQuantityPrincipalCell}
+                <td><input type="text" class="form-control form-control-sm text-center returned-quantity-units" p="${product_id}" ${attrDisabledReturn}></td>
+                ${soldQuantityPrincipalCell}
+                <td><input type="text" class="form-control form-control-sm text-center sold-quantity-units" unit="1" p="${product_id}" ${attrDisabled}></td>
                 <td class="item-sold ${itemSoldClass}">
                     <div class="row m-0">
                         <div class="col-md-4 text-uppercase sale pl-0 pr-0">
@@ -1213,12 +1237,11 @@
                             <button type="button" class="btn btn-danger btn-sm btn-block btn-cancel-sold"><i class="fas fa-ban"></i></button>
                         </div>
                         <div class="col-md-8 text-uppercase pr-0 pl-0 item-sale">
-                            <input type="text" ${attrRead} aria-label=""
+                            <input type="text" disabled
                                    class="form-control form-control-sm text-center font-weight-bold sale-cod"
-                                   id="sale-cod" value=""
+                                   id="sale-cod" p="${product_id}"
                                    name="sale-cod">
-                            <input type="hidden" class="sale-id" id="sale-id"
-                                   name="sale-id">
+                            <input type="hidden" class="sale-id" id="sale-id" name="sale-id" value="0">
                         </div>
                     </div>
                 </td>
@@ -1283,6 +1306,8 @@
     });
     $('.check-sold').change(function () {
         let product_id = $(this).attr('p');
+        let unit_name = $(this).closest('table').parent('td').parent('tr').attr('unit_name');
+        let col_span = unit_name === 'UND' ? 2 : 3;
         let tbody = $(`#details-batch-${product_id}`);
         if ($(this).is(':checked')) {
             tbody.find('tr').each(function () {
@@ -1292,7 +1317,7 @@
             });
             tbody.find('td.item-sold').removeClass('d-none');
             tbody.parent('table').find('thead tr.sub-title th.item-sold').removeClass('d-none');
-            tbody.parent('table').find('thead tr.title td.title-sold').attr('colspan', 3);
+            tbody.parent('table').find('thead tr.title td.title-sold').attr('colspan', col_span);
         }
         else {
             tbody.find('tr').each(function () {
@@ -1302,135 +1327,11 @@
             });
             tbody.find('td.item-sold').addClass('d-none');
             tbody.parent('table').find('thead tr.sub-title th.item-sold').addClass('d-none');
-            tbody.parent('table').find('thead tr.title td.title-sold').attr('colspan', 2);
+            tbody.parent('table').find('thead tr.title td.title-sold').attr('colspan', col_span);
         }
     });
 
-    /********* QUANTITY ENTERED  ***********/
 
-    $(document).on('keyup', '.entered-quantity-principal', function () {
-        let product_id = $(this).attr('p');
-        let tbodyId = $(`#details-batch-${product_id}`);
-        let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
-        let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
-        if (result === false) {
-            $(this).val('');
-        }
-     });
-    $(document).on('keyup', '.entered-quantity-units', function () {
-        let product_id = $(this).attr('p');
-        let tbodyId = $(`#details-batch-${product_id}`);
-        let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
-        let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
-        if (result === false) {
-            $(this).val('');
-        }
-    });
-
-    /********* QUANTITY RETURNED  ***********/
-
-    $(document).on('keyup', '.returned-quantity-principal', function () {
-        let product_id = $(this).attr('p');
-        let tbodyId = $(`#details-batch-${product_id}`);
-        let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
-        let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
-        if (result === false) {
-            $(this).val('');
-        }
-    });
-    $(document).on('keyup', '.returned-quantity-units', function () {
-        let product_id = $(this).attr('p');
-        let tbodyId = $(`#details-batch-${product_id}`);
-        let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
-        let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
-        if (result === false) {
-            $(this).val('');
-        }
-    });
-
-     /********* QUANTITY SOLD  ***********/
-
-     $(document).on('keyup', '.sold-quantity-principal', function () {
-        let product_id = $(this).attr('p');
-        let tbodyId = $(`#details-batch-${product_id}`);
-        let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
-        let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
-         if (result === false) {
-            $(this).val('');
-        }
-    });
-    $(document).on('keyup', '.sold-quantity-units', function () {
-        let product_id = $(this).attr('p');
-        let tbodyId = $(`#details-batch-${product_id}`);
-        let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
-        let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
-        if (result === false) {
-            $(this).val('');
-        }
-    });
-
-    function sumQuantitiesBatch(tbody, quantity_minimum, product_id) {
-        /*** Quantity Entered ***/
-        let quantity_entered_principal = 0;
-        let quantity_entered_units = 0;
-        let tbody_product = $(`#details-product-${product_id}`);
-        let current_quantity = tbody_product.find('tr.detail td.item-current-quantity input.current-quantity-missing');
-        //let current_quantity_val = tbody_product.find('tr.detail td.item-current-quantity input.current-quantity-missing').val();
-        let quantity_missing = tbody_product.find('tr.detail td.item-current-quantity input.quantity-missing');
-        //let quantity_missing_val = tbody_product.find('tr.detail td.item-current-quantity input.quantity-missing').val();
-
-        tbody.find('tr').each(function () {
-            let value = parseFloat($(this).find('input.entered-quantity-principal').val()) || 0;
-            quantity_entered_principal += value;
-        });
-        let in_units_entered = Number(quantity_entered_principal) * Number(quantity_minimum)
-
-        tbody.find('tr').each(function () {
-            let value = parseFloat($(this).find('input.entered-quantity-units').val()) || 0;
-            quantity_entered_units += value;
-        });
-        let sum_entered = in_units_entered + Number(quantity_entered_units)
-        /*** Quantity Entered ***/
-        let quantity_returned_principal = 0;
-        let quantity_returned_units = 0;
-        tbody.find('tr').each(function () {
-            let value = parseFloat($(this).find('input.returned-quantity-principal').val()) || 0;
-            quantity_returned_principal += value;
-        });
-        let in_units_returned = Number(quantity_returned_principal) * Number(quantity_minimum)
-
-        tbody.find('tr').each(function () {
-            let value = parseFloat($(this).find('input.returned-quantity-units').val()) || 0;
-            quantity_returned_units += value;
-        });
-        let sum_returned = in_units_returned + Number(quantity_returned_units)
-        /*** Quantity Sold ***/
-        let quantity_sold_principal = 0;
-        let quantity_sold_units = 0;
-        tbody.find('tr').each(function () {
-            let value = parseFloat($(this).find('input.sold-quantity-principal').val()) || 0;
-            quantity_sold_principal += value;
-        });
-        let in_units_sold = Number(quantity_sold_principal) * Number(quantity_minimum)
-
-        tbody.find('tr').each(function () {
-            let value = parseFloat($(this).find('input.sold-quantity-units').val()) || 0;
-            quantity_sold_units += value;
-        });
-        let sum_sold = in_units_sold + Number(quantity_sold_units)
-
-        let sum_total_quantities =  sum_entered + sum_returned + sum_sold;
-
-        if (sum_total_quantities > Number(current_quantity.val())) {
-            toastr.warning("La cantidad ESCRITADA no puede superar a la cantidad COMPRADA", '¡MENSAJE!', {
-                positionClass: "toast-center",
-            });
-            return false;
-        } else {
-            let new_q_missing = Number(current_quantity.val()) - Number(sum_total_quantities)
-            quantity_missing.val(new_q_missing.toFixed(2))
-        }
-    }
 
 </script>
 

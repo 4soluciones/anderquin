@@ -184,6 +184,287 @@
         });
 
 
+        /********* QUANTITY ENTERED  ***********/
+
+        $(document).on('keyup', '.entered-quantity-principal', function () {
+            let product_id = $(this).attr('p');
+            let tbodyId = $(`#details-batch-${product_id}`);
+            let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
+            let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
+            if (result === false) {
+                $(this).val('');
+            }
+        });
+        $(document).on('keyup', '.entered-quantity-units', function () {
+            let product_id = $(this).attr('p');
+            let tbodyId = $(`#details-batch-${product_id}`);
+            let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
+            let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
+            if (result === false) {
+                $(this).val('');
+            }
+        });
+
+        /********* QUANTITY RETURNED  ***********/
+
+        $(document).on('keyup', '.returned-quantity-principal', function () {
+            let product_id = $(this).attr('p');
+            let tbodyId = $(`#details-batch-${product_id}`);
+            let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
+            let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
+            if (result === false) {
+                $(this).val('');
+            }
+        });
+        $(document).on('keyup', '.returned-quantity-units', function () {
+            let product_id = $(this).attr('p');
+            let tbodyId = $(`#details-batch-${product_id}`);
+            let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
+            let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
+            if (result === false) {
+                $(this).val('');
+            }
+        });
+
+        /********* QUANTITY SOLD  ***********/
+
+        $(document).on('keyup', '.sold-quantity-principal', function () {
+            let product_id = $(this).attr('p');
+            let tbodyId = $(`#details-batch-${product_id}`);
+            let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
+            let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
+            if (result === false) {
+                $(this).val('');
+            }
+        });
+        $(document).on('keyup', '.sold-quantity-units', function () {
+            let product_id = $(this).attr('p');
+            let tbodyId = $(`#details-batch-${product_id}`);
+            let quantity_minimum = tbodyId.parent('table').closest('tr').attr('qm');
+            let result = sumQuantitiesBatch(tbodyId, quantity_minimum, product_id);
+            if (result === false) {
+                $(this).val('');
+            }
+        });
+
+        $(document).on('click', '.btn-generate-sold', function () {
+            //$('.btn-generate-sold').click(function () {
+            let store = $('#store');
+            if (store.val() === '0' || store.val() === null) {
+                toastr.warning('¡Seleccione el Almacen de Destino!', 'Error de Datos');
+                return false;
+            }
+
+            let r = confirm("¿Esta seguro de Generar la Venta? ")
+            if (r === true) {
+                /*let _tr = $(this).closest('tr.sold-quantity')
+                let _tr_detail = _tr.prevUntil('tr.detail').prev('tr.detail');
+                let _tr_sold = _tr.prev('tr.sold-quantity-units');
+                let _product_id = _tr_detail.attr('product');
+                //let _button = $(this);
+                let check_sold = _tr_sold.find('td.item-check-sold input.check-quantity-sold')
+                let input_principal_val = 0
+                let input_principal
+                let unit_principal
+                if (_tr_sold.find('td.quantity-sold input.quantity_sold_principal').val()) {
+                    input_principal_val = _tr_sold.find('td.quantity-sold input.quantity_sold_principal').val();
+                    input_principal = _tr_sold.find('td.quantity-sold input.quantity_sold_principal');
+                    unit_principal = _tr_sold.find('td.quantity-sold tr.sold-quantity-principal').attr('unit');
+                }
+                let input_units = _tr_sold.find('td.quantity-sold input.quantity_sold_units');
+                let unit_id = _tr_sold.find('td.quantity-sold tr.sold-quantity-und').attr('unit');
+
+                let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
+                let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
+                let _input_correlative = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod');
+                let _input_order = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id');*/
+
+                let tr = $(this).closest('tr')
+                let _tr_detail = $(this).closest('table').parent('td').parent('tr');
+                let check_sold = $(this).closest('table').find('thead tr td.title-sold input.check-sold');
+                let _product_id = _tr_detail.attr('product');
+                let input_principal;
+                let input_principal_val = null;
+                let unit_principal = null;
+                let unit_id = tr.find('input.sold-quantity-units').attr('unit');
+                let input_units = tr.find('input.sold-quantity-units');
+                if (tr.find('input.sold-quantity-principal').val()) {
+                    input_principal = tr.find('input.sold-quantity-principal');
+                    input_principal_val = tr.find('input.sold-quantity-principal').val();
+                    unit_principal = _tr_detail.attr("unit");
+                }
+                let _input_correlative = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod');
+                let _input_order = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id');
+                let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
+                let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
+
+                /*console.log('product_id', _product_id)
+                console.log('unit_principal', unit_principal)
+                console.log('unit_id', unit_id)
+                console.log("input_principal", input_principal_val)
+                console.log("input_units", input_units.val())
+                console.log("---------------")*/
+
+                $.ajax({
+                    url: '/sales/create_warehouse_sale/',
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {
+                        'product_id': _product_id,
+                        'unit_principal': unit_principal ? unit_principal : null,
+                        'input_principal_val': input_principal_val,
+                        'unit_id': unit_id,
+                        'store': store.val(),
+                        'input_units': input_units.val(),
+                    },
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            let correlative_sale = response.correlative
+                            let order_id = response.order_id
+                            _input_correlative.val(order_id);
+                            _input_order.val(order_id);
+                            _div_sale.addClass('d-none');
+                            _div_cancel.removeClass('d-none');
+                            toastr.success(response.message, '¡CODIGO DE VENTA GENERADO!');
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        toastr.error(jqXhr.responseJSON.detalle, '¡ERROR!');
+                    }
+
+                });
+
+                _input_correlative.val("1");
+                _input_order.val("2");
+                _div_sale.addClass('d-none');
+                _div_cancel.removeClass('d-none');
+
+                if (input_principal) {
+                    input_principal.prop('disabled', true);
+                }
+                check_sold.prop('disabled', true);
+                input_units.prop('disabled', true);
+                //_button.prop('disabled', true);
+            }
+        });
+
+        $(document).on('click', '.btn-cancel-sold', function () {
+            //$('.btn-cancel-sold').click(function () {
+            let tr = $(this).closest('tr')
+            let _correlative = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod');
+            //let product_id = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod').attr("p");
+            let _order_id = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id');
+            let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
+            let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
+            let check_sold = $(this).closest('table').find('thead tr td.title-sold input.check-sold');
+            let input_principal
+            let input_units = tr.find('input.sold-quantity-units');
+            if (tr.find('input.sold-quantity-principal').val()) {
+                input_principal = tr.find('input.sold-quantity-principal');
+            }
+            /*console.log("_correlative", _correlative)
+            console.log("_order_id", _order_id.val())
+            console.log("_div_sale", _div_sale)
+            console.log("_div_cancel", _div_cancel)
+            console.log("check_sold", check_sold)
+            console.log("input_units", input_units)
+            console.log("input_principal", input_principal)*/
+
+            let r = confirm("¿Esta seguro de Eliminar la Venta")
+            if (r === true) {
+                $.ajax({
+                    url: '/sales/delete_warehouse_sale/',
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'order_id': _order_id.val()},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            _correlative.val("");
+                            _order_id.val("");
+                            _div_sale.removeClass('d-none');
+                            _div_cancel.addClass('d-none');
+                            check_sold.prop('disabled', false);
+                            if (input_principal) {
+                                input_principal.prop('disabled', false);
+                            }
+                            input_units.prop('disabled', false);
+                            toastr.warning(response.message, '¡Operación Correcta!');
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        toastr.error(jqXhr.responseJSON, '¡ERROR!');
+                    }
+
+                });
+            }
+        });
+
+        function sumQuantitiesBatch(tbody, quantity_minimum, product_id) {
+            /*** Quantity Entered ***/
+            let quantity_entered_principal = 0;
+            let quantity_entered_units = 0;
+            let tbody_product = $(`#details-product-${product_id}`);
+            let current_quantity = tbody_product.find('tr.detail td.item-current-quantity input.current-quantity-missing');
+            //let current_quantity_val = tbody_product.find('tr.detail td.item-current-quantity input.current-quantity-missing').val();
+            let quantity_missing = tbody_product.find('tr.detail td.item-current-quantity input.quantity-missing');
+            //let quantity_missing_val = tbody_product.find('tr.detail td.item-current-quantity input.quantity-missing').val();
+
+            tbody.find('tr').each(function () {
+                let value = parseFloat($(this).find('input.entered-quantity-principal').val()) || 0;
+                quantity_entered_principal += value;
+            });
+            let in_units_entered = Number(quantity_entered_principal) * Number(quantity_minimum)
+
+            tbody.find('tr').each(function () {
+                let value = parseFloat($(this).find('input.entered-quantity-units').val()) || 0;
+                quantity_entered_units += value;
+            });
+            let sum_entered = in_units_entered + Number(quantity_entered_units)
+            /*** Quantity Entered ***/
+            let quantity_returned_principal = 0;
+            let quantity_returned_units = 0;
+            tbody.find('tr').each(function () {
+                let value = parseFloat($(this).find('input.returned-quantity-principal').val()) || 0;
+                quantity_returned_principal += value;
+            });
+            let in_units_returned = Number(quantity_returned_principal) * Number(quantity_minimum)
+
+            tbody.find('tr').each(function () {
+                let value = parseFloat($(this).find('input.returned-quantity-units').val()) || 0;
+                quantity_returned_units += value;
+            });
+            let sum_returned = in_units_returned + Number(quantity_returned_units)
+            /*** Quantity Sold ***/
+            let quantity_sold_principal = 0;
+            let quantity_sold_units = 0;
+            tbody.find('tr').each(function () {
+                let value = parseFloat($(this).find('input.sold-quantity-principal').val()) || 0;
+                quantity_sold_principal += value;
+            });
+            let in_units_sold = Number(quantity_sold_principal) * Number(quantity_minimum)
+
+            tbody.find('tr').each(function () {
+                let value = parseFloat($(this).find('input.sold-quantity-units').val()) || 0;
+                quantity_sold_units += value;
+            });
+            let sum_sold = in_units_sold + Number(quantity_sold_units)
+
+            let sum_total_quantities = sum_entered + sum_returned + sum_sold;
+
+            if (sum_total_quantities > Number(current_quantity.val())) {
+                toastr.warning("La cantidad DIGITADA no puede superar a la cantidad COMPRADA", '¡MENSAJE!', {
+                    positionClass: "toast-center",
+                });
+                return false;
+            } else {
+                let new_q_missing = Number(current_quantity.val()) - Number(sum_total_quantities)
+                quantity_missing.val(new_q_missing.toFixed(2))
+            }
+        }
     </script>
 
 {% endblock extrajs %}

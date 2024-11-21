@@ -5,7 +5,7 @@ import decimal
 # Create your models here.
 from django.db.models import Sum, Count
 
-from apps import sales
+from apps import sales, buys
 
 
 class TransactionAccount(models.Model):
@@ -349,8 +349,8 @@ class Bill(models.Model):
     bill_igv_total = models.DecimalField('Total IGV ventas', max_digits=30, decimal_places=2, default=0)
     bill_total_total = models.DecimalField('Total ventas', max_digits=30, decimal_places=2, default=0)
     supplier = models.ForeignKey('sales.Supplier', on_delete=models.CASCADE, null=True, blank=True)
-    batch_number = models.CharField('Numero de Lote', max_length=50, null=True, blank=True)
-    batch_expiration_date = models.DateField('Fecha de expiracion de lote', null=True, blank=True)
+    # batch_number = models.CharField('Numero de Lote', max_length=50, null=True, blank=True)
+    # batch_expiration_date = models.DateField('Fecha de expiracion de lote', null=True, blank=True)
     guide_number = models.CharField('Numero de Guia', max_length=50, null=True, blank=True)
     assign_date = models.DateField('Fecha de Ingreso a Almacen', null=True, blank=True)
     store_destiny = models.ForeignKey('sales.SubsidiaryStore', on_delete=models.SET_NULL, null=True, blank=True)
@@ -413,10 +413,26 @@ class BillDetail(models.Model):
     unit = models.ForeignKey('sales.Unit', on_delete=models.CASCADE, null=True, blank=True)
     price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
     status_quantity = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='C')
-    order = models.ForeignKey('sales.Order', on_delete=models.CASCADE, null=True, blank=True)
+
+    # batch_number = models.CharField('Numero de Lote', max_length=50, null=True, blank=True)
+    # batch_expiration_date = models.DateField('Fecha de expiracion de lote', null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
 
     def amount(self):
         return self.quantity * self.price_unit
+
+
+class BillDetailBatch(models.Model):
+    id = models.AutoField(primary_key=True)
+    batch_number = models.CharField('Numero de Lote', max_length=50, null=True, blank=True)
+    batch_expiration_date = models.DateField('Fecha de expiracion de lote', null=True, blank=True)
+    product = models.ForeignKey('sales.Product', on_delete=models.CASCADE, null=True, blank=True)
+    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=4, default=0)
+    unit = models.ForeignKey('sales.Unit', on_delete=models.CASCADE, null=True, blank=True)
+    bill_detail = models.ForeignKey(BillDetail, on_delete=models.CASCADE, null=True, blank=True)
+    order = models.ForeignKey('sales.Order', on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.id)

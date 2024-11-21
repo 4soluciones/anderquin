@@ -37,7 +37,7 @@ from django.db.models.functions import (
     ExtractWeekDay, ExtractIsoYear, ExtractYear,
 )
 
-from ..accounting.models import Bill, BillPurchase, BillDetail
+from ..accounting.models import Bill, BillPurchase, BillDetail, BillDetailBatch
 from ..buys.models import PurchaseDetail, Purchase, CreditNote, ContractDetail, CreditNoteDetail
 from apps.sales.funtions import *
 
@@ -3799,7 +3799,7 @@ def assign_to_warehouse(request):
         subsidiary_stores = SubsidiaryStore.objects.filter(category='V')
 
         bill_obj = Bill.objects.get(id=int(pk))
-        bill_details_set = BillDetail.objects.filter(bill=bill_obj)
+        bill_details_set = BillDetail.objects.filter(bill=bill_obj, status_quantity='C')
         unit_description = ''
 
         details_dict = []
@@ -3870,14 +3870,6 @@ def save_detail_to_warehouse(request):
         subsidiary_obj = get_subsidiary_by_user(user_obj)
         subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(store))
 
-        # bill_obj.batch_number = batch_number
-        # bill_obj.batch_expiration_date = batch_expiration_date
-        bill_obj.guide_number = guide_number
-        bill_obj.assign_date = assign_date
-        bill_obj.store_destiny = subsidiary_store_obj
-        bill_obj.status = 'E'
-        bill_obj.save()
-
         for d in data_purchase['Details']:
 
             product_id = int(d['Product'])
@@ -3893,93 +3885,210 @@ def save_detail_to_warehouse(request):
 
             # ----------------------------------- QUANTITY ENTERED --------------------------------------------------
 
-            entered_quantity_principal = decimal.Decimal(d['EnteredQuantityPrincipal'])
-            entered_quantity_in_units = entered_quantity_principal * unit_min_product
-            entered_quantity_units = d['EnteredQuantityUnits']
+            # entered_quantity_principal = decimal.Decimal(d['EnteredQuantityPrincipal'])
+            # entered_quantity_in_units = entered_quantity_principal * unit_min_product
+            # entered_quantity_units = d['EnteredQuantityUnits']
+            #
+            # if entered_quantity_principal != 0 and entered_quantity_principal != '':
+            #     detail_entered_obj = BillDetail.objects.create(quantity=entered_quantity_principal, unit=unit_obj,
+            #                                                    price_unit=price_purchase, product=product_obj,
+            #                                                    status_quantity='I', bill=bill_obj)
+            #     try:
+            #         product_store_obj = ProductStore.objects.get(product=product_obj,
+            #                                                      subsidiary_store=subsidiary_store_obj)
+            #     except ProductStore.DoesNotExist:
+            #         product_store_obj = None
+            #
+            #     if product_store_obj is None:
+            #         new_product_store_obj = ProductStore.objects.create(product=product_obj,
+            #                                                             subsidiary_store=subsidiary_store_obj,
+            #                                                             stock=entered_quantity_in_units)
+            #         kardex_obj = kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase_unit,
+            #                                     bill_detail_obj=detail_entered_obj)
+            #     else:
+            #         total_cost = decimal.Decimal(entered_quantity_in_units) * decimal.Decimal(price_purchase_unit)
+            #         kardex_obj = kardex_input(product_store_obj.id, entered_quantity_in_units, total_cost,
+            #                                   type_document='01', type_operation='02',
+            #                                   bill_detail_obj=detail_entered_obj)
+            #     for batch in d['Batch']:
+            #         batch_number = batch['batchNumber']
+            #         batch_quantity = decimal.Decimal(batch['batchQuantity'])
+            #         batch_expiration = batch['batchExpiration']
+            #
+            #         Batch.objects.create(expiration_date=batch_expiration, batch_number=batch_number,
+            #                              kardex=kardex_obj, quantity=batch_quantity * unit_min_product,
+            #                              remaining_quantity=batch_quantity * unit_min_product,
+            #                              product_store=product_store_obj)
+            #
+            # if entered_quantity_units != 0 and entered_quantity_units != '':
+            #     detail_entered_units_obj = BillDetail.objects.create(quantity=entered_quantity_units,
+            #                                                          price_unit=price_purchase_unit, unit=unit_und_obj,
+            #                                                          product=product_obj, status_quantity='I',
+            #                                                          bill=bill_obj)
+            #     try:
+            #         product_store_obj = ProductStore.objects.get(product=product_obj,
+            #                                                      subsidiary_store=subsidiary_store_obj)
+            #     except ProductStore.DoesNotExist:
+            #         product_store_obj = None
+            #
+            #     if product_store_obj is None:
+            #         new_product_store_obj = ProductStore.objects.create(product=product_obj,
+            #                                                             subsidiary_store=subsidiary_store_obj,
+            #                                                             stock=entered_quantity_units)
+            #         new_product_store_obj.save()
+            #         kardex_initial(new_product_store_obj, entered_quantity_units, price_purchase_unit,
+            #                        bill_detail_obj=detail_entered_units_obj)
+            #     else:
+            #         total_cost = decimal.Decimal(entered_quantity_units) * decimal.Decimal(price_purchase_unit)
+            #         kardex_input(product_store_obj.id, entered_quantity_units, total_cost,
+            #                      type_document='01', type_operation='02', bill_detail_obj=detail_entered_units_obj)
 
-            if entered_quantity_principal != 0 and entered_quantity_principal != '':
-                detail_entered_obj = BillDetail.objects.create(quantity=entered_quantity_principal, unit=unit_obj,
-                                                               price_unit=price_purchase, product=product_obj,
-                                                               status_quantity='I', bill=bill_obj)
-                try:
-                    product_store_obj = ProductStore.objects.get(product=product_obj,
-                                                                 subsidiary_store=subsidiary_store_obj)
-                except ProductStore.DoesNotExist:
-                    product_store_obj = None
+            try:
+                product_store_obj = ProductStore.objects.get(product=product_obj,
+                                                             subsidiary_store=subsidiary_store_obj)
+            except ProductStore.DoesNotExist:
+                product_store_obj = None
 
+            sum_quantity_entered_principal = decimal.Decimal(d['SumQuantityEnteredPrincipal'])
+            sum_entered_quantity_in_units = sum_quantity_entered_principal * unit_min_product
+            sum_quantity_entered_units = d['SumQuantityEnteredUnits']
+
+            sum_quantity_entered_total_in_units = sum_entered_quantity_in_units + sum_quantity_entered_units
+
+            if sum_quantity_entered_total_in_units != 0 and sum_quantity_entered_total_in_units != '':
+
+                detail_entered_obj = BillDetail.objects.create(quantity=sum_quantity_entered_total_in_units,
+                                                               unit=unit_und_obj, price_unit=price_purchase,
+                                                               product=product_obj, status_quantity='I', bill=bill_obj)
                 if product_store_obj is None:
-                    new_product_store_obj = ProductStore.objects.create(product=product_obj,
-                                                                        subsidiary_store=subsidiary_store_obj,
-                                                                        stock=entered_quantity_in_units)
-                    kardex_obj = kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase_unit,
-                                                bill_detail_obj=detail_entered_obj)
+                    product_store_obj = ProductStore.objects.create(product=product_obj,
+                                                                    subsidiary_store=subsidiary_store_obj,
+                                                                    stock=sum_quantity_entered_total_in_units)
+                    kardex_obj = kardex_initial(product_store_obj, sum_quantity_entered_total_in_units,
+                                                price_purchase_unit, bill_detail_obj=detail_entered_obj)
+
                 else:
-                    total_cost = decimal.Decimal(entered_quantity_in_units) * decimal.Decimal(price_purchase_unit)
-                    kardex_obj = kardex_input(product_store_obj.id, entered_quantity_in_units, total_cost,
+                    total_cost = decimal.Decimal(sum_quantity_entered_total_in_units) * decimal.Decimal(price_purchase_unit)
+                    kardex_obj = kardex_input(product_store_obj.id, sum_quantity_entered_total_in_units, total_cost,
                                               type_document='01', type_operation='02',
                                               bill_detail_obj=detail_entered_obj)
-                for batch in d['Batch']:
-                    batch_number = batch['batchNumber']
-                    batch_quantity = decimal.Decimal(batch['batchQuantity'])
-                    batch_expiration = batch['batchExpiration']
 
-                    Batch.objects.create(expiration_date=batch_expiration, batch_number=batch_number,
-                                         kardex=kardex_obj, quantity=batch_quantity * unit_min_product,
-                                         remaining_quantity=batch_quantity * unit_min_product,
-                                         product_store=product_store_obj)
+                for b in d['Batch']:
+                    entered_quantity_principal = decimal.Decimal(b['EnteredQuantityPrincipal'])
+                    entered_quantity_in_units = entered_quantity_principal * unit_min_product
+                    batch_number = b['batchNumber']
+                    batch_expiration = b['batchExpiration']
+                    entered_quantity_units = decimal.Decimal(b['EnteredQuantityUnits'])
 
-            if entered_quantity_units != 0 and entered_quantity_units != '':
-                detail_entered_units_obj = BillDetail.objects.create(quantity=entered_quantity_units,
-                                                                     price_unit=price_purchase_unit, unit=unit_und_obj,
-                                                                     product=product_obj, status_quantity='I',
-                                                                     bill=bill_obj)
-                try:
-                    product_store_obj = ProductStore.objects.get(product=product_obj,
-                                                                 subsidiary_store=subsidiary_store_obj)
-                except ProductStore.DoesNotExist:
-                    product_store_obj = None
+                    if entered_quantity_principal != 0 and entered_quantity_principal != '':
+                        Batch.objects.create(expiration_date=batch_expiration, batch_number=batch_number,
+                                             kardex=kardex_obj,
+                                             quantity=entered_quantity_in_units,
+                                             remaining_quantity=entered_quantity_in_units,
+                                             product_store=product_store_obj)
 
-                if product_store_obj is None:
-                    new_product_store_obj = ProductStore.objects.create(product=product_obj,
-                                                                        subsidiary_store=subsidiary_store_obj,
-                                                                        stock=entered_quantity_units)
-                    new_product_store_obj.save()
-                    kardex_initial(new_product_store_obj, entered_quantity_units, price_purchase_unit,
-                                   bill_detail_obj=detail_entered_units_obj)
-                else:
-                    total_cost = decimal.Decimal(entered_quantity_units) * decimal.Decimal(price_purchase_unit)
-                    kardex_input(product_store_obj.id, entered_quantity_units, total_cost,
-                                 type_document='01', type_operation='02', bill_detail_obj=detail_entered_units_obj)
+                        BillDetailBatch.objects.create(batch_number=batch_number,
+                                                       batch_expiration_date=batch_expiration,
+                                                       product=product_obj, quantity=entered_quantity_principal,
+                                                       unit=unit_obj, bill_detail=detail_entered_obj)
+
+                    if entered_quantity_units != 0 and entered_quantity_units != '':
+                        batch_set = Batch.objects.filter(batch_number=str(batch_number),
+                                                         product_store=product_store_obj)
+                        if batch_set.exists():
+                            batch_obj = batch_set.last()
+                            batch_obj.quantity = batch_obj.quantity + entered_quantity_units
+                            batch_obj.remaining_quantity = batch_obj.remaining_quantity + entered_quantity_units
+                            batch_obj.save()
+                        else:
+                            Batch.objects.create(expiration_date=batch_expiration, batch_number=batch_number,
+                                                 kardex=kardex_obj, quantity=entered_quantity_units,
+                                                 remaining_quantity=entered_quantity_units,
+                                                 product_store=product_store_obj)
+
+                        BillDetailBatch.objects.create(batch_number=batch_number,
+                                                       batch_expiration_date=batch_expiration,
+                                                       product=product_obj, quantity=entered_quantity_units,
+                                                       unit=unit_und_obj, bill_detail=detail_entered_obj)
 
             # ----------------------------------- QUANTITY RETURNED --------------------------------------------------
 
-            returned_quantity_principal = d['ReturnedQuantityPrincipal']
-            returned_quantity_units = d['ReturnedQuantityUnits']
+            # returned_quantity_principal = d['ReturnedQuantityPrincipal']
+            # returned_quantity_units = d['ReturnedQuantityUnits']
 
-            if returned_quantity_principal != 0 and returned_quantity_principal != '':
-                BillDetail.objects.create(quantity=returned_quantity_principal, price_unit=price_purchase,
-                                          unit=unit_obj, product=product_obj, status_quantity='D', bill=bill_obj)
+            sum_returned_quantity_principal = d['SumQuantityReturnedPrincipal']
+            sum_returned_quantity_in_units = sum_returned_quantity_principal * unit_min_product
+            sum_returned_quantity_units = d['SumQuantityReturnedUnits']
 
-            if returned_quantity_units != 0 and returned_quantity_units != '':
-                BillDetail.objects.create(quantity=returned_quantity_units, price_unit=price_purchase,
-                                          unit=unit_und_obj, product=product_obj, status_quantity='D', bill=bill_obj)
+            sum_quantity_returned_total_in_units = sum_returned_quantity_in_units + sum_returned_quantity_units
+
+            if sum_quantity_returned_total_in_units != 0 and sum_quantity_returned_total_in_units != '':
+
+                detail_returned_obj = BillDetail.objects.create(quantity=sum_quantity_returned_total_in_units,
+                                                                unit=unit_und_obj, price_unit=price_purchase,
+                                                                product=product_obj, status_quantity='D', bill=bill_obj)
+
+                for b in d['Batch']:
+                    returned_quantity_principal = decimal.Decimal(b['ReturnedQuantityPrincipal'])
+                    returned_quantity_in_units = returned_quantity_principal * unit_min_product
+                    return_batch_number = b['batchNumber']
+                    return_batch_expiration = b['batchExpiration']
+                    returned_quantity_units = decimal.Decimal(b['ReturnedQuantityUnits'])
+
+                    if returned_quantity_principal != 0 and returned_quantity_principal != '':
+
+                        BillDetailBatch.objects.create(batch_number=return_batch_number, product=product_obj,
+                                                       batch_expiration_date=return_batch_expiration,
+                                                       quantity=returned_quantity_principal, unit=unit_obj,
+                                                       bill_detail=detail_returned_obj)
+
+                    if returned_quantity_units != 0 and returned_quantity_units != '':
+
+                        BillDetailBatch.objects.create(batch_number=return_batch_number, product=product_obj,
+                                                       batch_expiration_date=return_batch_expiration,
+                                                       quantity=returned_quantity_units, unit=unit_und_obj,
+                                                       bill_detail=detail_returned_obj)
 
             # ----------------------------------- QUANTITY SOLD --------------------------------------------------
 
-            sold_quantity_principal = d['SoldQuantityPrincipal']
-            sold_quantity_units = d['SoldQuantityUnit']
-            sold_order_id = d['SoldOrderId']
-            order_sale_obj = None
-            if sold_quantity_principal != 0 and sold_quantity_principal != '':
-                order_sale_obj = Order.objects.get(id=int(sold_order_id))
-                BillDetail.objects.create(quantity=sold_quantity_principal, price_unit=price_purchase, unit=unit_obj,
-                                          product=product_obj, status_quantity='V', bill=bill_obj, order=order_sale_obj)
+            sum_sold_quantity_principal = d['SumQuantitySoldPrincipal']
+            sum_sold_quantity_in_units = sum_sold_quantity_principal * unit_min_product
+            sum_sold_quantity_units = d['SumQuantitySoldUnits']
 
-            if sold_quantity_units != 0 and sold_quantity_units != '':
-                order_sale_obj = Order.objects.get(id=int(sold_order_id))
-                BillDetail.objects.create(quantity=sold_quantity_units, price_unit=price_purchase, unit=unit_und_obj,
-                                          product=product_obj, status_quantity='V', bill=bill_obj, order=order_sale_obj)
+            sum_quantity_sold_total_in_units = sum_sold_quantity_in_units + sum_sold_quantity_units
 
+            if sum_quantity_sold_total_in_units != 0 and sum_quantity_sold_total_in_units != '':
+
+                detail_sold_obj = BillDetail.objects.create(quantity=sum_quantity_sold_total_in_units,
+                                                            unit=unit_und_obj, price_unit=price_purchase,
+                                                            product=product_obj, status_quantity='V', bill=bill_obj)
+
+                for b in d['Batch']:
+                    sold_quantity_principal = decimal.Decimal(b['SoldQuantityPrincipal'])
+                    sold_quantity_in_units = sold_quantity_principal * unit_min_product
+                    sold_batch_number = b['batchNumber']
+                    sold_batch_expiration = b['batchExpiration']
+                    sold_quantity_units = decimal.Decimal(b['SoldQuantityUnit'])
+
+                    if sold_quantity_principal != 0 and sold_quantity_principal != '':
+                        order_sale_obj = Order.objects.get(id=int(b['SoldOrderId']))
+                        BillDetailBatch.objects.create(batch_number=sold_batch_number, product=product_obj,
+                                                       batch_expiration_date=sold_batch_expiration, unit=unit_obj,
+                                                       quantity=sold_quantity_principal, bill_detail=detail_sold_obj,
+                                                       order=order_sale_obj)
+
+                    if sold_quantity_units != 0 and sold_quantity_units != '':
+                        order_sale_obj = Order.objects.get(id=int(b['SoldOrderId']))
+                        BillDetailBatch.objects.create(batch_number=sold_batch_number,  product=product_obj,
+                                                       batch_expiration_date=sold_batch_expiration, unit=unit_und_obj,
+                                                       quantity=sold_quantity_units, bill_detail=detail_sold_obj,
+                                                       order=order_sale_obj)
+
+        bill_obj.guide_number = guide_number
+        bill_obj.assign_date = assign_date
+        bill_obj.store_destiny = subsidiary_store_obj
+        bill_obj.status = 'E'
+        bill_obj.save()
         bill_purchase_set = BillPurchase.objects.filter(bill=bill_obj)
         for b in bill_purchase_set:
             purchase_obj = b.purchase
@@ -4000,15 +4109,13 @@ def get_details_by_bill(request):
         details_dict = []
         for d in details_bill:
 
-            order_number = ''
-            order_number_bill = ''
             store = ''
             credit_number = ''
             bill_applied = 'Sin Aplicar'
 
-            if d.order:
-                order_number = d.order.id
-                order_number_bill = d.order.serial + '-' + d.order.correlative
+            # if d.order:
+            #     order_number = d.order.id
+            #     order_number_bill = d.order.serial + '-' + d.order.correlative
             if d.kardex_set.all():
                 store = d.kardex_set.last().product_store.subsidiary_store.name
 
@@ -4028,13 +4135,32 @@ def get_details_by_bill(request):
                 'status_quantity': d.status_quantity,
                 'status_display': d.get_status_quantity_display(),
                 'store': store,
-                'batch_number': d.bill.batch_number,
-                'batch_expiration': d.bill.batch_expiration_date,
-                'order_number': order_number,
-                'order_number_bill': order_number_bill,
+                'batch_number': '',
+                'batch_expiration': '',
+                # 'order_number': order_number,
+                # 'order_number_bill': order_number_bill,
                 'credit_note': credit_number,
-                'bill_applied': bill_applied
+                'bill_applied': bill_applied,
+                'rowspan': d.billdetailbatch_set.count(),
+                'details_batch': [],
             }
+            for b in d.billdetailbatch_set.all():
+                order_number = ''
+                order_number_bill = ''
+                if b.order:
+                    order_number = b.order.id
+                    if b.order.serial is not None:
+                        order_number_bill = b.order.serial + '-' + b.order.correlative
+                item_batch = {
+                    'id': b.id,
+                    'batch_number': b.batch_number,
+                    'batch_expiration': b.batch_expiration_date,
+                    'batch_quantity': b.quantity,
+                    'batch_unit': b.unit.description,
+                    'order_number': order_number,
+                    'order_number_bill': order_number_bill,
+                }
+                item.get('details_batch').append(item_batch)
             details_dict.append(item)
         # print(details_dict)
         t = loader.get_template('sales/details_bill.html')
