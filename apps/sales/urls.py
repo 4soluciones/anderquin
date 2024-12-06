@@ -130,5 +130,10 @@ urlpatterns = [
     # KARDEX
     path('kardex/', login_required(kardex_list), name='kardex'),
 
+    # PRODUCTS
+    path('get_product_autocomplete/', login_required(get_product_autocomplete), name='get_product_autocomplete'),
+    path('get_product_by_id/', login_required(get_product_by_id), name='get_product_by_id'),
+    path('modal_batch/', login_required(modal_batch), name='modal_batch'),
+
 ]
 

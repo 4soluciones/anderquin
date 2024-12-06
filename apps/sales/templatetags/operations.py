@@ -66,6 +66,20 @@ def replace_round(value):
     return value
 
 
+@register.filter(name='round_fourth')
+def round_fourth(value):
+    if value is not None and value != '':
+        value = float(value)
+        decimal_part = value - int(value)
+        decimal_str = f"{decimal_part:.3f}"[2:]
+        if int(decimal_str[2]) > 0:
+            rounded_value = round(value, 4)
+        else:
+            rounded_value = round(decimal.Decimal(value), 4)
+        return str(rounded_value).replace(',', '.')
+    return value
+
+
 @register.filter(name='replace_round_separator')
 def replace_round_separator(value):
     if value is not None and value != '':

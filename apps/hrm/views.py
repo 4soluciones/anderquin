@@ -36,10 +36,11 @@ class Home(TemplateView):
         my_date = datetime.now()
         password = make_password(text)
         context = {
-            'dist_10bg_set': get_distribution_10kg(),
-            'dist_5bg_set': get_distribution_5kg(),
-            'dist_15bg_set': get_distribution_15kg(),
-            'dist_45bg_set': get_distribution_45kg(),
+            # 'dist_10bg_set': get_distribution_10kg(),
+            # 'dist_5bg_set': get_distribution_5kg(),
+            # 'dist_15bg_set': get_distribution_15kg(),
+            # 'dist_45bg_set': get_distribution_45kg(),
+            'subsidiary_set': Subsidiary.objects.filter(is_address=False)
             # 'sicuani_order_set': sicuani_order_set,
             # 'cusco_order_set': cusco_order_set,
             # 'vilcanota_order_set': vilcanota_order_set,

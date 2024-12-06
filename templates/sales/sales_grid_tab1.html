@@ -18,53 +18,8 @@
                         </h4>
                     </div>
                 </div>
-{#                <div class="col-sm-3 col-md-3 col-lg-3 pt-2 pl-0">#}
-{#                    {% if guide_obj %}#}
-{#                        <h4 class="roboto-condensed-regular text-warning font-weight-bold mt-1 mb-1">#}
-{#                            Nº GUÍA : {{ guide_obj }}#}
-{#                        </h4>#}
-{#                        <input type="hidden" value="{{ guide_obj.id }}" id="guide_id" name="guide_id">#}
-{#                    {% else %}#}
-{#                        <div class="input-group">#}
-{#                            <input id="search_sale" type="text" autocomplete="off"#}
-{#                                   class="form-control text-right" aria-label="..."#}
-{#                                   style="border-color: #96a494">#}
-{#                            <input id="order_id" name="order" type="hidden" aria-label="...">#}
-{#                            <span class="input-g roup-btn">#}
-{#                                <button id="btn-search-quotation"#}
-{#                                        class="btn btn-success"#}
-{#                                        type="button"#}
-{#                                        onclick="searchSale()">#}
-{#                                    Buscar <span class="fa fa-search"></span>#}
-{#                                </button>#}
-{#                            </span>#}
-{#                        </div>#}
-{#                    {% endif %}#}
-{#                </div>#}
-
-{#                <div class="col-sm-4 col-md-4 col-lg-4 align-middle border border-white">#}
-{#                    <div class="row pt-2 pb-0">#}
-{#                        <div class="col-sm-6 col-md-6 col-lg-6 pl-4 pb-2">#}
-{#                            <div class="row save-order">#}
-{#                                <button type="submit" id="save-order"#}
-{#                                        class="btn btn-primary btn-sm btn-block mt-1 text-uppercase text-center">#}
-{#                                    <i class="fas fa-save"></i> Guardar#}
-{#                                </button>#}
-{#                            </div>#}
-{#                        </div>#}
-{#                        <div class="col-sm-6 col-md-6 col-lg-6">#}
-{#                            <button type="button"#}
-{#                                    class="btn btn-warning btn-sm text-uppercase text-center mt-1 col-sm-12 col-md-12 col-lg-12"#}
-{#                                    id="btn-new-form"><i class="far fa-check-circle"></i>#}
-{#                                Nuevo#}
-{#                            </button>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-
             </div>
         </div>
-
 
         <div class="card-body pl-2 pr-2 pt-0 pb-0">
             <div class="row mt-2 mb-1 ml-0 mr-0 bg-light">
@@ -96,7 +51,6 @@
                                 </div>
                             </div>
                         </div>
-
                     {% endif %}
                 </div>
                 <div class="col-sm-6 col-md-6 col-lg-6 pb-2 border border-box p-1">
@@ -119,7 +73,6 @@
             </div>
         </div>
 
-
         <div class="card-body p-0 pr-1">
             <div class="form-row mt-0 mb-2 ml-0 mr-0">
                 <div class="form-group col-md-12 text-uppercase small mt-2 mb-0">
@@ -128,11 +81,27 @@
                             <div class="col-sm-2 col-md-2 col-lg-2 pr-0 pt-2">
                                 <div class="text-dark">Buscar producto:</div>
                             </div>
-                            <div class="col-sm-10 col-md-10 col-lg-10 pl-0">
-                                <input type="text" id="custom-search-product" aria-label="..."
-                                       class="form-control ml-2 text-uppercase"
-                                        {% if guide_obj %} disabled {% endif %}
-                                       placeholder="Ingrese un producto...">
+                            <div class="col-sm-9 col-md-9 col-lg-9 pl-0">
+{#                                <input type="text" id="custom-search-product" aria-label="..."#}
+{#                                       class="form-control ml-2 text-uppercase" autocomplete="off"#}
+{#                                        {% if guide_obj %} disabled {% endif %}#}
+{#                                       placeholder="Ingrese un producto...">#}
+                                <div id="autocomplete-product" class="autocomplete">
+                                    <input class="form-control form-control-sm autocomplete-input"
+                                           type="text" aria-label="..."
+                                           id="product-names"
+                                           name="product-names"
+                                           maxlength="200"
+                                           autocomplete="off"
+                                           placeholder="Ingrese un producto..."/>
+                                    <ul class="autocomplete-result-list"></ul>
+                                </div>
+                            </div>
+                            <div class="col-sm-1 col-md-1 col-lg-1 pt-0 pl-0">
+                                <button type="button" id="clean_product"
+                                        class="btn btn-outline-danger btn-sm btn-block text-center">
+                                     <i class="fas fa-sync-alt"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -226,112 +195,6 @@
                 </div>
             </fieldset>
 
-            {#            <div class="form-row mb-0">#}
-            {#                <div class="form-group col-md-12 text-uppercase small mt-2 mb-0">#}
-            {#                    <div class="card col-sm-12 pr-0 pl-0 border-right-0 border-top-0 border-left-0 border-bottom-0">#}
-            {#                        <div class="col-sm-12 col-sm-12 col-lg-12 p-3" style="background-color: #d8e0e7">#}
-            {#                            <div class="row">#}
-            {#                                <div class="col-sm-2 col-md-2 col-lg-2 pr-0 pt-2">#}
-            {#                                    <div class="text-dark">Ingrese un#}
-            {#                                        producto:#}
-            {#                                    </div>#}
-            {#                                </div>#}
-            {#                                <div class="col-sm-10 col-md-10 col-lg-10 pl-0">#}
-            {#                                    <input type="text" id="custom-search-product" aria-label="..."#}
-            {#                                           class="form-control ml-2 text-uppercase"#}
-            {#                                            {% if guide_obj %} disabled {% endif %}#}
-            {#                                           placeholder="Ingrese un producto...">#}
-            {#                                </div>#}
-            {#                            </div>#}
-            {#                        </div>#}
-            {#                        <div class="card-body pt-2 pb-0 {% if guide_obj %}d-none{% endif %}">#}
-            {#                            <div class="card header mb-0 border-0 text-left font-weight-bold">#}
-            {#                                Metodo de Busqueda:#}
-            {#                            </div>#}
-            {##}
-            {#                            <table class="table table-sm text-uppercase small align-right"#}
-            {#                                   style="width: 100%">#}
-            {#                                <tr class="align-right">#}
-            {#                                    <th class="border-top-0 align-middle text-left p-0"#}
-            {#                                        style="width: 5%">#}
-            {#                                        <input type="radio"#}
-            {#                                               aria-label="Radio button for following text input"#}
-            {#                                               id="radio1" name="radio">#}
-            {#                                    </th>#}
-            {#                                    <th class="border-top-0 align-middle text-left p-0"#}
-            {#                                        style="width: 10%">Numero Documento:#}
-            {#                                    </th>#}
-            {#                                    <th class="border-top-0 custom-control-inline text-left"#}
-            {#                                        style="width: 100%">#}
-            {#                                        <select id="document_type_sender" name="document_type_sender"#}
-            {#                                                class="form-control form-control-sm" aria-label="..."#}
-            {#                                                style="font-size: .8375rem;">#}
-            {#                                            <option selected value="0">Seleccione...</option>#}
-            {#                                            {% for type in document_types %}#}
-            {#                                                {% if type.id == '01' %}#}
-            {#                                                    <option value="{{ type.id }}">DNI</option>#}
-            {#                                                {% elif type.id == '06' %}#}
-            {#                                                    <option value="{{ type.id }}">RUC</option>#}
-            {#                                                {% elif type.id == '00' %}#}
-            {#                                                    <option value="{{ type.id }}">OTRO</option>#}
-            {#                                                {% endif %}#}
-            {#                                            {% endfor %}#}
-            {#                                        </select>#}
-            {#                                    </th>#}
-            {#                                    <th class="border-top-0 align-middle text-right p-0" style="width: 60%">#}
-            {#                                        <input type="text" aria-label="..."#}
-            {#                                               class="form-control form-control-sm text-uppercase"#}
-            {#                                               id="id-nro-document-client"#}
-            {#                                               name="nro-document-client" style="width: 100%">#}
-            {#                                    </th>#}
-            {#                                <tr>#}
-            {#                                    <th class="border-top-0 align-middle text-left p-0">#}
-            {#                                        <input type="radio"#}
-            {#                                               aria-label="Radio button for following text input"#}
-            {#                                               id="radio2" name="radio" checked="checked">#}
-            {#                                    </th>#}
-            {#                                    <th class="border-top-0 align-middle text-left p-0">#}
-            {#                                        Nombres/Razón Social:#}
-            {#                                    </th>#}
-            {#                                    <td class="border-top-0 text-left" colspan="3">#}
-            {#                                        <div id="autocomplete-client" class="autocomplete">#}
-            {#                                            <input class="form-control form-control-sm autocomplete-input"#}
-            {#                                                   type="text" aria-label="..."#}
-            {#                                                   id="person-names"#}
-            {#                                                   name="person-names"#}
-            {#                                                   maxlength="200"#}
-            {#                                                   autocomplete="off"#}
-            {#                                                   placeholder="Buscar Cliente..."/>#}
-            {#                                            <ul class="autocomplete-result-list"></ul>#}
-            {#                                        </div>#}
-            {#                                    </td>#}
-            {#                                </tr>#}
-            {#                            </table>#}
-            {#                        </div>#}
-            {#                        <div class="form-row pl-1 pr-3 pt-2">#}
-            {#                            <div class="form-group col-md-5 mb-2 text-uppercase small">#}
-            {#                                <label class="mb-2 text-center font-weight-bold"#}
-            {#                                       for="client_name" style="font-size: 1.3em">Cliente#}
-            {#                                    - Nombres/Razón social:</label>#}
-            {#                                <input type="text" class="form-control form-control-sm text-uppercase"#}
-            {#                                       value="{{ guide_obj.client.names }}"#}
-            {#                                       id="client_name" required#}
-            {#                                       name="client_name" readonly>#}
-            {#                                <input type="hidden" value="{{ guide_obj.client.id }}"#}
-            {#                                       id="client-id" name="client-id">#}
-            {#                            </div>#}
-            {#                            <div class="form-group col-md-7 mb-2 text-uppercase small">#}
-            {#                                <label class="mb-2 text-center font-weight-bold"#}
-            {#                                       for="client_address" style="font-size: 1.3em"> Dirección:</label>#}
-            {#                                <input type="text" class="form-control form-control-sm text-uppercase"#}
-            {#                                       id="client_address"#}
-            {#                                       value="{{ guide_obj.client.clientaddress_set.last.address }}"#}
-            {#                                       name="name_address" readonly>#}
-            {#                            </div>#}
-            {#                        </div>#}
-            {#                    </div>#}
-            {#                </div>#}
-            {#            </div>#}
             <fieldset class="border p-2 bg-light">
                 <legend class="w-auto mb-0 text-black-50 text-uppercase" style="font-size: 12px">Información
                     principal
@@ -354,13 +217,6 @@
                                 class="form-control form-control-sm"
                                 aria-selected="Text input with radio button">
                             <option selected value="0">Seleccione</option>
-                            {#                                        {% for s in series %}#}
-                            {#                                            {% if s.id == subsidiary.id %}#}
-                            {#                                                <option selected value="{{ s.id }}">{{ s.serial|zfill:3 }}</option>#}
-                            {#                                            {% else %}#}
-                            {#                                                <option value="{{ s.id }}">{{ s.serial|zfill:3 }}</option>#}
-                            {#                                            {% endif %}#}
-                            {#                                        {% endfor %}#}
                         </select>
                     </div>
                     <div class="col-md-3 text-uppercase small pl-1 pr-1">
@@ -445,10 +301,6 @@
                                         <span class="input-group-text">Días</span>
                                     </div>
                                 </div>
-                                {#                                        <label for="pay_condition" class="mb-0">Condicion de pago</label>#}
-                                {#                                        <input type="text" class="form-control form-control-sm text-uppercase"#}
-                                {#                                               id="pay_condition"#}
-                                {#                                               name="pay_condition">#}
                             </div>
                             <div class="col-sm-2 pl-1 pr-0 text-center">
                                 <label for="btn-add-detail" class="mb-0 text-center text-white">
@@ -466,22 +318,6 @@
                                 <div class="card-body mt-3 p-0">
                                     <table class="bg-light table-sm " id="id-table-credit"
                                            style="width: 100%;">
-                                        {#                                        <thead class="text-uppercase small text-center">#}
-                                        {#                                        <tr class="bg-info text-white">#}
-                                        {#                                            <th scope="col" class="font-weight-normal" style="width: 15%;">#}
-                                        {#                                                Nº#}
-                                        {#                                            </th>#}
-                                        {#                                            <th scope="col" class="font-weight-normal" style="width: 35%;">#}
-                                        {#                                                Fecha#}
-                                        {#                                            </th>#}
-                                        {#                                            <th scope="col" class="font-weight-normal" style="width: 30%;">#}
-                                        {#                                                Importe#}
-                                        {#                                            </th>#}
-                                        {#                                            <th scope="col" class="font-weight-normal" style="width: 20%;">#}
-                                        {#                                                Eliminar#}
-                                        {#                                            </th>#}
-                                        {#                                        </tr>#}
-                                        {#                                        </thead>#}
                                         <tbody id="credit_details"></tbody>
                                     </table>
                                 </div>

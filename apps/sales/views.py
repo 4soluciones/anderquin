@@ -959,6 +959,7 @@ def save_order(request):
                 price = decimal.Decimal(detail['price'])
                 total = decimal.Decimal(detail['detailTotal'])
                 store_product_id = int(detail['store'])
+                batch_id = detail['batch']
                 product_obj = Product.objects.get(id=product_id)
                 unit_obj = Unit.objects.get(id=unit_id)
                 product_store_obj = ProductStore.objects.get(id=store_product_id)
@@ -980,8 +981,18 @@ def save_order(request):
                     type_document = '03'
                 else:
                     type_document = '00'
+
+                if batch_id != '0':
+                    batch_obj = Batch.objects.get(id=int(batch_id))
+                else:
+                    min_batch_number = Batch.objects.filter(
+                        product_store=product_store_obj).aggregate(Min('batch_number'))['batch_number__min']
+
+                    batch_obj = Batch.objects.filter(product_store=product_store_obj, remaining_quantity__gt=0,
+                                                     batch_number=min_batch_number).order_by('id').last()
+
                 kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
-                             type_document=type_document, type_operation='01')
+                             type_document=type_document, type_operation='01', batch_obj=batch_obj)
 
                 guide_detail_id = detail['guide_detail']
                 if guide_detail_id:
@@ -1305,7 +1316,8 @@ def kardex_ouput(
         bill_detail_obj=None,
         type_document='00',
         type_operation='99',
-        credit_note_detail_obj=None
+        credit_note_detail_obj=None,
+        batch_obj=None
         # distribution_detail_obj=None,
 ):
     product_store = ProductStore.objects.get(pk=int(product_store_id))
@@ -1324,7 +1336,7 @@ def kardex_ouput(
     new_remaining_price = last_kardex.remaining_price
     new_remaining_price_total = new_remaining_quantity * new_remaining_price
 
-    Kardex.objects.create(
+    kardex_obj = Kardex.objects.create(
         operation='S',
         quantity=quantity,
         price_unit=old_price_unit,
@@ -1339,6 +1351,15 @@ def kardex_ouput(
         type_document=type_document,
         type_operation=type_operation,
         credit_note_detail=credit_note_detail_obj
+    )
+
+    Batch.objects.create(
+        batch_number=batch_obj.batch_number,
+        expiration_date=batch_obj.expiration_date,
+        quantity=decimal.Decimal(quantity),
+        remaining_quantity=batch_obj.remaining_quantity - decimal.Decimal(quantity),
+        kardex=kardex_obj,
+        product_store=product_store
     )
 
     product_store.stock = new_stock
@@ -3461,13 +3482,13 @@ def check_stock(request):
         flag = True
         quantity = decimal.Decimal(request.GET.get('quantity', ''))
         product_id = int(request.GET.get('product', ''))
+        store_id = int(request.GET.get('store_id', ''))
 
         user_id = request.user.id
         user_obj = User.objects.get(pk=int(user_id))
         subsidiary_obj = get_subsidiary_by_user(user_obj)
 
-        product_store_obj = ProductStore.objects.get(product__id=product_id,
-                                                     subsidiary_store__subsidiary=subsidiary_obj)
+        product_store_obj = ProductStore.objects.get(id=store_id)
         stock = product_store_obj.stock
         if decimal.Decimal(quantity) > stock:
             flag = False
@@ -3598,7 +3619,16 @@ def get_order_by_id(request):
                     #     product_store_obj = product_store_set.last()
                     #     product_store_id = product_store_obj.id
                     #     stock = product_store_obj.stock
-
+                    detail_batch_set = BillDetailBatch.objects.filter(order=order_obj)
+                    batch_id = ''
+                    batch_number = ''
+                    if detail_batch_set.exists():
+                        detail_batch_obj = detail_batch_set.last()
+                        batch_set = Batch.objects.filter(batch_number=detail_batch_obj.batch_number)
+                        if batch_set.exists():
+                            batch_obj = batch_set.last()
+                            batch_id = batch_obj.id
+                            batch_number = batch_obj.batch_number
                     new_row = {
                         'id': d.id,
                         'product_id': d.product.id,
@@ -3611,6 +3641,8 @@ def get_order_by_id(request):
                         # 'store': product_store_id,
                         # 'stock': round(stock, 0),
                         'unit_min': quantity_minimum_unit,
+                        'batch_id': batch_id,
+                        'batch_number': batch_number,
                     }
                     detail.append(new_row)
                 return JsonResponse({
@@ -4610,3 +4642,104 @@ def kardex_list(request):
             return response
 
     return JsonResponse({'message': 'Error actualice o contacte con sistemas.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_product_autocomplete(request):
+    if request.method == 'GET':
+        search = request.GET.get('search')
+        product = []
+        if search:
+            product_set = Product.objects.filter(name__icontains=search, is_enabled=True).order_by('id')
+            for c in product_set:
+                product.append({
+                    'id': c.id,
+                    'code': c.code,
+                    'names': c.name,
+                    'brand': c.product_brand.name,
+                    'weight': c.weight,
+                })
+        return JsonResponse({
+            'status': True,
+            'product': product
+        })
+
+
+def get_product_by_id(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(pk=int(user_id))
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        product_set = None
+        product_id = request.GET.get('productId', '')
+
+        if product_id != '':
+            product_set = Product.objects.filter(id=product_id).select_related(
+                'product_family', 'product_brand'
+            ).prefetch_related(
+                Prefetch(
+                    'productstore_set',
+                    queryset=ProductStore.objects.select_related('subsidiary_store__subsidiary')
+                        .annotate(
+                        is_primary_store=Case(
+                            When(subsidiary_store__subsidiary=subsidiary_obj.id, then=Value(0)),
+                            default=Value(1),
+                            output_field=IntegerField()
+                        )
+                    )
+                        .order_by('is_primary_store', 'id')
+                ),
+                Prefetch(
+                    'productdetail_set', queryset=ProductDetail.objects.select_related('unit')
+                ),
+            ).order_by('id')
+
+        t = loader.get_template('sales/sales_product_grid.html')
+        c = ({
+            'subsidiary': subsidiary_obj,
+            'product_dic': product_set
+        })
+        return JsonResponse({
+            'grid': t.render(c, request),
+        })
+
+
+def modal_batch(request):
+    if request.method == 'GET':
+        ps_id = request.GET.get('ps', '')
+        product_store_obj = ProductStore.objects.get(id=int(ps_id))
+        # batch_set = Batch.objects.filter(product_store__id=int(ps_id)).order_by('id')
+        # last_batches = Batch.objects.filter(
+        #     batch_number=OuterRef('batch_number'),
+        #     product_store__id=int(ps_id)
+        # ).order_by('-create_at')
+        #
+        # latest_batches = Batch.objects.filter(
+        #     product_store__id=int(ps_id)
+        # ).annotate(last_create_at=Subquery(last_batches.values('create_at')[:1])).filter(create_at=F('last_create_at'))
+
+        last_batches = Batch.objects.filter(
+            batch_number=OuterRef('batch_number'), product_store__id=int(ps_id)).order_by('-id')
+
+        latest_batches = Batch.objects.filter(
+            product_store__id=int(ps_id)
+        ).annotate(last_id=Subquery(last_batches.values('id')[:1])).filter(id=F('last_id'), remaining_quantity__gt=0)
+
+        if latest_batches.exists():
+            product_obj = product_store_obj.product
+            tpl = loader.get_template('sales/modal_batch.html')
+            context = ({
+                'batch_set': latest_batches,
+                'product_obj': product_obj,
+                'product_store_obj': product_store_obj,
+                'product_detail_set': ProductDetail.objects.filter(product=product_obj)
+            })
+            return JsonResponse({
+                'success': True,
+                'form': tpl.render(context, request),
+            }, status=HTTPStatus.OK)
+
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'El Producto no cuenta con Lotes en la sucursal. Revisar el Producto'
+            }, status=HTTPStatus.OK)

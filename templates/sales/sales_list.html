@@ -15,31 +15,36 @@
         </div>
     {% else %}
         <div class="card-group" style="display: flex;">
-            <div class="card p-0 pl-2 pt-2" style="flex: 0 0 48%;" id="tab-two">
+            <div class="card p-0 pl-2 pt-2" style="flex: 0 0 46%;" id="tab-two">
                 {% include "sales/sales_grid_tab1.html" %}
             </div>
-            <div class="card p-0 mt-2" style="flex: 0 0 52%;">
-                <div class="col-sm-12 m-0 p-0 pr-2 align-items-center">
-                    <div id="product_list_sales">
+            <div class="card p-0 mt-2" style="flex: 0 0 54%;">
 
-                        <div class="card text-center roboto-condensed-regular p-3 border-info m-3">
-                            <div class="card-header font-weight-bold text-black-50" style="background-color: #88a3b9 ">
-                                Atencion!
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title text-info roboto-condensed-regular font-weight-bold">Ingrese un
-                                    producto
-                                    para comenzar la búsqueda...</h5>
-                            </div>
+                <div id="product_list_sales">
+
+                    <div class="card text-center roboto-condensed-regular p-3 border-info m-3">
+                        <div class="card-header font-weight-bold text-black-50" style="background-color: #88a3b9 ">
+                            Atencion!
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-info roboto-condensed-regular font-weight-bold">Ingrese un
+                                producto
+                                para comenzar la búsqueda...</h5>
                         </div>
                     </div>
                 </div>
+
                 <div class="loader-container col-auto" id="loader-product" style="display: none;">
                     <div class="loader"></div>
                 </div>
             </div>
         </div><!-- card-group -->
     {% endif %}
+
+    <div class="modal fade" id="modal-batch" tabindex="-1" role="dialog"
+         aria-labelledby="ModalHelpTitle" data-backdrop="static" data-keyboard="false"
+         aria-hidden="true"></div>
+
 
     <style>
         /* Chrome, Safari, Edge, Opera */
@@ -54,8 +59,6 @@
             -moz-appearance: textfield;
         }
     </style>
-
-
 
 {% endblock body %}
 
@@ -303,6 +306,10 @@
             let quantity = parseFloat(tr.find('td.quantity-sales-price input.quantity-select').val());
             let stock = parseFloat(tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text());
             let store_id = tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary').attr('store_id');
+            let tr_table_stock = tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary');
+            let batch_id = tr_table_stock.find('td.item-batch input.batch-id').val();
+            let batch_number = tr_table_stock.find('td.item-batch input.number-batch').val();
+
             if (isNaN(quantity)) {
                 toastr.warning('Ingrese la cantidad del producto');
                 tr.find('td.quantity-sales-price input.quantity-select').val('')
@@ -324,7 +331,7 @@
                 tr.find('td.quantity-sales-price input.quantity-select').val('')
                 return false;
             }
-            let _flag_stock = await check_stock(quantity, product_id)
+            let _flag_stock = await check_stock(quantity, product_id, store_id)
             //console.log("unit_id", unit_id)
             //console.log("name_unit", name_unit)
             //console.log("quantity", quantity)
@@ -332,7 +339,7 @@
             let quantity_minimum_calculate = quantity_minim * quantity
             //console.log("quantity_minimum_calculate", quantity_minimum_calculate)
             if (_flag_stock === true) {
-                addDetail(unit_id, product_id, quantity, price, name_unit, unescape(name_product), store_id, quantity_minim, product_brand);
+                addDetail(unit_id, product_id, quantity, price, name_unit, unescape(name_product), store_id, quantity_minim, product_brand, batch_id, batch_number);
                 //tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text((stock - quantity * quantity_minim).toFixed(2));
                 tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock div.row').each(function () {
                     let current_stock = $(this).find('span.current-stock').text();
@@ -343,12 +350,11 @@
             } else {
                 toastr.warning('STOCK INSUFICIENTE EN ALMACEN');
             }
-
             tr.find('td.quantity-sales-price input.quantity-select').val('');
         });
 
 
-        function addDetail(a, b, c, d, e, f, g, h, i) {
+        function addDetail(a, b, c, d, e, f, g, h, i, batch_id, batch_number) {
 
             let _unit_id = a
             let _product_id = b
@@ -364,11 +370,12 @@
             //console.log(_price.toFixed(2))
 
             $('#sales-details').append(
-                '<tr  guide_detail_id="' + '' + '" detail_id="' + 'NaN' + '" product="' + _product_id + '" store_p="' + _product_store + '" pu="' + _unit_id + '" class="text-uppercase small text-center" style="font-size: 14px;">' +
+                '<tr  guide_detail_id="' + '' + '" detail_id="' + 'NaN' + '" product="' + _product_id + '" store_p="' + _product_store + '" pu="' + _unit_id + '" batch="' + batch_id + '" class="text-uppercase small text-center" style="font-size: 14px;">' +
                 '<td class="align-middle">' + '</td>' +
                 '<td class="align-middle text-left item-product">' + '<input type="text" class="form-control form-control-sm input-product-name" value="' + _product_name + '">' + '</td>' +
                 '<td class="align-middle item-quantity">' + '<input type="text" class="form-control form-control-sm text-right input-quantity" disabled value="' + _quantity.toFixed(2) + '">' + '</td>' +
                 '<td class="align-middle item-unit" pu="' + _unit_id + '" unit_min="' + _quantity_minim + '">' + _unit + '</td>' +
+                '<td class="align-middle item-batch" batch="' + batch_id + '">' + batch_number + '</td>' +
                 '<td class="align-middle item-price">' + '<input type="text" class="form-control form-control-sm text-right input-price" value="' + _price.toFixed(2) + '">' + '</td>' +
                 '<td class="align-middle item-total">' + '<input type="text" class="form-control form-control-sm text-right input-total-detail" value="' + _total.toFixed(2) + '">' + '</td>' +
                 '<td>' + '<button type="button" onclick="deleteItem(' + _product_id + ',' + _unit_id + ')" class="btn btn-danger btn-sm">' +
@@ -571,7 +578,7 @@
         $("#document_number_client").attr('maxlength', 8);
         sessionStorage.setItem('client-document', '01')
 
-        async function check_stock(_quantity, _product_id) {
+        async function check_stock(_quantity, _product_id, store_id) {
 
             let _flag_stock = true
 
@@ -582,7 +589,8 @@
                 type: 'GET',
                 data: {
                     'quantity': _quantity,
-                    'product': _product_id
+                    'product': _product_id,
+                    'store_id': store_id
                 },
                 contentType: 'application/json;charset=UTF-8',
                 headers: {"X-CSRFToken": '{{ csrf_token }}'},
@@ -696,7 +704,7 @@
                         $('table#id-table-detail-order tbody#sales-details').empty();
                         Detail.forEach(
                             e =>
-                                addOrderDetail(e.id, e.product_id, e.product_name, e.quantity, e.price, e.unit_id, e.unit_name, e.unit_min)
+                                addOrderDetail(e.id, e.product_id, e.product_name, e.quantity, e.price, e.unit_id, e.unit_name, e.unit_min, e.batch_id, e.batch_number)
                         )
                     } else {
                         toastr.error(response.bill, response.message);
@@ -709,7 +717,7 @@
             });
         }
 
-        function addOrderDetail(detail, product_id, product_name, quantity, price, unit, unit_name, unit_min) {
+        function addOrderDetail(detail, product_id, product_name, quantity, price, unit, unit_name, unit_min, batch_id, batch_number) {
 
             let _total = quantity * price
             let disabledAttr = detail ? 'disabled' : '';
@@ -720,6 +728,7 @@
                 '<td class="align-middle text-left item-product">' + '<input type="text" class="form-control form-control-sm input-product-name"  value="' + product_name + '" ' + disabledAttr + '>' + '</td>' +
                 '<td class="align-middle item-quantity">' + '<input type="number" class="form-control form-control-sm text-right input-quantity" value="' + Number(quantity).toFixed(0) + '" ' + disabledAttr + '>' + '</td>' +
                 '<td class="align-middle item-unit" unit="' + unit + '" unit_min="' + unit_min + '">' + unit_name + '</td>' +
+                '<td class="align-middle item-unit" batch_id="' + batch_id + '">' + batch_number + '</td>' +
                 '<td class="align-middle item-price">' + '<input type="number" class="form-control form-control-sm text-right input-price" value="' + Number(price).toFixed(2) + '">' + '</td>' +
                 '<td class="align-middle item-total">' + '<input type="number" class="form-control form-control-sm text-right input-total-detail" value="' + Number(_total).toFixed(2) + '">' + '</td>' +
                 //'<td>' + '<button type="button" onclick="deleteItem(' + product_id + ',' + unit + ')" class="btn btn-danger btn-sm">' +
@@ -842,7 +851,8 @@
                     quantity: parseFloat($(this).find("td.item-quantity input.input-quantity").val()).toFixed(2),
                     price: parseFloat($(this).find("td.item-price input.input-price").val()).toFixed(2),
                     detailTotal: parseFloat($(this).find("td.item-total input.input-total-detail").val()).toFixed(2),
-                    store: $(this).attr("store_p")
+                    store: $(this).attr("store_p"),
+                    batch: $(this).attr("batch")
                 };
                 detailOrder.push(detailObj);
             });
@@ -856,12 +866,12 @@
 
             let selectElement = document.getElementById('id_serial');
             let selectedOptionText = selectElement.options[selectElement.selectedIndex].text;
-            //console.log(detailOrder)
             let data = new FormData($('#order-form').get(0));
             data.append('detail', JSON.stringify(detailOrder));
             data.append('serial_text', selectedOptionText);
             data.append('credit', JSON.stringify(creditDict));
-            $('#save-order').prop('disabled', true)
+            console.log(detailOrder)
+            //$('#save-order').prop('disabled', true)
             $.ajax({
                 url: '/sales/save_order/',
                 async: true,
@@ -981,6 +991,136 @@
             }
             return _response;
         }
+
+        $(document).on('click', '.check-store', function () {
+            const $currentTable = $(this).closest('table');
+            $currentTable.find('.my-subsidiary').removeClass('bg-success text-white my-subsidiary');
+            $(this).closest('tr').addClass('bg-success text-white my-subsidiary');
+            const $currentRow = $(this).closest('tr');
+            $currentRow.find('td.item-batch button.btn-batch').text('Ver');
+            $currentRow.find('td.item-batch input.batch-id').val('0');
+            $currentRow.find('td.item-batch input.stock-batch').val('');
+            $currentRow.addClass('bg-success text-white my-subsidiary');
+            $currentTable.find('.item-batch').addClass('d-none');
+            $currentRow.find('.item-batch').removeClass('d-none');
+            let table_prices = $currentTable.parent('td').parent('tr').find('td.prices-table table.table-prices');
+            table_prices.find('tr td.prices-list div.price-select').removeClass('d-none');
+            table_prices.find('tr td.prices-list span.out-stock').addClass('d-none');
+        });
+
+
+        new Autocomplete('#autocomplete-product', {
+            search: input => {
+                const url = `/sales/get_product_autocomplete/?search=${encodeURI(input.toUpperCase())}`
+
+                return new Promise(resolve => {
+                    if (input.length < 3) {
+                        //$('#person-number').val('')
+                        //$('#order-number').val('')
+                        return resolve([])
+                    }
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            resolve(data.product)
+                        })
+                })
+            },
+            renderResult: (result, props) => {
+                let group = ''
+                if (result.index % 3 === 0) {
+                    group = '<li class="group">Group</li>'
+                }
+                return `
+                ${group}
+                <li ${props}>
+                 <div class="h6 font-weight-bold" style="font-family: roboto_condensed_regular">
+                    ${result.names}
+                 </div>
+                 <div class="wiki-snippet text-black">
+                    Marca: ${result.brand}
+                  </div>
+                </li>
+                `
+            },
+            getResultValue: result => result.names,
+            onSubmit: result => {
+                if (result) {
+                    getProductSelected(result.id)
+                } else {
+                    toastr.warning('Seleccione un producto valido', 'Error de llenado');
+                    return false;
+                }
+
+            }
+        });
+
+        function getProductSelected($product_id) {
+
+            $('#product_list_sales').empty();
+            $('div#loader-product').css('display', '');
+
+            $.ajax({
+                url: '/sales/get_product_by_id/',
+                async: true,
+                dataType: 'json', // for response
+                type: 'GET',
+                data: {
+                    'productId': $product_id,
+                },
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (xhr.status === 200) {
+                        //toastr.success(response.message, '¡Bien hecho!');
+                        $('#product_list_sales').html(response.grid).slideDown();
+                        $('div#loader-product').css('display', 'none');
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    if (jqXhr.status === 500) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Error de Consulta!');
+                    } else {
+                        if (textStatus === 'timeout') {
+                            toastr.error('Failed from timeout', '¡Error de Consulta!');
+                        } else {
+                            console.log(" STATUS: " + xhr + " " + textStatus);
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('click', function (event) {
+            if (event.target.id === 'clean_product') {
+                document.getElementById('product_list_sales').innerHTML = '';
+                document.getElementById('product-names').value = '';
+            }
+        });
+
+        $(document).on('click', '.btn-batch', function (e) {
+
+            let store_id = $(this).attr("ps");
+            $.ajax({
+                url: '/sales/modal_batch/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'ps': store_id},
+                success: function (response, textStatus, xhr) {
+                    if (response.success) {
+                        $('#modal-batch').html(response.form);
+                        $('#modal-batch').modal('show');
+
+                    } else {
+                        toastr.error(response.message, 'Error');
+                    }
+                },
+                fail: function (response) {
+                    toastr.error('Ocurrio un problema al mostrar el formulario', '¡Mensaje!');
+                }
+            });
+        });
+
 
     </script>
 

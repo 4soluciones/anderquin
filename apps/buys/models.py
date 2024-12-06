@@ -227,7 +227,7 @@ class ContractDetailItem(models.Model):
 class ContractDetailPurchase(models.Model):
     id = models.AutoField(primary_key=True)
     contract_detail = models.ForeignKey(ContractDetail, on_delete=models.CASCADE, null=True, blank=True)
-    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, null=True, blank=True)
+    purchase = models.ForeignKey(Purchase, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
