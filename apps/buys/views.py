@@ -1513,9 +1513,12 @@ def contract_list(request):
                 order = None
                 order_serial = None
                 order_correlative = None
+                purchase = None
+                bill_number = None
                 if d.contractdetailpurchase_set.last():
-                    purchase = d.contractdetailpurchase_set.last().purchase.id
-                    bill_number = d.contractdetailpurchase_set.last().purchase.bill_number
+                    if d.contractdetailpurchase_set.last().purchase:
+                        purchase = d.contractdetailpurchase_set.last().purchase.id
+                        bill_number = d.contractdetailpurchase_set.last().purchase.bill_number
                 if d.guide_set.all():
                     guide = d.guide_set.all().last().id
                     guide_serial = d.guide_set.all().last().serial

@@ -3917,64 +3917,6 @@ def save_detail_to_warehouse(request):
 
             # ----------------------------------- QUANTITY ENTERED --------------------------------------------------
 
-            # entered_quantity_principal = decimal.Decimal(d['EnteredQuantityPrincipal'])
-            # entered_quantity_in_units = entered_quantity_principal * unit_min_product
-            # entered_quantity_units = d['EnteredQuantityUnits']
-            #
-            # if entered_quantity_principal != 0 and entered_quantity_principal != '':
-            #     detail_entered_obj = BillDetail.objects.create(quantity=entered_quantity_principal, unit=unit_obj,
-            #                                                    price_unit=price_purchase, product=product_obj,
-            #                                                    status_quantity='I', bill=bill_obj)
-            #     try:
-            #         product_store_obj = ProductStore.objects.get(product=product_obj,
-            #                                                      subsidiary_store=subsidiary_store_obj)
-            #     except ProductStore.DoesNotExist:
-            #         product_store_obj = None
-            #
-            #     if product_store_obj is None:
-            #         new_product_store_obj = ProductStore.objects.create(product=product_obj,
-            #                                                             subsidiary_store=subsidiary_store_obj,
-            #                                                             stock=entered_quantity_in_units)
-            #         kardex_obj = kardex_initial(new_product_store_obj, entered_quantity_in_units, price_purchase_unit,
-            #                                     bill_detail_obj=detail_entered_obj)
-            #     else:
-            #         total_cost = decimal.Decimal(entered_quantity_in_units) * decimal.Decimal(price_purchase_unit)
-            #         kardex_obj = kardex_input(product_store_obj.id, entered_quantity_in_units, total_cost,
-            #                                   type_document='01', type_operation='02',
-            #                                   bill_detail_obj=detail_entered_obj)
-            #     for batch in d['Batch']:
-            #         batch_number = batch['batchNumber']
-            #         batch_quantity = decimal.Decimal(batch['batchQuantity'])
-            #         batch_expiration = batch['batchExpiration']
-            #
-            #         Batch.objects.create(expiration_date=batch_expiration, batch_number=batch_number,
-            #                              kardex=kardex_obj, quantity=batch_quantity * unit_min_product,
-            #                              remaining_quantity=batch_quantity * unit_min_product,
-            #                              product_store=product_store_obj)
-            #
-            # if entered_quantity_units != 0 and entered_quantity_units != '':
-            #     detail_entered_units_obj = BillDetail.objects.create(quantity=entered_quantity_units,
-            #                                                          price_unit=price_purchase_unit, unit=unit_und_obj,
-            #                                                          product=product_obj, status_quantity='I',
-            #                                                          bill=bill_obj)
-            #     try:
-            #         product_store_obj = ProductStore.objects.get(product=product_obj,
-            #                                                      subsidiary_store=subsidiary_store_obj)
-            #     except ProductStore.DoesNotExist:
-            #         product_store_obj = None
-            #
-            #     if product_store_obj is None:
-            #         new_product_store_obj = ProductStore.objects.create(product=product_obj,
-            #                                                             subsidiary_store=subsidiary_store_obj,
-            #                                                             stock=entered_quantity_units)
-            #         new_product_store_obj.save()
-            #         kardex_initial(new_product_store_obj, entered_quantity_units, price_purchase_unit,
-            #                        bill_detail_obj=detail_entered_units_obj)
-            #     else:
-            #         total_cost = decimal.Decimal(entered_quantity_units) * decimal.Decimal(price_purchase_unit)
-            #         kardex_input(product_store_obj.id, entered_quantity_units, total_cost,
-            #                      type_document='01', type_operation='02', bill_detail_obj=detail_entered_units_obj)
-
             try:
                 product_store_obj = ProductStore.objects.get(product=product_obj,
                                                              subsidiary_store=subsidiary_store_obj)
@@ -4044,9 +3986,6 @@ def save_detail_to_warehouse(request):
                                                        unit=unit_und_obj, bill_detail=detail_entered_obj)
 
             # ----------------------------------- QUANTITY RETURNED --------------------------------------------------
-
-            # returned_quantity_principal = d['ReturnedQuantityPrincipal']
-            # returned_quantity_units = d['ReturnedQuantityUnits']
 
             sum_returned_quantity_principal = d['SumQuantityReturnedPrincipal']
             sum_returned_quantity_in_units = sum_returned_quantity_principal * unit_min_product
@@ -4743,3 +4682,16 @@ def modal_batch(request):
                 'success': False,
                 'message': 'El Producto no cuenta con Lotes en la sucursal. Revisar el Producto'
             }, status=HTTPStatus.OK)
+
+
+def check_batch_number(request):
+    if request.method == 'GET':
+        flag = False
+        number_batch = str(request.GET.get('number_batch', ''))
+        subsidiary_store = int(request.GET.get('subsidiary_store', ''))
+        batch_set = Batch.objects.filter(batch_number=number_batch, product_store__subsidiary_store=subsidiary_store)
+        if batch_set.exists():
+            flag = True
+        return JsonResponse({
+            'flag': flag
+        }, status=HTTPStatus.OK)

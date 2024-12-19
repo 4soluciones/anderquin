@@ -126,6 +126,7 @@ urlpatterns = [
     path('bills_in_warehouse/', login_required(get_bills_in_warehouse), name='bills_in_warehouse'),
     path('bill_credit_note/', login_required(bill_credit_note), name='bill_credit_note'),
     path('bill_create_credit_note/', login_required(bill_create_credit_note), name='bill_create_credit_note'),
+    path('check_batch_number/', login_required(check_batch_number), name='check_batch_number'),
 
     # KARDEX
     path('kardex/', login_required(kardex_list), name='kardex'),
