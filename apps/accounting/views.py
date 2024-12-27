@@ -2320,10 +2320,11 @@ def save_bill(request):
                     quantity_purchased = decimal.Decimal(details.get('purchaseQuantity'))
                     quantity_invoice = decimal.Decimal(details.get('invoiceQuantity'))
 
+                    price_unit = decimal.Decimal(details.get('priceUnit'))
                     purchase_detail_obj = PurchaseDetail.objects.get(id=int(purchase_detail_id))
                     purchase_obj = purchase_detail_obj.purchase
                     unit_obj = purchase_detail_obj.unit
-                    price_unit = purchase_detail_obj.price_unit
+                    # price_unit = purchase_detail_obj.price_unit
                     quantity_difference = quantity_purchased - quantity_invoice
                     if quantity_difference < 1:
                         purchase_obj.bill_status = 'C'
