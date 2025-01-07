@@ -3953,37 +3953,29 @@ def save_detail_to_warehouse(request):
                     batch_number = b['batchNumber']
                     batch_expiration = b['batchExpiration']
                     entered_quantity_units = decimal.Decimal(b['EnteredQuantityUnits'])
-
+                    batch_quantity_remaining = 0
                     if entered_quantity_principal != 0 and entered_quantity_principal != '':
-                        Batch.objects.create(expiration_date=batch_expiration, batch_number=batch_number,
-                                             kardex=kardex_obj,
-                                             quantity=entered_quantity_in_units,
-                                             remaining_quantity=entered_quantity_in_units,
-                                             product_store=product_store_obj)
-
                         BillDetailBatch.objects.create(batch_number=batch_number,
                                                        batch_expiration_date=batch_expiration,
                                                        product=product_obj, quantity=entered_quantity_principal,
                                                        unit=unit_obj, bill_detail=detail_entered_obj)
-
                     if entered_quantity_units != 0 and entered_quantity_units != '':
-                        batch_set = Batch.objects.filter(batch_number=str(batch_number),
-                                                         product_store=product_store_obj)
-                        if batch_set.exists():
-                            batch_obj = batch_set.last()
-                            batch_obj.quantity = batch_obj.quantity + entered_quantity_units
-                            batch_obj.remaining_quantity = batch_obj.remaining_quantity + entered_quantity_units
-                            batch_obj.save()
-                        else:
-                            Batch.objects.create(expiration_date=batch_expiration, batch_number=batch_number,
-                                                 kardex=kardex_obj, quantity=entered_quantity_units,
-                                                 remaining_quantity=entered_quantity_units,
-                                                 product_store=product_store_obj)
-
                         BillDetailBatch.objects.create(batch_number=batch_number,
                                                        batch_expiration_date=batch_expiration,
                                                        product=product_obj, quantity=entered_quantity_units,
                                                        unit=unit_und_obj, bill_detail=detail_entered_obj)
+
+                    batch_set = Batch.objects.filter(batch_number=str(batch_number), product_store=product_store_obj)
+
+                    if batch_set.exists():
+                        batch_obj = batch_set.last()
+                        batch_quantity_remaining = batch_obj.remaining_quantity
+
+                    Batch.objects.create(expiration_date=batch_expiration, batch_number=batch_number,
+                                         kardex=kardex_obj,
+                                         quantity=entered_quantity_in_units,
+                                         remaining_quantity=sum_quantity_entered_total_in_units + batch_quantity_remaining,
+                                         product_store=product_store_obj)
 
             # ----------------------------------- QUANTITY RETURNED --------------------------------------------------
 

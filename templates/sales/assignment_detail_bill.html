@@ -313,8 +313,8 @@
             "GuideNumber": guide_number.val(),
             "Store": store.val(),
         };
-        let shouldStop = false;
-        let promises = [];
+        //let shouldStop = false;
+        //let promises = [];
         $('table[id^="table-detail-product-"]').each(async function () {
             let tr = $(this).find('tbody tr.detail');
 
@@ -358,16 +358,16 @@
                 SumQuantitySoldPrincipal += Number(_sold_quantity_principal);
                 SumQuantitySoldUnits += Number(_sold_quantity_units);
 
-                if (shouldStop) return false;
+                //if (shouldStop) return false;
 
-                let batch_number = $(this).find('input.item-number-batch').val();
+                //let batch_number = $(this).find('input.item-number-batch').val();
                 /*let flag_batch = await checkNumberBatch(batch_number, store.val())
                 if (flag_batch === true) {
                     toastr.warning('EL NUMERO DE LOTE YA SE ENCUENTRA REGISTRADO FAVOR DE REGISTRAR OTRO', 'ERROR');
                     shouldStop = true;
                     return false;
                 }*/
-                promises.push(
+                /*promises.push(
                     (async () => {
                         let flag_batch = await checkNumberBatch(batch_number, store.val());
                         if (flag_batch === true) {
@@ -375,7 +375,7 @@
                             shouldStop = true;
                         }
                     })()
-                );
+                );*/
 
                 let batchObj = {
                     "batchNumber": $(this).find('input.item-number-batch').val(),
@@ -403,11 +403,11 @@
             detailObj.SumQuantitySoldTotalInUnits = SumQuantitySoldUnits + SumQuantitySoldPrincipal;
         });
 
-        await Promise.all(promises);
+        //await Promise.all(promises);
 
-        if (shouldStop) {
+        /*if (shouldStop) {
             return false;
-        }
+        }*/
         //$('#assignment-changes').prop('disabled', true);
         console.log(details_bill);
         $.ajax({
