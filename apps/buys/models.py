@@ -281,7 +281,7 @@ class CreditNote(models.Model):
     nro_document = models.CharField('Numero de documento', max_length=200, null=True, blank=True)
     issue_date = models.DateField('Fecha de Emision', null=True, blank=True)
     bill = models.ForeignKey('accounting.Bill', on_delete=models.CASCADE, null=True, blank=True)
-    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, null=True, blank=True)
+    purchase = models.ForeignKey(Purchase, on_delete=models.SET_NULL, null=True, blank=True)
     motive = models.TextField('Motive', blank=True, null=True)
     status = models.CharField('Tipo de moneda', max_length=1, choices=STATUS_CHOICES, default='P')
     bill_note = models.ForeignKey('accounting.Bill', related_name='bill_note',
