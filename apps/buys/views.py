@@ -82,6 +82,7 @@ def save_purchase(request):
         if str(data_purchase["Delivery_date"]):
             date_delivery = str(data_purchase["Delivery_date"])
         # print(date_delivery)
+        year = (datetime.strptime(date_delivery, '%Y-%m-%d')).year
         type_pay = str(data_purchase["Type_Pay"])
         pay_condition = str(data_purchase["Pay_condition"])
         base_total = decimal.Decimal(data_purchase["Base_Total"])
@@ -185,7 +186,7 @@ def save_purchase(request):
             delivery_subsidiary=subsidiary_address_obj,
             delivery_supplier=address_provider_obj,
             delivery_client=client_address_obj,
-            year='2024'
+            year=year
         )
         purchase_obj.save()
 
@@ -370,6 +371,7 @@ def get_buy_order_list(request):
 
     elif request.method == 'POST':
         option = request.POST.get('value')
+        year = request.POST.get('year')
 
         status_filter = {
             'T': ['S', 'A', 'N'],
@@ -379,7 +381,7 @@ def get_buy_order_list(request):
         }.get(option, [])
 
         if status_filter:
-            purchase_set = Purchase.objects.filter(bill_number__isnull=False, status__in=status_filter
+            purchase_set = Purchase.objects.filter(bill_number__isnull=False, status__in=status_filter, year=year
                                                    ).select_related('supplier', 'subsidiary', 'client_reference',
                                                                     'client_reference_entity', 'delivery_supplier',
                                                                     'delivery_subsidiary', 'delivery_client',

@@ -8,8 +8,23 @@
 
 
     <div class="card m-0 ml-1 mr-1">
-        <div class="card-header" style="background: #3e6787">
-            <h4 class="card-title text-center text-white roboto-condensed-regular">LISTADO DE ORDENES DE COMPRAS</h4>
+        <div class="card-header roboto-condensed-regular" style="background: #3e6787">
+            <div class="row">
+                <div class="col-sm-3">
+                    <h4 class="card-title text-left text-white roboto-condensed-regular mb-0">LISTADO DE ORDENES DE COMPRAS</h4>
+                </div>
+                <div class="col-sm-1 pt-1 text-right font-weight-bold">
+                    <label for="year_search" class="text-white">SELECCIONE AÑO:</label>
+                </div>
+                <div class="col-sm-1">
+                    <select class="form-control form-control-sm" id="year_search" name="year-search"
+                            required>
+                            <option selected disabled value="0">Seleccione</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                    </select>
+                </div>
+            </div>
         </div>
         <form id="report-form" action="{% url 'buys:buy_order_list' %}" method="POST">
             {% csrf_token %}
@@ -95,9 +110,16 @@
 
         function sendOption(value) {
             let data = new FormData($('#order-form').get(0));
-            data.append('value', value);
             $('#purchase-grid-list').empty();
             $('#loader-bill').html(loader).show()
+            let search_year = $('#year_search').val();
+            if (search_year === null){
+                toastr.warning("SELECCIONE EL AÑO DE BUSQUEDA", '¡ERROR DE ESCRITURA!');
+                $('#loader-bill').hide();
+                return false
+            }
+            data.append('year', search_year);
+            data.append('value', value);
             $.ajax({
                 url: '/buys/buy_order_list/',
                 async: true,
