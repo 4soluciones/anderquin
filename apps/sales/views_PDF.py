@@ -597,7 +597,7 @@ def print_order_bill(request, pk=None):
         [Paragraph('INDUSTRIAS ANDERQUIN', styles["Justify_Newgot_title"])],
         [Paragraph('JR. CARABAYA NRO. 443', styles['Normal'])],
         ['Celular: ' + str('951 622 449')],
-        ['Correo: ' + str(email_subsidiary)],
+        # ['Correo: ' + str(email_subsidiary)],
     ]
     col_2 = Table(tbl1_col__2)
     style_table_col_2 = [
@@ -868,15 +868,21 @@ def print_order_bill(request, pk=None):
     ]
     total_col_1.setStyle(TableStyle(style_table_col1))
 
+    sold_value = '{:,}'.format(valor_venta.quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_EVEN))
+    _discount_value = '{:,}'.format(_discount.quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_EVEN))
+    igv_value = '{:,}'.format(igv.quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_EVEN))
+    total_value = valor_venta + igv
+    total_str_value = '{:,}'.format(total_value.quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_EVEN))
+
     total_col2 = [
         [Paragraph('GRAVADA', styles["Justify_Newgot"]),
-         Paragraph(money + ' ' + str(round(valor_venta, 2)), styles["Right_Newgot"])],
+         Paragraph(money + ' ' + str(sold_value), styles["Right_Newgot"])],
         [Paragraph(_text, styles["Justify_Newgot"]),
-         Paragraph(money + ' ' + str(round(_discount, 2)), styles["Right_Newgot"])],
+         Paragraph(money + ' ' + str(_discount_value), styles["Right_Newgot"])],
         [Paragraph('I.G.V.(18.00 %)', styles["Justify_Newgot"]),
-         Paragraph(money + ' ' + str(round(igv, 2)), styles["Right_Newgot"])],
+         Paragraph(money + ' ' + str(igv_value), styles["Right_Newgot"])],
         [Paragraph('TOTAL', styles["Justify_Newgot"]),
-         Paragraph(money + ' ' + str(round(valor_venta + igv, 2)), styles["Right_Newgot"])],
+         Paragraph(money + ' ' + str(total_str_value), styles["Right_Newgot"])],
     ]
     total_col_2 = Table(total_col2, colWidths=[_bts * 19 / 100, _bts * 14 / 100])
 

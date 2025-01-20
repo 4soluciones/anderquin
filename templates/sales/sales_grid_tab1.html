@@ -74,45 +74,39 @@
         </div>
 
         <div class="card-body p-0 pr-1">
-            <div class="form-row mt-0 mb-2 ml-0 mr-0">
-                <div class="form-group col-md-12 text-uppercase small mt-2 mb-0">
-                    <div class="col-sm-12 col-sm-12 col-lg-12 p-3" style="background-color: #d8e0e7">
-                        <div class="row">
-                            <div class="col-sm-2 col-md-2 col-lg-2 pr-0 pt-2">
-                                <div class="text-dark">Buscar producto:</div>
-                            </div>
-                            <div class="col-sm-9 col-md-9 col-lg-9 pl-0">
-{#                                <input type="text" id="custom-search-product" aria-label="..."#}
-{#                                       class="form-control ml-2 text-uppercase" autocomplete="off"#}
-{#                                        {% if guide_obj %} disabled {% endif %}#}
-{#                                       placeholder="Ingrese un producto...">#}
-                                <div id="autocomplete-product" class="autocomplete">
-                                    <input class="form-control form-control-sm autocomplete-input"
-                                           type="text" aria-label="..."
-                                           id="product-names"
-                                           name="product-names"
-                                           maxlength="200"
-                                           autocomplete="off"
-                                           placeholder="Ingrese un producto..."/>
-                                    <ul class="autocomplete-result-list"></ul>
-                                </div>
-                            </div>
-                            <div class="col-sm-1 col-md-1 col-lg-1 pt-0 pl-0">
-                                <button type="button" id="clean_product"
-                                        class="btn btn-outline-danger btn-sm btn-block text-center">
-                                     <i class="fas fa-sync-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
             <fieldset class="border bg-light p-2">
                 <legend class="w-auto mb-0 text-black-50 text-uppercase" style="font-size: 12px">Información CLiente
                 </legend>
-                <div class="card-body p-0 m-0 {% if guide_obj %}d-none{% endif %}">
+                <div class="card-body p-0 m-0">
                     <div class="form-row m-0">
-                        <table class="table table-sm text-uppercase small align-right"
+                        <div class="form-group col-md-5 mb-2 text-uppercase small">
+                            <label class="mb-2 text-center"
+                                   for="client_name">Cliente - Nombres/Razón social:</label>
+                            <div id="autocomplete-client" class="autocomplete">
+                                <input class="form-control form-control-sm autocomplete-input"
+                                       type="text" aria-label="..."
+                                       id="person-names"
+                                       name="person-names"
+                                       maxlength="200"
+                                       autocomplete="off"
+                                       value="{{ guide_obj.client.names }}"
+                                       {% if guide_obj %}readonly{% endif %}
+                                       placeholder="Buscar Cliente..."/>
+                                <ul class="autocomplete-result-list"></ul>
+                            </div>
+                            <input type="hidden" value="{{ guide_obj.client.id }}"
+                                   id="client-id" name="client-id">
+                        </div>
+                        <div class="form-group col-md-7 mb-2 text-uppercase small">
+                            <label class="mb-2 text-center"
+                                   for="client_address"> Dirección:</label>
+                            <input type="text" class="form-control form-control-sm text-uppercase"
+                                   id="client_address"
+                                   value="{{ guide_obj.client.clientaddress_set.last.address }}"
+                                   name="name_address" readonly>
+                        </div>
+                        <!--<table class="table table-sm text-uppercase small align-right"
                                style="width: 100%">
                             <tr class="align-right">
                                 <th class="border-top-0 align-middle text-center pt-2"
@@ -169,10 +163,10 @@
                                     </div>
                                 </td>
                             </tr>
-                        </table>
+                        </table>-->
                     </div>
                 </div>
-                <div class="form-row p-0">
+                <!--<div class="form-row p-0">
                     <div class="form-group col-md-5 mb-2 text-uppercase small">
                         <label class="mb-2 text-center font-weight-bold"
                                for="client_name">Cliente
@@ -192,7 +186,7 @@
                                value="{{ guide_obj.client.clientaddress_set.last.address }}"
                                name="name_address" readonly>
                     </div>
-                </div>
+                </div>-->
             </fieldset>
 
             <fieldset class="border p-2 bg-light">
