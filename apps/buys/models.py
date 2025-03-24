@@ -3,7 +3,7 @@ import decimal
 from django.db import models
 from django.contrib.auth.models import User
 
-from apps import accounting
+from apps import accounting, sales, hrm
 from apps.hrm.models import Subsidiary, District, DocumentType
 from apps.sales.models import Unit, Product, Supplier, SubsidiaryStore, LoanPayment, City
 from apps.comercial.models import Truck

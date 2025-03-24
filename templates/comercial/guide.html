@@ -7,8 +7,8 @@
 
     <div class="card m-1 roboto-condensed-regular">
         <div class="card-header pt-0">
-            <div class="row">
-                <div class="col-sm-4 col-md-4 col-lg-4 mb-0" style="background: #3e6787">
+            <div class="row row-head" style="background: #3e6787">
+                <div class="col-sm-4 col-md-4 col-lg-4 mb-0" >
                     {% if contract_detail_obj %}
                         <input type="hidden" id="contract_detail_id" name="contract-detail"
                                value="{{ contract_detail_obj.id }}">
@@ -17,12 +17,12 @@
                                 FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
                         </h6>
                     {% else %}
-                        <h6 class="text-white font-weight-bold mt-4 mb-0">
+                        <h6 class="text-white font-weight-bold mt-4 mb-0 roboto-condensed-regular title-contract">
                             <label>GUÍA DE REMISIÓN REMITENTE:</label>
                         </h6>
                     {% endif %}
                 </div>
-                <div class="col-sm-4 col-md-4 col-lg-4 text-black-50" style="background: #3e6787">
+                <div class="col-sm-4 col-md-4 col-lg-4 text-black-50">
                     <table class="table table-bordered mt-1 mb-1" style="background: #ffffff">
                         <tbody>
                         <tr class="text-center">
@@ -33,9 +33,9 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="col-sm-4 col-md-4 col-lg-4 p-3" style="background: #3e6787">
+                <div class="col-sm-4 col-md-4 col-lg-4 p-3">
                     <div class="btn-group btn-block" role="group" aria-label="Basic example">
-                        <button type="button" class="btn btn-success m-1" onclick="saveGuide()">EMITIR GUÍA</button>
+                        <button type="button" class="btn btn-info m-1" onclick="saveGuide()">EMITIR GUÍA</button>
                         <button type="button" class="btn btn-secondary m-1">NUEVO</button>
                     </div>
                 </div>
@@ -308,13 +308,15 @@
                                style="width: 100%;">
                             <thead class="text-uppercase small text-center">
                             <tr class="text-white" style="background: #3e6787">
-                                <th scope="col" class="font-weight-normal" style="width: 10%;">Nº</th>
-                                <th scope="col" class="font-weight-normal" style="width: 45%;">Descripcion</th>
-                                <th scope="col" class="font-weight-normal" style="width: 15%;">Cantidad</th>
-                                <th scope="col" class="font-weight-normal" style="width: 15%;">Unidad</th>
+                                <th scope="col" class="font-weight-normal" style="width: 5%;">Nº</th>
+                                <th scope="col" class="font-weight-normal" style="width: 55%;">Descripcion</th>
+                                <th scope="col" class="font-weight-normal" style="width: 10%;">Cantidad</th>
+                                <th scope="col" class="font-weight-normal" style="width: 10%;">Unidad</th>
                                 <th scope="col" class="font-weight-normal"
-                                    style="width: 15%; background-color: #518d86">Cant. / U. M.
+                                    style="width: 10%; background-color: #518d86">Cant. / U. M.
                                 </th>
+{#                                <th scope="col" class="font-weight-normal" style="width: 15%;">Sucursal</th>#}
+                                <th scope="col" class="font-weight-normal" style="width: 10%;">Lote</th>
                                 {#                                <th scope="col" class="font-weight-normal" style="width: 10%;">Eliminar</th>#}
                             </tr>
                             </thead>
@@ -409,10 +411,104 @@
 
     </style>
 
+    <div class="modal fade" id="modal-batch" tabindex="-1" role="dialog"
+         aria-labelledby="ModalHelpTitle" data-backdrop="static" data-keyboard="false"
+         aria-hidden="true"></div>
+
 {% endblock body %}
 
 {% block extrajs %}
     <script type="text/javascript">
+
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const data = urlParams.get('selected_data');
+        const dataObject = JSON.parse(data);
+
+        //console.log(dataObject);
+
+        if (dataObject !== null && Object.keys(dataObject).length > 0) {
+            $('#id-table-detail-guide > tbody').empty();
+            $('.row-head').css('background', '#62a239');
+
+            $(".title-contract label").text("CONTRATO: " + dataObject[0].contract_number);
+            const contractDetailIds = dataObject[0].contract_data.map(detail => detail.contract_detail_id).join(',');
+            $('#contract_detail_id').val(contractDetailIds);
+
+            var deliveryDatesHtml = '<p class="mb-0"></p><ul>';
+            dataObject[0].contract_data.forEach(function (contractDetail) {
+                deliveryDatesHtml += '<li><span>Nro. de Entrega:</span> <span class="text-white">' + contractDetail.nro_quota + '</span>, Fecha: <span class="text-white">' + contractDetail.date + '</span></li>';
+            });
+            deliveryDatesHtml += "</ul>";
+
+            $(".title-contract").after(deliveryDatesHtml);
+
+            for (let productID in dataObject) {
+                if (dataObject.hasOwnProperty(productID)) {
+                    let _check = $("#check_dollar");
+                    let _val_money = 'S/'
+
+                    if (_check.is(':checked')) {
+                        _val_money = '$'
+                    }
+                    let item = dataObject[productID];
+
+                    let options = '';
+                    let optionsSubsidiary = '';
+                    for (let i = 0; i < item.units.length; i++) {
+                        options += '<option value="' + item.units[i].unit_id + '" qm="' + item.units[i].quantity_minimum + '" unit="'+ item.units[i].unit_name +'">' + item.units[i].unit_name + ' (' + item.units[i].quantity_minimum + item.units[i].unit_name + ')' + '</option>';
+                    }
+                    /*let subsidiaries = JSON.parse('{{ subsidiary_set|safe|escapejs }}');
+                    let selectedSubsidiary = '{{ subsidiary_user|default:"0" }}';
+                    subsidiaries.forEach(function (subsidiary) {
+                        let isSelected = subsidiary.id.toString() === selectedSubsidiary ? 'selected' : '';
+                        optionsSubsidiary += '<option value="' + subsidiary.id + '" ' + isSelected + '>' + subsidiary.name + '</option>';
+                    });*/
+
+                    let newRow = '<tr class="text-center" product="' + item.product_id + '">' +
+                        '<td class="item-numero align-middle">' + '</td>' +
+                        '<td class="align-middle text-left product-item-table">' +
+                        '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
+                        '               data-toggle="dropdown" aria-expanded="false" placeholder="Ingrese producto..." value="' + item.product_name + '" ' + 'iv class="dropdown-menu"></div>' + '</td>' +
+                        '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0" value="' + item.quantity + '">' + '</td>' +
+                        '<td class="align-middle unit text-center">' +
+                        '<select class="form-control unit-product text-center bg-warning" id="id_unit_product" name="unit_product" required>' +
+                        '<option disabled selected value="0">Seleccione</option>' +
+                        options +
+                        '</td>' +
+                        '<td class="align-middle quantity-minimum text-center">' +
+                        '<input type="text" class="form-control text-center quantity-minimum-val" readonly>' +
+                        '</td>' +
+                        /*'<td class="align-middle subsidiary text-center">' +
+                        '<select class="form-control subsidiary-product text-center bg-light" id="id_subsidiary_product" name="subsidiary_product" required>' +
+                        '<option disabled selected value="0">Seleccione</option>' +
+                        optionsSubsidiary +
+                        '</select>' +
+                        '</td>' +*/
+                        '<td class="align-middle batch text-center">' +
+                        '<button type="button" class="btn btn-warning btn-sm btn-batch" style="font-size: 0.95em">Sin Lote </button>' +
+                        '</td>' +
+                        //'<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                        '</tr>';
+
+                    $('#id-table-detail-guide > tbody').append(newRow);
+                    counterTable();
+                }
+            }
+            setTimeout(function () {
+                $(".unit-product").trigger('change');
+            }, 500);
+        }
+
+        function counterTable() {
+            let l = 1;
+            $('#guide-details tr').each(function () {
+                $(this).attr('i', l);
+                $(this).children('td:nth-child(1)').text(l);
+                l++;
+            });
+
+        }
 
         let ubigeo_origin;
         let ubigeo_destiny;
@@ -678,19 +774,24 @@
 
         $(document).on('change', '.unit-product', async function (e) {
             let unit_id = $(this).val();
-            let product_id = $(this).parent('td').parent('tr').attr('product')
-            let _quantity = Number($(this).parent('td').parent('tr').find('td.item-quantity input.quantity-product').val())
-            let _tr = $(this).parent('td').parent('tr')
-            let _select_quantity_unit = _tr.find('td.item-quantity-x-unit select.quantity-unit');
-            if (unit_id !== '0') {
-                await getQuantityMinimumByProduct(product_id, unit_id, _tr, _quantity)
-                if (unit_id === '1') { /*optimizar*/
-                    _select_quantity_unit.val('1').change();
+            if (unit_id !== null) {
+                let product_id = $(this).parent('td').parent('tr').attr('product')
+                let _quantity = Number($(this).parent('td').parent('tr').find('td.item-quantity input.quantity-product').val())
+                let _tr = $(this).parent('td').parent('tr')
+                let _select_quantity_unit = _tr.find('td.item-quantity-x-unit select.quantity-unit');
+                if (unit_id !== '0') {
+                    await getQuantityMinimumByProduct(product_id, unit_id, _tr, _quantity)
+                    if (unit_id === '1') { /*optimizar*/
+                        _select_quantity_unit.val('1').change();
+                    }
+                } else {
+                    toastr.warning('Seleccione una unidad valida', 'Error de llenado');
+                    $(this).val(1).change();
+                    return false;
                 }
-            } else {
-                toastr.warning('Seleccione una unidad valida', 'Error de llenado');
-                $(this).val(1).change();
-                return false;
+            }
+            else {
+                toastr.warning('SELECCIONE UN TIPO DE UNIDAD', 'Error de llenado');
             }
 
         });
@@ -702,34 +803,40 @@
             let text = '';
             $('tbody#guide-details tr').each(function () {
                 _unit_name = $(this).find('td.unit select.unit-product option:selected').attr('unit');
-                if (_unit_name !== 'KILOS') {
-                    let validOption = $(this).find('td.unit select.unit-product option').filter(function () {
-                        return $(this).attr('unit') !== 'UNIDAD(ES)';
-                    }).last();
-                    let qmValue = validOption.attr('qm');
-                    let qmUnit = validOption.attr('unit');
-                    let _item_quantity = $(this).find('td.item-quantity input.quantity-product').val();
-                    _q_x_u = _item_quantity / qmValue
-                    _q_x_u_decimal = _item_quantity % qmValue
+                let _unit_id = $(this).find('td.unit select.unit-product option:selected').val()
+                if (_unit_id !== '0' && _unit_id !== null) {
+                    if (_unit_name !== 'KILOS') {
+                        /*let validOption = $(this).find('td.unit select.unit-product option').filter(function () {
+                            return $(this).attr('unit') !== 'UNIDAD(ES)';
+                        }).last();*/
+                        let validOption = $(this).find('td.unit select.unit-product option:selected');
+                        let qmValue = validOption.attr('qm');
+                        let qmUnit = validOption.attr('unit');
+                        let _item_quantity = $(this).find('td.item-quantity input.quantity-product').val();
+                        _q_x_u = _item_quantity / qmValue
+                        _q_x_u_decimal = _item_quantity % qmValue
 
-                    if (_q_x_u_decimal === 0){
-                        text = (parseInt(_q_x_u)).toString() + ' ' + qmUnit
+                        if (_q_x_u_decimal === 0) {
+                            text = (parseInt(_q_x_u)).toString() + ' ' + qmUnit
+                        } else {
+                            text = (parseInt(_q_x_u)).toString() + ' ' + qmUnit + ' / ' + _q_x_u_decimal.toString() + ' UND'
+                        }
+                        /*let _quantity_x_u = $(this).find('td.quantity-minimum input.quantity-minimum-val').val();
+                        _unit_name = $(this).find('td.unit select.unit-product option:selected').attr('unit');
+                        let _qm = $(this).find('td.unit select.unit-product option:selected').attr('qm');
+                        n_package += parseInt(_quantity_x_u);
+                        item_quantity_sum += parseFloat(_item_quantity)
+                        _qm_total = parseFloat(_qm)
+                        let _q_x_u = item_quantity_sum / _qm_total
+                        let _q_x_u_decimal = item_quantity_sum % _qm_total
+                        _text = 'SON ' + (parseInt(_q_x_u)).toString() + ' ' + _unit_name + ' Y ' + _q_x_u_decimal.toString() + ' UND'*/
                     }
-                    else {
-                        text = (parseInt(_q_x_u)).toString() + ' ' + qmUnit + ' / ' + _q_x_u_decimal.toString() + ' UND'
-                    }
-                    /*let _quantity_x_u = $(this).find('td.quantity-minimum input.quantity-minimum-val').val();
-                    _unit_name = $(this).find('td.unit select.unit-product option:selected').attr('unit');
-                    let _qm = $(this).find('td.unit select.unit-product option:selected').attr('qm');
-                    n_package += parseInt(_quantity_x_u);
-                    item_quantity_sum += parseFloat(_item_quantity)
-                    _qm_total = parseFloat(_qm)
-                    let _q_x_u = item_quantity_sum / _qm_total
-                    let _q_x_u_decimal = item_quantity_sum % _qm_total
-                    _text = 'SON ' + (parseInt(_q_x_u)).toString() + ' ' + _unit_name + ' Y ' + _q_x_u_decimal.toString() + ' UND'*/
+                } else {
+                    toastr.warning('SELECCIONE LOS TIPOS DE UNIDAD DE TODOS LOS PRODUCTOS', 'Error de llenado');
                 }
             });
-
+            //console.log("_q_x_u", _q_x_u)
+            //console.log("text", text)
             $('#id-package').val(parseInt(_q_x_u));
             $('#id_observation').val(text);
         }
@@ -762,6 +869,30 @@
                 });
             }
         }
+
+        $(document).on('click', '.btn-batch', function (e) {
+
+            let store_id = document.getElementById('store_id').value;
+            let productID = this.closest('tr').getAttribute('product');
+            $.ajax({
+                url: '/comercial/modal_batch_guide/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'store_id': store_id, 'productID': productID},
+                success: function (response, textStatus, xhr) {
+                    if (response.success) {
+                        $('#modal-batch').html(response.form);
+                        $('#modal-batch').modal('show');
+
+                    } else {
+                        toastr.error(response.message, 'Error');
+                    }
+                },
+                fail: function (response) {
+                    toastr.error('Ocurrio un problema al mostrar el formulario', '¡Mensaje!');
+                }
+            });
+        });
 
 
     </script>

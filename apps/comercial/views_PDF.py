@@ -1586,8 +1586,12 @@ def guide(request, pk=None):
     ]
     document_header.setStyle(TableStyle(header_style))
 
+    order_buy = '-'
+    if guide_obj.order_buy:
+        order_buy = guide_obj.order_buy
+
     pdf_person = Table(
-        [('Fecha de Emisión', ': ' + str(date.strftime("%d/%m/%Y")), 'Doc. Relacionado', 'Nº O/C: ' + guide_obj.order_buy, 'Doc. Referencia', '')] +
+        [('Fecha de Emisión', ': ' + str(date.strftime("%d/%m/%Y")), 'Doc. Relacionado', 'Nº O/C: ' + order_buy, 'Doc. Referencia', '')] +
         [('Destinatario', ': ' + client, '', '', 'Doc. Identidad', ': ' + client_type_document + ' ' + client_document_number)] +
         [('Dirección', ': ' + client_address.title(), '', '', '', '')] +
         [('Ref. Llegada', '', '', '', '', '')],

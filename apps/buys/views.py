@@ -1,7 +1,7 @@
 import pytz
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, ExtractYear
 from django.shortcuts import render
 import decimal
 import json
@@ -1490,78 +1490,115 @@ def update_supplier(request):
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
 
 
+@csrf_exempt
 def contract_list(request):
     if request.method == 'GET':
-        contract_set = Contract.objects.all().order_by('id')
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
-        contract_dict = []
-        for c in contract_set:
-            item_contract = {
-                'id': c.id,
-                'contract_number': c.contract_number,
-                'client': c.client.names,
-                'register_date': c.register_date,
-                'status': c.get_status_display(),
-                'observation': c.observation,
-                'contract_detail': []
-            }
-            for d in c.contractdetail_set.all().order_by('id'):
-                purchase = None
-                bill_number = None
-                guide = None
-                guide_serial = None
-                guide_correlative = None
-                order = None
-                order_serial = None
-                order_correlative = None
-                purchase = None
-                bill_number = None
-                if d.contractdetailpurchase_set.last():
-                    if d.contractdetailpurchase_set.last().purchase:
-                        purchase = d.contractdetailpurchase_set.last().purchase.id
-                        bill_number = d.contractdetailpurchase_set.last().purchase.bill_number
-                if d.guide_set.all():
-                    guide = d.guide_set.all().last().id
-                    guide_serial = d.guide_set.all().last().serial
-                    guide_correlative = d.guide_set.all().last().correlative
-                if d.order:
-                    order = d.order.id
-                    order_serial = d.order.serial
-                    order_correlative = d.order.correlative
-                item_detail = {
-                    'id': d.id,
-                    'nro_quota': d.nro_quota,
-                    'date': d.date,
-                    'purchase': purchase,
-                    'bill_number': bill_number,
-                    'guide': guide,
-                    'guide_serial': guide_serial,
-                    'guide_correlative': guide_correlative,
-                    'order': order,
-                    'order_serial': order_serial,
-                    'order_correlative': order_correlative,
-                    'contract_detail_item': []
-                }
-                for e in d.contractdetailitem_set.all():
-                    item = {
-                        'id': e.id,
-                        'product_id': e.product.id,
-                        'quantity': e.quantity,
-                        'product_name': e.product.name
-                    }
-                    item_detail.get('contract_detail_item').append(item)
-                item_contract.get('contract_detail').append(item_detail)
+        years = (
+            Contract.objects
+            .annotate(year=ExtractYear('register_date'))
+            .values_list('year', flat=True)
+            .distinct()
+            .order_by('year')
+        )
 
-            contract_dict.append(item_contract)
-        # print(contract_dict)
+        last_year = max(years) if years else None
+        contract_set = Contract.objects.filter(register_date__year=last_year).order_by('id')
+        contract_dict = get_contract_data(contract_set)
 
         return render(request, 'buys/contract_list.html', {
+            'years': years,
             'date_now': formatdate,
-            'contract_set': contract_set.order_by('id'),
             'contract_dict': contract_dict,
-            'product_set': Product.objects.filter(is_enabled=True)
+            'contract_set': contract_set,
+            'last_year': last_year
         })
+
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        year = data.get('year')
+        contract_set = Contract.objects.filter(register_date__year=year).order_by('id')
+
+        contract_dict = get_contract_data(contract_set)
+
+        tpl = loader.get_template('buys/contract_grid_list.html')
+        context = {
+            'contract_dict': contract_dict,
+            'contract_set': contract_set,
+            'product_set': Product.objects.filter(is_enabled=True)
+        }
+
+        return JsonResponse({
+            'grid': tpl.render(context, request),
+        }, status=HTTPStatus.OK)
+
+
+def get_contract_data(contract_set):
+    contract_dict = []
+
+    for c in contract_set:
+        item_contract = {
+            'id': c.id,
+            'contract_number': c.contract_number,
+            'client': c.client.names,
+            'register_date': c.register_date,
+            'status': c.get_status_display(),
+            'observation': c.observation,
+            'contract_detail': []
+        }
+
+        for d in c.contractdetail_set.all().order_by('id'):
+            item_detail = {
+                'id': d.id,
+                'nro_quota': d.nro_quota,
+                'date': d.date,
+                'purchase': None,
+                'bill_number': None,
+                'guide': None,
+                'guide_serial': None,
+                'guide_correlative': None,
+                'order': None,
+                'order_serial': None,
+                'order_correlative': None,
+                'contract_detail_item': []
+            }
+
+            if d.contractdetailpurchase_set.last():
+                purchase_data = d.contractdetailpurchase_set.last().purchase
+                if purchase_data:
+                    item_detail['purchase'] = purchase_data.id
+                    item_detail['bill_number'] = purchase_data.bill_number
+
+            if d.guide_set.exists():
+                last_guide = d.guide_set.last()
+                item_detail.update({
+                    'guide': last_guide.id,
+                    'guide_serial': last_guide.serial,
+                    'guide_correlative': last_guide.correlative
+                })
+
+            if d.order:
+                item_detail.update({
+                    'order': d.order.id,
+                    'order_serial': d.order.serial,
+                    'order_correlative': d.order.correlative
+                })
+
+            for e in d.contractdetailitem_set.all():
+                item = {
+                    'id': e.id,
+                    'product_id': e.product.id,
+                    'quantity': e.quantity,
+                    'product_name': e.product.name
+                }
+                item_detail['contract_detail_item'].append(item)
+
+            item_contract['contract_detail'].append(item_detail)
+
+        contract_dict.append(item_contract)
+
+    return contract_dict
 
 
 def modal_contract_create(request):

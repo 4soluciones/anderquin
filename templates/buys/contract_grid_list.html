@@ -49,9 +49,14 @@
                                         <div class="card-body pt-1 pb-1 pr-0">
                                             <div class="row pl-0">
                                                 <button type="button"
-                                                        class="btn btn-sm btn-warning font-weight-light generate-oc">
+                                                        class="btn btn-sm btn-warning font-weight-light generate-oc m-1">
                                                     Generar Orden de Compra
-                                                    <span class="badge badge-light">0</span>
+                                                    <span class="badge badge-light b-oc">0</span>
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-info font-weight-light generate-guides m-1">
+                                                    Generar Guia de Remision
+                                                    <span class="badge badge-light b-guide">0</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -60,7 +65,7 @@
                                                    style="background-color: #bfdecb; font-size: 10px">
                                                 <thead>
                                                 <tr class="text-center font-weight-bold text-uppercase bg-light align-middle">
-                                                    <th class="th-sm" style="width: 3%"><i class="fas fa-check"></i></th>
+{#                                                    <th class="th-sm" style="width: 3%"><i class="fas fa-check"></i></th>#}
                                                     <th class="th-sm" style="width: 3%">#</th>
                                                     <th class="th-sm" style="width: 10%">Fecha</th>
                                                     {#                                    <th class="th-sm" style="width: 10%">O/C</th>#}
@@ -73,18 +78,18 @@
                                                 <tbody>
                                                 {% for d in c.contract_detail %}
                                                     <tr class="text-center" pk="{{ c.id }}">
-                                                        <td class="align-middle item-check">
-                                                            {% if not d.purchase %}
-                                                                <div class="form-check">
-                                                                    <input class="form-check-input check-dates"
-                                                                           style="transform: scale(1.4);"
-                                                                           type="checkbox" value=""
-                                                                           id="{{ c.id }}">
-                                                                    <label class="form-check-label"
-                                                                           for="{{ c.id }}"> </label>
-                                                                </div>
-                                                            {% endif %}
-                                                        </td>
+{#                                                        <td class="align-middle">#}
+{#                                                            {% if not d.purchase %}#}
+{#                                                                <div class="form-check">#}
+{#                                                                    <input class="form-check-input check-dates"#}
+{#                                                                           style="transform: scale(1.4);"#}
+{#                                                                           type="checkbox" value=""#}
+{#                                                                           id="{{ c.id }}">#}
+{#                                                                    <label class="form-check-label"#}
+{#                                                                           for="{{ c.id }}"> </label>#}
+{#                                                                </div>#}
+{#                                                            {% endif %}#}
+{#                                                        </td>#}
                                                         <td class="align-middle font-weight-bold p-0">{{ d.nro_quota|default_if_none:'-' }}</td>
                                                         <td class="align-middle font-weight-bold p-0">
                                                             {{ d.date|date:'d-m-Y' }}
@@ -112,11 +117,20 @@
                                                                 </tbody>
                                                             </table>
                                                         </td>
-                                                        <td class="align-middle">
+                                                        <td class="align-middle item-check">
                                                             {% if d.purchase %}
                                                                 <a class="btn btn-sm btn-success font-weight-light" style="font-size: 10px"
                                                                    href="{% url 'buys:print_pdf_purchase_order' d.purchase %}">
                                                                     {{ d.bill_number }}</a>
+                                                            {% else %}
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input check-dates"
+                                                                           style="transform: scale(1.4);"
+                                                                           type="checkbox" value=""
+                                                                           id="{{ c.id }}">
+                                                                    <label class="form-check-label"
+                                                                           for="{{ c.id }}"> </label>
+                                                                </div>
                                                             {% endif %}
                                                         </td>
                                                         {#                                                        <td class="align-middle">#}
@@ -132,15 +146,23 @@
                                                         {#                                                                    O/C</a>#}
                                                         {#                                                            {% endif %}#}
                                                         {#                                                        </td>#}
-                                                        <td class="align-middle">
+                                                        <td class="align-middle item-check-guide">
                                                             {% if d.guide %}
                                                                 <a class="btn btn-sm btn-danger font-weight-light" style="font-size: 10px"
                                                                    href="{% url 'comercial:guide' d.guide %}">
                                                                     {{ d.guide_serial }}-{{ d.guide_correlative|zfill:5 }}</a>
                                                             {% else %}
-                                                                <a class="btn btn-sm btn-primary font-weight-light" style="font-size: 10px"
-                                                                   href="{% url 'comercial:new_guide' d.id %}">
-                                                                   Generar Guía </a>
+{#                                                                <a class="btn btn-sm btn-primary font-weight-light" style="font-size: 10px"#}
+{#                                                                   href="{% url 'comercial:new_guide' d.id %}">#}
+{#                                                                   Generar Guía </a>#}
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input check-dates-guide"
+                                                                           style="transform: scale(1.4);"
+                                                                           type="checkbox" value=""
+                                                                           id="{{ c.id }}">
+                                                                    <label class="form-check-label"
+                                                                           for="{{ c.id }}"> </label>
+                                                                </div>
                                                             {% endif %}
                                                         </td>
                                                         <td class="align-middle text-center">

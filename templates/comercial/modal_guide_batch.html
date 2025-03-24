@@ -1,0 +1,122 @@
+{% load operations %}
+<div class="modal-dialog" role="document">
+
+    <div class="modal-content">
+        <div class="modal-header" style="background-color: rgb(21,99,181);">
+            <h6 class="modal-title  text-white roboto-condensed-regular">LOTES DISPONIBLES:</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="close-modal">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <div class="modal-body roboto-condensed-regular">
+            <div class="card border-primary">
+                <div class="card-header" style="background-color: rgb(21,99,181);">
+                    <h6 class="card-title text-center text-white mb-0 roboto-condensed-regular">{{ product_obj.name|upper }}</h6>
+                    <input type="hidden" value="{{ product_obj.id }}" id="product">
+                    <input type="hidden" value="{{ product_store_obj.id }}" id="product_store">
+                    <input type="hidden" value="{{ product_store_obj.stock }}" id="current_stock">
+                </div>
+                <div class="card-body m-0 p-3">
+                    <div class="row col-md-12 m-0 p-0">
+                        <div class="card-body p-0">
+                            <div class="table-responsive dataTables_wrapper m-0 p-0"
+                                 style="overflow-y: scroll; height: 600px; width: auto; overflow-x: hidden;">
+                                <table class="table table-sm align-content-center table-bordered table-hover mb-0">
+                                 <thead>
+                                 <tr>
+                                     <th class="small font-weight-bold text-center"></th>
+                                     <th class="small font-weight-bold text-center">Nº LOTE</th>
+                                     <th class="small font-weight-bold text-center">CANTIDAD DISPONIBLE</th>
+                                     <th class="small font-weight-bold text-center">FECHA DE EXPIRACIÓN</th>
+                                 </tr>
+                                 </thead>
+                                    <tbody id="details-batch">
+                                    {% for b in batch_set %}
+                                        <tr style="height: 50px;" batch="{{ b.id }}" quantity="{{ b.remaining_quantity }}" batch_number="{{ b.batch_number }}">
+                                            <td class="text-right align-middle text-center item-check">
+                                                <div class="form-check">
+                                                    <input class="form-check-input check-batch" aria-label=""
+                                                           style="transform: scale(1.4);"
+                                                           type="radio" name="batch" id="batch-{{ b.id }}"
+                                                           value="{{ b.id }}">
+                                                    <label class="form-check-label" for="batch-{{ b.id }}">
+                                                        {{ b.name }}
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center item-number-batch align-middle font-weight-bold">
+                                                Nª {{ b.batch_number }}
+{#                                                <input type="text" class="form-control number-batch text-center"#}
+{#                                                       aria-label="" readonly#}
+{#                                                       value="{{ b.batch_number }}"#}
+{#                                                       aria-describedby="basic-addon1">#}
+                                            </td>
+                                            <td class="text-right item-remaining-quantity align-middle">
+{#                                                <input type="text" class="form-control remaining-quantity text-right"#}
+{#                                                       aria-label="" readonly#}
+{#                                                       value="{{ b.remaining_quantity|replace_round }}">#}
+                                                {% for pd in product_detail_set %}
+                                                    <div class="row flex-fill m-0" unit="{{ pd.unit }}"
+                                                         qm="{{ pd.quantity_minimum|safe }}">
+                                                        <div class="col-12 d-flex justify-content-center align-items-center border-top border-right border-left">
+                                                            <span class="current-stock">{{ b.remaining_quantity|safe|divide_stock:pd.quantity_minimum|safe }}</span>
+                                                            <span class="type-unit">({{ pd.unit }})</span>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </td>
+                                            <td class="item-expiration-date align-middle text-center">
+                                                {{ b.expiration_date|date:'d/m/Y' }}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-2">
+                    <div class="card-body m-0 text-center p-0">
+{#                        <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Cerrar</button>#}
+                        <button type="button" id="select-batch" class="btn btn-sm btn-block btn-select btn-success"> Seleccionar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+
+    $("#select-batch").click(function () {
+        let product = document.getElementById('product').value;
+        let productStore = document.getElementById('product_store').value;
+        let tbody_check = document.getElementById('details-batch');
+        let _tr = $("#guide-details tr[product=" + product + "]");
+        //let _tr_store = _tr.find("td.td-table-stock table.table-stock-headquarters tr[store_id=" + productStore + "]");
+        let btn_batch = _tr.find('td.batch button.btn-batch');
+        let input_batch_number = _tr_store.find('td.item-batch input.number-batch');
+        let input_batch_id = _tr_store.find('td.item-batch input.batch-id');
+        let input_stock_batch = _tr_store.find('td.item-batch input.stock-batch');
+        let rows = tbody_check.getElementsByTagName('tr');
+
+        for (let row of rows) {
+            let checkbox = row.querySelector('td.item-check input.check-batch');
+            if (checkbox && checkbox.checked) {
+                let batchID = row.getAttribute('batch');
+                let quantity = row.getAttribute('quantity');
+                let batch_number = row.getAttribute('batch_number');
+                input_batch_number.val(batch_number);
+                btn_batch.text('Nº ' + batch_number);
+                input_batch_id.val(batchID);
+                input_stock_batch.val(quantity);
+            }
+        }
+        $('#modal-batch').modal('hide');
+
+    });
+
+</script>

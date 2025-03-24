@@ -1,6 +1,6 @@
 import decimal
 from http import HTTPStatus
-from django.db.models import Q, Max, F, Prefetch
+from django.db.models import Q, Max, F, Prefetch, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.shortcuts import render
 from django.views.generic import View, TemplateView, UpdateView, CreateView
@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from .forms import *
 from django.urls import reverse_lazy
 from apps.sales.models import Product, SubsidiaryStore, ProductStore, ProductDetail, ProductSubcategory, \
-    ProductSupplier, TransactionPayment, Order, LoanPayment, ClientAddress
+    ProductSupplier, TransactionPayment, Order, LoanPayment, ClientAddress, Batch
 from apps.sales.views import kardex_ouput, kardex_input, kardex_initial, calculate_minimum_unit, Supplier
 from apps.hrm.models import Subsidiary
 import json
@@ -465,7 +465,7 @@ def new_guide(request, contract_detail=None):
     my_date = datetime.now()
     formatdate = my_date.strftime("%Y-%m-%d")
     motive_set = GuideMotive.objects.filter(type='S', code__isnull=False).order_by('id')
-
+    subsidiary_set = SubsidiaryStore.objects.filter(category='V').order_by('id')
     return render(request, 'comercial/guide.html', {
         'supplier_obj': supplier_obj,
         'product_obj': product_obj,
@@ -475,7 +475,8 @@ def new_guide(request, contract_detail=None):
         'supplier_set': Supplier.objects.all(),
         'client_set': Client.objects.all(),
         'subsidiary_store_set': SubsidiaryStore.objects.filter(category='V'),
-        'subsidiary_set': Subsidiary.objects.all().order_by('id'),
+        'subsidiary_set': json.dumps(list(subsidiary_set.values('id', 'name'))),
+        'subsidiary_user': subsidiary_obj.id,
         'contract_detail_obj': contract_detail_obj,
         'client': json.dumps(client),
         'contract_detail_item_set': contract_detail_item_set,
@@ -2578,13 +2579,113 @@ def save_new_address_origin(request):
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
+def get_guide_by_contract(request):
+    if request.method == 'GET':
+        selected_data = json.loads(request.GET.get('selectedData', '[]'))
+        selected_data_list = []
+
+        for product_id, data in selected_data.items():
+            product_obj = Product.objects.get(id=product_id)
+            units = []
+
+            for pd in ProductDetail.objects.filter(product_id=product_id):
+                unit_data = {
+                    'id': pd.id,
+                    'unit_id': pd.unit.id,
+                    'unit_name': pd.unit.name,
+                    'quantity_minimum': round(pd.quantity_minimum, 0),
+                }
+                units.append(unit_data)
+
+            contract_detail_ids = data['contractDetailIDs']
+            contract_details = ContractDetail.objects.filter(id__in=contract_detail_ids)
+            contract_obj = contract_details.first().contract
+            contract_data = []
+            for c in contract_details:
+                item_contract_detail = {
+                    'contract_detail_id': c.id,
+                    'nro_quota': c.nro_quota,
+                    'date': c.date,
+                }
+                contract_data.append(item_contract_detail)
+
+            client_data = []
+            client_reference_set = Client.objects.filter(id=contract_obj.client.id)
+            for c in client_reference_set:
+                client_address_set = c.clientaddress_set.all()
+                if client_address_set.exists():
+                    address_dict = [{
+                        'id': cd.id,
+                        'address': cd.address,
+                        'district': cd.district.description,
+                    } for cd in client_address_set]
+                else:
+                    address_dict = []
+
+                client_data.append({
+                    'id': c.id,
+                    'names': c.names,
+                    'type_client_display': c.get_type_client_display(),
+                    'type_client': c.type_client,
+                    'number': c.clienttype_set.last().document_number,
+                    'address': address_dict
+                })
+
+            item = {
+                'product_id': product_id,
+                'product_name': product_obj.name,
+                'quantity': data['quantity'],
+                # 'contract_detail': contract_detail_ids,
+                'contract_id': contract_obj.id,
+                'contract_number': contract_obj.contract_number,
+                'client_data': client_data,
+                'contract_data': contract_data,
+                'units': units
+            }
+
+            selected_data_list.append(item)
+        json_data = json.dumps(selected_data_list, cls=DjangoJSONEncoder)
+
+        return JsonResponse({'redirect_url': f'/comercial/get_guide?selected_data={json_data}'})
 
 
+def modal_batch_guide(request):
+    if request.method == 'GET':
+        subsidiary_store_id = request.GET.get('store_id', '')
+        product_id = request.GET.get('productID', '')
+        product_store_set = ProductStore.objects.filter(subsidiary_store__id=subsidiary_store_id,
+                                                        product__id=product_id)
+        if product_store_set.exists():
+            product_store_obj = product_store_set.last()
+            last_batches = Batch.objects.filter(
+                batch_number=OuterRef('batch_number'), product_store=product_store_obj).order_by('-id')
 
+            latest_batches = Batch.objects.filter(
+                product_store=product_store_obj
+            ).annotate(last_id=Subquery(last_batches.values('id')[:1])).filter(id=F('last_id'), remaining_quantity__gt=0)
 
+            if latest_batches.exists():
+                product_obj = product_store_obj.product
+                tpl = loader.get_template('comercial/modal_guide_batch.html')
+                context = ({
+                    'batch_set': latest_batches,
+                    'product_obj': product_obj,
+                    'product_store_obj': product_store_obj,
+                    'product_detail_set': ProductDetail.objects.filter(product=product_obj)
+                })
+                return JsonResponse({
+                    'success': True,
+                    'form': tpl.render(context, request),
+                }, status=HTTPStatus.OK)
 
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'El Producto no cuenta con Lotes en la sucursal. Revisar el Producto'
+                }, status=HTTPStatus.OK)
 
-
-
-
-
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'El Producto no cuenta con Lotes en el Almacen seleccionado. Revisar el Producto'
+            }, status=HTTPStatus.OK)

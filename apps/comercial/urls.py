@@ -106,6 +106,8 @@ urlpatterns = [
     path('get_plate_by_vehicle/', get_plate_by_vehicle, name='get_plate_by_vehicle'),
     path('save_guide/', save_guide, name='save_guide'),
     path('guide/<int:pk>/', login_required(guide), name='guide'),
+    path('get_guide_by_contract/', get_guide_by_contract, name='get_guide_by_contract'),
+    path('modal_batch_guide/', modal_batch_guide, name='modal_batch_guide'),
 
     # CREATE CARRIER
     path('modal_new_carrier/', modal_new_carrier, name='modal_new_carrier'),
