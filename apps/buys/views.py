@@ -1512,7 +1512,8 @@ def contract_list(request):
             'date_now': formatdate,
             'contract_dict': contract_dict,
             'contract_set': contract_set,
-            'last_year': last_year
+            'last_year': last_year,
+            'product_set': Product.objects.filter(is_enabled=True)
         })
 
     if request.method == 'POST':
