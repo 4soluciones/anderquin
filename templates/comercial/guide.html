@@ -425,11 +425,22 @@
         const data = urlParams.get('selected_data');
         const dataObject = JSON.parse(data);
 
-        //console.log(dataObject);
+        console.log(dataObject);
 
         if (dataObject !== null && Object.keys(dataObject).length > 0) {
             $('#id-table-detail-guide > tbody').empty();
             $('.row-head').css('background', '#62a239');
+
+            const clientData = dataObject[0].client_data;
+            let client = {
+                names: clientData[0].names,
+                number_document: clientData[0].number,
+                id: clientData[0].id,
+                type_client: clientData[0].type_client,
+                address: clientData[0].address
+            };
+            $('#person-names').val(clientData[0].names)
+            handleClientSubmitGuide(client);
 
             $(".title-contract label").text("CONTRATO: " + dataObject[0].contract_number);
             const contractDetailIds = dataObject[0].contract_data.map(detail => detail.contract_detail_id).join(',');
@@ -487,6 +498,8 @@
                         '</td>' +*/
                         '<td class="align-middle batch text-center">' +
                         '<button type="button" class="btn btn-warning btn-sm btn-batch" style="font-size: 0.95em">Sin Lote </button>' +
+                        '<input type="hidden" class="batch-id" value="">' +
+                        '<input type="hidden" class="stock-batch" value="">' +
                         '</td>' +
                         //'<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
                         '</tr>';
@@ -554,10 +567,12 @@
         async function handleClientSubmitGuide(result) {
             if (result) {
                 let client_id = result.id;
-                let _client_names = result.names
+                let document_number = result.number_document;
+                let _client_names = result.names;
                 let _client_address = result.address;
                 $('#client_id').val(client_id);
                 $('#name-client').val(_client_names);
+                $('#person-names').val(document_number);
             } else {
                 toastr.warning('Seleccione un cliente valido', 'Error de llenado');
                 return false;
@@ -874,6 +889,12 @@
 
             let store_id = document.getElementById('store_id').value;
             let productID = this.closest('tr').getAttribute('product');
+
+            if (store_id === '0') {
+                toastr.warning('¡SELECCIONE EL ALMACEN!', 'Mensaje');
+                return false;
+            }
+
             $.ajax({
                 url: '/comercial/modal_batch_guide/',
                 dataType: 'json',

@@ -95,13 +95,11 @@
         let product = document.getElementById('product').value;
         let productStore = document.getElementById('product_store').value;
         let tbody_check = document.getElementById('details-batch');
-        let _tr = $("#guide-details tr[product=" + product + "]");
-        //let _tr_store = _tr.find("td.td-table-stock table.table-stock-headquarters tr[store_id=" + productStore + "]");
-        let btn_batch = _tr.find('td.batch button.btn-batch');
-        let input_batch_number = _tr_store.find('td.item-batch input.number-batch');
-        let input_batch_id = _tr_store.find('td.item-batch input.batch-id');
-        let input_stock_batch = _tr_store.find('td.item-batch input.stock-batch');
         let rows = tbody_check.getElementsByTagName('tr');
+        let _tr = $("#guide-details tr[product=" + product + "]");
+        let btn_batch = _tr.find('td.batch button.btn-batch');
+        let input_batch_id = _tr.find('td.batch input.batch-id');
+        let input_stock_batch = _tr.find('td.batch input.stock-batch');
 
         for (let row of rows) {
             let checkbox = row.querySelector('td.item-check input.check-batch');
@@ -109,12 +107,13 @@
                 let batchID = row.getAttribute('batch');
                 let quantity = row.getAttribute('quantity');
                 let batch_number = row.getAttribute('batch_number');
-                input_batch_number.val(batch_number);
+                btn_batch.val(batch_number);
                 btn_batch.text('Nº ' + batch_number);
                 input_batch_id.val(batchID);
                 input_stock_batch.val(quantity);
             }
         }
+
         $('#modal-batch').modal('hide');
 
     });
