@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+
+from apps import sales
 from apps.hrm.models import Subsidiary, Employee
 from apps.sales.models import Client, Product, Unit, SubsidiaryStore, Order, OrderDetail, ProductDetail
 from django.db.models import Sum
@@ -361,6 +363,7 @@ class GuideDetail(models.Model):
     # quantity_sent = models.DecimalField('Cantidad enviada', max_digits=10, decimal_places=2, default=0)
     quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
+    batch = models.ForeignKey('sales.Batch', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return str(self.id)

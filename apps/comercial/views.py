@@ -2509,10 +2509,12 @@ def save_guide(request):
             product_obj = Product.objects.get(id=product_id)
             quantity = decimal.Decimal(detail['Quantity'])
             quantity_unit = decimal.Decimal(detail['QuantityUnit'])
+            batch_id = int(detail['Batch'])
+            batch_obj = Batch.objects.get(id=batch_id)
             unit_id = int(detail['Unit'])
             unit_obj = Unit.objects.get(id=unit_id)
             GuideDetail.objects.create(guide=guide_obj, product=product_obj,
-                                       quantity=quantity_unit, unit=unit_obj)
+                                       quantity=quantity_unit, unit=unit_obj, batch=batch_obj)
             # product_store_id = ProductStore.objects.filter(product=product_obj, subsidiary_store=store_obj).last().id
             # kardex_ouput(product_store_id, quantity, guide_detail_obj=new_detail_guide_obj,)
 
@@ -2634,6 +2636,7 @@ def get_guide_by_contract(request):
             item = {
                 'product_id': product_id,
                 'product_name': product_obj.name,
+                'product_weight': product_obj.weight,
                 'quantity': data['quantity'],
                 # 'contract_detail': contract_detail_ids,
                 'contract_id': contract_obj.id,

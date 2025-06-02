@@ -9,9 +9,9 @@
         <div class="card-header pt-0">
             <div class="row row-head" style="background: #3e6787">
                 <div class="col-sm-4 col-md-4 col-lg-4 mb-0" >
+                    <input type="hidden" id="contract_detail_id" name="contract-detail"
+                           value="{{ contract_detail_obj.id }}">
                     {% if contract_detail_obj %}
-                        <input type="hidden" id="contract_detail_id" name="contract-detail"
-                               value="{{ contract_detail_obj.id }}">
                         <h6 class="roboto-condensed-regular text-white font-weight-bold mt-4 mb-0">
                             <label>{{ contract_detail_obj.contract.contract_number }} -
                                 FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
@@ -463,7 +463,6 @@
                         _val_money = '$'
                     }
                     let item = dataObject[productID];
-                    console.log()
                     let options = '';
                     let optionsSubsidiary = '';
                     for (let i = 0; i < item.units.length; i++) {
@@ -476,7 +475,7 @@
                         optionsSubsidiary += '<option value="' + subsidiary.id + '" ' + isSelected + '>' + subsidiary.name + '</option>';
                     });*/
 
-                    let newRow = '<tr class="text-center" product="' + item.product_id + '">' +
+                    let newRow = '<tr class="text-center" weight="'+ item.product_weight +'" product="' + item.product_id + '">' +
                         '<td class="item-numero align-middle">' + '</td>' +
                         '<td class="align-middle text-left product-item-table">' +
                         '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
@@ -751,6 +750,7 @@
                     "Quantity": $(this).find("td.item-quantity input.quantity-product").val(),
                     "Unit": $(this).find("td.unit select.unit-product").val(),
                     "QuantityUnit": $(this).find("td.quantity-minimum input.quantity-minimum-val").val(),
+                    "Batch": $(this).find("td.batch input.batch-id").val(),
                 };
                 Guide.Details.push(detailObj);
             });
@@ -811,11 +811,24 @@
 
         });
 
+        function sumWeight(){
+
+            let sum_weight_total = 0
+
+            $('tbody#guide-details tr').each(function () {
+
+                let product_weight = $(this).attr('weight');
+
+            });
+
+        }
+
         function sumQuantities() {
             let _q_x_u = 0;
             let _q_x_u_decimal = 0;
             let _unit_name = '';
             let text = '';
+            let full_weight = 0;
             $('tbody#guide-details tr').each(function () {
                 _unit_name = $(this).find('td.unit select.unit-product option:selected').attr('unit');
                 let _unit_id = $(this).find('td.unit select.unit-product option:selected').val()
@@ -828,8 +841,11 @@
                         let qmValue = validOption.attr('qm');
                         let qmUnit = validOption.attr('unit');
                         let _item_quantity = $(this).find('td.item-quantity input.quantity-product').val();
+                        let product_weight = $(this).attr('weight');
                         _q_x_u = _item_quantity / qmValue
                         _q_x_u_decimal = _item_quantity % qmValue
+                        full_weight = (_item_quantity * product_weight) / 1000
+                        //console.log("full_weight", full_weight)
 
                         if (_q_x_u_decimal === 0) {
                             text = (parseInt(_q_x_u)).toString() + ' ' + qmUnit
@@ -854,6 +870,7 @@
             //console.log("text", text)
             $('#id-package').val(parseInt(_q_x_u));
             $('#id_observation').val(text);
+            $('#weight').val(full_weight);
         }
 
         async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
