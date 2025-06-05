@@ -1,0 +1,98 @@
+{% if guides %}
+    <div class="card-body p-2 table-responsive small">
+        <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
+            <table id="purchase-list-finances"
+                   class="table table-hover table-bordered align-content-center w-100 h-100">
+                <thead>
+                <tr class="font-weight-bold text-uppercase text-center" style="font-size: 11px;">
+                    <th class="th-sm" style="width: 2%"><i class="fas fa-check"></i>
+                    <th class="th-sm" style="width: 6%">Fecha</th>
+                    <th class="th-sm" style="width: 2%">Serie</th>
+                    <th class="th-sm" style="width: 2%">Numero</th>
+                    <th class="th-sm" style="width: 27%">Cliente</th>
+                    <th class="th-sm" style="width: 22%">Transporte</th>
+{#                    <th class="th-sm" style="width: 4%">Motivo</th>#}
+                    <th class="th-sm" style="width: 8%">C/P</th>
+                    <th class="th-sm bg-warning" style="width: 5%">LOTE</th>
+                    <th class="th-sm" style="width: 2%">CANT.</th>
+                    <th class="th-sm" style="width: 2%">UND.</th>
+                    <th class="th-sm" style="width: 22%">PRODUCTO</th>
+                </tr>
+                </thead>
+                <tbody id="body-finances" style="font-size: 11px;">
+                {% for g in guides %}
+                    <tr class="text-center" pk="{{ g.id }}">
+                        <td rowspan="{{ g.details|length|add:1 }}" class="align-middle item-check">
+                            <div class="form-check">
+                                <input class="form-check-input check-guide"
+                                       type="checkbox" value="" style="transform: scale(1.2)"
+                                       id="{{ g.id }}">
+                                <label class="form-check-label"
+                                       for="{{ g.id }}"> </label>
+                            </div>
+                        </td>
+                        <td rowspan="{{ g.details|length|add:1 }}" class="align-middle">{{ g.date_issue|date:'d-m-Y' }}</td>
+                        <td rowspan="{{ g.details|length|add:1 }}" class="align-middle text-center">{{ g.serial }}</td>
+                        <td rowspan="{{ g.details|length|add:1 }}" class="align-middle text-center">{{ g.correlative }}</td>
+                        <td rowspan="{{ g.details|length|add:1 }}" class="align-middle text-center">
+                            <span class="font-weight-bold">{{ g.client|upper }}</span>
+                            <div class="row">
+                                <div class="col-sm-2 text-right pr-1">
+                                    <span class="text-secondary">Origen: </span>
+                                </div>
+                                <div class="col-sm-10 text-left pl-1">
+                                    {{ g.origin_address }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-2 text-right pr-1">
+                                    <span class="text-secondary">Destino: </span>
+                                </div>
+                                <div class="col-sm-10 text-left pl-1">
+                                    {{ g.destiny_address }}
+                                </div>
+                            </div>
+                        </td>
+                        <td rowspan="{{ g.details|length|add:1 }}" class="align-middle text-left">
+                            <span class="text-secondary">Modalidad de transporte: </span> {{ g.modality_transport }}<br>
+                            <span class="text-secondary">Transportista: </span>{{ g.carrier }}<br>
+                            <span class="text-secondary">Placa: </span>{{ g.vehicle }}<br>
+                            <span class="text-secondary">Conductor: </span>{{ g.driver }}
+                        </td>
+{#                        <td rowspan="{{ g.details|length|add:1 }}" class="align-middle text-center">{{ g.guide_motive }}</td>#}
+                        <td rowspan="{{ g.details|length|add:1 }}" class="align-middle text-left">
+                            <span class="text-secondary">Nº Bultos: </span> {{ g.package }}<br>
+                            <span class="text-secondary">Peso </span> {{ g.weight }} Kg
+                        </td>
+                    </tr>
+                    {% for gd in g.details %}
+                        <tr class="text-center" >
+                            <td class="align-middle font-weight-bold bg-warning">Nº {{ gd.batch }}</td>
+                            <td class="align-middle">{{ gd.quantity }}</td>
+                            <td class="align-middle">{{ gd.unit }}</td>
+                            <td class="align-middle">{{ gd.product }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+                </tbody>
+                <tfoot class="font-weight-bold text-uppercase text-center" style="font-size: 11px;">
+                    <th class="th-sm" style="width: 2%"><i class="fas fa-check"></i>
+                    <th class="th-sm" style="width: 6%">Fecha</th>
+                    <th class="th-sm" style="width: 2%">Serie</th>
+                    <th class="th-sm" style="width: 2%">Numero</th>
+                    <th class="th-sm" style="width: 27%">Cliente</th>
+                    <th class="th-sm" style="width: 22%">Transporte</th>
+{#                    <th class="th-sm" style="width: 4%">Motivo</th>#}
+                    <th class="th-sm" style="width: 8%">C/P</th>
+                    <th class="th-sm bg-warning" style="width: 5%">LOTE</th>
+                    <th class="th-sm" style="width: 2%">CANT.</th>
+                    <th class="th-sm" style="width: 2%">UND.</th>
+                    <th class="th-sm" style="width: 22%">PRODUCTO</th>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+{% else %}
+    <h1>No existen guias</h1>
+{% endif %}

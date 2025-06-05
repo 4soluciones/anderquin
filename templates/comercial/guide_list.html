@@ -1,0 +1,180 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    Listado de Guias
+{% endblock title %}
+
+{% block body %}
+
+    <div class="container-fluid">
+        <div class="card p-2 bg-light">
+            <div class="row">
+                <div class="col-lg-2 pt-3 ml-3">
+                </div>
+                <div class="col-lg-8 text-center pt-2">
+                    <h2 class="font-weight-bold roboto-condensed-regular"> LISTADO DE GUIAS DE REMISIÓN</h2>
+                </div>
+            </div>
+
+            <div class="card-body p-2 roboto-condensed-regular">
+                <ul class="nav nav-tabs" id="multi-tab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="purchase-list-tab" data-toggle="pill"
+                           href="#purchase-without-bill" role="tab" aria-controls="purchase-without-bill"
+                           aria-selected="true">SIN ASIGNAR</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="bill-purchase-tab" data-toggle="pill"
+                           href="#purchase-with-bill" role="tab" aria-controls="purchase-with-bill"
+                           aria-selected="false">ASIGNADAS</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="tab-content" id="multi-tabContent">
+                <div class="tab-pane active" id="purchase-without-bill" role="tabpanel"
+                     aria-labelledby="purchase-list-tab">
+                    <div class="card-body pt-2 pb-0">
+                        <div class="row pl-2">
+                            <button type="button"
+                                    class="btn btn-sm btn-primary font-weight-light font-italic generate-picking">
+                                Generar Picking
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="row mt-1">
+                            <div id="file-list-grid" class="table-responsive small">
+                                <div id="client-grid-list">{% include "comercial/unassigned_guides_list.html" %}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="purchase-with-bill" role="tabpanel"
+                     aria-labelledby="bill-purchase-tab">
+                    <div class="card-body p-2">
+                        <div class="container">
+                            <div class="text-center">
+                                <h4 class="font-weight-bold roboto-condensed-light">PICKING DE TRANSPORTE</h4>
+                            </div>
+                        </div>
+                        <div class="row mb-1 mt-0">
+                            <div class="col-lg-12">
+                                <div class="loader-container col-auto" id="loader-bill"
+                                     style="display: none;
+                                             opacity: 1.5;
+                                             width: 100%;
+                                             padding-top: 3em;">
+                                    <div class="loader"></div>
+                                </div>
+                                <div id="purchases-with-bill-grid"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="modal fade" id="modal-bill-create" tabindex="-1" role="dialog"
+         data-backdrop="static" data-keyboard="false" aria-labelledby="ModalHelpTitle"
+         aria-hidden="true"></div>
+
+    <style>
+
+        .loader {
+            width: 100px;
+            height: 70px;
+            margin: 40px auto;
+        }
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon > i {
+        {#content: "$";#} position: absolute;
+            display: block;
+            transform: translate(0, -50%);
+            top: 50%;
+            pointer-events: none;
+            width: 25px;
+            text-align: center;
+            font-style: normal;
+        }
+
+        .input-icon > input {
+            padding-left: 25px;
+            padding-right: 8px;
+        }
+
+        .input-icon-right > i {
+            right: 0;
+        }
+
+        .input-icon-right > input {
+            padding-left: 0;
+            padding-right: 25px;
+            text-align: right;
+        }
+
+    </style>
+
+{% endblock body %}
+
+
+{% block extrajs %}
+
+    <script type="text/javascript">
+
+        $(document).on('click', '.generate-picking', function () {
+            let tbody = $('#body-finances')
+            //let firstSupplierID = null;
+            let guidesID = [];
+            let error = false;
+
+            tbody.find('tr td.item-check input.check-guide').each(function () {
+                if ($(this).prop('checked')) {
+                    let _tr = $(this).closest('tr');
+                    //let supplierID = parseInt(_tr.attr('supplier'));
+                    let guideID = parseInt(_tr.attr('pk'));
+                    /*if (firstSupplierID === null) {
+                        firstSupplierID = supplierID;
+                    } else {
+                        if (supplierID !== firstSupplierID) {
+                            error = true;
+                            return false;
+                        }
+                    }*/
+                    guidesID.push(guideID);
+                }
+            });
+
+            if (error) {
+                toastr.warning('No puedes seleccionar Ordenes de Compra de diferentes proveedores para generar una factura.', 'Mensaje');
+            }
+
+            if (!error && guidesID.length > 0) {
+                $.ajax({
+                    url: '/comercial/modal_picking_create/',
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'guides': JSON.stringify(guidesID)},
+                    success: function (response) {
+                        $('#modal-bill-create').html(response.form);
+                        $('#modal-bill-create').modal('show');
+                    },
+                    fail: function (response) {
+                        toastr.error('Error en la peticion', '¡Mensaje!');
+                    }
+                });
+            }
+        });
+
+
+    </script>
+
+{% endblock extrajs %}

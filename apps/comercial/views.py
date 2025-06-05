@@ -2692,3 +2692,170 @@ def modal_batch_guide(request):
                 'success': False,
                 'message': 'El Producto no cuenta con Lotes en el Almacen seleccionado. Revisar el Producto'
             }, status=HTTPStatus.OK)
+
+
+def guide_list(request):
+    user_id = request.user.id
+    user_obj = User.objects.get(id=user_id)
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+
+    guide_set = Guide.objects.filter(status__in=['1']).order_by('-id')
+
+    guide_dict = []
+
+    for g in guide_set:
+
+        item_guide = {
+            'id': g.id,
+            'serial': g.serial,
+            'correlative': g.correlative,
+            'status': g.get_status_display(),
+            'document_type_attached': g.get_document_type_attached_display(),
+            'client': g.client.names,
+            'origin': g.origin,
+            'origin_address': g.origin_address,
+            'destiny': g.destiny,
+            'destiny_address': g.destiny_address,
+            'modality_transport': g.get_modality_transport_display(),
+            'carrier': g.carrier.name,
+            'vehicle': g.vehicle.license_plate if g.vehicle else '-',
+            'driver': g.driver.names if g.driver else '-',
+            'weight': str(round(g.weight, 2)),
+            'package': str(round(g.package)),
+            'date_issue': g.date_issue,
+            'transfer_date': g.transfer_date,
+            'contract_detail': g.contract_detail,
+            'guide_motive': g.guide_motive.description,
+            'observation': g.observation,
+            'count': g.guidedetail_set.count(),
+            'details': []
+        }
+        for gd in g.guidedetail_set.all():
+
+            item_detail = {
+                'id': gd.id,
+                'product': gd.product.name,
+                'quantity': str(round(gd.quantity)),
+                'unit': gd.unit.name,
+                'batch': gd.batch.batch_number if gd.batch else '-'
+            }
+            item_guide.get('details').append(item_detail)
+        guide_dict.append(item_guide)
+
+    return render(request, 'comercial/guide_list.html', {
+        'guides': guide_dict,
+    })
+
+
+def modal_picking_create(request):
+    from collections import defaultdict
+    if request.method == 'GET':
+        guides_ids = sorted(json.loads(request.GET.get('guides', '[]')))
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+        formattime = my_date.strftime("%H:%M:%S")
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
+        unit_description = ''
+        guide_numbers = []
+        all_purchases_ids = []
+        purchase_dict = []
+        acc_total = 0
+        quantity_total = 0
+
+        supplier_name = ''
+        supplier_address = ''
+        grouped_by_product = {}
+
+        if guides_ids:
+            guide_details = GuideDetail.objects.filter(
+                guide_id__in=guides_ids
+            ).select_related('product', 'unit', 'batch')
+
+            for detail in guide_details:
+                product = detail.product
+                product_id = product.id
+                quantity = float(detail.quantity)
+                weight_kg = product.weight / 1000
+                weight = quantity * float(weight_kg)
+
+                if product_id not in grouped_by_product:
+
+                    grouped_by_product[product_id] = {
+                        'product_code': product.code,
+                        'product_name': product.name,
+                        'details': [],
+                        'total_quantity': 0.0,
+                        'total_weight': 0.0,
+                    }
+
+                grouped_by_product[product_id]['details'].append({
+                    'quantity': str(round(detail.quantity)),
+                    'unit': detail.unit.name,
+                    'batch': detail.batch.batch_number if detail.batch else None,
+                    'weight': str(round(detail.quantity * weight_kg))
+                })
+
+                grouped_by_product[product_id]['total_quantity'] += quantity
+                grouped_by_product[product_id]['total_weight'] += weight
+
+                for p_data in grouped_by_product.values():
+                    p_data['total_quantity'] = round(p_data['total_quantity'], 0)
+                    p_data['total_weight'] = round(p_data['total_weight'], 0)
+            # for p in guides_ids:
+            #     guide_obj = Guide.objects.get(id=p)
+            #     guide_details = GuideDetail.objects.filter(guide=guide_obj)
+            #     serial_number = f'{guide_obj.serial} {guide_obj.correlative}'
+            #     guide_numbers.append(serial_number)
+            #     all_purchases_ids.append(p)
+            #
+            #     item_purchase = {
+            #         'purchases': all_purchases_ids,
+            #         'oc_number': guide_numbers,
+            #         'details': []
+            #     }
+            #
+            #     for pd in guide_details:
+            #         product_id = pd.product.id
+            #         unit_id = pd.unit.id
+            #         quantity_total_invoice = 0
+            #         product_detail = ProductDetail.objects.filter(product_id=product_id, unit_id=unit_id).last()
+            #         quantity = pd.quantity - quantity_total_invoice
+            #
+            #         item_detail = {
+            #             'detail_id': pd.id,
+            #             'product_id': product_id,
+            #             'product_name': pd.product.name,
+            #             'unit_id': unit_id,
+            #             'unit_name': pd.unit.name,
+            #             'unit_description': pd.unit.description,
+            #             'quantity': quantity,
+            #             'quantity_minimum': product_detail.quantity_minimum,
+            #         }
+            #         quantity_total += quantity
+            #         item_purchase.get('details').append(item_detail)
+            #     purchase_dict.append(item_purchase)
+            #
+            # base_total = acc_total / decimal.Decimal(1.18)
+            # igv_total = acc_total - base_total
+            t = loader.get_template('comercial/modal_picking_create.html')
+            c = ({
+                'formatdate': formatdate,
+                'formattime': formattime,
+                'supplier_name': supplier_name,
+                'supplier_address': supplier_address,
+                'detail_purchase': purchase_dict,
+                'oc_ids': all_purchases_ids,
+                'guide_numbers': ', '.join(guide_numbers),
+                'unit_name': unit_description,
+                'user_obj': user_obj,
+                'details_product': grouped_by_product,
+                'quantity_total': round(quantity_total, 0),
+                # 'base_total': round(base_total, 2),
+                # 'igv_total': round(igv_total, 2),
+                # 'bill_total': round(acc_total, 2),
+                # 'first_address': first_address,
+            })
+            return JsonResponse({
+                'form': t.render(c, request),
+            })

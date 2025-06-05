@@ -124,4 +124,8 @@ urlpatterns = [
     path('get_store/', get_store, name='get_store'),
     path('new_store/', new_store, name='new_store'),
 
+    # GUIDE LIST
+    path('guide_list/', guide_list, name='guide_list'),
+    path('modal_picking_create/', modal_picking_create, name='modal_picking_create'),
+
 ]
