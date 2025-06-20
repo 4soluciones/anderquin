@@ -80,7 +80,7 @@
                     <div class="row m-0 border-top border-dark">
 {#                        <div class="col-1 border-right id d-flex  align-items-center text-left"#}
 {#                             data-sort-value="original-order">{{ c.contract_number }}</div>#}
-                        <div class="col-2 border-right d-flex justify-content-center align-items-center font-weight-bold">{{ c.client }}</div>
+                        <div class="col-2 border-right d-flex justify-content-center align-items-center font-weight-bold text-center">{{ c.client }}</div>
                         <div class="col-10 border-right d-flex flex-column">
                             {% for cd in c.contract_detail %}
                                 <div class="row flex-fill">
@@ -123,19 +123,29 @@
                                                         <!----- END ---->
                                                     </div>
                                                 </div>
-                                                <div class="col-1 border-left border-top d-flex justify-content-center align-items-center">
-                                                    {% if cd.order_created %}
-                                                        {{ cd.order_created }}
-                                                    {% else %}
-                                                        <input class="align-middle check-c" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.0);">
-                                                    {% endif %}
-                                                </div>
-                                                <div class="col-1 border-left border-top d-flex justify-content-center align-items-center">
-                                                    {% if cd.order_created %}<input class="align-middle check-d" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.0);">{% endif %}
-                                                </div>
-                                                <div class="col-1 border-left border-top border-right d-flex justify-content-center align-items-center">
-                                                    {% if cd.order_created %}<input class="align-middle check-g" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.0);">{% endif %}
-                                                </div>
+                                                {% if cd.order %}
+                                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center" order="{{ cd.order }}" phase="C">
+                                                        {% if cd.phase_c %}
+                                                            {{ cd.phase_c|date:'d-m-Y' }}
+                                                        {% else %}
+                                                            <input class="align-middle check-c" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.0);">
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center" order="{{ cd.order }}" phase="D">
+                                                        {% if cd.phase_d %}
+                                                            {{ cd.phase_d|date:'d-m-Y' }}
+                                                        {% else %}
+                                                            <input class="align-middle check-d" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.0);">
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="col-1 border-left border-top border-right d-flex justify-content-center align-items-center" order="{{ cd.order }}" phase="G">
+                                                        {% if cd.phase_g %}
+                                                            {{ cd.phase_g|date:'d-m-Y' }}
+                                                        {% else %}
+                                                            <input class="align-middle check-g" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.0);">
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         {% endfor %}
                                     </div>

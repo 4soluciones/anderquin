@@ -1317,7 +1317,8 @@ def kardex_ouput(
         type_document='00',
         type_operation='99',
         credit_note_detail_obj=None,
-        batch_obj=None
+        batch_obj=None,
+        picking_detail=None
         # distribution_detail_obj=None,
 ):
     product_store = ProductStore.objects.get(pk=int(product_store_id))
@@ -1350,7 +1351,8 @@ def kardex_ouput(
         bill_detail=bill_detail_obj,
         type_document=type_document,
         type_operation=type_operation,
-        credit_note_detail=credit_note_detail_obj
+        credit_note_detail=credit_note_detail_obj,
+        picking_detail=picking_detail
     )
 
     Batch.objects.create(
@@ -4345,7 +4347,9 @@ def get_sales_list(request, guide=None):
                 'subtotal': str(sub_total),
                 'quantity_minimum': str(quantity_minimum),
                 'store_product': product_store_get.id,
-                'stock': product_store_get.stock
+                'stock': product_store_get.stock,
+                'batch_id': gd.batch.id if gd.batch else '',
+                'batch_number': gd.batch.batch_number if gd.batch else '-'
             }
             total += sub_total
             guide_detail_dict.append(item_guide)

@@ -2336,7 +2336,6 @@ def report_contracts(request):
                 Prefetch('contractdetailpurchase_set', queryset=ContractDetailPurchase.objects.select_related('purchase'))
             ).order_by('id'))
         ).order_by('id')
-        local_tz = pytz.timezone('America/Lima')
         contract_dict = []
         for c in contract_set:
             item_contract = {
@@ -2360,6 +2359,9 @@ def report_contracts(request):
                 days_difference = None
                 days_difference_two = '-'
                 order_created = None
+                phase_c = None
+                phase_d = None
+                phase_g = None
 
                 if d.contractdetailpurchase_set.last():
                     purchase = d.contractdetailpurchase_set.last().purchase.id
@@ -2384,6 +2386,9 @@ def report_contracts(request):
                     order_correlative = d.order.correlative
                     order_number = d.order.serial + '-' + order_correlative
                     order_created = d.order.create_at
+                    phase_c = d.order.phase_c
+                    phase_d = d.order.phase_d
+                    phase_g = d.order.phase_g
                 item_detail = {
                     'id': d.id,
                     'nro_quota': d.nro_quota,
@@ -2398,6 +2403,9 @@ def report_contracts(request):
                     'order_correlative': order_correlative,
                     'order_number': order_number,
                     'order_created': order_created,
+                    'phase_c': phase_c,
+                    'phase_d': phase_d,
+                    'phase_g': phase_g,
                     'days_difference': days_difference,
                     'days_difference_two': days_difference_two,
                     'contract_detail_item': []
@@ -2416,12 +2424,12 @@ def report_contracts(request):
         return render(request, 'buys/report_contracts_detail.html', {
             'formatdate': formatdate,
             'contract_dict': contract_dict,
-            'contracts': Contract.objects.all().prefetch_related(
-                Prefetch('contractdetail_set', queryset=ContractDetail.objects.select_related('order').prefetch_related(
-                    Prefetch('contractdetailitem_set', queryset=ContractDetailItem.objects.select_related('product')),
-                    Prefetch('contractdetailpurchase_set', queryset=ContractDetailPurchase.objects.select_related('purchase'))
-                ).order_by('id'))
-            ).order_by('id'),
+            # 'contracts': Contract.objects.all().prefetch_related(
+            #     Prefetch('contractdetail_set', queryset=ContractDetail.objects.select_related('order').prefetch_related(
+            #         Prefetch('contractdetailitem_set', queryset=ContractDetailItem.objects.select_related('product')),
+            #         Prefetch('contractdetailpurchase_set', queryset=ContractDetailPurchase.objects.select_related('purchase'))
+            #     ).order_by('id'))
+            # ).order_by('id'),
         })
 
 

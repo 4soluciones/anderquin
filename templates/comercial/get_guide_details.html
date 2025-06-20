@@ -1,0 +1,23 @@
+{% load operations %}
+<table class="table table-sm table-striped table-bordered roboto-condensed-regular table-details m-0">
+    <thead>
+    <tr class="text-center bg-dark text-white m-0 p-0 text-uppercase">
+        <td class="text-center" style="width: 5%">O/C</td>
+        <td class="text-center" style="width: 5%">Fecha O/C</td>
+        <td class="text-center" style="width: 35%">Producto</td>
+        <td class="text-center" style="width: 5%">Cantidad</td>
+        <td class="text-center" style="width: 10%">Tipo Unidad</td>
+    </tr>
+    </thead>
+    <tbody>
+    {% for p in picking_guide_set %}
+        <tr class="col-form-label bg-secondary text-white p-0 m-0" pk="{{ p.id }}">
+            <td class="text-center">{{ p.guide.serial }} - {{ p.guide.correlative }}</td>
+            <td class="text-center">{{ p.guide.date_issue|date:'Y-m-d' }}</td>
+            <td class="text-center">{{ p.guide_detail.product.name }}</td>
+            <td class="text-center">{{ p.guide_detail.quantity|replace_round }}</td>
+            <td class="text-center">{{ p.guide_detail.unit.name }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

@@ -415,6 +415,9 @@ class Order(models.Model):
     serial = models.CharField('Serie', max_length=5, null=True, blank=True)
     pay_condition = models.CharField('Payment Condition', max_length=50, null=True, blank=True)
     order_buy = models.CharField('Order Buy', max_length=50, null=True, blank=True)
+    phase_c = models.DateField('Fecha de Compromiso', null=True, blank=True)
+    phase_d = models.DateField('Fecha de Vengado', null=True, blank=True)
+    phase_g = models.DateField('Fecha de Girado', null=True, blank=True)
 
     def __str__(self):
         return str(self.pk)
@@ -504,6 +507,7 @@ class Kardex(models.Model):
     #                                         blank=True)
     bill_detail = models.ForeignKey('accounting.BillDetail', on_delete=models.SET_NULL, null=True, blank=True)
     credit_note_detail = models.ForeignKey('buys.CreditNoteDetail', on_delete=models.SET_NULL, null=True, blank=True)
+    picking_detail = models.ForeignKey('comercial.PickingDetail', on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name = 'Registro de Kardex'

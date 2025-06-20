@@ -24,8 +24,8 @@
                            aria-selected="true">SIN ASIGNAR</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="bill-purchase-tab" data-toggle="pill"
-                           href="#purchase-with-bill" role="tab" aria-controls="purchase-with-bill"
+                        <a class="nav-link" id="picking-tab" data-toggle="pill"
+                           href="#picking-with-guide" role="tab" aria-controls="picking-with-guide"
                            aria-selected="false">ASIGNADAS</a>
                     </li>
                 </ul>
@@ -35,24 +35,33 @@
                 <div class="tab-pane active" id="purchase-without-bill" role="tabpanel"
                      aria-labelledby="purchase-list-tab">
                     <div class="card-body pt-2 pb-0">
-                        <div class="row pl-2">
-                            <button type="button"
-                                    class="btn btn-sm btn-primary font-weight-light font-italic generate-picking">
-                                Generar Picking
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body pt-0">
-                        <div class="row mt-1">
-                            <div id="file-list-grid" class="table-responsive small">
-                                <div id="client-grid-list">{% include "comercial/unassigned_guides_list.html" %}</div>
+                        <div class="row p-2">
+                            <div class="col-sm-2">
+                                <button type="button"
+                                        class="btn font-weight-light text-white font-italic generate-picking"
+                                        style="background-color: #3e6787">
+                                    Generar Picking
+                                </button>
+                            </div>
+                            <div class="col-sm-2 text-right">
+                                <label class="font-weight-bold text-center mb-0 mt-1"
+                                       for="weight_total">PESO ACUMULADO:</label>
+                            </div>
+                            <div class="col-sm-1 text-center">
+                                <h4 class="roboto-condensed-regular font-weight-bold" id="weight_total">0</h4>
+                            </div>
+                            <div class="col-sm-1 text-left">
+                                <h4 class="roboto-condensed-regular font-weight-bold">KG</h4>
                             </div>
                         </div>
                     </div>
+                    <div id="file-list-grid">
+                        <div id="client-grid-list ">{% include "comercial/unassigned_guides_list.html" %}</div>
+                    </div>
                 </div>
 
-                <div class="tab-pane fade" id="purchase-with-bill" role="tabpanel"
-                     aria-labelledby="bill-purchase-tab">
+                <div class="tab-pane fade" id="picking-with-guide" role="tabpanel"
+                     aria-labelledby="picking-tab">
                     <div class="card-body p-2">
                         <div class="container">
                             <div class="text-center">
@@ -68,7 +77,7 @@
                                              padding-top: 3em;">
                                     <div class="loader"></div>
                                 </div>
-                                <div id="purchases-with-bill-grid"></div>
+                                <div id="picking-guides-grid"></div>
                             </div>
                         </div>
                     </div>
@@ -79,7 +88,7 @@
 
 
 
-    <div class="modal fade" id="modal-bill-create" tabindex="-1" role="dialog"
+    <div class="modal fade" id="modal-picking-create" tabindex="-1" role="dialog"
          data-backdrop="static" data-keyboard="false" aria-labelledby="ModalHelpTitle"
          aria-hidden="true"></div>
 
@@ -130,50 +139,170 @@
 
     <script type="text/javascript">
 
+        loader = '<div class="container">' +
+            '<div class="row">' +
+            '<div class="col-md-12">' +
+            '<div class="loader">' +
+            '<p><strong>Cargando..</strong></p>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '<div class="loader-inner"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+
+        $(document).on('click', '#picking-tab', function () {
+
+            $('#purchase-list-with-bill').empty();
+            $('#loader-bill').html(loader).show()
+            $.ajax({
+                url: '/comercial/get_picking_with_guide/',
+                dataType: 'json',
+                type: 'GET',
+                data: {},
+                success: function (response) {
+                    if (response) {
+                        $('#picking-guides-grid').html(response['grid']);
+                    } else {
+                        toastr.error('No se encontraron compras registradas.', '¡Mensaje!');
+                    }
+                    $('#loader-bill').hide();
+                },
+                fail: function (response) {
+                    toastr.error('Error en la peticion, Contactar con Sistemas', '¡Mensaje!');
+                    $('#loader-bill').hide();
+                }
+            });
+        });
+
         $(document).on('click', '.generate-picking', function () {
-            let tbody = $('#body-finances')
-            //let firstSupplierID = null;
-            let guidesID = [];
+            const tbody = $('#body-finances');
+            const guidesID = [];
+            const firstValues = {
+                vehicle: null,
+                modality: null,
+                carrier: null,
+                driver: null
+            };
             let error = false;
 
-            tbody.find('tr td.item-check input.check-guide').each(function () {
-                if ($(this).prop('checked')) {
-                    let _tr = $(this).closest('tr');
-                    //let supplierID = parseInt(_tr.attr('supplier'));
-                    let guideID = parseInt(_tr.attr('pk'));
-                    /*if (firstSupplierID === null) {
-                        firstSupplierID = supplierID;
-                    } else {
-                        if (supplierID !== firstSupplierID) {
+            const rows = tbody.find('tr td.item-check input.check-guide:checked');
+
+            rows.each(function () {
+                const _tr = $(this).closest('tr');
+                const guideID = parseInt(_tr.attr('pk'));
+                const values = {
+                    vehicle: _tr.attr('vehicle'),
+                    modality: _tr.attr('modality'),
+                    carrier: _tr.attr('carrier'),
+                    driver: _tr.attr('driver'),
+                    store: _tr.attr('store')
+                };
+
+                if (firstValues.vehicle === null) {
+                    Object.assign(firstValues, values);
+                } else {
+                    for (let key in values) {
+                        if (values[key] !== firstValues[key]) {
                             error = true;
-                            return false;
+                            break;
                         }
-                    }*/
-                    guidesID.push(guideID);
+                    }
                 }
+
+                if (error) return false;
+                guidesID.push(guideID);
             });
 
             if (error) {
-                toastr.warning('No puedes seleccionar Ordenes de Compra de diferentes proveedores para generar una factura.', 'Mensaje');
+                toastr.warning('Las guías seleccionadas deben tener el mismo vehículo, modalidad, transportista y conductor.', 'Mensaje');
+                return;
             }
 
-            if (!error && guidesID.length > 0) {
+            if (guidesID.length > 0) {
                 $.ajax({
                     url: '/comercial/modal_picking_create/',
                     dataType: 'json',
                     type: 'GET',
-                    data: {'guides': JSON.stringify(guidesID)},
-                    success: function (response) {
-                        $('#modal-bill-create').html(response.form);
-                        $('#modal-bill-create').modal('show');
+                    data: {
+                        vehicleID: firstValues.vehicle,
+                        modality: firstValues.modality,
+                        carrierID: firstValues.carrier,
+                        driverID: firstValues.driver,
+                        storeID: firstValues.store,
+                        guides: JSON.stringify(guidesID)
                     },
-                    fail: function (response) {
-                        toastr.error('Error en la peticion', '¡Mensaje!');
+                    success: function (response) {
+                        $('#modal-picking-create').html(response.form);
+                        $('#modal-picking-create').modal('show');
+                    },
+                    fail: function () {
+                        toastr.error('Error en la petición', '¡Mensaje!');
                     }
                 });
             }
         });
 
+        $(document).on('change', 'input.check-guide', function () {
+            updateWeightTotal();
+        });
+
+        function updateWeightTotal() {
+            let totalWeight = 0;
+
+            $('#body-finances').find('tr td.item-check input.check-guide:checked').each(function () {
+                let _tr = $(this).closest('tr');
+                let productWeight = parseFloat(_tr.find('td.item-weight').attr('weight')) || 0;
+                totalWeight += productWeight;
+            });
+
+            $('#weight_total').text(totalWeight.toFixed(2));
+        }
+
+
+        $(document).on('click', '.btn-show-guides', function (e) {
+            let _picking_id = $(this).attr("pk");
+            let _table = $(this).closest('tbody').find('tr[pk="' + _picking_id + '"].show-detail').find('td.table-details-guide');
+            let _icon = $(this).find('i.see-icon')
+
+            if (_icon.hasClass("fas fa-sort-down fa-xs")) {
+                _icon.removeClass('fas fa-sort-down fa-xs');
+                _icon.addClass('fas fa-sort-up fa-xs')
+
+                openDetail(_picking_id, _table)
+            } else {
+                _icon.removeClass('fas fa-sort-up fa-xs');
+                _icon.addClass('fas fa-sort-down fa-xs');
+
+                closeDetail(_table)
+            }
+        });
+
+        function openDetail(_picking_id, _table) {
+            $.ajax({
+                url: '/comercial/get_guide/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                cache: false,
+                data: {'picking': _picking_id},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": ' {{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (response.success) {
+                        _table.html(response.grid);
+                        _table.parent('tr').slideDown("fast");
+                    } else {
+                        toastr.error(response.message, 'ERROR');
+                    }
+                }
+            });
+        }
+
+        function closeDetail($td) {
+            $td.parent('tr').slideUp("fast");
+        }
 
     </script>
 

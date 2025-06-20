@@ -2,7 +2,7 @@ from django.urls import path
 from django.contrib.auth.decorators import login_required
 from apps.comercial.views import *
 from apps.comercial.views_PDF import guide_print, print_programming_guide, get_input_note, get_output_note, \
-    guide
+    guide, picking
 
 urlpatterns = [
     path('truck_list/', login_required(TruckList.as_view()), name='truck_list'),
@@ -11,13 +11,7 @@ urlpatterns = [
     path('towing_list/', login_required(TowingList.as_view()), name='towing_list'),
     path('towing_create/', login_required(TowingCreate.as_view()), name='towing_create'),
     path('towing_update/<int:pk>/', login_required(TowingUpdate.as_view()), name='towing_update'),
-    path('programming_list/', login_required(ProgrammingList.as_view()), name='programming_list'),
-    path('programming_create/', login_required(ProgrammingCreate.as_view()), name='programming_create'),
-    path('new_programming/', new_programming, name='new_programming'),
-
     path('get_programming_guide/', get_programming_guide, name='get_programming_guide'),
-    path('get_programming/', get_programming, name='get_programming'),
-    path('update_programming/', update_programming, name='update_programming'),
     path('get_quantity_product/', get_quantity_product, name='get_quantity_product'),
     # path('create_guide/', create_guide, name='create_guide'),
     path('guide_detail_list/', guide_detail_list, name='guide_detail_list'),
@@ -127,5 +121,11 @@ urlpatterns = [
     # GUIDE LIST
     path('guide_list/', guide_list, name='guide_list'),
     path('modal_picking_create/', modal_picking_create, name='modal_picking_create'),
+    path('modal_phase/', modal_phase, name='modal_phase'),
+    path('save_phase/', save_phase, name='save_phase'),
+    path('save_picking/', save_picking, name='save_picking'),
+    path('get_picking_with_guide/', get_picking_with_guide, name='get_picking_with_guide'),
+    path('get_guide/', get_guide, name='get_guide'),
+    path('picking/<int:pk>/', picking, name='picking'),
 
 ]

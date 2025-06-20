@@ -1,0 +1,77 @@
+{% load operations %}
+{% if picking_dict %}
+    <div class="card-body p-2 table-responsive small">
+        <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
+            <table id="purchase-list-with-bill"
+                   class="table table-bordered align-content-center w-100 h-100 table-info">
+                <thead>
+                <tr class="font-weight-bold text-uppercase bg-warning text-center">
+                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Numero de <br> Transporte</th>
+                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Fecha de <br>Salida</th>
+                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Peso <br> Total</th>
+                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Placa <br> Tracto</th>
+                    <th class="th-sm align-middle" style="width: 20%" rowspan="2">Transporte</th>
+                    <th class="th-sm align-middle" style="width: 3%" rowspan="2"><i class="fas fa-file-download"></i></th>
+
+                    <th class="th-sm" colspan="6">Detalle de Picking</th>
+                </tr>
+                <tr class="font-weight-bold text-uppercase bg-warning text-center">
+                    <th class="th-sm" style="width: 15%">Producto</th>
+                    <th class="th-sm" style="width: 5%">Cant.</th>
+                    <th class="th-sm" style="width: 5%">Unidad</th>
+                    <th class="th-sm" style="width: 5%">Lote</th>
+                    <th class="th-sm" style="width: 5%">Peso</th>
+                    <th class="th-sm" style="width: 5%">Tipo</th>
+                </tr>
+                </thead>
+                <tbody id="body-finances-bill" style="font-size: 13px;">
+                {% for b in picking_dict %}
+                    <tr class="text-center details" pk="{{ b.id }}">
+                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.picking_number }}</td>
+                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.departure_date|date:'d-m-Y' }}</td>
+                        <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.weight }}</td>
+                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">{{ b.vehicle }}</td>
+                        <td class="align-middle text-left" rowspan="{{ b.row_count }}">
+                            <span class="font-weight-bold">Modalidad: </span>{{ b.modality_transport_text }}<br>
+                            <span class="font-weight-bold">Transportista: </span>{{ b.carrier }}<br>
+                            <span class="font-weight-bold">Conductor: </span>{{ b.driver }}<br>
+                        </td>
+                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">
+                            <div class="btn-group">
+                                <a class="btn btn-green btn-sm"
+                                   href="{% url 'comercial:picking' b.id %}"
+                                   target="print">
+                                    <i class="fas fa-file-download fa-xs"></i></a>
+                                <button type="button" class="btn btn-success btn-sm btn-show-guides" pk="{{ b.id }}">
+                                    <i class="fas fa-sort-down fa-xs see-icon"></i>
+                                </button>
+                            </div>
+                        </td>
+                        {% for d in b.picking_detail %}
+                            <td class="align-middle text-center">{{ d.product }}</td>
+                            <td class="align-middle text-center">{{ d.quantity }}</td>
+                            <td class="align-middle text-center">{{ d.unit }}</td>
+                            <td class="align-middle text-center">Nº {{ d.batch_number }}</td>
+                            <td class="align-middle text-center">{{ d.weight }} Kg</td>
+                            <td class="align-middle text-center">{{ d.type_text }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tr>
+                    <tr class="show-detail" pk="{{ b.id }}" style="display: none">
+                        <td colspan="6" class="table-details-guide p-0"></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="card text-center roboto-condensed-regular p-3 border-info m-3">
+        <div class="card-header font-weight-bold text-black-50" style="background-color: #88a3b9 ">
+            Atencion!
+        </div>
+        <div class="card-body">
+            <h5 class="card-title text-info roboto-condensed-regular font-weight-bold">No existen Picking...</h5>
+        </div>
+    </div>
+{% endif %}

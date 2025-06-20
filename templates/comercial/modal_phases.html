@@ -1,0 +1,78 @@
+<div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h6 class="modal-title roboto-condensed-regular">Ingrese Fecha:</h6>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="close-modal">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body roboto-condensed-regular">
+            <div class="card border-primary">
+                <div class="card-header" style="background-color: rgb(21,99,181);">
+                    <h6 class="card-title text-center mb-0 text-white roboto-condensed-regular">Fase {{ phase_code }}
+                        ({{ phase_description }})</h6>
+                    <input type="hidden" value="{{ order_obj.id }}" id="order">
+                    <input type="hidden" value="{{ phase_code }}" id="phase_code">
+                </div>
+                <div class="card-body m-0 p-3">
+                    <input type="date" id="phase_date" aria-label=""
+                           class="form-control form-control-sm text-center"
+                           value="{{ formatdate }}">
+
+                    <button type="button" id="save-date" class="btn btn-sm btn-block btn-success mt-3 mb-1">
+                        REGISTRAR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+
+    $("#save-date").click(function () {
+        let order = document.getElementById('order').value;
+        let phase_code = document.getElementById('phase_code').value;
+        let phase_date = document.getElementById('phase_date').value;
+
+        $.ajax({
+            url: '/comercial/save_phase/',
+            dataType: 'json',
+            type: 'GET',
+            data: {'order': order, 'phase': phase_code, 'phase_date': phase_date},
+            success: function (response, textStatus, xhr) {
+                if (response.success) {
+                    let order = response.order_id
+                    let phase_date = response.phase_date
+                    let phase = response.phase
+                    
+                    let formattedDate = new Date(phase_date);
+                    let day = formattedDate.getDate().toString().padStart(2, '0');
+                    let month = (formattedDate.getMonth() + 1).toString().padStart(2, '0');
+                    let year = formattedDate.getFullYear();
+                    let formattedDateStr = `${day}-${month}-${year}`;
+                    
+                    let targetDiv = $(`div[order="${order}"][phase="${phase}"]`);
+                    if (targetDiv.length) {
+                        targetDiv.find('input[type="checkbox"]').remove();
+                        targetDiv.text(formattedDateStr);
+                    }
+                    
+                    toastr.success('Fecha Registrada', '¡Mensaje!');
+                } else {
+                    toastr.error(response.message, 'Error');
+                }
+            },
+            fail: function (response) {
+                toastr.error('Ocurrio un problema al mostrar el formulario', '¡Mensaje!');
+            }
+        });
+
+        $('#modal-phase').modal('hide');
+
+    });
+
+
+</script>

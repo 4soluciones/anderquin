@@ -1,7 +1,7 @@
 import decimal
 from http import HTTPStatus
-from django.db.models import Q, Max, F, Prefetch, OuterRef, Subquery
-from django.db.models.functions import Coalesce
+from django.db.models import Q, Max, F, Prefetch, OuterRef, Subquery, Value, IntegerField
+from django.db.models.functions import Coalesce, Cast
 from django.shortcuts import render
 from django.views.generic import View, TemplateView, UpdateView, CreateView
 from django.views.decorators.csrf import csrf_exempt
@@ -123,282 +123,8 @@ class TowingUpdate(UpdateView):
         return ctx
 
 
-# ----------------------------------------Programming-------------------------------
-
-
-class ProgrammingCreate(CreateView):
-    model = Programming
-    form_class = FormProgramming
-    template_name = 'comercial/programming_list.html'
-    success_url = reverse_lazy('comercial:programming_list')
-
-
-class ProgrammingList(View):
-    model = Programming
-    form_class = FormProgramming
-    template_name = 'comercial/programming_create.html'
-
-    def get_context_data(self, **kwargs):
-        user_id = self.request.user.id
-        user_obj = User.objects.get(pk=int(user_id))
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-
-        my_date = datetime.now()
-        formatdate = my_date.strftime("%Y-%m-%d")
-        context = {
-            'subsidiaries': Subsidiary.objects.exclude(name=subsidiary_obj.name),
-            'employees': Employee.objects.all(),
-            'trucks': Truck.objects.all(),
-            'towings': Towing.objects.all(),
-            'choices_status': Programming._meta.get_field('status').choices,
-            'form': self.form_class,
-            'current_date': formatdate,
-            'subsidiary_origin': subsidiary_obj,
-            'programmings': get_programmings(need_rendering=False, subsidiary_obj=subsidiary_obj)
-        }
-        return context
-
-    def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context_data())
-
-
-@csrf_exempt
-def new_programming(request):
-    if request.method == 'POST':
-
-        weight = 0
-        if len(request.POST.get('weight', 0)) > 0:
-            weight = float(request.POST.get('weight', 0))
-
-        truck = request.POST.get('truck', '')
-        departure_date = request.POST.get('departure_date')
-
-        arrival_date = None
-        if len(request.POST.get('arrival_date', '')):
-            arrival_date = request.POST.get('arrival_date', '')
-
-        status = request.POST.get('status', '')
-        towing = request.POST.get('towing', '')
-        subsidiary_origin = request.POST.get('origin', '')
-        subsidiary_destiny = request.POST.get('destiny', '')
-        observation = request.POST.get('observation', '')
-        order = request.POST.get('order', '')
-        km_initial = request.POST.get('km_initial', '')
-        km_ending = request.POST.get('km_ending', '')
-        pilot = request.POST.get('pilot', '')
-        copilot = request.POST.get('copilot', '')
-
-        pilot_obj = Employee.objects.get(pk=int(pilot))
-
-        if len(truck) > 0:
-            truck_obj = Truck.objects.get(id=truck)
-            towing_obj = None
-            if len(towing) > 0:
-                towing_obj = Towing.objects.get(id=towing)
-            subsidiary_origin_obj = Subsidiary.objects.get(id=subsidiary_origin)
-            subsidiary_destiny_obj = Subsidiary.objects.get(id=subsidiary_destiny)
-            data_programming = {
-                'departure_date': departure_date,
-                'arrival_date': arrival_date,
-                'status': status,
-                'type': 'G',
-                'weight': weight,
-                'truck': truck_obj,
-                'towing': towing_obj,
-                'subsidiary': subsidiary_origin_obj,
-                'order': order,
-                'km_initial': km_initial,
-                'km_ending': km_ending,
-                'observation': observation,
-            }
-            programming_obj = Programming.objects.create(**data_programming)
-            programming_obj.save()
-
-            set_employee_pilot_obj = SetEmployee(
-                programming=programming_obj,
-                employee=pilot_obj,
-                function='P',
-            )
-            set_employee_pilot_obj.save()
-
-            if copilot != '0':
-                copilot_obj = Employee.objects.get(pk=int(copilot))
-                set_employee_copilot_obj = SetEmployee(
-                    programming=programming_obj,
-                    employee=copilot_obj,
-                    function='C',
-                )
-                set_employee_copilot_obj.save()
-
-            route_origin_obj = Route(
-                programming=programming_obj,
-                subsidiary=subsidiary_origin_obj,
-                type='O',
-            )
-            route_origin_obj.save()
-
-            route_destiny_obj = Route(
-                programming=programming_obj,
-                subsidiary=subsidiary_destiny_obj,
-                type='D',
-            )
-            route_destiny_obj.save()
-
-            user_id = request.user.id
-            user_obj = User.objects.get(pk=int(user_id))
-            subsidiary_obj = get_subsidiary_by_user(user_obj)
-
-            return JsonResponse({
-                'success': True,
-                'message': 'La Programacion se guardo correctamente.',
-                'grid': get_programmings(need_rendering=True, subsidiary_obj=subsidiary_obj),
-            })
-    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
-
-
-def get_programming(request):
-    if request.method == 'GET':
-        id_programming = request.GET.get('programming', '')
-        programming_obj = Programming.objects.get(id=int(id_programming))
-        tpl = loader.get_template('comercial/programming_form.html')
-        user_id = request.user.id
-        user_obj = User.objects.get(pk=int(user_id))
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-
-        print('origin')
-        print(programming_obj.route_set.all())
-        print(programming_obj.route_set.filter(type='O'))
-        print(programming_obj.route_set.filter(type='O').first())
-        print(programming_obj.setemployee_set.filter(function='P').first())
-
-        context = ({
-            'programming_obj': programming_obj,
-            'origin': programming_obj.route_set.filter(type='O').first(),
-            'destiny': programming_obj.route_set.filter(type='D').first(),
-            'pilot': programming_obj.setemployee_set.filter(function='P').first(),
-            'copilot': programming_obj.setemployee_set.filter(function='C').first(),
-            'subsidiary_origin': subsidiary_obj,
-            'subsidiaries': Subsidiary.objects.all(),
-            'employees': Employee.objects.all(),
-            'trucks': Truck.objects.all(),
-            'towings': Towing.objects.all(),
-            'choices_status': Programming._meta.get_field('status').choices,
-        })
-
-        return JsonResponse({
-            'grid': tpl.render(context),
-        }, status=HTTPStatus.OK)
-
-
-def update_programming(request):
-    print(request.method)
-    data = {}
-    if request.method == 'POST':
-        id_programming = request.POST.get('programming', '')
-        programming_obj = Programming.objects.get(id=int(id_programming))
-
-        id_subsidiary_origin = request.POST.get('origin', '')
-        id_subsidiary_destiny = request.POST.get('destiny', '')
-        id_pilot = request.POST.get('pilot', '')
-        id_copilot = request.POST.get('copilot', '')
-        id_truck = request.POST.get('truck', '')
-        id_towing = request.POST.get('towing', '')
-        departure_date = request.POST.get('departure_date')
-        arrival_date = request.POST.get('arrival_date', '')
-        status = request.POST.get('status', '')
-        order = request.POST.get('order', '')
-        km_initial = request.POST.get('km_initial', '')
-        km_ending = request.POST.get('km_ending', '')
-        weight = request.POST.get('weight', 0)
-        observation = request.POST.get('observation', '')
-
-        set_employee_obj = SetEmployee.objects.filter(programming=programming_obj)
-        old_pilot_obj = set_employee_obj.filter(function='P').first()
-        old_copilot_obj = set_employee_obj.filter(function='C').first()
-
-        new_pilot_obj = Employee.objects.get(pk=int(id_pilot))
-        if new_pilot_obj != old_pilot_obj:
-            set_employee_obj.filter(function='P').delete()
-            SetEmployee(employee=new_pilot_obj, function='P', programming=programming_obj).save()
-
-        if id_copilot != '0':
-            new_copilot_obj = Employee.objects.get(pk=int(id_copilot))
-            if new_copilot_obj != old_copilot_obj:
-                set_employee_obj.filter(function='C').delete()
-                SetEmployee(employee=new_copilot_obj, function='C', programming=programming_obj).save()
-
-        if len(id_truck) > 0:
-            truck_obj = Truck.objects.get(id=int(id_truck))
-            programming_obj.truck = truck_obj
-
-        if len(id_towing) > 0:
-            towing_obj = Towing.objects.get(id=int(id_towing))
-            programming_obj.towing = towing_obj
-
-        new_subsidiary_origin_obj = None
-        new_subsidiary_destiny_obj = None
-
-        if len(id_subsidiary_origin) > 0:
-            new_subsidiary_origin_obj = Subsidiary.objects.get(pk=int(id_subsidiary_origin))
-        if len(id_subsidiary_destiny) > 0:
-            new_subsidiary_destiny_obj = Subsidiary.objects.get(pk=int(id_subsidiary_destiny))
-
-        routes_obj = Route.objects.filter(programming=programming_obj)
-        old_subsidiary_origin_obj = routes_obj.filter(type='O').first()
-        old_subsidiary_destiny_obj = routes_obj.filter(type='D').first()
-
-        if new_subsidiary_origin_obj != old_subsidiary_origin_obj:
-            routes_obj.filter(type='O').delete()
-            Route(subsidiary=new_subsidiary_origin_obj, type='O', programming=programming_obj).save()
-
-        if new_subsidiary_destiny_obj != old_subsidiary_destiny_obj:
-            routes_obj.filter(type='D').delete()
-            Route(subsidiary=new_subsidiary_destiny_obj, type='D', programming=programming_obj).save()
-
-        programming_obj.weight = float(weight)
-        programming_obj.status = status
-        programming_obj.departure_date = departure_date
-        programming_obj.arrival_date = arrival_date
-        programming_obj.km_initial = km_initial
-        programming_obj.km_ending = km_ending
-
-        if len(order) > 0:
-            programming_obj.order = int(order)
-        programming_obj.observation = observation
-        programming_obj.save()
-
-        user_id = request.user.id
-        user_obj = User.objects.get(pk=int(user_id))
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-
-        return JsonResponse({
-            'success': True,
-            'message': 'La Programacion se guardo correctamente.',
-            'grid': get_programmings(need_rendering=True, subsidiary_obj=subsidiary_obj),
-        })
-    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
-
-
-def get_programmings(need_rendering, subsidiary_obj=None):
-    my_date = datetime.now()
-    formatdate = my_date.strftime("%Y-%m-%d")
-    if subsidiary_obj is None:
-        # programmings = Programming.objects.all().order_by('id')
-        programmings = Programming.objects.filter(departure_date__gte=formatdate, status__in=['P', 'R']).order_by('id')
-    else:
-        # programmings = Programming.objects.filter(subsidiary=subsidiary_obj).order_by('id')
-        programmings = Programming.objects.filter(subsidiary=subsidiary_obj, departure_date__gte=formatdate,
-                                                  status__in=['P', 'R']).order_by('id')
-    print(programmings)
-    # programmings = Programming.objects.filter(departure_date__gte=formatdate, status__in=['P', 'R']).order_by('id')
-    if need_rendering:
-        tpl = loader.get_template('comercial/programming_list.html')
-        context = ({'programmings': programmings, })
-        return tpl.render(context)
-    return programmings
-
-
 # ----------------------------------------Guide------------------------------------
+
 
 def new_guide(request, contract_detail=None):
     user_id = request.user.id
@@ -2501,6 +2227,7 @@ def save_guide(request):
             contract_detail=contract_detail_obj,
             order_buy=oc,
             register_mtc=register_mtc,
+            subsidiary_store=store_obj
         )
         guide_obj.save()
 
@@ -2665,7 +2392,8 @@ def modal_batch_guide(request):
 
             latest_batches = Batch.objects.filter(
                 product_store=product_store_obj
-            ).annotate(last_id=Subquery(last_batches.values('id')[:1])).filter(id=F('last_id'), remaining_quantity__gt=0)
+            ).annotate(last_id=Subquery(last_batches.values('id')[:1])).filter(id=F('last_id'),
+                                                                               remaining_quantity__gt=0)
 
             if latest_batches.exists():
                 product_obj = product_store_obj.product
@@ -2716,10 +2444,14 @@ def guide_list(request):
             'origin_address': g.origin_address,
             'destiny': g.destiny,
             'destiny_address': g.destiny_address,
-            'modality_transport': g.get_modality_transport_display(),
-            'carrier': g.carrier.name,
+            'modality_transport': g.modality_transport,
+            'modality_transport_display': g.get_modality_transport_display(),
+            'carrier': g.carrier.name if g.carrier else '-',
+            'carrierID': g.carrier.id if g.carrier else '',
             'vehicle': g.vehicle.license_plate if g.vehicle else '-',
+            'vehicleID': g.vehicle.id if g.vehicle else '',
             'driver': g.driver.names if g.driver else '-',
+            'driverID': g.driver.id if g.driver else '',
             'weight': str(round(g.weight, 2)),
             'package': str(round(g.package)),
             'date_issue': g.date_issue,
@@ -2728,10 +2460,10 @@ def guide_list(request):
             'guide_motive': g.guide_motive.description,
             'observation': g.observation,
             'count': g.guidedetail_set.count(),
+            'store': g.subsidiary_store,
             'details': []
         }
         for gd in g.guidedetail_set.all():
-
             item_detail = {
                 'id': gd.id,
                 'product': gd.product.name,
@@ -2747,10 +2479,48 @@ def guide_list(request):
     })
 
 
+def get_last_picking_number():
+    last_number = Picking.objects.exclude(picking_number='').annotate(
+        picking_number_int=Cast('picking_number', IntegerField())
+    ).aggregate(
+        last_picking_number=Coalesce(Max('picking_number_int'), Value(0))
+    )['last_picking_number']
+
+    next_number = last_number + 1
+
+    return next_number
+
+
+def get_latest_batches_for_product(product):
+    # Subconsulta para encontrar el último ID por batch_number
+    latest_batch_subquery = Batch.objects.filter(
+        product_store__product=product,
+        batch_number=OuterRef('batch_number'),
+        remaining_quantity__gt=0
+    ).order_by('-id')  # O reemplaza '-id' por '-kardex_id' si aplica
+
+    # Obtener IDs únicos del último batch por batch_number
+    latest_batch_ids = Batch.objects.filter(
+        product_store__product=product,
+        remaining_quantity__gt=0
+    ).values('batch_number').annotate(
+        latest_id=Subquery(latest_batch_subquery.values('id')[:1])
+    ).values_list('latest_id', flat=True)
+
+    # Obtener los lotes finales
+    return Batch.objects.filter(id__in=latest_batch_ids).order_by('expiration_date').values('id', 'batch_number',
+                                                                                            'remaining_quantity',
+                                                                                            'expiration_date')
+
+
 def modal_picking_create(request):
-    from collections import defaultdict
     if request.method == 'GET':
         guides_ids = sorted(json.loads(request.GET.get('guides', '[]')))
+        vehicle_id = request.GET.get('vehicleID', '')
+        modality = request.GET.get('modality', '')
+        carrier_id = request.GET.get('carrierID', '')
+        driver_id = request.GET.get('driverID', '')
+        store_id = request.GET.get('storeID', '')
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
         formattime = my_date.strftime("%H:%M:%S")
@@ -2760,12 +2530,24 @@ def modal_picking_create(request):
         guide_numbers = []
         all_purchases_ids = []
         purchase_dict = []
-        acc_total = 0
         quantity_total = 0
+        vehicle_obj = ''
+        carrier_obj = ''
+        driver_obj = ''
+        if vehicle_id:
+            vehicle_obj = Truck.objects.get(id=vehicle_id)
+        if carrier_id:
+            carrier_obj = Owner.objects.get(id=carrier_id)
+        if driver_id:
+            driver_obj = Driver.objects.get(id=driver_id)
+
+        store_obj = SubsidiaryStore.objects.get(id=store_id)
 
         supplier_name = ''
         supplier_address = ''
         grouped_by_product = {}
+
+        last_number = get_last_picking_number()
 
         if guides_ids:
             guide_details = GuideDetail.objects.filter(
@@ -2773,27 +2555,43 @@ def modal_picking_create(request):
             ).select_related('product', 'unit', 'batch')
 
             for detail in guide_details:
+                quantity_minimum = decimal.Decimal(0.00)
                 product = detail.product
                 product_id = product.id
                 quantity = float(detail.quantity)
                 weight_kg = product.weight / 1000
                 weight = quantity * float(weight_kg)
+                product_detail_set = ProductDetail.objects.filter(unit__description='CAJA', product=detail.product)
+                if product_detail_set.exists():
+                    product_detail_obj = product_detail_set.last()
+                    quantity_minimum = product_detail_obj.quantity_minimum
 
                 if product_id not in grouped_by_product:
-
                     grouped_by_product[product_id] = {
+                        'product_id': product.id,
                         'product_code': product.code,
                         'product_name': product.name,
                         'details': [],
                         'total_quantity': 0.0,
-                        'total_weight': 0.0,
+                        'total_weight': 0.0
                     }
-
+                if quantity_minimum > 0:
+                    quantity_box = int(detail.quantity / quantity_minimum)
+                    quantity_und = round(detail.quantity - (quantity_box * quantity_minimum))
+                else:
+                    quantity_box = decimal.Decimal(0.00)
+                    quantity_und = round(detail.quantity)
                 grouped_by_product[product_id]['details'].append({
                     'quantity': str(round(detail.quantity)),
+                    'quantity_box': str(quantity_box),
+                    'quantity_unit': str(quantity_und),
                     'unit': detail.unit.name,
+                    'unit_id': detail.unit.id,
                     'batch': detail.batch.batch_number if detail.batch else None,
-                    'weight': str(round(detail.quantity * weight_kg))
+                    'batch_id': detail.batch.id if detail.batch else None,
+                    'weight': str(round(detail.quantity * weight_kg)),
+                    'guide_detail': detail.id,
+                    'guide': detail.guide.id
                 })
 
                 grouped_by_product[product_id]['total_quantity'] += quantity
@@ -2802,43 +2600,35 @@ def modal_picking_create(request):
                 for p_data in grouped_by_product.values():
                     p_data['total_quantity'] = round(p_data['total_quantity'], 0)
                     p_data['total_weight'] = round(p_data['total_weight'], 0)
-            # for p in guides_ids:
-            #     guide_obj = Guide.objects.get(id=p)
-            #     guide_details = GuideDetail.objects.filter(guide=guide_obj)
-            #     serial_number = f'{guide_obj.serial} {guide_obj.correlative}'
-            #     guide_numbers.append(serial_number)
-            #     all_purchases_ids.append(p)
-            #
-            #     item_purchase = {
-            #         'purchases': all_purchases_ids,
-            #         'oc_number': guide_numbers,
-            #         'details': []
-            #     }
-            #
-            #     for pd in guide_details:
-            #         product_id = pd.product.id
-            #         unit_id = pd.unit.id
-            #         quantity_total_invoice = 0
-            #         product_detail = ProductDetail.objects.filter(product_id=product_id, unit_id=unit_id).last()
-            #         quantity = pd.quantity - quantity_total_invoice
-            #
-            #         item_detail = {
-            #             'detail_id': pd.id,
-            #             'product_id': product_id,
-            #             'product_name': pd.product.name,
-            #             'unit_id': unit_id,
-            #             'unit_name': pd.unit.name,
-            #             'unit_description': pd.unit.description,
-            #             'quantity': quantity,
-            #             'quantity_minimum': product_detail.quantity_minimum,
-            #         }
-            #         quantity_total += quantity
-            #         item_purchase.get('details').append(item_detail)
-            #     purchase_dict.append(item_purchase)
-            #
-            # base_total = acc_total / decimal.Decimal(1.18)
-            # igv_total = acc_total - base_total
             t = loader.get_template('comercial/modal_picking_create.html')
+
+            products = Product.objects.filter(is_enabled=True)
+            product_list = []
+
+            for product in products:
+                batches_list = list(get_latest_batches_for_product(product))
+
+                units = ProductDetail.objects.filter(
+                    product=product,
+                    is_enabled=True
+                ).select_related('unit').values('unit__id', 'unit__description')
+
+                units_list = list(units)
+
+                product_data = {
+                    'id': product.id,
+                    'name': product.name,
+                    'weight': product.weight / 1000,
+                    'batches': batches_list,
+                    'units': units_list
+                }
+                product_list.append(product_data)
+
+            # Convertir los campos a JSON con los Decimals como strings
+            for product in product_list:
+                product['batches'] = json.dumps(product['batches'], ensure_ascii=False, default=str)
+                product['units'] = json.dumps(product['units'], ensure_ascii=False)
+
             c = ({
                 'formatdate': formatdate,
                 'formattime': formattime,
@@ -2849,13 +2639,259 @@ def modal_picking_create(request):
                 'guide_numbers': ', '.join(guide_numbers),
                 'unit_name': unit_description,
                 'user_obj': user_obj,
+                'vehicle_obj': vehicle_obj,
+                'carrier_obj': carrier_obj,
+                'driver_obj': driver_obj,
+                'store_obj': store_obj,
+                'modality': modality,
+                'product_set': product_list,
+                'last_picking_number': str(last_number).zfill(6),
                 'details_product': grouped_by_product,
                 'quantity_total': round(quantity_total, 0),
-                # 'base_total': round(base_total, 2),
-                # 'igv_total': round(igv_total, 2),
-                # 'bill_total': round(acc_total, 2),
-                # 'first_address': first_address,
             })
             return JsonResponse({
                 'form': t.render(c, request),
             })
+
+
+def decimal_to_str(obj):
+    if isinstance(obj, decimal.Decimal):
+        return str(obj)
+    raise TypeError(f'Type {type(obj)} not serializable')
+
+
+def modal_phase(request):
+    if request.method == 'GET':
+        order_id = request.GET.get('order', '')
+        phase = request.GET.get('phase', '')
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+
+        phase_map = {
+            'C': 'Compromiso',
+            'D': 'De Vengado',
+            'G': 'Girado',
+        }
+
+        try:
+            order_obj = Order.objects.get(id=order_id)
+        except (Order.DoesNotExist, ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': 'Orden no encontrada'}, status=HTTPStatus.BAD_REQUEST)
+
+        tpl = loader.get_template('comercial/modal_phases.html')
+        context = ({
+            'order_obj': order_obj,
+            'phase_code': phase,
+            'phase_description': phase_map[phase],
+            'formatdate': formatdate,
+        })
+        return JsonResponse({
+            'success': True,
+            'form': tpl.render(context, request),
+        }, status=HTTPStatus.OK)
+
+
+def save_phase(request):
+    if request.method == 'GET':
+        order_id = request.GET.get('order', '')
+        phase = request.GET.get('phase', '')
+        phase_date = request.GET.get('phase_date', '')
+        phase_field_map = {
+            'C': 'phase_c',
+            'D': 'phase_d',
+            'G': 'phase_g',
+        }
+        try:
+            order_obj = Order.objects.get(id=order_id)
+            setattr(order_obj, phase_field_map[phase], phase_date)
+            order_obj.save()
+        except (Order.DoesNotExist, ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': 'Orden no encontrada'}, status=HTTPStatus.BAD_REQUEST)
+
+        return JsonResponse({
+            'success': True,
+            'order_id': order_obj.id,
+            'phase_date': phase_date,
+            'phase': phase,
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def save_picking(request):
+    if request.method == 'POST':
+        carrier_id = request.POST.get('carrier_id', '')
+        vehicle_id = request.POST.get('vehicle_id', '')
+        modality = request.POST.get('modality', '')
+        driver_id = request.POST.get('driver_id')
+        emit_date = str(request.POST.get('emit_date'))
+        emit_hour = request.POST.get('emit_hour')
+        picking_number = get_last_picking_number()
+        detail = json.loads(request.POST.get('detail', ''))
+        detail_reserve = json.loads(request.POST.get('products_reserve', ''))
+        store_obj = SubsidiaryStore.objects.get(id=request.POST.get('store_id'))
+
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+
+        carrier_obj = Owner.objects.get(id=int(carrier_id))
+        vehicle_obj = Truck.objects.get(id=int(vehicle_id))
+        driver_obj = Driver.objects.get(id=int(driver_id))
+
+        picking_obj = Picking.objects.create(
+            picking_number=picking_number,
+            departure_date=emit_date,
+            carrier=carrier_obj,
+            vehicle=vehicle_obj,
+            driver=driver_obj,
+            modality_transport=modality,
+            departure_time=emit_hour,
+            subsidiary=subsidiary_obj
+        )
+
+        guides = set()
+
+        for item in detail:
+            product_id = int(item['product_id'])
+            product_obj = Product.objects.get(id=product_id)
+
+            for detail in item.get('productDetails', []):
+                batch_obj = None
+                batch = detail.get('batchID')
+                unit_id = detail.get('unitID')
+                guide_detail_id = detail.get('guideDetailID')
+                guide_detail_obj = GuideDetail.objects.get(id=guide_detail_id)
+                unit_obj = Unit.objects.get(id=int(unit_id))
+                if batch:
+                    batch_obj = Batch.objects.get(id=batch)
+                quantity = decimal.Decimal(detail.get('quantity', 0))
+                weight = detail.get('weight', 0)
+
+                PickingDetail.objects.create(
+                    picking=picking_obj,
+                    product=product_obj,
+                    batch=batch_obj,
+                    quantity=quantity,
+                    weight=weight,
+                    unit=unit_obj,
+                    detail_type='M'
+                )
+                PickingGuide.objects.create(guide_detail=guide_detail_obj, guide=guide_detail_obj.guide,
+                                            picking=picking_obj)
+
+                product_store_id = ProductStore.objects.filter(product=product_obj,
+                                                               subsidiary_store=store_obj).last().id
+
+                kardex_ouput(product_store_id, decimal.Decimal(quantity), guide_detail_obj=guide_detail_obj, type_document='09',
+                             type_operation='01', batch_obj=batch_obj)
+
+                guide = guide_detail_obj.guide
+                guide.status = '2'
+                guide.save()
+                guides.add(guide.id)
+
+        for d in detail_reserve:
+            product_id = int(d['product_id'])
+            batch_id = int(d['batch_id'])
+            quantity = decimal.Decimal(d['quantity'])
+            weight = int(d['weight'])
+            batch_obj = None
+            product_obj = Product.objects.get(id=product_id)
+            unit_obj = Unit.objects.get(id=int(1))  # UNIT
+            if batch_id:
+                batch_obj = Batch.objects.get(id=batch_id)
+
+            picking_detail_obj = PickingDetail.objects.create(
+                picking=picking_obj,
+                product=product_obj,
+                batch=batch_obj,
+                quantity=quantity,
+                weight=weight,
+                unit=unit_obj,
+                detail_type='R'
+            )
+
+            product_store_id = ProductStore.objects.filter(product=product_obj,
+                                                           subsidiary_store=store_obj).last().id
+
+            kardex_ouput(product_store_id, quantity, picking_detail=picking_detail_obj, type_document='00',
+                         type_operation='99', batch_obj=batch_obj)
+
+        return JsonResponse({
+            'message': 'Picking guardado correctamente',
+            'guides': list(guides)
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_picking_with_guide(request):
+    if request.method == 'GET':
+        picking_set = Picking.objects.filter(status__in=['P', 'R']).order_by('-id')
+        picking_dict = []
+
+        for b in picking_set:
+
+            rowspan = b.pickingdetail_set.all().count()
+
+            if b.pickingdetail_set.count() == 0:
+                rowspan = 1
+
+            item_picking = {
+                'id': b.id,
+                'picking_number': str(b.picking_number).zfill(4),
+                'departure_date': b.departure_date,
+                'arrival_date': b.arrival_date,
+                'status': b.status,
+                'type': b.type,
+                'weight': b.weight,
+                'vehicle': b.vehicle,
+                'subsidiary': b.subsidiary,
+                'observation': b.observation,
+                'modality_transport': b.modality_transport,
+                'modality_transport_text': b.get_modality_transport_display(),
+                'carrier': b.carrier.name,
+                'departure_time': b.departure_time,
+                'driver': b.driver.names,
+                'picking_detail': [],
+                'row_count': rowspan
+            }
+            for d in b.pickingdetail_set.all():
+                item_detail = {
+                    'id': d.id,
+                    'product': d.product.name,
+                    'quantity': str(round(d.quantity, 2)),
+                    'unit': d.unit.description,
+                    'batch': d.batch,
+                    'batch_number': d.batch.batch_number,
+                    'weight': str(d.weight),
+                    'type': d.detail_type,
+                    'type_text': d.get_detail_type_display(),
+                }
+                item_picking.get('picking_detail').append(item_detail)
+            picking_dict.append(item_picking)
+
+        t = loader.get_template('comercial/picking_list_guides.html')
+        c = ({
+            'picking_dict': picking_dict,
+        })
+        return JsonResponse({
+            'grid': t.render(c, request),
+            'success': True,
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_guide(request):
+    if request.method == 'GET':
+        picking_id = request.GET.get('picking', '')
+        picking_obj = Picking.objects.get(pk=int(picking_id))
+        picking_guide_set = PickingGuide.objects.filter(picking=picking_obj)
+
+        t = loader.get_template('comercial/get_guide_details.html')
+        c = ({
+            'picking_guide_set': picking_guide_set,
+        })
+        return JsonResponse({
+            'success': True,
+            'grid': t.render(c, request),
+        }, status=HTTPStatus.OK)

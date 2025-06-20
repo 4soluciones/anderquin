@@ -263,16 +263,18 @@ class GuideMotive(models.Model):
         verbose_name_plural = 'Motivos'
 
 
+MODALITY_TRANSPORT_CHOICES = (('1', 'PUBLICO'), ('2', 'PRIVADO'))
+
+
 class Guide(models.Model):
-    STATUS_CHOICES = (('1', 'En transito'), ('2', 'Aprobada'), ('3', 'Entregada'), ('4', 'Anulada'), ('5', 'Extraido'),)
+    STATUS_CHOICES = (('1', 'EMITIDA'), ('2', 'ASIGNADA'), ('3', 'EN TRANSITO'), ('4', 'ENTREGADA'), ('5', 'ANULADA'),)
     DOCUMENT_TYPE_ATTACHED_CHOICES = (
         ('G', 'Guia de remision'), ('F', 'Factura'), ('P', 'Orden de produccion'), ('T', 'Transferencia de almacen'),
         ('O', 'Otro'))
-    MODALITY_TRANSPORT_CHOICES = (('1', 'PUBLICO'), ('2', 'PRIVADO'))
     id = models.AutoField(primary_key=True)
     serial = models.CharField('Serie', max_length=10, null=True, blank=True)
     correlative = models.CharField('Correlativo', max_length=20, null=True, blank=True)
-    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='1', )
+    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='1')
     document_type_attached = models.CharField('Tipo documento', max_length=1, choices=DOCUMENT_TYPE_ATTACHED_CHOICES,
                                               default='G', )
     observation = models.CharField(max_length=500, null=True, blank=True)
@@ -298,57 +300,11 @@ class Guide(models.Model):
     contract_detail = models.ForeignKey('buys.ContractDetail', on_delete=models.CASCADE, null=True, blank=True)
     register_mtc = models.CharField('MTC', max_length=50, null=True, blank=True)
     order_buy = models.CharField('Orden de Compra', max_length=50, null=True, blank=True)
+    subsidiary_store = models.ForeignKey(SubsidiaryStore, verbose_name='Almacen', on_delete=models.SET_NULL, null=True,
+                                         blank=True)
 
     def __str__(self):
         return str(self.serial) + "-" + str(self.correlative)
-
-    def get_origin(self):
-        origin_set = Route.objects.filter(guide__id=self.id, type='O')
-        origin = None
-        if origin_set.count() > 0:
-            origin = origin_set.last().subsidiary_store
-        return origin
-
-    def get_destiny(self):
-        destiny_set = Route.objects.filter(guide__id=self.id, type='D')
-        destiny = None
-        if destiny_set.count() > 0:
-            destiny = destiny_set.last().subsidiary_store
-        return destiny
-
-    def the_one_that_approves(self):
-        guide_employee_set = GuideEmployee.objects.filter(guide__id=self.id, function='A')
-        guide_employee = None
-        if guide_employee_set.count() > 0:
-            guide_employee = guide_employee_set.last()
-        return guide_employee
-
-    def the_one_that_requests(self):
-        guide_employee_set = GuideEmployee.objects.filter(guide__id=self.id, function='S')
-        guide_employee = None
-        if guide_employee_set.count() > 0:
-            guide_employee = guide_employee_set.last()
-        return guide_employee
-
-    def the_one_that_receives(self):
-        guide_employee_set = GuideEmployee.objects.filter(guide__id=self.id, function='R')
-        guide_employee = None
-        if guide_employee_set.count() > 0:
-            guide_employee = guide_employee_set.last()
-        return guide_employee
-
-    def the_one_that_cancel(self):
-        guide_employee_set = GuideEmployee.objects.filter(guide__id=self.id, function='C')
-        guide_employee = None
-        if guide_employee_set.count() > 0:
-            guide_employee = guide_employee_set.last()
-        return guide_employee
-
-    def get_serial(self):
-        serial = ''
-        if self.guide_motive:
-            serial = '{}{}'.format(self.guide_motive.type, self.guide_motive.id)
-        return serial
 
     class Meta:
         verbose_name = 'Guia'
@@ -622,3 +578,53 @@ class DistributionDetail(models.Model):
             if distribution_detail_e.count() > 0:
                 response = True
         return response
+
+
+class Picking(models.Model):
+    STATUS_CHOICES = (('P', 'PROGRAMADO'), ('R', 'RUTA'),
+                      ('F', 'Finalizado'), ('C', 'Cancelado'))
+    TYPE_CHOICES = (('G', 'Flota Grande'), ('P', 'Flota Pequeña'), ('R', 'Reparto'))
+    id = models.AutoField(primary_key=True)
+    picking_number = models.CharField(max_length=50, null=True, blank=True)
+    departure_date = models.DateField('Fecha Salida', null=True, blank=True)
+    arrival_date = models.DateField('Fecha Llegada', null=True, blank=True)
+    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P')
+    type = models.CharField('Tipo', max_length=1, choices=TYPE_CHOICES, default='R')
+    weight = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    vehicle = models.ForeignKey('Truck', verbose_name='Tracto',
+                                on_delete=models.SET_NULL, null=True, blank=True)
+    towing = models.ForeignKey('Towing', verbose_name='Furgon',
+                               on_delete=models.SET_NULL, null=True, blank=True)
+    subsidiary = models.ForeignKey(Subsidiary, verbose_name='Sede',
+                                   on_delete=models.SET_NULL, null=True, blank=True)
+    observation = models.CharField(max_length=200, null=True, blank=True)
+    modality_transport = models.CharField('Modalidad de transporte guia', max_length=1,
+                                          choices=MODALITY_TRANSPORT_CHOICES, default='1')
+    carrier = models.ForeignKey(Owner, on_delete=models.SET_NULL, null=True, blank=True)
+    departure_time = models.TimeField('Hora de Salida', null=True, blank=True)
+    driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.id)
+
+
+class PickingDetail(models.Model):
+    TYPE_CHOICES = (('M', 'MERCADERIA'), ('R', 'RESERVA'))
+    id = models.AutoField(primary_key=True)
+    picking = models.ForeignKey(Picking, on_delete=models.CASCADE, null=True, blank=True)
+    product = models.ForeignKey('sales.Product', on_delete=models.CASCADE, null=True, blank=True)
+    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=4, default=0)
+    unit = models.ForeignKey('sales.Unit', on_delete=models.CASCADE, null=True, blank=True)
+    batch = models.ForeignKey('sales.Batch', on_delete=models.SET_NULL, null=True, blank=True)
+    weight = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    detail_type = models.CharField('Tipo detalle', max_length=1, choices=TYPE_CHOICES, default='M')
+
+    def __str__(self):
+        return str(self.id)
+
+
+class PickingGuide(models.Model):
+    id = models.AutoField(primary_key=True)
+    guide_detail = models.ForeignKey('GuideDetail', on_delete=models.CASCADE, null=True, blank=True)
+    guide = models.ForeignKey('Guide', on_delete=models.SET_NULL, null=True, blank=True)
+    picking = models.ForeignKey(Picking, on_delete=models.CASCADE, null=True, blank=True)

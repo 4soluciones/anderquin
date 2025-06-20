@@ -25,20 +25,69 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modal-phase" tabindex="-1" role="dialog"
+         aria-labelledby="ModalHelpTitle" data-backdrop="static" data-keyboard="false"
+         aria-hidden="true"></div>
 
 {% endblock body %}
 
 {% block extrajs %}
 
     <script type="text/javascript">
-
+        let activeCheckbox = null;
         $(document).on('change', '.check-c', function () {
             if ($(this).is(":checked")) {
-                console.log("true")
-                console.log($(this).attr("cd"))
-                console.log($(this).attr("order"))
+                modal_phase($(this).attr("order"), 'C')
+                activeCheckbox = this;
             } else {
                 console.log("false")
+            }
+        });
+        $(document).on('change', '.check-d', function () {
+            if ($(this).is(":checked")) {
+                modal_phase($(this).attr("order"), 'D')
+                activeCheckbox = this;
+            } else {
+                console.log("false")
+            }
+        });
+        $(document).on('change', '.check-g', function () {
+            if ($(this).is(":checked")) {
+                modal_phase($(this).attr("order"), 'G')
+                activeCheckbox = this;
+            } else {
+                console.log("false")
+            }
+        });
+
+        function modal_phase(order, phase) {
+
+            $.ajax({
+                url: '/comercial/modal_phase/',
+                dataType: 'json',
+                type: 'GET',
+                data: {'order': order, 'phase': phase},
+                success: function (response, textStatus, xhr) {
+                    if (response.success) {
+                        $('#modal-phase').html(response.form);
+                        $('#modal-phase').modal('show');
+
+                    } else {
+                        toastr.error(response.message, 'Error');
+                    }
+                },
+                fail: function (response) {
+                    toastr.error('Ocurrio un problema al mostrar el formulario', '¡Mensaje!');
+                }
+            });
+        }
+
+        $(document).on('click', '#close-modal', function () {
+            $('#modalConfirm').modal('hide');
+
+            if (activeCheckbox) {
+                $(activeCheckbox).prop('checked', false);
+                activeCheckbox = null; // limpiamos
             }
         });
 

@@ -1,375 +1,454 @@
 {% load operations %}
 <div class="modal-dialog modal-xl roboto-condensed-regular" role="document">
     <div class="modal-content">
-        <div class="modal-header bg-light">
-            <h4 class="modal-title roboto-condensed-regular font-weight-bold">REPORTE DE PICKING POR TRANSPORTE:<span
-                    class="font-weight-bold"></span></h4>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-        <input type="hidden" class="form-control" id="purchase_id" name="purchase-id" value="{{ oc_ids }}">
-
-        <div class="modal-body p-2">
-
-            <div class="mr-3 ml-0" style="
-                        display: none;
-                        position: absolute;
-                        top: 8px;
-                        left: 0;
-                        background: var(--white);
-                        opacity: 0.5;
-                        width: 100%;
-                        !important: ;
-                        bottom: 6px;
-                        padding: 10em 23em 20em 26em;
-                        z-index: 2000;
-                        right: 0;" id="container-loading">
-                <div class="spinner-border border-0" role="status" style="width: auto; height: auto">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="col-md-12">
-                                    <div class="loader-inner"></div>
-                                    <div class="loader-inner"></div>
-                                    <div class="loader-inner"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <i class="fas fa-3x fa-sync fa-spin"></i>
-                </div>
+        <form id="picking-form" method="POST">
+            {% csrf_token %}
+            <div class="modal-header bg-light">
+                <h4 class="modal-title roboto-condensed-regular font-weight-bold">REPORTE DE PICKING<span
+                            class="font-weight-bold"></span></h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span>&times;</span>
+                </button>
             </div>
+            <input type="hidden" class="form-control" id="store_id" name="store_id" value="{{ store_obj.id }}">
 
-            <div class="card">
+            <div class="modal-body p-2">
 
-                <div class="card-body pt-1" style="background-color: #f0f1f5">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <div class="row">
-                                <div class="col-lg-2">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="client">Nº Transporte:</label>
-                                    <input type="text" class="form-control" id="supplier_name"
-                                           value="">
-                                    <input type="hidden" id="supplier_id" value="{{ supplier_id }}">
-                                </div>
-                                <div class="col-lg-2">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="client">RUC Transportista:</label>
-                                    <input type="text" class="form-control" id="supplier_name"
-                                           value="">
-                                    <input type="hidden" id="supplier_id" value="{{ supplier_id }}">
-                                </div>
-                                <div class="col-lg-8">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="address">Razón Social:</label>
-                                    <input type="text" class="form-control text-uppercase" id="address"
-                                           value="">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-2">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="bill_date">Placa tracto:</label>
-                                    <input type="text" class="form-control"
-                                           id="bill_date"
-                                           name="bill-date"
-                                           value="">
+                <div class="card">
 
+                    <div class="card-body pt-1" style="background-color: #f0f1f5">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="row">
+                                    <div class="col-lg-2">
+                                        <label class="mb-1 mt-1 font-weight-light"
+                                               for="client">Nº Transporte:</label>
+                                        <input type="text" class="form-control" id="picking_number"
+                                               name="picking_number" autocomplete="off"
+                                               aria-label="" value="{{ last_picking_number }}">
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label class="mb-1 mt-1 font-weight-light"
+                                               for="id_modality">Modalidad:</label>
+                                        <select class="form-control" id="id_modality" name="modality">
+                                            {% if modality == '1' %}
+                                                <option value="1">PUBLICO</option>
+                                            {% else %}
+                                                <option value="2">PRIVADO</option>
+                                            {% endif %}
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label class="mb-1 mt-1 font-weight-light"
+                                               for="client">RUC Transportista:</label>
+                                        <input type="text" class="form-control" id="ruc_carrier" name="ruc_carrier"
+                                               aria-label="" autocomplete="off" value="{{ carrier_obj.ruc }}">
+                                        <input type="hidden" id="carrier_id" name="carrier_id"
+                                               value="{{ carrier_obj.id }}">
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <label class="mb-1 mt-1 font-weight-light"
+                                               for="address">Razón Social:</label>
+                                        <input type="text" class="form-control text-uppercase" id="carrier_address"
+                                               aria-label="" value="{{ carrier_obj.name }}"
+                                               autocomplete="off">
+                                    </div>
                                 </div>
-                                <div class="col-lg-2">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="bill_date_expiration">Licencia Conductor:</label>
-                                    <input type="text" class="form-control"
-                                           id="bill_date_expiration"
-                                           name="bill-date-expiration"
-                                           value="">
-                                </div>
-                                <div class="col-lg-8">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="bill_number">Nombre Conductor:</label>
-                                    <input type="text" class="form-control"
-                                           id="bill_date_expiration"
-                                           name="bill-date-expiration"
-                                           value="">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-2">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="bill_date_expiration">Fecha de Despacho:</label>
-                                    <input type="date" class="form-control"
-                                           id="bill_date_expiration"
-                                           name="bill-date-expiration"
-                                           value="{{ formatdate }}">
-                                </div>
-                                <div class="col-lg-2">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="bill_date_expiration">Hora de Despacho:</label>
-                                    <input type="time" class="form-control"
-                                           id="bill_date_expiration"
-                                           name="bill-date-expiration"
-                                           value="{{ formattime }}">
-                                </div>
-                            </div>
+                                <div class="row">
+                                    <div class="col-lg-2">
+                                        <label class="mb-1 mt-1 font-weight-light"
+                                               for="vehicle_plate">Placa tracto:</label>
+                                        <input type="text" class="form-control"
+                                               id="vehicle_plate"
+                                               name="vehicle_plate"
+                                               autocomplete="off"
+                                               value="{{ vehicle_obj.license_plate }}">
+                                        <input type="hidden" id="vehicle_id" name="vehicle_id"
+                                               value="{{ vehicle_obj.id }}">
 
-                            <div class="row mt-2">
-                                <div class="col-sm-12 p-1">
-                                    <div class="card col-sm-12 p-0">
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label class="mb-1 mt-1 font-weight-light"
+                                               for="license_driver">Licencia Conductor:</label>
+                                        <input type="text" class="form-control"
+                                               id="license_driver"
+                                               name="license_driver"
+                                               autocomplete="off"
+                                               value="{{ driver_obj.n_license }}">
+                                    </div>
+                                    <div class="col-lg-8">
+                                        <label class="mb-1 mt-1 font-weight-light"
+                                               for="driver_name">Nombre Conductor:</label>
+                                        <input type="text" class="form-control"
+                                               id="driver_name"
+                                               name="driver_name"
+                                               autocomplete="off"
+                                               value="{{ driver_obj.names }}">
+                                        <input type="hidden" id="driver_id" name="driver_id"
+                                               value="{{ driver_obj.id }}">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-2">
+                                        <label class="mb-1 mt-1 font-weight-light"
+                                               for="emit_date">Fecha de Despacho:</label>
+                                        <input type="date" class="form-control"
+                                               id="emit_date"
+                                               name="emit_date"
+                                               value="{{ formatdate }}">
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <label class="mb-1 mt-1 font-weight-light"
+                                               for="emit_hour">Hora de Despacho:</label>
+                                        <input type="time" class="form-control"
+                                               id="emit_hour"
+                                               name="emit_hour"
+                                               value="{{ formattime }}">
+                                    </div>
+                                </div>
+
+                                <div class="row mt-2">
+                                    <div class="col-sm-12 p-1">
                                         <div class="card col-sm-12 p-0">
-                                            <table class="table-hover table-sm">
-                                                <thead class="text-uppercase small text-center">
-                                                <tr class="border-bottom">
-                                                    <th scope="col" class="font-weight-bold" style="width: 20%;">
-                                                        Lote
-                                                    </th>
-                                                    <th scope="col" class="font-weight-bold text-right" style="width: 20%;">
-                                                        Und. PAl
-                                                    </th>
-                                                    <th scope="col" class="font-weight-bold text-right" style="width: 20%;">
-                                                        Und. JAB
-                                                    </th>
-                                                    <th scope="col" class="font-weight-bold text-right" style="width: 20%;">
-                                                        Und. Base
-                                                    </th>
-                                                    <th scope="col" class="font-weight-bold text-right pr-2" style="width: 20%;">
-                                                        Kilos
-                                                    </th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {% for product_id, product_data in details_product.items %}
-                                                    <tr class="align-middle text-center">
-                                                        <td colspan="1">
-                                                            {{ product_data.product_code }}
-                                                        </td>
-                                                        <td colspan="4" class="align-middle text-left font-weight-bold">
-                                                            {{ product_data.product_name }}
-                                                        </td>
+                                            <div class="card col-sm-12 p-0">
+                                                <table class="table-hover table-sm">
+                                                    <thead class="text-uppercase small text-center">
+                                                    <tr class="border-bottom">
+                                                        <th scope="col" class="font-weight-bold" style="width: 20%;">
+                                                            Lote
+                                                        </th>
+                                                        <th scope="col" class="font-weight-bold text-right"
+                                                            style="width: 20%;">
+                                                            Und. (CAJA)
+                                                        </th>
+                                                        <th scope="col" class="font-weight-bold text-right"
+                                                            style="width: 20%;">
+                                                            Und. (UND)
+                                                        </th>
+                                                        <th scope="col" class="font-weight-bold text-right"
+                                                            style="width: 20%;">
+                                                            Und. Base
+                                                        </th>
+                                                        <th scope="col" class="font-weight-bold text-right pr-2"
+                                                            style="width: 20%;">
+                                                            Kilos
+                                                        </th>
                                                     </tr>
-                                                    {% for detail in product_data.details %}
+                                                    </thead>
+                                                    {% for product_id, product_data in details_product.items %}
+                                                        <tbody id="detail-picking">
+                                                        <tr class="align-middle text-center main"
+                                                            product="{{ product_id }}">
+                                                            <td class="item-code" colspan="1">
+                                                                {{ product_data.product_code }}
+                                                            </td>
+                                                            <td colspan="4"
+                                                                class="align-middle text-left font-weight-bold">
+                                                                {{ product_data.product_name }}
+                                                            </td>
+                                                        </tr>
+                                                        {% for detail in product_data.details %}
+                                                            <tr class="tr-products" batch_id="{{ detail.batch_id }}"
+                                                                guide_detail="{{ detail.guide_detail }}"
+                                                                guide="{{ detail.guide }}">
+                                                                <td class="align-middle text-center item-batch">
+                                                                    {{ detail.batch|default:"-" }}</td>
+                                                                <td class="align-middle text-right">{{ detail.quantity_box }}</td>
+                                                                <td class="align-middle text-right">{{ detail.quantity_unit }}</td>
+                                                                <td class="align-middle text-right item-quantity" quantity="{{ detail.quantity }}"
+                                                                    unit="{{ detail.unit_id }}">{{ detail.quantity|replace_round_separator }}
+                                                                    UND
+                                                                </td>
+                                                                <td class="align-middle text-right pr-2 item-weight">{{ detail.weight|replace_round_separator }}</td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                        </tbody>
+                                                        <tfoot>
                                                         <tr>
-                                                            <td class="align-middle text-center">
-                                                                {{ detail.batch|default:"-" }}</td>
-                                                            <td class="align-middle text-right">0.000</td>
-                                                            <td class="align-middle text-right">0.000</td>
-                                                            <td class="align-middle text-right">{{ detail.quantity|replace_round_separator }}
+                                                            <td colspan="3">Subtotal del
+                                                                Material: {{ product_data.product_code }}</td>
+                                                            <td class="align-middle text-right"
+                                                                colspan="1">{{ product_data.total_quantity|replace_round_separator }}
                                                                 UND
                                                             </td>
-                                                            <td class="align-middle text-right pr-2">{{ detail.weight|replace_round_separator }}</td>
+                                                            <td class="align-middle text-right pr-2"
+                                                                colspan="1">{{ product_data.total_weight|replace_round_separator }}</td>
                                                         </tr>
+                                                        </tfoot>
                                                     {% endfor %}
-
-                                                    </tbody>
-                                                    <tfoot>
-                                                    <tr>
-                                                        <td colspan="3">Subtotal del Material: {{ product_data.product_code }}</td>
-                                                        <td class="align-middle text-right" colspan="1">{{ product_data.total_quantity|replace_round_separator }} UND</td>
-                                                        <td class="align-middle text-right pr-2" colspan="1">{{ product_data.total_weight|replace_round_separator }}</td>
+                                                </table>
+                                            </div>
+                                            <div class="card col-sm-12 p-1">
+                                                <div class="card-body p-1">
+                                                    RESERVA DE PRODUCTOS
+                                                </div>
+                                                <table class="table-hover table-sm" id="table-products-reserve">
+                                                    <thead class="text-uppercase small">
+                                                    <tr class="">
+                                                        <th scope="col" class="font-weight-bold text-left"
+                                                            style="width: 40%;">
+                                                            Producto
+                                                        </th>
+                                                         <th scope="col" class="font-weight-bold" style="width: 30%;">
+                                                            Lote
+                                                        </th>
+{#                                                        <th scope="col" class="font-weight-bold text-left"#}
+{#                                                            style="width: 15%;">#}
+{#                                                            Tipo (UND)#}
+{#                                                        </th>#}
+                                                        <th scope="col" class="font-weight-bold text-right"
+                                                            style="width: 15%;">
+                                                            Cantidad (UND)
+                                                        </th>
+                                                        <th scope="col" class="font-weight-bold text-right pr-2"
+                                                            style="width: 15%;">
+                                                            Kilos
+                                                        </th>
                                                     </tr>
-                                                    </tfoot>
-                                                {% endfor %}
-                                            </table>
+                                                    </thead>
+                                                    <tbody id="products-reserve">
+                                                    <tr>
+                                                        <td class="align-middle text-center">
+                                                            <select class="form-control" id="product-select"
+                                                                    name="product">
+                                                                <option selected value="0">Seleccione producto
+                                                                </option>
+                                                                {% for p in product_set %}
+                                                                    <option value="{{ p.id }}"
+                                                                            data-weight='{{ p.weight }}'
+                                                                            data-batches='{{ p.batches|safe }}'
+                                                                            data-units='{{ p.units|safe }}'>{{ p.name }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </td>
+                                                        <td class="align-middle text-center">
+                                                            <select class="form-control" id="batch-select"
+                                                                    name="batch">
+                                                                <option selected value="0">Seleccione Lote
+                                                                </option>
+                                                            </select>
+                                                        </td>
+{#                                                        <td class="align-middle text-center">#}
+{#                                                            <select class="form-control" id="unit-select"#}
+{#                                                                    name="unit">#}
+{#                                                                <option selected value="0">Seleccione Unidad#}
+{#                                                                </option>#}
+{#                                                            </select>#}
+{#                                                        </td>#}
+                                                        <td class="align-middle text-right">
+                                                            <input type="text" autocomplete="off"
+                                                                   class="form-control text-right"
+                                                                   name="quantity" id="quantity-input"
+                                                                   placeholder="Cantidad"
+                                                                   value="" min="0" step="0.01">
+                                                        </td>
+                                                        <td class="align-middle text-right">
+                                                            <input type="text" autocomplete="off"
+                                                                   class="form-control text-right"
+                                                                   name="weight" id="weight-input"
+                                                                   placeholder="Peso"
+                                                                   value="" min="0" step="0.01">
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    {#                                    <div class="card col-sm-12 p-0">#}
-                                    {#                                        {% for gd in details %}#}
-                                    {##}
-                                    {#                                        {% endfor %}#}
-                                    {#                                        #}
-                                    {#                                        <table class="table-hover table-sm table-bordered" id="id-table-bill"#}
-                                    {#                                               style="width: 100%;">#}
-                                    {#                                            <thead class="text-uppercase small text-center">#}
-                                    {#                                            <tr>#}
-                                    {#                                                <th scope="col" class="font-weight-normal" style="width: 20%;">Lote</th>#}
-                                    {#                                                <th scope="col" class="font-weight-normal" style="width: 20%;">Unid.</th>#}
-                                    {#                                                <th scope="col" class="font-weight-normal" style="width: 20%;">Unid. Base</th>#}
-                                    {#                                                <th scope="col" class="font-weight-normal" style="width: 20%;">Unidad</th>#}
-                                    {#                                                <th scope="col" class="font-weight-normal" style="width: 20%;">Kilos</th>#}
-                                    {#                                            </tr>#}
-                                    {#                                            </thead>#}
-                                    {#                                            <tbody id="bill-details">#}
-                                    {#                                            {% for c in detail_purchase %}#}
-                                    {#                                                {% for d in c.details %}#}
-                                    {#                                                    <tr>#}
-                                    {#                                                        <td class="item-number align-middle text-center">{{ d.purchase_number }}</td>#}
-                                    {#                                                        <td class="item-number align-middle text-center">{{ forloop.parentloop.counter }}</td>#}
-                                    {#                                                        <td class="align-middle text-left product-item-table">#}
-                                    {#                                                            <input type="text"#}
-                                    {#                                                                   class="form-control text-uppercase product-table dropdown-toggle"#}
-                                    {#                                                                   data-toggle="dropdown" aria-expanded="false"#}
-                                    {#                                                                   placeholder="Ingrese producto..."#}
-                                    {#                                                                   value="{{ d.product_name }}"#}
-                                    {#                                                                   disabled></td>#}
-                                    {#                                                        <td class="align-middle item-quantity">#}
-                                    {#                                                            <input type="text"#}
-                                    {#                                                                   class="form-control text-center quantity-invoice text-uppercase"#}
-                                    {#                                                                   value="{{ d.quantity|replace_round }}">#}
-                                    {#                                                            <input type="hidden"#}
-                                    {#                                                                   class="quantity-purchased"#}
-                                    {#                                                                   value="{{ d.quantity|replace_round }}">#}
-                                    {#                                                        </td>#}
-                                    {#                                                        <td class="align-middle unit">#}
-                                    {#                                                            <input type="text"#}
-                                    {#                                                                   class="form-control text-center quantity-product text-uppercase"#}
-                                    {#                                                                   placeholder="0" disabled#}
-                                    {#                                                                   value="{{ d.unit_description }}">#}
-                                    {#                                                        </td>#}
-                                    {#                                                        <td class="align-middle item-price">#}
-                                    {#                                                            <input type="text"#}
-                                    {#                                                                   class="form-control text-center price-product text-uppercase"#}
-                                    {#                                                                   placeholder="0"#}
-                                    {#                                                                   value="{{ d.price_unit|safe }}">#}
-                                    {#                                                        </td>#}
-                                    {#                                                        <td class="align-middle item-amount">#}
-                                    {#                                                            <div class="input-icon">#}
-                                    {#                                                                <input type="text"#}
-                                    {#                                                                       class="form-control text-right text-uppercase subtotal"#}
-                                    {#                                                                       placeholder="0.00"#}
-                                    {#                                                                       value="{{ d.amount|replace_round }}"><i#}
-                                    {#                                                                    class="change-money">S/</i>#}
-                                    {#                                                            </div>#}
-                                    {#                                                        </td>#}
-                                    {#                                                    </tr>#}
-                                    {#                                                {% endfor %}#}
-                                    {#                                            {% endfor %}#}
-                                    {#                                            </tbody>#}
-                                    {#                                            <tfoot>#}
-                                    {#                                            <tr class="text-center">#}
-                                    {#                                                <td class="align-middle font-weight-normal text-right" colspan="6">Base#}
-                                    {#                                                    Imponible#}
-                                    {#                                                </td>#}
-                                    {#                                                <td class="foot-base">#}
-                                    {#                                                    <div class="input-icon">#}
-                                    {#                                                        <input type="text"#}
-                                    {#                                                               class="form-control text-right text-uppercase total-base-bill font-weight-bold"#}
-                                    {#                                                               readonly#}
-                                    {#                                                               style="background-color: #e4ece3"#}
-                                    {#                                                               value="{{ base_total|replace_round }}"#}
-                                    {#                                                               placeholder="0.00"><i class="change-money">S/</i>#}
-                                    {#                                                    </div>#}
-                                    {#                                                </td>#}
-                                    {#                                            </tr>#}
-                                    {#                                            <tr class="text-center">#}
-                                    {#                                                <td class="align-middle font-weight-normal text-right" colspan="6">#}
-                                    {#                                                    IGV(18%)#}
-                                    {#                                                </td>#}
-                                    {#                                                <td class="foot-base">#}
-                                    {#                                                    <div class="input-icon">#}
-                                    {#                                                        <input type="text"#}
-                                    {#                                                               class="form-control text-right text-uppercase total-igv-bill font-weight-bold"#}
-                                    {#                                                               readonly#}
-                                    {#                                                               style="background-color: #e4ece3"#}
-                                    {#                                                               value="{{ igv_total|replace_round }}"#}
-                                    {#                                                               placeholder="0.00"><i class="change-money">S/</i>#}
-                                    {#                                                    </div>#}
-                                    {#                                                </td>#}
-                                    {#                                            </tr>#}
-                                    {#                                            <tr class="text-center">#}
-                                    {#                                                <td class="align-middle font-weight-normal text-right" colspan="6">#}
-                                    {#                                                    Importe Total#}
-                                    {#                                                </td>#}
-                                    {#                                                <td class="foot-base">#}
-                                    {#                                                    <div class="input-icon">#}
-                                    {#                                                        <input type="text"#}
-                                    {#                                                               class="form-control text-right text-uppercase total-bill font-weight-bold"#}
-                                    {#                                                               value="{{ bill_total|replace_round }}"#}
-                                    {#                                                               placeholder="0.00"><i class="change-money">S/</i>#}
-                                    {#                                                    </div>#}
-                                    {#                                                    <input type="hidden"#}
-                                    {#                                                           id="current_total"#}
-                                    {#                                                           value="{{ bill_total|replace_round }}">#}
-                                    {#                                                </td>#}
-                                    {#                                            </tr>#}
-                                    {#                                            </tfoot>#}
-                                    {#                                        </table>#}
-                                    {#                                    #}
-                                    {#                                    </div>#}
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="modal-footer bg-light p-2">
-            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
-            &nbsp;
-            <button id="btn-save-bill" type="button" class="btn btn-primary font-weight-light">Registrar Factura
-            </button>
-        </div>
+            <div class="modal-footer bg-light p-2">
+                <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
+                &nbsp;
+                <button id="btn-save-picking" type="submit" class="btn btn-primary font-weight-light">Registrar Picking
+                </button>
+            </div>
 
-        <div class="mr-3 ml-0" style="
-                display: none;
-                position: fixed;
-                top: 8px;
-                left: 5px;
-                background: #bdd9f5;
-                opacity: 0.5;
-                width: 100%;
-                {#height: 46em;#}
-                !important;bottom: 6px;
-                padding-right: 65em;
-                padding-left: 55em;
-                padding-top: 22em;" id="loading">
-
-        </div>
-
+            <div class="mr-3 ml-0" style="
+                    display: none;
+                    position: fixed;
+                    top: 8px;
+                    left: 5px;
+                    background: #bdd9f5;
+                    opacity: 0.5;
+                    width: 100%;
+                    {#height: 46em;#}
+                    !important;bottom: 6px;
+                    padding-right: 65em;
+                    padding-left: 55em;
+                    padding-top: 22em;" id="loading"></div>
+        </form>
     </div>
 </div>
 
 <script type="text/javascript">
 
+    $('#picking-form').submit(function (e) {
+        e.preventDefault();
+        let detailpicking = [];
+        let dataproducts = [];
 
-    $('.total-bill').keyup(function () {
+        $('#products-reserve tr').each(function() {
+            const productSelect = $(this).find('#product-select');
+            const batchSelect = $(this).find('#batch-select');
+            const quantityInput = $(this).find('#quantity-input');
+            const weightInput = $(this).find('#weight-input');
 
-        let total = parseFloat($(this).val());
-        let subTotal = $('.total-base-bill');
-        let igv = $('.total-igv-bill');
-        let _subTotalCalculate = Number(total) / Number(1.18)
-        let _igvCalculate = Number(total) - _subTotalCalculate
-        subTotal.val(_subTotalCalculate.toFixed(2))
-        igv.val(_igvCalculate.toFixed(2))
+            if (productSelect.val() !== '0' && batchSelect.val() !== '0' && quantityInput.val() && weightInput.val()) {
+                dataproducts.push({
+                    product_id: productSelect.val(),
+                    batch_id: batchSelect.val(),
+                    quantity: parseFloat(quantityInput.val()) || 0,
+                    weight: parseFloat(weightInput.val()) || 0
+                });
+            }
+        });
+
+        $('#detail-picking tr.main').each(function () {
+            const row = $(this);
+            const product_id = row.attr('product');
+            const productEntry = {
+                product_id: product_id,
+                productDetails: []
+            };
+            let next = row.next();
+            while (next.length && !next.hasClass('main')) {
+                if (next.hasClass('tr-products')) {
+                    const guide_id = next.attr('guide');
+                    const guide_detail_id = next.attr('guide_detail');
+                    const batchText = next.find('td.item-batch').text().trim();
+                    const batchID = next.attr('batch_id');
+                    const quantity = next.find('td.item-quantity').attr('quantity');
+                    const unitID = next.find('td.item-quantity').attr('unit');
+                    const weightText = next.find('td.item-weight').text().trim().replace(',', '');
+
+                    productEntry.productDetails.push({
+                        batch: batchText !== '-' ? batchText : null,
+                        batchID: batchID !== 'None' ? batchID : null,
+                        quantity: parseFloat(quantity) || 0,
+                        unitID: unitID,
+                        weight: parseFloat(weightText) || 0,
+                        guideID: guide_id,
+                        guideDetailID: guide_detail_id,
+                    });
+                }
+                next = next.next();
+            }
+            detailpicking.push(productEntry);
+        });
+
+        let data = new FormData($('#picking-form').get(0));
+        console.log(detailpicking);
+        console.log(dataproducts);
+        data.append('detail', JSON.stringify(detailpicking));
+        data.append('products_reserve', JSON.stringify(dataproducts));
+
+        $.ajax({
+            url: '/comercial/save_picking/',
+            async: true,
+            dataType: 'json',
+            type: 'POST',
+            cache: false,
+            processData: false,
+            data: data,
+            contentType: false,
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (xhr.status === 200) {
+                    toastr.success(response.message, '¡Mensaje!');
+                    $('#modal-picking-create').modal('hide');
+                    $.each(response.guides, function (index, guideID) {
+                        const mainRow = $('#guide_list_unassigned tbody').find('tr[pk="' + guideID + '"]');
+                        const rowspan = parseInt(mainRow.find('td.item-check').attr('rowspan')) || 1;
+                        mainRow.nextUntil('tr[pk]').remove();
+                        mainRow.remove();
+                    });
+                    $('#weight_total').text('0');
+                } else {
+                    toastr.error(jqXhr.responseJSON.error, '¡ERROR!');
+                }
+            },
+            error: function (jqXhr, textStatus, xhr) {
+                toastr.error(jqXhr.responseJSON.error, '¡ERROR!');
+            }
+        });
     });
 
-    $('.quantity-invoice').keyup(function () {
-        let _tr = $(this).parent('td').parent('tr');
-        let $quantity = _tr.find('td.item-quantity input.quantity-invoice')
-        let $quantity_purchased = _tr.find('td.item-quantity input.quantity-purchased')
-        if (Number($quantity.val().replace(',', '.')) > Number($quantity_purchased.val().replace(',', '.'))) {
-            toastr.warning('La cantidad a Facturar no puede superar a la cantidad de la Orden de Compra', 'Error de llenado');
-            $quantity.val($quantity_purchased.val())
-            return false;
-        } else {
-            calculate_total(_tr);
-            sum_table();
+    // Función para cargar los lotes y unidades cuando se selecciona un producto
+    $('#product-select').change(function() {
+        const selectedOption = $(this).find('option:selected');
+        const productId = $(this).val();
+        
+        //console.log('Selected product ID:', productId);
+        //console.log('Raw batches data:', selectedOption.data('batches'));
+        //console.log('Raw units data:', selectedOption.data('units'));
+
+        if (productId === '0') {
+            $('#batch-select').html('<option selected value="0">Seleccione Lote</option>');
+            $('#unit-select').html('<option selected value="0">Seleccione Unidad</option>');
+            $('#quantity-input').val('');
+            return;
+        }
+
+        try {
+            // Obtener los datos de lotes y unidades del atributo data
+            let batches = [];
+            let units = [];
+            
+            try {
+                const batchesData = selectedOption.data('batches');
+                const unitsData = selectedOption.data('units');
+                
+                if (batchesData) {
+                    batches = typeof batchesData === 'string' ? JSON.parse(batchesData) : batchesData;
+                }
+                if (unitsData) {
+                    units = typeof unitsData === 'string' ? JSON.parse(unitsData) : unitsData;
+                }
+            } catch (e) {
+                console.error('Error parsing data:', e);
+            }
+
+            // Actualizar el select de lotes
+            let batchOptions = '<option selected value="0">Seleccione Lote</option>';
+            if (batches && batches.length > 0) {
+                batches.forEach(function(batch) {
+                    batchOptions += `<option value="${batch.id}" data-quantity="${batch.remaining_quantity || '0'}">Nº ${batch.batch_number} | ${parseInt(batch.remaining_quantity) || '0'} UND | ${batch.expiration_date}</option>`;
+                });
+            }
+            $('#batch-select').html(batchOptions);
+
+            // Actualizar el select de unidades
+            let unitOptions = '<option selected value="0">Seleccione Unidad</option>';
+            if (units && units.length > 0) {
+                units.forEach(function(unit) {
+                    unitOptions += `<option value="${unit.unit__id}">${unit.unit__description}</option>`;
+                });
+            }
+            $('#unit-select').html(unitOptions);
+        } catch (error) {
+            $('#batch-select').html('<option selected value="0">Seleccione Lote</option>');
+            $('#unit-select').html('<option selected value="0">Seleccione Unidad</option>');
         }
     });
 
-    function calculate_total(_tr) {
-        let $quantity = Number(_tr.find('td.item-quantity input.quantity-invoice').val().replace(',', '.'));
-        let $price_unit = Number(_tr.find('td.item-price input.price-product').val());
-        let amount = $quantity * $price_unit
-        _tr.find('td.item-amount input.subtotal').val(amount.toFixed(2));
-    }
+    /*$('#batch-select').change(function() {
+        const selectedOption = $(this).find('option:selected');
+        const quantity = selectedOption.data('quantity');
+        $('#quantity-input').val(quantity || '');
+    });*/
 
-    function sum_table() {
-        let igv = 0;
-        let base = 0;
-        let sum_total = 0;
-        let _total;
-        $("#id-table-bill tbody#bill-details tr").each(function () {
-            let td_total = Number($(this).find("td.item-amount input.subtotal").val());
-            sum_total = sum_total + td_total
-        });
-        base = sum_total / 1.18
-        igv = sum_total - base
-        _total = base + igv
-        $("#id-table-bill tfoot tr input.total-base-bill").val(base.toFixed(2));
-        $("#id-table-bill tfoot tr input.total-igv-bill").val(igv.toFixed(2));
-        $("#id-table-bill tfoot tr input.total-bill").val(_total.toFixed(2));
-    }
+    $('#quantity-input').keyup(function() {
+        let selectedOption = $('#product-select').find('option:selected');
+        let weight_select = selectedOption.data('weight');
+        let weight = Number(weight_select.replace(',', '.'));
+        let quantity = $(this).val();
+        let weight_total = Number(quantity) * weight
+        $('#weight-input').val(weight_total.toFixed(2))
+    });
 
 </script>
