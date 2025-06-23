@@ -418,6 +418,9 @@ class Order(models.Model):
     phase_c = models.DateField('Fecha de Compromiso', null=True, blank=True)
     phase_d = models.DateField('Fecha de Vengado', null=True, blank=True)
     phase_g = models.DateField('Fecha de Girado', null=True, blank=True)
+    total_payed = models.DecimalField('Total pagado', max_digits=10, decimal_places=2, default=0)
+    total_retention = models.DecimalField('Total retencion', max_digits=10, decimal_places=2, default=0)
+    total_warranty = models.DecimalField('Total garantia', max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return str(self.pk)

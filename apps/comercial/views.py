@@ -2704,6 +2704,12 @@ def save_phase(request):
         try:
             order_obj = Order.objects.get(id=order_id)
             setattr(order_obj, phase_field_map[phase], phase_date)
+
+            if phase == 'G':
+                order_obj.total_payed = decimal.Decimal(request.GET.get('total_pay', ''))
+                order_obj.total_retention = decimal.Decimal(request.GET.get('total_retention', ''))
+                order_obj.total_warranty = decimal.Decimal(request.GET.get('total_warranty', ''))
+
             order_obj.save()
         except (Order.DoesNotExist, ValueError, TypeError):
             return JsonResponse({'success': False, 'error': 'Orden no encontrada'}, status=HTTPStatus.BAD_REQUEST)

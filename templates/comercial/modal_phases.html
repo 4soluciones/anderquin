@@ -1,4 +1,4 @@
-<div class="modal-dialog modal-dialog-centered modal-sm">
+<div class="modal-dialog modal-dialog-centered {% if phase_code != 'G' %}modal-sm{% endif %}">
     <div class="modal-content">
         <div class="modal-header">
             <h6 class="modal-title roboto-condensed-regular">Ingrese Fecha:</h6>
@@ -18,6 +18,52 @@
                     <input type="date" id="phase_date" aria-label=""
                            class="form-control form-control-sm text-center"
                            value="{{ formatdate }}">
+                    <div class="{% if phase_code != 'G' %}d-none{% endif %}">
+                        <div class="row mt-2 mr-0">
+                            <div class="col-sm-6 text-right">
+                                <label for="exampleInputPassword1">Monto a Pagar:</label>
+                            </div>
+                            <div class="col-sm-6 pr-0">
+                                <div class="input-icon">
+                                    <input type="text"
+                                           class="form-control form-control-sm text-right"
+                                           id="total_pay" placeholder="0.00"
+                                           aria-label="" autocomplete="off" name="total_pay"><i
+                                        class="change-money">S/</i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-2 mr-0">
+                            <div class="col-sm-6 text-right">
+                                <label for="exampleInputPassword1">Retención Sunat 3%:</label>
+                            </div>
+                            <div class="col-sm-6 pr-0">
+                                <div class="input-icon">
+                                    <input type="text"
+                                           class="form-control form-control-sm text-right"
+                                           id="total_retention" placeholder="0.00"
+                                           aria-label="" autocomplete="off" name="total_retention"><i
+                                        class="change-money">S/</i>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row mt-2 mr-0">
+                            <div class="col-sm-6 text-right">
+                                <label for="exampleInputPassword1">Retencion Garantía:</label>
+                            </div>
+                            <div class="col-sm-6 pr-0">
+                                <div class="input-icon">
+                                    <input type="text"
+                                           class="form-control form-control-sm text-right"
+                                           id="total_warranty" placeholder="0.00"
+                                           aria-label="" autocomplete="off" name="total_warranty"><i
+                                        class="change-money">S/</i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
 
                     <button type="button" id="save-date" class="btn btn-sm btn-block btn-success mt-3 mb-1">
                         REGISTRAR
@@ -29,6 +75,41 @@
 </div>
 
 
+<style>
+
+    .input-icon {
+        position: relative;
+    }
+
+    .input-icon > i {
+        position: absolute;
+        display: block;
+        transform: translate(0, -50%);
+        top: 50%;
+        pointer-events: none;
+        width: 25px;
+        text-align: center;
+        font-style: normal;
+    }
+
+    .input-icon > input {
+        padding-left: 25px;
+        padding-right: 8px;
+    }
+
+    .input-icon-right > i {
+        right: 0;
+    }
+
+    .input-icon-right > input {
+        padding-left: 0;
+        padding-right: 25px;
+        text-align: right;
+    }
+
+</style>
+
+
 <script type="text/javascript">
 
 
@@ -36,30 +117,57 @@
         let order = document.getElementById('order').value;
         let phase_code = document.getElementById('phase_code').value;
         let phase_date = document.getElementById('phase_date').value;
+        let total_pay = document.getElementById('total_pay').value;
+        let total_retention = document.getElementById('total_retention').value;
+        let total_warranty = document.getElementById('total_warranty').value;
+
+        if (phase_code === 'G') {
+            if (total_pay <= 0) {
+                toastr.error('Ingrese un monto en el pago total de la factura', '¡Mensaje!');
+                total_pay.focus()
+                return false;
+            }
+            if (total_retention <= 0) {
+                toastr.error('Ingrese la retencion', '¡Mensaje!');
+                total_pay.focus()
+                return false;
+            }
+            if (total_warranty <= 0) {
+                toastr.error('Ingrese la garantia', '¡Mensaje!');
+                total_pay.focus()
+                return false;
+            }
+        }
 
         $.ajax({
             url: '/comercial/save_phase/',
             dataType: 'json',
             type: 'GET',
-            data: {'order': order, 'phase': phase_code, 'phase_date': phase_date},
+            data: {
+                'order': order,
+                'phase': phase_code,
+                'phase_date': phase_date,
+                'total_pay': Number(total_pay),
+                'total_retention': Number(total_retention),
+                'total_warranty': Number(total_warranty),
+            },
             success: function (response, textStatus, xhr) {
                 if (response.success) {
-                    let order = response.order_id
-                    let phase_date = response.phase_date
-                    let phase = response.phase
-                    
-                    let formattedDate = new Date(phase_date);
-                    let day = formattedDate.getDate().toString().padStart(2, '0');
-                    let month = (formattedDate.getMonth() + 1).toString().padStart(2, '0');
-                    let year = formattedDate.getFullYear();
+                    let order = response.order_id;
+                    let phase_date = response.phase_date; // formato: '2025-06-23'
+                    let phase = response.phase;
+
+                    // Separar y reordenar la fecha manualmente
+                    let [year, month, day] = phase_date.split('-');
                     let formattedDateStr = `${day}-${month}-${year}`;
-                    
-                    let targetDiv = $(`div[order="${order}"][phase="${phase}"]`);
-                    if (targetDiv.length) {
-                        targetDiv.find('input[type="checkbox"]').remove();
-                        targetDiv.text(formattedDateStr);
+
+                    let targetDiv = document.querySelector(`div[order="${order}"][phase="${phase}"]`);
+                    if (targetDiv) {
+                        let checkbox = targetDiv.querySelector('input[type="checkbox"]');
+                        if (checkbox) checkbox.remove();
+                        targetDiv.textContent = formattedDateStr;
                     }
-                    
+
                     toastr.success('Fecha Registrada', '¡Mensaje!');
                 } else {
                     toastr.error(response.message, 'Error');
@@ -72,6 +180,16 @@
 
         $('#modal-phase').modal('hide');
 
+    });
+
+    document.getElementById('total_pay').addEventListener('input', function () {
+        let totalPay = parseFloat(this.value) || 0;
+
+        let totalRetention = totalPay * 0.03;
+        let totalWarranty = totalPay * 0.10;
+
+        document.getElementById('total_retention').value = totalRetention.toFixed(2);
+        document.getElementById('total_warranty').value = totalWarranty.toFixed(2);
     });
 
 
