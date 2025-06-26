@@ -213,7 +213,7 @@
                     <label for="document-transport" class="text-primary">Nº de Documento (Transportista):</label>
                     <input type="text"
                            class="form-control form-control-sm" name="document-transport" id="document-transport"
-                           placeholder="" disabled
+                           placeholder=""
                            value="" maxlength="200">
                     <input type="hidden" id="guide_carrier_id">
                 </div>
@@ -221,7 +221,7 @@
                     <label for="name-transport" class="text-primary">Razón Social (Transportista):</label>
                     <input type="text"
                            class="form-control form-control-sm" name="name-transport" id="name-transport"
-                           placeholder="" disabled
+                           placeholder=""
                            value="" maxlength="500">
                 </div>
                 <div class="col-md-2">
@@ -236,7 +236,7 @@
                     <label for="plate" class="text-primary">Vehiculo (Placa):</label>
                     <input type="text"
                            class="form-control form-control-sm" name="plate" id="plate"
-                           placeholder="" disabled
+                           placeholder=""
                            value="" maxlength="20">
                     <input type="hidden" id="guide_vehicle_id">
                 </div>
@@ -244,7 +244,7 @@
                     <label for="document-driver" class="text-primary">DNI (Conductor):</label>
                     <input type="text"
                            class="form-control form-control-sm" name="document-driver" id="document-driver"
-                           placeholder="" disabled
+                           placeholder=""
                            value="" maxlength="20">
                     <input type="hidden" id="driver_id">
                 </div>
@@ -252,14 +252,14 @@
                     <label for="license-driver" class="text-primary">Nº Licencia (Conductor):</label>
                     <input type="text"
                            class="form-control form-control-sm" name="license-driver" id="license-driver"
-                           placeholder="" disabled
+                           placeholder=""
                            value="" maxlength="20">
                 </div>
                 <div class="col-md-6">
                     <label for="names-driver" class="text-primary">Nombres y Apellidos (Conductor):</label>
                     <input type="text"
                            class="form-control form-control-sm" name="names-driver" id="names-driver"
-                           placeholder="" disabled
+                           placeholder=""
                            value="" maxlength="20">
                 </div>
             </div>
@@ -678,6 +678,13 @@
             let _oc = $('#oc').val();
             let _register_mtc = $('#register_mtc').val();
 
+            let document_transport = $('#document-transport').val();
+            let name_transport = $('#name-transport').val();
+            let plate = $('#plate').val();
+            let document_driver = $('#document-driver').val();
+            let license_driver = $('#license-driver').val();
+            let names_driver = $('#names-driver').val();
+
             if (_store === null) {
                 toastr.warning('¡Seleccione el Almacen!', 'Mensaje');
                 return false;
@@ -698,10 +705,46 @@
                 toastr.warning('¡Seleccione la modalidad de Transporte!', 'Mensaje');
                 return false;
             }
-            if (_carrier === '') {
+            if (_transport_modality === '1') {
+               if (document_transport === '') {
+                   toastr.warning('¡Si el Transporte es publico llene el Nº de Documento (Transportista)!', 'Mensaje');
+                   return false;
+               }
+               if (name_transport === '') {
+                   toastr.warning('¡Si el Transporte es publico llene la Razón Social (Transportista):!', 'Mensaje');
+                   return false;
+               }
+            }
+            if (_transport_modality === '2') {
+                if (document_transport === '') {
+                   toastr.warning('¡Si el Transporte es privado llene el Nº de Documento (Transportista)!', 'Mensaje');
+                   return false;
+               }
+               if (name_transport === '') {
+                   toastr.warning('¡Si el Transporte es privado llene la Razón Social (Transportista)!', 'Mensaje');
+                   return false;
+               }
+               if (plate === '') {
+                   toastr.warning('¡Si el Transporte es privado llene la placa!', 'Mensaje');
+                   return false;
+               }
+               if (document_driver === '') {
+                   toastr.warning('¡Si el Transporte es privado llene el nombre del conductor!', 'Mensaje');
+                   return false;
+               }
+               if (license_driver === '') {
+                   toastr.warning('¡Si el Transporte es privado llene la licencia!', 'Mensaje');
+                   return false;
+               }
+               if (names_driver === '') {
+                   toastr.warning('¡Si el Transporte es privado llene el nombre del conductor!', 'Mensaje');
+                   return false;
+               }
+            }
+            /*if (_carrier === '') {
                 toastr.warning('¡Agregue un Transportista!', 'Mensaje');
                 return false;
-            }
+            }*/
             if (_weight === '') {
                 toastr.warning('¡Agregue el Peso Total!', 'Mensaje');
                 return false;
@@ -741,7 +784,14 @@
                 "serial": _serial,
                 "correlative": _correlative,
                 "oc": _oc,
-                "register_mtc": _register_mtc
+                "register_mtc": _register_mtc,
+
+                "document_transport": document_transport,
+                "name_transport": name_transport,
+                "plate": plate,
+                "document_driver": document_driver,
+                "license_driver": license_driver,
+                "names_driver": names_driver,
             }
 
             $("#id-table-detail-guide tbody#guide-details tr").each(function () {

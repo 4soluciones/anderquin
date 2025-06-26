@@ -2198,9 +2198,17 @@ def save_guide(request):
 
         if carrier:
             carrier_obj = Owner.objects.get(id=int(carrier))
+        else:
+            carrier_obj = Owner.objects.create(name=data_guide["name_transport"], ruc=data_guide["document_transport"])
+
         if vehicle and driver:
             vehicle_obj = Truck.objects.get(id=int(vehicle))
             driver_obj = Driver.objects.get(id=int(driver))
+        else:
+            vehicle_obj = Truck.objects.create(license_plate=data_guide["plate"], owner=carrier_obj)
+            driver_obj = Driver.objects.create(names=data_guide["names_driver"],
+                                               document_driver=data_guide["document_driver"],
+                                               n_license=data_guide["license_driver"])
 
         store_obj = SubsidiaryStore.objects.get(id=int(store))
 

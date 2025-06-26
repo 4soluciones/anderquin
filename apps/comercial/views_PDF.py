@@ -1684,7 +1684,8 @@ def guide(request, pk=None):
             [('Transportista: ', ': ' + guide_obj.carrier.name.upper(), '', '', '', '', 'RUC',
               ': ' + guide_obj.carrier.ruc)] +
             [('Placa:', ': ' + guide_obj.vehicle.license_plate.upper(), 'Marca',
-              guide_obj.vehicle.truck_model.truck_brand.name, 'CIMTC', guide_obj.register_mtc, 'Lic. Conducir',
+              guide_obj.vehicle.truck_model.truck_brand.name if guide_obj.vehicle and guide_obj.vehicle.truck_model and guide_obj.vehicle.truck_model.truck_brand else '',
+              'CIMTC', guide_obj.register_mtc, 'Lic. Conducir',
               ': ' + str(guide_obj.driver.n_license))],
             # [('FECHA INICIO DE TRASLADO: ', date_transfer.strftime("%d/%m/%Y"))] +
             # [('MODALIDAD DE TRANSPORTE: ', 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
