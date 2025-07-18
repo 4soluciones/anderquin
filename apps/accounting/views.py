@@ -215,7 +215,7 @@ def new_payment_purchase(request):
             bill_pay = decimal.Decimal(request.POST.get('bill-pay').replace(',', ''))
             way_to_pay = str(request.POST.get('way_to_pay'))
             pay_date = str(request.POST.get('pay_date'))
-            date_converter = datetime.strptime(pay_date, '%Y/%m/%d').date()
+            date_converter = datetime.strptime(pay_date, '%Y-%m-%d').date()
             formatdate = date_converter.strftime("%d/%m/%y")
             pay_description = str(request.POST.get('pay_description'))
             code_operation = str(request.POST.get('code_operation'))

@@ -228,7 +228,7 @@
                             <label for="credit-note-date" class="font-weight-bold">Fecha de emisión:</label>
                             <input type="date"
                                    class="form-control" name="credit-note-date" id="credit-note-date"
-                                   placeholder="" required
+                                   placeholder=""
                                    value="{{ date }}">
                         </div>
                         <div class="col-md-3 p-1 border">
@@ -250,7 +250,7 @@
                             <label for="credit_note_motive" class="font-weight-bold">Motivo:</label>
                             <input type="text"
                                    class="form-control" name="credit-note-motive" id="credit_note_motive"
-                                   placeholder="" required>
+                                   placeholder="">
                         </div>
                     </div>
                     <div class="row m-1 mt-2">
@@ -400,6 +400,13 @@
                 return false
             }
         } else if (payment_method === 'C') {
+            // Validar campos requeridos para nota de crédito
+            let credit_note_number = $('#credit-note-number').val();
+            let credit_note_date = $('#credit-note-date').val();
+            let credit_note_motive = $('#credit_note_motive').val();
+            let credit_code = $('#credit-code').val();
+            let credit_description = $('#credit-description').val();
+            
             if (credit_total === '') {
                 toastr.warning('Ingrese un monto antes de Guardar el Pago', 'Mensaje');
                 return false
@@ -412,7 +419,26 @@
                 toastr.warning('El monto a pagar no puede ser mayor al saldo restante', 'Mensaje');
                 return false
             }
-
+            if (credit_note_number === '') {
+                toastr.warning('Ingrese el número de nota de crédito', 'Mensaje');
+                return false
+            }
+            if (credit_note_date === '') {
+                toastr.warning('Ingrese la fecha de emisión de la nota de crédito', 'Mensaje');
+                return false
+            }
+            if (credit_note_motive === '') {
+                toastr.warning('Ingrese el motivo de la nota de crédito', 'Mensaje');
+                return false
+            }
+            if (credit_code === '') {
+                toastr.warning('Ingrese el código del producto', 'Mensaje');
+                return false
+            }
+            if (credit_description === '') {
+                toastr.warning('Ingrese la descripción del producto', 'Mensaje');
+                return false
+            }
         }
 
         $('#btn-save').attr("disabled", true);
