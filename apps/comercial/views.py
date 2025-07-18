@@ -2343,6 +2343,7 @@ def get_guide_by_contract(request):
                     'contract_detail_id': c.id,
                     'nro_quota': c.nro_quota,
                     'date': c.date,
+                    'o_c': c.contractdetailpurchase_set.last().purchase.bill_number if c.contractdetailpurchase_set.exists() and c.contractdetailpurchase_set.last().purchase else '-'
                 }
                 contract_data.append(item_contract_detail)
 
@@ -2558,6 +2559,18 @@ def modal_picking_create(request):
         last_number = get_last_picking_number()
 
         if guides_ids:
+            # Obtener las guías para acceder a contract_detail
+            guides = Guide.objects.filter(id__in=guides_ids).select_related('contract_detail')
+            
+            # Obtener los bill_number de las compras asociadas a cada guía
+            for guide in guides:
+                if guide.contract_detail:
+                    # Buscar las compras asociadas al contract_detail
+                    contract_detail_purchases = guide.contract_detail.contractdetailpurchase_set.select_related('purchase')
+                    for cdp in contract_detail_purchases:
+                        if cdp.purchase and cdp.purchase.bill_number:
+                            all_purchases_ids.append(cdp.purchase.bill_number)
+            
             guide_details = GuideDetail.objects.filter(
                 guide_id__in=guides_ids
             ).select_related('product', 'unit', 'batch')

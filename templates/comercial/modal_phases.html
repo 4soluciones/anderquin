@@ -35,7 +35,12 @@
                         </div>
                         <div class="row mt-2 mr-0">
                             <div class="col-sm-6 text-right">
-                                <label for="exampleInputPassword1">Retención Sunat 3%:</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="calculate_retention" checked>
+                                    <label class="form-check-label" for="calculate_retention">
+                                        Retención Sunat 3%
+                                    </label>
+                                </div>
                             </div>
                             <div class="col-sm-6 pr-0">
                                 <div class="input-icon">
@@ -46,11 +51,15 @@
                                         class="change-money">S/</i>
                                 </div>
                             </div>
-
                         </div>
                         <div class="row mt-2 mr-0">
                             <div class="col-sm-6 text-right">
-                                <label for="exampleInputPassword1">Retencion Garantía:</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="calculate_warranty" checked>
+                                    <label class="form-check-label" for="calculate_warranty">
+                                        Garantía 10%
+                                    </label>
+                                </div>
                             </div>
                             <div class="col-sm-6 pr-0">
                                 <div class="input-icon">
@@ -184,12 +193,43 @@
 
     document.getElementById('total_pay').addEventListener('input', function () {
         let totalPay = parseFloat(this.value) || 0;
+        
+        // Solo calcular retención si el checkbox está activado
+        if (document.getElementById('calculate_retention').checked) {
+            let totalRetention = totalPay * 0.03;
+            document.getElementById('total_retention').value = totalRetention.toFixed(2);
+        }
+        
+        // Solo calcular garantía si el checkbox está activado
+        if (document.getElementById('calculate_warranty').checked) {
+            let totalWarranty = totalPay * 0.10;
+            document.getElementById('total_warranty').value = totalWarranty.toFixed(2);
+        }
+    });
 
-        let totalRetention = totalPay * 0.03;
-        let totalWarranty = totalPay * 0.10;
+    // Event listeners para los checkboxes
+    document.getElementById('calculate_retention').addEventListener('change', function() {
+        if (this.checked) {
+            // Si se activa el checkbox, recalcular la retención
+            let totalPay = parseFloat(document.getElementById('total_pay').value) || 0;
+            let totalRetention = totalPay * 0.03;
+            document.getElementById('total_retention').value = totalRetention.toFixed(2);
+        } else {
+            // Si se desactiva, limpiar el campo
+            document.getElementById('total_retention').value = '';
+        }
+    });
 
-        document.getElementById('total_retention').value = totalRetention.toFixed(2);
-        document.getElementById('total_warranty').value = totalWarranty.toFixed(2);
+    document.getElementById('calculate_warranty').addEventListener('change', function() {
+        if (this.checked) {
+            // Si se activa el checkbox, recalcular la garantía
+            let totalPay = parseFloat(document.getElementById('total_pay').value) || 0;
+            let totalWarranty = totalPay * 0.10;
+            document.getElementById('total_warranty').value = totalWarranty.toFixed(2);
+        } else {
+            // Si se desactiva, limpiar el campo
+            document.getElementById('total_warranty').value = '';
+        }
     });
 
 

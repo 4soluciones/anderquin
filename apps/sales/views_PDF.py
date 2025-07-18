@@ -997,6 +997,198 @@ def qr_code(table):
     return drawing
 
 
+def print_sales_report_professional(request):
+    """
+    Genera PDF del reporte de ventas profesional
+    """
+    from django.db.models import Sum, Count, Avg
+    from django.utils import timezone
+    from datetime import datetime, timedelta
+    
+    # Parámetros de filtro
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+    subsidiary_id = request.GET.get('subsidiary', '')
+    client_id = request.GET.get('client', '')
+    
+    # Filtro base para órdenes con tipo de documento B (Boleta) o F (Factura)
+    orders = Order.objects.filter(type_document__in=['B', 'F'])
+    
+    # Aplicar filtros adicionales
+    if start_date:
+        orders = orders.filter(create_at__date__gte=start_date)
+    if end_date:
+        orders = orders.filter(create_at__date__lte=end_date)
+    if subsidiary_id:
+        orders = orders.filter(subsidiary_id=subsidiary_id)
+    if client_id:
+        orders = orders.filter(client_id=client_id)
+    
+    # Configuración del PDF
+    _a4 = (8.3 * inch, 11.7 * inch)
+    ml = 0.5 * inch
+    mr = 0.5 * inch
+    ms = 0.5 * inch
+    mi = 0.5 * inch
+    _bts = 8.3 * inch - ml - mr
+    
+    buff = io.BytesIO()
+    doc = SimpleDocTemplate(buff,
+                            pagesize=_a4,
+                            rightMargin=mr,
+                            leftMargin=ml,
+                            topMargin=ms,
+                            bottomMargin=mi,
+                            title='Reporte de Ventas'
+                            )
+    
+    # Header del reporte
+    I = Image(logo)
+    I.drawHeight = 1.0 * inch
+    I.drawWidth = 1.5 * inch
+    
+    header_info = [
+        [Paragraph('INDUSTRIAS ANDERQUIN', styles["Justify_Newgot_title"])],
+        [Paragraph('JR. CARABAYA NRO. 443', styles['Normal'])],
+        ['Celular: 951 622 449'],
+        ['Correo: correo@anderquim.com'],
+    ]
+    
+    col_info = Table(header_info)
+    style_info = [
+        ('TEXTCOLOR', (0, 2), (0, 3), colors.blue),
+    ]
+    col_info.setStyle(TableStyle(style_info))
+    
+    # Información del reporte
+    report_info = [
+        [Paragraph('REPORTE DE VENTAS', styles["Center_Newgot_title"])],
+        [Paragraph('Boletas y Facturas', styles["Center_Newgot"])],
+        [Paragraph(f'Del {start_date} al {end_date}', styles["Center_Newgot"])],
+    ]
+    
+    col_report = Table(report_info, colWidths=[_bts * 30 / 100])
+    style_report = [
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ALIGNMENT', (0, 0), (0, -1), 'CENTER'),
+    ]
+    col_report.setStyle(TableStyle(style_report))
+    
+    # Header principal
+    _tbl_header = [
+        [I, col_info, col_report],
+    ]
+    header_page = Table(_tbl_header, colWidths=[_bts * 20 / 100, _bts * 50 / 100, _bts * 30 / 100])
+    style_header = [
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ALIGNMENT', (0, 0), (0, -1), 'CENTER'),
+    ]
+    header_page.setStyle(TableStyle(style_header))
+    
+    # Encabezado de la tabla
+    style_table_header = [
+        ('FONTNAME', (0, 0), (-1, -1), 'Newgot'),
+        ('BACKGROUND', (0, 0), (-1, -1), colors.darkgray),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('ALIGNMENT', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+    ]
+    
+    width_table = [_bts * 15 / 100, _bts * 20 / 100, _bts * 15 / 100, _bts * 15 / 100, _bts * 20 / 100, _bts * 15 / 100]
+    header_detail = Table([
+        ('Cliente', 'Tipo Doc.', 'Documento', 'Estado', 'Fecha', 'Total')
+    ], colWidths=width_table)
+    header_detail.setStyle(TableStyle(style_table_header))
+    
+    # Estilo para el cuerpo de la tabla
+    style_table_detail = [
+        ('FONTNAME', (0, 0), (-1, -1), 'Square'),
+        ('GRID', (0, 0), (-1, -1), 0.3, colors.darkgray),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('ALIGNMENT', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ALIGNMENT', (5, 0), (5, -1), 'RIGHT'),  # Total alineado a la derecha
+    ]
+    
+    # Datos de las órdenes
+    detail_rows = []
+    total_general = 0
+    
+    for order in orders.order_by('-create_at')[:100]:
+        # Tipo de documento
+        tipo_doc = 'Boleta' if order.type_document == 'B' else 'Factura'
+        
+        # Documento (serie-correlativo)
+        documento = f"{order.serial or ''}-{order.correlative or order.id}"
+        
+        # Estado
+        if order.status == 'P':
+            estado = 'Pendiente'
+        elif order.status == 'C':
+            estado = 'Completado'
+        else:
+            estado = 'Anulado'
+        
+        # Cliente
+        cliente = order.client.names if order.client else 'Cliente Público'
+        
+        # Fecha
+        fecha = order.create_at.strftime("%d/%m/%Y %H:%M")
+        
+        # Total
+        total = float(order.total)
+        total_general += total
+        
+        detail_rows.append([
+            cliente,
+            tipo_doc,
+            documento,
+            estado,
+            fecha,
+            f"S/ {total:,.2f}"
+        ])
+    
+    # Crear tabla de detalles
+    detail_body = Table(detail_rows, colWidths=width_table)
+    detail_body.setStyle(TableStyle(style_table_detail))
+    
+    # Footer con totales
+    footer_info = [
+        [Paragraph('TOTAL GENERAL:', styles["Justify_Newgot"]),
+         Paragraph(f'S/ {total_general:,.2f}', styles["Right_Newgot"])],
+    ]
+    
+    footer_table = Table(footer_info, colWidths=[_bts * 70 / 100, _bts * 30 / 100])
+    style_footer = [
+        ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BACKGROUND', (0, 0), (0, 0), colors.lightgrey),
+    ]
+    footer_table.setStyle(TableStyle(style_footer))
+    
+    # Construir el documento
+    dictionary = []
+    dictionary.append(header_page)
+    dictionary.append(Spacer(1, 20))
+    dictionary.append(header_detail)
+    dictionary.append(detail_body)
+    dictionary.append(Spacer(1, 15))
+    dictionary.append(footer_table)
+    dictionary.append(Spacer(1, 20))
+    dictionary.append(Paragraph(f'Fecha de impresión: {datetime.now().strftime("%d/%m/%Y %H:%M")}', styles["Right"]))
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="reporte_ventas_{start_date}_{end_date}.pdf"'
+    
+    doc.build(dictionary)
+    response.write(buff.getvalue())
+    buff.close()
+    return response
+
+
 class OutputInvoiceGuide(Flowable):
     def __init__(self, width=200, height=3, count_row=None):
         self.width = width

@@ -1,0 +1,225 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}
+    Reporte de Ventas Profesional
+{% endblock title %}
+
+{% block body %}
+<div class="container-fluid roboto-condensed-regular">
+    <!-- Header del Reporte -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-4">
+                    <h1 class="display-4 font-weight-bold text-primary mb-2 roboto-condensed-regular">
+                        <i class="fas fa-list mr-3 "></i>Órdenes de Venta
+                    </h1>
+                    <p class="text-muted mb-0 roboto-condensed-regular">Boletas y Facturas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="GET" class="row align-items-end">
+                        <div class="col-md-1">
+                            <label class="form-label text-muted small">Fecha Inicio</label>
+                            <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label text-muted small">Fecha Fin</label>
+                            <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label text-muted small">Sucursal</label>
+                            <select name="subsidiary" class="form-control form-control-sm">
+                                <option value="">Todas</option>
+                                {% for subsidiary in subsidiaries %}
+                                    <option value="{{ subsidiary.id }}" {% if subsidiary_id == subsidiary.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ subsidiary.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label text-muted small">Cliente</label>
+                            <select name="client" class="form-control form-control-sm">
+                                <option value="">Todos</option>
+                                {% for client in clients %}
+                                    <option value="{{ client.id }}" {% if client_id == client.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ client.names }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-filter mr-1"></i>Filtrar
+                            </button>
+                        </div>
+                        <div class="col-md-1">
+                            <a href="{% url 'sales:sales_report_professional' %}" class="btn btn-outline-secondary btn-sm w-100">
+                                <i class="fas fa-undo mr-1"></i>Limpiar
+                            </a>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{% url 'sales:print_sales_report_professional' %}?start_date={{ start_date }}&end_date={{ end_date }}&subsidiary={{ subsidiary_id }}&client={{ client_id }}" 
+                               class="btn btn-success btn-sm w-100" target="_blank">
+                                <i class="fas fa-file-pdf mr-1"></i>Descargar PDF
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <!-- Tabla de Últimas Órdenes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="card-title mb-0 text-dark roboto-condensed-regular">
+                        <i class="fas fa-list mr-2 text-primary"></i>Órdenes de Venta (Boletas y Facturas)
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                                                        <thead class="bg-light">
+                                <tr>
+                                    {#                                    <th class="border-0 text-muted small"># Orden</th>#}
+                                    <th class="border-0 text-muted small">Cliente</th>
+                                    <th class="border-0 text-muted small">Tipo de Documento</th>
+                                    <th class="border-0 text-muted small">Documento</th>
+                                    <th class="border-0 text-muted small">Estado</th>
+                                    <th class="border-0 text-muted small">Fecha</th>
+                                    <th class="border-0 text-muted small text-right">Total</th>
+                                    <th class="border-0 text-muted small text-center">PDF</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+{#                                    <td class="align-middle">#}
+{#                                        <span class="font-weight-bold text-dark">{{ order.correlative|default:order.id }}</span>#}
+{#                                    </td>#}
+                                    <td class="align-middle">
+                                        <span class="text-dark">{{ order.client.names|default:"Cliente Público" }}</span>
+                                    </td>
+                                    <td class="align-middle">
+                                        {% if order.type_document == 'B' %}
+                                            <span class="badge badge-primary">Boleta</span>
+                                        {% elif order.type_document == 'F' %}
+                                            <span class="badge badge-success">Factura</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="font-weight-bold text-info">{{ order.serial|default:"" }}-{{ order.correlative|default:order.id }}</span>
+                                    </td>
+                                    <td class="align-middle">
+                                        {% if order.status == 'P' %}
+                                            <span class="badge badge-warning">Pendiente</span>
+                                        {% elif order.status == 'C' %}
+                                            <span class="badge badge-success">Completado</span>
+                                        {% elif order.status == 'A' %}
+                                            <span class="badge badge-danger">Anulado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle">
+                                        <small class="text-muted">{{ order.create_at|date:"d/m/Y H:i" }}</small>
+                                    </td>
+                                    <td class="align-middle text-right">
+                                        <span class="font-weight-bold text-success">S/ {{ order.total|floatformat:2 }}</span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <a href="{% url 'sales:print_order_bill' order.id %}" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           target="_blank" 
+                                           title="Descargar PDF">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                                        <p class="mb-0">No hay órdenes disponibles</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<style>
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.bg-opacity-10 {
+    background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+}
+
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.form-control-sm {
+    border-radius: 0.375rem;
+    border: 1px solid #e9ecef;
+}
+
+.form-control-sm:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-sm {
+    border-radius: 0.375rem;
+    font-weight: 500;
+}
+
+.display-4 {
+    font-size: 2.5rem;
+}
+
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock body %} 

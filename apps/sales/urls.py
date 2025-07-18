@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from apps.sales.views import *
 from apps.sales.views_SUNAT import query_dni
 from apps.sales.views_PDF import product_print, account_order_list_pdf, \
-    pdf_get_orders_for_status_account, print_quotation, print_order_bill
+    pdf_get_orders_for_status_account, print_quotation, print_order_bill, print_sales_report_professional
 
 urlpatterns = [
     path('product_list/', login_required(ProductList.as_view()), name='product_list'),
@@ -135,6 +135,10 @@ urlpatterns = [
     path('get_product_autocomplete/', login_required(get_product_autocomplete), name='get_product_autocomplete'),
     path('get_product_by_id/', login_required(get_product_by_id), name='get_product_by_id'),
     path('modal_batch/', login_required(modal_batch), name='modal_batch'),
+
+    # REPORTE DE VENTAS PROFESIONAL
+    path('sales_report_professional/', login_required(sales_report_professional), name='sales_report_professional'),
+    path('print_sales_report_professional/', login_required(print_sales_report_professional), name='print_sales_report_professional'),
 
 ]
 

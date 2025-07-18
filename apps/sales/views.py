@@ -4691,3 +4691,56 @@ def check_batch_number(request):
         return JsonResponse({
             'flag': flag
         }, status=HTTPStatus.OK)
+
+
+def sales_report_professional(request):
+    """
+    Reporte de ventas profesional y minimalista para órdenes con tipo de documento Boleta (B) o Factura (F)
+    """
+    from django.db.models import Sum, Count, Avg
+    from django.utils import timezone
+    from datetime import datetime, timedelta
+    import json
+    
+    # Parámetros de filtro
+    today = timezone.now().date()
+    start_date = request.GET.get('start_date', today.strftime('%Y-%m-%d'))
+    end_date = request.GET.get('end_date', today.strftime('%Y-%m-%d'))
+    subsidiary_id = request.GET.get('subsidiary', '')
+    client_id = request.GET.get('client', '')
+    
+    # Filtro base para órdenes con tipo de documento B (Boleta) o F (Factura)
+    orders = Order.objects.filter(type_document__in=['B', 'F'])
+    
+    # Aplicar filtros adicionales
+    if start_date:
+        orders = orders.filter(create_at__date__gte=start_date)
+    if end_date:
+        orders = orders.filter(create_at__date__lte=end_date)
+    if subsidiary_id:
+        orders = orders.filter(subsidiary_id=subsidiary_id)
+    if client_id:
+        orders = orders.filter(client_id=client_id)
+    
+
+    
+
+    
+    # Obtener datos para filtros
+    from apps.hrm.models import Subsidiary
+    
+    subsidiaries = Subsidiary.objects.all()
+    clients = Client.objects.all()
+    
+    # Contexto para la plantilla
+    context = {
+        'start_date': start_date,
+        'end_date': end_date,
+        'subsidiary_id': subsidiary_id,
+        'client_id': client_id,
+        'orders': orders.order_by('-create_at')[:100],  # Últimas 100 órdenes
+        'subsidiaries': subsidiaries,
+        'clients': clients,
+    }
+    
+    return render(request, 'sales/sales_report_professional.html', context)
