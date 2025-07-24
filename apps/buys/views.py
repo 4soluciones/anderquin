@@ -2114,16 +2114,33 @@ def save_update_purchase(request):
                     purchase_detail_obj.quantity = quantity_units
                     purchase_detail_obj.unit = unit_obj
                     purchase_detail_obj.price_unit = price
+                    
+                    # Agregar cliente del detalle si existe
+                    if 'ClientDetail' in detail and detail['ClientDetail']:
+                        client_detail_id = int(detail['ClientDetail'])
+                        client_detail_obj = Client.objects.get(id=client_detail_id)
+                        purchase_detail_obj.client_entity = client_detail_obj
+                    else:
+                        purchase_detail_obj.client_entity = None
+                    
                     purchase_detail_obj.save()
 
                 else:
-                    new_purchase_detail_obj = PurchaseDetail(
-                        purchase=purchase_obj,
-                        product=product_obj,
-                        quantity=quantity_units,
-                        unit=unit_obj,
-                        price_unit=price
-                    )
+                    new_purchase_detail = {
+                        'purchase': purchase_obj,
+                        'product': product_obj,
+                        'quantity': quantity_units,
+                        'unit': unit_obj,
+                        'price_unit': price,
+                    }
+                    
+                    # Agregar cliente del detalle si existe
+                    if 'ClientDetail' in detail and detail['ClientDetail']:
+                        client_detail_id = int(detail['ClientDetail'])
+                        client_detail_obj = Client.objects.get(id=client_detail_id)
+                        new_purchase_detail['client_entity'] = client_detail_obj
+                    
+                    new_purchase_detail_obj = PurchaseDetail.objects.create(**new_purchase_detail)
                     new_purchase_detail_obj.save()
 
         return JsonResponse({

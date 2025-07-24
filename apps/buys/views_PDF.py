@@ -111,6 +111,11 @@ styles.add(ParagraphStyle(name='Center_Newgot_1', alignment=TA_CENTER, leading=1
 styles.add(ParagraphStyle(name='Center-text', alignment=TA_CENTER, leading=8, fontName='Square', fontSize=8))
 styles.add(ParagraphStyle(name='Justify_Newgot', alignment=TA_JUSTIFY, leading=10, fontName='Newgot', fontSize=10))
 styles.add(ParagraphStyle(name='Right_Newgot', alignment=TA_RIGHT, leading=12, fontName='Newgot', fontSize=12))
+# Estilos para los detalles de la tabla con tamaños equilibrados
+styles.add(ParagraphStyle(name='Client_Small', alignment=TA_LEFT, leading=20, fontName='Square', fontSize=20, textColor=colors.black))
+styles.add(ParagraphStyle(name='Detail_Small', alignment=TA_LEFT, leading=20, fontName='Square', fontSize=20, textColor=colors.black))
+styles.add(ParagraphStyle(name='Detail_Center_Small', alignment=TA_CENTER, leading=20, fontName='Square', fontSize=20, textColor=colors.black))
+styles.add(ParagraphStyle(name='Detail_Right_Small', alignment=TA_RIGHT, leading=20, fontName='Square', fontSize=20, textColor=colors.black))
 style = styles["Normal"]
 
 reportlab.rl_config.TTFSearchPath.append(str(settings.BASE_DIR) + '/static/fonts')
@@ -259,7 +264,7 @@ BASE = 21
 ALTURA = 29.7
 
 
-def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
+def print_pdf(request, pk=None):  
     _wt = BASE * inch - 50 * 0.05 * inch  # termical
     tbh_business_name_address = ''
     ml = 0.0 * inch
@@ -442,6 +447,9 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     # **************************************************************************************************************** #
     # **************************************************************************************************************** #
 
+    # Verificar si existe algún cliente en los detalles
+    has_client = purchase_detail.filter(client_entity__isnull=False).exists()
+
     style_table_4 = [
         ('BOX', (0, 0), (-1, -1), 2, colors.black),
         ('BACKGROUND', (0, 0), (-1, -1), COLOR_BLUE),
@@ -454,20 +462,35 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
     p4_1 = Paragraph(f'N°', styles["CenterSquare"])
     p4_2 = Paragraph(f'COD', styles["Left"])
     p4_3 = Paragraph(f'DESCRIPCIÓN', styles["Left"])
-    p4_4 = Paragraph(f'CANTIDAD', styles["CenterSquare"])
-    # p4_4 = Paragraph(f'UM', styles["Left"])
-    p4_5 = Paragraph(f'U. M.', styles["CenterSquare"])
-    p4_6 = Paragraph(f'CANT./U. M.', styles["Left"])
-    # p4_6 = Paragraph(f'UNIDADES', styles["Left"])
-    p4_7 = Paragraph(f'PRECIO UNIT.', styles["Left"])
-    p4_8 = Paragraph(f'SUB TOTAL', styles["Right"])
+    
+    if has_client:
+        p4_4 = Paragraph(f'CLIENTE', styles["CenterSquare"])
+        p4_5 = Paragraph(f'CANTIDAD', styles["CenterSquare"])
+        p4_6 = Paragraph(f'U. M.', styles["CenterSquare"])
+        p4_7 = Paragraph(f'CANT./U. M.', styles["Left"])
+        p4_8 = Paragraph(f'PRECIO UNIT.', styles["Left"])
+        p4_9 = Paragraph(f'SUB TOTAL', styles["Right"])
 
-    colwiths_table_4 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 30 / 100, _wt * 11 / 100, _wt * 15 / 100, _wt * 10 / 100,
-                        _wt * 11 / 100, _wt * 11 / 100]
-    rowwiths_table_4 = [inch * 1]
-    ana_c4 = Table(
-        [(p4_1, p4_2, p4_3, p4_4, p4_5, p4_6, p4_7, p4_8)],
-        colWidths=colwiths_table_4, rowHeights=rowwiths_table_4)
+        colwiths_table_4 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 25 / 100, _wt * 12 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+                            _wt * 11 / 100, _wt * 12 / 100]
+        rowwiths_table_4 = [inch * 1]
+        ana_c4 = Table(
+            [(p4_1, p4_2, p4_3, p4_4, p4_5, p4_6, p4_7, p4_8, p4_9)],
+            colWidths=colwiths_table_4, rowHeights=rowwiths_table_4)
+    else:
+        p4_4 = Paragraph(f'CANTIDAD', styles["CenterSquare"])
+        p4_5 = Paragraph(f'U. M.', styles["CenterSquare"])
+        p4_6 = Paragraph(f'CANT./U. M.', styles["Left"])
+        p4_7 = Paragraph(f'PRECIO UNIT.', styles["Left"])
+        p4_8 = Paragraph(f'SUB TOTAL', styles["Right"])
+
+        colwiths_table_4 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 37 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+                            _wt * 11 / 100, _wt * 12 / 100]
+        rowwiths_table_4 = [inch * 1]
+        ana_c4 = Table(
+            [(p4_1, p4_2, p4_3, p4_4, p4_5, p4_6, p4_7, p4_8)],
+            colWidths=colwiths_table_4, rowHeights=rowwiths_table_4)
+    
     ana_c4.setStyle(TableStyle(style_table_4))
 
     _dictionary.append(Spacer(width=8, height=16))
@@ -495,6 +518,12 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
         contador += 1
         cod = f'{product.code}'
         description = f'{product.name}'
+        
+        # Información del cliente en columna separada
+        client_name = ''
+        if i.client_entity:
+            client_name = f'{i.client_entity.names.upper()}'
+        
         um = f'{i.unit.description}({int(quantity_minimum)}UND)'
 
         quantity_und = decimal.Decimal(i.quantity * quantity_minimum)
@@ -504,21 +533,36 @@ def print_pdf(request, pk=None):  # TICKET PASSENGER OLD
 
         total += sub_total
 
-        p5_1 = Paragraph(num, styles["CenterSquare"])
-        p5_2 = Paragraph(cod, styles["Left"])
-        p5_3 = Paragraph(description, styles["Left"])
-        p5_4 = Paragraph(um, styles["CenterSquare"])
-        p5_5 = Paragraph(f'{quantity}', styles["CenterSquare"])
-        p5_6 = Paragraph(f'{int(quantity_und)}', styles["CenterSquare"])
-        p5_7 = Paragraph(f'{price_unit}', styles["Left"])
-        p5_8 = Paragraph('{:,}'.format(sub_total), styles["Right"])
+        p5_1 = Paragraph(num, styles["Detail_Center_Small"])
+        p5_2 = Paragraph(cod, styles["Detail_Small"])
+        p5_3 = Paragraph(description, styles["Detail_Small"])
+        
+        if has_client:
+            p5_4 = Paragraph(client_name, styles["Client_Small"])
+            p5_5 = Paragraph(f'{quantity}', styles["Detail_Center_Small"])
+            p5_6 = Paragraph(um, styles["Detail_Center_Small"])
+            p5_7 = Paragraph(f'{int(quantity_und)}', styles["Detail_Center_Small"])
+            p5_8 = Paragraph(f'{price_unit}', styles["Detail_Small"])
+            p5_9 = Paragraph('{:,}'.format(sub_total), styles["Detail_Right_Small"])
 
-        colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 30 / 100, _wt * 11 / 100, _wt * 15 / 100, _wt * 10 / 100,
-                            _wt * 11 / 100, _wt * 11 / 100]
-        # rowwiths_table_5 = [inch * 0.5]
-        ana_c5 = Table(
-            [(p5_1, p5_2, p5_3, p5_6, p5_4, p5_5, p5_7, p5_8)],
-            colWidths=colwiths_table_5)
+            colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 25 / 100, _wt * 12 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+                                _wt * 11 / 100, _wt * 12 / 100]
+            ana_c5 = Table(
+                [(p5_1, p5_2, p5_3, p5_4, p5_5, p5_6, p5_7, p5_8, p5_9)],
+                colWidths=colwiths_table_5)
+        else:
+            p5_4 = Paragraph(f'{quantity}', styles["Detail_Center_Small"])
+            p5_5 = Paragraph(um, styles["Detail_Center_Small"])
+            p5_6 = Paragraph(f'{int(quantity_und)}', styles["Detail_Center_Small"])
+            p5_7 = Paragraph(f'{price_unit}', styles["Detail_Small"])
+            p5_8 = Paragraph('{:,}'.format(sub_total), styles["Detail_Right_Small"])
+
+            colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 37 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+                                _wt * 11 / 100, _wt * 12 / 100]
+            ana_c5 = Table(
+                [(p5_1, p5_2, p5_3, p5_4, p5_5, p5_6, p5_7, p5_8)],
+                colWidths=colwiths_table_5)
+        
         ana_c5.setStyle(TableStyle(style_table_5))
 
         _dictionary.append(ana_c5)
