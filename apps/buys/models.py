@@ -147,6 +147,8 @@ class PurchaseDetail(models.Model):
     price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
     status_quantity = models.CharField('Estado Cantidad', max_length=1, choices=STATUS_CHOICES, default='C')
     order = models.ForeignKey('sales.Order', on_delete=models.CASCADE, null=True, blank=True)
+    client_entity = models.ForeignKey('sales.Client', verbose_name='Cliente de entidad',
+                                      on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return str(self.id)

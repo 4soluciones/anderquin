@@ -156,8 +156,7 @@
             background: #e9ecef;
             opacity: 0.5;
             width: 100%;
-            {#height: 46em;#}
-            !important;bottom: 560px;
+            bottom: 560px;
             padding-right: 65em;
             padding-top: 2em;" id="loading-666">
     </div>
@@ -180,13 +179,12 @@
     </div>
 
     <style>
-
         .input-icon {
             position: relative;
         }
 
         .input-icon > i {
-        {#content: "$";#} position: absolute;
+            position: absolute;
             display: block;
             transform: translate(0, -50%);
             top: 50%;
@@ -211,6 +209,169 @@
             text-align: right;
         }
 
+        /* Estilos responsive para el formulario principal */
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 0.5rem;
+            }
+            
+            .row {
+                margin-left: -0.25rem;
+                margin-right: -0.25rem;
+            }
+            
+            .col-sm-12, .col-md-12, .col-lg-12 {
+                padding-left: 0.25rem;
+                padding-right: 0.25rem;
+            }
+            
+            .form-control {
+                font-size: 14px;
+                padding: 0.375rem 0.5rem;
+            }
+            
+            .btn {
+                font-size: 14px;
+                padding: 0.375rem 0.5rem;
+            }
+            
+            .card-header {
+                padding: 0.5rem;
+            }
+            
+            .card-header h6 {
+                font-size: 14px;
+            }
+            
+            /* Ajustar layout en móviles */
+            .col-sm-5, .col-md-5, .col-lg-5,
+            .col-sm-7, .col-md-7, .col-lg-7 {
+                flex: 0 0 100%;
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .card-body {
+                padding: 0.25rem;
+            }
+            
+            .form-control {
+                font-size: 13px;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            .btn {
+                font-size: 13px;
+                padding: 0.25rem 0.5rem;
+            }
+            
+            .card-header h6 {
+                font-size: 13px;
+            }
+            
+            /* Ocultar elementos menos importantes */
+            .btn-secondary {
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        /* Estilos para la funcionalidad de cliente en detalles */
+        .client-detail-active .client-detail-column {
+            display: table-cell !important;
+        }
+
+        /* Estilos para Select2 en detalles */
+        .select2-result-client {
+            padding: 2px 0;
+        }
+
+        .select2-result-client__title {
+            font-weight: bold;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .select2-result-client__subtitle {
+            color: #666;
+            font-size: 11px;
+            font-style: italic;
+        }
+
+        /* Centrar texto en elementos Select2 */
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            text-align: center !important;
+        }
+
+        .select2-container--default .select2-selection--single {
+            text-align: center !important;
+        }
+
+        /* Centrar texto en inputs de autocomplete */
+        .autocomplete-input {
+            text-align: center !important;
+        }
+
+        .select2-container--default .select2-selection--single {
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            height: 31px;
+            line-height: 1.5;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 28px;
+            padding-left: 8px;
+            color: #495057;
+            font-size: 12px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 29px;
+        }
+
+        .select2-dropdown {
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .select2-results__option {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .select2-results__option--highlighted[aria-selected] {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .select2-search__field {
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+
+        /* Mejoras responsive para Select2 */
+        @media (max-width: 768px) {
+            .select2-container--default .select2-selection--single {
+                height: 28px;
+            }
+            
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                line-height: 26px;
+                font-size: 11px;
+            }
+            
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 26px;
+            }
+            
+            .select2-results__option {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+        }
     </style>
 
 {% endblock body %}
@@ -334,11 +495,11 @@
                 headers: {"X-CSRFToken": '{{ csrf_token }}'},
                 success: function (response, textStatus, xhr) {
                     if (xhr.status === 200) {
-                        {#toastr.success(response.message, '¡Bien hecho!');#}
-                        {#console.log(response)#}
+                        // toastr.success(response.message, '¡Bien hecho!');
+                        // console.log(response)
                         _input_type_change.val('$' + response.buy);
-                        {#_provider.attr('provider', response.pk);#}
-                        {#$('#loading-666').hide();#}
+                        // _provider.attr('provider', response.pk);
+                        // $('#loading-666').hide();
                     }
                 },
                 error: function (jqXhr, textStatus, xhr) {
@@ -351,7 +512,7 @@
                             console.log(" STATUS: " + xhr + " " + textStatus);
                         }
                     }
-                    {#$('#loading-666').hide();#}
+                    // $('#loading-666').hide();
                 },
             });
             return false;
@@ -591,8 +752,8 @@
             _select.append(option);
             $(this).parent('td').find('div.dropdown-menu').css({
                 'background-color': 'transparent',
-                'border': 'transparent',
-                {#'margin-top': '10px'#}
+                'border': 'transparent'
+                // 'margin-top': '10px'
             })
             //$('#id_unit_product').val('0')
         });
@@ -683,7 +844,7 @@
             //console.log(units)
             for (let i = 0; i < units.length; i++) {
                 let _quantity_minimum = Number(units[i].quantity_minimum).toFixed(0);
-                {#let option = $('<option>').val(units[i].unit_id).text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')');#}
+                // let option = $('<option>').val(units[i].unit_id).text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')');
                 let option = $('<option>')
                     .val(units[i].unit_id)
                     .text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')')
@@ -775,7 +936,7 @@
                             let _q_x_u = _quantity / _quantity_minimum
                             //_input_cant_x_und.val(_q_x_u.toFixed(2))
                             _input_quantity_minimum.val(_q_x_u.toFixed(2))
-                            {#_input_cant_x_und.val(Math.ceil(_q_x_u))#}
+                            // _input_cant_x_und.val(Math.ceil(_q_x_u))
                         }
                         //_input_quantity_minimum.val(response.quantity_minimum + ' UND');
                         _price_unit_product.val(response.price_purchase);
@@ -789,7 +950,7 @@
             let unit_id = $(this).val();
             if (unit_id !== '0') {
                 let _input_quantity_x_unit = $(this).closest('td').find('input.quantity-x-unit');
-                {#let product_id = $(this).parent('div').parent('div.row').parent('td').parent('tr').attr('product')#}
+                // let product_id = $(this).parent('div').parent('div.row').parent('td').parent('tr').attr('product')
                 let product_id = $(this).closest('td').parent('tr').attr('product')
                 let _quantity = Number($(this).closest('td').parent('tr').find('td.item-quantity input.quantity-product').val())
                 let _tr = $(this).closest('td').parent('tr')
@@ -842,47 +1003,13 @@
             sum_table()
         });
 
-        $(document).on('click', '#btn-add-new-detail', function () {
 
-            let _check = $("#check_dollar");
-            let _val_money = 'S/'
-
-            if (_check.is(':checked')) {
-                _val_money = '$'
-            }
-
-            $('#id_detail_data_grid > tbody').append(
-                '<tr class="text-center">' +
-                '<td class="item-numero align-middle">' + '</td>' +
-                '<td class="align-middle text-left product-item-table">' +
-                '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
-                '               data-toggle="dropdown" aria-expanded="false" placeholder="Ingrese producto...">' + '<div class="dropdown-menu"></div>' + '</td>' +
-                '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">' + '</td>' +
-                '<td class="align-middle unit text-center">' +
-                '<select class="form-control unit-product text-center" id="id_unit_product" name="unit_product" required>' +
-                '<option disabled value="0">Seleccione</option>' +
-                '</td>' +
-                '<td class="align-middle quantity-minimum text-center">' +
-                '<input type="text" class="form-control text-center quantity-minimum-val" readonly>' +
-                '</td>' +
-                '<td class="item-price text-right align-middle" price-unit-with-discount="">' + '<div class="input-icon">' +
-                '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
-                '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
-                '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
-                '<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
-                '</tr>');
-            counterStrike()
-        });
 
         $(document).on('keyup', '.total-detail', function () {
             let _tr = $(this).parent('div').parent('td').parent('tr')
-            {#let _tr = $("#id_detail_data_grid tbody#details-table tr")#}
             let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
             let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
-            {#console.log('_total',_total)#}
-            {#console.log('_quantity',_quantity)#}
             let price_unit = _total / _quantity
-            {#console.log(price_unit)#}
 
             _tr.find('td.item-price div.input-icon input.price-unit-product').val(Number(price_unit).toFixed(2));
             calculate_total(_tr)
@@ -904,8 +1031,8 @@
 
             //console.log("_tr", _tr.find('td.item-price div.input-icon input.price-unit-product'))
             //console.log("_quantity", _quantity)
-            {#console.log("_price_unit", _price_unit)#}
-            {#console.log("_total", _total)#}
+            //console.log("_price_unit", _price_unit)
+            //console.log("_total", _total)
             //console.log("_quantity_minimum", _quantity_minimum)
             if (!isNaN(_quantity_minimum)) {
                 quantityDivideUnit(_quantity, _quantity_minimum, _tr)
@@ -998,7 +1125,7 @@
             if (type_pay === 'L') {
                 $('.dues').removeClass('d-none');
                 $('.table-dues').removeClass('d-none');
-                {#$('#modal-debs').modal('show');#}
+                //$('#modal-debs').modal('show');
             } else {
                 $('.dues').addClass('d-none');
                 $('.table-dues').addClass('d-none');
@@ -1010,9 +1137,10 @@
             let _select = $('#client_final_address');
             _select.empty();
             _select.append($('<option>').val("0").text('Seleccione'));
-            if (_client_address !== '[]') {
+            if (_client_address && _client_address.length > 0) {
                 for (let i = 0; i < _client_address.length; i++) {
-                    let option = $('<option>').val(_client_address[i]['id']).text(_client_address[i]['address'].toUpperCase());
+                    let address = _client_address[i]['address'] || '';
+                    let option = $('<option>').val(_client_address[i]['id']).text(address.toUpperCase());
                     _select.append(option);
                 }
             }
@@ -1120,7 +1248,8 @@
                         _select.append($('<option>').val("0").text('Seleccione'));
                         if (response['client_address_set'] !== '[]') {
                             for (let i = 0; i < _supplier_address.length; i++) {
-                                let option = $('<option>').val(_supplier_address[i]['pk']).text(_supplier_address[i]['fields']['address'].toUpperCase());
+                                let address = _supplier_address[i]['fields']['address'] || '';
+                                let option = $('<option>').val(_supplier_address[i]['pk']).text(address.toUpperCase());
                                 _select.append(option);
                             }
                         }
@@ -1142,7 +1271,7 @@
                     fetch(url)
                         .then(response => response.json())
                         .then(data => {
-                            resolve(data.client)
+                            resolve(data.results || [])
                         })
                 })
             },
@@ -1182,21 +1311,22 @@
                     $('#client_final_address').val("0");
                     $('.client-final').removeClass('d-none');
                     $('.delivery-client-final').removeClass('d-none');
-                    {#$('.delivery-client').addClass('d-none');#}
+                    //$('.delivery-client').addClass('d-none');
 
                 } else {
                     $('.client-final').addClass('d-none');
                     $('#client_final_address').val("0");
                     $('.delivery-client-final').addClass('d-none');
-                    {#$('.delivery-client').removeClass('d-none');#}
+                    //$('.delivery-client').removeClass('d-none');
                     //await getAddress(client_id, _client_address)
                 }
                 _select.empty();
                 //console.log("_result", result)
                 _select.append($('<option>').val("0").text('Seleccione'));
-                if (_client_address !== '[]') {
+                if (_client_address && _client_address.length > 0) {
                     for (let i = 0; i < _client_address.length; i++) {
-                        let option = $('<option>').val(_client_address[i]['id']).text(_client_address[i]['address'].toUpperCase());
+                        let address = _client_address[i]['address'] || '';
+                        let option = $('<option>').val(_client_address[i]['id']).text(address.toUpperCase());
                         _select.append(option);
                     }
                 }
@@ -1217,7 +1347,7 @@
                     fetch(url)
                         .then(response => response.json())
                         .then(data => {
-                            resolve(data.client)
+                            resolve(data.results || [])
                         })
                 })
             },
@@ -1248,9 +1378,10 @@
                     $('#client_final').val(client_id);
                     _select.empty();
                     _select.append($('<option>').val("0").text('Seleccione'));
-                    if (_client_address !== '[]') {
+                    if (_client_address && _client_address.length > 0) {
                         for (let i = 0; i < _client_address.length; i++) {
-                            let option = $('<option>').val(_client_address[i]['id']).text(_client_address[i]['address'].toUpperCase());
+                            let address = _client_address[i]['address'] || '';
+                            let option = $('<option>').val(_client_address[i]['id']).text(address.toUpperCase());
                             _select.append(option);
                         }
                     }
@@ -1271,6 +1402,338 @@
                     _correlative.val(response.correlative)
                 },
             });
+        });
+
+        // Función para mostrar/ocultar columna de cliente en detalles
+        function toggleClientDetailColumn(show) {
+            if (show) {
+                $('#id_detail_data_grid').addClass('client-detail-active');
+                $('.client-detail-column').removeClass('d-none');
+            } else {
+                $('#id_detail_data_grid').removeClass('client-detail-active');
+                $('.client-detail-column').addClass('d-none');
+            }
+        }
+
+        // Modificar la función handleClientSubmit para activar columna de cliente
+        async function handleClientSubmit(result) {
+            if (result) {
+                let client_id = result.id;
+                let _select = $('#client_address_reference');
+                let type_client = result.type_client;
+                let _client_address = result.address;
+                
+                $('#client_reference_id').val(client_id);
+                $('#type_client_reference').val(type_client);
+                $('#client_final').val('');
+                $('#person-final-names').val("");
+                
+                // Activar columna de cliente en detalles si es tipo PR
+                if (type_client === 'PR') {
+                    toggleClientDetailColumn(true);
+                    $('#client_final_address').val("0");
+                    $('.client-final').removeClass('d-none');
+                    $('.delivery-client-final').removeClass('d-none');
+                } else {
+                    toggleClientDetailColumn(false);
+                    $('.client-final').addClass('d-none');
+                    $('#client_final_address').val("0");
+                    $('.delivery-client-final').addClass('d-none');
+                }
+                
+                _select.empty();
+                _select.append($('<option>').val("0").text('Seleccione'));
+                if (_client_address && _client_address.length > 0) {
+                    for (let i = 0; i < _client_address.length; i++) {
+                        let address = _client_address[i]['address'] || '';
+                        let option = $('<option>').val(_client_address[i]['id']).text(address.toUpperCase());
+                        _select.append(option);
+                    }
+                }
+            } else {
+                toastr.warning('Seleccione un cliente valido', 'Error de llenado');
+                return false;
+            }
+        }
+
+        // Inicializar Select2 para clientes en detalles
+        function initializeSelect2ClientDetail(selectElement) {
+            $(selectElement).select2({
+                placeholder: 'Buscar Cliente...',
+                allowClear: true,
+                minimumInputLength: 2,
+                ajax: {
+                    url: '/buys/get_client/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            search: params.term || '',
+                            page: params.page || 1
+                        };
+                    },
+                    processResults: function(data, params) {
+                        params.page = params.page || 1;
+                        
+                        return {
+                            results: data.results || [],
+                            pagination: {
+                                more: false
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function(client) {
+                    if (client.loading) return client.text;
+                    if (!client.id) return client.text;
+                    
+                    return $(`
+                        <div class="select2-result-client">
+                            <div class="select2-result-client__title">${client.names}</div>
+                            <div class="select2-result-client__subtitle">${client.number_document}</div>
+                        </div>
+                    `);
+                },
+                templateSelection: function(client) {
+                    if (!client.id) return client.text;
+                    return client.names || client.text;
+                }
+            }).on('select2:select', function(e) {
+                let data = e.params.data;
+                let row = $(this).closest('tr');
+                let hiddenInput = row.find('.client-detail-id');
+                hiddenInput.val(data.id);
+            }).on('select2:clear', function(e) {
+                let row = $(this).closest('tr');
+                let hiddenInput = row.find('.client-detail-id');
+                hiddenInput.val('');
+            });
+        }
+
+        // Inicializar Select2 en elementos existentes
+        $(document).ready(function() {
+            $('.select2-client-detail').each(function() {
+                initializeSelect2ClientDetail(this);
+            });
+        });
+
+        // Inicializar Select2 en elementos dinámicos
+        $(document).on('select2:open', '.select2-client-detail', function() {
+            if (!$(this).data('select2')) {
+                initializeSelect2ClientDetail(this);
+            }
+        });
+
+        // Modificar función para agregar nueva fila con columna de cliente
+        $(document).on('click', '#btn-add-new-detail', function () {
+            let _check = $("#check_dollar");
+            let _val_money = 'S/'
+            let _type_client = $('#type_client_reference').val();
+            let _show_client_column = _type_client === 'PR';
+
+            if (_check.is(':checked')) {
+                _val_money = '$'
+            }
+
+            let clientColumn = '';
+            if (_show_client_column) {
+                clientColumn = '<td class="align-middle client-detail-column">' +
+                    '<select class="form-control select2-client-detail" data-row="' + ($('#details-table tr').length + 1) + '" style="width: 100%;">' +
+                    '<option value="">Buscar Cliente...</option>' +
+                    '</select>' +
+                    '<input type="hidden" class="client-detail-id" value="">' +
+                    '</td>';
+            }
+
+            $('#id_detail_data_grid > tbody').append(
+                '<tr class="text-center">' +
+                '<td class="item-numero align-middle">' + '</td>' +
+                '<td class="align-middle text-left product-item-table">' +
+                '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
+                '               data-toggle="dropdown" aria-expanded="false" placeholder="Ingrese producto...">' + '<div class="dropdown-menu"></div>' + '</td>' +
+                clientColumn +
+                '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">' + '</td>' +
+                '<td class="align-middle unit text-center">' +
+                '<select class="form-control unit-product text-center" id="id_unit_product" name="unit_product" required>' +
+                '<option disabled value="0">Seleccione</option>' +
+                '</td>' +
+                '<td class="align-middle quantity-minimum text-center">' +
+                '<input type="text" class="form-control text-center quantity-minimum-val" readonly>' +
+                '</td>' +
+                '<td class="item-price text-right align-middle" price-unit-with-discount="">' + '<div class="input-icon">' +
+                '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
+                '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
+                '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
+                '<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                '</tr>');
+            
+            // Inicializar Select2 en la nueva fila si es necesario
+            if (_show_client_column) {
+                let newRow = $('#details-table tr:last');
+                let selectElement = newRow.find('.select2-client-detail');
+                initializeSelect2ClientDetail(selectElement);
+            }
+            
+            counterStrike()
+        });
+
+        // Modificar la función de guardar para incluir clientes de detalles
+        $('#btn-save').click(function (event) {
+            event.preventDefault();
+            let reference = $('#reference').val();
+            let _contract = $("#contract_detail_id");
+            let delivery_date = $('#delivery_date').val();
+            let _payment_type = $('#payment_type').val();
+            let _supplier = $('#supplier_id').val();
+            let _type_client_reference = $('#type_client_reference').val();
+            let _client_reference = $('#client_reference_id').val();
+            let _client_final = $('#client_final').val();
+
+            if (_contract.val() !== '') {
+                if (delivery_date === '') {
+                    toastr.warning('¡Seleccione la fecha de entrega!', 'Mensaje');
+                    return false;
+                }
+            } else {
+                delivery_date = ''
+            }
+
+            if (_payment_type === '0') {
+                toastr.warning('¡Selecione el tipo de pago!', 'Mensaje');
+                return false;
+            }
+            if (_supplier === '0') {
+                toastr.warning('¡Selecione el proveedor!', 'Mensaje');
+                return false;
+            }
+            if (hasRowBuysDetails() === false) {
+                toastr.warning('¡Seleccione los productos!', 'Mensaje');
+                return false;
+            }
+            if (checkUnit() === true) {
+                toastr.warning('¡Selecione el tipo de unidad en los productos!', 'Mensaje');
+                return false;
+            }
+            if (_client_reference === '') {
+                toastr.warning('¡SELECCIONE AL CLIENTE!', 'Mensaje');
+                return false;
+            }
+            if (_type_client_reference === 'PR') {
+                if (_client_final === '') {
+                    toastr.warning('¡SELECCIONE CLIENTE FINAL!', 'Mensaje');
+                    return false;
+                }
+                if ($('#check-client-final').prop('checked')) {
+                    if ($('#client_final_address').val() === '0') {
+                        toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA DEL CLIENTE FINAL!', 'Mensaje');
+                        return false;
+                    }
+                }
+            }
+            if ($('#check-subsidiary').prop('checked')) {
+                if ($('#address_subsidiary').val() === '0') {
+                    toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA EN LA SUCURSAL!', 'Mensaje');
+                    return false;
+                }
+            }
+            if ($('#check-provider').prop('checked')) {
+                if ($('#address_provider').val() === '0') {
+                    toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA DEL PROVEEDOR!', 'Mensaje');
+                    return false;
+                }
+            }
+            if ($('#check-client').prop('checked')) {
+                if ($('#client_address_reference').val() === '0') {
+                    toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA DEL CLIENTE!', 'Mensaje');
+                    return false;
+                }
+            }
+
+            if ($("#id_detail_data_grid tbody#details-table tr").length > 0 && $('.product-table').val() !== '') {
+                let table_foot = $("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("#id_detail_data_foot tbody#table-detail-foot tr")
+                let Detail_purchase = {
+                    "SupplierId": _supplier,
+                    "Date": $('#id_fechacompra').val(),
+                    "Reference": reference,
+                    "Delivery_date": delivery_date,
+                    "Type_Pay": _payment_type,
+                    "Pay_condition": $('#pay_condition').val(),
+                    "Base_Total": Number(table_foot.find("td.foot-base input.total-foot-base").val()),
+                    "Igv_Total": Number(table_foot.find("td.foot-igv input.total-foot-igv").val()),
+                    "Import_Total": Number(table_foot.find("td.foot-total input.total-foot-total").val()),
+                    "Check_Igv": ($("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("div.form-check input.check-igv").is(':checked')) ? 1 : 0,
+                    "Check_Dollar": ($("#check_dollar").is(':checked')) ? 1 : 0,
+                    "Details": [],
+
+                    "client_reference_id": _client_reference,
+                    "client_final": _client_final,
+
+                    "check-subsidiary": ($("#check-subsidiary").is(':checked')) ? 1 : 0,
+                    "check-provider": ($("#check-provider").is(':checked')) ? 1 : 0,
+                    "check-client-final": ($("#check-client-final").is(':checked')) ? 1 : 0,
+                    "check-client": ($("#check-client").is(':checked')) ? 1 : 0,
+
+                    "address_subsidiary": $("#address_subsidiary").val(),
+                    "address_provider": $("#address_provider").val(),
+                    "client_address_reference": $("#client_address_reference").val(),
+                    "client_final_address": $("#client_final_address").val(),
+                    "observations": $("#observations").val(),
+                    "contract_detail_id": _contract.val(),
+                    "correlative": $('#correlative').val()
+                };
+                $("#id_detail_data_grid tbody#details-table tr").each(function () {
+                    let detailObj = {
+                        "Product": $(this).attr('product'),
+                        "Unit": $(this).find("td.unit select.unit-product").val(),
+                        "Quantity": $(this).find("td.item-quantity input.quantity-product").val(),
+                        "QuantityUnits": $(this).find("td.quantity-minimum input.quantity-minimum-val").val(),
+                        "Price": Number($(this).find("td.item-price input.price-unit-product").val()),
+                        "Total": Number($(this).find("td.item-total input.total-detail").val()),
+                    };
+                    
+                    // Agregar cliente del detalle si existe
+                    let clientDetailId = $(this).find('.client-detail-id').val();
+                    if (clientDetailId) {
+                        detailObj["ClientDetail"] = clientDetailId;
+                    }
+                    
+                    Detail_purchase.Details.push(detailObj);
+                });
+                console.log(Detail_purchase)
+                $('#btn-save').prop('disabled', true)
+                $.ajax({
+                    url: '/buys/save_purchase/',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    data: {'purchase': JSON.stringify(Detail_purchase)},
+                    contentType: 'application/json;charset=UTF-8',
+                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            toastr.success(response.message, '¡COMPRA REGISTRADA CORRECTAMENTE!');
+                            let purchase_id = response.pk
+                            window.location.href = "/buys/print_pdf_purchase_order/" + purchase_id + "/";
+                            if (response.contract) {
+                                setTimeout(() => {
+                                    window.open("/buys/contracts/", '_self');
+                                }, 2000);
+                            } else {
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 2000);
+                            }
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        toastr.error("ERROR. ", '¡INCONCEBIBLE!');
+                    }
+                });
+            } else {
+                toastr.warning("PARA REALIZAR LA COMPRA AGREGUE AL MENOS UN PRODUCTO. ", '¡ADVERTENCIA!');
+                return false;
+            }
         });
 
     </script>

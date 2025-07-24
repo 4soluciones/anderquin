@@ -4,12 +4,12 @@
            cellspacing="0" style="width: 100%;">
         <thead>
         <tr class="text-center text-white" style="background: #3e6787">
-            <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Nº</th>
-            <th scope="col" class="align-middle font-weight-normal" style="width: 40%;">Descripción de Artículo{{ selected_data }}</th>
-            <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Cantidad</th>
-            <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Unidad Medida</th>
-            <th scope="col" class="align-middle font-weight-normal" style="width: 10%; background-color: #518d86">Cant. / U. M.</th>
-{#            <th scope="col" class="align-middle font-weight-normal" style="width: 18%; background-color: #518d86">Cant.x Und Med.</th>#}
+            <th scope="col" class="align-middle font-weight-normal" style="width: 4%;">Nº</th>
+            <th scope="col" class="align-middle font-weight-normal" style="width: 25%;">Descripción de Artículo</th>
+            <th scope="col" class="align-middle font-weight-normal client-detail-column d-none" style="width: 25%; background: #3e6787">Cliente</th>
+            <th scope="col" class="align-middle font-weight-normal" style="width: 8%;">Cantidad</th>
+            <th scope="col" class="align-middle font-weight-normal" style="width: 8%;">Unidad Medida</th>
+            <th scope="col" class="align-middle font-weight-normal" style="width: 8%; background-color: #518d86">Cant. / U. M.</th>
             <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Valor Unitario</th>
             <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Importe</th>
             <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Eliminar</th>
@@ -28,6 +28,14 @@
                                value="{{ c.product_name }}"
                                disabled>
                         <div class="dropdown-menu"></div>
+                    </td>
+                    <td class="align-middle client-detail-column d-none">
+                        <select class="form-control select2-client-detail" 
+                                data-row="{{ c.counter }}"
+                                style="width: 100%;">
+                            <option value="">Buscar Cliente...</option>
+                        </select>
+                        <input type="hidden" class="client-detail-id" value="">
                     </td>
                     <td class="align-middle item-quantity">
                         <input type="text"
@@ -74,6 +82,14 @@
                            placeholder="Ingrese producto...">
                     <div class="dropdown-menu"></div>
                 </td>
+                <td class="align-middle client-detail-column d-none">
+                    <select class="form-control select2-client-detail" 
+                            data-row="1"
+                            style="width: 100%;">
+                        <option value="">Buscar Cliente...</option>
+                    </select>
+                    <input type="hidden" class="client-detail-id" value="">
+                </td>
                 <td class="align-middle item-quantity">
                     <input type="text"
                            class="form-control text-center quantity-product text-uppercase"
@@ -89,24 +105,6 @@
                     <input type="text" class="form-control text-center quantity-minimum-val" aria-label="..." style="background-color: #bde7e2">
                 </td>
 
-{#                <td class="align-middle item-quantity-x-unit" style="background-color: #bde7e2">#}
-{#                    <div class="row">#}
-{#                        <div class="col-sm-3 text-center pr-0">#}
-{#                            <label class="mt-2">Ver en:</label>#}
-{#                        </div>#}
-{#                        <div class="col-sm-3 pr-0 pl-0 mt-1">#}
-{#                            <select class="form-control quantity-unit pl-0 pr-0 text-center" aria-label="..."#}
-{#                                    style="font-size: 0.7585em; background-color: #bde7e2">#}
-{#                                <option value="0">Seleccione</option>#}
-{#                            </select>#}
-{#                        </div>#}
-{#                        <div class="col-sm-6 pl-1">#}
-{#                            <input type="text" aria-label="..." style="background-color: #bde7e2"#}
-{#                                   class="form-control text-center quantity-x-unit text-uppercase"#}
-{#                                   readonly>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </td>#}
                 <td class="item-price text-right align-middle">
                     <div class="input-icon">
                         <input type="text" class="form-control text-right text-uppercase price-unit-product"
@@ -145,8 +143,6 @@
                         <th scope="col" class="align-middle font-weight-normal" style="width: 35%;">Base Imponible</th>
                         <th scope="col" class="align-middle font-weight-normal" style="width: 30%;">IGV (18%)</th>
                         <th scope="col" class="align-middle font-weight-normal" style="width: 35%;">Importe Total</th>
-                        {#                        <th scope="col" class="align-middle font-weight-normal" style="width: 20%;">Flete</th>#}
-                        {#                        <th scope="col" class="align-middle font-weight-normal" style="width: 25%;">Total Documento</th>#}
                     <tbody id="table-detail-foot">
                     <tr class="text-center">
                         <td class="foot-base">
@@ -170,20 +166,6 @@
                                        placeholder="0.00"><i class="change-money">S/</i>
                             </div>
                         </td>
-                        {#                        <td class="foot-freight">#}
-                        {#                            <div class="input-icon">#}
-                        {#                                <input type="text" class="form-control text-right text-uppercase total-foot-freight"#}
-                        {#                                       placeholder="0.00">#}
-                        {#                                <i class="change-money font-weight-lighter">S/</i>#}
-                        {#                            </div>#}
-                        {#                        </td>#}
-                        {#                        <td class="foot-document">#}
-                        {#                            <div class="input-icon">#}
-                        {#                                <input type="text" class="form-control text-right text-uppercase total-foot-document"#}
-                        {#                                       placeholder="0.00">#}
-                        {#                                <i class="change-money font-weight-lighter">S/</i>#}
-                        {#                            </div>#}
-                        {#                        </td>#}
                     </tr>
                     </tbody>
                 </table>
@@ -193,3 +175,139 @@
 
     </table>
 </div>
+
+<style>
+/* Estilos responsive para móviles y tablets */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 12px;
+    }
+    
+    .table th, .table td {
+        padding: 0.25rem;
+        vertical-align: middle;
+    }
+    
+    .form-control {
+        font-size: 12px;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .btn {
+        font-size: 12px;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    /* Ocultar columnas menos importantes en móviles */
+    .table th:nth-child(5),
+    .table td:nth-child(5) {
+        display: none;
+    }
+    
+    /* Ajustar anchos de columnas */
+    .table th:nth-child(1), .table td:nth-child(1) { width: 8%; }
+    .table th:nth-child(2), .table td:nth-child(2) { width: 35%; }
+    .table th:nth-child(3), .table td:nth-child(3) { width: 20%; }
+    .table th:nth-child(4), .table td:nth-child(4) { width: 15%; }
+    .table th:nth-child(6), .table td:nth-child(6) { width: 10%; }
+    .table th:nth-child(7), .table td:nth-child(7) { width: 10%; }
+}
+
+@media (max-width: 576px) {
+    .table-responsive {
+        font-size: 11px;
+    }
+    
+    .form-control {
+        font-size: 11px;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    .btn {
+        font-size: 11px;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    /* Ocultar más columnas en pantallas muy pequeñas */
+    .table th:nth-child(4),
+    .table td:nth-child(4) {
+        display: none;
+    }
+    
+    /* Ajustar anchos */
+    .table th:nth-child(1), .table td:nth-child(1) { width: 10%; }
+    .table th:nth-child(2), .table td:nth-child(2) { width: 40%; }
+    .table th:nth-child(3), .table td:nth-child(3) { width: 25%; }
+    .table th:nth-child(5), .table td:nth-child(5) { width: 15%; }
+    .table th:nth-child(6), .table td:nth-child(6) { width: 10%; }
+}
+
+/* Estilos para la columna de cliente en detalles */
+.client-detail-column {
+    background-color: #f8f9fa;
+}
+
+/* Estilos para Select2 en detalles */
+.select2-client-detail {
+    font-size: 12px;
+}
+
+.select2-container--default .select2-selection--single {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    height: 31px;
+    line-height: 1.5;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 28px;
+    padding-left: 8px;
+    color: #495057;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 29px;
+}
+
+.select2-dropdown {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.select2-results__option {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.select2-results__option--highlighted[aria-selected] {
+    background-color: #007bff;
+    color: white;
+}
+
+.select2-search__field {
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+/* Mejoras responsive para Select2 */
+@media (max-width: 768px) {
+    .select2-container--default .select2-selection--single {
+        height: 28px;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 26px;
+        font-size: 11px;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 26px;
+    }
+    
+    .select2-results__option {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+}
+</style>

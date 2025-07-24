@@ -206,6 +206,13 @@ def save_purchase(request):
                 'unit': unit_obj,
                 'price_unit': price,
             }
+            
+            # Agregar cliente del detalle si existe
+            if 'ClientDetail' in detail and detail['ClientDetail']:
+                client_detail_id = int(detail['ClientDetail'])
+                client_detail_obj = Client.objects.get(id=client_detail_id)
+                new_purchase_detail['client_entity'] = client_detail_obj
+            
             new_purchase_detail_obj = PurchaseDetail.objects.create(**new_purchase_detail)
             new_purchase_detail_obj.save()
         contract = False
@@ -2128,35 +2135,48 @@ def save_update_purchase(request):
 
 def get_client(request):
     if request.method == 'GET':
-        search = request.GET.get('search')
+        search = request.GET.get('search', '').strip()
         client = []
-        if search:
-            client_set = Client.objects.filter(names__icontains=search)
+        
+        if search and len(search) >= 2:  # Mínimo 2 caracteres para buscar
+            # Búsqueda más eficiente con select_related y prefetch_related
+            client_set = Client.objects.filter(
+                Q(names__icontains=search) | 
+                Q(clienttype__document_number__icontains=search)
+            ).select_related().prefetch_related(
+                'clientaddress_set__district',
+                'clienttype_set'
+            )[:20]  # Limitar a 20 resultados para mejor rendimiento
+            
             for c in client_set:
-                client_address_set = c.clientaddress_set.all()
-                if client_address_set.exists():
-                    address_dict = [{
-                        'id': cd.id,
-                        'address': cd.address,
-                        'district': cd.district.description if cd.district else '-',
-                        'reference': cd.reference
-                    } for cd in client_address_set]
-                else:
-                    address_dict = []
-
+                # Obtener el último tipo de documento
+                last_document = c.clienttype_set.last()
+                document_number = last_document.document_number if last_document else '-'
+                
+                # Obtener todas las direcciones del cliente
+                client_addresses = []
+                for address in c.clientaddress_set.all():
+                    client_addresses.append({
+                        'id': address.id,
+                        'address': address.address
+                    })
+                
+                # Crear texto de búsqueda mejorado
+                search_text = f"{c.names} - {document_number}"
+                
                 client.append({
                     'id': c.id,
+                    'text': search_text,  # Para Select2
                     'names': c.names,
                     'type_client_display': c.get_type_client_display(),
                     'type_client': c.type_client,
-                    'number_document': c.clienttype_set.last().document_number,
-                    'address': address_dict,
-                    'last_address': c.clientaddress_set.last().address if c.clientaddress_set.last() else '-'
+                    'number_document': document_number,
+                    'address': client_addresses
                 })
 
         return JsonResponse({
             'status': True,
-            'client': client
+            'results': client  # Cambiar a 'results' para Select2
         })
 
 
