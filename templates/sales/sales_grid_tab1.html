@@ -101,10 +101,17 @@
                         <div class="form-group col-md-7 mb-2 text-uppercase small">
                             <label class="mb-2 text-center"
                                    for="client_address"> Dirección:</label>
-                            <input type="text" class="form-control form-control-sm text-uppercase"
-                                   id="client_address"
-                                   value="{{ guide_obj.client.clientaddress_set.last.address }}"
-                                   name="name_address" readonly>
+                            <select class="form-control form-control-sm text-uppercase"
+                                    id="client_address"
+                                    name="name_address">
+                                {% if guide_obj %}
+                                    <option value="{{ guide_obj.client.clientaddress_set.last.address }}" selected>
+                                        {{ guide_obj.client.clientaddress_set.last.address }}
+                                    </option>
+                                {% else %}
+                                    <option value="" selected disabled>Seleccione una dirección</option>
+                                {% endif %}
+                            </select>
                         </div>
                         <!--<table class="table table-sm text-uppercase small align-right"
                                style="width: 100%">

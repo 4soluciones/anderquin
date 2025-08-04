@@ -500,6 +500,7 @@ def print_pdf(request, pk=None):
     # **************************************************************************************************************** #
 
     total = 0
+    total_quantity = 0
     contador = 1
     # for i in range(products):
     style_table_5 = [
@@ -532,6 +533,7 @@ def print_pdf(request, pk=None):
         sub_total = (i.price_unit * quantity).quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_EVEN)
 
         total += sub_total
+        total_quantity += quantity
 
         p5_1 = Paragraph(num, styles["Detail_Center_Small"])
         p5_2 = Paragraph(cod, styles["Detail_Small"])
@@ -574,16 +576,73 @@ def print_pdf(request, pk=None):
         # ('BACKGROUND', (0, 0), (-1, -1), COLOR_BLUE),
     ]
     str_total = '{:,}'.format(total)
-    if currency_type:
-        p6_1 = Paragraph(f'TOTAL: $ {str_total}', styles["Right"])
-    else:
-        p6_1 = Paragraph(f'TOTAL: S/ {str_total}', styles["Right"])
+    str_total_quantity = '{:,}'.format(round(total_quantity, 2))
+    
+    if has_client:
+        if currency_type:
+            p6_1 = Paragraph('', styles["Detail_Center_Small"])
+            p6_2 = Paragraph('', styles["Detail_Small"])
+            p6_3 = Paragraph('', styles["Detail_Small"])
+            p6_4 = Paragraph('', styles["Client_Small"])
+            p6_5 = Paragraph(f'TOTAL: {str_total_quantity}', styles["Detail_Center_Small"])
+            p6_6 = Paragraph('', styles["Detail_Center_Small"])
+            p6_7 = Paragraph('', styles["Detail_Center_Small"])
+            p6_8 = Paragraph('', styles["Detail_Small"])
+            p6_9 = Paragraph(f'TOTAL: $ {str_total}', styles["Detail_Right_Small"])
 
-    colwiths_table_6 = [_wt * 100 / 100]
-    rowwiths_table_6 = [inch * 0.5]
-    ana_c6 = Table(
-        [(p6_1,)],
-        colWidths=colwiths_table_6, rowHeights=rowwiths_table_6)
+            colwiths_table_6 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 25 / 100, _wt * 12 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+                                _wt * 11 / 100, _wt * 12 / 100]
+            ana_c6 = Table(
+                [(p6_1, p6_2, p6_3, p6_4, p6_5, p6_6, p6_7, p6_8, p6_9)],
+                colWidths=colwiths_table_6)
+        else:
+            p6_1 = Paragraph('', styles["Detail_Center_Small"])
+            p6_2 = Paragraph('', styles["Detail_Small"])
+            p6_3 = Paragraph('', styles["Detail_Small"])
+            p6_4 = Paragraph('', styles["Client_Small"])
+            p6_5 = Paragraph(f'TOTAL: {str_total_quantity}', styles["Detail_Center_Small"])
+            p6_6 = Paragraph('', styles["Detail_Center_Small"])
+            p6_7 = Paragraph('', styles["Detail_Center_Small"])
+            p6_8 = Paragraph('', styles["Detail_Small"])
+            p6_9 = Paragraph(f'TOTAL: S/ {str_total}', styles["Detail_Right_Small"])
+
+            colwiths_table_6 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 25 / 100, _wt * 12 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+                                _wt * 11 / 100, _wt * 12 / 100]
+            ana_c6 = Table(
+                [(p6_1, p6_2, p6_3, p6_4, p6_5, p6_6, p6_7, p6_8, p6_9)],
+                colWidths=colwiths_table_6)
+    else:
+        if currency_type:
+            p6_1 = Paragraph('', styles["Detail_Center_Small"])
+            p6_2 = Paragraph('', styles["Detail_Small"])
+            p6_3 = Paragraph('', styles["Detail_Small"])
+            p6_4 = Paragraph(f'TOTAL: {str_total_quantity}', styles["Detail_Center_Small"])
+            p6_5 = Paragraph('', styles["Detail_Center_Small"])
+            p6_6 = Paragraph('', styles["Detail_Center_Small"])
+            p6_7 = Paragraph('', styles["Detail_Small"])
+            p6_8 = Paragraph(f'TOTAL: $ {str_total}', styles["Detail_Right_Small"])
+
+            colwiths_table_6 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 37 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+                                _wt * 11 / 100, _wt * 12 / 100]
+            ana_c6 = Table(
+                [(p6_1, p6_2, p6_3, p6_4, p6_5, p6_6, p6_7, p6_8)],
+                colWidths=colwiths_table_6)
+        else:
+            p6_1 = Paragraph('', styles["Detail_Center_Small"])
+            p6_2 = Paragraph('', styles["Detail_Small"])
+            p6_3 = Paragraph('', styles["Detail_Small"])
+            p6_4 = Paragraph(f'TOTAL: {str_total_quantity}', styles["Detail_Center_Small"])
+            p6_5 = Paragraph('', styles["Detail_Center_Small"])
+            p6_6 = Paragraph('', styles["Detail_Center_Small"])
+            p6_7 = Paragraph('', styles["Detail_Small"])
+            p6_8 = Paragraph(f'TOTAL: S/ {str_total}', styles["Detail_Right_Small"])
+
+            colwiths_table_6 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 37 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+                                _wt * 11 / 100, _wt * 12 / 100]
+            ana_c6 = Table(
+                [(p6_1, p6_2, p6_3, p6_4, p6_5, p6_6, p6_7, p6_8)],
+                colWidths=colwiths_table_6)
+    
     ana_c6.setStyle(TableStyle(style_table_6))
 
     _dictionary.append(Spacer(width=8, height=16))
@@ -714,72 +773,65 @@ def print_pdf(request, pk=None):
         _dictionary.append(Spacer(width=8, height=16))
         _dictionary.append(ana_c9)
 
-        # ********************* if ********************* #
-        if purchase_obj.client_reference_entity:
-            client_reference_entity = purchase_obj.client_reference_entity
-            style_table_10 = [
-                # ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ]
-
-            p10_1 = Paragraph(f'Referencia de Venta a la Entidad', styles["Left"])
-
-            colwiths_table_10 = [_wt * 100 / 100]
-            rowwiths_table_10 = [inch * 0.75]
-            ana_c10 = Table(
-                [(p10_1,)],
-                colWidths=colwiths_table_10, rowHeights=rowwiths_table_10)
-            ana_c10.setStyle(TableStyle(style_table_10))
-            _dictionary.append(Spacer(width=8, height=16))
-            _dictionary.append(ana_c10)
-
-            # **************************************************************************************************************** #
-            # **************************************************************************************************************** #
-
-            style_table_11 = [
-                # ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ('BOX', (0, 0), (-1, -1), 2, colors.black),
-                # ('BACKGROUND', (0, 2), (0, 2), COLOR_BLUE),
-                ('VALIGN', (0, 2), (0, 2), 'TOP'),
-                # ('BOX', (0, 4), (-1, -1), 2, colors.black),
-                # ('BOX', (-1, -4), (-1, -1), 2, colors.black),
-                # ('BOX', (0, 0), (0, -1), 2, colors.black),
-
-                # ('SPAN', (-1, 0), (-1, 3)),
-                # ('SPAN', (-1, 0), (-1, 3)),
-                # ('SPAN', (1, 4), (1, 5)),
-            ]
-
-            # reference_entity_obj = purchase_obj.reference_entity
-
-            address_entity = '-'
-            if client_reference_entity.clientaddress_set.exists():
-                address_entity = client_reference_entity.clientaddress_set.last().address.upper()
-
-            p11_1 = Paragraph(f'Razón Social: ', styles["Right"])
-            p11_2 = Paragraph(f'{client_reference_entity.names.upper()}', styles["Left"])
-            p11_3 = Paragraph(f'RUC: ', styles["Right"])
-            p11_4 = Paragraph(f'{client_reference_entity.clienttype_set.last().document_number}', styles["Left"])
-            p11_5 = Paragraph(f'Dirección: ', styles["Right"])
-            p11_6 = Paragraph(f'{address_entity}', styles["Left"])
-            # p10_6 = Paragraph(f'Referencia: ', styles["Right"])
-
-            colwiths_table_11 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
-            # rowwiths_table_11 = [inch * 0.5, inch * 0.5, inch * 0.5]
-            ana_c11 = Table(
-                [(p11_1, '', p11_2)] +
-                [(p11_3, '', p11_4)] +
-                [(p11_5, '', p11_6)],
-                colWidths=colwiths_table_11)
-            ana_c11.setStyle(TableStyle(style_table_11))
-
-            _dictionary.append(Spacer(width=8, height=16))
-            _dictionary.append(ana_c11)
-    #
-    #         # ********************* endif ********************* #
-    #
-    #     # **************************************************************************************************************** #
-    #     # ********************* endif ********************* #
-    #     # **************************************************************************************************************** #
+        # if purchase_obj.client_reference_entity:
+        #     client_reference_entity = purchase_obj.client_reference_entity
+        #     style_table_10 = [
+        #         # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        #     ]
+        #
+        #     p10_1 = Paragraph(f'Referencia de Venta a la Entidad', styles["Left"])
+        #
+        #     colwiths_table_10 = [_wt * 100 / 100]
+        #     rowwiths_table_10 = [inch * 0.75]
+        #     ana_c10 = Table(
+        #         [(p10_1,)],
+        #         colWidths=colwiths_table_10, rowHeights=rowwiths_table_10)
+        #     ana_c10.setStyle(TableStyle(style_table_10))
+        #     _dictionary.append(Spacer(width=8, height=16))
+        #     _dictionary.append(ana_c10)
+        #
+        #     # **************************************************************************************************************** #
+        #     # **************************************************************************************************************** #
+        #
+        #     style_table_11 = [
+        #         # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        #         ('BOX', (0, 0), (-1, -1), 2, colors.black),
+        #         # ('BACKGROUND', (0, 2), (0, 2), COLOR_BLUE),
+        #         ('VALIGN', (0, 2), (0, 2), 'TOP'),
+        #         # ('BOX', (0, 4), (-1, -1), 2, colors.black),
+        #         # ('BOX', (-1, -4), (-1, -1), 2, colors.black),
+        #         # ('BOX', (0, 0), (0, -1), 2, colors.black),
+        #
+        #         # ('SPAN', (-1, 0), (-1, 3)),
+        #         # ('SPAN', (-1, 0), (-1, 3)),
+        #         # ('SPAN', (1, 4), (1, 5)),
+        #     ]
+        #
+        #     # reference_entity_obj = purchase_obj.reference_entity
+        #
+        #     address_entity = '-'
+        #     if client_reference_entity.clientaddress_set.exists():
+        #         address_entity = client_reference_entity.clientaddress_set.last().address.upper()
+        #
+        #     p11_1 = Paragraph(f'Razón Social: ', styles["Right"])
+        #     p11_2 = Paragraph(f'{client_reference_entity.names.upper()}', styles["Left"])
+        #     p11_3 = Paragraph(f'RUC: ', styles["Right"])
+        #     p11_4 = Paragraph(f'{client_reference_entity.clienttype_set.last().document_number}', styles["Left"])
+        #     p11_5 = Paragraph(f'Dirección: ', styles["Right"])
+        #     p11_6 = Paragraph(f'{address_entity}', styles["Left"])
+        #     # p10_6 = Paragraph(f'Referencia: ', styles["Right"])
+        #
+        #     colwiths_table_11 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
+        #     # rowwiths_table_11 = [inch * 0.5, inch * 0.5, inch * 0.5]
+        #     ana_c11 = Table(
+        #         [(p11_1, '', p11_2)] +
+        #         [(p11_3, '', p11_4)] +
+        #         [(p11_5, '', p11_6)],
+        #         colWidths=colwiths_table_11)
+        #     ana_c11.setStyle(TableStyle(style_table_11))
+        #
+        #     _dictionary.append(Spacer(width=8, height=16))
+        #     _dictionary.append(ana_c11)
     if purchase_obj.observation:
         style_table_12 = [
             # ('GRID', (0, 0), (-1, -1), 1, colors.black),
@@ -795,9 +847,6 @@ def print_pdf(request, pk=None):
         ana_c12.setStyle(TableStyle(style_table_12))
         _dictionary.append(Spacer(width=8, height=16))
         _dictionary.append(ana_c12)
-
-        # **************************************************************************************************************** #
-        # **************************************************************************************************************** #
 
         style_table_13 = [
             # ('GRID', (0, 0), (-1, -1), 1, colors.black),
@@ -873,15 +922,9 @@ def print_pdf(request, pk=None):
                             title='Orden de Compra'
                             )
     doc.build(_dictionary)
-    # doc.build(elements)
-    # doc.build(Story)
-    #
-    # response = HttpResponse(content_type='application/pdf')
-    # response['Content-Disposition'] = 'attachment; filename="{}-{}.pdf"'.format(order_obj.nombres, order_obj.pagos.id)
-    #
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
+    # response['Content-Disposition'] = 'attachment; filename="[{}].pdf"'.format(purchase_obj.bill_number)
 
     tomorrow = datetime.now() + timedelta(days=1)
     tomorrow = tomorrow.replace(hour=0, minute=0, second=0)

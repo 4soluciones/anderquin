@@ -134,6 +134,21 @@
             window.location.href = '/sales/sales_list';
         });
 
+        // Función para limpiar el select de direcciones
+        function clearClientAddress() {
+            let $addressSelect = $('#client_address');
+            $addressSelect.empty();
+            $addressSelect.append('<option value="" selected disabled>Seleccione una dirección</option>');
+        }
+
+        // Evento para limpiar direcciones cuando se limpia el campo de cliente
+        $(document).on('input', '#person-names', function() {
+            if ($(this).val().trim() === '') {
+                clearClientAddress();
+                $('#client-id').val('');
+            }
+        });
+
         if ($("#radio2").is(':checked')) {
             $("#document_type_sender").attr('disabled', 'disabled');
             $("#id_client_name").removeAttr('disabled');
@@ -151,7 +166,7 @@
                 $("#id-nro-document-client").attr('readonly', false);
                 $('#document_type_sender').val(0);
                 $("#client-id").val('');
-                $("#client_address").val('');
+                clearClientAddress();
                 $("#client_name").val('');
 
             } else if ($("#radio2").is(':checked')) {
@@ -161,7 +176,7 @@
                 $("#document_type_sender").trigger('change');
                 $("#person-names").removeAttr('disabled');
                 $("#client-id").val('');
-                $("#client_address").val('');
+                clearClientAddress();
                 $("#client_name").val('');
                 $("#id-nro-document-client").val('');
                 $("#id-nro-document-client").attr('readonly', true);
@@ -678,7 +693,7 @@
                     fetch(url)
                         .then(response => response.json())
                         .then(data => {
-                            resolve(data.client)
+                            resolve(data.results)
                         })
                 })
             },
@@ -705,9 +720,22 @@
                     let client_id = result.id;
                     let type_client = result.type_client;
                     let _address_dict = result.address;
+
                     $('#client-id').val(client_id);
-                    $('#client_name').val(result.names);
-                    $('#client_address').val(result.last_address);
+                    //$('#client_name').val(result.names);
+                    
+                    // Limpiar y llenar el select de direcciones
+                    let $addressSelect = $('#client_address');
+                    $addressSelect.empty();
+                    $addressSelect.append('<option value="" selected disabled>Seleccione una dirección</option>');
+                    
+                    if (_address_dict && _address_dict.length > 0) {
+                        _address_dict.forEach(function(address) {
+                            $addressSelect.append($('<option>').val(address.address).text(address.address.toUpperCase()));
+                        });
+                    } else {
+                        $addressSelect.append('<option value="">Sin direcciones registradas</option>');
+                    }
 
                 } else {
                     toastr.warning('Seleccione un cliente valido', 'Error de llenado');

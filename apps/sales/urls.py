@@ -98,6 +98,11 @@ urlpatterns = [
     path('client_update/', login_required(client_update), name='client_update'),
     path('get_api_client/', login_required(get_api_client), name='get_api_client'),
 
+    # Cuentas por cobrar
+    path('accounts_receivable_report/', login_required(accounts_receivable_report), name='accounts_receivable_report'),
+    path('get_client_payment_modal/', login_required(get_client_payment_modal), name='get_client_payment_modal'),
+    path('save_client_payment/', login_required(save_client_payment), name='save_client_payment'),
+
     # List quotation
     path('get_sales_quotation_by_subsidiary/', login_required(get_sales_quotation_by_subsidiary), name='get_sales_quotation_by_subsidiary'),
 

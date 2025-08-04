@@ -4744,3 +4744,250 @@ def sales_report_professional(request):
     }
     
     return render(request, 'sales/sales_report_professional.html', context)
+
+
+def accounts_receivable_report(request):
+    """
+    Reporte profesional de cuentas por cobrar
+    """
+    user_id = request.user.id
+    user_obj = User.objects.get(id=user_id)
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+
+    if request.method == 'GET':
+        mydate = datetime.now()
+        formatdate = mydate.strftime("%Y-%m-%d")
+
+        # Obtener clientes para el filtro
+        clients = Client.objects.filter(
+            order__isnull=False, 
+            order__subsidiary=subsidiary_obj, 
+            order__order_type='V'
+        ).distinct('id').values('id', 'names').order_by('id', 'names')
+
+        return render(request, 'sales/accounts_receivable_report.html', {
+            'formatdate': formatdate,
+            'clients': clients,
+        })
+
+    elif request.method == 'POST':
+        print("=== DEBUG: POST request recibido ===")
+        print(f"POST data: {request.POST}")
+        start_date = str(request.POST.get('start-date'))
+        end_date = str(request.POST.get('end-date'))
+        client_id = request.POST.get('client_id', '')
+        print(f"start_date: {start_date}")
+        print(f"end_date: {end_date}")
+        print(f"client_id: {client_id}")
+
+        # Obtener clientes con ventas
+        client_set = Client.objects.filter(
+            order__isnull=False, 
+            order__subsidiary=subsidiary_obj, 
+            order__order_type='V',
+            order__status__in=['P', 'C']  # Pendiente o Completado
+        ).distinct('id').values('id', 'names', 'phone', 'email').order_by('id')
+
+        if client_id:
+            client_set = client_set.filter(id=client_id)
+
+        accounts_receivable_data = []
+
+        for client in client_set:
+            # Obtener órdenes del cliente
+            orders = Order.objects.filter(
+                client_id=client['id'],
+                subsidiary=subsidiary_obj,
+                order_type='V',
+                status__in=['P', 'C']
+            ).order_by('create_at')
+
+            client_total_debt = 0
+            client_total_paid = 0
+            client_pending = 0
+            orders_data = []
+
+            for order in orders:
+                # Calcular total de la orden
+                order_total = get_total_order(order.id)
+                
+                # Calcular pagos realizados
+                loan_payments = LoanPayment.objects.filter(
+                    order_detail__order=order,
+                    type='V'  # Venta
+                )
+                
+                total_paid = sum([lp.pay for lp in loan_payments]) if loan_payments.exists() else 0
+                pending_amount = order_total - total_paid
+
+                if pending_amount > 0:  # Solo incluir órdenes con saldo pendiente
+                    client_total_debt += order_total
+                    client_total_paid += total_paid
+                    client_pending += pending_amount
+
+                    # Obtener detalles de pagos
+                    payment_details = []
+                    for lp in loan_payments:
+                        transaction_payments = TransactionPayment.objects.filter(loan_payment=lp)
+                        for tp in transaction_payments:
+                            payment_details.append({
+                                'date': lp.operation_date,
+                                'amount': tp.payment,
+                                'type': tp.get_type_display(),
+                                'operation_code': tp.operation_code,
+                                'file': lp.file.url if lp.file else None,
+                                'loan_payment_id': lp.id
+                            })
+
+                    orders_data.append({
+                        'order_id': order.id,
+                        'order_date': order.create_at,
+                        'order_total': order_total,
+                        'total_paid': total_paid,
+                        'pending_amount': pending_amount,
+                        'payment_details': payment_details,
+                        'correlative': order.correlative,
+                        'serial': order.serial,
+                        'type_document': order.get_type_document_display()
+                    })
+
+            if client_pending > 0:  # Solo incluir clientes con saldo pendiente
+                accounts_receivable_data.append({
+                    'client_id': client['id'],
+                    'client_name': client['names'],
+                    'client_phone': client['phone'],
+                    'client_email': client['email'],
+                    'total_debt': client_total_debt,
+                    'total_paid': client_total_paid,
+                    'pending_amount': client_pending,
+                    'orders': orders_data
+                })
+
+        # Ordenar por monto pendiente descendente
+        accounts_receivable_data.sort(key=lambda x: x['pending_amount'], reverse=True)
+
+        # Calcular totales
+        total_pending = sum([client['pending_amount'] for client in accounts_receivable_data])
+        total_orders = sum([len(client['orders']) for client in accounts_receivable_data])
+
+        tpl = loader.get_template('sales/accounts_receivable_grid.html')
+        context = {
+            'accounts_receivable_data': accounts_receivable_data,
+            'start_date': start_date,
+            'end_date': end_date,
+            'total_pending': total_pending,
+            'total_orders': total_orders,
+        }
+        
+        return JsonResponse({
+            'grid': tpl.render(context, request),
+        }, status=HTTPStatus.OK)
+
+
+def get_client_payment_modal(request):
+    """
+    Obtener modal para agregar pago de cliente
+    """
+    if request.method == 'GET':
+        order_id = request.GET.get('order_id')
+        client_id = request.GET.get('client_id')
+        
+        order = Order.objects.get(id=order_id)
+        client = Client.objects.get(id=client_id)
+        
+        # Calcular total pendiente
+        order_total = get_total_order(order.id)
+        loan_payments = LoanPayment.objects.filter(order_detail__order=order, type='V')
+        total_paid = sum([lp.pay for lp in loan_payments]) if loan_payments.exists() else 0
+        pending_amount = order_total - total_paid
+        
+        # Obtener cuentas de caja disponibles
+        cash_accounts = Cash.objects.filter(
+            accounting_account__code__startswith='101'
+        )
+        
+        mydate = datetime.now()
+        formatdate = mydate.strftime("%Y-%m-%d")
+        
+        tpl = loader.get_template('sales/client_payment_modal.html')
+        context = {
+            'order': order,
+            'client': client,
+            'pending_amount': pending_amount,
+            'cash_accounts': cash_accounts,
+            'payment_types': TransactionPayment._meta.get_field('type').choices,
+            'formatdate': formatdate,
+        }
+        
+        return JsonResponse({
+            'modal': tpl.render(context, request),
+        }, status=HTTPStatus.OK)
+
+
+@csrf_exempt
+def save_client_payment(request):
+    """
+    Guardar pago de cliente
+    """
+    if request.method == 'POST':
+        try:
+            order_id = request.POST.get('order_id')
+            client_id = request.POST.get('client_id')
+            payment_amount = Decimal(request.POST.get('payment_amount'))
+            payment_type = request.POST.get('payment_type')
+            operation_code = request.POST.get('operation_code', '')
+            cash_account_id = request.POST.get('cash_account_id')
+            operation_date = request.POST.get('operation_date')
+            observation = request.POST.get('observation', '')
+            
+            # Obtener objetos
+            order = Order.objects.get(id=order_id)
+            client = Client.objects.get(id=client_id)
+            cash_account = Cash.objects.get(id=cash_account_id) if cash_account_id else None
+            
+            # Crear LoanPayment
+            loan_payment = LoanPayment.objects.create(
+                pay=payment_amount,
+                order_detail=order.orderdetail_set.first(),  # Usar el primer OrderDetail
+                type='V',  # Venta
+                operation_date=operation_date,
+                observation=observation
+            )
+            
+            # Crear TransactionPayment
+            transaction_payment = TransactionPayment.objects.create(
+                payment=payment_amount,
+                type=payment_type,
+                operation_code=operation_code,
+                loan_payment=loan_payment
+            )
+            
+            # Crear CashFlow si es necesario
+            if cash_account:
+                cash_flow = CashFlow.objects.create(
+                    transaction_date=operation_date,
+                    description=f"Pago cliente: {client.names} - Orden: {order.correlative}",
+                    type='E',  # Entrada
+                    total=payment_amount,
+                    cash=cash_account,
+                    operation_code=operation_code,
+                    order=order,
+                    user=request.user,
+                    client=client
+                )
+            
+            # Subir archivo si se proporciona
+            if 'payment_file' in request.FILES:
+                loan_payment.file = request.FILES['payment_file']
+                loan_payment.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Pago registrado exitosamente'
+            }, status=HTTPStatus.OK)
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al registrar pago: {str(e)}'
+            }, status=HTTPStatus.BAD_REQUEST)

@@ -562,7 +562,7 @@ class LoanPayment(models.Model):
     TYPE_CHOICES = (('V', 'Venta'), ('C', 'Compra'),)
     id = models.AutoField(primary_key=True)
     pay = models.DecimalField('Pago', max_digits=30, decimal_places=15, default=0)
-    order = models.ForeignKey('Order', on_delete=models.SET_NULL, null=True, blank=True)
+    order_detail = models.ForeignKey('OrderDetail', on_delete=models.SET_NULL, null=True, blank=True)
     create_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     type = models.CharField('Tipo de Operacion', max_length=1, choices=TYPE_CHOICES, default='V', )
     bill = models.ForeignKey('accounting.Bill', on_delete=models.SET_NULL, null=True, blank=True)
@@ -592,7 +592,7 @@ class TransactionPayment(models.Model):
         if self.type == 'D':
             cash_flow_set = CashFlow.objects.filter(type='D',
                                                     total=self.payment,
-                                                    order=self.loan_payment.order,
+                                                    order=self.loan_payment.order_detail.order,
                                                     operation_code=self.operation_code)
             if cash_flow_set:
                 response = cash_flow_set.last()

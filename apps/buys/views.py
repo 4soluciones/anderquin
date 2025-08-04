@@ -372,8 +372,10 @@ def get_buy_order_list(request):
         user_id = request.user.id
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
+        current_year = datetime.now().year
         return render(request, 'buys/buy_order_list.html', {
-            'subsidiary_obj': subsidiary_obj
+            'subsidiary_obj': subsidiary_obj,
+            'current_year': current_year
         })
 
     elif request.method == 'POST':

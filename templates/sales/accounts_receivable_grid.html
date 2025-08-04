@@ -1,0 +1,322 @@
+{% if accounts_receivable_data %}
+    <!-- Resumen del Reporte -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card bg-gradient-info text-white">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h4 class="mb-0">{{ accounts_receivable_data|length }}</h4>
+                            <small>Clientes con Saldo Pendiente</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="mb-0">S/ {{ total_pending|floatformat:2 }}</h4>
+                            <small>Total por Cobrar</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="mb-0">{{ total_orders }}</h4>
+                            <small>Órdenes Pendientes</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="mb-0">{{ start_date|date:"d/m/Y" }} - {{ end_date|date:"d/m/Y" }}</h4>
+                            <small>Período del Reporte</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla Principal -->
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-list mr-2"></i>
+                Detalle de Cuentas por Cobrar
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="accounts-receivable-table">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th class="text-center" style="width: 5%">#</th>
+                            <th style="width: 20%">Cliente</th>
+                            <th class="text-center" style="width: 10%">Contacto</th>
+                            <th class="text-center" style="width: 12%">Total Deuda</th>
+                            <th class="text-center" style="width: 12%">Total Pagado</th>
+                            <th class="text-center" style="width: 12%">Saldo Pendiente</th>
+                            <th class="text-center" style="width: 10%">Órdenes</th>
+                            <th class="text-center" style="width: 19%">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client_data in accounts_receivable_data %}
+                            <tr class="client-row" data-client-id="{{ client_data.client_id }}">
+                                <td class="text-center align-middle">
+                                    <span class="badge badge-primary">{{ forloop.counter }}</span>
+                                </td>
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-light rounded-circle d-flex align-items-center justify-content-center mr-3">
+                                            <i class="fas fa-user text-muted"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 font-weight-bold">{{ client_data.client_name }}</h6>
+                                            <small class="text-muted">ID: {{ client_data.client_id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center align-middle">
+                                    {% if client_data.client_phone %}
+                                        <div class="mb-1">
+                                            <i class="fas fa-phone text-success mr-1"></i>
+                                            <small>{{ client_data.client_phone }}</small>
+                                        </div>
+                                    {% endif %}
+                                    {% if client_data.client_email %}
+                                        <div>
+                                            <i class="fas fa-envelope text-info mr-1"></i>
+                                            <small>{{ client_data.client_email }}</small>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge badge-secondary font-weight-bold">
+                                        S/ {{ client_data.total_debt|floatformat:2 }}
+                                    </span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge badge-success font-weight-bold">
+                                        S/ {{ client_data.total_paid|floatformat:2 }}
+                                    </span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge badge-danger font-weight-bold">
+                                        S/ {{ client_data.pending_amount|floatformat:2 }}
+                                    </span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge badge-info">{{ client_data.orders|length }}</span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary btn-toggle-orders" 
+                                                data-client-id="{{ client_data.client_id }}">
+                                            <i class="fas fa-eye mr-1"></i>
+                                            Ver Órdenes
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-success"
+                                                onclick="loadFile('', '{{ client_data.client_id }}')"
+                                                data-toggle="modal" data-target="#fileModal">
+                                            <i class="fas fa-file-alt mr-1"></i>
+                                            Archivos
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Detalle de Órdenes (Collapsible) -->
+                            <tr class="orders-detail-row" style="display: none;">
+                                <td colspan="8" class="p-0">
+                                    <div class="card card-body bg-light m-2">
+                                            <h6 class="mb-3">
+                                                <i class="fas fa-list-alt mr-2"></i>
+                                                Órdenes Pendientes - {{ client_data.client_name }}
+                                            </h6>
+                                            
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="thead-light">
+                                                        <tr>
+                                                            <th>Orden</th>
+                                                            <th>Fecha</th>
+                                                            <th>Documento</th>
+                                                            <th>Total</th>
+                                                            <th>Pagado</th>
+                                                            <th>Pendiente</th>
+                                                            <th>Pagos</th>
+                                                            <th>Acciones</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for order in client_data.orders %}
+                                                            <tr>
+                                                                <td>
+                                                                    <strong>{{ order.correlative }}</strong>
+                                                                    <br>
+                                                                    <small class="text-muted">#{{ order.order_id }}</small>
+                                                                </td>
+                                                                <td>{{ order.order_date|date:"d/m/Y" }}</td>
+                                                                <td>
+                                                                    <span class="badge badge-outline-secondary">
+                                                                        {{ order.type_document }}
+                                                                    </span>
+                                                                    {% if order.serial %}
+                                                                        <br><small>{{ order.serial }}</small>
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td class="text-right">
+                                                                    <strong>S/ {{ order.order_total|floatformat:2 }}</strong>
+                                                                </td>
+                                                                <td class="text-right">
+                                                                    <span class="text-success">
+                                                                        S/ {{ order.total_paid|floatformat:2 }}
+                                                                    </span>
+                                                                </td>
+                                                                <td class="text-right">
+                                                                    <span class="text-danger font-weight-bold">
+                                                                        S/ {{ order.pending_amount|floatformat:2 }}
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    {% if order.payment_details %}
+                                                                        <div class="payment-details">
+                                                                            {% for payment in order.payment_details %}
+                                                                                <div class="mb-1">
+                                                                                    <small>
+                                                                                        <i class="fas fa-calendar text-info mr-1"></i>
+                                                                                        {{ payment.date|date:"d/m/Y" }}
+                                                                                        <br>
+                                                                                        <i class="fas fa-money-bill text-success mr-1"></i>
+                                                                                        S/ {{ payment.amount|floatformat:2 }}
+                                                                                        <span class="badge badge-sm badge-outline-secondary ml-1">
+                                                                                            {{ payment.type }}
+                                                                                        </span>
+                                                                                        {% if payment.file %}
+                                                                                            <button type="button" class="btn btn-xs btn-outline-info ml-1"
+                                                                                                    onclick="loadFile('{{ payment.file }}', '{{ payment.loan_payment_id }}')"
+                                                                                                    data-toggle="modal" data-target="#fileModal">
+                                                                                                <i class="fas fa-file-image"></i>
+                                                                                            </button>
+                                                                                        {% endif %}
+                                                                                    </small>
+                                                                                </div>
+                                                                            {% endfor %}
+                                                                        </div>
+                                                                    {% else %}
+                                                                        <span class="text-muted">Sin pagos</span>
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td>
+                                                                    {% if order.pending_amount > 0 %}
+                                                                        <button type="button" class="btn btn-sm btn-success btn-add-payment"
+                                                                                data-order-id="{{ order.order_id }}"
+                                                                                data-client-id="{{ client_data.client_id }}">
+                                                                            <i class="fas fa-plus mr-1"></i>
+                                                                            Agregar Pago
+                                                                        </button>
+                                                                    {% else %}
+                                                                        <span class="badge badge-success">Pagado</span>
+                                                                    {% endif %}
+                                                                </td>
+                                                            </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="row mt-4">
+        <div class="col-md-12 text-center">
+            <button type="button" class="btn btn-outline-primary mr-2" onclick="exportToExcel()">
+                <i class="fas fa-file-excel mr-1"></i>
+                Exportar a Excel
+            </button>
+            <button type="button" class="btn btn-outline-danger mr-2" onclick="exportToPDF()">
+                <i class="fas fa-file-pdf mr-1"></i>
+                Exportar a PDF
+            </button>
+            <button type="button" class="btn btn-outline-info" onclick="printReport()">
+                <i class="fas fa-print mr-1"></i>
+                Imprimir
+            </button>
+        </div>
+    </div>
+
+    <script>
+
+        function exportToExcel() {
+            // Implementar exportación a Excel
+            toastr.info('Función de exportación a Excel en desarrollo', 'Información');
+        }
+
+        function exportToPDF() {
+            // Implementar exportación a PDF
+            toastr.info('Función de exportación a PDF en desarrollo', 'Información');
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        // Inicializar DataTable
+        $(document).ready(function() {
+            var table = $('#accounts-receivable-table').DataTable({
+                "pageLength": 25,
+                "order": [[5, "desc"]], // Ordenar por saldo pendiente
+                "language": {
+                    "url": "/static/assets/datatables/datatables.language.js"
+                },
+                "dom": 'Bfrtip',
+                "buttons": [
+                    'copy', 'csv', 'excel', 'pdf', 'print'
+                ],
+                "columnDefs": [
+                    {
+                        "targets": [0, 6, 7], // Columnas que no se ordenan
+                        "orderable": false
+                    }
+                ],
+                "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    // Ocultar filas de detalles por defecto
+                    if ($(nRow).hasClass('orders-detail-row')) {
+                        $(nRow).hide();
+                    }
+                    return nRow;
+                }
+            });
+            
+            // Manejar el botón "Ver Órdenes"
+            $(document).on('click', '.btn-toggle-orders', function(e) {
+                e.preventDefault();
+                var clientId = $(this).data('client-id');
+                var detailRow = $(this).closest('tr').next('.orders-detail-row');
+                
+                if (detailRow.is(':visible')) {
+                    detailRow.hide();
+                    $(this).html('<i class="fas fa-eye mr-1"></i> Ver Órdenes');
+                } else {
+                    detailRow.show();
+                    $(this).html('<i class="fas fa-eye-slash mr-1"></i> Ocultar Órdenes');
+                }
+                
+                // Redibujar la tabla para ajustar el layout
+                table.columns.adjust();
+            });
+        });
+    </script>
+{% else %}
+    <!-- Mensaje cuando no hay datos -->
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No hay cuentas por cobrar</h4>
+            <p class="text-muted">No se encontraron clientes con saldos pendientes en el período seleccionado.</p>
+            <button type="button" class="btn btn-primary" onclick="$('#id_btn_show').click()">
+                <i class="fas fa-refresh mr-1"></i>
+                Actualizar Reporte
+            </button>
+        </div>
+    </div>
+{% endif %} 
