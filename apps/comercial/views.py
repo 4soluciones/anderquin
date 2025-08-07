@@ -2180,6 +2180,7 @@ def save_guide(request):
 
         oc = data_guide["oc"]
         register_mtc = data_guide["register_mtc"]
+        cod_siaf = data_guide["cod_siaf"]
 
         contract_detail_obj = None
         if contract_detail:
@@ -2235,7 +2236,8 @@ def save_guide(request):
             contract_detail=contract_detail_obj,
             order_buy=oc,
             register_mtc=register_mtc,
-            subsidiary_store=store_obj
+            subsidiary_store=store_obj,
+            cod_siaf=cod_siaf
         )
         guide_obj.save()
 
@@ -2366,7 +2368,8 @@ def get_guide_by_contract(request):
                     'type_client_display': c.get_type_client_display(),
                     'type_client': c.type_client,
                     'number': c.clienttype_set.last().document_number,
-                    'address': address_dict
+                    'address': address_dict,
+                    'cod_siaf': c.cod_siaf
                 })
 
             item = {

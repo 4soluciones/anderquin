@@ -2190,7 +2190,8 @@ def get_client(request):
                     'type_client_display': c.get_type_client_display(),
                     'type_client': c.type_client,
                     'number_document': document_number,
-                    'address': client_addresses
+                    'address': client_addresses,
+                    'cod_siaf': c.cod_siaf
                 })
 
         return JsonResponse({

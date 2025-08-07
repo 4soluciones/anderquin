@@ -302,6 +302,7 @@ class Guide(models.Model):
     order_buy = models.CharField('Orden de Compra', max_length=50, null=True, blank=True)
     subsidiary_store = models.ForeignKey(SubsidiaryStore, verbose_name='Almacen', on_delete=models.SET_NULL, null=True,
                                          blank=True)
+    cod_siaf = models.CharField('MTC', max_length=50, null=True, blank=True)
 
     def __str__(self):
         return str(self.serial) + "-" + str(self.correlative)

@@ -77,10 +77,16 @@
                            class="form-control form-control-sm text-right" name="correlative" id="correlative"
                            value="">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label for="oc" class="text-primary">Nº O/C:</label>
                     <input class="form-control form-control-sm" type="text" value="" id="oc"
                            placeholder="Orden de Compra"
+                           name="oc" required>
+                </div>
+                <div class="col-md-1">
+                    <label for="siaf" class="text-primary">Siaf:</label>
+                    <input class="form-control form-control-sm" type="text" value="" id="siaf"
+                           placeholder="Codigo Siaf" autocomplete="off"
                            name="oc" required>
                 </div>
                 <div class="col-md-2">
@@ -142,11 +148,17 @@
                     {#                        </div>#}
                     {#                    {% endif %}#}
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-6">
                     <label for="name-client" class="text-primary">Razón Social (Destinatario):</label>
                     <input type="text"
                            class="form-control form-control-sm" name="name-client" id="name-client" disabled
                            value="{{ contract_detail_obj.contract.client.names }}" maxlength="500">
+                </div>
+                <div class="col-md-2">
+                    <label for="cod-client" class="text-primary">Cod. Und. Ejecutora:</label>
+                    <input type="text"
+                           class="form-control form-control-sm" name="cod-client" id="cod-client" disabled
+                           value="{{ contract_detail_obj.contract.client.cod_siaf }}">
                 </div>
             </div>
             <div class="row col-md-12 mb-1 mt-2 pr-0">
@@ -437,7 +449,8 @@
                 number_document: clientData[0].number,
                 id: clientData[0].id,
                 type_client: clientData[0].type_client,
-                address: clientData[0].address
+                address: clientData[0].address,
+                cod_siaf: clientData[0].cod_siaf
             };
             $('#person-names').val(clientData[0].names)
             handleClientSubmitGuide(client);
@@ -574,9 +587,11 @@
                 let document_number = result.number_document;
                 let _client_names = result.names;
                 let _client_address = result.address;
+                let cod_siaf = result.cod_siaf;
                 $('#client_id').val(client_id);
                 $('#name-client').val(_client_names);
                 $('#person-names').val(document_number);
+                $('#cod-client').val(cod_siaf);
             } else {
                 toastr.warning('Seleccione un cliente valido', 'Error de llenado');
                 return false;
@@ -690,6 +705,8 @@
             let license_driver = $('#license-driver').val();
             let names_driver = $('#names-driver').val();
 
+            let cod_siaf = $('#siaf').val();
+
             if (_store === null) {
                 toastr.warning('¡Seleccione el Almacen!', 'Mensaje');
                 return false;
@@ -790,6 +807,7 @@
                 "correlative": _correlative,
                 "oc": _oc,
                 "register_mtc": _register_mtc,
+                "cod_siaf": cod_siaf,
 
                 "document_transport": document_transport,
                 "name_transport": name_transport,
