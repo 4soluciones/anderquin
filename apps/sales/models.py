@@ -492,7 +492,7 @@ class Kardex(models.Model):
     id = models.AutoField(primary_key=True)
     operation = models.CharField('operación', max_length=1, choices=OPERATION_CHOICES, default='C')
     type_document = models.CharField('Tipo de documento', max_length=2, choices=TYPE_DOCUMENT, default='00')
-    type_operation = models.CharField('Tipo de operación', max_length=2, choices=TYPE_DOCUMENT, default='99')
+    type_operation = models.CharField('Tipo de operación', max_length=2, choices=TYPE_OPERATION, default='99')
     quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
     price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=15, default=0)
     price_total = models.DecimalField('Precio total', max_digits=30, decimal_places=15, default=0)

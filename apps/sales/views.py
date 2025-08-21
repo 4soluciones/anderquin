@@ -4509,10 +4509,12 @@ def kardex_list(request):
 
                 serial = ''
                 number = ''
-                if k.type_operation == '02':
+                if k.type_operation == '02' and k.type_document == '01' or k.type_document == '02':
                     serial = k.bill_detail.bill.serial
                     number = k.bill_detail.bill.correlative
-                elif k.type_operation == '01':
+                elif k.type_operation and k.type_document == '01' or k.type_document == '02':
+                    # print(k.order_detail)
+                    # print(k.id)
                     serial = k.order_detail.order.serial
                     number = k.order_detail.order.correlative
                 elif k.type_operation == '06':
