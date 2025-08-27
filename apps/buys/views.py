@@ -1913,6 +1913,11 @@ def update_purchase(request, pk=None):
         contract_detail_ids = [str(obj.contract_detail.id) for obj in contract_detail_purchase_set]
         contract_detail_ids_str = ','.join(contract_detail_ids)
 
+    # Verificar si el cliente de referencia es de tipo 'PR' para mostrar columna de cliente en detalles
+    show_client_detail_column = False
+    if purchase_obj.client_reference and purchase_obj.client_reference.type_client == 'PR':
+        show_client_detail_column = True
+
     for pd in purchase_obj.purchasedetail_set.all():
         product_detail = ProductDetail.objects.get(product=pd.product, unit__id=pd.unit.id)
         quantity_x_und = (pd.quantity * product_detail.quantity_minimum).quantize(decimal.Decimal('0.00'),
@@ -1931,7 +1936,9 @@ def update_purchase(request, pk=None):
             'quantity_x_und': quantity_x_und,
             'units': [],
             'price_unit': pd.price_unit.quantize(decimal.Decimal('0.000000'), rounding=decimal.ROUND_HALF_EVEN),
-            'total_detail': total_detail
+            'total_detail': total_detail,
+            'client_entity_id': pd.client_entity.id if pd.client_entity else None,
+            'client_entity_name': pd.client_entity.names if pd.client_entity else ''
         }
         for u in ProductDetail.objects.filter(product_id=pd.product.id):
             item_units = {
@@ -1941,7 +1948,7 @@ def update_purchase(request, pk=None):
             }
             item.get('units').append(item_units)
         purchase_detail_dict.append(item)
-    # print(purchase_detail_dict)
+    print(purchase_detail_dict)
     return render(request, 'buys/buy_list_edit.html', {
         'purchase': purchase_obj,
         'contract_obj': contract_obj,
@@ -1954,6 +1961,7 @@ def update_purchase(request, pk=None):
         'supplier_address_set': supplier_address_set,
         'client_reference_address_set': client_reference_address_set,
         'client_reference_entity_address_set': client_reference_entity_address_set,
+        'show_client_detail_column': show_client_detail_column,  # Nueva variable para controlar la columna
         # 'contract_dict': contract_dict,
         'purchase_detail_dict': purchase_detail_dict,
     })

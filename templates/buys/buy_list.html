@@ -825,157 +825,6 @@
             return _response;
         }
 
-        $('#btn-save').click(function (event) {
-            event.preventDefault();
-            let reference = $('#reference').val();
-            let _contract = $("#contract_detail_id");
-            let delivery_date = $('#delivery_date').val();
-            let _payment_type = $('#payment_type').val();
-            let _supplier = $('#supplier_id').val();
-            let _type_client_reference = $('#type_client_reference').val();
-            let _client_reference = $('#client_reference_id').val();
-            let _client_final = $('#client_final').val();
-
-            if (_contract.val() !== '') {
-                if (delivery_date === '') {
-                    toastr.warning('¡Seleccione la fecha de entrega!', 'Mensaje');
-                    return false;
-                }
-            } else {
-                delivery_date = ''
-            }
-
-            if (_payment_type === '0') {
-                toastr.warning('¡Selecione el tipo de pago!', 'Mensaje');
-                return false;
-            }
-            if (_supplier === '0') {
-                toastr.warning('¡Selecione el proveedor!', 'Mensaje');
-                return false;
-            }
-            if (hasRowBuysDetails() === false) {
-                toastr.warning('¡Seleccione los productos!', 'Mensaje');
-                return false;
-            }
-            if (checkUnit() === true) {
-                toastr.warning('¡Selecione el tipo de unidad en los productos!', 'Mensaje');
-                return false;
-            }
-            if (_client_reference === '') {
-                toastr.warning('¡SELECCIONE AL CLIENTE!', 'Mensaje');
-                return false;
-            }
-            if (_type_client_reference === 'PR') {
-                if (_client_final === '') {
-                    toastr.warning('¡SELECCIONE CLIENTE FINAL!', 'Mensaje');
-                    return false;
-                }
-                if ($('#check-client-final').prop('checked')) {
-                    if ($('#client_final_address').val() === '0') {
-                        toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA DEL CLIENTE FINAL!', 'Mensaje');
-                        return false;
-                    }
-                }
-            }
-            if ($('#check-subsidiary').prop('checked')) {
-                if ($('#address_subsidiary').val() === '0') {
-                    toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA EN LA SUCURSAL!', 'Mensaje');
-                    return false;
-                }
-            }
-            if ($('#check-provider').prop('checked')) {
-                if ($('#address_provider').val() === '0') {
-                    toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA DEL PROVEEDOR!', 'Mensaje');
-                    return false;
-                }
-            }
-            if ($('#check-client').prop('checked')) {
-                if ($('#client_address_reference').val() === '0') {
-                    toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA DEL CLIENTE!', 'Mensaje');
-                    return false;
-                }
-            }
-
-            if ($("#id_detail_data_grid tbody#details-table tr").length > 0 && $('.product-table').val() !== '') {
-                let table_foot = $("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("#id_detail_data_foot tbody#table-detail-foot tr")
-                let Detail_purchase = {
-                    "SupplierId": _supplier,
-                    "Date": $('#id_fechacompra').val(),
-                    "Reference": reference,
-                    "Delivery_date": delivery_date,
-                    "Type_Pay": _payment_type,
-                    "Pay_condition": $('#pay_condition').val(),
-                    "Base_Total": Number(table_foot.find("td.foot-base input.total-foot-base").val()),
-                    "Igv_Total": Number(table_foot.find("td.foot-igv input.total-foot-igv").val()),
-                    "Import_Total": Number(table_foot.find("td.foot-total input.total-foot-total").val()),
-                    "Check_Igv": ($("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("div.form-check input.check-igv").is(':checked')) ? 1 : 0,
-                    "Check_Dollar": ($("#check_dollar").is(':checked')) ? 1 : 0,
-                    "Details": [],
-
-                    "client_reference_id": _client_reference,
-                    "client_final": _client_final,
-
-                    "check-subsidiary": ($("#check-subsidiary").is(':checked')) ? 1 : 0,
-                    "check-provider": ($("#check-provider").is(':checked')) ? 1 : 0,
-                    "check-client-final": ($("#check-client-final").is(':checked')) ? 1 : 0,
-                    "check-client": ($("#check-client").is(':checked')) ? 1 : 0,
-
-                    "address_subsidiary": $("#address_subsidiary").val(),
-                    "address_provider": $("#address_provider").val(),
-                    "client_address_reference": $("#client_address_reference").val(),
-                    "client_final_address": $("#client_final_address").val(),
-                    "observations": $("#observations").val(),
-                    "contract_detail_id": _contract.val(),
-                    "correlative": $('#correlative').val()
-                };
-                $("#id_detail_data_grid tbody#details-table tr").each(function () {
-                    let detailObj = {
-                        "Product": $(this).attr('product'),
-                        "Unit": $(this).find("td.unit select.unit-product").val(),
-                        "Quantity": $(this).find("td.item-quantity input.quantity-product").val(),
-                        "QuantityUnits": $(this).find("td.quantity-minimum input.quantity-minimum-val").val(),
-                        "Price": Number($(this).find("td.item-price input.price-unit-product").val()),
-                        "Total": Number($(this).find("td.item-total input.total-detail").val()),
-                    };
-                    Detail_purchase.Details.push(detailObj);
-                });
-                console.log(Detail_purchase)
-                $('#btn-save').prop('disabled', true)
-                $.ajax({
-                    url: '/buys/save_purchase/',
-                    async: true,
-                    dataType: 'json', // for response
-                    type: 'GET',
-                    data: {'purchase': JSON.stringify(Detail_purchase)},
-                    contentType: 'application/json;charset=UTF-8',
-                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                    success: function (response, textStatus, xhr) {
-                        if (xhr.status === 200) {
-                            toastr.success(response.message, '¡COMPRA REGISTRADA CORRECTAMENTE!');
-                            let purchase_id = response.pk
-                            window.location.href = "/buys/print_pdf_purchase_order/" + purchase_id + "/";
-                            // console.log(response.contract)
-                            if (response.contract) {
-                                setTimeout(() => {
-                                    window.open("/buys/contracts/", '_self');
-                                }, 2000);
-                            } else {
-                                //console.log("Order")
-                                setTimeout(() => {
-                                    location.reload();
-                                }, 2000);
-                            }
-                        }
-                    },
-                    error: function (jqXhr, textStatus, xhr) {
-                        toastr.error("ERROR. ", '¡INCONCEBIBLE!');
-                    }
-                });
-            } else {
-                toastr.warning("PARA REALIZAR LA COMPRA AGREGUE AL MENOS UN PRODUCTO. ", '¡ADVERTENCIA!');
-                return false;
-            }
-        });
 
         function deleteItem(btn) {
             btn.parentNode.parentNode.remove();
@@ -1683,11 +1532,21 @@
                     $('#client_final_address').val("0");
                     $('.client-final').removeClass('d-none');
                     $('.delivery-client-final').removeClass('d-none');
+                    
+                    // Actualizar el tipo de cliente en buy_detail.html para mostrar la columna
+                    if (typeof updateClientType === 'function') {
+                        updateClientType(type_client);
+                    }
                 } else {
                     toggleClientDetailColumn(false);
                     $('.client-final').addClass('d-none');
                     $('#client_final_address').val("0");
                     $('.delivery-client-final').addClass('d-none');
+                    
+                    // Actualizar el tipo de cliente en buy_detail.html para ocultar la columna
+                    if (typeof updateClientType === 'function') {
+                        updateClientType(type_client);
+                    }
                 }
                 
                 _select.empty();
@@ -1765,6 +1624,16 @@
             $('.select2-client-detail').each(function() {
                 initializeSelect2ClientDetail(this);
             });
+            
+            // Verificar si ya hay un tipo de cliente seleccionado y mostrar/ocultar columna
+            let existingTypeClient = $('#type_client_reference').val();
+            if (existingTypeClient === 'PR') {
+                toggleClientDetailColumn(true);
+                // También actualizar en buy_detail.html si la función existe
+                if (typeof updateClientType === 'function') {
+                    updateClientType(existingTypeClient);
+                }
+            }
         });
 
         // Inicializar Select2 en elementos dinámicos
@@ -1949,7 +1818,7 @@
                     
                     Detail_purchase.Details.push(detailObj);
                 });
-                console.log(Detail_purchase)
+                //console.log(Detail_purchase)
                 $('#btn-save').prop('disabled', true)
                 $.ajax({
                     url: '/buys/save_purchase/',
