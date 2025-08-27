@@ -412,16 +412,12 @@
                                             <div class="dropdown-menu"></div>
                                         </td>
                                         <td class="align-middle text-center client-detail-column {% if not show_client_detail_column %}d-none{% endif %}">
-                                            <div class="autocomplete">
-                                                <input class="form-control autocomplete-input client-detail-input"
-                                                       type="text"
-                                                       maxlength="200"
-                                                       autocomplete="off"
-                                                       value="{% if pd.client_entity_name %}{{ pd.client_entity_name }}{% endif %}"
-                                                       placeholder="Buscar Cliente..."
-                                                       data-client-id="{% if pd.client_entity_id %}{{ pd.client_entity_id }}{% endif %}">
-                                                <ul class="autocomplete-result-list"></ul>
-                                            </div>
+                                            <select class="form-control select2-client-detail" style="width: 100%;">
+                                                <option value="">Buscar Cliente...</option>
+                                                {% if pd.client_entity_id %}
+                                                    <option value="{{ pd.client_entity_id }}" selected>{{ pd.client_entity_name }}</option>
+                                                {% endif %}
+                                            </select>
                                             <input type="hidden" class="client-detail-id" 
                                                    value="{% if pd.client_entity_id %}{{ pd.client_entity_id }}{% endif %}">
                                         </td>
@@ -454,12 +450,6 @@
                                             <input type="text" class="form-control text-center quantity-minimum-val"
                                                    value="{{ pd.quantity|safe }}">
                                         </td>
-
-                                        {#                                        <td class="align-middle item-quantity-x-unit">#}
-                                        {#                                            <input type="text"#}
-                                        {#                                                   value="{{ pd.quantity_x_und }}"#}
-                                        {#                                                   class="form-control text-center quantity-x-unit text-uppercase">#}
-                                        {#                                        </td>#}
                                         <td class="item-price text-right align-middle">
                                             <div class="input-icon">
                                                 <input type="text"
@@ -478,20 +468,20 @@
                                                 <i class="change-money">S/</i>
                                             </div>
                                         </td>
-                                        <td class="align-middle text-center">
-                                            <div class="autocomplete">
-                                                <input class="form-control autocomplete-input client-detail-input"
-                                                       type="text"
-                                                       maxlength="200"
-                                                       autocomplete="off"
-                                                       value="{% if pd.client_entity_name %}{{ pd.client_entity_name }}{% endif %}"
-                                                       placeholder="Buscar Cliente..."
-                                                       data-client-id="{% if pd.client_entity_id %}{{ pd.client_entity_id }}{% endif %}">
-                                                <ul class="autocomplete-result-list"></ul>
-                                            </div>
-                                            <input type="hidden" class="client-detail-id" 
-                                                   value="{% if pd.client_entity_id %}{{ pd.client_entity_id }}{% endif %}">
-                                        </td>
+{#                                        <td class="align-middle text-center">#}
+{#                                            <div class="autocomplete">#}
+{#                                                <input class="form-control autocomplete-input client-detail-input"#}
+{#                                                       type="text"#}
+{#                                                       maxlength="200"#}
+{#                                                       autocomplete="off"#}
+{#                                                       value="{% if pd.client_entity_name %}{{ pd.client_entity_name }}{% endif %}"#}
+{#                                                       placeholder="Buscar Cliente..."#}
+{#                                                       data-client-id="{% if pd.client_entity_id %}{{ pd.client_entity_id }}{% endif %}">#}
+{#                                                <ul class="autocomplete-result-list"></ul>#}
+{#                                            </div>#}
+{#                                            <input type="hidden" class="client-detail-id" #}
+{#                                                   value="{% if pd.client_entity_id %}{{ pd.client_entity_id }}{% endif %}">#}
+{#                                        </td>#}
                                         <td class="align-middle text-center">
                                             <button type="button" onclick="deleteItem({{ pd.product_id }})"
                                                     class="btn btn-danger delete-detail">
@@ -742,7 +732,7 @@
                 'border': 'transparent',
             })
             $(this).val(' ');
-            $('#id_unit_product').val('0')
+            //$('#id_unit_product').val('0')
         });
 
         // Búsqueda de productos
@@ -770,9 +760,11 @@
                         success: function (response, textStatus, xhr) {
                             if (xhr.status === 200) {
                                 let list = response.productList;
+                                console.log("list", list)
                                 _menu.css({'background-color': '#fff', 'border': '1px solid rgba(0,0,0,.15)'})
                                 for (let i = 0; i < list.length; i++) {
-                                    _menu.append(`<a class="dropdown-item product-item" unit_name="${list[i].unit}" brand="${list[i].brand}" unit_id="${list[i].unit_id}" href="#" data-id="${list[i].id}">${list[i].name} - ${list[i].brand}</a>`)
+                                    let unit_dict = JSON.stringify(list[i].unit_dict)
+                                    _menu.append(`<a class="dropdown-item product-item" unit='${unit_dict}'  brand="${list[i].brand}" href="#" data-id="${list[i].id}">${list[i].name} - ${list[i].brand}</a>`)
                                 }
                             }
                         },
@@ -798,12 +790,12 @@
         // Selección de producto
         $(document).on('click', '.product-item', function (e) {
             let _product_id = $(this).attr('data-id');
-            let _unit_id = $(this).attr('unit_id');
+            let _unit_dict = $(this).attr('unit');
             let _product_name = $(this).text();
             let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
             let _td = $(this).parent('div.dropdown-menu').parent('td')
             let _select_unit = _tr.find('td.unit select.unit-product');
-            
+
             _tr.attr('product', _product_id);
             _tr.attr('pd_id', NaN)
             _td.find('input.product-table').val(_product_name);
@@ -812,7 +804,10 @@
             let units = JSON.parse(_unit_dict);
             for (let i = 0; i < units.length; i++) {
                 let _quantity_minimum = Number(units[i].quantity_minimum).toFixed(0);
-                let option = $('<option>').val(units[i].unit_id).text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')');
+                let option = $('<option>')
+                    .val(units[i].unit_id)
+                    .text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')')
+                    .attr('qm', _quantity_minimum);
                 _select_unit.append(option);
             }
 
@@ -959,10 +954,9 @@
             let clientColumn = '';
             if (_show_client_column) {
                 clientColumn = '<td class="align-middle text-center client-detail-column">' +
-                    '<div class="autocomplete">' +
-                    '<input class="form-control autocomplete-input client-detail-input" type="text" maxlength="200" autocomplete="off" placeholder="Buscar Cliente..." data-client-id="">' +
-                    '<ul class="autocomplete-result-list"></ul>' +
-                    '</div>' +
+                    '<select class="form-control select2-client-detail" style="width: 100%;">' +
+                    '<option value="">Buscar Cliente...</option>' +
+                    '</select>' +
                     '<input type="hidden" class="client-detail-id" value="">' +
                     '</td>';
             }
@@ -982,12 +976,27 @@
                 '<td class="align-middle quantity-minimum text-center">' +
                 '<input type="text" class="form-control text-center quantity-minimum-val" readonly>' +
                 '</td>' +
+
                 '<td class="item-price text-right align-middle" price-unit-with-discount="">' + '<div class="input-icon">' +
                 '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
-                '<td class="item-total text-right align-middle total-row">' + '<div class="text-icon">' +
+
+                '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
                 '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
+
                 '<td class="align-middle"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
                 '</tr>');
+            
+            // Inicializar Select2 en la nueva fila si es necesario
+            if (_show_client_column) {
+                setTimeout(() => {
+                    let newRow = $('#details-table tr:last');
+                    let selectElement = newRow.find('.select2-client-detail');
+                    if (selectElement.length > 0) {
+                        initializeSelect2ClientDetail(selectElement);
+                    }
+                }, 100);
+            }
+            
             counterStrike2()
         });
 
@@ -1399,63 +1408,78 @@
             }
         })
 
-        // Autocompletado para clientes del detalle
-        $(document).on('focusin', '.client-detail-input', function (e) {
-            let _input = $(this);
-            let _menu = _input.siblings('.autocomplete-result-list');
-            _menu.empty();
-        });
-
-        $(document).on('keypress', '.client-detail-input', function (e) {
-            let _input = $(this);
-            let _menu = _input.siblings('.autocomplete-result-list');
-            let _hidden_input = _input.siblings('.client-detail-id');
-
-            if (e.keyCode === 13) {
-                e.preventDefault();
-                let search_value = _input.val();
-
-                if (search_value.length >= 3) {
-                    $.ajax({
-                        url: '/buys/get_client/',
-                        async: true,
-                        dataType: 'json',
-                        type: 'GET',
-                        data: {'search': search_value},
-                        contentType: 'application/json;charset=UTF-8',
-                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                        success: function (response) {
-                            if (response.status && response.results) {
-                                _menu.css({'background-color': '#fff', 'border': '1px solid rgba(0,0,0,.15)'});
-                                response.results.forEach(function(client) {
-                                    let item = $('<a class="dropdown-item client-detail-item" href="#" data-id="' + client.id + '">' + 
-                                                client.names + ' - ' + client.type_client_display + '</a>');
-                                    _menu.append(item);
-                                });
+        // Inicializar Select2 para clientes en detalles
+        function initializeSelect2ClientDetail(selectElement) {
+            $(selectElement).select2({
+                placeholder: 'Buscar Cliente...',
+                allowClear: true,
+                minimumInputLength: 2,
+                ajax: {
+                    url: '/buys/get_client/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            search: params.term || '',
+                            page: params.page || 1
+                        };
+                    },
+                    processResults: function(data, params) {
+                        params.page = params.page || 1;
+                        
+                        return {
+                            results: data.results || [],
+                            pagination: {
+                                more: false
                             }
-                        },
-                        error: function (jqXhr, textStatus, xhr) {
-                            console.log("Error en búsqueda de cliente:", textStatus);
-                        }
-                    });
-                } else {
-                    toastr.warning('Para la búsqueda ingrese mínimo 3 caracteres', 'Error de llenado');
+                        };
+                    },
+                    cache: true
+                },
+                templateResult: function(client) {
+                    if (client.loading) return client.text;
+                    if (!client.id) return client.text;
+                    
+                    return $(`
+                        <div class="select2-result-client">
+                            <div class="select2-result-client__title">${client.names}</div>
+                            <div class="select2-result-client__subtitle">${client.type_client_display || ''}</div>
+                        </div>
+                    `);
+                },
+                templateSelection: function(client) {
+                    if (!client.id) return client.text;
+                    return client.names || client.text;
                 }
+            }).on('select2:select', function(e) {
+                let data = e.params.data;
+                let row = $(this).closest('tr');
+                let hiddenInput = row.find('.client-detail-id');
+                hiddenInput.val(data.id);
+            }).on('select2:clear', function(e) {
+                let row = $(this).closest('tr');
+                let hiddenInput = row.find('.client-detail-id');
+                hiddenInput.val('');
+            });
+        }
+
+        // Inicializar Select2 en elementos existentes
+        $(document).ready(function() {
+            // Verificar si Select2 está disponible
+            if (typeof $.fn.select2 !== 'undefined') {
+                $('.select2-client-detail').each(function() {
+                    initializeSelect2ClientDetail(this);
+                });
+            } else {
+                console.warn('Select2 no está cargado. Asegúrate de incluir la librería Select2.');
             }
         });
 
-        // Selección de cliente del detalle
-        $(document).on('click', '.client-detail-item', function (e) {
-            e.preventDefault();
-            let _item = $(this);
-            let _input = _item.parent().siblings('.client-detail-input');
-            let _hidden_input = _input.siblings('.client-detail-id');
-            let client_id = _item.attr('data-id');
-            let client_name = _item.text();
-
-            _input.val(client_name);
-            _hidden_input.val(client_id);
-            _item.parent().empty();
+        // Inicializar Select2 en elementos dinámicos
+        $(document).on('select2:open', '.select2-client-detail', function() {
+            if (!$(this).data('select2')) {
+                initializeSelect2ClientDetail(this);
+            }
         });
 
     </script>
@@ -1629,6 +1653,66 @@
             padding: 4px 8px;
         }
 
+        /* Estilos para resultados de Select2 */
+        .select2-result-client {
+            padding: 2px 0;
+        }
+
+        .select2-result-client__title {
+            font-weight: bold;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .select2-result-client__subtitle {
+            color: #666;
+            font-size: 11px;
+            font-style: italic;
+        }
+
+        /* Estilos para Select2 en detalles */
+        .select2-client-detail {
+            font-size: 12px;
+        }
+
+        .select2-container--default .select2-selection--single {
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            height: 31px;
+            line-height: 1.5;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 28px;
+            padding-left: 8px;
+            color: #495057;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 29px;
+        }
+
+        .select2-dropdown {
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .select2-results__option {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .select2-results__option--highlighted[aria-selected] {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .select2-search__field {
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+
         /* Mejoras responsive para Select2 */
         @media (max-width: 768px) {
             .select2-container--default .select2-selection--single {
@@ -1655,6 +1739,25 @@
             /* Ocultar columna de cliente en detalles en móviles si no es necesaria */
             .client-detail-column.d-none {
                 display: none !important;
+            }
+            
+            /* Mejoras responsive para Select2 */
+            .select2-container--default .select2-selection--single {
+                height: 28px;
+            }
+            
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                line-height: 26px;
+                font-size: 11px;
+            }
+            
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 26px;
+            }
+            
+            .select2-results__option {
+                padding: 4px 8px;
+                font-size: 11px;
             }
             
             .card-body {
@@ -1729,6 +1832,25 @@
             .client-detail-column .form-control {
                 font-size: 11px;
                 padding: 0.2rem 0.4rem;
+            }
+            
+            /* Ajustes específicos para Select2 en pantallas pequeñas */
+            .select2-container--default .select2-selection--single {
+                height: 26px;
+            }
+            
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                line-height: 24px;
+                font-size: 10px;
+            }
+            
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 24px;
+            }
+            
+            .select2-results__option {
+                padding: 3px 6px;
+                font-size: 10px;
             }
             
             .card-body {

@@ -1948,7 +1948,7 @@ def update_purchase(request, pk=None):
             }
             item.get('units').append(item_units)
         purchase_detail_dict.append(item)
-    print(purchase_detail_dict)
+    # print(purchase_detail_dict)
     return render(request, 'buys/buy_list_edit.html', {
         'purchase': purchase_obj,
         'contract_obj': contract_obj,
