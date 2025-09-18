@@ -631,7 +631,7 @@
         const data = urlParams.get('selected_data');
         const dataObject = JSON.parse(data);
 
-        //console.log(dataObject);
+        console.log(dataObject);
 
         if (dataObject !== null && Object.keys(dataObject).length > 0) {
             $('#id_detail_data_grid > tbody').empty();
@@ -673,7 +673,19 @@
                     }
                     let item = dataObject[productID];
 
+                    let _show_client_column = clientData[0].type_client === 'PR';
+                    let clientColumn = '';
                     let options = '';
+
+                    if (_show_client_column) {
+                        clientColumn = '<td class="align-middle client-detail-column">' +
+                            '<select class="form-control select2-client-detail" data-row="' + ($('#details-table tr').length + 1) + '" style="width: 100%;">' +
+                            '<option value="">Buscar Cliente...</option>' +
+                            '</select>' +
+                            '<input type="hidden" class="client-detail-id" value="">' +
+                            '</td>';
+                    }
+
                     for (let i = 0; i < item.units.length; i++) {
                         options += '<option value="' + item.units[i].unit_id + '" qm="' + item.units[i].quantity_minimum + '">' + item.units[i].unit_name + ' (' + item.units[i].quantity_minimum + item.units[i].unit_name + ')' + '</option>';
                     }
@@ -683,6 +695,7 @@
                         '<td class="align-middle text-left product-item-table">' +
                         '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
                         '               data-toggle="dropdown" aria-expanded="false" placeholder="Ingrese producto..." value="' + item.product_name + '" ' + 'iv class="dropdown-menu"></div>' + '</td>' +
+                        clientColumn +
                         '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0" value="' + item.quantity + '">' + '</td>' +
                         '<td class="align-middle unit text-center">' +
                         '<select class="form-control unit-product text-center" id="id_unit_product" name="unit_product" required>' +
@@ -1405,7 +1418,10 @@
                 $('#type_client_reference').val(type_client);
                 $('#client_final').val('');
                 $('#person-final-names').val("");
-                if (type_client === 'PR') {
+                $('.client-final').addClass('d-none');
+                $('#client_final_address').val("0");
+                $('.delivery-client-final').addClass('d-none');
+                /*if (type_client === 'PR') {
                     $('#client_final_address').val("0");
                     $('.client-final').removeClass('d-none');
                     $('.delivery-client-final').removeClass('d-none');
@@ -1417,7 +1433,7 @@
                     $('.delivery-client-final').addClass('d-none');
                     //$('.delivery-client').removeClass('d-none');
                     //await getAddress(client_id, _client_address)
-                }
+                }*/
                 _select.empty();
                 //console.log("_result", result)
                 _select.append($('<option>').val("0").text('Seleccione'));
@@ -1434,7 +1450,7 @@
             }
         }
 
-        new Autocomplete('#autocomplete-client-final', {
+        /*new Autocomplete('#autocomplete-client-final', {
             search: input => {
                 const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
 
@@ -1485,7 +1501,7 @@
                     }
                 }
             }
-        })
+        })*/
 
         $(document).on('change', '#year', function (e) {
             let year = $(this).val()

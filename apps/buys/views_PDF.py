@@ -74,7 +74,8 @@ styles.add(ParagraphStyle(name='Center-ng', alignment=TA_CENTER, leading=10, fon
 styles.add(
     ParagraphStyle(name='Left', alignment=TA_LEFT, leading=30, fontName='Square', fontSize=25, textColor=colors.black))
 styles.add(
-    ParagraphStyle(name='CenterSquare', alignment=TA_CENTER, leading=30, fontName='Square', fontSize=25, textColor=colors.black))
+    ParagraphStyle(name='CenterSquare', alignment=TA_CENTER, leading=30, fontName='Square', fontSize=25,
+                   textColor=colors.black))
 styles.add(
     ParagraphStyle(name='Left-Simple', alignment=TA_LEFT, leading=15, fontName='Square', fontSize=15,
                    textColor=colors.black))
@@ -112,10 +113,14 @@ styles.add(ParagraphStyle(name='Center-text', alignment=TA_CENTER, leading=8, fo
 styles.add(ParagraphStyle(name='Justify_Newgot', alignment=TA_JUSTIFY, leading=10, fontName='Newgot', fontSize=10))
 styles.add(ParagraphStyle(name='Right_Newgot', alignment=TA_RIGHT, leading=12, fontName='Newgot', fontSize=12))
 # Estilos para los detalles de la tabla con tamaños equilibrados
-styles.add(ParagraphStyle(name='Client_Small', alignment=TA_LEFT, leading=20, fontName='Square', fontSize=20, textColor=colors.black))
-styles.add(ParagraphStyle(name='Detail_Small', alignment=TA_LEFT, leading=20, fontName='Square', fontSize=20, textColor=colors.black))
-styles.add(ParagraphStyle(name='Detail_Center_Small', alignment=TA_CENTER, leading=20, fontName='Square', fontSize=20, textColor=colors.black))
-styles.add(ParagraphStyle(name='Detail_Right_Small', alignment=TA_RIGHT, leading=20, fontName='Square', fontSize=20, textColor=colors.black))
+styles.add(ParagraphStyle(name='Client_Small', alignment=TA_LEFT, leading=20, fontName='Square', fontSize=20,
+                          textColor=colors.black))
+styles.add(ParagraphStyle(name='Detail_Small', alignment=TA_LEFT, leading=20, fontName='Square', fontSize=20,
+                          textColor=colors.black))
+styles.add(ParagraphStyle(name='Detail_Center_Small', alignment=TA_CENTER, leading=20, fontName='Square', fontSize=20,
+                          textColor=colors.black))
+styles.add(ParagraphStyle(name='Detail_Right_Small', alignment=TA_RIGHT, leading=20, fontName='Square', fontSize=20,
+                          textColor=colors.black))
 style = styles["Normal"]
 
 reportlab.rl_config.TTFSearchPath.append(str(settings.BASE_DIR) + '/static/fonts')
@@ -264,7 +269,7 @@ BASE = 21
 ALTURA = 29.7
 
 
-def print_pdf(request, pk=None):  
+def print_pdf(request, pk=None):
     _wt = BASE * inch - 50 * 0.05 * inch  # termical
     tbh_business_name_address = ''
     ml = 0.0 * inch
@@ -462,7 +467,7 @@ def print_pdf(request, pk=None):
     p4_1 = Paragraph(f'N°', styles["CenterSquare"])
     p4_2 = Paragraph(f'COD', styles["Left"])
     p4_3 = Paragraph(f'DESCRIPCIÓN', styles["Left"])
-    
+
     if has_client:
         p4_4 = Paragraph(f'CLIENTE', styles["CenterSquare"])
         p4_5 = Paragraph(f'CANTIDAD', styles["CenterSquare"])
@@ -471,7 +476,8 @@ def print_pdf(request, pk=None):
         p4_8 = Paragraph(f'PRECIO UNIT.', styles["Left"])
         p4_9 = Paragraph(f'SUB TOTAL', styles["Right"])
 
-        colwiths_table_4 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 25 / 100, _wt * 12 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+        colwiths_table_4 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 25 / 100, _wt * 12 / 100, _wt * 8 / 100, _wt * 12 / 100,
+                            _wt * 8 / 100,
                             _wt * 11 / 100, _wt * 12 / 100]
         rowwiths_table_4 = [inch * 1]
         ana_c4 = Table(
@@ -490,7 +496,7 @@ def print_pdf(request, pk=None):
         ana_c4 = Table(
             [(p4_1, p4_2, p4_3, p4_4, p4_5, p4_6, p4_7, p4_8)],
             colWidths=colwiths_table_4, rowHeights=rowwiths_table_4)
-    
+
     ana_c4.setStyle(TableStyle(style_table_4))
 
     _dictionary.append(Spacer(width=8, height=16))
@@ -517,14 +523,16 @@ def print_pdf(request, pk=None):
         # quantity_x_und = (i.quantity / cantidad_unidad).quantize(decimal.Decimal('0.00'), rounding=decimal.ROUND_UP)
         num = f'{contador}'
         contador += 1
-        cod = f'{product.code}'
+        cod = ''
+        if product.code:
+            cod = f'{product.code}'
         description = f'{product.name}'
-        
+
         # Información del cliente en columna separada
         client_name = ''
         if i.client_entity:
             client_name = f'{i.client_entity.names.upper()}'
-        
+
         um = f'{i.unit.description}({int(quantity_minimum)}UND)'
 
         quantity_und = decimal.Decimal(i.quantity * quantity_minimum)
@@ -538,7 +546,7 @@ def print_pdf(request, pk=None):
         p5_1 = Paragraph(num, styles["Detail_Center_Small"])
         p5_2 = Paragraph(cod, styles["Detail_Small"])
         p5_3 = Paragraph(description, styles["Detail_Small"])
-        
+
         if has_client:
             p5_4 = Paragraph(client_name, styles["Client_Small"])
             p5_5 = Paragraph(f'{quantity}', styles["Detail_Center_Small"])
@@ -547,7 +555,8 @@ def print_pdf(request, pk=None):
             p5_8 = Paragraph(f'{price_unit}', styles["Detail_Small"])
             p5_9 = Paragraph('{:,}'.format(sub_total), styles["Detail_Right_Small"])
 
-            colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 25 / 100, _wt * 12 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+            colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 25 / 100, _wt * 12 / 100, _wt * 8 / 100,
+                                _wt * 12 / 100, _wt * 8 / 100,
                                 _wt * 11 / 100, _wt * 12 / 100]
             ana_c5 = Table(
                 [(p5_1, p5_2, p5_3, p5_4, p5_5, p5_6, p5_7, p5_8, p5_9)],
@@ -559,12 +568,13 @@ def print_pdf(request, pk=None):
             p5_7 = Paragraph(f'{price_unit}', styles["Detail_Small"])
             p5_8 = Paragraph('{:,}'.format(sub_total), styles["Detail_Right_Small"])
 
-            colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 37 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+            colwiths_table_5 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 37 / 100, _wt * 8 / 100, _wt * 12 / 100,
+                                _wt * 8 / 100,
                                 _wt * 11 / 100, _wt * 12 / 100]
             ana_c5 = Table(
                 [(p5_1, p5_2, p5_3, p5_4, p5_5, p5_6, p5_7, p5_8)],
                 colWidths=colwiths_table_5)
-        
+
         ana_c5.setStyle(TableStyle(style_table_5))
 
         _dictionary.append(ana_c5)
@@ -577,7 +587,7 @@ def print_pdf(request, pk=None):
     ]
     str_total = '{:,}'.format(total)
     str_total_quantity = '{:,}'.format(round(total_quantity, 2))
-    
+
     if has_client:
         if currency_type:
             p6_1 = Paragraph('', styles["Detail_Center_Small"])
@@ -590,7 +600,8 @@ def print_pdf(request, pk=None):
             p6_8 = Paragraph('', styles["Detail_Small"])
             p6_9 = Paragraph(f'TOTAL: $ {str_total}', styles["Detail_Right_Small"])
 
-            colwiths_table_6 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 25 / 100, _wt * 12 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+            colwiths_table_6 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 25 / 100, _wt * 12 / 100, _wt * 8 / 100,
+                                _wt * 12 / 100, _wt * 8 / 100,
                                 _wt * 11 / 100, _wt * 12 / 100]
             ana_c6 = Table(
                 [(p6_1, p6_2, p6_3, p6_4, p6_5, p6_6, p6_7, p6_8, p6_9)],
@@ -606,7 +617,8 @@ def print_pdf(request, pk=None):
             p6_8 = Paragraph('', styles["Detail_Small"])
             p6_9 = Paragraph(f'TOTAL: S/ {str_total}', styles["Detail_Right_Small"])
 
-            colwiths_table_6 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 25 / 100, _wt * 12 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+            colwiths_table_6 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 25 / 100, _wt * 12 / 100, _wt * 8 / 100,
+                                _wt * 12 / 100, _wt * 8 / 100,
                                 _wt * 11 / 100, _wt * 12 / 100]
             ana_c6 = Table(
                 [(p6_1, p6_2, p6_3, p6_4, p6_5, p6_6, p6_7, p6_8, p6_9)],
@@ -622,7 +634,8 @@ def print_pdf(request, pk=None):
             p6_7 = Paragraph('', styles["Detail_Small"])
             p6_8 = Paragraph(f'TOTAL: $ {str_total}', styles["Detail_Right_Small"])
 
-            colwiths_table_6 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 37 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+            colwiths_table_6 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 37 / 100, _wt * 8 / 100, _wt * 12 / 100,
+                                _wt * 8 / 100,
                                 _wt * 11 / 100, _wt * 12 / 100]
             ana_c6 = Table(
                 [(p6_1, p6_2, p6_3, p6_4, p6_5, p6_6, p6_7, p6_8)],
@@ -637,18 +650,18 @@ def print_pdf(request, pk=None):
             p6_7 = Paragraph('', styles["Detail_Small"])
             p6_8 = Paragraph(f'TOTAL: S/ {str_total}', styles["Detail_Right_Small"])
 
-            colwiths_table_6 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 37 / 100, _wt * 8 / 100, _wt * 12 / 100, _wt * 8 / 100,
+            colwiths_table_6 = [_wt * 3 / 100, _wt * 9 / 100, _wt * 37 / 100, _wt * 8 / 100, _wt * 12 / 100,
+                                _wt * 8 / 100,
                                 _wt * 11 / 100, _wt * 12 / 100]
             ana_c6 = Table(
                 [(p6_1, p6_2, p6_3, p6_4, p6_5, p6_6, p6_7, p6_8)],
                 colWidths=colwiths_table_6)
-    
+
     ana_c6.setStyle(TableStyle(style_table_6))
 
     _dictionary.append(Spacer(width=8, height=16))
     _dictionary.append(ana_c6)
 
-    # **************************************************************************************************************** #
     # **************************************************************************************************************** #
 
     style_table_7 = [
@@ -661,26 +674,8 @@ def print_pdf(request, pk=None):
         # ('SPAN', (0, 0), (0, -1)),
         # ('SPAN', (3, 0), (3, -1)),
     ]
-    p7_1 = Paragraph(f'FACTURAR A', styles["Left"])
-    p7_2 = Paragraph(f'INDUSTRIAS ANDERQUIN EIRL', styles["Left"])
-    p7_3 = Paragraph(f'RUC: 20604193053', styles["Left"])
-    p7_4 = Paragraph(f'JR. CARABAYA NRO. 443 (AL FRENTE DE LA PLAZA MANCO CAPAC) PUNO - SAN ROMAN - JULIACA',
-                     styles["Left"])
-    p7_5 = Paragraph(f'Juliaca, San Roman, Puno', styles["Left"])
-
-    # reference_obj = purchase_obj.reference
 
     p7_6 = Paragraph(f'LUGAR DE ENTREGA:', styles["Right"])
-
-    # if not supplier_obj.is_type_reference:
-    #     if purchase_obj.delivery == 'A':
-    #         direccion = f'JR. CARABAYA NRO. 443 (AL FRENTE DE LA PLAZA MANCO CAPAC) PUNO - SAN ROMAN - JULIACA'
-    #     elif purchase_obj.delivery == 'P':
-    #         direccion = f'{supplier_obj.address}'
-    # elif supplier_obj.is_type_reference and reference_obj.is_private:
-    #     direccion = f'{purchase_obj.reference_entity.address}'
-    # else:
-    #     direccion = f'{reference_obj.address}'
 
     p7_7 = Paragraph(f'{purchase_obj.delivery_address}', styles["Left"])
     p7_8 = Paragraph(f'{purchase_obj.city}', styles["JustifyTitle"])
@@ -695,9 +690,6 @@ def print_pdf(request, pk=None):
     _dictionary.append(Spacer(width=8, height=16))
     _dictionary.append(ana_c7)
 
-    # **************************************************************************************************************** #
-    # ********************* if ********************* #
-    # **************************************************************************************************************** #
     if purchase_obj.client_reference:
         client_reference = purchase_obj.client_reference
         style_table_8 = [
@@ -715,7 +707,6 @@ def print_pdf(request, pk=None):
         _dictionary.append(Spacer(width=8, height=16))
         _dictionary.append(ana_c8)
 
-        # **************************************************************************************************************** #
         # **************************************************************************************************************** #
 
         style_table_9 = [
@@ -772,6 +763,61 @@ def print_pdf(request, pk=None):
 
         _dictionary.append(Spacer(width=8, height=16))
         _dictionary.append(ana_c9)
+
+        style_table_10 = [
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]
+
+        style_table_11 = [
+            # ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('BOX', (0, 0), (-1, -1), 2, colors.black),
+            # ('BACKGROUND', (0, 2), (0, 2), COLOR_BLUE),
+            ('VALIGN', (0, 2), (0, 2), 'TOP'),
+            # ('BOX', (0, 4), (-1, -1), 2, colors.black),
+            # ('BOX', (-1, -4), (-1, -1), 2, colors.black),
+            # ('BOX', (0, 0), (0, -1), 2, colors.black),
+
+            # ('SPAN', (-1, 0), (-1, 3)),
+            # ('SPAN', (-1, 0), (-1, 3)),
+            # ('SPAN', (1, 4), (1, 5)),
+        ]
+
+        has_client_entity = purchase_detail.filter(client_entity__isnull=False).exists()
+        if has_client_entity:
+            p10_1 = Paragraph(f'Referencia de Venta a la Entidad', styles["Left"])
+            colwiths_table_10 = [_wt * 100 / 100]
+            rowwiths_table_10 = [inch * 0.75]
+            ana_c10 = Table(
+                [(p10_1,)],
+                colWidths=colwiths_table_10, rowHeights=rowwiths_table_10)
+            ana_c10.setStyle(TableStyle(style_table_10))
+            _dictionary.append(Spacer(width=8, height=16))
+            _dictionary.append(ana_c10)
+            for i in purchase_detail.all():
+                address_entity = '-'
+                if i.client_entity:
+                    client_obj = i.client_entity
+                    client_name = f'{client_obj.names.upper()}'
+                    if client_obj.clientaddress_set.exists():
+                        address_entity = client_obj.clientaddress_set.last().address.upper()
+
+                    p11_3 = Paragraph(f'RUC: ', styles["Right"])
+                    p11_4 = Paragraph(f'{client_obj.clienttype_set.last().document_number}', styles["Left"])
+                    p11_1 = Paragraph(f'Razón Social: ', styles["Right"])
+                    p11_2 = Paragraph(f'{client_name}', styles["Left"])
+                    p11_5 = Paragraph(f'Dirección: ', styles["Right"])
+                    p11_6 = Paragraph(f'{address_entity}', styles["Left"])
+
+                    colwiths_table_11 = [_wt * 14 / 100, _wt * 2 / 100, _wt * 84 / 100]
+                    ana_c11 = Table(
+                        [(p11_3, '', p11_4)] +
+                        [(p11_1, '', p11_2)] +
+                        [(p11_5, '', p11_6)],
+                        colWidths=colwiths_table_11)
+                    ana_c11.setStyle(TableStyle(style_table_11))
+
+                    _dictionary.append(Spacer(width=8, height=16))
+                    _dictionary.append(ana_c11)
 
         # if purchase_obj.client_reference_entity:
         #     client_reference_entity = purchase_obj.client_reference_entity
