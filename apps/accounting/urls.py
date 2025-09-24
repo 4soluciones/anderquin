@@ -1,13 +1,14 @@
 from django.urls import path
 from django.contrib.auth.decorators import login_required
 from apps.accounting.views import *
-from apps.accounting.views_PDF import print_pdf_bill_finances
+from apps.accounting.views_PDF import print_pdf_bill_finances, print_pdf_purchases_report, export_excel_purchases_report
 
 urlpatterns = [
     path('', login_required(Home.as_view()), name='home'),
     path('get_purchases_list/', login_required(get_purchases_list), name='get_purchases_list'),
     path('get_dict_purchases/', login_required(get_dict_purchases), name='get_dict_purchases'),
     path('get_purchases_by_date/', login_required(get_purchases_by_date), name='get_purchases_by_date'),
+    path('get_purchases_paid_by_date/', login_required(get_purchases_paid_by_date), name='get_purchases_paid_by_date'),
     path('new_opening_balance/', login_required(new_opening_balance), name='new_opening_balance'),
     path('get_purchases_pay/', login_required(get_purchases_pay), name='get_purchases_pay'),
     path('new_payment_purchase/', login_required(new_payment_purchase), name='new_payment_purchase'),
@@ -71,5 +72,9 @@ urlpatterns = [
     path('cancel_bill/', login_required(cancel_bill), name='cancel_bill'),
     path('get_bill/', login_required(get_bill), name='get_bill'),
     path('print_pdf_bill_finances/<int:pk>/', print_pdf_bill_finances, name='print_pdf_bill_finances'),
+    
+    # Reportes PDF y Excel
+    path('print_pdf_purchases_report/', login_required(print_pdf_purchases_report), name='print_pdf_purchases_report'),
+    path('export_excel_purchases_report/', login_required(export_excel_purchases_report), name='export_excel_purchases_report'),
 
 ]

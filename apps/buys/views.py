@@ -90,6 +90,7 @@ def save_purchase(request):
         total = decimal.Decimal(data_purchase["Import_Total"])
         check_igv = str(data_purchase["Check_Igv"])
         check_dollar = str(data_purchase["Check_Dollar"])
+        is_simple_buy = str(data_purchase.get("Is_Simple_Buy", "0"))
 
         client_reference = int(data_purchase["client_reference_id"])
         # client_entity = data_purchase["client_final"]
@@ -186,7 +187,8 @@ def save_purchase(request):
             delivery_subsidiary=subsidiary_address_obj,
             delivery_supplier=address_provider_obj,
             delivery_client=client_address_obj,
-            year=year
+            year=year,
+            is_simple_buy=(is_simple_buy == "1")
         )
         purchase_obj.save()
 
@@ -390,13 +392,22 @@ def get_buy_order_list(request):
         }.get(option, [])
 
         if status_filter:
-            purchase_set = Purchase.objects.filter(bill_number__isnull=False, status__in=status_filter, year=year
-                                                   ).select_related('supplier', 'subsidiary', 'client_reference',
-                                                                    'client_reference_entity', 'delivery_supplier',
-                                                                    'delivery_subsidiary', 'delivery_client',
-                                                                    'store_destiny', 'user').prefetch_related(
-                Prefetch('purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')),
-                Prefetch('billpurchase_set', queryset=BillPurchase.objects.select_related('bill'))
+            # Consulta optimizada - eliminamos prefetch_related innecesarios y agregamos solo los campos necesarios
+            purchase_set = Purchase.objects.filter(
+                bill_number__isnull=False, 
+                status__in=status_filter, 
+                year=year
+            ).select_related(
+                'supplier', 
+                'client_reference',
+                'client_reference_entity', 
+                'user'
+            ).prefetch_related(
+                Prefetch('purchasedetail_set', queryset=PurchaseDetail.objects.select_related('client_entity'))
+            ).only(
+                'id', 'purchase_date', 'bill_number', 'supplier', 'client_reference',
+                'client_reference_entity', 'delivery_address', 'user', 'status',
+                'bill_status', 'parent_purchase', 'guide_number'
             ).order_by('correlative')
 
             return JsonResponse({
@@ -412,40 +423,37 @@ def get_dict_order_list(purchase_set):
     purchase_dict = []
 
     for p in purchase_set:
-        client_reference_entity = p.client_reference_entity.names if p.client_reference_entity else None
+        # Obtener todos los client_entity de purchase_detail
+        client_entity_names = []
+        if hasattr(p, 'purchasedetail_set') and p.purchasedetail_set.exists():
+            # Buscar todos los purchase_detail que tengan client_entity
+            for pd in p.purchasedetail_set.all():
+                if pd.client_entity:
+                    client_entity_names.append(pd.client_entity.names)
+        
+        # Si no se encontró ninguno en purchase_detail, usar el de purchase
+        if not client_entity_names and p.client_reference_entity:
+            client_entity_names = [p.client_reference_entity.names]
+
         purchase_parent = ''
-        guide_number = '-'
-        bill_numbers = []
         parent_purchase_set = Purchase.objects.filter(parent_purchase_id=p.id).select_related('parent_purchase')
         if parent_purchase_set.exists():
             parent_purchase_get = parent_purchase_set.last()
-            guide_number = parent_purchase_get.guide_number
             purchase_parent = parent_purchase_get.id
-
-        # for pd in PurchaseDetail.objects.filter(purchase=p):
-        #     for bp in BillPurchase.objects.filter(purchase_detail=pd):
-        #         item_bp = {
-        #             'id': bp.id,
-        #             'bill_number': bp.bill.serial + '-' + bp.bill.correlative
-        #         }
-        #         bill_numbers.append(item_bp)
 
         item_purchase = {
             'id': p.id,
             'purchase_parent': purchase_parent,
             'purchase_date': p.purchase_date,
             'buy_number': p.bill_number,
-            'supplier': p.supplier.name,
-            'client_reference': p.client_reference.names,
-            'client_entity': client_reference_entity,
-            'delivery_address': p.delivery_address,
-            'user': p.user.worker_set.last().employee.names,
-            'bill_number': p.number_bill(),
-            'status_store_text': p.get_status_display,
+            'supplier': p.supplier.name if p.supplier else '-',
+            'client_reference': p.client_reference.names if p.client_reference else '-',
+            'client_entity': client_entity_names,
+            'delivery_address': p.delivery_address or '-',
+            'user': p.user.worker_set.last().employee.names if p.user and hasattr(p.user, 'worker_set') and p.user.worker_set.exists() else '-',
+            'status_store_text': p.get_status_display(),
             'status_store': p.status,
             'status_bill': p.bill_status,
-            'guide_number': guide_number,
-            'bill_numbers': bill_numbers,
             'refund': p.get_quantity_refund()
         }
         purchase_dict.append(item_purchase)
@@ -2386,10 +2394,14 @@ def report_contracts(request):
         ).order_by('id')
         contract_dict = []
         for c in contract_set:
+            # Obtener cod_siaf del cliente
+            cod_siaf = c.client.cod_siaf if c.client.cod_siaf else '-'
+            
             item_contract = {
                 'id': c.id,
                 'contract_number': c.contract_number,
                 'client': c.client.names,
+                'cod_siaf': cod_siaf,
                 'register_date': c.register_date,
                 'status': c.get_status_display(),
                 'contract_detail': []
@@ -2411,9 +2423,13 @@ def report_contracts(request):
                 phase_d = None
                 phase_g = None
 
+                bill_amount = '-'
                 if d.contractdetailpurchase_set.last():
-                    purchase = d.contractdetailpurchase_set.last().purchase.id
-                    bill_number = d.contractdetailpurchase_set.last().purchase.bill_number
+                    purchase_obj = d.contractdetailpurchase_set.last().purchase
+                    purchase = purchase_obj.id
+                    bill_number = purchase_obj.bill_number
+                    # Obtener el monto total de la compra
+                    bill_amount = f"S/ {purchase_obj.total():,.2f}"
                 guide_obj = d.guide_set.all().last()
                 if guide_obj:
                     guide = guide_obj.id
@@ -2443,6 +2459,7 @@ def report_contracts(request):
                     'date': d.date,
                     'purchase': purchase,
                     'bill_number': bill_number,
+                    'bill_amount': bill_amount,
                     'guide': guide,
                     'guide_number': guide_number,
                     'guide_created': guide_created,

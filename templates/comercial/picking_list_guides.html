@@ -1,64 +1,160 @@
 {% load operations %}
 {% if picking_dict %}
-    <div class="card-body p-2 table-responsive small">
-        <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
-            <table id="purchase-list-with-bill"
-                   class="table table-bordered align-content-center w-100 h-100 table-info">
-                <thead>
-                <tr class="font-weight-bold text-uppercase bg-warning text-center">
-                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Numero de <br> Transporte</th>
-                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Fecha de <br>Salida</th>
-                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Peso <br> Total</th>
-                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Placa <br> Tracto</th>
-                    <th class="th-sm align-middle" style="width: 20%" rowspan="2">Transporte</th>
-                    <th class="th-sm align-middle" style="width: 3%" rowspan="2"><i class="fas fa-file-download"></i></th>
-
-                    <th class="th-sm" colspan="6">Detalle de Picking</th>
+    <div class="card-body p-3 roboto-condensed-regular">
+        <div class="table-responsive">
+            <table id="picking-list-table" class="table table-hover table-striped table-bordered">
+                <thead class="thead-dark">
+                <tr class="text-center">
+                    <th class="align-middle" style="width: 8%" rowspan="2">
+                        <i class="fas fa-truck mr-1"></i>N° Transporte
+                    </th>
+                    <th class="align-middle" style="width: 8%" rowspan="2">
+                        <i class="fas fa-calendar-alt mr-1"></i>Fecha Salida
+                    </th>
+                    <th class="align-middle" style="width: 6%" rowspan="2">
+                        <i class="fas fa-weight-hanging mr-1"></i>Peso Total
+                    </th>
+                    <th class="align-middle" style="width: 8%" rowspan="2">
+                        <i class="fas fa-car mr-1"></i>Placa Tracto
+                    </th>
+                    <th class="align-middle" style="width: 25%" rowspan="2">
+                        <i class="fas fa-shipping-fast mr-1"></i>Información de Transporte
+                    </th>
+                    <th class="align-middle" style="width: 8%" rowspan="2">
+                        <i class="fas fa-cogs mr-1"></i>Acciones
+                    </th>
+                    <th class="text-center" colspan="7" style="background-color: #6c757d; color: white;">
+                        <i class="fas fa-boxes mr-1"></i>Detalle de Productos
+                    </th>
                 </tr>
-                <tr class="font-weight-bold text-uppercase bg-warning text-center">
-                    <th class="th-sm" style="width: 15%">Producto</th>
-                    <th class="th-sm" style="width: 5%">Cant.</th>
-                    <th class="th-sm" style="width: 5%">Unidad</th>
-                    <th class="th-sm" style="width: 5%">Lote</th>
-                    <th class="th-sm" style="width: 5%">Peso</th>
-                    <th class="th-sm" style="width: 5%">Tipo</th>
+                <tr class="text-center" style="background-color: #6c757d; color: white;">
+                    <th style="width: 20%">
+                        <i class="fas fa-cube mr-1"></i>Producto
+                    </th>
+                    <th style="width: 8%">
+                        <i class="fas fa-hashtag mr-1"></i>Cantidad
+                    </th>
+                    <th style="width: 8%">
+                        <i class="fas fa-ruler mr-1"></i>Unidad
+                    </th>
+                    <th style="width: 10%">
+                        <i class="fas fa-barcode mr-1"></i>Lote
+                    </th>
+                    <th style="width: 8%">
+                        <i class="fas fa-weight mr-1"></i>Peso
+                    </th>
+                    <th style="width: 8%">
+                        <i class="fas fa-tag mr-1"></i>Tipo
+                    </th>
+                    <th style="width: 8%">
+                        <i class="fas fa-cogs mr-1"></i>Acciones
+                    </th>
                 </tr>
                 </thead>
-                <tbody id="body-finances-bill" style="font-size: 13px;">
+                <tbody id="body-finances-bill">
                 {% for b in picking_dict %}
-                    <tr class="text-center details" pk="{{ b.id }}">
-                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.picking_number }}</td>
-                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.departure_date|date:'d-m-Y' }}</td>
-                        <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.weight }}</td>
-                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">{{ b.vehicle }}</td>
-                        <td class="align-middle text-left" rowspan="{{ b.row_count }}">
-                            <span class="font-weight-bold">Modalidad: </span>{{ b.modality_transport_text }}<br>
-                            <span class="font-weight-bold">Transportista: </span>{{ b.carrier }}<br>
-                            <span class="font-weight-bold">Conductor: </span>{{ b.driver }}<br>
+                    <tr class="details" pk="{{ b.id }}" style="background-color: #f8f9fa;">
+                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">
+                            <span class="badge badge-primary badge-pill">{{ b.picking_number }}</span>
+                        </td>
+                        <td class="align-middle text-center" rowspan="{{ b.row_count }}">
+                            <i class="fas fa-calendar text-muted mr-1"></i>{{ b.departure_date|date:'d/m/Y' }}
                         </td>
                         <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">
-                            <div class="btn-group">
-                                <a class="btn btn-green btn-sm"
+                            <span class="badge badge-info">{{ b.weight }} Kg</span>
+                        </td>
+                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">
+                            <span class="badge badge-secondary">{{ b.vehicle }}</span>
+                        </td>
+                        <td class="align-middle text-left" rowspan="{{ b.row_count }}">
+                            <div class="transport-info">
+                                <div class="mb-1">
+                                    <i class="fas fa-truck text-primary mr-1"></i>
+                                    <strong>Modalidad:</strong> {{ b.modality_transport_text }}
+                                </div>
+                                <div class="mb-1">
+                                    <i class="fas fa-user-tie text-success mr-1"></i>
+                                    <strong>Transportista:</strong> {{ b.carrier }}
+                                </div>
+                                <div>
+                                    <i class="fas fa-id-card text-warning mr-1"></i>
+                                    <strong>Conductor:</strong> {{ b.driver }}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="align-middle text-center" rowspan="{{ b.row_count }}">
+                            <div class="btn-group-vertical" role="group">
+                                <a class="btn btn-outline-primary btn-sm mb-1"
                                    href="{% url 'comercial:picking' b.id %}"
-                                   target="print">
-                                    <i class="fas fa-file-download fa-xs"></i></a>
-                                <button type="button" class="btn btn-success btn-sm btn-show-guides" pk="{{ b.id }}">
-                                    <i class="fas fa-sort-down fa-xs see-icon"></i>
+                                   target="_blank"
+                                   title="Descargar Reporte">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-info btn-sm btn-show-guides" 
+                                        pk="{{ b.id }}" title="Ver Detalles">
+                                    <i class="fas fa-eye see-icon"></i>
                                 </button>
                             </div>
                         </td>
                         {% for d in b.picking_detail %}
-                            <td class="align-middle text-center">{{ d.product }}</td>
-                            <td class="align-middle text-center">{{ d.quantity }}</td>
-                            <td class="align-middle text-center">{{ d.unit }}</td>
-                            <td class="align-middle text-center">Nº {{ d.batch_number }}</td>
-                            <td class="align-middle text-center">{{ d.weight }} Kg</td>
-                            <td class="align-middle text-center">{{ d.type_text }}</td>
+                            <td class="align-middle text-left">
+                                <div class="product-name">{{ d.product }}</div>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="badge badge-light">{{ d.quantity }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <small class="text-muted">{{ d.unit }}</small>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="badge badge-outline-secondary">Nº {{ d.batch_number }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-muted">{{ d.weight }} Kg</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                {% if d.type == 'M' %}
+                                    <span class="badge badge-success">{{ d.type_text }}</span>
+                                {% else %}
+                                    <span class="badge badge-warning">{{ d.type_text }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="align-middle text-center">
+                                {% if d.type == 'R' %}
+                                    <button type="button" class="btn btn-outline-primary btn-sm btn-reserve-destination" 
+                                            title="Indicar destino de la mercadería"
+                                            data-product="{{ d.product }}"
+                                            data-batch="{{ d.batch_number }}"
+                                            data-quantity="{{ d.quantity }}"
+                                            data-weight="{{ d.weight }}"
+                                            data-unit="{{ d.unit }}">
+                                        <i class="fas fa-route"></i>
+                                    </button>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
                             </tr>
                         {% endfor %}
                     </tr>
                     <tr class="show-detail" pk="{{ b.id }}" style="display: none">
-                        <td colspan="6" class="table-details-guide p-0"></td>
+                        <td colspan="13" class="table-details-guide p-0 bg-light">
+                            <div class="p-3">
+                                <h6 class="text-muted mb-3">
+                                    <i class="fas fa-info-circle mr-1"></i>Detalles Adicionales
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Estado:</strong> {{ b.status }}</p>
+                                        <p class="mb-1"><strong>Fecha de Llegada:</strong> {{ b.arrival_date|date:'d/m/Y'|default:"Pendiente" }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Observaciones:</strong> {{ b.observation|default:"Sin observaciones" }}</p>
+                                        <p class="mb-1"><strong>Subsidiaria:</strong> {{ b.subsidiary }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -66,12 +162,144 @@
         </div>
     </div>
 {% else %}
-    <div class="card text-center roboto-condensed-regular p-3 border-info m-3">
-        <div class="card-header font-weight-bold text-black-50" style="background-color: #88a3b9 ">
-            Atencion!
-        </div>
+    <div class="card text-center p-5">
         <div class="card-body">
-            <h5 class="card-title text-info roboto-condensed-regular font-weight-bold">No existen Picking...</h5>
+            <div class="empty-state">
+                <i class="fas fa-truck fa-4x text-muted mb-4"></i>
+                <h4 class="text-muted font-weight-bold mb-3">No hay reportes de picking disponibles</h4>
+                <p class="text-muted mb-4">No se encontraron picking registrados en el sistema.</p>
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Los picking aparecerán aquí una vez que sean generados desde la pestaña "Sin Asignar".
+                </div>
+            </div>
         </div>
     </div>
 {% endif %}
+
+<!-- Modal para indicar destino de mercadería de reserva -->
+<div class="modal fade" id="modal-reserve-destination" tabindex="-1" role="dialog" 
+     aria-labelledby="modalReserveDestinationTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content roboto-condensed-regular">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalReserveDestinationTitle">
+                    <i class="fas fa-route mr-2"></i>Destino de la Mercadería de Reserva
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="reserve-destination-form">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="destination-type" class="font-weight-bold">
+                                    <i class="fas fa-tag mr-1"></i>Tipo de Destino:
+                                </label>
+                                <select class="form-control" id="destination-type" name="destination_type" required>
+                                    <option value="">Seleccione el destino...</option>
+                                    <option value="VENDIDA">Vendida</option>
+                                    <option value="DEVUELTA">Devuelta</option>
+                                    <option value="DONADA">Donada</option>
+                                    <option value="DETERIORADA">Deteriorada</option>
+                                    <option value="OTRO">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="destination-date" class="font-weight-bold">
+                                    <i class="fas fa-calendar mr-1"></i>Fecha del Movimiento:
+                                </label>
+                                <input type="date" class="form-control" id="destination-date" name="destination_date" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="destination-client" class="font-weight-bold">
+                                    <i class="fas fa-user mr-1"></i>Cliente/Proveedor:
+                                </label>
+                                <input type="text" class="form-control" id="destination-client" name="destination_client" 
+                                       placeholder="Nombre del cliente o proveedor">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="destination-document" class="font-weight-bold">
+                                    <i class="fas fa-file-alt mr-1"></i>N° Documento:
+                                </label>
+                                <input type="text" class="form-control" id="destination-document" name="destination_document" 
+                                       placeholder="Número de factura, boleta, etc.">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="destination-observations" class="font-weight-bold">
+                            <i class="fas fa-comment mr-1"></i>Observaciones:
+                        </label>
+                        <textarea class="form-control" id="destination-observations" name="destination_observations" 
+                                  rows="3" placeholder="Detalles adicionales sobre el destino de la mercadería..."></textarea>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>Información del Producto:</strong>
+                        <div id="product-info" class="mt-2"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-success" id="btn-save-destination">
+                    <i class="fas fa-save mr-1"></i>Guardar Destino
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.badge-outline-secondary {
+    color: #6c757d;
+    border: 1px solid #6c757d;
+    background-color: transparent;
+}
+
+.transport-info {
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.product-name {
+    font-weight: 500;
+    color: #495057;
+}
+
+.empty-state {
+    padding: 2rem 0;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0,123,255,.1) !important;
+}
+
+#picking-list-table {
+    font-size: 0.9rem;
+}
+
+.btn-group-vertical .btn {
+    border-radius: 0.25rem !important;
+}
+
+.btn-group-vertical .btn:not(:last-child) {
+    margin-bottom: 0.25rem;
+}
+</style>

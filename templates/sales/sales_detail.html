@@ -39,7 +39,7 @@
                             class="text-uppercase small text-center" style="font-size: 14px;">
                             <td class="align-middle">{{ forloop.counter }}</td>
                             <td class="align-middle text-left item-product">
-                                <input type="text" disabled
+                                <input type="text"
                                        class="form-control form-control-sm input-product-name"
                                        value="{{ gd.product_name }}">
                             </td>
@@ -49,7 +49,18 @@
                                        value="{{ gd.quantity }}">
                             </td>
                             <td class="align-middle item-unit" pu="{{ gd.unit_id }}"
-                                unit_min="{{ gd.quantity_minimum }}">{{ gd.unit }}</td>
+                                unit_min="{{ gd.quantity_minimum }}">
+                                <select class="form-control form-control-sm select-unit" 
+                                        data-product="{{ gd.product_id }}" 
+                                        data-original-unit="{{ gd.unit_id }}">
+                                    {% for unit_id, unit_name in gd.product_units %}
+                                        <option value="{{ unit_id }}" 
+                                                {% if unit_id == gd.unit_id %}selected{% endif %}>
+                                            {{ unit_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
                             <td class="align-middle item-batch" batch="{{ gd.batch_id }}">
                                 <span class="bg-warning font-weight-bold">{{ gd.batch_number }}</span>
                             </td>

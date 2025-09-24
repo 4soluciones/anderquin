@@ -301,10 +301,9 @@
                 </div>
                 <div class="col-md-8 align-self-center">
                     <label for="id_observation" class="text-primary">Observaciones:</label>
-                    <input type="text"
-                           class="form-control form-control-sm" name="id-observation" id="id_observation"
-                           autocomplete="off" required
-                           value="" maxlength="20">
+                    <textarea class="form-control form-control-sm" name="id-observation" id="id_observation"
+                              rows="3" autocomplete="off" maxlength="500"
+                              placeholder="Ingrese observaciones..."></textarea>
                 </div>
             </div>
 
@@ -885,15 +884,18 @@
         });
 
         function sumWeight(){
-
             let sum_weight_total = 0
 
             $('tbody#guide-details tr').each(function () {
-
-                let product_weight = $(this).attr('weight');
-
+                let product_weight = parseFloat($(this).attr('weight')) || 0;
+                let quantity = parseFloat($(this).find('td.item-quantity input.quantity-product').val()) || 0;
+                
+                // El peso del producto está en gramos, convertir a kg
+                let weight_kg = (quantity * product_weight) / 1000;
+                sum_weight_total += weight_kg;
             });
 
+            return sum_weight_total;
         }
 
         function sumQuantities() {
@@ -917,6 +919,7 @@
                         let product_weight = $(this).attr('weight');
                         _q_x_u = _item_quantity / qmValue
                         _q_x_u_decimal = _item_quantity % qmValue
+                        // El peso del producto está en gramos, convertir a kg
                         full_weight = (_item_quantity * product_weight) / 1000
                         //console.log("full_weight", full_weight)
 
@@ -942,8 +945,10 @@
             //console.log("_q_x_u", _q_x_u)
             //console.log("text", text)
             $('#id-package').val(parseInt(_q_x_u));
-            $('#id_observation').val(text);
-            $('#weight').val(full_weight);
+            $('#id_observation').val(''); // Limpiar observaciones
+            // Calcular el peso total usando la función sumWeight
+            let total_weight = sumWeight();
+            $('#weight').val(total_weight.toFixed(2));
         }
 
         async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
@@ -979,6 +984,7 @@
 
             let store_id = document.getElementById('store_id').value;
             let productID = this.closest('tr').getAttribute('product');
+            let requiredQuantity = $(this).closest('tr').find('input.quantity-product').val() || 0;
 
             if (store_id === '0') {
                 toastr.warning('¡SELECCIONE EL ALMACEN!', 'Mensaje');
@@ -989,11 +995,18 @@
                 url: '/comercial/modal_batch_guide/',
                 dataType: 'json',
                 type: 'GET',
-                data: {'store_id': store_id, 'productID': productID},
+                data: {'store_id': store_id, 'productID': productID, 'required_quantity': requiredQuantity},
                 success: function (response, textStatus, xhr) {
                     if (response.success) {
                         $('#modal-batch').html(response.form);
                         $('#modal-batch').modal('show');
+                        
+                        // Pasar la cantidad requerida al modal
+                        setTimeout(function() {
+                            if (typeof setRequiredQuantity === 'function') {
+                                setRequiredQuantity(parseFloat(requiredQuantity) || 0);
+                            }
+                        }, 100);
 
                     } else {
                         toastr.error(response.message, 'Error');

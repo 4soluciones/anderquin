@@ -2246,12 +2246,34 @@ def save_guide(request):
             product_obj = Product.objects.get(id=product_id)
             quantity = decimal.Decimal(detail['Quantity'])
             quantity_unit = decimal.Decimal(detail['QuantityUnit'])
-            batch_id = int(detail['Batch'])
-            batch_obj = Batch.objects.get(id=batch_id)
             unit_id = int(detail['Unit'])
             unit_obj = Unit.objects.get(id=unit_id)
-            GuideDetail.objects.create(guide=guide_obj, product=product_obj,
-                                       quantity=quantity_unit, unit=unit_obj, batch=batch_obj)
+            
+            # Crear el detalle de la guía
+            guide_detail_obj = GuideDetail.objects.create(
+                guide=guide_obj, 
+                product=product_obj,
+                quantity=quantity_unit, 
+                unit=unit_obj
+            )
+            
+            # Manejar múltiples lotes si están separados por comas
+            batch_ids = detail['Batch'].split(',') if ',' in detail['Batch'] else [detail['Batch']]
+            
+            for batch_id in batch_ids:
+                if batch_id.strip():  # Verificar que no esté vacío
+                    try:
+                        batch_obj = Batch.objects.get(id=int(batch_id.strip()))
+                        # Crear registro de lote detalle
+                        GuideDetailBatch.objects.create(
+                            guide_detail=guide_detail_obj,
+                            batch=batch_obj,
+                            quantity=quantity_unit  # Por ahora usar la cantidad total, se puede ajustar después
+                        )
+                    except (Batch.DoesNotExist, ValueError):
+                        # Si el lote no existe, continuar con el siguiente
+                        continue
+            
             # product_store_id = ProductStore.objects.filter(product=product_obj, subsidiary_store=store_obj).last().id
             # kardex_ouput(product_store_id, quantity, guide_detail_obj=new_detail_guide_obj,)
 
@@ -2395,6 +2417,7 @@ def modal_batch_guide(request):
     if request.method == 'GET':
         subsidiary_store_id = request.GET.get('store_id', '')
         product_id = request.GET.get('productID', '')
+        required_quantity = request.GET.get('required_quantity', '0')
         product_store_set = ProductStore.objects.filter(subsidiary_store__id=subsidiary_store_id,
                                                         product__id=product_id)
         if product_store_set.exists():
@@ -2409,12 +2432,29 @@ def modal_batch_guide(request):
 
             if latest_batches.exists():
                 product_obj = product_store_obj.product
+                
+                # Filtrar solo los lotes que tienen unidades (und) - asumiendo que 'und' es la unidad base
+                # Buscar ProductDetail con unidad 'und' o similar
+                unit_und = Unit.objects.filter(name__icontains='und').first()
+                if not unit_und:
+                    # Si no existe 'und', buscar la unidad con menor quantity_minimum (unidad base)
+                    unit_und = ProductDetail.objects.filter(product=product_obj).order_by('quantity_minimum').first()
+                    if unit_und:
+                        unit_und = unit_und.unit
+                
+                # Filtrar lotes que tengan la unidad base
+                if unit_und:
+                    latest_batches = latest_batches.filter(
+                        product_store__product__productdetail__unit=unit_und
+                    ).distinct()
+                
                 tpl = loader.get_template('comercial/modal_guide_batch.html')
                 context = ({
                     'batch_set': latest_batches,
                     'product_obj': product_obj,
                     'product_store_obj': product_store_obj,
-                    'product_detail_set': ProductDetail.objects.filter(product=product_obj)
+                    'product_detail_set': ProductDetail.objects.filter(product=product_obj, unit=unit_und) if unit_und else ProductDetail.objects.filter(product=product_obj),
+                    'required_quantity': required_quantity
                 })
                 return JsonResponse({
                     'success': True,
@@ -2702,12 +2742,47 @@ def modal_phase(request):
         except (Order.DoesNotExist, ValueError, TypeError):
             return JsonResponse({'success': False, 'error': 'Orden no encontrada'}, status=HTTPStatus.BAD_REQUEST)
 
+        # Obtener datos adicionales de la guía relacionada
+        bill_info = {
+            'serial': '-',
+            'correlative': '-',
+            'amount': '-',
+            'order_buy': '-',
+            'cod_siaf': '-'
+        }
+        
+        # Buscar la guía relacionada a través del contract_detail
+        try:
+            # Obtener el contract_detail relacionado con la orden
+            contract_detail = order_obj.contractdetail_set.first()
+            if contract_detail:
+                # Obtener la guía más reciente relacionada al contract_detail
+                guide_obj = contract_detail.guide_set.last()
+                order_obj = contract_detail.order
+                if guide_obj:
+                    # bill_info['serial'] = guide_obj.serial or '-'
+                    # bill_info['correlative'] = guide_obj.correlative or '-'
+                    bill_info['order_buy'] = guide_obj.order_buy or '-'
+                    bill_info['cod_siaf'] = guide_obj.cod_siaf or '-'
+                if order_obj:
+                    bill_info['serial'] = order_obj.serial or '-'
+                    bill_info['correlative'] = order_obj.correlative or '-'
+                # Obtener el monto de la factura desde la compra relacionada
+                purchase_obj = contract_detail.contractdetailpurchase_set.last()
+                if purchase_obj and purchase_obj.purchase:
+                    bill_info['amount'] = f"S/ {purchase_obj.purchase.total():,.2f}"
+        except Exception as e:
+            print(e)
+            # Si hay algún error, mantener los valores por defecto
+            pass
+
         tpl = loader.get_template('comercial/modal_phases.html')
         context = ({
             'order_obj': order_obj,
             'phase_code': phase,
             'phase_description': phase_map[phase],
             'formatdate': formatdate,
+            'bill_info': bill_info,
         })
         return JsonResponse({
             'success': True,

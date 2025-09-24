@@ -80,7 +80,7 @@
                 </legend>
                 <div class="card-body p-0 m-0">
                     <div class="form-row m-0">
-                        <div class="form-group col-md-5 mb-2 text-uppercase small">
+                        <div class="form-group col-md-4 mb-2 text-uppercase small">
                             <label class="mb-2 text-center"
                                    for="client_name">Cliente - Nombres/Razón social:</label>
                             <div id="autocomplete-client" class="autocomplete">
@@ -98,7 +98,7 @@
                             <input type="hidden" value="{{ guide_obj.client.id }}"
                                    id="client-id" name="client-id">
                         </div>
-                        <div class="form-group col-md-7 mb-2 text-uppercase small">
+                        <div class="form-group col-md-6 mb-2 text-uppercase small">
                             <label class="mb-2 text-center"
                                    for="client_address"> Dirección:</label>
                             <select class="form-control form-control-sm text-uppercase"
@@ -112,6 +112,13 @@
                                     <option value="" selected disabled>Seleccione una dirección</option>
                                 {% endif %}
                             </select>
+                        </div>
+                        <div class="form-group col-md-2 mb-2 text-uppercase small">
+                            <label class="mb-2 text-center"
+                                   for="cod_unit_exe">Cod. Unid. Ejecutora:</label>
+                            <input type="text" class="form-control form-control-sm text-center"
+                                   id="cod_unit_exe" value="{{ guide_obj.client.cod_siaf|default_if_none:'-' }}"
+                                   name="cod_unit_exe" autocomplete="off">
                         </div>
                         <!--<table class="table table-sm text-uppercase small align-right"
                                style="width: 100%">
@@ -339,22 +346,18 @@
                     Relacionada
                 </legend>
                 <div class="form-row mt-1 ml-0 mr-2">
-                    <div class="col-md-4 text-uppercase small pl-1 pr-1">
+                    <div class="col-md-6 text-uppercase small pl-1 pr-1">
                         <label for="order_buy" class="mb-0">Orden de Compra</label>
                         <input type="text" class="form-control form-control-sm text-left"
                                id="order_buy" placeholder="-" autocomplete="off"
+                               value="{{ guide_obj.order_buy }}"
                                name="order_buy">
                     </div>
-                    <div class="col-md-4 text-uppercase small pl-1 pr-1">
-                        <label for="cod_unit_exe" class="mb-0">Codigo Unidad Ejecutora</label>
-                        <input type="text" class="form-control form-control-sm text-left"
-                               id="cod_unit_exe" value="{{ guide_obj.client.cod_siaf|default_if_none:'-' }}"
-                               name="cod_unit_exe" autocomplete="off">
-                    </div>
-                    <div class="col-md-4 text-uppercase small pl-1 pr-1">
-                        <label for="n_contract" class="mb-0">Nº Contrato</label>
+                    <div class="col-md-6 text-uppercase small pl-1 pr-1">
+                        <label for="n_contract" class="mb-0">SIAF</label>
                         <input type="text" class="form-control form-control-sm text-left"
                                id="n_contract" placeholder="-"
+                               value="{{ guide_obj.cod_siaf }}"
                                name="n_contract" autocomplete="off">
                     </div>
                 </div>

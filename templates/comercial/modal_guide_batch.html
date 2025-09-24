@@ -1,9 +1,9 @@
 {% load operations %}
-<div class="modal-dialog" role="document">
+<div class="modal-dialog modal-lg" role="document">
 
     <div class="modal-content">
         <div class="modal-header" style="background-color: rgb(21,99,181);">
-            <h6 class="modal-title  text-white roboto-condensed-regular">LOTES DISPONIBLES:</h6>
+            <h6 class="modal-title  text-white roboto-condensed-regular">LOTES DISPONIBLES - SELECCIÓN MÚLTIPLE:</h6>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="close-modal">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -16,18 +16,34 @@
                     <input type="hidden" value="{{ product_obj.id }}" id="product">
                     <input type="hidden" value="{{ product_store_obj.id }}" id="product_store">
                     <input type="hidden" value="{{ product_store_obj.stock }}" id="current_stock">
+                    <input type="hidden" value="{{ required_quantity }}" id="required_quantity">
                 </div>
                 <div class="card-body m-0 p-3">
+                    <!-- Información de cantidad requerida -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <strong>Cantidad Requerida:</strong> <span id="required-qty-display">0</span> unidades
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-success">
+                                <strong>Cantidad Seleccionada:</strong> <span id="selected-qty-display">0</span> unidades
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="row col-md-12 m-0 p-0">
                         <div class="card-body p-0">
                             <div class="table-responsive dataTables_wrapper m-0 p-0"
-                                 style="overflow-y: scroll; height: 600px; width: auto; overflow-x: hidden;">
+                                 style="overflow-y: scroll; height: 500px; width: auto; overflow-x: hidden;">
                                 <table class="table table-sm align-content-center table-bordered table-hover mb-0">
                                  <thead>
                                  <tr>
-                                     <th class="small font-weight-bold text-center"></th>
+                                     <th class="small font-weight-bold text-center">SELECCIONAR</th>
                                      <th class="small font-weight-bold text-center">Nº LOTE</th>
-                                     <th class="small font-weight-bold text-center">CANTIDAD DISPONIBLE</th>
+                                     <th class="small font-weight-bold text-center">CANTIDAD DISPONIBLE (UND)</th>
+                                     <th class="small font-weight-bold text-center">CANTIDAD A USAR</th>
                                      <th class="small font-weight-bold text-center">FECHA DE EXPIRACIÓN</th>
                                  </tr>
                                  </thead>
@@ -38,33 +54,27 @@
                                                 <div class="form-check">
                                                     <input class="form-check-input check-batch" aria-label=""
                                                            style="transform: scale(1.4);"
-                                                           type="radio" name="batch" id="batch-{{ b.id }}"
+                                                           type="checkbox" name="batch" id="batch-{{ b.id }}"
                                                            value="{{ b.id }}">
                                                     <label class="form-check-label" for="batch-{{ b.id }}">
-                                                        {{ b.name }}
+                                                        Seleccionar
                                                     </label>
                                                 </div>
                                             </td>
                                             <td class="text-center item-number-batch align-middle font-weight-bold">
                                                 Nª {{ b.batch_number }}
-{#                                                <input type="text" class="form-control number-batch text-center"#}
-{#                                                       aria-label="" readonly#}
-{#                                                       value="{{ b.batch_number }}"#}
-{#                                                       aria-describedby="basic-addon1">#}
                                             </td>
                                             <td class="text-right item-remaining-quantity align-middle">
-{#                                                <input type="text" class="form-control remaining-quantity text-right"#}
-{#                                                       aria-label="" readonly#}
-{#                                                       value="{{ b.remaining_quantity|replace_round }}">#}
-                                                {% for pd in product_detail_set %}
-                                                    <div class="row flex-fill m-0" unit="{{ pd.unit }}"
-                                                         qm="{{ pd.quantity_minimum|safe }}">
-                                                        <div class="col-12 d-flex justify-content-center align-items-center border-top border-right border-left">
-                                                            <span class="current-stock">{{ b.remaining_quantity|safe|divide_stock:pd.quantity_minimum|safe }}</span>
-                                                            <span class="type-unit">({{ pd.unit }})</span>
-                                                        </div>
-                                                    </div>
-                                                {% endfor %}
+                                                <span class="available-quantity">{{ b.remaining_quantity|floatformat:0 }}</span> unidades
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                <input type="number" class="form-control form-control-sm quantity-input" 
+                                                       id="qty-{{ b.id }}" 
+                                                       min="0" 
+                                                       max="{{ b.remaining_quantity|floatformat:0 }}" 
+                                                       value="0" 
+                                                       disabled
+                                                       style="width: 100px; margin: 0 auto;">
                                             </td>
                                             <td class="item-expiration-date align-middle text-center">
                                                 {{ b.expiration_date|date:'d/m/Y' }}
@@ -79,8 +89,8 @@
                 </div>
                 <div class="modal-footer border-0 pt-2">
                     <div class="card-body m-0 text-center p-0">
-{#                        <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Cerrar</button>#}
-                        <button type="button" id="select-batch" class="btn btn-sm btn-block btn-select btn-success"> Seleccionar
+                        <button type="button" id="select-batch" class="btn btn-sm btn-block btn-select btn-success" disabled>
+                            Seleccionar Lotes
                         </button>
                     </div>
                 </div>
@@ -89,33 +99,169 @@
     </div>
 </div>
 <script type="text/javascript">
+    // Usar var en lugar de let para evitar conflictos de redeclaración
+    var requiredQuantity = 0;
+    var selectedQuantity = 0;
 
+    // Función para actualizar la cantidad seleccionada
+    function updateSelectedQuantity() {
+        selectedQuantity = 0;
+        var tbody_check = document.getElementById('details-batch');
+        if (!tbody_check) return;
+        
+        var rows = tbody_check.getElementsByTagName('tr');
+        
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var checkbox = row.querySelector('td.item-check input.check-batch');
+            var quantityInput = row.querySelector('td input.quantity-input');
+            
+            if (checkbox && checkbox.checked && quantityInput) {
+                var qty = parseFloat(quantityInput.value) || 0;
+                selectedQuantity += qty;
+            }
+        }
+        
+        var selectedDisplay = document.getElementById('selected-qty-display');
+        if (selectedDisplay) {
+            selectedDisplay.textContent = selectedQuantity;
+        }
+        
+        // Habilitar/deshabilitar botón según si se alcanzó la cantidad requerida
+        var selectBtn = document.getElementById('select-batch');
+        if (selectBtn) {
+            if (selectedQuantity >= requiredQuantity && selectedQuantity > 0) {
+                selectBtn.disabled = false;
+                selectBtn.textContent = 'Seleccionar Lotes (' + selectedQuantity + ' unidades)';
+            } else {
+                selectBtn.disabled = true;
+                selectBtn.textContent = 'Seleccionar Lotes';
+            }
+        }
+    }
 
-    $("#select-batch").click(function () {
-        let product = document.getElementById('product').value;
-        let productStore = document.getElementById('product_store').value;
-        let tbody_check = document.getElementById('details-batch');
-        let rows = tbody_check.getElementsByTagName('tr');
-        let _tr = $("#guide-details tr[product=" + product + "]");
-        let btn_batch = _tr.find('td.batch button.btn-batch');
-        let input_batch_id = _tr.find('td.batch input.batch-id');
-        let input_stock_batch = _tr.find('td.batch input.stock-batch');
+    // Función para establecer la cantidad requerida
+    function setRequiredQuantity(qty) {
+        requiredQuantity = qty;
+        var requiredInput = document.getElementById('required_quantity');
+        var requiredDisplay = document.getElementById('required-qty-display');
+        
+        if (requiredInput) {
+            requiredInput.value = qty;
+        }
+        if (requiredDisplay) {
+            requiredDisplay.textContent = qty;
+        }
+        updateSelectedQuantity();
+    }
 
-        for (let row of rows) {
-            let checkbox = row.querySelector('td.item-check input.check-batch');
-            if (checkbox && checkbox.checked) {
-                let batchID = row.getAttribute('batch');
-                let quantity = row.getAttribute('quantity');
-                let batch_number = row.getAttribute('batch_number');
-                btn_batch.val(batch_number);
-                btn_batch.text('Nº ' + batch_number);
-                input_batch_id.val(batchID);
-                input_stock_batch.val(quantity);
+    // Event listeners para checkboxes
+    $(document).off('change', '.check-batch').on('change', '.check-batch', function() {
+        var row = $(this).closest('tr');
+        var quantityInput = row.find('input.quantity-input');
+        
+        if (this.checked) {
+            quantityInput.prop('disabled', false);
+            // Establecer cantidad máxima disponible por defecto
+            var maxQty = parseFloat(quantityInput.attr('max'));
+            var remaining = requiredQuantity - selectedQuantity;
+            if (remaining > 0) {
+                quantityInput.val(Math.min(maxQty, remaining));
+            }
+        } else {
+            quantityInput.prop('disabled', true).val(0);
+        }
+        
+        updateSelectedQuantity();
+    });
+
+    // Event listeners para inputs de cantidad
+    $(document).off('input', '.quantity-input').on('input', '.quantity-input', function() {
+        var maxQty = parseFloat($(this).attr('max'));
+        var value = parseFloat($(this).val()) || 0;
+        
+        if (value > maxQty) {
+            $(this).val(maxQty);
+            value = maxQty;
+        }
+        
+        if (value < 0) {
+            $(this).val(0);
+            value = 0;
+        }
+        
+        updateSelectedQuantity();
+    });
+
+    // Inicializar cuando el modal se carga
+    $(document).ready(function() {
+        // Obtener la cantidad requerida del input hidden
+        var requiredQty = document.getElementById('required_quantity');
+        if (requiredQty && requiredQty.value) {
+            setRequiredQuantity(parseFloat(requiredQty.value) || 0);
+        } else {
+            // Buscar la cantidad requerida en la fila del producto como fallback
+            var product = document.getElementById('product');
+            if (product) {
+                var _tr = $("#guide-details tr[product=" + product.value + "]");
+                var quantityInput = _tr.find('input.quantity');
+                if (quantityInput.length > 0) {
+                    var qty = parseFloat(quantityInput.val()) || 0;
+                    setRequiredQuantity(qty);
+                }
+            }
+        }
+    });
+
+    // Event listener para el botón de selección
+    $(document).off('click', '#select-batch').on('click', '#select-batch', function () {
+        var product = document.getElementById('product');
+        var productStore = document.getElementById('product_store');
+        var tbody_check = document.getElementById('details-batch');
+        
+        if (!product || !productStore || !tbody_check) return;
+        
+        var rows = tbody_check.getElementsByTagName('tr');
+        var _tr = $("#guide-details tr[product=" + product.value + "]");
+        var btn_batch = _tr.find('td.batch button.btn-batch');
+        var input_batch_id = _tr.find('td.batch input.batch-id');
+        var input_stock_batch = _tr.find('td.batch input.stock-batch');
+        
+        var selectedBatches = [];
+        var totalQuantity = 0;
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var checkbox = row.querySelector('td.item-check input.check-batch');
+            var quantityInput = row.querySelector('td input.quantity-input');
+            
+            if (checkbox && checkbox.checked && quantityInput) {
+                var batchID = row.getAttribute('batch');
+                var batch_number = row.getAttribute('batch_number');
+                var quantity = parseFloat(quantityInput.value) || 0;
+                
+                if (quantity > 0) {
+                    selectedBatches.push({
+                        id: batchID,
+                        number: batch_number,
+                        quantity: quantity
+                    });
+                    totalQuantity += quantity;
+                }
             }
         }
 
-        $('#modal-batch').modal('hide');
+        if (selectedBatches.length > 0) {
+            // Actualizar la fila con la información de los lotes seleccionados
+            var batchNumbers = selectedBatches.map(function(b) { return 'Nº ' + b.number; }).join(', ');
+            var batchIds = selectedBatches.map(function(b) { return b.id; }).join(',');
+            
+            btn_batch.text(batchNumbers);
+            input_batch_id.val(batchIds);
+            input_stock_batch.val(totalQuantity);
+        }
 
+        $('#modal-batch').modal('hide');
     });
 
 </script>

@@ -1,7 +1,7 @@
 {% load operations %}
 {% load app_filters %}
 {% if contract_dict %}
-    <div class="card roboto-condensed-regular mr-4 ml-4 mt-2">
+    <div class="card roboto-condensed-regular mr-4 ml-4 mt-2 contract-report">
         {#        <table id="contract-detail-grid" class="table table-bordered align-content-center w-100 h-100 roboto-condensed-regular">#}
         {#                <thead>#}
         {#                <tr class="text-center text-white text-uppercase " style="background: #3e6787; font-size: 12px;">#}
@@ -29,120 +29,135 @@
         <div class="card-body overflow-auto p-0 m-0">
             <div class="container-fluid pl-0 ml-0 pr-0 mr-0">
                 <div class="row text-white m-0" style="background-color: #3e6787; font-size: 12px;">
-{#                    <div class="col-1 border-right py-3 d-flex justify-content-center align-items-center">Nro Contrato#}
-{#                    </div>#}
-                    <div class="col-2 border-right py-3 d-flex justify-content-center align-items-center">Cliente</div>
-                    <div class="col-10 border-right d-flex flex-column">
+                    <div class="col-3 border-right py-3 d-flex flex-column justify-content-center align-items-center">
+                        <div class="font-weight-bold">Cliente</div>
+                        <div class="small">Código Unidad Ejecutora</div>
+                    </div>
+                    <div class="col-9 border-right d-flex flex-column">
                         <div class="row flex-fill">
-                            <div class="col-1 border-right py-3 d-flex justify-content-center align-items-center">Nro de
-                                Cuota
+                            <div class="col-1 border-right py-3 d-flex justify-content-center align-items-center text-center">
+                                <div class="font-weight-bold">Cuota</div>
                             </div>
                             <div class="col-1 border-right py-3 d-flex justify-content-center align-items-center text-center">
-                                Fecha de Vencimiento
+                                <div class="font-weight-bold">Fecha de Vencimiento</div>
                             </div>
                             <div class="col-10 border-right d-flex flex-column">
                                 <div class="row flex-fill">
-                                    <div class="col-12 d-flex justify-content-center align-items-center">Fechas de
-                                        Entrega
+                                    <div class="col-12 d-flex justify-content-center align-items-center py-2">
+                                        <div class="font-weight-bold">Fechas de Entrega</div>
                                     </div>
                                 </div>
                                 <div class="row flex-fill">
-                                    <div class="col-1 border-right border-top d-flex justify-content-center align-items-center">
-                                        Cantidad
+                                    <div class="col-1 border-right border-top d-flex justify-content-center align-items-center text-center">
+                                        <div class="small font-weight-bold">Cantidad</div>
                                     </div>
-                                    <div class="col-4 border-right border-top d-flex justify-content-center align-items-center">
-                                        Producto
-                                    </div>
-                                    <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">
-                                        Guia
+                                    <div class="col-3 border-right border-top d-flex justify-content-center align-items-center">
+                                        <div class="small font-weight-bold">Producto</div>
                                     </div>
                                     <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">
-                                        Factura
+                                        <div class="small font-weight-bold">Guía</div>
+                                    </div>
+                                    <div class="col-2 border-left border-top d-flex flex-column justify-content-center align-items-center">
+                                        <div class="small font-weight-bold">Factura</div>
+                                        <div class="small">Número</div>
                                     </div>
                                     <div class="col-1 border-left border-top d-flex justify-content-center align-items-center text-center">
-                                        Fase C<br>(Compromiso)
+                                        <div class="small font-weight-bold">Fase C<br><span class="small">Compromiso</span></div>
                                     </div>
                                     <div class="col-1 border-left border-top d-flex justify-content-center align-items-center text-center">
-                                        Fase D<br>(De Vengado)
+                                        <div class="small font-weight-bold">Fase D<br><span class="small">Vencido</span></div>
                                     </div>
-                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center text-center">
-                                        Fase G<br>(Girado)
+                                    <div class="col-2 border-left border-top d-flex justify-content-center align-items-center text-center">
+                                        <div class="small font-weight-bold">Fase G<br><span class="small">Girado</span></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
             <div class="container-fluid table-like pl-0 ml-0 pr-0 mr-0 bg-light">
                 {% for c in contract_dict %}
                     <div class="row m-0 border-top border-dark">
-{#                        <div class="col-1 border-right id d-flex  align-items-center text-left"#}
-{#                             data-sort-value="original-order">{{ c.contract_number }}</div>#}
-                        <div class="col-2 border-right d-flex justify-content-center align-items-center font-weight-bold text-center">{{ c.client }}</div>
-                        <div class="col-10 border-right d-flex flex-column">
+                        <div class="col-3 border-right d-flex flex-column justify-content-center align-items-center font-weight-bold text-center py-3">
+                            {% if c.cod_siaf != '-' %}<div class="small text-muted font-weight-normal mb-1">COD: {{ c.cod_siaf }}</div>{% endif %}
+                            <div class="mb-1">{{ c.client }}</div>
+                        </div>
+                        <div class="col-9 border-right d-flex flex-column">
                             {% for cd in c.contract_detail %}
                                 <div class="row flex-fill">
-                                    <div class="col-1 border-right border-bottom d-flex flex-column justify-content-center text-center">{{ cd.nro_quota }}</div>
-                                    <div class="col-1 border-right border-bottom d-flex flex-column justify-content-center text-center">{{ cd.date|date:'d-m-Y' }}</div>
+                                    <div class="col-1 border-right border-bottom d-flex flex-column justify-content-center text-center py-2">
+                                        <div class="small font-weight-bold">{{ cd.nro_quota }}</div>
+                                    </div>
+                                    <div class="col-1 border-right border-bottom d-flex flex-column justify-content-center text-center py-2">
+                                        <div class="small">{{ cd.date|date:'d-m-Y' }}</div>
+                                    </div>
                                     <div class="col-10 border-right border-bottom d-flex flex-column justify-content-center">
                                         {% for e in cd.contract_detail_item %}
                                             <div class="row flex-fill">
-                                                <div class="col-1 border-right border-top d-flex justify-content-center align-items-center">{{ e.quantity }}</div>
-                                                <div class="col-4 border-right border-top d-flex justify-content-center align-items-center">{{ e.product_name }}</div>
-                                                <div class="col-2 border-left border-top d-flex justify-content-center align-items-center font-weight-bold"
-                                                     style="background-color: #adcdd3">
+                                                <div class="col-1 border-right border-top d-flex justify-content-center align-items-center py-2">
+                                                    <div class="small font-weight-bold">{{ e.quantity }}</div>
+                                                </div>
+                                                <div class="col-3 border-right border-top d-flex justify-content-left align-items-center py-2">
+                                                    <div class="small text-left">{{ e.product_name }}</div>
+                                                </div>
+                                                <div class="col-2 border-left border-top d-flex justify-content-center align-items-center font-weight-bold py-2"
+                                                     style="background-color: #e8f4f8">
                                                     <div class="row flex-fill">
-                                                        <div class="col-6 border-left border-top d-flex justify-content-center align-items-center">{{ cd.guide_number }}</div>
-                                                        <!----- Es el mismo DIV ---->
-                                                        {% if cd.guide_created is not None %}
-                                                            <div class="col-6 border-left border-top d-flex justify-content-center align-items-center">
-                                                                {{ cd.guide_created|date:'d-m-Y' }}
-                                                            </div>
-                                                        {% else %}
-                                                            <div class="col-6 border-left border-top d-flex justify-content-center align-items-center {% if cd.days_difference > 0 %}text-success{% elif cd.days_difference < 0 %}text-danger{% elif cd.days_difference == 0 %}text-dark{% endif %}">
-                                                                {{ cd.days_difference }}
-                                                            </div>
-                                                        {% endif %}
-                                                        <!----- END ---->
+                                                        <div class="col-6 text-center p-0">
+                                                            <div class="small">{{ cd.guide_number }}</div>
+                                                        </div>
+                                                        <div class="col-6 text-center p-0">
+                                                            {% if cd.guide_created is not None %}
+                                                                <div class="small text-success">{{ cd.guide_created|date:'d-m-Y' }}</div>
+                                                            {% else %}
+                                                                <div class="small {% if cd.days_difference > 0 %}text-success{% elif cd.days_difference < 0 %}text-danger{% elif cd.days_difference == 0 %}text-warning{% endif %}">
+                                                                    {{ cd.days_difference }} días
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-2 border-left border-top d-flex justify-content-center align-items-center font-weight-bold"
-                                                     style="background-color: #adcdd3">
+                                                <div class="col-2 border-left border-top d-flex justify-content-center align-items-center font-weight-bold py-2"
+                                                     style="background-color: #e8f4f8">
                                                     <div class="row flex-fill">
-                                                        <div class="col-6 border-left border-top d-flex justify-content-center align-items-center">{{ cd.order_number }}</div>
-                                                        <!----- Es el mismo DIV ---->
                                                         {% if cd.order_created is not None %}
-                                                            <div class="col-6 border-left border-top d-flex justify-content-center align-items-center">{{ cd.order_created|date:'d-m-Y' }}</div>
+                                                            <div class="col-6 text-left p-0 pl-2">
+                                                                <div class="small">{{ cd.order_number }}</div>
+                                                            </div>
+                                                            <div class="col-6 text-right p-0 pr-2">
+                                                                <div class="small text-primary font-weight-bold">{{ cd.bill_amount }}</div>
+                                                            </div>
                                                         {% else %}
-                                                            <div class="col-6 border-left border-top d-flex justify-content-center align-items-center {% if cd.days_difference_two > 0 %}text-success{% elif cd.days_difference_two < 0 %}text-danger{% elif cd.days_difference_two == 0 %}text-dark{% endif %}">
-                                                                {{ cd.days_difference_two }}
+                                                            <div class="col-6 text-center p-0">
+                                                                <div class="small">-</div>
+                                                            </div>
+                                                            <div class="col-6 text-center p-0">
+                                                                <div class="small text-danger font-weight-bold">{{ cd.days_difference_two }}</div>
                                                             </div>
                                                         {% endif %}
-                                                        <!----- END ---->
                                                     </div>
                                                 </div>
                                                 {% if cd.order %}
-                                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center" order="{{ cd.order }}" phase="C">
+                                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center py-2" order="{{ cd.order }}" phase="C">
                                                         {% if cd.phase_c %}
-                                                            {{ cd.phase_c|date:'d-m-Y' }}
+                                                            <div class="small text-success font-weight-bold">{{ cd.phase_c|date:'d-m-Y' }}</div>
                                                         {% else %}
-                                                            <input class="align-middle check-c" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.0);">
+                                                            <input class="check-c" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.2);">
                                                         {% endif %}
                                                     </div>
-                                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center" order="{{ cd.order }}" phase="D">
+                                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center py-2" order="{{ cd.order }}" phase="D">
                                                         {% if cd.phase_d %}
-                                                            {{ cd.phase_d|date:'d-m-Y' }}
+                                                            <div class="small text-warning font-weight-bold">{{ cd.phase_d|date:'d-m-Y' }}</div>
                                                         {% else %}
-                                                            <input class="align-middle check-d" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.0);">
+                                                            <input class="check-d" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.2);">
                                                         {% endif %}
                                                     </div>
-                                                    <div class="col-1 border-left border-top border-right d-flex justify-content-center align-items-center" order="{{ cd.order }}" phase="G">
+                                                    <div class="col-2 border-left border-top border-right d-flex justify-content-center align-items-center py-2" order="{{ cd.order }}" phase="G">
                                                         {% if cd.phase_g %}
-                                                            {{ cd.phase_g|date:'d-m-Y' }}
+                                                            <div class="small text-info font-weight-bold">{{ cd.phase_g|date:'d-m-Y' }}</div>
                                                         {% else %}
-                                                            <input class="align-middle check-g" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.0);">
+                                                            <input class="check-g" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.2);">
                                                         {% endif %}
                                                     </div>
                                                 {% endif %}
@@ -168,3 +183,80 @@
         </button>
     </div>
 {% endif %}
+
+<style>
+    /*.contract-report {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }*/
+
+    .contract-report .border-dark {
+        border-color: #dee2e6 !important;
+    }
+
+    .contract-report .bg-light {
+        background-color: #f8f9fa !important;
+    }
+
+    .contract-report .text-muted {
+        color: #6c757d !important;
+        font-size: 0.75rem;
+    }
+
+    .contract-report .small {
+        font-size: 0.8rem;
+    }
+
+    .contract-report .font-weight-bold {
+        font-weight: 600 !important;
+    }
+
+    .contract-report .py-2 {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+
+    .contract-report .py-3 {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+
+    .contract-report .text-success {
+        color: #28a745 !important;
+    }
+
+    .contract-report .text-danger {
+        color: #dc3545 !important;
+    }
+
+    .contract-report .text-warning {
+        color: #ffc107 !important;
+    }
+
+    .contract-report .text-info {
+        color: #17a2b8 !important;
+    }
+
+    .contract-report .text-primary {
+        color: #007bff !important;
+    }
+
+    .contract-report input[type="checkbox"] {
+        cursor: pointer;
+    }
+
+    .contract-report .border-right {
+        border-right: 1px solid #dee2e6 !important;
+    }
+
+    .contract-report .border-left {
+        border-left: 1px solid #dee2e6 !important;
+    }
+
+    .contract-report .border-top {
+        border-top: 1px solid #dee2e6 !important;
+    }
+
+    .contract-report .border-bottom {
+        border-bottom: 1px solid #dee2e6 !important;
+    }
+</style>

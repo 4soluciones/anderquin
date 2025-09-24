@@ -954,6 +954,7 @@ def save_order(request):
 
             for detail in detail:
                 product_id = int(detail['product'])
+                commentary = str(detail['commentary'])
                 unit_id = int(detail['unit'])
                 quantity = decimal.Decimal(detail['quantity'])
                 price = decimal.Decimal(detail['price'])
@@ -972,7 +973,7 @@ def save_order(request):
                     price_unit=price,
                     unit=unit_obj,
                     status='V',
-                    commentary=product_obj.name + ' - ' + product_obj.product_brand.name
+                    commentary=commentary
                 )
                 order_detail_obj.save()
                 if _type_document == 'F':
@@ -4335,24 +4336,57 @@ def get_sales_list(request, guide=None):
 
             quantity_minimum = product_detail_get.quantity_minimum
             sub_total = round(price_sale * gd.quantity, 2)
-            item_guide = {
-                'id': gd.id,
-                'quantity': str(round(gd.quantity, 2)),
-                'product_id': gd.product.id,
-                'product_name': gd.product.name,
-                'unit_id': gd.unit.id,
-                'unit': gd.unit.name,
-                # 'price_purchase': price_purchase,
-                'price_sale': str(round(price_sale, 2)),
-                'subtotal': str(sub_total),
-                'quantity_minimum': str(quantity_minimum),
-                'store_product': product_store_get.id,
-                'stock': product_store_get.stock,
-                'batch_id': gd.batch.id if gd.batch else '',
-                'batch_number': gd.batch.batch_number if gd.batch else '-'
-            }
-            total += sub_total
-            guide_detail_dict.append(item_guide)
+            
+            # Obtener todas las unidades disponibles para este producto
+            product_units = Unit.objects.filter(productdetail__product=gd.product)
+            
+            # Obtener todos los lotes asociados a este detalle de guía desde GuideDetailBatch
+            batch_details = gd.batch_details.all()  # related_name='batch_details'
+            
+            # Si hay lotes en GuideDetailBatch, usar esos; si no, usar el batch del GuideDetail original
+            if batch_details.exists():
+                # Crear un item_guide por cada lote
+                for batch_detail in batch_details:
+                    item_guide = {
+                        'id': gd.id,
+                        'quantity': str(round(batch_detail.quantity, 2)),
+                        'product_id': gd.product.id,
+                        'product_name': gd.product.name,
+                        'unit_id': gd.unit.id,
+                        'unit': gd.unit.name,
+                        'product_units': [(unit.id, unit.name) for unit in product_units],
+                        # 'price_purchase': price_purchase,
+                        'price_sale': str(round(price_sale, 2)),
+                        'subtotal': str(round(price_sale * batch_detail.quantity, 2)),
+                        'quantity_minimum': str(quantity_minimum),
+                        'store_product': product_store_get.id,
+                        'stock': product_store_get.stock,
+                        'batch_id': batch_detail.batch.id,
+                        'batch_number': batch_detail.batch.batch_number
+                    }
+                    total += round(price_sale * batch_detail.quantity, 2)
+                    guide_detail_dict.append(item_guide)
+            else:
+                # Fallback al comportamiento original si no hay lotes en GuideDetailBatch
+                item_guide = {
+                    'id': gd.id,
+                    'quantity': str(round(gd.quantity, 2)),
+                    'product_id': gd.product.id,
+                    'product_name': gd.product.name,
+                    'unit_id': gd.unit.id,
+                    'unit': gd.unit.name,
+                    'product_units': [(unit.id, unit.name) for unit in product_units],
+                    # 'price_purchase': price_purchase,
+                    'price_sale': str(round(price_sale, 2)),
+                    'subtotal': str(sub_total),
+                    'quantity_minimum': str(quantity_minimum),
+                    'store_product': product_store_get.id,
+                    'stock': product_store_get.stock,
+                    'batch_id': gd.batch.id if gd.batch else '',
+                    'batch_number': gd.batch.batch_number if gd.batch else '-'
+                }
+                total += sub_total
+                guide_detail_dict.append(item_guide)
 
         if subsidiary_obj is None:
             error = "No tiene una Sede o Almacen para vender"

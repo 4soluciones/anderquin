@@ -30,8 +30,25 @@
                             </select>
                         </td>
                         <td class="pl-2 pr-2">
+                            <select class="form-control" id="id-payment-status" name="payment_status">
+                                <option value="all">Todas las facturas</option>
+                                <option value="pending">Facturas pendientes</option>
+                                <option value="paid">Facturas pagadas</option>
+                            </select>
+                        </td>
+                        <td class="pl-2 pr-2">
                             <button type="button" id="id_btn_show"
                                     class="btn btn-primary btn-block"><i class="fas fa-search-dollar"></i> MOSTRAR
+                            </button>
+                        </td>
+                        <td class="pl-2 pr-2">
+                            <button type="button" id="id_btn_export_pdf"
+                                    class="btn btn-danger btn-block" disabled><i class="fas fa-file-pdf"></i> PDF
+                            </button>
+                        </td>
+                        <td class="pl-2 pr-2">
+                            <button type="button" id="id_btn_export_excel"
+                                    class="btn btn-success btn-block" disabled><i class="fas fa-file-excel"></i> EXCEL
                             </button>
                         </td>
                     </tr>
@@ -125,25 +142,42 @@
             let _start_date = $('#id_date_initial').val();
             let _end_date = $('#id_date_final').val();
             let _combo = $('#id-supplier').val();
+            let _payment_status = $('#id-payment-status').val();
+            
             if (_combo > 0) {
                 $('#table-list-purchase').empty();
                 $('#loader-bill').html(loader).show()
+                
+                // Determinar la URL según el estado de pago
+                let url = '/accounting/get_purchases_by_date/';
+                if (_payment_status === 'paid') {
+                    url = '/accounting/get_purchases_paid_by_date/';
+                }
+                
                 $.ajax({
-                    url: '/accounting/get_purchases_by_date/',
+                    url: url,
                     async: true,
                     dataType: 'json',
                     type: 'GET',
-                    data: {'start-date': _start_date, 'end-date': _end_date, 'pk': _combo},
+                    data: {
+                        'start-date': _start_date, 
+                        'end-date': _end_date, 
+                        'pk': _combo,
+                        'payment_status': _payment_status
+                    },
                     contentType: 'application/json;charset=UTF-8',
                     headers: {"X-CSRFToken": '{{ csrf_token }}'},
                     success: function (response, textStatus, xhr) {
                         if (xhr.status === 200) {
                             $('#table-list-purchase').html(response.grid);
                             $('#loader-bill').hide();
+                            // Habilitar botones de exportación
+                            $('#id_btn_export_pdf').prop('disabled', false);
+                            $('#id_btn_export_excel').prop('disabled', false);
                         }
                     },
                     error: function (jqXhr, textStatus, xhr) {
-                        {#$('#table-list-purchase').html(jqXhr.grid);#}
+                        // $('#table-list-purchase').html(jqXhr.grid);
                         toastr.error(jqXhr.responseJSON.detalle, '¡MENSAJE!');
                         $('#loader-bill').hide();
                     }
@@ -153,9 +187,45 @@
             }
         });
 
+        // Exportar a PDF
+        $("#id_btn_export_pdf").click(function () {
+            let _combo = $('#id-supplier').val();
+            let _payment_status = $('#id-payment-status').val();
+            
+            if (_combo > 0) {
+                let url = '/accounting/print_pdf_purchases_report/';
+                let params = new URLSearchParams({
+                    'supplier_id': _combo,
+                    'payment_status': _payment_status
+                });
+                
+                window.open(url + '?' + params.toString(), '_blank');
+            } else {
+                toastr.warning('Seleccione el proveedor', 'Mensaje')
+            }
+        });
+
+        // Exportar a Excel
+        $("#id_btn_export_excel").click(function () {
+            let _combo = $('#id-supplier').val();
+            let _payment_status = $('#id-payment-status').val();
+            
+            if (_combo > 0) {
+                let url = '/accounting/export_excel_purchases_report/';
+                let params = new URLSearchParams({
+                    'supplier_id': _combo,
+                    'payment_status': _payment_status
+                });
+                
+                window.open(url + '?' + params.toString(), '_blank');
+            } else {
+                toastr.warning('Seleccione el proveedor', 'Mensaje')
+            }
+        });
+
         $(document).on('click', '.btn-show-payments', function () {
             let _bill_id = $(this).attr('pk');
-            {#$('#lending').empty();#}
+            // $('#lending').empty();
             $.ajax({
                 url: '/accounting/get_purchases_pay/',
                 async: true,
@@ -220,11 +290,11 @@
 
         $(document).on('click', '#btn_edit_container', function () {
             $('#editContainer').removeClass('d-none');
-            {#$('#fileContainer').addClass('d-none')#}
+            // $('#fileContainer').addClass('d-none')
         });
         $(document).on('click', '#closeModal', function () {
             $('#editContainer').addClass('d-none');
-            {#$('#fileContainer').removeClass('d-none')#}
+            // $('#fileContainer').removeClass('d-none')
         });
 
         document.addEventListener('DOMContentLoaded', function () {

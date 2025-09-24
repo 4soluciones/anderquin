@@ -330,6 +330,23 @@ class GuideDetail(models.Model):
         verbose_name_plural = 'Detalles de guias'
 
 
+class GuideDetailBatch(models.Model):
+    """Modelo para manejar múltiples lotes por detalle de guía"""
+    id = models.AutoField(primary_key=True)
+    guide_detail = models.ForeignKey('GuideDetail', on_delete=models.CASCADE, related_name='batch_details')
+    batch = models.ForeignKey('sales.Batch', on_delete=models.CASCADE)
+    quantity = models.DecimalField('Cantidad del lote', max_digits=10, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Lote {self.batch.batch_number} - {self.quantity} unidades"
+
+    class Meta:
+        verbose_name = 'Lote detalle guía'
+        verbose_name_plural = 'Lotes detalle guía'
+        unique_together = ('guide_detail', 'batch')
+
+
 class Route(models.Model):
     TYPE_CHOICES = (('O', 'Origen'), ('D', 'Destino'),)
     id = models.AutoField(primary_key=True)

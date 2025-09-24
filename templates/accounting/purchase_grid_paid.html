@@ -1,0 +1,190 @@
+{% load operations %}
+<div class="alert alert-success mb-3">
+    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Reporte de Facturas Pagadas</h5>
+    <small>Todas las facturas mostradas están completamente pagadas</small>
+</div>
+
+<table class="table table-sm table-bordered table-hover roboto-condensed-regular m-0" id="table-dictionary">
+    <thead>
+    <tr class="text-white small text-uppercase">
+        <th class="bg-success text-center align-middle" style="width: 8%;">REFERENCIA</th>
+        <th class="bg-success text-center align-middle" style="width: 6%;">Nª DE DOC</th>
+        <th class="bg-success text-center align-middle" style="width: 6%;">FECHA BASE</th>
+        <th class="bg-success text-center align-middle" style="width: 6%;">FECHA VENCIMIENTO</th>
+        <th class="bg-success text-center align-middle" style="width: 3%;">ESTADO</th>
+        <th class="bg-success text-center align-middle" style="width: 9%;">IMPORTE DEL DOC</th>
+        <th class="bg-success text-center align-middle" style="width: 9%;">IMPORTE FALTANTE</th>
+        <th class="bg-success text-center align-middle" style="width: 9%;">IMPORTE PAGADO</th>
+        <th class="bg-success text-center align-middle" style="width: 9%;">FECHA DE OPERACIÓN</th>
+        <th class="bg-success text-center align-middle" style="width: 9%;">NRO OPERACIÓN</th>
+        <th class="bg-success text-center align-middle" style="width: 21%;">OBSERVACION</th>
+        <th class="bg-success text-center align-middle" style="width: 5%;">ESTADO</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for p in dictionary %}
+        <tr pk="{{ p.id }}" class="text-center bill" style="background-color: #e8f5e8;">
+            <td class="align-middle text-center font-weight-bold">
+                <span class="badge badge-success">{{ p.serial }}-{{ p.correlative }}</span>
+            </td>
+            <td class="align-middle text-center">{{ p.order_number|default_if_none:'-' }}</td>
+            <td class="align-middle text-center">{{ p.register_date|date:"d/m/Y" }}</td>
+            <td class="align-middle text-center">{{ p.expiration_date|date:"d/m/Y" }}</td>
+            <td class="align-middle text-center">
+                <span class="badge badge-success">
+                    <i class="fas fa-check"></i> PAGADA
+                </span>
+            </td>
+            <td class="align-middle text-right">
+                <div class="input-icon">
+                    <input type="text" readonly
+                           style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb" 
+                           class="form-control form-control-sm font-weight-bold text-right total"
+                           value="{{ p.bill_total|thousands_separator }}">
+                    <i class="change-money font-weight-bold">S/</i>
+                </div>
+            </td>
+            <td class="align-middle text-right">
+                <div class="input-icon">
+                    <input type="text" readonly
+                           style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb" 
+                           class="form-control form-control-sm font-weight-bold text-right total"
+                           value="0.00">
+                    <i class="change-money font-weight-bold">S/</i>
+                </div>
+            </td>
+            <td class="align-middle text-center text-success font-weight-bold p-0" colspan="4">
+                {% if p.has_payment == False %}
+                    <span class="badge badge-warning">SIN PAGOS REGISTRADOS</span>
+                {% else %}
+                    <table class="table table-bordered table-sm mb-0 items-pay">
+                        <tbody>
+                        {% for l in p.loan_payment_set %}
+                            <tr class="p-0 m-0 text-center" style="background-color: #f8f9fa;">
+                                <td class="align-middle text-center p-0 m-0 item-pay" style="width: 18.8%;">
+                                    <div class="input-icon">
+                                        <input type="text" readonly
+                                               style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb" 
+                                               class="form-control form-control-sm font-weight-bold text-right"
+                                               value="{{ l.pay|thousands_separator }}">
+                                        <i class="change-money font-weight-bold">S/</i>
+                                    </div>
+                                </td>
+                                <td class="align-middle text-center p-0 m-0" style="width: 18.8%;">{{ l.date|date:"d/m/y" }}</td>
+                                <td class="align-middle text-center p-0 m-0" style="width: 18.8%;">
+                                    <div class="row">
+                                        <div class="col-8 text-right">{{ l.operation_code }}</div>
+                                        {% if l.payment_method != 'C' %}
+                                            <div class="col-4">
+                                                <button type="button" class="btn btn-sm btn-show-file"
+                                                        data-toggle="modal"
+                                                        data-target="#fileModal"
+                                                        onclick="loadFile('{{ l.file.url }}', {{ l.id }})">
+                                                    <i class="fas fa-file"></i>
+                                                </button>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="align-middle text-center" style="font-size: 0.8em">
+                                    {{ l.observation|upper|default_if_none:'-' }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </td>
+            <td class="align-middle text-center button-pay p-1">
+                <span class="badge badge-success">
+                    <i class="fas fa-check-circle"></i> COMPLETADA
+                </span>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<table class="table table-sm">
+    <thead>
+    <tr class="text-center roboto-condensed-regular" style="background-color: #d4edda">
+        <th class="border-left" style="width: 8%;"></th>
+        <th class="" style="width: 6%;"></th>
+        <th class="" style="width: 6%;"></th>
+        <th class="" style="width: 6%;"></th>
+        <th class="" style="width: 3%;"></th>
+        <th class="" style="width: 9%;"></th>
+        <th class="text-center align-middle" style="width: 9%;">TOTAL PAGADO</th>
+        <th class="text-center align-middle" style="width: 9%;">TOTAL PAGADO</th>
+        <th class="" style="width: 9%;"></th>
+        <th class="" style="width: 9%;"></th>
+        <th class="" style="width: 21%;"></th>
+        <th class="border-right" style="width: 5%;"></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="text-center" style="background-color: #d4edda">
+        <td colspan="6"></td>
+        <td class="align-middle text-center">
+            <div class="input-icon">
+                <input type="text" readonly
+                       style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb"
+                       class="form-control form-control-sm font-weight-bold text-right total"
+                       value="{{ sum_total|thousands_separator }}">
+                <i class="change-money font-weight-bold">S/</i>
+            </div>
+        </td>
+        <td class="align-middle text-center">
+            <div class="input-icon">
+                <input type="text" readonly
+                       style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb"
+                       class="form-control form-control-sm font-weight-bold text-right total"
+                       value="{{ sum_total_loan_pay|thousands_separator }}">
+                <i class="change-money font-weight-bold">S/</i>
+            </div>
+        </td>
+        <td colspan="4"></td>
+    </tr>
+    </tbody>
+</table>
+
+<style>
+    .input-icon {
+        position: relative;
+    }
+
+    .input-icon > i {
+        position: absolute;
+        display: block;
+        transform: translate(0, -50%);
+        top: 50%;
+        pointer-events: none;
+        width: 25px;
+        text-align: center;
+        font-style: normal;
+    }
+
+    .input-icon > input {
+        padding-left: 25px;
+        padding-right: 8px;
+    }
+
+    .input-icon-right > i {
+        right: 0;
+    }
+
+    .input-icon-right > input {
+        padding-left: 0;
+        padding-right: 25px;
+        text-align: right;
+    }
+
+    .badge-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #e8f5e8 !important;
+    }
+</style>

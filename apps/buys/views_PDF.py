@@ -783,7 +783,8 @@ def print_pdf(request, pk=None):
         ]
 
         has_client_entity = purchase_detail.filter(client_entity__isnull=False).exists()
-        if has_client_entity:
+        # No mostrar la sección de cliente si es una orden simple
+        if has_client_entity and not purchase_obj.is_simple_buy:
             p10_1 = Paragraph(f'Referencia de Venta a la Entidad', styles["Left"])
             colwiths_table_10 = [_wt * 100 / 100]
             rowwiths_table_10 = [inch * 0.75]

@@ -7,7 +7,7 @@
 
     <!-- Card principal del título -->
     <div class="card m-2 shadow-sm roboto-condensed-regular"{% if contract_detail_obj %} style="background: #62a239" {% else %} style="background: #3e6787"{% endif %}>
-        <div class="card-body py-3">
+        <div class="card-body py-3 pr-2">
             <div class="row align-items-center">
                 <div class="col-12 col-md-6 col-lg-8">
                 <input type="hidden" id="contract_detail_id" value="{{ contract_detail_obj.id }}">
@@ -40,19 +40,29 @@
                 
                 <!-- Controles de la derecha -->
                 <div class="col-12 col-md-6 col-lg-4 mt-3 mt-md-0">
-                    <div class="row">
+                    <div class="row align-items-center">
+                        <!-- Checkbox O/C sin referencia -->
+                        <div class="col-12 col-md-4 mb-2 mb-md-0">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" value="" id="check_simple_buy">
+                                <label class="form-check-label" for="check_simple_buy">
+                                    <strong>O/C SIN REFERENCIA</strong>
+                                </label>
+                            </div>
+                        </div>
+                        
                         <!-- Botón Nuevo Proveedor -->
-                        <div class="col-12 col-sm-6 mb-2 mb-sm-0">
+                        <div class="col-12 col-md-4 mb-2 mb-md-0">
                             <button type="button" 
                                     onclick="showModalViewSupplier('modal_supplier_create')"
-                                    class="btn btn-outline-primary btn-block">
+                                    class="btn btn-outline-primary btn-block btn-sm">
                                 <i class="fa fa-plus mr-1"></i>
                                 Nuevo Proveedor
                             </button>
                         </div>
                         
                         <!-- Correlativo y Año -->
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-md-4">
                             <div class="form-group mb-0">
                                 <div class="input-group input-group-sm">
                                     <div class="input-group-prepend">
@@ -72,10 +82,6 @@
                                            autocomplete="off"
                                            placeholder="000">
                                 </div>
-                                <small class="form-text text-muted text-center d-block">
-                                    <i class="fa fa-info-circle mr-1"></i>
-                                    Año - Correlativo
-                                </small>
                             </div>
                         </div>
                     </div>
@@ -328,6 +334,26 @@
         
         .card.shadow-sm[style*="background: #3e6787"] .form-text {
             color: #b8d4e6 !important;
+        }
+        
+        /* Estilos para el checkbox de O/C sin referencia */
+        .form-check-label {
+            font-size: 0.875rem;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .form-check-input {
+            margin-top: 0.25rem;
+        }
+        
+        /* Estilos para cards con fondo de color */
+        .card.shadow-sm[style*="background: #62a239"] .form-check-label {
+            color: #ffffff !important;
+        }
+        
+        .card.shadow-sm[style*="background: #3e6787"] .form-check-label {
+            color: #ffffff !important;
         }
         
         /* Estilos responsive para el formulario principal */
@@ -741,6 +767,34 @@
                 $(".change-money").text('$')
             } else {
                 $(".change-money").text('S/')
+            }
+        });
+
+        // Función para manejar el checkbox de O/C sin referencia
+        $(document).on('change', '#check_simple_buy', function (e) {
+            let isSimpleBuy = $(this).is(':checked');
+            
+            if (isSimpleBuy) {
+                // Ocultar la sección de cliente cuando está marcado
+                $('#person-names').val('');
+                $('#client_reference_id').val('');
+                $('#type_client_reference').val('');
+                $('#client_final').val('');
+                $('#person-final-names').val('');
+                $('.client-final').addClass('d-none');
+                $('#client_final_address').val("0");
+                $('.delivery-client-final').addClass('d-none');
+                $('.delivery-client').addClass('d-none');
+                
+                // Ocultar la columna de cliente en detalles
+                toggleClientDetailColumn(false);
+                
+                // Desmarcar checkboxes de entrega
+                $('#check-client').prop('checked', false);
+                $('#check-client-final').prop('checked', false);
+            } else {
+                // Mostrar la sección de cliente cuando no está marcado
+                $('.delivery-client').removeClass('d-none');
             }
         });
 
@@ -1749,11 +1803,13 @@
                 toastr.warning('¡Selecione el tipo de unidad en los productos!', 'Mensaje');
                 return false;
             }
-            if (_client_reference === '') {
+            // Solo validar cliente si no es una orden simple
+            let isSimpleBuy = $("#check_simple_buy").is(':checked');
+            if (!isSimpleBuy && _client_reference === '') {
                 toastr.warning('¡SELECCIONE AL CLIENTE!', 'Mensaje');
                 return false;
             }
-            if (_type_client_reference === 'PR') {
+            if (!isSimpleBuy && _type_client_reference === 'PR') {
                 if (_client_final === '') {
                     toastr.warning('¡SELECCIONE CLIENTE FINAL!', 'Mensaje');
                     return false;
@@ -1777,7 +1833,7 @@
                     return false;
                 }
             }
-            if ($('#check-client').prop('checked')) {
+            if (!isSimpleBuy && $('#check-client').prop('checked')) {
                 if ($('#client_address_reference').val() === '0') {
                     toastr.warning('¡SELECCIONE DIRECCION DE ENTREGA DEL CLIENTE!', 'Mensaje');
                     return false;
@@ -1798,6 +1854,7 @@
                     "Import_Total": Number(table_foot.find("td.foot-total input.total-foot-total").val()),
                     "Check_Igv": ($("#id_detail_data_grid tfoot#details-table-foot tr td.td-table-foot").find("div.form-check input.check-igv").is(':checked')) ? 1 : 0,
                     "Check_Dollar": ($("#check_dollar").is(':checked')) ? 1 : 0,
+                    "Is_Simple_Buy": ($("#check_simple_buy").is(':checked')) ? 1 : 0,
                     "Details": [],
 
                     "client_reference_id": _client_reference,

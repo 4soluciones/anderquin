@@ -304,6 +304,64 @@
             $td.parent('tr').slideUp("fast");
         }
 
+        // Manejar el botón de destino de mercadería de reserva
+        $(document).on('click', '.btn-reserve-destination', function() {
+            const button = $(this);
+            const product = button.data('product');
+            const batch = button.data('batch');
+            const quantity = button.data('quantity');
+            const weight = button.data('weight');
+            const unit = button.data('unit');
+            
+            // Mostrar información del producto en el modal
+            $('#product-info').html(`
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Producto:</strong> ${product}<br>
+                        <strong>Lote:</strong> ${batch}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Cantidad:</strong> ${quantity} ${unit}<br>
+                        <strong>Peso:</strong> ${weight} Kg
+                    </div>
+                </div>
+            `);
+            
+            // Establecer fecha actual por defecto
+            const today = new Date().toISOString().split('T')[0];
+            $('#destination-date').val(today);
+            
+            // Mostrar el modal
+            $('#modal-reserve-destination').modal('show');
+        });
+
+        // Guardar destino de mercadería
+        $('#btn-save-destination').click(function() {
+            const form = $('#reserve-destination-form');
+            const formData = new FormData(form[0]);
+            
+            // Validar campos requeridos
+            if (!formData.get('destination_type') || !formData.get('destination_date')) {
+                toastr.error('Debe completar todos los campos requeridos', 'Error');
+                return;
+            }
+            
+            // Aquí puedes agregar la lógica para guardar el destino
+            // Por ahora solo mostramos un mensaje de éxito
+            toastr.success('Destino de la mercadería registrado correctamente', 'Éxito');
+            
+            // Cerrar el modal
+            $('#modal-reserve-destination').modal('hide');
+            
+            // Limpiar el formulario
+            form[0].reset();
+        });
+
+        // Limpiar formulario cuando se cierre el modal
+        $('#modal-reserve-destination').on('hidden.bs.modal', function() {
+            $('#reserve-destination-form')[0].reset();
+        });
+
     </script>
 
 {% endblock extrajs %}

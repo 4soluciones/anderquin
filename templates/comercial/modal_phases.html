@@ -14,6 +14,33 @@
                     <input type="hidden" value="{{ order_obj.id }}" id="order">
                     <input type="hidden" value="{{ phase_code }}" id="phase_code">
                 </div>
+                
+                <!-- Información de la factura y orden de compra -->
+                <div class="card-body m-1" style="background-color: #f8f9fa;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">Factura:</label>
+                                <span class="info-value">{{ bill_info.serial }}-{{ bill_info.correlative }}</span>
+                            </div>
+                            <div class="info-item">
+                                <label class="info-label">Monto:</label>
+                                <span class="info-value text-primary font-weight-bold">{{ bill_info.amount }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">O/C:</label>
+                                <span class="info-value">{{ bill_info.order_buy }}</span>
+                            </div>
+                            <div class="info-item">
+                                <label class="info-label">Código SIAF:</label>
+                                <span class="info-value">{{ bill_info.cod_siaf }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="card-body m-0 p-3">
                     <input type="date" id="phase_date" aria-label=""
                            class="form-control form-control-sm text-center"
@@ -21,7 +48,7 @@
                     <div class="{% if phase_code != 'G' %}d-none{% endif %}">
                         <div class="row mt-2 mr-0">
                             <div class="col-sm-6 text-right">
-                                <label for="exampleInputPassword1">Monto a Pagar:</label>
+                                <label for="exampleInputPassword1">Monto a Depositar:</label>
                             </div>
                             <div class="col-sm-6 pr-0">
                                 <div class="input-icon">
@@ -85,6 +112,40 @@
 
 
 <style>
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.25rem 0;
+        border-bottom: 1px solid #e9ecef;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0;
+        flex: 0 0 40%;
+    }
+
+    .info-value {
+        font-size: 0.85rem;
+        color: #212529;
+        font-weight: 500;
+        text-align: right;
+        flex: 1;
+        margin-left: 0.5rem;
+    }
+
+    .info-value.text-primary {
+        color: #007bff !important;
+    }
 
     .input-icon {
         position: relative;
@@ -114,6 +175,23 @@
         padding-left: 0;
         padding-right: 25px;
         text-align: right;
+    }
+
+    /* Estilos adicionales para el modal */
+    .modal-dialog {
+        max-width: 500px;
+    }
+
+    .modal-body {
+        padding: 0;
+    }
+
+    .card-header {
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .card-body:first-of-type {
+        border-bottom: 1px solid #dee2e6;
     }
 
 </style>

@@ -52,18 +52,77 @@ def get_purchases_by_date(request):
         start_date = request.GET.get('start-date', '')
         end_date = request.GET.get('end-date', '')
         pk = request.GET.get('pk', '')
+        payment_status = request.GET.get('payment_status', 'all')
         supplier_obj = Supplier.objects.get(id=pk)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        # purchases_set = Purchase.objects.filter(purchase_date__range=[start_date, end_date], subsidiary=subsidiary_obj,
-        #                                         status='A', supplier=supplier_obj).order_by('purchase_date')
-        # bill_set = Bill.objects.filter(register_date__range=[start_date, end_date],
-        #                                supplier=supplier_obj).order_by('register_date')
-        bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier',
-                                                                             'store_destiny__subsidiary').order_by(
-            'register_date')
+        
+        # Filtrar facturas según el estado de pago
+        if payment_status == 'paid':
+            # Solo facturas completamente pagadas (missing_payment = 0)
+            bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier',
+                                                                                 'store_destiny__subsidiary').order_by(
+                'register_date')
+            # Filtrar en Python las facturas completamente pagadas
+            paid_bills = []
+            for bill in bill_set:
+                repay_loan = decimal.Decimal(bill.repay_loan())
+                bill_total = decimal.Decimal(bill.bill_total_total)
+                missing_payment = round(bill_total, 2) - round(repay_loan, 2)
+                if missing_payment == 0:
+                    paid_bills.append(bill)
+            bill_set = paid_bills
+        elif payment_status == 'pending':
+            # Solo facturas pendientes (missing_payment > 0)
+            bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier',
+                                                                                 'store_destiny__subsidiary').order_by(
+                'register_date')
+            # Filtrar en Python las facturas pendientes
+            pending_bills = []
+            for bill in bill_set:
+                repay_loan = decimal.Decimal(bill.repay_loan())
+                bill_total = decimal.Decimal(bill.bill_total_total)
+                missing_payment = round(bill_total, 2) - round(repay_loan, 2)
+                if missing_payment > 0:
+                    pending_bills.append(bill)
+            bill_set = pending_bills
+        else:
+            # Todas las facturas
+            bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier',
+                                                                                 'store_destiny__subsidiary').order_by(
+                'register_date')
 
         return JsonResponse({
             'grid': get_dict_purchases(bill_set),
+        }, status=HTTPStatus.OK)
+
+
+@xframe_options_exempt
+def get_purchases_paid_by_date(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
+        start_date = request.GET.get('start-date', '')
+        end_date = request.GET.get('end-date', '')
+        pk = request.GET.get('pk', '')
+        supplier_obj = Supplier.objects.get(id=pk)
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        
+        # Obtener solo facturas completamente pagadas
+        bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier',
+                                                                             'store_destiny__subsidiary').order_by(
+            'register_date')
+        
+        # Filtrar facturas completamente pagadas
+        paid_bills = []
+        for bill in bill_set:
+            repay_loan = decimal.Decimal(bill.repay_loan())
+            bill_total = decimal.Decimal(bill.bill_total_total)
+            missing_payment = round(bill_total, 2) - round(repay_loan, 2)
+            if missing_payment == 0:
+                paid_bills.append(bill)
+
+        return JsonResponse({
+            'grid': get_dict_purchases_paid(paid_bills),
         }, status=HTTPStatus.OK)
 
 
@@ -153,6 +212,96 @@ def get_dict_purchases(bill_set):
         'sum_total_loan_pay': round(sum_total_loan_pay, 2),
         'sum_total_difference': round(sum_total - sum_total_loan_pay, 2),
         # 'rowspan': len(dictionary)
+    })
+    return tpl.render(context)
+
+
+def get_dict_purchases_paid(bill_set):
+    dictionary = []
+
+    sum_total = 0
+    sum_total_loan_pay = 0
+    sum_total_difference = 0
+
+    for b in bill_set:
+        has_payment = False
+        repay_loan = decimal.Decimal(b.repay_loan())
+        bill_total = decimal.Decimal(b.bill_total_total)
+        days_difference = 0
+        if bill_total != repay_loan:
+            expiration_date = datetime.strptime(str(b.expiration_date), '%Y-%m-%d')
+            date_now = datetime.now()
+            difference_date = date_now - expiration_date
+            days_difference = difference_date.days
+        sum_payed = 0
+        missing_payment = round(bill_total, 2) - round(repay_loan, 2)
+        
+        # Solo incluir facturas completamente pagadas
+        if missing_payment == 0:
+            new = {
+                'id': b.id,
+                'register_date': b.register_date,
+                'expiration_date': b.expiration_date,
+                'days_difference': days_difference,
+                'order_number': b.order_number,
+                'serial': b.serial,
+                'correlative': str(b.correlative).zfill(7),
+                'supplier_name': b.supplier.name,
+                'bill_base_total': b.bill_base_total,
+                'bill_igv_total': b.bill_igv_total,
+                'bill_total': b.bill_total_total,
+                'missing_payment': missing_payment,
+                'sum_quantity_invoice': b.sum_quantity_invoice(),
+                'sum_quantity_purchased': b.sum_quantity_purchased(),
+                'loan_payment_set': [],
+                'has_payment': '',
+                'difference_payed': 0,
+                'is_paid': True  # Marcar como pagada
+            }
+            cash_flow_set = CashFlow.objects.filter(bill_id=b.id)
+            loan_payment_set = b.loanpayment_set.all()
+            cash_name = '-'
+            if loan_payment_set:
+                has_payment = True
+            if cash_flow_set.exists():
+                cash_flow_obj = cash_flow_set.first()
+                cash_name = cash_flow_obj.cash.name
+            for lp in b.loanpayment_set.all():
+                _payment_type = '-'
+                _operation_code = '-'
+                transaction_payment_set = lp.transactionpayment_set.all()
+                if transaction_payment_set.exists():
+                    _payment_type = transaction_payment_set.last().type
+                    _payment_type_display = transaction_payment_set.last().get_type_display()
+                    _operation_code = transaction_payment_set.last().operation_code if transaction_payment_set.last().operation_code is not None else '-'
+                sum_payed += lp.pay
+                loan_payment = {
+                    'id': lp.id,
+                    'cash_name': cash_name,
+                    'date': lp.operation_date,
+                    'operation_code': _operation_code,
+                    'pay': round(lp.pay, 2),
+                    'type': lp.type,
+                    'file': lp.file,
+                    'observation': lp.observation,
+                    'payment_method': _payment_type
+                }
+                new.get('loan_payment_set').append(loan_payment)
+            difference_payed = decimal.Decimal(b.bill_total_total) - decimal.Decimal(sum_payed)
+            new['difference_payed'] = round(difference_payed, 2)
+            sum_total_loan_pay = sum_total_loan_pay + sum_payed
+
+            new['has_payment'] = has_payment
+            dictionary.append(new)
+
+            sum_total = sum_total + b.bill_total_total
+
+    tpl = loader.get_template('accounting/purchase_grid_paid.html')
+    context = ({
+        'dictionary': dictionary,
+        'sum_total': sum_total,
+        'sum_total_loan_pay': round(sum_total_loan_pay, 2),
+        'sum_total_difference': round(sum_total - sum_total_loan_pay, 2),
     })
     return tpl.render(context)
 

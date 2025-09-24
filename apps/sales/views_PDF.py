@@ -758,10 +758,11 @@ def print_order_bill(request, pk=None):
         ('BOTTOMPADDING', (0, 0), (-1, -1), 5),  # all columns
         ('RIGHTPADDING', (1, 0), (1, -1), 10),  # second column
         ('ALIGNMENT', (0, 0), (-1, -1), 'CENTER'),  # all column
-        ('ALIGNMENT', (2, 0), (2, -1), 'LEFT'),  # second column
+        ('ALIGNMENT', (2, 0), (2, -1), 'CENTER'),  # second column
+        # ('BACKGROUND', (2, 0), (2, 0), colors.green)
     ]
-    width_table = [_bts * 8 / 100, _bts * 8 / 100, _bts * 12 / 100, _bts * 42 / 100, _bts * 14 / 100, _bts * 16 / 100]
-    header_detail = Table([('Item', 'Cantidad', 'Unidad', 'Descripción', 'Precio U.', 'Total')], colWidths=width_table)
+    width_table = [_bts * 5 / 100, _bts * 12 / 100, _bts * 11 / 100, _bts * 43 / 100, _bts * 13 / 100, _bts * 16 / 100]
+    header_detail = Table([('Item', 'Cant.', 'Unidad', 'Descripción', 'Precio U.', 'Total')], colWidths=width_table)
     header_detail.setStyle(TableStyle(style_table_header_detail))
     line = '-------------------------------------------------------------------------------------------------------------'
     # -------------------DETAIL---------------------#
@@ -782,7 +783,7 @@ def print_order_bill(request, pk=None):
     _total = 0
     for detail in order_obj.orderdetail_set.all():
         count = count + 1
-        _product = Paragraph(str(detail.product.name), styles["Justify_Square"])
+        _product = Paragraph(str(detail.commentary).upper(), styles["Justify_Square"])
         # _product_plus_brand = Paragraph(str(detail.commentary.upper()) + ' - ' + str(detail.product.product_brand.name),
         #                                 styles["Justify_Square"])
         detail_rows.append(
@@ -791,8 +792,7 @@ def print_order_bill(request, pk=None):
              str(detail.price_unit), str(round(detail.quantity_sold * detail.price_unit, 2))))
         _total = _total + detail.quantity_sold * detail.price_unit
     detail_body = Table(detail_rows,
-                        colWidths=[_bts * 8 / 100, _bts * 8 / 100, _bts * 12 / 100, _bts * 42 / 100, _bts * 14 / 100,
-                                   _bts * 16 / 100])
+                        colWidths=[_bts * 5 / 100, _bts * 12 / 100, _bts * 11 / 100, _bts * 43 / 100, _bts * 13 / 100, _bts * 16 / 100])
     detail_body.setStyle(TableStyle(style_table_detail))
     _text = 'DESCUENTO'
     _discount = decimal.Decimal(0.00)

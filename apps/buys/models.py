@@ -68,6 +68,7 @@ class Purchase(models.Model):
     bill_status = models.CharField('Estado Factura', max_length=1, choices=BILL_CHOICES, default='S')
     parent_purchase = models.ForeignKey('Purchase', on_delete=models.SET_NULL, null=True, blank=True)
     store_destiny = models.ForeignKey(SubsidiaryStore, on_delete=models.SET_NULL, null=True, blank=True)
+    is_simple_buy = models.BooleanField(default=False)
 
     # delivery_client_final = models.ForeignKey('sales.Client', on_delete=models.CASCADE, null=True, blank=True,
     #                                           related_name='delivery_client_final')
