@@ -14,7 +14,7 @@
                     <input type="hidden" value="{{ order_obj.id }}" id="order">
                     <input type="hidden" value="{{ phase_code }}" id="phase_code">
                 </div>
-                
+
                 <!-- Información de la factura y orden de compra -->
                 <div class="card-body m-1" style="background-color: #f8f9fa;">
                     <div class="row">
@@ -40,7 +40,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="card-body m-0 p-3">
                     <input type="date" id="phase_date" aria-label=""
                            class="form-control form-control-sm text-center"
@@ -48,14 +48,15 @@
                     <div class="{% if phase_code != 'G' %}d-none{% endif %}">
                         <div class="row mt-2 mr-0">
                             <div class="col-sm-6 text-right">
-                                <label for="exampleInputPassword1">Monto a Depositar:</label>
+                                <label class="text-primary font-weight-bold" for="total_amount">Monto Total Factura:</label>
                             </div>
                             <div class="col-sm-6 pr-0">
                                 <div class="input-icon">
                                     <input type="text"
-                                           class="form-control form-control-sm text-right"
-                                           id="total_pay" placeholder="0.00"
-                                           aria-label="" autocomplete="off" name="total_pay"><i
+                                           class="form-control form-control-sm text-right text-primary "
+                                           id="total_amount" placeholder="0.00"
+                                           value="{{ bill_info.amount }}" readonly
+                                           aria-label="" autocomplete="off" name="total_amount"><i
                                         class="change-money">S/</i>
                                 </div>
                             </div>
@@ -63,9 +64,9 @@
                         <div class="row mt-2 mr-0">
                             <div class="col-sm-6 text-right">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="calculate_retention" checked>
+                                    <input class="form-check-input" type="checkbox" id="calculate_retention">
                                     <label class="form-check-label" for="calculate_retention">
-                                        Retención Sunat 3%
+                                        (Aplicar) Retención Sunat 3%
                                     </label>
                                 </div>
                             </div>
@@ -82,9 +83,9 @@
                         <div class="row mt-2 mr-0">
                             <div class="col-sm-6 text-right">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="calculate_warranty" checked>
+                                    <input class="form-check-input" type="checkbox" id="calculate_warranty">
                                     <label class="form-check-label" for="calculate_warranty">
-                                        Garantía 10%
+                                        (Aplicar) Garantía 10%
                                     </label>
                                 </div>
                             </div>
@@ -94,6 +95,21 @@
                                            class="form-control form-control-sm text-right"
                                            id="total_warranty" placeholder="0.00"
                                            aria-label="" autocomplete="off" name="total_warranty"><i
+                                        class="change-money">S/</i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-2 mr-0">
+                            <div class="col-sm-6 text-right">
+                                <label class="text-success font-weight-bold" for="exampleInputPassword1">Monto a Depositar:</label>
+                            </div>
+                            <div class="col-sm-6 pr-0">
+                                <div class="input-icon">
+                                    <input type="text"
+                                           class="form-control form-control-sm text-right text-success"
+                                           id="total_pay" placeholder="0.00"
+                                           value="{{ bill_info.amount }}" readonly
+                                           aria-label="" autocomplete="off" name="total_pay"><i
                                         class="change-money">S/</i>
                                 </div>
                             </div>
@@ -204,7 +220,7 @@
         let order = document.getElementById('order').value;
         let phase_code = document.getElementById('phase_code').value;
         let phase_date = document.getElementById('phase_date').value;
-        let total_pay = document.getElementById('total_pay').value;
+        let total_pay = document.getElementById('total_pay').value.replace('S/', '').replace(',', '').trim();
         let total_retention = document.getElementById('total_retention').value;
         let total_warranty = document.getElementById('total_warranty').value;
 
@@ -269,45 +285,52 @@
 
     });
 
-    document.getElementById('total_pay').addEventListener('input', function () {
-        let totalPay = parseFloat(this.value) || 0;
-        
-        // Solo calcular retención si el checkbox está activado
+    // Función para recalcular todos los montos basándose en total_amount
+    function calculateAmounts() {
+        let totalAmountStr = document.getElementById('total_amount').value.replace('S/', '').replace(',', '')
+        let totalAmount = parseFloat(totalAmountStr) || 0;
+        let totalRetention = 0;
+        let totalWarranty = 0;
+        let totalPay = totalAmount;
+
+        // Calcular retención si el checkbox está activado
         if (document.getElementById('calculate_retention').checked) {
-            let totalRetention = totalPay * 0.03;
+            totalRetention = totalAmount * 0.03;
             document.getElementById('total_retention').value = totalRetention.toFixed(2);
+        } else {
+            document.getElementById('total_retention').value = '';
         }
-        
-        // Solo calcular garantía si el checkbox está activado
+
+        // Calcular garantía si el checkbox está activado
         if (document.getElementById('calculate_warranty').checked) {
-            let totalWarranty = totalPay * 0.10;
+            totalWarranty = totalAmount * 0.10;
             document.getElementById('total_warranty').value = totalWarranty.toFixed(2);
+        } else {
+            document.getElementById('total_warranty').value = '';
         }
+
+        // Calcular el monto a depositar (total_amount - retención - garantía)
+        totalPay = totalAmount - totalRetention - totalWarranty;
+
+        document.getElementById('total_pay').value = new Intl.NumberFormat("es-PE", {
+            style: "currency",
+            currency: "PEN",
+            minimumFractionDigits: 2
+        }).format(totalPay);
+    }
+
+    // Event listener para total_amount
+    document.getElementById('total_amount').addEventListener('input', function () {
+        calculateAmounts();
     });
 
     // Event listeners para los checkboxes
-    document.getElementById('calculate_retention').addEventListener('change', function() {
-        if (this.checked) {
-            // Si se activa el checkbox, recalcular la retención
-            let totalPay = parseFloat(document.getElementById('total_pay').value) || 0;
-            let totalRetention = totalPay * 0.03;
-            document.getElementById('total_retention').value = totalRetention.toFixed(2);
-        } else {
-            // Si se desactiva, limpiar el campo
-            document.getElementById('total_retention').value = '';
-        }
+    document.getElementById('calculate_retention').addEventListener('change', function () {
+        calculateAmounts();
     });
 
-    document.getElementById('calculate_warranty').addEventListener('change', function() {
-        if (this.checked) {
-            // Si se activa el checkbox, recalcular la garantía
-            let totalPay = parseFloat(document.getElementById('total_pay').value) || 0;
-            let totalWarranty = totalPay * 0.10;
-            document.getElementById('total_warranty').value = totalWarranty.toFixed(2);
-        } else {
-            // Si se desactiva, limpiar el campo
-            document.getElementById('total_warranty').value = '';
-        }
+    document.getElementById('calculate_warranty').addEventListener('change', function () {
+        calculateAmounts();
     });
 
 

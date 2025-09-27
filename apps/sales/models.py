@@ -105,6 +105,7 @@ class Product(models.Model):
     name = models.CharField('Nombre', max_length=100, unique=True)
     observation = models.CharField('Observacion', max_length=50, null=True, blank=True)
     code = models.CharField('Codigo', max_length=45, null=True, blank=True)
+    internal_code = models.CharField('Codigo', max_length=45, null=True, blank=True)
     stock_min = models.IntegerField('Stock Minimno', default=0)
     stock_max = models.IntegerField('Stock Maximo', default=0)
     product_family = models.ForeignKey('ProductFamily', on_delete=models.CASCADE)

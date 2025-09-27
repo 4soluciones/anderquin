@@ -153,13 +153,28 @@
                                                             <input class="check-d" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.2);">
                                                         {% endif %}
                                                     </div>
-                                                    <div class="col-2 border-left border-top border-right d-flex justify-content-center align-items-center py-2" order="{{ cd.order }}" phase="G">
-                                                        {% if cd.phase_g %}
-                                                            <div class="small text-info font-weight-bold">{{ cd.phase_g|date:'d-m-Y' }}</div>
-                                                        {% else %}
-                                                            <input class="check-g" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.2);">
-                                                        {% endif %}
-                                                    </div>
+                                                    {% if cd.phase_g and cd.total_payed %}
+                                                        <div class="col-1 border-left border-top border-right d-flex justify-content-center align-items-center py-2" style="background-color: #c5f1cf">
+                                                             <div class="small text-info font-weight-bold">{{ cd.phase_g|date:'d-m-Y' }}</div>
+                                                        </div>
+                                                        <div class="col-1 border-left border-top border-right d-flex justify-content-center align-items-center py-1 p-0" style="background-color: #c5f1cf">
+                                                             <div class="small text-info font-weight-bold">
+                                                                 <smal>Depositado:</smal><br> S/ {{ cd.total_payed }}
+                                                             </div>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="col-2 border-left border-top border-right d-flex justify-content-center align-items-center py-2"
+                                                             order="{{ cd.order }}" phase="G">
+                                                            {% if cd.phase_g %}
+                                                                <div class="small text-info font-weight-bold">
+                                                                    {{ cd.phase_g|date:'d-m-Y' }}</div>
+                                                            {% else %}
+                                                                <input class="check-g" cd="{{ cd.id }}"
+                                                                       order="{{ cd.order }}" aria-label="..."
+                                                                       type="checkbox" style="transform: scale(1.2);">
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
                                                 {% endif %}
                                             </div>
                                         {% endfor %}

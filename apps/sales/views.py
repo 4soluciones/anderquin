@@ -51,11 +51,11 @@ class ProductList(View):
     form_class = FormProduct
     template_name = 'sales/product_list.html'
 
-    def get_queryset(self):
+    def get_queryset(self, is_enabled=True):
         last_kardex = Kardex.objects.filter(product_store=OuterRef('id')).order_by('-id')[:1]
 
         return self.model.objects.filter(
-            is_enabled=True
+            is_enabled=is_enabled
         ).select_related('product_family', 'product_brand', 'product_subcategory__product_category').prefetch_related(
             Prefetch(
                 'productstore_set', queryset=ProductStore.objects.select_related('subsidiary_store__subsidiary')
@@ -79,7 +79,8 @@ class ProductList(View):
         # subsidiary_obj = get_subsidiary_by_user(user_obj)
         subsidiary_obj = get_subsidiary_by_user_id(user)
         context = {
-            'products': self.get_queryset(),
+            'products_active': self.get_queryset(is_enabled=True),
+            'products_inactive': self.get_queryset(is_enabled=False),
             'subsidiary': subsidiary_obj,
             'form': self.form_class
         }
@@ -983,17 +984,47 @@ def save_order(request):
                 else:
                     type_document = '00'
 
-                if batch_id != '0':
-                    batch_obj = Batch.objects.get(id=int(batch_id))
+                # Manejar múltiples lotes separados por comas
+                if batch_id != '0' and batch_id != '':
+                    # Si hay múltiples lotes separados por comas
+                    if ',' in str(batch_id):
+                        batch_ids = [bid.strip() for bid in str(batch_id).split(',')]
+                        # Obtener los lotes y sus cantidades desde GuideDetailBatch
+                        guide_detail_id = detail.get('guide_detail', '')
+                        if guide_detail_id:
+                            guide_detail_obj = GuideDetail.objects.get(id=guide_detail_id)
+                            batch_details = guide_detail_obj.batch_details.all()
+                            
+                            # Usar la nueva función para múltiples lotes
+                            kardex_ouput_multi_batch(
+                                product_store_obj.id, 
+                                quantity_minimum_unit,
+                                order_detail_obj=order_detail_obj,
+                                type_document=type_document, 
+                                type_operation='01', 
+                                batch_details=batch_details
+                            )
+                        else:
+                            # Fallback: usar el primer lote disponible
+                            first_batch_id = batch_ids[0]
+                            batch_obj = Batch.objects.get(id=int(first_batch_id))
+                            kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
+                                       type_document=type_document, type_operation='01', batch_obj=batch_obj)
+                    else:
+                        # Un solo lote
+                        batch_obj = Batch.objects.get(id=int(batch_id))
+                        kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
+                                   type_document=type_document, type_operation='01', batch_obj=batch_obj)
                 else:
+                    # Sin lote específico, usar el lote con menor número
                     min_batch_number = Batch.objects.filter(
                         product_store=product_store_obj).aggregate(Min('batch_number'))['batch_number__min']
 
                     batch_obj = Batch.objects.filter(product_store=product_store_obj, remaining_quantity__gt=0,
                                                      batch_number=min_batch_number).order_by('id').last()
 
-                kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
-                             type_document=type_document, type_operation='01', batch_obj=batch_obj)
+                    kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
+                               type_document=type_document, type_operation='01', batch_obj=batch_obj)
 
                 guide_detail_id = detail['guide_detail']
                 if guide_detail_id:
@@ -1367,6 +1398,82 @@ def kardex_ouput(
 
     product_store.stock = new_stock
     product_store.save()
+
+
+def kardex_ouput_multi_batch(
+        product_store_id,
+        total_quantity,
+        order_detail_obj=None,
+        guide_detail_obj=None,
+        bill_detail_obj=None,
+        type_document='00',
+        type_operation='99',
+        credit_note_detail_obj=None,
+        batch_details=None,
+        picking_detail=None
+):
+    """
+    Función para manejar salida de kardex con múltiples lotes.
+    Crea un solo registro de Kardex con la cantidad total y descuenta cada lote por separado.
+    """
+    product_store = ProductStore.objects.get(pk=int(product_store_id))
+    old_stock = product_store.stock
+    new_stock = old_stock - decimal.Decimal(total_quantity)
+    
+    # Obtener el último kardex para calcular precios
+    last_kardex = Kardex.objects.filter(product_store_id=product_store.id).last()
+    last_remaining_quantity = last_kardex.remaining_quantity
+    old_price_unit = last_kardex.remaining_price
+    total_cost = decimal.Decimal(total_quantity) * old_price_unit
+
+    new_remaining_quantity = last_remaining_quantity - total_quantity
+    new_remaining_price = last_kardex.remaining_price
+    new_remaining_price_total = new_remaining_quantity * new_remaining_price
+
+    # Crear un solo registro de Kardex con la cantidad total
+    kardex_obj = Kardex.objects.create(
+        operation='S',
+        quantity=total_quantity,
+        price_unit=old_price_unit,
+        price_total=total_cost,
+        remaining_quantity=new_remaining_quantity,
+        remaining_price=new_remaining_price,
+        remaining_price_total=new_remaining_price_total,
+        guide_detail=guide_detail_obj,
+        order_detail=order_detail_obj,
+        product_store=product_store,
+        bill_detail=bill_detail_obj,
+        type_document=type_document,
+        type_operation=type_operation,
+        credit_note_detail=credit_note_detail_obj,
+        picking_detail=picking_detail
+    )
+
+    # Descontar cada lote por separado
+    if batch_details:
+        for batch_detail in batch_details:
+            batch_obj = batch_detail.batch
+            batch_quantity = batch_detail.quantity
+            
+            # Crear registro de Batch con la cantidad específica del lote
+            Batch.objects.create(
+                batch_number=batch_obj.batch_number,
+                expiration_date=batch_obj.expiration_date,
+                quantity=decimal.Decimal(batch_quantity),
+                remaining_quantity=batch_obj.remaining_quantity - decimal.Decimal(batch_quantity),
+                kardex=kardex_obj,
+                product_store=product_store
+            )
+            
+            # Actualizar la cantidad restante del lote original
+            batch_obj.remaining_quantity -= decimal.Decimal(batch_quantity)
+            batch_obj.save()
+
+    # Actualizar el stock del producto
+    product_store.stock = new_stock
+    product_store.save()
+    
+    return kardex_obj
 
 
 def kardex_credit_note_input(
@@ -4343,29 +4450,39 @@ def get_sales_list(request, guide=None):
             # Obtener todos los lotes asociados a este detalle de guía desde GuideDetailBatch
             batch_details = gd.batch_details.all()  # related_name='batch_details'
             
-            # Si hay lotes en GuideDetailBatch, usar esos; si no, usar el batch del GuideDetail original
+            # Si hay lotes en GuideDetailBatch, agruparlos por producto
             if batch_details.exists():
-                # Crear un item_guide por cada lote
-                for batch_detail in batch_details:
-                    item_guide = {
-                        'id': gd.id,
-                        'quantity': str(round(batch_detail.quantity, 2)),
-                        'product_id': gd.product.id,
-                        'product_name': gd.product.name,
-                        'unit_id': gd.unit.id,
-                        'unit': gd.unit.name,
-                        'product_units': [(unit.id, unit.name) for unit in product_units],
-                        # 'price_purchase': price_purchase,
-                        'price_sale': str(round(price_sale, 2)),
-                        'subtotal': str(round(price_sale * batch_detail.quantity, 2)),
-                        'quantity_minimum': str(quantity_minimum),
-                        'store_product': product_store_get.id,
-                        'stock': product_store_get.stock,
-                        'batch_id': batch_detail.batch.id,
-                        'batch_number': batch_detail.batch.batch_number
-                    }
-                    total += round(price_sale * batch_detail.quantity, 2)
-                    guide_detail_dict.append(item_guide)
+                # La cantidad total es la de la guía, no la suma de los lotes
+                total_quantity = gd.quantity
+                total_subtotal = price_sale * gd.quantity
+                
+                # Crear lista de números de lote separados por comas
+                batch_numbers = [batch_detail.batch.batch_number for batch_detail in batch_details]
+                batch_numbers_str = ', '.join(batch_numbers)
+                
+                # Crear lista de IDs de lote para el atributo batch
+                batch_ids = [str(batch_detail.batch.id) for batch_detail in batch_details]
+                batch_ids_str = ', '.join(batch_ids)
+                
+                item_guide = {
+                    'id': gd.id,
+                    'quantity': str(round(total_quantity, 2)),
+                    'product_id': gd.product.id,
+                    'product_name': gd.product.name,
+                    'unit_id': gd.unit.id,
+                    'unit': gd.unit.name,
+                    'product_units': [(unit.id, unit.name) for unit in product_units],
+                    # 'price_purchase': price_purchase,
+                    'price_sale': str(round(price_sale, 2)),
+                    'subtotal': str(round(total_subtotal, 2)),
+                    'quantity_minimum': str(quantity_minimum),
+                    'store_product': product_store_get.id,
+                    'stock': product_store_get.stock,
+                    'batch_id': batch_ids_str,
+                    'batch_number': batch_numbers_str
+                }
+                total += total_subtotal
+                guide_detail_dict.append(item_guide)
             else:
                 # Fallback al comportamiento original si no hay lotes en GuideDetailBatch
                 item_guide = {
@@ -4807,14 +4924,9 @@ def accounts_receivable_report(request):
         })
 
     elif request.method == 'POST':
-        print("=== DEBUG: POST request recibido ===")
-        print(f"POST data: {request.POST}")
         start_date = str(request.POST.get('start-date'))
         end_date = str(request.POST.get('end-date'))
         client_id = request.POST.get('client_id', '')
-        print(f"start_date: {start_date}")
-        print(f"end_date: {end_date}")
-        print(f"client_id: {client_id}")
 
         # Obtener clientes con ventas
         client_set = Client.objects.filter(
@@ -4822,7 +4934,7 @@ def accounts_receivable_report(request):
             order__subsidiary=subsidiary_obj, 
             order__order_type='V',
             order__status__in=['P', 'C']  # Pendiente o Completado
-        ).distinct('id').values('id', 'names', 'phone', 'email').order_by('id')
+        ).distinct('id').values('id', 'names', 'phone', 'email', 'cod_siaf').order_by('id')
 
         if client_id:
             client_set = client_set.filter(id=client_id)
@@ -4890,6 +5002,7 @@ def accounts_receivable_report(request):
             if client_pending > 0:  # Solo incluir clientes con saldo pendiente
                 accounts_receivable_data.append({
                     'client_id': client['id'],
+                    'client_siaf': client['cod_siaf'],
                     'client_name': client['names'],
                     'client_phone': client['phone'],
                     'client_email': client['email'],

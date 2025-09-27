@@ -8,30 +8,53 @@
 
     <div class="container-fluid mt-2 roboto-condensed-regular">
         <div class="row mb-3">
-            <div class="col-3">
+            <div class="col-md-3 col-sm-12 mb-2">
                 <button type="button" onclick="showModalCreation('{% url 'sales:json_product_create' %}')"
-                        class="btn btn-success"><i class="fas fa-plus-square"></i> &nbsp; Nuevo producto
+                        class="btn btn-success btn-block"><i class="fas fa-plus-square"></i> &nbsp; Nuevo producto
                 </button>
-                {#            <a href="{% url 'sales:product_print' %}" class="btn btn-warning" target="print"><span#}
-                {#                    class="fa fa-print"></span> Imprimir</a>#}
-
             </div>
-            <div class="col-5 d-flex align-items-end flex-column">
-{#                <div id="sorts" class="button-group">#}
-{#                    <button class="btn btn-primary is-checked" data-sort-value="original-order">Sin ordenar</button>#}
-{#                    <button class="btn btn-primary" data-sort-value="id">Ordenar por Id</button>#}
-{#                    <button class="btn btn-primary" data-sort-value="name">Ordenar por Nom.</button>#}
-{#                </div>#}
+            <div class="col-md-5 col-sm-12 d-flex align-items-end flex-column mb-2">
+                <!-- Espacio para futuras funcionalidades -->
             </div>
-            <div class="col-2 text-right font-weight-bold pt-2">
-                <label>BUSCAR PRODUCTO:</label>
+            <div class="col-md-2 col-sm-6 text-right font-weight-bold pt-2">
+                <label class="mb-0">BUSCAR PRODUCTO:</label>
             </div>
-            <div class="col-2">
+            <div class="col-md-2 col-sm-6">
                 <input type="text" id="myInput" class="form-control" placeholder="Introduzca un texto"/>
             </div>
         </div>
 
-        <div id="product-grid-list">{% include "sales/product_grid_list.html" %}</div>
+        <!-- Navegación por tabs -->
+        <ul class="nav nav-tabs" id="productTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="active-tab" data-toggle="tab" href="#active-products" role="tab" 
+                   aria-controls="active-products" aria-selected="true">
+                    <i class="fas fa-check-circle text-success"></i> Productos Activos
+                    <span class="badge badge-success ml-1">{{ products_active|length }}</span>
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="inactive-tab" data-toggle="tab" href="#inactive-products" role="tab" 
+                   aria-controls="inactive-products" aria-selected="false">
+                    <i class="fas fa-times-circle text-danger"></i> Productos Inactivos
+                    <span class="badge badge-danger ml-1">{{ products_inactive|length }}</span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- Contenido de los tabs -->
+        <div class="tab-content" id="productTabsContent">
+            <div class="tab-pane fade show active" id="active-products" role="tabpanel" aria-labelledby="active-tab">
+                <div id="product-grid-list-active">
+                    {% include "sales/product_grid_list.html" with products=products_active %}
+                </div>
+            </div>
+            <div class="tab-pane fade" id="inactive-products" role="tabpanel" aria-labelledby="inactive-tab">
+                <div id="product-grid-list-inactive">
+                    {% include "sales/product_grid_list.html" with products=products_inactive %}
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -50,56 +73,112 @@
          aria-hidden="true"></div>
 
     <style>
-        .rem-120 {
-            width: 120rem;
+        .nav-tabs .nav-link {
+            border: 1px solid transparent;
+            border-top-left-radius: 0.25rem;
+            border-top-right-radius: 0.25rem;
+            font-weight: 500;
         }
 
-        .w-1 {
-            width: 1%;
+        .nav-tabs .nav-link.active {
+            color: #495057;
+            background-color: #fff;
+            border-color: #dee2e6 #dee2e6 #fff;
         }
 
-        .w-2 {
-            width: 2%;
+        .nav-tabs .nav-link:hover {
+            border-color: #e9ecef #e9ecef #dee2e6;
         }
 
-        .w-3 {
-            width: 3%;
+        .product-card {
+            transition: all 0.3s ease;
         }
 
-        .w-4 {
-            width: 4%;
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        .w-5 {
-            width: 5%;
+        .product-code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #6c757d;
         }
 
-        .w-10 {
-            width: 10%;
+        .product-internal-code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #495057;
+            font-weight: 500;
         }
 
-        .w-15 {
-            width: 15%;
+        .stock-info {
+            font-size: 0.9rem;
         }
 
-        .w-20 {
-            width: 20%;
+        .price-info {
+            font-weight: 600;
+            color: #28a745;
         }
 
-        .w-30 {
-            width: 30%;
+        .unit-info {
+            font-size: 0.85rem;
+            color: #6c757d;
         }
 
-        .w-35 {
-            width: 35%;
+        .stock, .units {
+            border: 1px solid #dee2e6 !important;
         }
 
-        .w-40 {
-            width: 40%;
+        .stock .border-top, .units .border-top {
+            border-top: 1px solid #dee2e6 !important;
         }
 
-        .w-45 {
-            width: 45%;
+        .stock .border-bottom, .units .border-bottom {
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+
+        .stock .border-right, .units .border-right {
+            border-right: 1px solid #dee2e6 !important;
+        }
+
+        .stock .border-left, .units .border-left {
+            border-left: 1px solid #dee2e6 !important;
+        }
+
+        .stock-info, .price-info {
+            border-bottom: 1px solid #e9ecef !important;
+        }
+
+        .dropdown-item:hover {
+            color: #fff !important;
+            background-color: #007bff;
+        }
+
+        .dropdown-item:hover i {
+            color: #fff !important;
+        }
+
+        @media (max-width: 768px) {
+            .table-responsive {
+                font-size: 0.85rem;
+            }
+            
+            .btn-group .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .nav-tabs .nav-link {
+                font-size: 0.9rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .badge {
+                font-size: 0.7rem;
+            }
         }
     </style>
 {% endblock body %}
@@ -110,16 +189,43 @@
 
         $("#myInput").on("keyup", function () {
             var value = $(this).val().toLowerCase();
+            var activeTab = $('.nav-tabs .nav-link.active').attr('href');
+            
             if (value !== "") {
-                $("div.table-like > div.row").filter(function () {
-                    $(this).toggle($(this).find('div.col.name').text().toLowerCase().indexOf(value) > -1).css('position', 'initial')
-                });
+                // Búsqueda para versión desktop (tabla)
+                $(activeTab + " .table tbody tr").filter(function () {
+                    var productName = $(this).find('.name').text().toLowerCase();
+                    var productCode = $(this).find('.product-code').text().toLowerCase();
+                    var internalCode = $(this).find('.product-internal-code').text().toLowerCase();
+                    return productName.indexOf(value) > -1 || productCode.indexOf(value) > -1 || internalCode.indexOf(value) > -1;
+                }).show();
+                
+                $(activeTab + " .table tbody tr").filter(function () {
+                    var productName = $(this).find('.name').text().toLowerCase();
+                    var productCode = $(this).find('.product-code').text().toLowerCase();
+                    var internalCode = $(this).find('.product-internal-code').text().toLowerCase();
+                    return productName.indexOf(value) === -1 && productCode.indexOf(value) === -1 && internalCode.indexOf(value) === -1;
+                }).hide();
+
+                // Búsqueda para versión mobile (cards)
+                $(activeTab + " .d-lg-none .card").filter(function () {
+                    var productName = $(this).find('.card-title').text().toLowerCase();
+                    var productCode = $(this).find('.small').text().toLowerCase();
+                    return productName.indexOf(value) > -1 || productCode.indexOf(value) > -1;
+                }).show();
+                
+                $(activeTab + " .d-lg-none .card").filter(function () {
+                    var productName = $(this).find('.card-title').text().toLowerCase();
+                    var productCode = $(this).find('.small').text().toLowerCase();
+                    return productName.indexOf(value) === -1 && productCode.indexOf(value) === -1;
+                }).hide();
             } else {
-                $("div.table-like > div.row").css('position', 'absolute').show();
+                $(activeTab + " .table tbody tr, " + activeTab + " .d-lg-none .card").show();
             }
         });
 
-        var $table = $('.table-like').isotope({
+        // Inicializar isotope para cada tab
+        var $tableActive = $('#active-products .table-like').isotope({
             layoutMode: 'vertical',
             getSortData: {
                 id: '.id parseInt',
@@ -127,13 +233,27 @@
                 subcategory: '.subcategory',
                 category: '.category',
             },
+        });
 
+        var $tableInactive = $('#inactive-products .table-like').isotope({
+            layoutMode: 'vertical',
+            getSortData: {
+                id: '.id parseInt',
+                name: '.name',
+                subcategory: '.subcategory',
+                category: '.category',
+            },
         });
 
 
         $('#sorts').on('click', 'button', function () {
             var sortValue = $(this).attr('data-sort-value');
-            $table.isotope({sortBy: sortValue});
+            var activeTab = $('.nav-tabs .nav-link.active').attr('href');
+            if (activeTab === '#active-products') {
+                $tableActive.isotope({sortBy: sortValue});
+            } else {
+                $tableInactive.isotope({sortBy: sortValue});
+            }
             console.log('order: ' + sortValue)
         });
 

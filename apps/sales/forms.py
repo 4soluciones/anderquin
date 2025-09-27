@@ -34,7 +34,7 @@ class FormProduct(forms.ModelForm):
     class Meta:
         model = Product
         fields = ('name',
-                  'observation', 'code', 'stock_min',
+                  'observation', 'code', 'internal_code', 'stock_min',
                   'stock_max', 'weight', 'product_family', 'product_brand', 'photo',
                   'barcode', 'product_subcategory',
                   'is_enabled', 'is_supply', 'is_merchandise',
@@ -44,6 +44,7 @@ class FormProduct(forms.ModelForm):
             'name': 'Nombre',
             'observation': 'Observacion',
             'code': 'Codigo',
+            'internal_code': 'Codigo Interno',
             'stock_min': 'Stock Minimno',
             'stock_max': 'Stock Maximo',
             'weight': 'Peso (Unidad)',
@@ -82,6 +83,12 @@ class FormProduct(forms.ModelForm):
                 }
             ),
             'code': forms.TextInput(
+                attrs={
+                    'class': 'form-control form-control-sm',
+                    'autocomplete': 'off',
+                }
+            ),
+            'internal_code': forms.TextInput(
                 attrs={
                     'class': 'form-control form-control-sm',
                     'autocomplete': 'off',
