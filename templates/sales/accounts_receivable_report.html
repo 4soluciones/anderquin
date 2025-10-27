@@ -28,7 +28,7 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label font-weight-bold">Cliente:</label>
                         <select class="form-control" id="id-client" name="client">
                             <option value="">Todos los clientes</option>
@@ -37,13 +37,21 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label font-weight-bold">Fecha Inicial:</label>
                         <input type="date" class="form-control" id="id_date_initial" value="{{ formatdate }}" required>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label font-weight-bold">Fecha Final:</label>
                         <input type="date" class="form-control" id="id_date_final" value="{{ formatdate }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label font-weight-bold">Estado de Pago:</label>
+                        <select class="form-control" id="id_payment_status" name="payment_status">
+                            <option value="all">Todos los pagos</option>
+                            <option value="pending">Pendientes</option>
+                            <option value="paid">Completados</option>
+                        </select>
                     </div>
                     <div class="col-md-3 d-flex align-items-end">
                         <button type="button" id="id_btn_show" class="btn btn-primary btn-block">
@@ -143,9 +151,7 @@
             let _start_date = $('#id_date_initial').val();
             let _end_date = $('#id_date_final').val();
             let _client_id = $('#id-client').val();
-            console.log(_start_date)
-            console.log(_end_date)
-            console.log(_start_date)
+            let _payment_status = $('#id_payment_status').val();
 
             if (_start_date && _end_date) {
                 $('#table-list-accounts-receivable').empty();
@@ -165,7 +171,8 @@
                     data: {
                         'start-date': _start_date, 
                         'end-date': _end_date, 
-                        'client_id': _client_id
+                        'client_id': _client_id,
+                        'payment_status': _payment_status
                     },
                     headers: {"X-CSRFToken": '{{ csrf_token }}'},
                     success: function (response, textStatus, xhr) {

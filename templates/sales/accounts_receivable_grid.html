@@ -1,64 +1,52 @@
 {% load operations %}
-{% if accounts_receivable_data %}
+{% if orders_data %}
 
     <table class="table table-sm table-bordered table-hover roboto-condensed-regular m-0" id="table-dictionary">
         <thead>
         <tr class="text-white small text-uppercase">
-            <th class="bg-primary text-center align-middle" style="width: 5%;">#</th>
-            <th class="bg-primary text-center align-middle" style="width: 20%;">CLIENTE</th>
-            <th class="bg-primary text-center align-middle" style="width: 10%;">CONTACTO</th>
-            <th class="bg-primary text-center align-middle" style="width: 12%;">TOTAL DEUDA</th>
-            <th class="bg-info text-center align-middle" style="width: 12%;">TOTAL PAGADO</th>
-            <th class="bg-warning text-center align-middle" style="width: 12%;">SALDO PENDIENTE</th>
-            <th class="bg-info text-center align-middle" style="width: 8%;">ÓRDENES</th>
-            <th class="bg-success text-center align-middle" style="width: 21%;">ACCIONES</th>
+            <th class="bg-primary text-center align-middle" style="width: 4%;">#</th>
+            <th class="bg-primary text-center align-middle" style="width: 10%;">DOCUMENTO</th>
+            <th class="bg-primary text-center align-middle" style="width: 8%;">FECHA</th>
+            <th class="bg-primary text-center align-middle" style="width: 12%;">CLIENTE</th>
+            <th class="bg-info text-center align-middle" style="width: 8%;">TOTAL</th>
+            <th class="bg-success text-center align-middle" style="width: 8%;">PAGADO</th>
+            <th class="bg-warning text-center align-middle" style="width: 7%;">RETENCIÓN</th>
+            <th class="bg-secondary text-center align-middle" style="width: 7%;">GARANTÍA</th>
+            <th class="bg-danger text-center align-middle" style="width: 8%;">PENDIENTE</th>
+            <th class="bg-info text-center align-middle" style="width: 18%;">PAGOS</th>
+            <th class="bg-success text-center align-middle" style="width: 10%;">ACCIONES</th>
         </tr>
         </thead>
         <tbody>
-        {% for client_data in accounts_receivable_data %}
-            <tr class="text-center client-row" data-client-id="{{ client_data.client_id }}"
-                {% if client_data.pending_amount == 0 %}style="background-color: #e8f5e8"
-                {% else %}style="background-color: #fff3cd"{% endif %}>
+        {% for order in orders_data %}
+            <tr class="text-center" 
+                {% if order.is_paid %}style="background-color: #e8f5e8"
+                {% else %}style="background-color Associatesfff3cd"{% endif %}>
                 <td class="align-middle text-center font-weight-bold">
-                    {% if client_data.pending_amount == 0 %}
+                    {% if order.is_paid %}
                         <div class="badge badge-success">{{ forloop.counter }}</div>
                     {% else %}
                         <div class="badge badge-warning">{{ forloop.counter }}</div>
                     {% endif %}
                 </td>
-                <td class="align-middle text-left">
-                    <div class="d-flex align-items-center">
-                        <div class="avatar-sm bg-light rounded-circle d-flex align-items-center justify-content-center mr-2"
-                             style="width: 30px; height: 30px;">
-                            <i class="fas fa-user text-muted" style="font-size: 12px;"></i>
-                        </div>
-                        <div>
-                            <div class="font-weight-bold" style="font-size: 13px;">{{ client_data.client_name }}</div>
-                            <small class="text-muted" style="font-size: 11px;">Código Unidad
-                                Ejecutora: {{ client_data.client_siaf }}</small>
-                        </div>
+                <td class="align-middle text-center">
+                    <div class="badge badge-outline-primary">
+                        {{ order.document }}
                     </div>
+                    <div class="small text-muted">{{ order.type_document }}</div>
                 </td>
                 <td class="align-middle text-center">
-                    {% if client_data.client_phone %}
-                        <div class="mb-1">
-                            <i class="fas fa-phone text-success mr-1" style="font-size: 11px;"></i>
-                            <small style="font-size: 11px;">{{ client_data.client_phone }}</small>
-                        </div>
-                    {% endif %}
-                    {% if client_data.client_email %}
-                        <div>
-                            <i class="fas fa-envelope text-info mr-1" style="font-size: 11px;"></i>
-                            <small style="font-size: 11px;">{{ client_data.client_email }}</small>
-                        </div>
-                    {% endif %}
+                    {{ order.order_date|date:"d/m/Y" }}
+                </td>
+                <td class="align-middle text-left">
+                    <div class="font-weight-bold" style="font-size: 13px;">{{ order.client_name }}</div>
                 </td>
                 <td class="align-middle text-right">
                     <div class="input-icon">
                         <input type="text" readonly
                                style="background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb"
-                               class="form-control form-control-sm font-weight-bold text-right total"
-                               value="{{ client_data.total_debt|replace_round_separator }}">
+                               class="form-control form-control-sm font-weight-bold text-right"
+                               value="{{ order.order_total|replace_round_separator }}">
                         <i class="change-money font-weight-bold">S/</i>
                     </div>
                 </td>
@@ -66,174 +54,152 @@
                     <div class="input-icon">
                         <input type="text" readonly
                                style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb"
-                               class="form-control form-control-sm font-weight-bold text-right total"
-                               value="{{ client_data.total_paid|replace_round_separator }}">
+                               class="form-control form-control-sm font-weight-bold text-right"
+                               value="{{ order.total_paid|replace_round_separator }}">
                         <i class="change-money font-weight-bold">S/</i>
                     </div>
                 </td>
                 <td class="align-middle text-right">
                     <div class="input-icon">
-                        {% if client_data.pending_amount > 0 %}
+                        {% if order.total_retention > 0 %}
                             <input type="text" readonly
                                    style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7"
-                                   class="form-control form-control-sm font-weight-bold text-right total"
-                                   value="{{ client_data.pending_amount|replace_round_separator }}">
+                                   class="form-control form-control-sm font-weight-bold text-right"
+                                   value="{{ order.total_retention|replace_round_separator }}">
+                        {% else %}
+                            <input type="text" readonly
+                                   style="background-color: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6"
+                                   class="form-control form-control-sm text-right"
+                                   value="0.00"
+                                   disabled>
+                        {% endif %}
+                        <i class="change-money font-weight-bold">S/</i>
+                    </div>
+                </td>
+                <td class="align-middle text-right">
+                    <div class="input-icon">
+                        {% if order.total_warranty > 0 %}
+                            <input type="text" readonly
+                                   style="background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db"
+                                   class="form-control form-control-sm font-weight-bold text-right"
+                                   value="{{ order.total_warranty|replace_round_separator }}">
+                        {% else %}
+                            <input type="text" readonly
+                                   style="background-color: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6"
+                                   class="form-control form-control-sm text-right"
+                                   value="0.00"
+                                   disabled>
+                        {% endif %}
+                        <i class="change-money font-weight-bold">S/</i>
+                    </div>
+                </td>
+                <td class="align-middle text-right">
+                    <div class="input-icon">
+                        {% if order.pending_amount > 0 %}
+                            <input type="text" readonly
+                                   style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb"
+                                   class="form-control form-control-sm font-weight-bold text-right"
+                                   value="{{ order.pending_amount|replace_round_separator }}">
                         {% else %}
                             <input type="text" readonly
                                    style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb"
-                                   class="form-control form-control-sm font-weight-bold text-right total"
+                                   class="form-control form-control-sm font-weight-bold text-right"
                                    value="0.00">
                         {% endif %}
                         <i class="change-money font-weight-bold">S/</i>
                     </div>
                 </td>
-                <td class="align-middle text-center">
-                    <div class="badge badge-info">{{ client_data.orders|length }}</div>
-                </td>
-                <td class="align-middle text-center button-pay p-1">
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-sm btn-outline-primary btn-toggle-orders"
-                                data-client-id="{{ client_data.client_id }}">
-                            <i class="fas fa-eye mr-1"></i>
-                            Ver Órdenes
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-success"
-                                onclick="loadFile('', '{{ client_data.client_id }}')"
-                                data-toggle="modal" data-target="#fileModal">
-                            <i class="fas fa-file-alt mr-1"></i>
-                            Archivos
-                        </button>
-                    </div>
-                </td>
-            </tr>
-
-            <!-- Detalle de Órdenes (Collapsible) -->
-            <tr class="orders-detail-row" style="display: none;">
-                <td colspan="8" class="p-0">
-                    <div class="card card-body bg-light m-2">
-                        <h6 class="mb-3 roboto-condensed-regular">
-                            <i class="fas fa-list-alt mr-2"></i>
-                            Órdenes Pendientes - {{ client_data.client_name }}
-                        </h6>
-
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered">
-                                <thead class="thead-light">
-                                <tr>
-                                    <th>Documento</th>
-                                    <th>Fecha</th>
-                                    <th class="text-right">Total</th>
-                                    <th class="text-right">Pagado</th>
-                                    <th class="text-right">Pendiente</th>
-                                    <th>Pagos</th>
-                                    <th>Acciones</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for order in client_data.orders %}
-                                    <tr pk="{{ order.order_id }}">
-                                        <td>
-                                            <div class="badge badge-outline-secondary">
-                                                {{ order.serial }}-{{ order.correlative }}
-                                            </div>
-                                        </td>
-                                        <td>{{ order.order_date|date:"d/m/Y" }}</td>
-                                        <td class="text-right">
-                                            <strong>S/ {{ order.order_total|replace_round_separator }}</strong>
-                                        </td>
-                                        <td class="text-right">
-                                            <div class="text-success">
-                                                S/ {{ order.total_paid|replace_round_separator }}
-                                            </div>
-                                        </td>
-                                        <td class="text-right">
-                                            <div class="text-danger font-weight-bold">
-                                                S/ {{ order.pending_amount|replace_round_separator }}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {% if order.payment_details %}
-                                                <div class="payment-details">
-                                                    {% for payment in order.payment_details %}
-                                                        <div class="mb-1">
-                                                            <small>
-                                                                <i class="fas fa-calendar text-info mr-1"></i>
-                                                                {{ payment.date|date:"d/m/Y" }}
-                                                                <br>
-                                                                <i class="fas fa-money-bill text-success mr-1"></i>
-                                                                S/ {{ payment.amount|replace_round_separator }}
-                                                                <div class="badge badge-sm badge-outline-secondary ml-1">
-                                                                    {{ payment.type }}
-                                                                </div>
-                                                                {% if payment.file %}
-                                                                    <button type="button"
-                                                                            class="btn btn-xs btn-outline-info ml-1"
-                                                                            onclick="loadFile('{{ payment.file }}', '{{ payment.loan_payment_id }}')"
-                                                                            data-toggle="modal"
-                                                                            data-target="#fileModal">
-                                                                        <i class="fas fa-file-image"></i>
-                                                                    </button>
-                                                                {% endif %}
-                                                            </small>
-                                                        </div>
-                                                    {% endfor %}
-                                                </div>
-                                            {% else %}
-                                                <div class="text-muted">Sin pagos</div>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if order.pending_amount > 0 %}
-                                                <button type="button" class="btn btn-sm btn-success btn-add-payment"
-                                                        data-order-id="{{ order.order_id }}"
-                                                        data-client-id="{{ client_data.client_id }}">
-                                                    <i class="fas fa-plus mr-1"></i>
-                                                    Agregar Pago
-                                                </button>
-                                            {% else %}
-                                                <div class="badge badge-success">Pagado</div>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
+                <td class="align-middle">
+                    {% if order.payment_details %}
+                        <div class="payment-details" style="max-height: 150px; overflow-y: auto;">
+                            {% for payment in order.payment_details %}
+                                <div class="mb-2 p-2 border rounded" style="background-color: #f8f9fa;">
+                                    <small class="d-block">
+                                        <i class="fas fa-calendar text-info mr-1"></i>
+                                        {{ payment.date|date:"d/m/Y" }}
+                                    </small>
+                                    <small class="d-block">
+                                        <i class="fas fa-money-bill text-success mr-1"></i>
+                                        S/ {{ payment.amount|replace_round_separator }}
+                                        <span class="badge badge-sm badge-secondary ml-1">{{ payment.type }}</span>
+                                    </small>
+                                    {% if payment.operation_code and payment.operation_code != '-' %}
+                                        <small class="d-block text-muted">
+                                            <i class="fas fa-hashtag mr-1"></i>{{ payment.operation_code }}
+                                        </small>
+                                    {% endif %}
+                                    {% if payment.file %}
+                                        <button type="button"
+                                                class="btn btn-xs btn-outline-info mt-1"
+                                                onclick="loadFile('{{ payment.file }}', '{{ payment.loan_payment_id }}')"
+                                                data-toggle="modal"
+                                                data-target="#fileModal">
+                                            <i class="fas fa-file-image mr-1"></i>Ver Comprobante
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
                         </div>
-                    </div>
+                    {% else %}
+                        <div class="text-muted">
+                            <i class="fas fa-exclamation-circle"></i> Sin pagos
+                        </div>
+                    {% endif %}
+                </td>
+                <td class="align-middle text-center">
+                    {% if order.pending_amount > 0 %}
+                        <button type="button" class="btn btn-sm btn-success btn-add-payment"
+                                data-order-id="{{ order.order_id }}"
+                                data-client-id="{{ order.client_id }}">
+                            <i class="fas fa-plus mr-1"></i>
+                            Agregar Pago
+                        </button>
+                    {% else %}
+                        <div class="badge badge-success">
+                            <i class="fas fa-check-circle mr-1"></i>Pagado
+                        </div>
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 
-    <table class="table table-sm">
+    <table class="table table-sm mt-2">
         <thead>
         <tr class="text-center roboto-condensed-regular" style="background-color: #e3f2fd">
-            <th class="border-left" style="width: 5%;"></th>
-            <th class="" style="width: 20%;"></th>
+            <th class="border-left" style="width: 4%;"></th>
             <th class="" style="width: 10%;"></th>
-            <th class="text-center align-middle" style="width: 12%;">
-                <i class="fas fa-file-invoice-dollar"></i> TOTAL DEUDAS
+            <th class="" style="width: 8%;"></th>
+            <th class="" style="width: 12%;"></th>
+            <th class="text-center align-middle" style="width: 8%;">
+                <i class="fas fa-file-invoice-dollar"></i> TOTAL
             </th>
-            <th class="text-center align-middle" style="width: 12%;">
-                <i class="fas fa-credit-card"></i> TOTAL PAGADO
+            <th class="text-center align-middle" style="width: 8%;">
+                <i class="fas fa-credit-card"></i> PAGADO
             </th>
-            <th class="text-center align-middle" style="width: 12%;">
+            <th class="text-center align-middle" style="width: 7%;">
+                <i class="fas fa-hand-holding-usd"></i> RETENCIÓN
+            </th>
+            <th class="text-center align-middle" style="width: 7%;">
+                <i class="fas fa-shield-alt"></i> GARANTÍA
+            </th>
+            <th class="text-center align-middle" style="width: 8%;">
                 <i class="fas fa-exclamation-triangle"></i> PENDIENTE
             </th>
-            <th class="" style="width: 8%;"></th>
-            <th class="border-right" style="width: 21%;"></th>
+            <th class="" style="width: 18%;"></th>
+            <th class="border-right" style="width: 10%;"></th>
         </tr>
         </thead>
         <tbody>
         <tr class="text-center" style="background-color: #e3f2fd">
-            <td colspan="3"></td>
+            <td colspan="4" class="font-weight-bold">TOTALES DEL REPORTE</td>
             <td class="align-middle text-center">
                 <div class="input-icon">
                     <input type="text" readonly
                            style="background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb"
-                           class="form-control form-control-sm font-weight-bold text-right total"
-                           value="{{ total_pending|replace_round_separator }}">
+                           class="form-control form-control-sm font-weight-bold text-right"
+                           value="{{ total_debt|replace_round_separator }}">
                     <i class="change-money font-weight-bold">S/</i>
                 </div>
             </td>
@@ -241,21 +207,22 @@
                 <div class="input-icon">
                     <input type="text" readonly
                            style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb"
-                           class="form-control form-control-sm font-weight-bold text-right total"
-                           value="{{ total_pending|replace_round_separator }}">
+                           class="form-control form-control-sm font-weight-bold text-right"
+                           value="{{ total_paid|replace_round_separator }}">
                     <i class="change-money font-weight-bold">S/</i>
                 </div>
             </td>
             <td class="align-middle text-center">
                 <div class="input-icon">
-                    <input type="text" readonly
-                           style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7"
-                           class="form-control form-control-sm font-weight-bold text-right total"
+                    <input type="text" readonly enterprises
+                           style="background-color: #fff3cd; color: #856404; border: 1px solid GHQffeaa7"
+                           class="form-control form-control-sm font-weight-bold text-right"
                            value="{{ total_pending|replace_round_separator }}">
                     <i class="change-money font-weight-bold">S/</i>
                 </div>
             </td>
-            <td colspan="2"></td>
+            <td class="text-muted">{{ total_orders }} órdenes</td>
+            <td colspan="1"></td>
         </tr>
         </tbody>
     </table>
@@ -274,21 +241,12 @@
             width: 25px;
             text-align: center;
             font-style: normal;
+            left: 5px;
         }
 
         .input-icon > input {
-            padding-left: 25px;
+            padding-left: 30px;
             padding-right: 8px;
-        }
-
-        .input-icon-right > i {
-            right: 0;
-        }
-
-        .input-icon-right > input {
-            padding-left: 0;
-            padding-right: 25px;
-            text-align: right;
         }
 
         .table-hover tbody tr:hover {
@@ -310,8 +268,8 @@
             color: #212529;
         }
 
-        .badge-danger {
-            background-color: #dc3545;
+        .badge-info {
+            background-color: #17a2b8;
             color: white;
         }
 
@@ -320,66 +278,26 @@
             color: white;
         }
 
-        .badge-info {
-            background-color: #17a2b8;
-            color: white;
+        .badge-sm {
+            font-size: 0.65em;
+            padding: 0.25rem 0.5rem;
         }
 
-        .alert {
-            border-radius: 0.5rem;
-            border: none;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        }
-
-        .alert-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border-left: 4px solid #17a2b8;
-        }
-
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border-left: 4px solid #28a745;
-        }
-
-        .btn-show-payments {
-            transition: all 0.3s ease;
-        }
-
-        .btn-show-payments:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+        .payment-details {
+            font-size: 12px;
         }
     </style>
-
-    <script>
-        // Manejar el botón "Ver Órdenes"
-        $(document).on('click', '.btn-toggle-orders', function (e) {
-            e.preventDefault();
-            var clientId = $(this).data('client-id');
-            var detailRow = $(this).closest('tr').next('.orders-detail-row');
-
-            if (detailRow.is(':visible')) {
-                detailRow.hide();
-                $(this).html('<i class="fas fa-eye mr-1"></i> Ver Órdenes');
-            } else {
-                detailRow.show();
-                $(this).html('<i class="fas fa-eye-slash mr-1"></i> Ocultar Órdenes');
-            }
-        });
-    </script>
 {% else %}
     <!-- Mensaje cuando no hay datos -->
     <div class="card">
         <div class="card-body text-center py-5">
             <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
             <h4 class="text-muted">No hay cuentas por cobrar</h4>
-            <p class="text-muted">No se encontraron clientes con saldos pendientes en el período seleccionado.</p>
+            <p class="text-muted">No se encontraron órdenes con pagos pendientes en el período seleccionado.</p>
             <button type="button" class="btn btn-primary" onclick="$('#id_btn_show').click()">
                 <i class="fas fa-refresh mr-1"></i>
                 Actualizar Reporte
             </button>
         </div>
     </div>
-{% endif %} 
+{% endif %}

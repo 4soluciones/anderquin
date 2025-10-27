@@ -388,6 +388,7 @@ class Order(models.Model):
     SALE_TYPE_CHOICES = (('VC', 'VENTA CERRADA'), ('VA', 'VENTA ALMACEN'), ('VR', 'VENTA REPARTO'))
     TYPE_CHOICES_PAYMENT = (('E', 'EFECTIVO'), ('D', 'DEPOSITO'), ('C', 'CREDITO'))
     STATUS_CHOICES = (('P', 'PENDIENTE'), ('C', 'COMPLETADO'), ('A', 'ANULADO'))
+    STATUS_PAY_CHOICES = (('P', 'PENDIENTE'), ('C', 'COMPLETADO'))
     HAS_ORDER_QUOTATION = (('S', 'SIN VENTA'), ('C', 'CON VENTA'), ('0', 'SOLO VENTA'))
     TYPE_DOCUMENT = (('T', 'TICKET'), ('B', 'BOLETA'), ('F', 'FACTURA'))
     order_type = models.CharField('Tipo de Orden', max_length=1, choices=ORDER_TYPE_CHOICES, default='V')
@@ -422,6 +423,7 @@ class Order(models.Model):
     total_payed = models.DecimalField('Total pagado', max_digits=10, decimal_places=2, default=0)
     total_retention = models.DecimalField('Total retencion', max_digits=10, decimal_places=2, default=0)
     total_warranty = models.DecimalField('Total garantia', max_digits=10, decimal_places=2, default=0)
+    status_pay = models.CharField('Estado', max_length=1, choices=STATUS_PAY_CHOICES, default='P')
 
     def __str__(self):
         return str(self.pk)

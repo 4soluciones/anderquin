@@ -355,6 +355,7 @@ class Bill(models.Model):
     assign_date = models.DateField('Fecha de Ingreso a Almacen', null=True, blank=True)
     store_destiny = models.ForeignKey('sales.SubsidiaryStore', on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField('Status', max_length=1, choices=STATUS_CHOICES, default='S')
+    observation = models.TextField('Observación', blank=True, null=True)
 
     def __str__(self):
         return str(self.serial + '-' + self.correlative)

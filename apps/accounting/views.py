@@ -5,7 +5,7 @@ from apps.hrm.views import get_subsidiary_by_user
 from apps.hrm.models import Worker, WorkerType, Employee
 from apps.buys.models import Purchase, PurchaseDetail, CreditNote, CreditNoteDetail
 from apps.sales.models import Subsidiary, SubsidiaryStore, Order, OrderDetail, TransactionPayment, LoanPayment, \
-    Supplier, Client, ProductDetail, SupplierAddress, Product
+    Supplier, Client, ProductDetail, SupplierAddress, Product, Unit
 from django.template import loader, Context
 from django.http import JsonResponse
 from http import HTTPStatus
@@ -2388,8 +2388,18 @@ def modal_bill_create(request):
                         'amount': amount,
                         'purchase_id': pd.purchase.id,
                         'purchase_number': pd.purchase.bill_number,
-                        'has_bill': has_bill
+                        'has_bill': has_bill,
+                        'units': []
                     }
+                    for pd in ProductDetail.objects.filter(product_id=product_id):
+                        unit_data = {
+                            'id': pd.id,
+                            'unit_id': pd.unit.id,
+                            'unit_name': pd.unit.name,
+                            'quantity_minimum': round(pd.quantity_minimum, 0),
+                        }
+                        item_detail.get('units').append(unit_data)
+
                     acc_total += amount
                     quantity_total += quantity
                     item_purchase.get('details').append(item_detail)
@@ -2440,6 +2450,8 @@ def save_bill(request):
 
             supplier_id = str(data_bill["supplier_id"])
 
+            observation = str(data_bill["observation"])
+
             supplier_obj = Supplier.objects.get(id=supplier_id)
 
             bill_obj = Bill(
@@ -2452,7 +2464,8 @@ def save_bill(request):
                 bill_base_total=bill_total_base,
                 bill_igv_total=bill_igv,
                 bill_total_total=bill_total,
-                supplier=supplier_obj
+                supplier=supplier_obj,
+                observation=observation
             )
             bill_obj.save()
 
@@ -2465,6 +2478,7 @@ def save_bill(request):
                     product_obj = Product.objects.get(id=product_id)
                     unit_id = details.get('unit_id')
                     purchase_detail_id = details.get('purchaseDetailID')
+                    product_detail_obj = ProductDetail.objects.get(unit__id=unit_id, product=product_obj)
                     purchase_id = details.get('purchaseID')
                     quantity_purchased = decimal.Decimal(details.get('purchaseQuantity'))
                     quantity_invoice = decimal.Decimal(details.get('invoiceQuantity'))
@@ -2472,7 +2486,7 @@ def save_bill(request):
                     price_unit = decimal.Decimal(details.get('priceUnit'))
                     purchase_detail_obj = PurchaseDetail.objects.get(id=int(purchase_detail_id))
                     purchase_obj = purchase_detail_obj.purchase
-                    unit_obj = purchase_detail_obj.unit
+                    unit_obj = Unit.objects.get(id=unit_id)
                     # price_unit = purchase_detail_obj.price_unit
                     quantity_difference = quantity_purchased - quantity_invoice
                     if quantity_difference < 1:

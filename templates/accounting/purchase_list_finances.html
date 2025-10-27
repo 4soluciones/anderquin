@@ -260,6 +260,7 @@
             let bill_total = $('.total-bill');
 
             let quantity_total = $('#quantity_total');
+            let observation = $('#observation');
 
             if (bill_serial.val() === '') {
                 toastr.warning('¡Ingresar la serie la de Factura!', 'Error de Datos');
@@ -298,6 +299,7 @@
                 'bill_total': bill_total.val(),
 
                 'bill_quantity': quantity_total.val(),
+                'observation': observation.val(),
                 'billPurchases': []
             };
             /*$('#bill-details tr').each(function () {
@@ -313,11 +315,12 @@
             $('#bill-details tr').each(function () {
                 let product_id = $(this).attr('product');
                 let details = {
-                    'unit_id': $(this).attr('unit_id'),
+                    'unit_id': $(this).find('td.unit select.unit-select').val(),
                     'purchaseDetailID': $(this).attr('detail'),
                     'purchaseID': $(this).attr('purchase'),
                     'purchaseQuantity': $(this).find('td.item-quantity input.quantity-purchased').val(),
                     'invoiceQuantity': $(this).find('td.item-quantity input.quantity-invoice').val(),
+                    'invoiceQuantityMinimum': $(this).find('td.item-quantity-min input.quantity-min').val(),
                     'priceUnit': $(this).find('td.item-price input.price-product').val()
                 };
                 if (!billPurchases[product_id]) {
