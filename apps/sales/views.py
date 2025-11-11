@@ -5167,3 +5167,77 @@ def save_client_payment(request):
                 'success': False,
                 'message': f'Error al registrar pago: {str(e)}'
             }, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_order_by_correlative(request):
+    if request.method == 'GET':
+        correlative = request.GET.get('correlative', '')
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        order_set = Order.objects.filter(subsidiary_store__subsidiary=subsidiary_obj, correlative=int(correlative),
+                                         order_type='T')
+        if order_set.exists():
+            order_obj = order_set.last()
+            type_document = order_obj.client.clienttype_set.last().document_type.id
+            document_number = order_obj.client.clienttype_set.last().document_number
+            client_name = order_obj.client.names
+            validity_date = order_obj.validity_date
+            date_completion = order_obj.date_completion
+            place_delivery = order_obj.place_delivery
+            type_quotation = order_obj.type_quotation
+            type_name_quotation = order_obj.type_name_quotation
+            transaction_payment_type = order_obj.way_to_pay_type
+            observation = order_obj.observation
+            correlative = order_obj.correlative_sale
+            order_detail_set = OrderDetail.objects.filter(order=order_obj)
+            detail = []
+            for d in order_detail_set:
+                product_store_obj = None
+                quantity_minimum_unit = calculate_minimum_unit(d.quantity_sold, d.unit, d.product)
+                stock = 0
+                product_store_id = None
+                product_store_set = ProductStore.objects.filter(product=d.product,
+                                                                subsidiary_store=d.order.subsidiary_store)
+
+                if product_store_set.exists():
+                    product_store_obj = product_store_set.last()
+                    product_store_id = product_store_obj.id
+                    stock = product_store_obj.stock
+
+                new_row = {
+                    'id': d.id,
+                    'product_id': d.product.id,
+                    'product_name': d.product.name,
+                    'product_brand': d.product.product_brand.name,
+                    'unit_id': d.unit.id,
+                    'unit_name': d.unit.name,
+                    'quantity': d.quantity_sold,
+                    'price': d.price_unit,
+                    'store': product_store_id,
+                    'stock': round(stock, 0),
+                    'unit_min': quantity_minimum_unit,
+                }
+                detail.append(new_row)
+
+            return JsonResponse({
+                'success': True,
+                'order_id': order_obj.id,
+                'document_type': type_document,
+                'document_number': document_number,
+                'client_name': client_name,
+                'validity_date': validity_date,
+                'date_completion': date_completion,
+                'place_delivery': place_delivery,
+                'type_quotation': type_quotation,
+                'type_name_quotation': type_name_quotation,
+                'observation': observation,
+                'transaction_payment_type': transaction_payment_type,
+                'correlative': correlative,
+                'detail': detail,
+            }, status=HTTPStatus.OK)
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'No se encontro la Cotización Numero: ' + str(correlative),
+            }, status=HTTPStatus.OK)

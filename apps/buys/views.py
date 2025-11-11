@@ -2427,10 +2427,11 @@ def report_contracts(request):
                 bill_amount = '-'
                 if d.contractdetailpurchase_set.last():
                     purchase_obj = d.contractdetailpurchase_set.last().purchase
-                    purchase = purchase_obj.id
-                    bill_number = purchase_obj.bill_number
-                    # Obtener el monto total de la compra
-                    bill_amount = f"S/ {purchase_obj.total():,.2f}"
+                    if purchase_obj:
+                        purchase = purchase_obj.id
+                        bill_number = purchase_obj.bill_number
+                        # Obtener el monto total de la compra
+                        bill_amount = f"S/ {purchase_obj.total():,.2f}"
                 guide_obj = d.guide_set.all().last()
                 if guide_obj:
                     guide = guide_obj.id

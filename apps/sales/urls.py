@@ -90,6 +90,7 @@ urlpatterns = [
     path('get_product_quotation/', login_required(get_product_quotation), name='get_product_quotation'),
     path('get_clients_by_criteria/', login_required(get_clients_by_criteria), name='get_clients_by_criteria'),
     path('print_quotation/<int:pk>/<str:t>/', print_quotation, name='print_quotation'),
+    path('get_order_by_correlative/', login_required(get_order_by_correlative), name='get_order_by_correlative'),
 
     # CLIENT
     path('client_save/', login_required(client_save), name='client_save'),
