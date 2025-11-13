@@ -2767,6 +2767,7 @@ def modal_phase(request):
                 if order_obj:
                     bill_info['serial'] = order_obj.serial or '-'
                     bill_info['correlative'] = order_obj.correlative or '-'
+                    bill_info['total_order'] = order_obj.total or '-'
                 # Obtener el monto de la factura desde la compra relacionada
                 purchase_obj = contract_detail.contractdetailpurchase_set.last()
                 if purchase_obj and purchase_obj.purchase:
