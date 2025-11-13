@@ -2423,6 +2423,7 @@ def report_contracts(request):
                 phase_d = None
                 phase_g = None
                 total_payed = None
+                total_order = None
 
                 bill_amount = '-'
                 if d.contractdetailpurchase_set.last():
@@ -2456,6 +2457,7 @@ def report_contracts(request):
                     phase_d = d.order.phase_d
                     phase_g = d.order.phase_g
                     total_payed = '{:,}'.format(round(decimal.Decimal(d.order.total_payed), 2))
+                    total_order = d.order.total
                     # print(total_payed)
                 item_detail = {
                     'id': d.id,
@@ -2476,6 +2478,7 @@ def report_contracts(request):
                     'phase_d': phase_d,
                     'phase_g': phase_g,
                     'total_payed': total_payed,
+                    'total_order': total_order,
                     'days_difference': days_difference,
                     'days_difference_two': days_difference_two,
                     'contract_detail_item': []
