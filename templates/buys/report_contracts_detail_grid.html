@@ -80,7 +80,7 @@
             </div>
             <div class="container-fluid table-like pl-0 ml-0 pr-0 mr-0 bg-light">
                 {% for c in contract_dict %}
-                    <div class="row m-0 border-top border-dark">
+                    <div class="row m-0 border-top border-dark contract-row">
                         <div class="col-3 border-right d-flex flex-column justify-content-center align-items-center font-weight-bold text-center py-3">
                             {% if c.cod_siaf != '-' %}<div class="small text-muted font-weight-normal mb-1">COD: {{ c.cod_siaf }}</div>{% endif %}
                             <div class="mb-1">{{ c.client }}</div>
@@ -281,6 +281,31 @@
 
     .contract-report .border-bottom {
         border-bottom: 1px solid #dee2e6 !important;
+    }
+
+    /* Estilo striped (rayado) para las filas */
+    .contract-report .table-like .contract-row:nth-child(even) {
+        background-color: rgba(0, 0, 0, 0.02) !important;
+    }
+
+    .contract-report .table-like .contract-row:nth-child(odd) {
+        background-color: #ffffff !important;
+    }
+
+    /* Heredar el color de fondo de la fila en las columnas principales */
+    .contract-report .contract-row > .col-3,
+    .contract-report .contract-row > .col-9 {
+        background-color: inherit !important;
+    }
+
+    /* Mantener los colores específicos de las celdas especiales (Guía y Factura) */
+    .contract-report .contract-row [style*="background-color: #e8f4f8"] {
+        background-color: #e8f4f8 !important;
+    }
+
+    /* Mantener el color de Fase G cuando tiene pago */
+    .contract-report .contract-row [style*="background-color: #c5f1cf"] {
+        background-color: #c5f1cf !important;
     }
 </style>
 
