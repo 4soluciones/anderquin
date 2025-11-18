@@ -106,6 +106,11 @@ urlpatterns = [
     path('accounts_receivable_report/', login_required(accounts_receivable_report), name='accounts_receivable_report'),
     path('get_client_payment_modal/', login_required(get_client_payment_modal), name='get_client_payment_modal'),
     path('save_client_payment/', login_required(save_client_payment), name='save_client_payment'),
+    path('get_warranty_verification_modal/', login_required(get_warranty_verification_modal), name='get_warranty_verification_modal'),
+    path('save_warranty_verification/', login_required(save_warranty_verification), name='save_warranty_verification'),
+    path('get_payment_details_modal/', login_required(get_payment_details_modal), name='get_payment_details_modal'),
+    path('get_warranty_details_modal/', login_required(get_warranty_details_modal), name='get_warranty_details_modal'),
+    path('get_payment_detail_view/', login_required(get_payment_detail_view), name='get_payment_detail_view'),
 
     # List quotation
     path('get_sales_quotation_by_subsidiary/', login_required(get_sales_quotation_by_subsidiary), name='get_sales_quotation_by_subsidiary'),

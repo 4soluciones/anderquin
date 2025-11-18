@@ -12,7 +12,7 @@
             <th class="bg-success text-center align-middle" style="width: 8%;">PAGADO</th>
             <th class="bg-warning text-center align-middle" style="width: 7%;">RETENCIÓN</th>
             <th class="bg-secondary text-center align-middle" style="width: 7%;">GARANTÍA</th>
-            <th class="bg-danger text-center align-middle" style="width: 8%;">PENDIENTE</th>
+            <th class="bg-danger text-center align-middle" style="width: 8%;">POR VERIFICAR</th>
             <th class="bg-info text-center align-middle" style="width: 18%;">PAGOS</th>
             <th class="bg-success text-center align-middle" style="width: 10%;">ACCIONES</th>
         </tr>
@@ -55,7 +55,7 @@
                         <input type="text" readonly
                                style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb"
                                class="form-control form-control-sm font-weight-bold text-right"
-                               value="{{ order.total_paid|replace_round_separator }}">
+                               value="{{ order.total_payed|replace_round_separator }}">
                         <i class="change-money font-weight-bold">S/</i>
                     </div>
                 </td>
@@ -113,7 +113,8 @@
                     {% if order.payment_details %}
                         <div class="payment-details" style="max-height: 150px; overflow-y: auto;">
                             {% for payment in order.payment_details %}
-                                <div class="mb-2 p-2 border rounded" style="background-color: #f8f9fa;">
+                                <div class="mb-2 p-2 border rounded" style="background-color: #f8f9fa; cursor: pointer;"
+                                     onclick="viewPaymentDetail('{{ payment.loan_payment_id }}', '{{ order.order_id }}', '{{ order.client_id }}')">
                                     <small class="d-block">
                                         <i class="fas fa-calendar text-info mr-1"></i>
                                         {{ payment.date|date:"d/m/Y" }}
@@ -129,13 +130,9 @@
                                         </small>
                                     {% endif %}
                                     {% if payment.file %}
-                                        <button type="button"
-                                                class="btn btn-xs btn-outline-info mt-1"
-                                                onclick="loadFile('{{ payment.file }}', '{{ payment.loan_payment_id }}')"
-                                                data-toggle="modal"
-                                                data-target="#fileModal">
-                                            <i class="fas fa-file-image mr-1"></i>Ver Comprobante
-                                        </button>
+                                        <small class="d-block text-primary">
+                                            <i class="fas fa-file-check mr-1"></i>Comprobante disponible
+                                        </small>
                                     {% endif %}
                                 </div>
                             {% endfor %}
@@ -147,18 +144,33 @@
                     {% endif %}
                 </td>
                 <td class="align-middle text-center">
-                    {% if order.pending_amount > 0 %}
-                        <button type="button" class="btn btn-sm btn-success btn-add-payment"
-                                data-order-id="{{ order.order_id }}"
-                                data-client-id="{{ order.client_id }}">
-                            <i class="fas fa-plus mr-1"></i>
-                            Agregar Pago
-                        </button>
-                    {% else %}
-                        <div class="badge badge-success">
-                            <i class="fas fa-check-circle mr-1"></i>Pagado
-                        </div>
-                    {% endif %}
+                    <div class="btn-group-vertical" role="group">
+                        {% if order.pending_amount > 0 %}
+                            <button type="button" class="btn btn-sm btn-success btn-verify-payment mb-1"
+                                    data-order-id="{{ order.order_id }}"
+                                    data-client-id="{{ order.client_id }}">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Verificar Pago
+                            </button>
+                        {% endif %}
+                        {% if order.total_warranty > 0 %}
+                            {% if order.pay_day_warranty %}
+                                <button type="button" class="btn btn-sm btn-info btn-view-warranty"
+                                        data-order-id="{{ order.order_id }}"
+                                        data-client-id="{{ order.client_id }}">
+                                    <i class="fas fa-eye mr-1"></i>
+                                    Ver Garantía
+                                </button>
+                            {% else %}
+                                <button type="button" class="btn btn-sm btn-warning btn-verify-warranty"
+                                        data-order-id="{{ order.order_id }}"
+                                        data-client-id="{{ order.client_id }}">
+                                    <i class="fas fa-shield-alt mr-1"></i>
+                                    Verificar Garantía
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
                 </td>
             </tr>
         {% endfor %}
@@ -185,7 +197,7 @@
                 <i class="fas fa-shield-alt"></i> GARANTÍA
             </th>
             <th class="text-center align-middle" style="width: 8%;">
-                <i class="fas fa-exclamation-triangle"></i> PENDIENTE
+                <i class="fas fa-exclamation-triangle"></i> POR VERIFICAR
             </th>
             <th class="" style="width: 18%;"></th>
             <th class="border-right" style="width: 10%;"></th>
@@ -208,21 +220,39 @@
                     <input type="text" readonly
                            style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb"
                            class="form-control form-control-sm font-weight-bold text-right"
-                           value="{{ total_paid|replace_round_separator }}">
+                           value="{{ total_payed|replace_round_separator }}">
                     <i class="change-money font-weight-bold">S/</i>
                 </div>
             </td>
             <td class="align-middle text-center">
                 <div class="input-icon">
-                    <input type="text" readonly enterprises
-                           style="background-color: #fff3cd; color: #856404; border: 1px solid GHQffeaa7"
+                    <input type="text" readonly
+                           style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7"
+                           class="form-control form-control-sm font-weight-bold text-right"
+                           value="{{ total_retention|replace_round_separator }}">
+                    <i class="change-money font-weight-bold">S/</i>
+                </div>
+            </td>
+            <td class="align-middle text-center">
+                <div class="input-icon">
+                    <input type="text" readonly
+                           style="background-color: #e2e3e5; color: #383d41; border: 1px solid #d6d8db"
+                           class="form-control form-control-sm font-weight-bold text-right"
+                           value="{{ total_warranty|replace_round_separator }}">
+                    <i class="change-money font-weight-bold">S/</i>
+                </div>
+            </td>
+            <td class="align-middle text-center">
+                <div class="input-icon">
+                    <input type="text" readonly
+                           style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb"
                            class="form-control form-control-sm font-weight-bold text-right"
                            value="{{ total_pending|replace_round_separator }}">
                     <i class="change-money font-weight-bold">S/</i>
                 </div>
             </td>
             <td class="text-muted">{{ total_orders }} órdenes</td>
-            <td colspan="1"></td>
+            <td colspan="2"></td>
         </tr>
         </tbody>
     </table>

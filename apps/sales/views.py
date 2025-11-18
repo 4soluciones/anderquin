@@ -5176,6 +5176,9 @@ def accounts_receivable_report(request):
         elif payment_status == 'pending':
             # Solo órdenes con pagos pendientes
             status_pay_filter = 'P'
+        elif payment_status == 'without_warranty':
+            # Pagos sin garantía verificada
+            status_pay_filter = None  # Se filtrará después por garantía
         else:
             # Todas las órdenes (P y C)
             status_pay_filter = None
@@ -5203,6 +5206,13 @@ def accounts_receivable_report(request):
         
         if start_date and end_date:
             orders_query = orders_query.filter(create_at__date__range=[start_date, end_date])
+
+        # Filtrar por garantía si es necesario
+        if payment_status == 'without_warranty':
+            orders_query = orders_query.filter(
+                total_warranty__gt=0,
+                pay_day_warranty__isnull=True
+            )
 
         orders_data = []
         
@@ -5242,6 +5252,7 @@ def accounts_receivable_report(request):
                 'total_payed': order.total_payed if order.total_payed else decimal.Decimal('0.00'),  # Total pagado del modelo
                 'total_retention': order.total_retention if order.total_retention else decimal.Decimal('0.00'),
                 'total_warranty': order.total_warranty if order.total_warranty else decimal.Decimal('0.00'),
+                'pay_day_warranty': order.pay_day_warranty,
                 'pending_amount': pending_amount,
                 'payment_details': payment_details,
                 'correlative': order.correlative if order.correlative else '-',
@@ -5250,7 +5261,10 @@ def accounts_receivable_report(request):
                 'type_document': order.get_type_document_display() if order.type_document else 'SIN DOCUMENTO',
                 'client_id': order.client.id if order.client else 0,
                 'client_name': order.client.names if order.client else 'SIN CLIENTE',
-                'is_paid': pending_amount == 0
+                'is_paid': pending_amount == 0,
+                'phase_c': order.phase_c,
+                'phase_d': order.phase_d,
+                'phase_g': order.phase_g,
             })
 
         # Ordenar por fecha descendente
@@ -5259,6 +5273,7 @@ def accounts_receivable_report(request):
         # Calcular totales
         total_debt = sum([order['order_total'] for order in orders_data])
         total_paid = sum([order['total_paid'] for order in orders_data])
+        total_payed = sum([order['total_payed'] for order in orders_data])
         total_retention = sum([order['total_retention'] for order in orders_data])
         total_warranty = sum([order['total_warranty'] for order in orders_data])
         total_pending = sum([order['pending_amount'] for order in orders_data])
@@ -5272,6 +5287,7 @@ def accounts_receivable_report(request):
             'payment_status': payment_status,
             'total_debt': total_debt,
             'total_paid': total_paid,
+            'total_payed': total_payed,
             'total_retention': total_retention,
             'total_warranty': total_warranty,
             'total_pending': total_pending,
@@ -5297,7 +5313,8 @@ def get_client_payment_modal(request):
         order_total = get_total_order(order.id)
         loan_payments = LoanPayment.objects.filter(order_id=order.id, type='V')
         total_paid = sum([lp.pay for lp in loan_payments]) if loan_payments.exists() else decimal.Decimal('0.00')
-        pending_amount = order_total - total_paid
+        # El saldo por verificar es la diferencia entre el total y lo que está registrado en total_payed
+        pending_amount = order_total - (order.total_payed if order.total_payed else decimal.Decimal('0.00'))
         
         # Obtener cuentas de caja disponibles
         cash_accounts = Cash.objects.filter(
@@ -5383,18 +5400,21 @@ def save_client_payment(request):
                     client=client
                 )
             
-            # Verificar si la orden está completamente pagada
+            # Actualizar total_payed en la orden
             order_total = get_total_order(order.id)
             all_payments = LoanPayment.objects.filter(order_id=order.id, type='V')
             total_paid = sum([lp.pay for lp in all_payments])
             
+            # Actualizar total_payed (este es el campo que se verifica)
+            order.total_payed = total_paid
+            
+            # Verificar si la orden está completamente pagada
             if total_paid >= order_total:
                 order.status_pay = 'C'  # Completado
-                order.total_payed = total_paid
-                order.save()
             else:
-                order.total_payed = total_paid
-                order.save()
+                order.status_pay = 'P'  # Pendiente
+            
+            order.save()
             
             return JsonResponse({
                 'success': True,
@@ -5406,6 +5426,171 @@ def save_client_payment(request):
                 'success': False,
                 'message': f'Error al registrar pago: {str(e)}'
             }, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_warranty_verification_modal(request):
+    """
+    Obtener modal para verificar garantía
+    """
+    if request.method == 'GET':
+        order_id = request.GET.get('order_id')
+        client_id = request.GET.get('client_id')
+        
+        order = Order.objects.get(id=order_id)
+        client = Client.objects.get(id=client_id)
+        
+        mydate = datetime.now()
+        formatdate = mydate.strftime("%Y-%m-%d")
+        
+        tpl = loader.get_template('sales/warranty_verification_modal.html')
+        context = {
+            'order': order,
+            'client': client,
+            'formatdate': formatdate,
+        }
+        
+        return JsonResponse({
+            'modal': tpl.render(context, request),
+        }, status=HTTPStatus.OK)
+
+
+@csrf_exempt
+def save_warranty_verification(request):
+    """
+    Guardar verificación de garantía
+    """
+    if request.method == 'POST':
+        try:
+            order_id = request.POST.get('order_id')
+            warranty_payment_date = request.POST.get('warranty_payment_date')
+            warranty_operation_code = request.POST.get('warranty_operation_code', '')
+            warranty_observation = request.POST.get('warranty_observation', '')
+            
+            order = Order.objects.get(id=order_id)
+            
+            # Actualizar fecha de pago de garantía
+            if warranty_payment_date:
+                order.pay_day_warranty = datetime.strptime(warranty_payment_date, '%Y-%m-%d').date()
+            
+            # Guardar archivo si se proporciona
+            if 'warranty_file' in request.FILES:
+                warranty_file = request.FILES['warranty_file']
+                # Aquí podrías guardar el archivo en un modelo específico si lo necesitas
+                # Por ahora solo guardamos la fecha
+            
+            order.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Garantía verificada exitosamente'
+            }, status=HTTPStatus.OK)
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al verificar garantía: {str(e)}'
+            }, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_payment_details_modal(request):
+    """
+    Obtener modal para ver todos los pagos de una orden
+    """
+    if request.method == 'GET':
+        order_id = request.GET.get('order_id')
+        client_id = request.GET.get('client_id')
+        
+        order = Order.objects.get(id=order_id)
+        client = Client.objects.get(id=client_id)
+        
+        # Obtener todos los pagos
+        loan_payments = LoanPayment.objects.filter(order_id=order.id, type='V').order_by('-create_at')
+        payments_list = []
+        for lp in loan_payments:
+            transaction_payments = TransactionPayment.objects.filter(loan_payment=lp)
+            for tp in transaction_payments:
+                file_url = lp.file.url if lp.file and lp.file.name != 'img/image_placeholder.jpg' else None
+                payments_list.append({
+                    'date': lp.operation_date if lp.operation_date else lp.create_at.date(),
+                    'amount': tp.payment,
+                    'type': tp.get_type_display(),
+                    'operation_code': tp.operation_code if tp.operation_code else '-',
+                    'file': file_url,
+                    'loan_payment_id': lp.id,
+                    'observation': lp.observation or ''
+                })
+        
+        tpl = loader.get_template('sales/payment_details_view_modal.html')
+        context = {
+            'order': order,
+            'client': client,
+            'payments_list': payments_list,
+        }
+        
+        return JsonResponse({
+            'modal': tpl.render(context, request),
+        }, status=HTTPStatus.OK)
+
+
+def get_warranty_details_modal(request):
+    """
+    Obtener modal para ver detalles de garantía
+    """
+    if request.method == 'GET':
+        order_id = request.GET.get('order_id')
+        client_id = request.GET.get('client_id')
+        
+        order = Order.objects.get(id=order_id)
+        client = Client.objects.get(id=client_id)
+        
+        tpl = loader.get_template('sales/warranty_details_view_modal.html')
+        context = {
+            'order': order,
+            'client': client,
+        }
+        
+        return JsonResponse({
+            'modal': tpl.render(context, request),
+        }, status=HTTPStatus.OK)
+
+
+def get_payment_detail_view(request):
+    """
+    Obtener vista detallada de todos los pagos de una orden
+    """
+    if request.method == 'GET':
+        loan_payment_id = request.GET.get('loan_payment_id')
+        order_id = request.GET.get('order_id')
+        client_id = request.GET.get('client_id')
+        
+        order = Order.objects.get(id=order_id)
+        client = Client.objects.get(id=client_id) if client_id else order.client
+        
+        # Obtener todos los pagos de la orden
+        loan_payments = LoanPayment.objects.filter(order_id=order.id, type='V').order_by('-create_at')
+        payments_list = []
+        for lp in loan_payments:
+            transaction_payments = TransactionPayment.objects.filter(loan_payment=lp)
+            file_url = lp.file.url if lp.file and lp.file.name != 'img/image_placeholder.jpg' else None
+            payments_list.append({
+                'loan_payment': lp,
+                'transaction_payments': transaction_payments,
+                'file_url': file_url,
+                'date': lp.operation_date if lp.operation_date else lp.create_at.date(),
+                'amount': lp.pay,
+                'observation': lp.observation or ''
+            })
+        
+        tpl = loader.get_template('sales/payment_detail_view_modal.html')
+        context = {
+            'order': order,
+            'client': client,
+            'payments_list': payments_list,
+        }
+        
+        return JsonResponse({
+            'modal': tpl.render(context, request),
+        }, status=HTTPStatus.OK)
 
 
 def get_order_by_correlative(request):

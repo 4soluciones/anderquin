@@ -51,6 +51,7 @@
                             <option value="all">Todos los pagos</option>
                             <option value="pending">Pendientes</option>
                             <option value="paid">Completados</option>
+                            <option value="without_warranty">Pagos sin garantía</option>
                         </select>
                     </div>
                     <div class="col-md-3 d-flex align-items-end">
@@ -193,8 +194,8 @@
             }
         });
 
-        // Abrir modal de pago
-        $(document).on('click', '.btn-add-payment', function () {
+        // Abrir modal de verificar pago
+        $(document).on('click', '.btn-verify-payment', function () {
             let _order_id = $(this).attr('data-order-id');
             let _client_id = $(this).attr('data-client-id');
             
@@ -213,6 +214,55 @@
                 },
                 error: function (response) {
                     toastr.error('Error al cargar el modal', '¡Error!');
+                }
+            });
+        });
+
+
+        // Abrir modal de verificar garantía
+        $(document).on('click', '.btn-verify-warranty', function () {
+            let _order_id = $(this).attr('data-order-id');
+            let _client_id = $(this).attr('data-client-id');
+            
+            $.ajax({
+                url: '/sales/get_warranty_verification_modal/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'order_id': _order_id,
+                    'client_id': _client_id
+                },
+                success: function (response) {
+                    $('#client-payment-content').html(response.modal);
+                    $('#modal-client-payment').modal('show');
+                },
+                error: function (response) {
+                    toastr.error('Error al cargar el modal', '¡Error!');
+                }
+            });
+        });
+
+        // Ver detalles de garantía
+        $(document).on('click', '.btn-view-warranty', function () {
+            let _order_id = $(this).attr('data-order-id');
+            let _client_id = $(this).attr('data-client-id');
+            
+            $.ajax({
+                url: '/sales/get_warranty_details_modal/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'order_id': _order_id,
+                    'client_id': _client_id
+                },
+                success: function (response) {
+                    $('#client-payment-content').html(response.modal);
+                    $('#modal-client-payment').modal('show');
+                },
+                error: function (response) {
+                    toastr.error('Error al cargar los detalles', '¡Error!');
                 }
             });
         });
@@ -243,6 +293,55 @@
                 }
             });
         });
+
+        // Guardar verificación de garantía
+        $(document).on('submit', '#form-warranty-verification', function (e) {
+            e.preventDefault();
+            
+            let formData = new FormData(this);
+            
+            $.ajax({
+                url: '/sales/save_warranty_verification/',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success(response.message, '¡Éxito!');
+                        $('#modal-client-payment').modal('hide');
+                        $("#id_btn_show").trigger('click'); // Recargar reporte
+                    } else {
+                        toastr.error(response.message, '¡Error!');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    toastr.error('Error al guardar la verificación', '¡Error!');
+                }
+            });
+        });
+
+        // Ver detalle de pago al hacer click
+        function viewPaymentDetail(loanPaymentId, orderId, clientId) {
+            $.ajax({
+                url: '/sales/get_payment_detail_view/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'loan_payment_id': loanPaymentId,
+                    'order_id': orderId,
+                    'client_id': clientId
+                },
+                success: function (response) {
+                    $('#client-payment-content').html(response.modal);
+                    $('#modal-client-payment').modal('show');
+                },
+                error: function (response) {
+                    toastr.error('Error al cargar el detalle', '¡Error!');
+                }
+            });
+        }
 
         // Ver archivo de pago
         function loadFile(fileUrl, loanPayment) {
