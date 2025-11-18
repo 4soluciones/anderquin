@@ -222,9 +222,31 @@
             };
 
             if (_type_client === 'PU') {
-
-                client.publicAddress = $('#address').val();
-                client.publicDistrict = $('#id_district').val();
+                // Manejar múltiples direcciones para clientes públicos
+                let addresseeObj = {};
+                $(".public").each(function () {
+                    let $block = $(this).find('.address-block-public');
+                    $block.each(function() {
+                        let $currentBlock = $(this);
+                        addresseeObj = {
+                            "new_address": $currentBlock.find("input.public-address").val(),
+                            "district": $currentBlock.find("select.select2-district").val(),
+                            "province": $currentBlock.find("select.select2-province").val(),
+                            "department": $currentBlock.find("select.select2-department").val(),
+                            "type_address": $currentBlock.find("select[name='type_address'], select[name='type_address_new']").val(),
+                        }
+                        client.Addresses.push(addresseeObj);
+                    });
+                });
+                
+                // Compatibilidad con formato antiguo (una sola dirección)
+                if (client.Addresses.length === 0) {
+                    client.publicAddress = $('#address').val();
+                    client.publicDistrict = $('#id_district').val();
+                    client.publicProvince = $('#id_province').val();
+                    client.publicDepartment = $('#id_department').val();
+                    client.type_address = $('#type_address').val();
+                }
 
             } else if (_type_client === 'PR') {
                 let addresseeObj = {};
@@ -232,8 +254,9 @@
                     addresseeObj = {
                         "new_address": $(this).find("input.new-address").val(),
                         "district": $(this).find("select.district").val(),
-                        {#"Name": $(this).find("input.name-addressee").val(),#}
-                        {#"Phone": $(this).find("input.phone-addressee").val(),#}
+                        "province": $(this).find("select.province").val(),
+                        "department": $(this).find("select.department").val(),
+                        "type_address": $(this).find("select.type-address").val(),
                     }
                     client.Addresses.push(addresseeObj);
                 });
@@ -413,148 +436,288 @@
         });
 
         $(document).on('click', '#id-add-new-addressee', function () {
-            $(".private.main").after('<div class="row private">' +
-                '                       <div class="col-sm-8 col-md-8 col-lg-8 pr-0">' +
-                '                            <label for="address" class="mb-1 mt-2 font-weight-light">Dirección del Cliente</label>' +
-                '                            <div class="input-group">' +
-                '                                <div class="input-group-prepend">' +
-                '                                   <span class="input-group-text">' + '<i class="fas fa-address-card"></i>' + '</span>' +
-                '                                </div>' +
-                '                                <input type="text" class="form-control new-address" id="new_address" autocomplete="off"' +
-                '                                    name="address">' +
-                '                            </div>' +
-                '                       </div>' +
-                '                       <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">' +
-                '                                <label class="mb-1 mt-2 font-weight-light" for="id_district2">Seleccione distrito</label>' +
-                '                             <select id="id_district2" name="id_district2" class="form-control district">' +
-                '                              <option value="0">Seleccionar</option>' +
-                '<option value="1720">JULIACA</option>' +
-                '<option value="1702">PUNO</option>' +
-                '<option value="338">AREQUIPA</option>' +
-                '<option value="1829">TACNA</option>' +
-                '<option value="752">CUSCO</option>' +
-                '                             </select>' +
-                '                            </div>' +
-                '                       <div class="col-sm-1">' +
-                '                             <label class="mb-1 mt-2 font-weight-light" for="id-add-new-addressee">&nbsp;</label>' +
-                '                                <button type="button" class="btn btn-outline-danger btn-block delete-row-address" >' +
-                '                                    <i class="fas fa-minus"></i>' +
-                '                                </button>' +
-                '                       </div>' +
-                '                     </div>');
-
+            let typeAddressHtml = '';
+            {% for t in type_address %}
+                typeAddressHtml += '<option value="{{ t.0 }}">{{ t.1 }}</option>';
+            {% endfor %}
+            
+            let addressBlock = '<hr class="my-4">' +
+                '<div class="address-block-private">' +
+                '    <div class="row mb-3 private">' +
+                '        <div class="col-md-11">' +
+                '            <label class="mb-2 font-weight-semibold">Dirección <span class="text-danger">*</span></label>' +
+                '            <div class="input-group">' +
+                '                <div class="input-group-prepend">' +
+                '                    <span class="input-group-text bg-light"><i class="fas fa-address-card text-info"></i></span>' +
+                '                </div>' +
+                '                <input type="text" class="form-control new-address" autocomplete="off" name="address" placeholder="Ingrese la dirección completa">' +
+                '            </div>' +
+                '        </div>' +
+                '        <div class="col-md-1 d-flex align-items-end">' +
+                '            <button type="button" class="btn btn-outline-danger btn-block delete-row-address" title="Eliminar dirección">' +
+                '                <i class="fas fa-trash"></i>' +
+                '            </button>' +
+                '        </div>' +
+                '    </div>' +
+                '    <div class="row mb-3 private">' +
+                '        <div class="col-md-3">' +
+                '            <label class="mb-2 font-weight-semibold">Departamento <span class="text-danger">*</span></label>' +
+                '            <select name="id_department_new" class="form-control select2-department department">' +
+                '                <option value="0">Seleccionar</option>' +
+                '            </select>' +
+                '        </div>' +
+                '        <div class="col-md-3">' +
+                '            <label class="mb-2 font-weight-semibold">Provincia <span class="text-danger">*</span></label>' +
+                '            <select name="id_province_new" class="form-control select2-province province">' +
+                '                <option value="0">Seleccionar</option>' +
+                '            </select>' +
+                '        </div>' +
+                '        <div class="col-md-3">' +
+                '            <label class="mb-2 font-weight-semibold">Distrito <span class="text-danger">*</span></label>' +
+                '            <select name="id_district_new" class="form-control select2-district district">' +
+                '                <option value="0">Seleccionar</option>' +
+                '            </select>' +
+                '        </div>' +
+                '        <div class="col-md-3">' +
+                '            <label class="mb-2 font-weight-semibold">Tipo de Dirección <span class="text-danger">*</span></label>' +
+                '            <select name="type_address_new" class="form-control type-address">' +
+                typeAddressHtml +
+                '            </select>' +
+                '        </div>' +
+                '    </div>' +
+                '</div>';
+            
+            // Agregar antes del último bloque de dirección o al final del card-body
+            let $cardBody = $(this).closest('.card').find('.card-body');
+            if ($cardBody.find('.address-block-private').length > 0) {
+                $cardBody.find('.address-block-private').last().after(addressBlock);
+            } else {
+                $cardBody.append(addressBlock);
+            }
+            
+            // Inicializar Select2 para los nuevos campos
+            let $newBlock = $cardBody.find('.address-block-private').last();
+            initSelect2ForNewBlock($newBlock);
         });
+        
+        function initSelect2ForNewBlock($block) {
+            $block.find('.select2-department').select2({
+                theme: 'bootstrap4',
+                language: 'es',
+                placeholder: 'Buscar...',
+                allowClear: true,
+                ajax: {
+                    url: '/sales/get_departments_ajax/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term || ''
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+            
+            $block.find('.select2-province').select2({
+                theme: 'bootstrap4',
+                language: 'es',
+                placeholder: 'Buscar...',
+                allowClear: true,
+                ajax: {
+                    url: '/sales/get_provinces_ajax/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        let departmentId = $block.find('.select2-department').val() || '';
+                        return {
+                            search: params.term || '',
+                            department_id: departmentId
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+            
+            $block.find('.select2-district').select2({
+                theme: 'bootstrap4',
+                language: 'es',
+                placeholder: 'Buscar...',
+                allowClear: true,
+                ajax: {
+                    url: '/sales/get_districts_ajax/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        let provinceId = $block.find('.select2-province').val() || '';
+                        return {
+                            search: params.term || '',
+                            province_id: provinceId
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+        }
 
         $(document).on('click', '.delete-row-address', function () {
-            $(this).parent('div').parent('div').remove();
+            // Eliminar el bloque completo de dirección
+            $(this).closest('.address-block-private').prev('hr').remove();
+            $(this).closest('.address-block-private').remove();
         });
 
         $(document).on('click', '#btn-update-client', function (e) {
-        e.preventDefault();
+            e.preventDefault();
 
-        let _document_number = $('#document_number_update').val();
-        let _names = $('#names_update').val();
-        let _address = $('#address_update').val();
-        let _type_client = $('#id_type_client_update').val();
-        if (sessionStorage.getItem('document') === '01') {
-            if (_document_number.length !== 8) {
-                toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
-                return false;
-            }
-            if (_names.length === 0) {
-                toastr.warning('¡Favor de completar los Nombres', 'Error de Datos!');
-                return false;
-            }
-        } else {
-            if (sessionStorage.getItem('document') === '06') {
-                if (_document_number.length !== 11) {
-                    toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
+            let _document_number = $('#document_number_update').val();
+            let _names = $('#names_update').val();
+            let _address = $('#address_update').val();
+            let _type_client = $('#id_type_client_update').val();
+            if (sessionStorage.getItem('document') === '01') {
+                if (_document_number.length !== 8) {
+                    toastr.warning('¡Favor de completar los caracteres requeridos: 8 caracteres para DNI', 'Error de Datos');
                     return false;
                 }
                 if (_names.length === 0) {
-                    toastr.warning('¡Favor de completar la Razon Social', 'Error de Datos!');
+                    toastr.warning('¡Favor de completar los Nombres', 'Error de Datos!');
                     return false;
                 }
-                /*if (_address.length === 0) {
-                    toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
-                    return false;
-                }*/
+            } else {
+                if (sessionStorage.getItem('document') === '06') {
+                    if (_document_number.length !== 11) {
+                        toastr.warning('¡Favor de completar los caracteres requeridos: 11 caracteres para RUC!', 'Error de Datos');
+                        return false;
+                    }
+                    if (_names.length === 0) {
+                        toastr.warning('¡Favor de completar la Razon Social', 'Error de Datos!');
+                        return false;
+                    }
+                    /*if (_address.length === 0) {
+                        toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
+                        return false;
+                    }*/
+                }
+                if (sessionStorage.getItem('document') === '00') {
+                    if (_document_number.length === 0) {
+                        toastr.warning('¡Favor de seleccionar un tipo!', 'Error de Datos');
+                        return false;
+                    }
+                    if (_names.length === 0) {
+                        toastr.warning('¡Favor de completar la Nombre o Razon Social', 'Error de Datos!');
+                        return false;
+                    }
+                    /*if (_address.length === 0) {
+                        toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
+                        return false;
+                    }*/
+                }
             }
-            if (sessionStorage.getItem('document') === '00') {
-                if (_document_number.length === 0) {
-                    toastr.warning('¡Favor de seleccionar un tipo!', 'Error de Datos');
-                    return false;
-                }
-                if (_names.length === 0) {
-                    toastr.warning('¡Favor de completar la Nombre o Razon Social', 'Error de Datos!');
-                    return false;
-                }
-                /*if (_address.length === 0) {
-                    toastr.warning('¡Favor de completar la direccion', 'Error de Datos!');
-                    return false;
-                }*/
+            if (_type_client === '0') {
+                toastr.warning('¡SELECCIONE EL TIPO DE CLIENTE!', 'Error de Datos!');
+                return false;
             }
-        }
-        if (_type_client === '0') {
-            toastr.warning('¡SELECCIONE EL TIPO DE CLIENTE!', 'Error de Datos!');
-            return false;
-        }
 
-        let client = {
-            "document_type": $('#document_type_update').val(),
-            "document_number": _document_number,
-            'names': _names,
-            'phone': $('#phone').val(),
-            'email': $('#email').val(),
-            'type_client': _type_client,
-            'publicAddress': '',
-            'publicDistrict': '',
-            'siaf': $('#cod_siaf').val(),
-            'client_id': $('#client_id').val(),
-            "Addresses": []
-        };
+            let client = {
+                "document_type": $('#document_type_update').val(),
+                "document_number": _document_number,
+                'names': _names,
+                'phone': $('#phone').val(),
+                'email': $('#email').val(),
+                'type_client': _type_client,
+                'publicAddress': '',
+                'publicDistrict': '',
+                'siaf': $('#cod_siaf').val(),
+                'client_id': $('#client_update_id').val(),
+                "Addresses": []
+            };
 
-        if (_type_client === 'PU') {
-
-            client.publicAddress = $('#address_update').val();
-            client.publicDistrict = $('#id_district').val();
-
-        } else if (_type_client === 'PR') {
-            let addresseeObj = {};
-            $(".private-update").each(function () {
-                let _district = $(this).find("select.district-update");
-                addresseeObj = {
-                    "new_address": $(this).find("input.new-address").val(),
-                    "district": _district.val(),
+            if (_type_client === 'PU') {
+                // Manejar múltiples direcciones para clientes públicos
+                let addresseeObj = {};
+                $(".public-update").each(function () {
+                    let $block = $(this).find('.address-block-public');
+                    $block.each(function() {
+                        let $currentBlock = $(this);
+                        addresseeObj = {
+                            "new_address": $currentBlock.find("input.public-address, input[id='address_update']").val(),
+                            "district": $currentBlock.find("select.select2-district, select[id='id_district']").val(),
+                            "province": $currentBlock.find("select.select2-province, select[id='id_province_update']").val(),
+                            "department": $currentBlock.find("select.select2-department, select[id='id_department_update']").val(),
+                            "type_address": $currentBlock.find("select[id='type_address_update'], select[name='type_address_update'], select[name='type_address_new']").val(),
+                        }
+                        client.Addresses.push(addresseeObj);
+                    });
+                });
+                
+                // Compatibilidad con formato antiguo (una sola dirección)
+                if (client.Addresses.length === 0) {
+                    client.publicAddress = $('#address_update').val();
+                    client.publicDistrict = $('#id_district').val();
+                    client.publicProvince = $('#id_province_update').val();
+                    client.publicDepartment = $('#id_department_update').val();
+                    client.type_address = $('#type_address_update').val();
                 }
-                client.Addresses.push(addresseeObj);
+
+            } else if (_type_client === 'PR') {
+                let addresseeObj = {};
+                $(".private-update").each(function () {
+                    let $block = $(this).find('.address-block-private');
+                    $block.each(function() {
+                        let $currentBlock = $(this);
+                        addresseeObj = {
+                            "new_address": $currentBlock.find("input.new-address").val(),
+                            "district": $currentBlock.find("select.select2-district, select.district-update").val(),
+                            "province": $currentBlock.find("select.select2-province, select.province-update").val(),
+                            "department": $currentBlock.find("select.select2-department, select.department-update").val(),
+                            "type_address": $currentBlock.find("select.type-address-update").val(),
+                        }
+                        client.Addresses.push(addresseeObj);
+                    });
+                });
+            }
+            //console.log(client)
+            $.ajax({
+                url: '/sales/client_update/',
+                async: true,
+                dataType: 'json',
+                type: 'GET',
+                cache: false,
+                {#processData: false,#}
+                data: {'client': JSON.stringify(client)},
+                contentType: 'application/json;charset=UTF-8',
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response, textStatus, xhr) {
+                    if (response.success) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    }
+                },
+                error: function (jqXhr, textStatus, xhr) {
+                    console.log(jqXhr);
+                    toastr.error('Error', '¡Ocurrio un error!');
+                }
             });
-        }
-        //console.log(client)
-        $.ajax({
-            url: '/sales/client_update/',
-            async: true,
-            dataType: 'json',
-            type: 'GET',
-            cache: false,
-            {#processData: false,#}
-            data: {'client': JSON.stringify(client)},
-            contentType: 'application/json;charset=UTF-8',
-            headers: {"X-CSRFToken": '{{ csrf_token }}'},
-            success: function (response, textStatus, xhr) {
-                if (response.success) {
-                    toastr.success(response.message, '¡Bien hecho!');
-                    setTimeout(() => {
-                        location.reload();
-                    }, 500);
-                }
-            },
-            error: function (jqXhr, textStatus, xhr) {
-                console.log(jqXhr);
-                toastr.error('Error', '¡Ocurrio un error!');
-            }
         });
-    });
 
 
     </script>

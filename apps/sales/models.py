@@ -6,7 +6,7 @@ from django.db.models import Min, Sum
 
 from apps import accounting, comercial, buys
 from apps.comercial import apps
-from apps.hrm.models import Subsidiary, District, DocumentType
+from apps.hrm.models import Subsidiary, District, DocumentType, Province, Department
 from apps.accounting.models import Cash, CashFlow
 
 from imagekit.models import ImageSpecField
@@ -338,6 +338,10 @@ class Client(models.Model):
     def __str__(self):
         return self.names
 
+    def has_main_address(self):
+        """Verifica si el cliente tiene al menos una dirección principal"""
+        return self.clientaddress_set.filter(type_address='P').exists()
+
     class Meta:
         verbose_name = 'Cliente'
         verbose_name_plural = 'Clientes'
@@ -358,10 +362,14 @@ class ClientType(models.Model):
 
 
 class ClientAddress(models.Model):
+    TYPE_ADDRESS = (('P', 'PRINCIPAL'), ('S', 'SUCURSAL'))
     client = models.ForeignKey('Client', on_delete=models.CASCADE, )
     address = models.CharField('Dirección', max_length=200, null=True, blank=True)
     district = models.ForeignKey(District, on_delete=models.SET_NULL, null=True, blank=True)
+    province = models.ForeignKey(Province, on_delete=models.SET_NULL, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     reference = models.CharField('Referencia', max_length=400, null=True, blank=True)
+    type_address = models.CharField('Tipo de direccion', max_length=1, choices=TYPE_ADDRESS, default='P')
 
     def __str__(self):
         return str(self.address)
@@ -423,6 +431,7 @@ class Order(models.Model):
     total_payed = models.DecimalField('Total pagado', max_digits=10, decimal_places=2, default=0)
     total_retention = models.DecimalField('Total retencion', max_digits=10, decimal_places=2, default=0)
     total_warranty = models.DecimalField('Total garantia', max_digits=10, decimal_places=2, default=0)
+    pay_day_warranty = models.DateField('Fecha de pago de garantia', null=True, blank=True)
     status_pay = models.CharField('Estado', max_length=1, choices=STATUS_PAY_CHOICES, default='P')
 
     def __str__(self):

@@ -1,15 +1,15 @@
 {% load static %}
-<div class="modal-dialog modal-lg" role="document">
+<div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
-        <div class="modal-header bg-light">
-            <h6 class="modal-title">REGISTRAR NUEVO CLIENTE</h6>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title font-weight-bold roboto-condensed-regular"><i class="fas fa-user-plus mr-2"></i>REGISTRAR NUEVO CLIENTE</h5>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
         <input type="hidden" class="form-control" id="client_id" name="client-id">
 
-        <div class="modal-body p-2">
+        <div class="modal-body p-4">
 
             <div class="mr-3 ml-0" style="
                         display: none;
@@ -41,163 +41,38 @@
                 </div>
 
             </div>
-            <div class="card">
-                <div class="card-body bg-light">
+
+            <!-- Sección: Información del Documento -->
+            <div class="card mb-3 border-primary">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-id-card mr-2"></i>Información del Documento</h6>
+                </div>
+                <div class="card-body">
                     <div class="row">
-                        <div class="col-lg-12">
-
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="document_type">Documento:</label>
-                                    <select class="form-control" id="document_type" name="document_type">
-                                        <option value="00">Seleccionar</option>
-                                        <option value="01">DNI</option>
-                                        <option value="06">RUC</option>
-                                        {% for type in document_types %}
-                                            <option value="{{ type.id }}">{{ type.short_description }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-lg-6">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="document_number">Numero de Documento:</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="document_number"
-                                               name="document_number" autocomplete="off"
-                                               placeholder="">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-warning btn-sm" id="btn-nro-client" type="button">
-                                                <i class="fas fa-search fa-sm"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row dni">
-                                <div class="col-lg-12">
-                                    <label class="mb-1 mt-1 font-weight-light" for="names">Nombres / Razon
-                                        Social:</label>
-                                    <input type="text" class="form-control" id="names" autocomplete="off"
-                                           name="names">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <label class="mb-1 mt-2 font-weight-light" for="phone">Telefono:</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-phone"></i>
-                                            </span>
-                                        </div>
-                                        <input type="text" class="form-control"
-                                               id="phone" name="phone">
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <label for="email" class="mb-1 mt-2 font-weight-light">Correo:</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-envelope"></i>
-                                            </span>
-                                        </div>
-                                        <input type="email" class="form-control"
-                                               placeholder="" id="email" name="email">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-6 col-md-6 col-lg-6">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="id_type_client">Tipo de cliente:</label>
-                                    <select class="form-control" id="id_type_client" name="type_client">
-                                        <option value="0">Seleccionar</option>
-                                        {% for t in type_client %}
-                                            <option value="{{ t.0 }}">{{ t.1 }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-sm-6 col-md-6 col-lg-6 siaf d-none">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="cod_siaf">CODIGO DE UNIDAD EJECUTORA (SIAF):</label>
-                                    <input type="text" class="form-control" id="cod_siaf" name="siaf">
-                                </div>
-                                            <div class="col-sm-6 col-md-6 col-lg-6">
-                                                <label class="mb-1 mt-1 font-weight-light"
-                                                       for="id_district">Seleccione distrito</label>
-                                                <select id="id_district" name="id_district" class="form-control">
-                                                    <option value="0">Seleccionar</option>
-                                                    {% for district in districts %}
-                                                        <option value="{{ district.id }}">{{ district.description }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                            </div>
-
-                            <div class="row public d-none">
-                                <div class="col-sm-9 col-md-9 col-lg-9 pr-0">
-                                    <label class="mb-1 mt-2 font-weight-light" for="address">Dirección de
-                                        Cliente:</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text"><i class="fas fa-address-card"></i></span>
-                                        </div>
-                                        <input type="text" class="form-control" id="address" autocomplete="off"
-                                               name="address" placeholder="Dirección">
-                                    </div>
-                                </div>
-                                <div class="col-sm-3 col-md-3 col-lg-3 pl-1">
-                                    <label class="mb-1 mt-2 font-weight-light"
-                                           for="id_district">Seleccione distrito:</label>
-                                    <select id="id_district" name="id_district" class="form-control">
-                                        <option value="0">Seleccionar</option>
-                                        <option value="1720">JULIACA</option>
-                                        <option value="1702">PUNO</option>
-                                        <option value="338">AREQUIPA</option>
-                                        <option value="1829">TACNA</option>
-                                        <option value="752">CUSCO</option>
-                                                                                {% for district in districts %}
-                                                                                    <option value="{{ district.id }}">{{ district.description }}</option>
-                                                                                {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row private main d-none">
-                                <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
-                                    <label class="mb-1 mt-2 font-weight-light" for="new_address">Dirección del
-                                        Cliente:</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text"><i class="fas fa-address-card"></i></span>
-                                        </div>
-                                        <input type="text" class="form-control new-address" id="new_address"
-                                               autocomplete="off"
-                                               name="address">
-                                    </div>
-                                </div>
-                                <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
-                                    <label class="mb-1 mt-2 font-weight-light"
-                                           for="id_district2">Seleccione distrito:</label>
-                                    <select id="id_district2" name="id_district2" class="form-control district">
-                                        <option value="0">Seleccionar</option>
-                                        <option value="1720">JULIACA</option>
-                                        <option value="1702">PUNO</option>
-                                        <option value="338">AREQUIPA</option>
-                                        <option value="1829">TACNA</option>
-                                        <option value="752">CUSCO</option>
-                                                            {% for district in districts %}
-                                                                <option value="{{ district.id }}">{{ district.description }}</option>
-                                                            {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
-                                    <label class="mb-1 mt-2 font-weight-light"
-                                           for="id-add-new-addressee">&nbsp;</label>
-                                    <button type="button" class="btn btn-outline-success btn-block"
-                                            id="id-add-new-addressee">
-                                        <i class="fas fa-plus"></i>
+                        <div class="col-md-4">
+                            <label class="mb-2 font-weight-semibold" for="document_type">
+                                Tipo de Documento <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-control" id="document_type" name="document_type">
+                                <option value="00">Seleccionar</option>
+                                <option value="01">DNI</option>
+                                <option value="06">RUC</option>
+                                {% for type in document_types %}
+                                    <option value="{{ type.id }}">{{ type.short_description }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="mb-2 font-weight-semibold" for="document_number">
+                                Número de Documento <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="document_number"
+                                       name="document_number" autocomplete="off"
+                                       placeholder="Ingrese el número de documento">
+                                <div class="input-group-append">
+                                    <button class="btn btn-warning" id="btn-nro-client" type="button" title="Buscar en RENIEC/SUNAT">
+                                        <i class="fas fa-search"></i> Buscar
                                     </button>
                                 </div>
                             </div>
@@ -205,11 +80,218 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Sección: Datos Personales/Empresa -->
+            <div class="card mb-3 border-primary">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-user mr-2"></i>Datos Personales / Empresa</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="mb-2 font-weight-semibold" for="names">
+                                Nombres / Razón Social <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="names" autocomplete="off"
+                                   name="names" placeholder="Ingrese nombres o razón social">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="mb-2 font-weight-semibold" for="phone">Teléfono</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-phone text-primary"></i>
+                                    </span>
+                                </div>
+                                <input type="text" class="form-control" id="phone" name="phone"
+                                       placeholder="Ingrese número de teléfono">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="mb-2 font-weight-semibold" for="email">Correo Electrónico</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-envelope text-primary"></i>
+                                    </span>
+                                </div>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       placeholder="correo@ejemplo.com">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Tipo de Cliente -->
+            <div class="card mb-3 border-primary">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-tag mr-2"></i>Tipo de Cliente</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="mb-2 font-weight-semibold" for="id_type_client">
+                                Tipo de Cliente <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-control" id="id_type_client" name="type_client">
+                                <option value="0">Seleccionar</option>
+                                {% for t in type_client %}
+                                    <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 siaf d-none">
+                            <label class="mb-2 font-weight-semibold" for="cod_siaf">
+                                Código de Unidad Ejecutora (SIAF)
+                            </label>
+                            <input type="text" class="form-control" id="cod_siaf" name="siaf"
+                                   placeholder="Ingrese código SIAF">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Dirección - Cliente Público -->
+            <div class="card mb-3 border-success public d-none">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 font-weight-bold text-success"><i class="fas fa-map-marker-alt mr-2"></i>Direcciones del Cliente Público</h6>
+                    <button type="button" class="btn btn-sm btn-outline-success" id="id-add-new-address-public">
+                        <i class="fas fa-plus mr-1"></i> Agregar Dirección
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="address-block-public">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="mb-2 font-weight-semibold" for="address">
+                                    Dirección <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-address-card text-success"></i>
+                                        </span>
+                                    </div>
+                                    <input type="text" class="form-control public-address" id="address" autocomplete="off"
+                                           name="address" placeholder="Ingrese la dirección completa">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="id_department">
+                                    Departamento <span class="text-danger">*</span>
+                                </label>
+                                <select id="id_department" name="id_department" class="form-control select2-department">
+                                    <option value="0">Seleccionar</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="id_province">
+                                    Provincia <span class="text-danger">*</span>
+                                </label>
+                                <select id="id_province" name="id_province" class="form-control select2-province">
+                                    <option value="0">Seleccionar</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="id_district">
+                                    Distrito <span class="text-danger">*</span>
+                                </label>
+                                <select id="id_district" name="id_district" class="form-control select2-district">
+                                    <option value="0">Seleccionar</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="type_address">
+                                    Tipo de Dirección <span class="text-danger">*</span>
+                                </label>
+                                <select id="type_address" name="type_address" class="form-control">
+                                    {% for t in type_address %}
+                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Dirección - Cliente Privado -->
+            <div class="card mb-3 border-info private main d-none">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 font-weight-bold text-info"><i class="fas fa-map-marker-alt mr-2"></i>Direcciones del Cliente Privado</h6>
+                    <button type="button" class="btn btn-sm btn-outline-success" id="id-add-new-addressee">
+                        <i class="fas fa-plus mr-1"></i> Agregar Dirección
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="address-block-private">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="mb-2 font-weight-semibold" for="new_address">
+                                    Dirección <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-address-card text-info"></i>
+                                        </span>
+                                    </div>
+                                    <input type="text" class="form-control new-address" id="new_address"
+                                           autocomplete="off" name="address" placeholder="Ingrese la dirección completa">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="id_department2">
+                                    Departamento <span class="text-danger">*</span>
+                                </label>
+                                <select id="id_department2" name="id_department2" class="form-control select2-department department">
+                                    <option value="0">Seleccionar</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="id_province2">
+                                    Provincia <span class="text-danger">*</span>
+                                </label>
+                                <select id="id_province2" name="id_province2" class="form-control select2-province province">
+                                    <option value="0">Seleccionar</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="id_district2">
+                                    Distrito <span class="text-danger">*</span>
+                                </label>
+                                <select id="id_district2" name="id_district2" class="form-control select2-district district">
+                                    <option value="0">Seleccionar</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="type_address2">
+                                    Tipo de Dirección <span class="text-danger">*</span>
+                                </label>
+                                <select id="type_address2" name="type_address2" class="form-control type-address">
+                                    {% for t in type_address %}
+                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="modal-footer bg-light p-2">
-            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
-            &nbsp;
-            <button id="btn-save-client" type="button" class="btn btn-primary font-weight-light">Registrar
+        <div class="modal-footer bg-light p-3 border-top">
+            <button type="button" class="btn btn-secondary font-weight-semibold" data-dismiss="modal">
+                <i class="fas fa-times mr-1"></i> Cerrar
+            </button>
+            <button id="btn-save-client" type="button" class="btn btn-primary font-weight-semibold">
+                <i class="fas fa-save mr-1"></i> Registrar Cliente
             </button>
         </div>
 
@@ -515,6 +597,231 @@
             });
         })
     }
+
+    // Función para inicializar Select2 con AJAX
+    function initSelect2Ajax(selector, url, params = {}) {
+        $(selector).select2({
+            theme: 'bootstrap4',
+            language: 'es',
+            placeholder: 'Buscar...',
+            allowClear: true,
+            ajax: {
+                url: url,
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        search: params.term || '',
+                        ...params
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 0
+        });
+    }
+
+    // Inicializar Select2 cuando el modal se muestra
+    $(document).on('shown.bs.modal', '#modal-client-create', function () {
+        // Configurar Select2 para departamentos
+        initSelect2Ajax('.select2-department', '/sales/get_departments_ajax/');
+        
+        // Configurar Select2 para provincias (se filtrará por departamento)
+        $('.select2-province').select2({
+            theme: 'bootstrap4',
+            language: 'es',
+            placeholder: 'Buscar...',
+            allowClear: true,
+            ajax: {
+                url: '/sales/get_provinces_ajax/',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    let departmentId = $(this).closest('.row').find('.select2-department').val() || '';
+                    return {
+                        search: params.term || '',
+                        department_id: departmentId
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 0
+        });
+        
+        // Configurar Select2 para distritos (se filtrará por provincia)
+        $('.select2-district').select2({
+            theme: 'bootstrap4',
+            language: 'es',
+            placeholder: 'Buscar...',
+            allowClear: true,
+            ajax: {
+                url: '/sales/get_districts_ajax/',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    let provinceId = $(this).closest('.row').find('.select2-province').val() || '';
+                    return {
+                        search: params.term || '',
+                        province_id: provinceId
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 0
+        });
+
+        // Actualizar provincias cuando cambia el departamento
+        $(document).on('change', '.select2-department', function () {
+            let $province = $(this).closest('.row').find('.select2-province');
+            let $district = $(this).closest('.row').find('.select2-district');
+            $province.val(null).trigger('change');
+            $district.val(null).trigger('change');
+        });
+
+        // Actualizar distritos cuando cambia la provincia
+        $(document).on('change', '.select2-province', function () {
+            let $district = $(this).closest('.row').find('.select2-district');
+            $district.val(null).trigger('change');
+        });
+    });
+
+    // Agregar nueva dirección para clientes públicos
+    $(document).on('click', '#id-add-new-address-public', function () {
+        let typeAddressHtml = '';
+        {% for t in type_address %}
+            typeAddressHtml += '<option value="{{ t.0 }}">{{ t.1 }}</option>';
+        {% endfor %}
+        
+        let addressBlock = '<hr class="my-4">' +
+            '<div class="address-block-public">' +
+            '    <div class="row mb-3">' +
+            '        <div class="col-md-11">' +
+            '            <label class="mb-2 font-weight-semibold">Dirección <span class="text-danger">*</span></label>' +
+            '            <div class="input-group">' +
+            '                <div class="input-group-prepend">' +
+            '                    <span class="input-group-text bg-light"><i class="fas fa-address-card text-success"></i></span>' +
+            '                </div>' +
+            '                <input type="text" class="form-control public-address" autocomplete="off" name="address" placeholder="Ingrese la dirección completa">' +
+            '            </div>' +
+            '        </div>' +
+            '        <div class="col-md-1 d-flex align-items-end">' +
+            '            <button type="button" class="btn btn-outline-danger btn-block delete-address-public" title="Eliminar dirección">' +
+            '                <i class="fas fa-trash"></i>' +
+            '            </button>' +
+            '        </div>' +
+            '    </div>' +
+            '    <div class="row">' +
+            '        <div class="col-md-3">' +
+            '            <label class="mb-2 font-weight-semibold">Departamento <span class="text-danger">*</span></label>' +
+            '            <select name="id_department_new" class="form-control select2-department">' +
+            '                <option value="0">Seleccionar</option>' +
+            '            </select>' +
+            '        </div>' +
+            '        <div class="col-md-3">' +
+            '            <label class="mb-2 font-weight-semibold">Provincia <span class="text-danger">*</span></label>' +
+            '            <select name="id_province_new" class="form-control select2-province">' +
+            '                <option value="0">Seleccionar</option>' +
+            '            </select>' +
+            '        </div>' +
+            '        <div class="col-md-3">' +
+            '            <label class="mb-2 font-weight-semibold">Distrito <span class="text-danger">*</span></label>' +
+            '            <select name="id_district_new" class="form-control select2-district">' +
+            '                <option value="0">Seleccionar</option>' +
+            '            </select>' +
+            '        </div>' +
+            '        <div class="col-md-3">' +
+            '            <label class="mb-2 font-weight-semibold">Tipo de Dirección <span class="text-danger">*</span></label>' +
+            '            <select name="type_address_new" class="form-control">' +
+            typeAddressHtml +
+            '            </select>' +
+            '        </div>' +
+            '    </div>' +
+            '</div>';
+        
+        let $cardBody = $(this).closest('.card').find('.card-body');
+        if ($cardBody.find('.address-block-public').length > 0) {
+            $cardBody.find('.address-block-public').last().after(addressBlock);
+        } else {
+            $cardBody.append(addressBlock);
+        }
+        
+        // Inicializar Select2 para los nuevos campos
+        let $newBlock = $cardBody.find('.address-block-public').last();
+        initSelect2Ajax($newBlock.find('.select2-department'), '/sales/get_departments_ajax/');
+        
+        $newBlock.find('.select2-province').select2({
+            theme: 'bootstrap4',
+            language: 'es',
+            placeholder: 'Buscar...',
+            allowClear: true,
+            ajax: {
+                url: '/sales/get_provinces_ajax/',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    let departmentId = $newBlock.find('.select2-department').val() || '';
+                    return {
+                        search: params.term || '',
+                        department_id: departmentId
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 0
+        });
+        
+        $newBlock.find('.select2-district').select2({
+            theme: 'bootstrap4',
+            language: 'es',
+            placeholder: 'Buscar...',
+            allowClear: true,
+            ajax: {
+                url: '/sales/get_districts_ajax/',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    let provinceId = $newBlock.find('.select2-province').val() || '';
+                    return {
+                        search: params.term || '',
+                        province_id: provinceId
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 0
+        });
+    });
+
+    // Eliminar dirección de cliente público
+    $(document).on('click', '.delete-address-public', function () {
+        $(this).closest('.address-block-public').prev('hr').remove();
+        $(this).closest('.address-block-public').remove();
+    });
 
 
 </script>

@@ -10,7 +10,7 @@ from .format_dates import validate
 from django.db.models import Q, Case, When
 from .models import *
 from .forms import *
-from apps.hrm.models import Subsidiary, District, DocumentType, Employee, Worker, SubsidiarySerial
+from apps.hrm.models import Subsidiary, District, DocumentType, Employee, Worker, SubsidiarySerial, Province, Department
 from apps.comercial.models import DistributionMobil, Truck, DistributionDetail, \
     Programming, Route, Guide, GuideDetail
 from django.contrib.auth.models import User
@@ -438,8 +438,11 @@ class ClientList(View):
         contexto['form'] = self.form_class
         contexto['document_types'] = DocumentType.objects.all()
         contexto['districts'] = District.objects.all()
+        contexto['provinces'] = Province.objects.all()
+        contexto['departments'] = Department.objects.all()
         contexto['subsidiaries'] = Subsidiary.objects.all()
         contexto['type_client'] = Client._meta.get_field('type_client').choices
+        contexto['type_address'] = ClientAddress._meta.get_field('type_address').choices
         return contexto
 
     def get(self, request, *args, **kwargs):
@@ -481,30 +484,103 @@ def client_save(request):
         client_type_obj.save()
 
         if type_client == 'PU':
-            public_address = str(data_client["publicAddress"])
-            public_district = str(data_client["publicDistrict"])
-            district_obj = District.objects.get(id=public_district)
+            # Manejar múltiples direcciones para clientes públicos
+            if 'Addresses' in data_client and len(data_client['Addresses']) > 0:
+                # Si viene en formato de array (múltiples direcciones)
+                has_main_address = False
+                addresses_to_save = []
+                
+                for d in data_client['Addresses']:
+                    new_address = str(d.get('new_address', d.get('publicAddress', '')))
+                    district = str(d.get('district', d.get('publicDistrict', '')))
+                    province = str(d.get('province', d.get('publicProvince', '')))
+                    department = str(d.get('department', d.get('publicDepartment', '')))
+                    type_address = str(d.get('type_address', 'P'))
+                    
+                    # Validar que al menos una sea principal
+                    if type_address == 'P':
+                        has_main_address = True
+                    
+                    district_obj = District.objects.get(id=district) if district and district != '0' else None
+                    province_obj = Province.objects.get(id=province) if province and province != '0' else None
+                    department_obj = Department.objects.get(id=department) if department and department != '0' else None
 
-            client_address_obj = ClientAddress(
-                client=client_obj,
-                address=public_address.upper(),
-                district=district_obj
-            )
-            client_address_obj.save()
+                    client_address_obj = ClientAddress(
+                        client=client_obj,
+                        address=new_address.upper(),
+                        district=district_obj,
+                        province=province_obj,
+                        department=department_obj,
+                        type_address=type_address
+                    )
+                    addresses_to_save.append((client_address_obj, type_address))
+                
+                # Si no hay dirección principal, marcar la primera como principal
+                if not has_main_address and addresses_to_save:
+                    addresses_to_save[0][0].type_address = 'P'
+                
+                # Guardar todas las direcciones
+                for addr_obj, _ in addresses_to_save:
+                    addr_obj.save()
+            else:
+                # Formato antiguo (una sola dirección)
+                public_address = str(data_client.get("publicAddress", ''))
+                public_district = str(data_client.get("publicDistrict", ''))
+                public_province = str(data_client.get("publicProvince", ''))
+                public_department = str(data_client.get("publicDepartment", ''))
+                type_address = str(data_client.get("type_address", 'P'))
+                
+                if public_address:
+                    district_obj = District.objects.get(id=public_district) if public_district and public_district != '0' else None
+                    province_obj = Province.objects.get(id=public_province) if public_province and public_province != '0' else None
+                    department_obj = Department.objects.get(id=public_department) if public_department and public_department != '0' else None
+
+                    client_address_obj = ClientAddress(
+                        client=client_obj,
+                        address=public_address.upper(),
+                        district=district_obj,
+                        province=province_obj,
+                        department=department_obj,
+                        type_address=type_address
+                    )
+                    client_address_obj.save()
 
         elif type_client == 'PR':
+            has_main_address = False
+            addresses_to_save = []
+            
             for d in data_client['Addresses']:
                 new_address = str(d['new_address'])
-                district = str(d['district'])
+                district = str(d.get('district', ''))
+                province = str(d.get('province', ''))
+                department = str(d.get('department', ''))
+                type_address = str(d.get('type_address', 'P'))
+                
+                # Validar que al menos una sea principal
+                if type_address == 'P':
+                    has_main_address = True
 
-                district_obj = District.objects.get(id=district)
+                district_obj = District.objects.get(id=district) if district and district != '0' else None
+                province_obj = Province.objects.get(id=province) if province and province != '0' else None
+                department_obj = Department.objects.get(id=department) if department and department != '0' else None
 
                 client_address_obj = ClientAddress(
                     client=client_obj,
                     address=new_address.upper(),
-                    district=district_obj
+                    district=district_obj,
+                    province=province_obj,
+                    department=department_obj,
+                    type_address=type_address
                 )
-                client_address_obj.save()
+                addresses_to_save.append((client_address_obj, type_address))
+            
+            # Si no hay dirección principal, marcar la primera como principal
+            if not has_main_address and addresses_to_save:
+                addresses_to_save[0][0].type_address = 'P'
+            
+            # Guardar todas las direcciones
+            for addr_obj, _ in addresses_to_save:
+                addr_obj.save()
 
         return JsonResponse({
             'success': True,
@@ -3173,12 +3249,16 @@ def modal_client_create(request):
         date_now = my_date.strftime("%Y-%m-%d")
 
         t = loader.get_template('sales/client_form.html')
+        # Optimización: Solo cargar los datos necesarios, los selects se cargarán con AJAX
         c = ({
             'date_now': date_now,
-            'districts': District.objects.all(),
+            'districts': [],  # Se cargará con AJAX cuando sea necesario
+            'provinces': [],  # Se cargará con AJAX cuando sea necesario
+            'departments': [],  # Se cargará con AJAX cuando sea necesario
             'document_types': DocumentType.objects.all(),
             'subsidiaries': Subsidiary.objects.all(),
-            'type_client': Client._meta.get_field('type_client').choices
+            'type_client': Client._meta.get_field('type_client').choices,
+            'type_address': ClientAddress._meta.get_field('type_address').choices
         })
         return JsonResponse({
             'form': t.render(c, request),
@@ -3193,17 +3273,34 @@ def modal_client_update(request):
             client_obj = Client.objects.get(id=int(pk))
         t = loader.get_template('sales/client_update.html')
 
-        districts_dict = [
-            {'id': '1702', 'description': 'PUNO'}, {'id': '1720', 'description': 'JULIACA'},
-            {'id': '338', 'description': 'AREQUIPA'}, {
-                'id': '1829', 'description': 'TACNA'}, {'id': '752', 'description': 'CUSCO'}, ]
+        # Optimización: Solo cargar los datos necesarios para el cliente actual
+        # Los demás se cargarán con AJAX cuando sea necesario
+        districts_list = []
+        provinces_list = []
+        departments_list = []
+        
+        # Solo cargar los relacionados con las direcciones del cliente
+        if client_obj and client_obj.clientaddress_set.exists():
+            address_ids = client_obj.clientaddress_set.values_list('district_id', 'province_id', 'department_id')
+            district_ids = [a[0] for a in address_ids if a[0]]
+            province_ids = [a[1] for a in address_ids if a[1]]
+            department_ids = [a[2] for a in address_ids if a[2]]
+            
+            if district_ids:
+                districts_list = list(District.objects.filter(id__in=district_ids).values('id', 'description'))
+            if province_ids:
+                provinces_list = list(Province.objects.filter(id__in=province_ids).select_related('department').values('id', 'description', 'department_id'))
+            if department_ids:
+                departments_list = list(Department.objects.filter(id__in=department_ids).values('id', 'description'))
 
         c = ({
             'client_obj': client_obj,
-            # 'districts': District.objects.all(),
-            'districts': districts_dict,
+            'districts': districts_list,  # Solo los relacionados
+            'provinces': provinces_list,  # Solo los relacionados
+            'departments': departments_list,  # Solo los relacionados
             'type_client': Client._meta.get_field('type_client').choices,
             'document_types': DocumentType.objects.all(),
+            'type_address': ClientAddress._meta.get_field('type_address').choices
         })
         return JsonResponse({
             'form': t.render(c, request),
@@ -3246,30 +3343,103 @@ def client_update(request):
             client_to_delete.delete()
 
             if type_client == 'PU':
-                public_address = str(data_client["publicAddress"])
-                public_district = str(data_client["publicDistrict"])
-                district_obj = District.objects.get(id=public_district)
+                # Manejar múltiples direcciones para clientes públicos
+                if 'Addresses' in data_client and len(data_client['Addresses']) > 0:
+                    # Si viene en formato de array (múltiples direcciones)
+                    has_main_address = False
+                    addresses_to_save = []
+                    
+                    for d in data_client['Addresses']:
+                        new_address = str(d.get('new_address', d.get('publicAddress', '')))
+                        district = str(d.get('district', d.get('publicDistrict', '')))
+                        province = str(d.get('province', d.get('publicProvince', '')))
+                        department = str(d.get('department', d.get('publicDepartment', '')))
+                        type_address = str(d.get('type_address', 'P'))
+                        
+                        # Validar que al menos una sea principal
+                        if type_address == 'P':
+                            has_main_address = True
+                        
+                        district_obj = District.objects.get(id=district) if district and district != '0' else None
+                        province_obj = Province.objects.get(id=province) if province and province != '0' else None
+                        department_obj = Department.objects.get(id=department) if department and department != '0' else None
 
-                client_address_obj = ClientAddress(
-                    client=client_obj,
-                    address=public_address.upper(),
-                    district=district_obj
-                )
-                client_address_obj.save()
+                        client_address_obj = ClientAddress(
+                            client=client_obj,
+                            address=new_address.upper(),
+                            district=district_obj,
+                            province=province_obj,
+                            department=department_obj,
+                            type_address=type_address
+                        )
+                        addresses_to_save.append((client_address_obj, type_address))
+                    
+                    # Si no hay dirección principal, marcar la primera como principal
+                    if not has_main_address and addresses_to_save:
+                        addresses_to_save[0][0].type_address = 'P'
+                    
+                    # Guardar todas las direcciones
+                    for addr_obj, _ in addresses_to_save:
+                        addr_obj.save()
+                else:
+                    # Formato antiguo (una sola dirección)
+                    public_address = str(data_client.get("publicAddress", ''))
+                    public_district = str(data_client.get("publicDistrict", ''))
+                    public_province = str(data_client.get("publicProvince", ''))
+                    public_department = str(data_client.get("publicDepartment", ''))
+                    type_address = str(data_client.get("type_address", 'P'))
+                    
+                    if public_address:
+                        district_obj = District.objects.get(id=public_district) if public_district and public_district != '0' else None
+                        province_obj = Province.objects.get(id=public_province) if public_province and public_province != '0' else None
+                        department_obj = Department.objects.get(id=public_department) if public_department and public_department != '0' else None
+
+                        client_address_obj = ClientAddress(
+                            client=client_obj,
+                            address=public_address.upper(),
+                            district=district_obj,
+                            province=province_obj,
+                            department=department_obj,
+                            type_address=type_address
+                        )
+                        client_address_obj.save()
 
             elif type_client == 'PR':
+                has_main_address = False
+                addresses_to_save = []
+                
                 for d in data_client['Addresses']:
                     new_address = str(d['new_address'])
-                    district = str(d['district'])
+                    district = str(d.get('district', ''))
+                    province = str(d.get('province', ''))
+                    department = str(d.get('department', ''))
+                    type_address = str(d.get('type_address', 'P'))
+                    
+                    # Validar que al menos una sea principal
+                    if type_address == 'P':
+                        has_main_address = True
 
-                    district_obj = District.objects.get(id=district)
+                    district_obj = District.objects.get(id=district) if district and district != '0' else None
+                    province_obj = Province.objects.get(id=province) if province and province != '0' else None
+                    department_obj = Department.objects.get(id=department) if department and department != '0' else None
 
                     client_address_obj = ClientAddress(
                         client=client_obj,
                         address=new_address.upper(),
-                        district=district_obj
+                        district=district_obj,
+                        province=province_obj,
+                        department=department_obj,
+                        type_address=type_address
                     )
-                    client_address_obj.save()
+                    addresses_to_save.append((client_address_obj, type_address))
+                
+                # Si no hay dirección principal, marcar la primera como principal
+                if not has_main_address and addresses_to_save:
+                    addresses_to_save[0][0].type_address = 'P'
+                
+                # Guardar todas las direcciones
+                for addr_obj, _ in addresses_to_save:
+                    addr_obj.save()
 
             return JsonResponse({
                 'success': True,
@@ -3281,6 +3451,75 @@ def client_update(request):
                 'message': 'No se encontro cliente, intente de nuevo',
             }, status=HTTPStatus.OK)
 
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def get_departments_ajax(request):
+    """Endpoint AJAX para cargar departamentos con búsqueda"""
+    if request.method == 'GET':
+        search = request.GET.get('search', '').strip()
+        departments = Department.objects.all()
+        
+        if search:
+            departments = departments.filter(description__icontains=search)
+        
+        departments_list = [{'id': d.id, 'text': d.description} for d in departments[:50]]  # Limitar a 50 resultados
+        
+        return JsonResponse({
+            'results': departments_list
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def get_provinces_ajax(request):
+    """Endpoint AJAX para cargar provincias con búsqueda y filtro por departamento"""
+    if request.method == 'GET':
+        search = request.GET.get('search', '').strip()
+        department_id = request.GET.get('department_id', '')
+        
+        provinces = Province.objects.select_related('department').all()
+        
+        if department_id and department_id != '0':
+            provinces = provinces.filter(department_id=department_id)
+        
+        if search:
+            provinces = provinces.filter(description__icontains=search)
+        
+        provinces_list = [{
+            'id': p.id, 
+            'text': p.description,
+            'department_id': p.department.id
+        } for p in provinces[:50]]  # Limitar a 50 resultados
+        
+        return JsonResponse({
+            'results': provinces_list
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'error': True, 'message': 'Error de peticion.'})
+
+
+def get_districts_ajax(request):
+    """Endpoint AJAX para cargar distritos con búsqueda y filtro por provincia"""
+    if request.method == 'GET':
+        search = request.GET.get('search', '').strip()
+        province_id = request.GET.get('province_id', '')
+        
+        districts = District.objects.select_related('province').all()
+        
+        if province_id and province_id != '0':
+            districts = districts.filter(province_id=province_id)
+        
+        if search:
+            districts = districts.filter(description__icontains=search)
+        
+        districts_list = [{
+            'id': d.id, 
+            'text': d.description,
+            'province_id': d.province.id
+        } for d in districts[:50]]  # Limitar a 50 resultados
+        
+        return JsonResponse({
+            'results': districts_list
+        }, status=HTTPStatus.OK)
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
 
 

@@ -2447,6 +2447,8 @@ def report_contracts(request):
                     days_difference = (c_datetime - my_date).days
                     # register_datetime = local_tz.localize(datetime.combine(d.date, datetime.min.time()))
                     # days_difference = (register_datetime - guide_obj.created_at).days
+                total_warranty = None
+                pay_day_warranty = None
                 if d.order:
                     order = d.order.id
                     order_serial = d.order.serial
@@ -2457,7 +2459,9 @@ def report_contracts(request):
                     phase_d = d.order.phase_d
                     phase_g = d.order.phase_g
                     total_payed = '{:,}'.format(round(decimal.Decimal(d.order.total_payed), 2))
-                    total_order = d.order.total
+                    total_order = '{:,}'.format(round(decimal.Decimal(d.order.total), 2))
+                    total_warranty = d.order.total_warranty
+                    pay_day_warranty = d.order.pay_day_warranty
                     # print(total_payed)
                 item_detail = {
                     'id': d.id,
@@ -2479,6 +2483,8 @@ def report_contracts(request):
                     'phase_g': phase_g,
                     'total_payed': total_payed,
                     'total_order': total_order,
+                    'total_warranty': total_warranty,
+                    'pay_day_warranty': pay_day_warranty,
                     'days_difference': days_difference,
                     'days_difference_two': days_difference_two,
                     'contract_detail_item': []
@@ -2504,6 +2510,39 @@ def report_contracts(request):
             #     ).order_by('id'))
             # ).order_by('id'),
         })
+
+
+def save_warranty_payment(request):
+    if request.method == 'GET':
+        order_id = request.GET.get('order', '')
+        payment_date = request.GET.get('payment_date', '')
+        
+        if not order_id or not payment_date:
+            return JsonResponse({
+                'success': False,
+                'message': 'Faltan datos requeridos'
+            }, status=HTTPStatus.BAD_REQUEST)
+        
+        try:
+            order_obj = Order.objects.get(id=int(order_id))
+            order_obj.pay_day_warranty = payment_date
+            order_obj.save()
+            
+            return JsonResponse({
+                'success': True,
+                'order_id': order_obj.id,
+                'payment_date': payment_date,
+            }, status=HTTPStatus.OK)
+        except (Order.DoesNotExist, ValueError, TypeError) as e:
+            return JsonResponse({
+                'success': False,
+                'message': 'Orden no encontrada'
+            }, status=HTTPStatus.BAD_REQUEST)
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Error de petición'
+    }, status=HTTPStatus.BAD_REQUEST)
 
 
 def get_details_by_buy(request):

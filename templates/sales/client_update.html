@@ -1,433 +1,562 @@
 {% load static %}
-<div class="modal-dialog modal-lg" role="document">
+<div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
         <div id="modal-loader" class="overlay" style="display: none">
             <i class="fas fa-3x fa-sync fa-spin"></i>
         </div>
-        <div class="modal-header bg-light">
-            <h6 class="modal-title">ACTUALIZAR CLIENTE:</h6>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title font-weight-bold roboto-condensed-regular"><i class="fas fa-user-edit mr-2"></i>ACTUALIZAR CLIENTE</h5>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
 
-        <input type="hidden" class="form-control" id="client_id" name="client-id" value="{{ client_obj.id }}">
+        <input type="hidden" class="form-control" id="client_update_id" name="client-update-id" value="{{ client_obj.id }}">
 
-        <div class="modal-body p-2">
-            <div class="card">
-                <div class="card-body bg-light">
+        <div class="modal-body p-4">
+            <!-- Sección: Información del Documento -->
+            <div class="card mb-3 border-primary">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-id-card mr-2"></i>Información del Documento</h6>
+                </div>
+                <div class="card-body">
                     <div class="row">
-                        <div class="col-lg-12">
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="document_type_update">Documento:</label>
-                                    <select class="form-control" id="document_type_update" name="document_type_update">
-                                        {#                                        <option value="00">Seleccionar</option>#}
-                                        {% if client_obj.clienttype_set.last.document_type.id == '01' %}
-                                            <option selected value="01">DNI</option>
-                                            <option value="06">RUC</option>
-                                        {% elif client_obj.clienttype_set.last.document_type.id == '06' %}
-                                            <option selected value="06">RUC</option>
-                                            <option value="01">DNI</option>
-                                        {% endif %}
-                                    </select>
-                                </div>
-                                <div class="col-lg-6">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="document_number_update">Numero de Documento:</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="document_number_update"
-                                               name="document_number" autocomplete="off"
-                                               placeholder=""
-                                               value="{{ client_obj.clienttype_set.last.document_number }}">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-warning btn-sm" id="btn-nro-client-update" type="button">
-                                                <i class="fas fa-search fa-sm"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row dni">
-                                <div class="col-lg-12">
-                                    <label class="mb-1 mt-1 font-weight-light" for="names_update">Nombres / Razon
-                                        Social:</label>
-                                    <input type="text" class="form-control" id="names_update" autocomplete="off"
-                                           name="names" value="{{ client_obj.names }}">
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-6">
-                                    <label class="mb-1 mt-2 font-weight-light" for="phone">Telefono:</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-phone"></i>
-                                            </span>
-                                        </div>
-                                        <input type="text" class="form-control"
-                                               id="phone" name="phone" value="{{ client_obj.phone }}">
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <label for="email" class="mb-1 mt-2 font-weight-light">Correo:</label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-envelope"></i>
-                                            </span>
-                                        </div>
-                                        <input type="email" class="form-control"
-                                               placeholder="" id="email" name="email" value="{{ client_obj.email }}">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-6 col-md-6 col-lg-6">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="id_type_client_update">Tipo de cliente:</label>
-                                    <select class="form-control" id="id_type_client_update" name="type_client">
-                                        <option value="0">Seleccionar</option>
-                                        {% for t in type_client %}
-                                            {% if client_obj.type_client == t.0 %}
-                                                <option selected value="{{ t.0 }}">{{ t.1 }}</option>
-                                            {% else %}
-                                                <option value="{{ t.0 }}">{{ t.1 }}</option>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-sm-6 col-md-6 col-lg-6 siaf-update d-none">
-                                    <label class="mb-1 mt-1 font-weight-light"
-                                           for="cod_siaf">CODIGO DE UNIDAD EJECUTORA (SIAF):</label>
-                                    <input type="text" class="form-control" id="cod_siaf" name="siaf"
-                                           value="{{ client_obj.cod_siaf|default_if_none:'-' }}">
-                                </div>
-                                {#            <div class="col-sm-6 col-md-6 col-lg-6">#}
-                                {#                <label class="mb-1 mt-1 font-weight-light"#}
-                                {#                       for="id_district">Seleccione distrito</label>#}
-                                {#                <select id="id_district" name="id_district" class="form-control">#}
-                                {#                    <option value="0">Seleccionar</option>#}
-                                {#                    {% for district in districts %}#}
-                                {#                        <option value="{{ district.id }}">{{ district.description }}</option>#}
-                                {#                    {% endfor %}#}
-                                {#                </select>#}
-                                {#            </div>#}
-                            </div>
-                            {% if client_obj.type_client == 'PU' %}
-                                {% if client_obj.clientaddress_set.all %}
-                                    {% for d in client_obj.clientaddress_set.all %}
-                                        <div class="row public-update">
-                                            <div class="col-sm-9 col-md-9 col-lg-9 pr-0">
-                                                <label class="mb-1 mt-2 font-weight-light" for="address_update">Dirección de
-                                                    Cliente:</label>
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                    <span class="input-group-text"><i
-                                                            class="fas fa-address-card"></i></span>
-                                                    </div>
-                                                    <input type="text" class="form-control" id="address_update"
-                                                           autocomplete="off"
-                                                           name="address" placeholder="Dirección"
-                                                           value="{{ d.address }}">
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-3 col-md-3 col-lg-3 pl-1">
-                                                <label class="mb-1 mt-2 font-weight-light"
-                                                       for="id_district">Seleccione distrito:</label>
-                                                <select id="id_district" name="id_district" class="form-control">
-                                                    {% for t in districts %}
-                                                        {% if t.id == d.district.id %}
-                                                            <option selected
-                                                                    value="{{ t.id }}">{{ t.description }}</option>
-                                                        {% else %}
-                                                            <option value="{{ t.id }}">{{ t.description }}</option>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                    {#                                                <option value="0">Seleccionar</option>#}
-{#                                                    {% if d.district.id == '1720' %}#}
-{#                                                        <option value="1720">JULIACA</option>#}
-{#                                                    {% elif d.district.id == '1702' %}#}
-{#                                                        <option value="1702">PUNO</option>#}
-{#                                                    {% elif d.district.id == '338' %}#}
-{#                                                        <option value="338">AREQUIPA</option>#}
-{#                                                    {% elif d.district.id == '1829' %}#}
-{#                                                        <option value="1829">TACNA</option>#}
-{#                                                    {% elif d.district.id == '752' %}#}
-{#                                                        <option value="752">CUSCO</option>#}
-{#                                                    {% endif %}#}
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="row private-update d-none main">
-                                            <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
-                                                <label class="mb-1 mt-2 font-weight-light" for="new_address_update">Dirección
-                                                    del
-                                                    Cliente:</label>
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                    <span class="input-group-text"><i
-                                                            class="fas fa-address-card"></i></span>
-                                                    </div>
-                                                    <input type="text" class="form-control new-address"
-                                                           id="new_address_update"
-                                                           autocomplete="off"
-                                                           name="address" value="{{ d.address }}">
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
-                                                <label class="mb-1 mt-2 font-weight-light"
-                                                       for="id_district2">Seleccione distrito:</label>
-                                                <select id="id_district2" name="id_district2"
-                                                        class="form-control district">
-                                                    <option value="0">Seleccionar</option>
-                                                    <option value="1720">JULIACA</option>
-                                                    <option value="1702">PUNO</option>
-                                                    <option value="338">AREQUIPA</option>
-                                                    <option value="1829">TACNA</option>
-                                                    <option value="752">CUSCO</option>
-                                                    {#                    {% for district in districts %}#}
-                                                    {#                        <option value="{{ district.id }}">{{ district.description }}</option>#}
-                                                    {#                    {% endfor %}#}
-                                                </select>
-                                            </div>
-                                            <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
-                                                <label class="mb-1 mt-2 font-weight-light"
-                                                       for="id-add-new-addressee">&nbsp;</label>
-                                                <button type="button" class="btn btn-outline-success btn-block"
-                                                        id="id-add-new-addressee">
-                                                    <i class="fas fa-plus"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <div class="row public-update">
-                                        <div class="col-sm-9 col-md-9 col-lg-9 pr-0">
-                                            <label class="mb-1 mt-2 font-weight-light" for="address_update">Dirección de
-                                                Cliente:</label>
-                                            <div class="input-group">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text"><i
-                                                            class="fas fa-address-card"></i></span>
-                                                </div>
-                                                <input type="text" class="form-control" id="address_update" autocomplete="off"
-                                                       name="address" placeholder="Dirección" value="">
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-3 col-md-3 col-lg-3 pl-1">
-                                            <label class="mb-1 mt-2 font-weight-light"
-                                                   for="id_district">Seleccione distrito:</label>
-                                            <select id="id_district" name="id_district" class="form-control">
-                                                <option selected disabled value="0">Seleccionar</option>
-                                                <option value="1720">JULIACA</option>
-                                                <option value="1702">PUNO</option>
-                                                <option value="338">AREQUIPA</option>
-                                                <option value="1829">TACNA</option>
-                                                <option value="752">CUSCO</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row private-update d-none main">
-                                        <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
-                                            <label class="mb-1 mt-2 font-weight-light" for="new_address_update">Dirección del
-                                                Cliente:</label>
-                                            <div class="input-group">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text"><i
-                                                            class="fas fa-address-card"></i></span>
-                                                </div>
-                                                <input type="text" class="form-control new-address" id="new_address_update"
-                                                       autocomplete="off"
-                                                       name="address" value="">
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
-                                            <label class="mb-1 mt-2 font-weight-light"
-                                                   for="id_district2">Seleccione distrito:</label>
-                                            <select id="id_district2" name="id_district2" class="form-control district">
-                                                <option selected disabled value="0">Seleccionar</option>
-                                                <option value="1720">JULIACA</option>
-                                                <option value="1702">PUNO</option>
-                                                <option value="338">AREQUIPA</option>
-                                                <option value="1829">TACNA</option>
-                                                <option value="752">CUSCO</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
-                                            <label class="mb-1 mt-2 font-weight-light"
-                                                   for="id-add-new-addressee">&nbsp;</label>
-                                            <button type="button" class="btn btn-outline-success btn-block"
-                                                    id="id-add-new-addressee">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-                                        </div>
-                                    </div>
+                        <div class="col-md-4">
+                            <label class="mb-2 font-weight-semibold" for="document_type_update">
+                                Tipo de Documento <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-control" id="document_type_update" name="document_type_update">
+                                {% if client_obj.clienttype_set.last.document_type.id == '01' %}
+                                    <option selected value="01">DNI</option>
+                                    <option value="06">RUC</option>
+                                {% elif client_obj.clienttype_set.last.document_type.id == '06' %}
+                                    <option selected value="06">RUC</option>
+                                    <option value="01">DNI</option>
                                 {% endif %}
-                            {% elif client_obj.type_client == 'PR' %}
-                                {% if client_obj.clientaddress_set.all %}
-                                    {% for d in client_obj.clientaddress_set.all %}
-                                        <div class="row private-update main">
-                                            <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
-                                                <label class="mb-1 mt-2 font-weight-light" for="new_address_update">Dirección
-                                                    del
-                                                    Cliente:</label>
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                    <span class="input-group-text"><i
-                                                            class="fas fa-address-card"></i></span>
-                                                    </div>
-                                                    <input type="text" class="form-control new-address"
-                                                           id="new_address_update"
-                                                           autocomplete="off"
-                                                           name="address" value="{{ d.address }}">
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
-                                                <label class="mb-1 mt-2 font-weight-light"
-                                                       for="id_district">Seleccione distrito:</label>
-                                                <select id="id_district" name="id_district"
-                                                        class="form-control district-update">
-                                                    {% for t in districts %}
-                                                        {% if t.id == d.district.id %}
-                                                            <option selected
-                                                                    value="{{ t.id }}">{{ t.description }}</option>
-                                                        {% else %}
-                                                            <option value="{{ t.id }}">{{ t.description }}</option>
-                                                        {% endif %}
-                                                    {% endfor %}
-{#                                                    {% if d.district.id == '1720' %}#}
-{#                                                        <option value="1720">JULIACA</option>#}
-{#                                                    {% elif d.district.id == '1702' %}#}
-{#                                                        <option value="1702">PUNO</option>#}
-{#                                                    {% elif d.district.id == '338' %}#}
-{#                                                        <option value="338">AREQUIPA</option>#}
-{#                                                    {% elif d.district.id == '1829' %}#}
-{#                                                        <option value="1829">TACNA</option>#}
-{#                                                    {% elif d.district.id == '752' %}#}
-{#                                                        <option value="752">CUSCO</option>#}
-{#                                                    {% endif %}#}
-                                                </select>
-                                            </div>
-                                            <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
-                                                <label class="mb-1 mt-2 font-weight-light"
-                                                       for="id-add-new-addressee">&nbsp;</label>
-                                                <button type="button" class="btn btn-outline-success btn-block"
-                                                        id="id-add-new-addressee">
-                                                    <i class="fas fa-plus"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="row public-update d-none">
-                                            <div class="col-sm-9 col-md-9 col-lg-9 pr-0">
-                                                <label class="mb-1 mt-2 font-weight-light" for="address_update">Dirección de
-                                                    Cliente:</label>
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                    <span class="input-group-text"><i
-                                                            class="fas fa-address-card"></i></span>
-                                                    </div>
-                                                    <input type="text" class="form-control" id="address_update"
-                                                           autocomplete="off"
-                                                           name="address" placeholder="Dirección"
-                                                           value="{{ d.address }}">
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-3 col-md-3 col-lg-3 pl-1">
-                                                <label class="mb-1 mt-2 font-weight-light"
-                                                       for="id_district">Seleccione distrito:</label>
-                                                <select id="id_district" name="id_district" class="form-control">
-                                                    {#                                                <option value="0">Seleccionar</option>#}
-                                                    {% if d.district.id == '1720' %}
-                                                        <option value="1720">JULIACA</option>
-                                                    {% elif d.district.id == '1702' %}
-                                                        <option value="1702">PUNO</option>
-                                                    {% elif d.district.id == '338' %}
-                                                        <option value="338">AREQUIPA</option>
-                                                    {% elif d.district.id == '1829' %}
-                                                        <option value="1829">TACNA</option>
-                                                    {% elif d.district.id == '752' %}
-                                                        <option value="752">CUSCO</option>
-                                                    {% endif %}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <div class="row public-update">
-                                        <div class="col-sm-9 col-md-9 col-lg-9 pr-0">
-                                            <label class="mb-1 mt-2 font-weight-light" for="address_update">Dirección de
-                                                Cliente:</label>
-                                            <div class="input-group">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text"><i
-                                                            class="fas fa-address-card"></i></span>
-                                                </div>
-                                                <input type="text" class="form-control" id="address_update" autocomplete="off"
-                                                       name="address" placeholder="Dirección" value="">
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-3 col-md-3 col-lg-3 pl-1">
-                                            <label class="mb-1 mt-2 font-weight-light"
-                                                   for="id_district">Seleccione distrito:</label>
-                                            <select id="id_district" name="id_district" class="form-control">
-                                                <option selected disabled value="0">Seleccionar</option>
-                                                <option value="1720">JULIACA</option>
-                                                <option value="1702">PUNO</option>
-                                                <option value="338">AREQUIPA</option>
-                                                <option value="1829">TACNA</option>
-                                                <option value="752">CUSCO</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row private-update d-none main">
-                                        <div class="col-sm-8 col-md-8 col-lg-8 pr-0">
-                                            <label class="mb-1 mt-2 font-weight-light" for="new_address_update">Dirección del
-                                                Cliente:</label>
-                                            <div class="input-group">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text"><i
-                                                            class="fas fa-address-card"></i></span>
-                                                </div>
-                                                <input type="text" class="form-control new-address" id="new_address_update"
-                                                       autocomplete="off"
-                                                       name="address" value="">
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-3 col-md-3 col-lg-3 pl-1 pr-1">
-                                            <label class="mb-1 mt-2 font-weight-light"
-                                                   for="id_district">Seleccione distrito:</label>
-                                            <select id="id_district" name="id_district" class="form-control district-update">
-                                                <option selected disabled value="0">Seleccionar</option>
-                                                <option value="1720">JULIACA</option>
-                                                <option value="1702">PUNO</option>
-                                                <option value="338">AREQUIPA</option>
-                                                <option value="1829">TACNA</option>
-                                                <option value="752">CUSCO</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-sm-1 col-md-1 col-lg-1 pl-0">
-                                            <label class="mb-1 mt-2 font-weight-light"
-                                                   for="id-add-new-addressee">&nbsp;</label>
-                                            <button type="button" class="btn btn-outline-success btn-block"
-                                                    id="id-add-new-addressee">
-                                                <i class="fas fa-plus"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                {% endif %}
-
-                            {% endif %}
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="mb-2 font-weight-semibold" for="document_number_update">
+                                Número de Documento <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="document_number_update"
+                                       name="document_number" autocomplete="off"
+                                       placeholder="Ingrese el número de documento"
+                                       value="{{ client_obj.clienttype_set.last.document_number }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-warning" id="btn-nro-client-update" type="button" title="Buscar en RENIEC/SUNAT">
+                                        <i class="fas fa-search"></i> Buscar
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Sección: Datos Personales/Empresa -->
+            <div class="card mb-3 border-primary">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-user mr-2"></i>Datos Personales / Empresa</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="mb-2 font-weight-semibold" for="names_update">
+                                Nombres / Razón Social <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="names_update" autocomplete="off"
+                                   name="names" placeholder="Ingrese nombres o razón social"
+                                   value="{{ client_obj.names }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="mb-2 font-weight-semibold" for="phone">Teléfono</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-phone text-primary"></i>
+                                    </span>
+                                </div>
+                                <input type="text" class="form-control" id="phone" name="phone"
+                                       placeholder="Ingrese número de teléfono"
+                                       value="{{ client_obj.phone }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="mb-2 font-weight-semibold" for="email">Correo Electrónico</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-envelope text-primary"></i>
+                                    </span>
+                                </div>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       placeholder="correo@ejemplo.com"
+                                       value="{{ client_obj.email }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Tipo de Cliente -->
+            <div class="card mb-3 border-primary">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-tag mr-2"></i>Tipo de Cliente</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="mb-2 font-weight-semibold" for="id_type_client_update">
+                                Tipo de Cliente <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-control" id="id_type_client_update" name="type_client">
+                                <option value="0">Seleccionar</option>
+                                {% for t in type_client %}
+                                    {% if client_obj.type_client == t.0 %}
+                                        <option selected value="{{ t.0 }}">{{ t.1 }}</option>
+                                    {% else %}
+                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 siaf-update d-none">
+                            <label class="mb-2 font-weight-semibold" for="cod_siaf">
+                                Código de Unidad Ejecutora (SIAF)
+                            </label>
+                            <input type="text" class="form-control" id="cod_siaf" name="siaf"
+                                   placeholder="Ingrese código SIAF"
+                                   value="{{ client_obj.cod_siaf|default_if_none:'' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Sección: Dirección - Cliente Público -->
+            {% if client_obj.type_client == 'PU' %}
+                <div class="card mb-3 border-success public-update">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 font-weight-bold text-success"><i class="fas fa-map-marker-alt mr-2"></i>Direcciones del Cliente Público</h6>
+                        <button type="button" class="btn btn-sm btn-outline-success" id="id-add-new-address-public-update">
+                            <i class="fas fa-plus mr-1"></i> Agregar Dirección
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        {% if client_obj.clientaddress_set.all %}
+                            {% for d in client_obj.clientaddress_set.all %}
+                                <div class="address-block-public">
+                                    <div class="row mb-3">
+                                        <div class="col-md-11">
+                                            <label class="mb-2 font-weight-semibold" for="address_update">
+                                                Dirección <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text bg-light">
+                                                        <i class="fas fa-address-card text-success"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="text" class="form-control public-address" id="address_update_{{ forloop.counter0 }}"
+                                                       autocomplete="off" name="address" placeholder="Ingrese la dirección completa"
+                                                       value="{{ d.address }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1 d-flex align-items-end">
+                                            <button type="button" class="btn btn-outline-danger btn-block delete-address-public-update" title="Eliminar dirección">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <label class="mb-2 font-weight-semibold" for="id_department_update_{{ forloop.counter0 }}">
+                                                Departamento <span class="text-danger">*</span>
+                                            </label>
+                                            <select id="id_department_update_{{ forloop.counter0 }}" name="id_department_update" class="form-control select2-department" data-selected="{{ d.department.id|default:0 }}">
+                                                <option value="0">Seleccionar</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="mb-2 font-weight-semibold" for="id_province_update_{{ forloop.counter0 }}">
+                                                Provincia <span class="text-danger">*</span>
+                                            </label>
+                                            <select id="id_province_update_{{ forloop.counter0 }}" name="id_province_update" class="form-control select2-province" data-selected="{{ d.province.id|default:0 }}" data-department="{{ d.department.id|default:0 }}">
+                                                <option value="0">Seleccionar</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="mb-2 font-weight-semibold" for="id_district_{{ forloop.counter0 }}">
+                                                Distrito <span class="text-danger">*</span>
+                                            </label>
+                                            <select id="id_district_{{ forloop.counter0 }}" name="id_district" class="form-control select2-district" data-selected="{{ d.district.id|default:0 }}" data-province="{{ d.province.id|default:0 }}">
+                                                <option value="0">Seleccionar</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="mb-2 font-weight-semibold" for="type_address_update_{{ forloop.counter0 }}">
+                                                Tipo de Dirección <span class="text-danger">*</span>
+                                            </label>
+                                            <select id="type_address_update_{{ forloop.counter0 }}" name="type_address_update" class="form-control">
+                                                {% for t in type_address %}
+                                                    {% if d.type_address == t.0 %}
+                                                        <option selected value="{{ t.0 }}">{{ t.1 }}</option>
+                                                    {% else %}
+                                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if not forloop.last %}<hr class="my-4">{% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="address-block-public">
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="mb-2 font-weight-semibold" for="address_update">
+                                            Dirección <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text bg-light">
+                                                    <i class="fas fa-address-card text-success"></i>
+                                                </span>
+                                            </div>
+                                            <input type="text" class="form-control public-address" id="address_update" autocomplete="off"
+                                                   name="address" placeholder="Ingrese la dirección completa" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label class="mb-2 font-weight-semibold" for="id_department_update">
+                                            Departamento <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="id_department_update" name="id_department_update" class="form-control select2-department">
+                                            <option value="0">Seleccionar</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="mb-2 font-weight-semibold" for="id_province_update">
+                                            Provincia <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="id_province_update" name="id_province_update" class="form-control select2-province">
+                                            <option value="0">Seleccionar</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="mb-2 font-weight-semibold" for="id_district">
+                                            Distrito <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="id_district" name="id_district" class="form-control select2-district">
+                                            <option value="0">Seleccionar</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="mb-2 font-weight-semibold" for="type_address_update">
+                                            Tipo de Dirección <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="type_address_update" name="type_address_update" class="form-control">
+                                            {% for t in type_address %}
+                                                <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card mb-3 border-info private-update d-none main">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 font-weight-bold text-info"><i class="fas fa-map-marker-alt mr-2"></i>Direcciones del Cliente Privado</h6>
+                        <button type="button" class="btn btn-sm btn-outline-success" id="id-add-new-addressee">
+                            <i class="fas fa-plus mr-1"></i> Agregar Dirección
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="mb-2 font-weight-semibold" for="new_address_update">
+                                    Dirección <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-address-card text-info"></i>
+                                        </span>
+                                    </div>
+                                    <input type="text" class="form-control new-address" id="new_address_update"
+                                           autocomplete="off" name="address" placeholder="Ingrese la dirección completa" value="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="id_department_update_private">
+                                    Departamento <span class="text-danger">*</span>
+                                </label>
+                                <select id="id_department_update_private" name="id_department_update_private" class="form-control department-update">
+                                    <option value="0">Seleccionar</option>
+                                    {% for department in departments %}
+                                        <option value="{{ department.id }}">{{ department.description }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="id_province_update_private">
+                                    Provincia <span class="text-danger">*</span>
+                                </label>
+                                <select id="id_province_update_private" name="id_province_update_private" class="form-control province-update">
+                                    <option value="0">Seleccionar</option>
+                                    {% for province in provinces %}
+                                        <option value="{{ province.id }}" data-department="{{ province.department.id }}">{{ province.description }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="id_district2">
+                                    Distrito <span class="text-danger">*</span>
+                                </label>
+                                <select id="id_district2" name="id_district2" class="form-control district">
+                                    <option value="0">Seleccionar</option>
+                                    {% for district in districts %}
+                                        <option value="{{ district.id }}" data-province="{{ district.province.id }}">{{ district.description }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="type_address_update_private">
+                                    Tipo de Dirección <span class="text-danger">*</span>
+                                </label>
+                                <select id="type_address_update_private" name="type_address_update_private" class="form-control type-address-update">
+                                    {% for t in type_address %}
+                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <!-- Sección: Dirección - Cliente Privado -->
+            {% elif client_obj.type_client == 'PR' %}
+                <div class="card mb-3 border-info private-update main">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 font-weight-bold text-info"><i class="fas fa-map-marker-alt mr-2"></i>Direcciones del Cliente Privado</h6>
+                        <button type="button" class="btn btn-sm btn-outline-success" id="id-add-new-addressee">
+                            <i class="fas fa-plus mr-1"></i> Agregar Dirección
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        {% if client_obj.clientaddress_set.all %}
+                            {% for d in client_obj.clientaddress_set.all %}
+                                <div class="address-block-private">
+                                    <div class="row mb-3">
+                                        <div class="col-md-11">
+                                            <label class="mb-2 font-weight-semibold" for="new_address_update">
+                                                Dirección <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text bg-light">
+                                                        <i class="fas fa-address-card text-info"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="text" class="form-control new-address" id="new_address_update_{{ forloop.counter0 }}"
+                                                       autocomplete="off" name="address" placeholder="Ingrese la dirección completa"
+                                                       value="{{ d.address }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1 d-flex align-items-end">
+                                            <button type="button" class="btn btn-outline-danger btn-block delete-row-address" title="Eliminar dirección">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-4">
+                                        <div class="col-md-3">
+                                            <label class="mb-2 font-weight-semibold" for="id_department_update_private_{{ forloop.counter0 }}">
+                                                Departamento <span class="text-danger">*</span>
+                                            </label>
+                                            <select id="id_department_update_private_{{ forloop.counter0 }}" name="id_department_update_private"
+                                                    class="form-control select2-department department-update" data-selected="{{ d.department.id|default:0 }}">
+                                                <option value="0">Seleccionar</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="mb-2 font-weight-semibold" for="id_province_update_private_{{ forloop.counter0 }}">
+                                                Provincia <span class="text-danger">*</span>
+                                            </label>
+                                            <select id="id_province_update_private_{{ forloop.counter0 }}" name="id_province_update_private"
+                                                    class="form-control select2-province province-update" data-selected="{{ d.province.id|default:0 }}" data-department="{{ d.department.id|default:0 }}">
+                                                <option value="0">Seleccionar</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="mb-2 font-weight-semibold" for="id_district_{{ forloop.counter0 }}">
+                                                Distrito <span class="text-danger">*</span>
+                                            </label>
+                                            <select id="id_district_{{ forloop.counter0 }}" name="id_district" class="form-control select2-district district-update" data-selected="{{ d.district.id|default:0 }}" data-province="{{ d.province.id|default:0 }}">
+                                                <option value="0">Seleccionar</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="mb-2 font-weight-semibold" for="type_address_update_private_{{ forloop.counter0 }}">
+                                                Tipo de Dirección <span class="text-danger">*</span>
+                                            </label>
+                                            <select id="type_address_update_private_{{ forloop.counter0 }}" name="type_address_update_private"
+                                                    class="form-control type-address-update">
+                                                {% for t in type_address %}
+                                                    {% if d.type_address == t.0 %}
+                                                        <option selected value="{{ t.0 }}">{{ t.1 }}</option>
+                                                    {% else %}
+                                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if not forloop.last %}<hr class="my-4">{% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="address-block-private">
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="mb-2 font-weight-semibold" for="new_address_update">
+                                            Dirección <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text bg-light">
+                                                    <i class="fas fa-address-card text-info"></i>
+                                                </span>
+                                            </div>
+                                            <input type="text" class="form-control new-address" id="new_address_update"
+                                                   autocomplete="off" name="address" placeholder="Ingrese la dirección completa" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label class="mb-2 font-weight-semibold" for="id_department_update_private">
+                                            Departamento <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="id_department_update_private" name="id_department_update_private" class="form-control select2-department department-update">
+                                            <option value="0">Seleccionar</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="mb-2 font-weight-semibold" for="id_province_update_private">
+                                            Provincia <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="id_province_update_private" name="id_province_update_private" class="form-control select2-province province-update">
+                                            <option value="0">Seleccionar</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="mb-2 font-weight-semibold" for="id_district">
+                                            Distrito <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="id_district" name="id_district" class="form-control select2-district district-update">
+                                            <option value="0">Seleccionar</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="mb-2 font-weight-semibold" for="type_address_update_private">
+                                            Tipo de Dirección <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="type_address_update_private" name="type_address_update_private" class="form-control type-address-update">
+                                            {% for t in type_address %}
+                                                <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card mb-3 border-success public-update d-none">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 font-weight-bold text-success"><i class="fas fa-map-marker-alt mr-2"></i>Dirección del Cliente Público</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="mb-2 font-weight-semibold" for="address_update">
+                                    Dirección <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-address-card text-success"></i>
+                                        </span>
+                                    </div>
+                                    <input type="text" class="form-control" id="address_update" autocomplete="off"
+                                           name="address" placeholder="Ingrese la dirección completa" value="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="id_department_update">
+                                    Departamento <span class="text-danger">*</span>
+                                </label>
+                                <select id="id_department_update" name="id_department_update" class="form-control">
+                                    <option value="0">Seleccionar</option>
+                                    {% for department in departments %}
+                                        <option value="{{ department.id }}">{{ department.description }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="id_province_update">
+                                    Provincia <span class="text-danger">*</span>
+                                </label>
+                                <select id="id_province_update" name="id_province_update" class="form-control">
+                                    <option value="0">Seleccionar</option>
+                                    {% for province in provinces %}
+                                        <option value="{{ province.id }}" data-department="{{ province.department.id }}">{{ province.description }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="id_district">
+                                    Distrito <span class="text-danger">*</span>
+                                </label>
+                                <select id="id_district" name="id_district" class="form-control">
+                                    <option value="0">Seleccionar</option>
+                                    {% for district in districts %}
+                                        <option value="{{ district.id }}" data-province="{{ district.province.id }}">{{ district.description }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="mb-2 font-weight-semibold" for="type_address_update">
+                                    Tipo de Dirección <span class="text-danger">*</span>
+                                </label>
+                                <select id="type_address_update" name="type_address_update" class="form-control">
+                                    {% for t in type_address %}
+                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
-        <div class="modal-footer bg-light p-2">
-            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
-            &nbsp;
-            <button id="btn-update-client" type="button" class="btn btn-primary font-weight-light">Registrar
+        <div class="modal-footer bg-light p-3 border-top">
+            <button type="button" class="btn btn-secondary font-weight-semibold" data-dismiss="modal">
+                <i class="fas fa-times mr-1"></i> Cerrar
+            </button>
+            <button id="btn-update-client" type="button" class="btn btn-primary font-weight-semibold">
+                <i class="fas fa-save mr-1"></i> Actualizar Cliente
             </button>
         </div>
 
@@ -439,8 +568,7 @@
                 background: #bdd9f5;
                 opacity: 0.5;
                 width: 100%;
-                {#height: 46em;#}
-                !important;bottom: 6px;
+                bottom: 6px;
                 padding-right: 65em;
                 padding-left: 55em;
                 padding-top: 22em;" id="loading">
@@ -539,7 +667,7 @@
         }
 
         await searchClientUpdate(_type_doc, _document_number).then((value) => {
-            {#$("#client_id").val(value.pk);#}
+            // $("#client_id").val(value.pk);
             $("#names_update").val(value.result);
             $("#address_update").val(value.address);
             $("#new_address_update").val(value.address);
@@ -578,6 +706,296 @@
             });
         })
     }
+
+    // Función para inicializar Select2 con AJAX y valor pre-seleccionado
+    function initSelect2WithValue(selector, url, selectedValue, params = {}) {
+        let select2Config = {
+            theme: 'bootstrap4',
+            language: 'es',
+            placeholder: 'Buscar...',
+            allowClear: true,
+            ajax: {
+                url: url,
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        search: params.term || '',
+                        ...params
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 0
+        };
+        
+        $(selector).select2(select2Config);
+        
+        // Si hay un valor seleccionado, cargarlo
+        if (selectedValue && selectedValue != '0') {
+            $.ajax({
+                url: url,
+                dataType: 'json',
+                data: { search: '' },
+                success: function(data) {
+                    let option = data.results.find(r => r.id == selectedValue);
+                    if (option) {
+                        let newOption = new Option(option.text, option.id, true, true);
+                        $(selector).append(newOption).trigger('change');
+                    }
+                }
+            });
+        }
+    }
+
+    // Inicializar Select2 cuando el modal se muestra
+    $(document).on('shown.bs.modal', '#modal-client-update', function () {
+        // Configurar Select2 para todos los departamentos
+        $('.select2-department').each(function() {
+            let selectedValue = $(this).data('selected') || 0;
+            initSelect2WithValue($(this), '/sales/get_departments_ajax/', selectedValue);
+        });
+        
+        // Configurar Select2 para provincias
+        $('.select2-province').each(function() {
+            let selectedValue = $(this).data('selected') || 0;
+            let departmentId = $(this).data('department') || 0;
+            let $select = $(this);
+            
+            $select.select2({
+                theme: 'bootstrap4',
+                language: 'es',
+                placeholder: 'Buscar...',
+                allowClear: true,
+                ajax: {
+                    url: '/sales/get_provinces_ajax/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        let deptId = $select.closest('.address-block-public, .address-block-private').find('.select2-department').val() || departmentId;
+                        return {
+                            search: params.term || '',
+                            department_id: deptId
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+            
+            if (selectedValue && selectedValue != '0') {
+                $.ajax({
+                    url: '/sales/get_provinces_ajax/',
+                    dataType: 'json',
+                    data: { search: '', department_id: departmentId },
+                    success: function(data) {
+                        let option = data.results.find(r => r.id == selectedValue);
+                        if (option) {
+                            let newOption = new Option(option.text, option.id, true, true);
+                            $select.append(newOption).trigger('change');
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Configurar Select2 para distritos
+        $('.select2-district').each(function() {
+            let selectedValue = $(this).data('selected') || 0;
+            let provinceId = $(this).data('province') || 0;
+            let $select = $(this);
+            
+            $select.select2({
+                theme: 'bootstrap4',
+                language: 'es',
+                placeholder: 'Buscar...',
+                allowClear: true,
+                ajax: {
+                    url: '/sales/get_districts_ajax/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        let provId = $select.closest('.address-block-public, .address-block-private').find('.select2-province').val() || provinceId;
+                        return {
+                            search: params.term || '',
+                            province_id: provId
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+            
+            if (selectedValue && selectedValue != '0') {
+                $.ajax({
+                    url: '/sales/get_districts_ajax/',
+                    dataType: 'json',
+                    data: { search: '', province_id: provinceId },
+                    success: function(data) {
+                        let option = data.results.find(r => r.id == selectedValue);
+                        if (option) {
+                            let newOption = new Option(option.text, option.id, true, true);
+                            $select.append(newOption).trigger('change');
+                        }
+                    }
+                });
+            }
+        });
+
+        // Actualizar provincias cuando cambia el departamento
+        $(document).on('change', '.select2-department', function () {
+            let $block = $(this).closest('.address-block-public, .address-block-private');
+            let $province = $block.find('.select2-province');
+            let $district = $block.find('.select2-district');
+            $province.val(null).trigger('change');
+            $district.val(null).trigger('change');
+        });
+
+        // Actualizar distritos cuando cambia la provincia
+        $(document).on('change', '.select2-province', function () {
+            let $block = $(this).closest('.address-block-public, .address-block-private');
+            let $district = $block.find('.select2-district');
+            $district.val(null).trigger('change');
+        });
+    });
+
+    // Agregar nueva dirección para clientes públicos en actualización
+    $(document).on('click', '#id-add-new-address-public-update', function () {
+        let typeAddressHtml = '';
+        {% for t in type_address %}
+            typeAddressHtml += '<option value="{{ t.0 }}">{{ t.1 }}</option>';
+        {% endfor %}
+        
+        let addressBlock = '<hr class="my-4">' +
+            '<div class="address-block-public">' +
+            '    <div class="row mb-3">' +
+            '        <div class="col-md-11">' +
+            '            <label class="mb-2 font-weight-semibold">Dirección <span class="text-danger">*</span></label>' +
+            '            <div class="input-group">' +
+            '                <div class="input-group-prepend">' +
+            '                    <span class="input-group-text bg-light"><i class="fas fa-address-card text-success"></i></span>' +
+            '                </div>' +
+            '                <input type="text" class="form-control public-address" autocomplete="off" name="address" placeholder="Ingrese la dirección completa">' +
+            '            </div>' +
+            '        </div>' +
+            '        <div class="col-md-1 d-flex align-items-end">' +
+            '            <button type="button" class="btn btn-outline-danger btn-block delete-address-public-update" title="Eliminar dirección">' +
+            '                <i class="fas fa-trash"></i>' +
+            '            </button>' +
+            '        </div>' +
+            '    </div>' +
+            '    <div class="row">' +
+            '        <div class="col-md-3">' +
+            '            <label class="mb-2 font-weight-semibold">Departamento <span class="text-danger">*</span></label>' +
+            '            <select name="id_department_new" class="form-control select2-department">' +
+            '                <option value="0">Seleccionar</option>' +
+            '            </select>' +
+            '        </div>' +
+            '        <div class="col-md-3">' +
+            '            <label class="mb-2 font-weight-semibold">Provincia <span class="text-danger">*</span></label>' +
+            '            <select name="id_province_new" class="form-control select2-province">' +
+            '                <option value="0">Seleccionar</option>' +
+            '            </select>' +
+            '        </div>' +
+            '        <div class="col-md-3">' +
+            '            <label class="mb-2 font-weight-semibold">Distrito <span class="text-danger">*</span></label>' +
+            '            <select name="id_district_new" class="form-control select2-district">' +
+            '                <option value="0">Seleccionar</option>' +
+            '            </select>' +
+            '        </div>' +
+            '        <div class="col-md-3">' +
+            '            <label class="mb-2 font-weight-semibold">Tipo de Dirección <span class="text-danger">*</span></label>' +
+            '            <select name="type_address_new" class="form-control">' +
+            typeAddressHtml +
+            '            </select>' +
+            '        </div>' +
+            '    </div>' +
+            '</div>';
+        
+        let $cardBody = $(this).closest('.card').find('.card-body');
+        if ($cardBody.find('.address-block-public').length > 0) {
+            $cardBody.find('.address-block-public').last().after(addressBlock);
+        } else {
+            $cardBody.append(addressBlock);
+        }
+        
+        // Inicializar Select2 para los nuevos campos
+        let $newBlock = $cardBody.find('.address-block-public').last();
+        initSelect2WithValue($newBlock.find('.select2-department'), '/sales/get_departments_ajax/', 0);
+        
+        $newBlock.find('.select2-province').select2({
+            theme: 'bootstrap4',
+            language: 'es',
+            placeholder: 'Buscar...',
+            allowClear: true,
+            ajax: {
+                url: '/sales/get_provinces_ajax/',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    let departmentId = $newBlock.find('.select2-department').val() || '';
+                    return {
+                        search: params.term || '',
+                        department_id: departmentId
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 0
+        });
+        
+        $newBlock.find('.select2-district').select2({
+            theme: 'bootstrap4',
+            language: 'es',
+            placeholder: 'Buscar...',
+            allowClear: true,
+            ajax: {
+                url: '/sales/get_districts_ajax/',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    let provinceId = $newBlock.find('.select2-province').val() || '';
+                    return {
+                        search: params.term || '',
+                        province_id: provinceId
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.results
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 0
+        });
+    });
+
+    // Eliminar dirección de cliente público en actualización
+    $(document).on('click', '.delete-address-public-update', function () {
+        $(this).closest('.address-block-public').prev('hr').remove();
+        $(this).closest('.address-block-public').remove();
+    });
 
 
 </script>

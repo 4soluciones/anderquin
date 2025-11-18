@@ -30,11 +30,35 @@
                         <td class="align-middle font-weight-bold bg-light">{{ client.get_type_client_display|default:"-" }}</td>
 
                         <td class="align-middle text-left">
-                            {% for c in client.clientaddress_set.all %}
-                                {#                                    {{ client.clientaddress_set.first.address|upper|default_if_none:"-"|default:"-" }}#}
-                                <i class="fas fa-map-marker-alt"></i>
-                                {{ c.address|upper|default_if_none:"-"|default:"-" }}<br>
-                            {% endfor %}
+                            {% if client.clientaddress_set.all %}
+                                {% with addresses=client.clientaddress_set.all %}
+                                    {% for c in addresses %}
+                                        <div class="mb-1">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            {% if c.type_address == 'P' %}
+                                                <span class="badge badge-success badge-sm mr-1" title="Dirección Principal">
+                                                    <i class="fas fa-star"></i> PRINCIPAL
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-secondary badge-sm mr-1" title="Dirección Sucursal">
+                                                    SUCURSAL
+                                                </span>
+                                            {% endif %}
+                                            {{ c.address|upper|default_if_none:"-"|default:"-" }}
+                                        </div>
+                                    {% endfor %}
+                                    {% comment %} Verificar si hay al menos una dirección principal - forma simple {% endcomment %}
+                                    {% if not client.has_main_address %}
+                                        <div class="text-warning small mt-1">
+                                            <i class="fas fa-exclamation-triangle"></i> Sin dirección principal
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                <span class="text-danger">
+                                    <i class="fas fa-exclamation-triangle"></i> Sin direcciones
+                                </span>
+                            {% endif %}
                         </td>
 
                         {#                            <td class="align-middle">#}

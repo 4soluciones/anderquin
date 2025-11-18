@@ -98,6 +98,9 @@ urlpatterns = [
     path('modal_client_update/', login_required(modal_client_update), name='modal_client_update'),
     path('client_update/', login_required(client_update), name='client_update'),
     path('get_api_client/', login_required(get_api_client), name='get_api_client'),
+    path('get_departments_ajax/', login_required(get_departments_ajax), name='get_departments_ajax'),
+    path('get_provinces_ajax/', login_required(get_provinces_ajax), name='get_provinces_ajax'),
+    path('get_districts_ajax/', login_required(get_districts_ajax), name='get_districts_ajax'),
 
     # Cuentas por cobrar
     path('accounts_receivable_report/', login_required(accounts_receivable_report), name='accounts_receivable_report'),

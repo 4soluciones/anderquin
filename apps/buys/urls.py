@@ -86,6 +86,7 @@ urlpatterns = [
 
     # REPORT CONTRACTS DETAIL
     path('contracts_detail/', login_required(report_contracts), name='contracts_detail'),
+    path('save_warranty_payment/', login_required(save_warranty_payment), name='save_warranty_payment'),
 
     # CREDIT NOTE
     path('save_credit_note/', login_required(save_credit_note), name='save_credit_note'),

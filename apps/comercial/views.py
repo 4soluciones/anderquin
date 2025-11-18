@@ -2767,7 +2767,7 @@ def modal_phase(request):
                 if order_obj:
                     bill_info['serial'] = order_obj.serial or '-'
                     bill_info['correlative'] = order_obj.correlative or '-'
-                    bill_info['total_order'] = order_obj.total or '-'
+                    bill_info['total_order'] = f"S/ {order_obj.total:,.2f}" or '-'
                 # Obtener el monto de la factura desde la compra relacionada
                 purchase_obj = contract_detail.contractdetailpurchase_set.last()
                 if purchase_obj and purchase_obj.purchase:
@@ -2777,9 +2777,18 @@ def modal_phase(request):
             # Si hay algún error, mantener los valores por defecto
             pass
 
+        # Obtener el cliente de la orden
+        client_obj = None
+        cod_client = None
+        if hasattr(order_obj, 'client') and order_obj.client:
+            client_obj = order_obj.client
+            cod_client = order_obj.client.cod_siaf
+
         tpl = loader.get_template('comercial/modal_phases.html')
         context = ({
             'order_obj': order_obj,
+            'cod_client': cod_client,
+            'client_obj': client_obj,
             'phase_code': phase,
             'phase_description': phase_map[phase],
             'formatdate': formatdate,

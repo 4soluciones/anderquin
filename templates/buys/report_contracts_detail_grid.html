@@ -51,15 +51,14 @@
                                     <div class="col-1 border-right border-top d-flex justify-content-center align-items-center text-center">
                                         <div class="small font-weight-bold">Cantidad</div>
                                     </div>
-                                    <div class="col-3 border-right border-top d-flex justify-content-center align-items-center">
+                                    <div class="col-4 border-right border-top d-flex justify-content-center align-items-center">
                                         <div class="small font-weight-bold">Producto</div>
                                     </div>
                                     <div class="col-2 border-left border-top d-flex justify-content-center align-items-center">
                                         <div class="small font-weight-bold">Guía</div>
                                     </div>
-                                    <div class="col-2 border-left border-top d-flex flex-column justify-content-center align-items-center">
+                                    <div class="col-1 border-left border-top d-flex flex-column justify-content-center align-items-center text-center">
                                         <div class="small font-weight-bold">Factura</div>
-                                        <div class="small">Número</div>
                                     </div>
                                     <div class="col-1 border-left border-top d-flex justify-content-center align-items-center text-center">
                                         <div class="small font-weight-bold">Fase C<br><span class="small">Compromiso</span></div>
@@ -67,8 +66,11 @@
                                     <div class="col-1 border-left border-top d-flex justify-content-center align-items-center text-center">
                                         <div class="small font-weight-bold">Fase D<br><span class="small">Vencido</span></div>
                                     </div>
-                                    <div class="col-2 border-left border-top d-flex justify-content-center align-items-center text-center">
+                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center text-center">
                                         <div class="small font-weight-bold">Fase G<br><span class="small">Girado</span></div>
+                                    </div>
+                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center text-center">
+                                        <div class="small font-weight-bold">Garantía</div>
                                     </div>
                                 </div>
                             </div>
@@ -98,7 +100,7 @@
                                                 <div class="col-1 border-right border-top d-flex justify-content-center align-items-center py-2">
                                                     <div class="small font-weight-bold">{{ e.quantity }}</div>
                                                 </div>
-                                                <div class="col-3 border-right border-top d-flex justify-content-left align-items-center py-2">
+                                                <div class="col-4 border-right border-top d-flex justify-content-left align-items-center py-2">
                                                     <div class="small text-left">{{ e.product_name }}</div>
                                                 </div>
                                                 <div class="col-2 border-left border-top d-flex justify-content-center align-items-center font-weight-bold py-2"
@@ -118,61 +120,67 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-2 border-left border-top d-flex justify-content-center align-items-center font-weight-bold py-2"
+                                                <div class="col-1 border-left border-top d-flex flex-column justify-content-center align-items-center font-weight-bold py-2 pl-1 pr-1"
                                                      style="background-color: #e8f4f8">
-                                                    <div class="row flex-fill">
-                                                        {% if cd.order_created is not None %}
-                                                            <div class="col-6 text-left p-0 pl-2">
-                                                                <div class="small">{{ cd.order_number }}</div>
-                                                            </div>
-                                                            <div class="col-6 text-right p-0 pr-2">
-                                                                <div class="small text-primary font-weight-bold">{{ cd.total_order }}</div>
-                                                            </div>
-                                                        {% else %}
-                                                            <div class="col-6 text-center p-0">
-                                                                <div class="small">-</div>
-                                                            </div>
-                                                            <div class="col-6 text-center p-0">
-                                                                <div class="small text-danger font-weight-bold">{{ cd.days_difference_two }}</div>
-                                                            </div>
-                                                        {% endif %}
-                                                    </div>
+                                                    {% if cd.order_created is not None %}
+                                                        <div class="small text-center mb-1">{{ cd.order_number }}</div>
+                                                        <div class="small text-primary font-weight-bold text-center">S/ {{ cd.total_order }}</div>
+                                                    {% else %}
+                                                        <div class="small text-danger font-weight-bold text-center">{{ cd.days_difference_two }}</div>
+                                                    {% endif %}
                                                 </div>
                                                 {% if cd.order %}
-                                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center py-2" order="{{ cd.order }}" phase="C">
+                                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center py-1" order="{{ cd.order }}" phase="C">
                                                         {% if cd.phase_c %}
-                                                            <div class="small text-success font-weight-bold">{{ cd.phase_c|date:'d-m-Y' }}</div>
+                                                            <div class="small text-success font-weight-bold" style="font-size: 0.75rem;">{{ cd.phase_c|date:'d-m-Y' }}</div>
                                                         {% else %}
                                                             <input class="check-c" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.2);">
                                                         {% endif %}
                                                     </div>
-                                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center py-2" order="{{ cd.order }}" phase="D">
+                                                    <div class="col-1 border-left border-top d-flex justify-content-center align-items-center py-1" order="{{ cd.order }}" phase="D">
                                                         {% if cd.phase_d %}
-                                                            <div class="small text-warning font-weight-bold">{{ cd.phase_d|date:'d-m-Y' }}</div>
+                                                            <div class="small text-warning font-weight-bold" style="font-size: 0.75rem;">{{ cd.phase_d|date:'d-m-Y' }}</div>
                                                         {% else %}
                                                             <input class="check-d" cd="{{ cd.id }}" order="{{ cd.order }}" aria-label="..." type="checkbox" style="transform: scale(1.2);">
                                                         {% endif %}
                                                     </div>
                                                     {% if cd.phase_g and cd.total_payed %}
-                                                        <div class="col-1 border-left border-top border-right d-flex justify-content-center align-items-center py-2" style="background-color: #c5f1cf">
-                                                             <div class="small text-info font-weight-bold">{{ cd.phase_g|date:'d-m-Y' }}</div>
-                                                        </div>
-                                                        <div class="col-1 border-left border-top border-right d-flex justify-content-center align-items-center py-1 p-0" style="background-color: #c5f1cf">
-                                                             <div class="small text-info font-weight-bold">
-                                                                 <smal>Depositado:</smal><br> S/ {{ cd.total_payed }}
+                                                        <div class="col-1 border-left border-top d-flex flex-column justify-content-center align-items-center py-1 px-1" style="background-color: #c5f1cf">
+                                                             <div class="small text-info font-weight-bold mb-0" style="font-size: 0.75rem; line-height: 1.2;">{{ cd.phase_g|date:'d-m-Y' }}</div>
+                                                             <div class="small text-info font-weight-bold mt-0" style="font-size: 0.7rem; line-height: 1.1;">
+                                                                 <span style="font-size: 0.65rem;">Dep:</span> S/ {{ cd.total_payed }}
                                                              </div>
                                                         </div>
                                                     {% else %}
-                                                        <div class="col-2 border-left border-top border-right d-flex justify-content-center align-items-center py-2"
+                                                        <div class="col-1 border-left border-top d-flex justify-content-center align-items-center py-1"
                                                              order="{{ cd.order }}" phase="G">
                                                             {% if cd.phase_g %}
-                                                                <div class="small text-info font-weight-bold">
+                                                                <div class="small text-info font-weight-bold" style="font-size: 0.75rem;">
                                                                     {{ cd.phase_g|date:'d-m-Y' }}</div>
                                                             {% else %}
                                                                 <input class="check-g" cd="{{ cd.id }}"
                                                                        order="{{ cd.order }}" aria-label="..."
                                                                        type="checkbox" style="transform: scale(1.2);">
                                                             {% endif %}
+                                                        </div>
+                                                    {% endif %}
+                                                    {% if cd.total_warranty and cd.total_warranty > 0 %}
+                                                        <div class="col-1 border-left border-top border-right d-flex justify-content-center align-items-center py-1"
+                                                             order="{{ cd.order }}">
+                                                            {% if cd.pay_day_warranty %}
+                                                                <div class="small text-success font-weight-bold" style="font-size: 0.75rem;">{{ cd.pay_day_warranty|date:'d-m-Y' }}</div>
+                                                            {% else %}
+                                                                <button type="button" class="btn btn-sm btn-outline-primary check-warranty" 
+                                                                        cd="{{ cd.id }}" order="{{ cd.order }}" 
+                                                                        data-toggle="modal" data-target="#modal-warranty"
+                                                                        style="font-size: 0.65rem; padding: 0.1rem 0.25rem; line-height: 1.2;">
+                                                                    Registrar
+                                                                </button>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="col-1 border-left border-top border-right d-flex justify-content-center align-items-center py-1">
+                                                            <div class="small text-muted" style="font-size: 0.75rem;">-</div>
                                                         </div>
                                                     {% endif %}
                                                 {% endif %}
@@ -275,3 +283,97 @@
         border-bottom: 1px solid #dee2e6 !important;
     }
 </style>
+
+<!-- Modal para registrar fecha de pago de garantía -->
+<div class="modal fade" id="modal-warranty" tabindex="-1" role="dialog" aria-labelledby="modal-warranty-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title roboto-condensed-regular">Registrar Pago de Garantía</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body roboto-condensed-regular">
+                <div class="form-group">
+                    <label for="warranty-payment-date">Fecha de Pago:</label>
+                    <input type="date" id="warranty-payment-date" class="form-control form-control-sm text-center">
+                    <input type="hidden" id="warranty-order-id" value="">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-sm btn-success" id="save-warranty-payment">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Cuando se hace clic en el botón de registrar garantía
+        $(document).on('click', '.check-warranty', function() {
+            let orderId = $(this).attr('order');
+            $('#warranty-order-id').val(orderId);
+            
+            // Establecer fecha actual
+            let today = new Date().toISOString().split('T')[0];
+            $('#warranty-payment-date').val(today);
+        });
+
+        // Guardar fecha de pago de garantía
+        $('#save-warranty-payment').on('click', function() {
+            let orderId = $('#warranty-order-id').val();
+            let paymentDate = $('#warranty-payment-date').val();
+
+            if (!paymentDate) {
+                toastr.error('Por favor seleccione una fecha', '¡Mensaje!');
+                return false;
+            }
+
+            $.ajax({
+                url: '/buys/save_warranty_payment/',
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'order': orderId,
+                    'payment_date': paymentDate,
+                },
+                success: function (response) {
+                    if (response.success) {
+                        let order = response.order_id;
+                        let paymentDate = response.payment_date;
+                        let [year, month, day] = paymentDate.split('-');
+                        let formattedDateStr = `${day}-${month}-${year}`;
+
+                        // Actualizar la celda de garantía - buscar el div que contiene el botón
+                        let targetDiv = $(`.check-warranty[order="${order}"]`).closest('div[order]');
+                        if (targetDiv.length === 0) {
+                            // Si no se encuentra, buscar directamente el div con el atributo order
+                            targetDiv = $(`div[order="${order}"]`).filter(function() {
+                                return $(this).find('.check-warranty').length > 0 || $(this).text().includes('Registrar');
+                            });
+                        }
+                        
+                        if (targetDiv.length > 0) {
+                            targetDiv.html(`<div class="small text-success font-weight-bold">${formattedDateStr}</div>`);
+                        } else {
+                            // Recargar la página si no se encuentra el elemento
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        }
+
+                        toastr.success('Fecha de pago de garantía registrada', '¡Mensaje!');
+                        $('#modal-warranty').modal('hide');
+                    } else {
+                        toastr.error(response.message || 'Error al guardar', 'Error');
+                    }
+                },
+                error: function () {
+                    toastr.error('Ocurrió un problema al guardar la fecha', '¡Mensaje!');
+                }
+            });
+        });
+    });
+</script>
