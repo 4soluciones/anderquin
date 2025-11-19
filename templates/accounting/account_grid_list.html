@@ -1,61 +1,94 @@
-{% if account_set %}
-    <table id="table-account-grid" class="table table-bordered">
-        <thead>
-        <tr>
-            <th>#</th>
-            <th>CODIGO</th>
-            <th>CUENTA</th>
-            <th>CATEGORIA</th>
-            <th>ENTIDADES</th>
-            <th>ACCION</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for a in account_set %}
-
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td class="text-black-50">{{ a.code }}</td>
-                <td class="text-primary font-weight-bold">{{ a.description|upper }}</td>
-                <td>{{ a.parent_code|default_if_none:"-" }}</td>
-                <td class="p-0">
-
-                    {% if a.cash_set.count > 0 %}
-                        <table class="table m-0">
-                            <tr>
-                                <td class="border-top-0 text-uppercase font-weight-bold">Nombre</td>
-                                <td class="border-top-0 text-uppercase font-weight-bold">Sede</td>
-                                <td class="border-top-0 text-uppercase font-weight-bold">Saldo inicial</td>
-                                <td class="border-top-0 text-uppercase font-weight-bold">Operaciones</td>
-                            </tr>
-                            {% for c in a.cash_set.all %}
-
-                                <tr class="subsidiary" pk="{{ c.subsidiary.id }}">
-                                    <td>{{ c.name }}</td>
-                                    <td>{{ c.subsidiary.name }}</td>
-                                    <td>{{ c.initial|floatformat:2 }}</td>
-                                    <td>
-                                        <button pk="{{ c.id }}"
-                                                type="button"
-                                                data-toggle="modal" data-target="#modal-entity"
-                                                class="btn btn-success entity-edit"> Editar</button>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </table>
-                    {% else %} -
-                    {% endif %}
-
-
-                </td>
-                <td>
-                    <a class="edit-account" pk="{{ a.id }}"><i class="fa fa-pencil-alt"></i></a>
-                </td>
-
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+{% if cash_set %}
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white">
+            <h6 class="mb-0 font-weight-bold text-white roboto-condensed-regular">
+                <i class="fas fa-list"></i> Listado de Entidades
+                <span class="badge badge-light badge-pill ml-2">{{ cash_set|length }}</span>
+            </h6>
+        </div>
+        <div class="card-body p-0 roboto-condensed-regular">
+            <div class="table-responsive">
+                <table id="table-account-grid" class="table table-hover table-striped mb-0">
+                    <thead class="thead-light">
+                    <tr>
+                        <th class="text-center" style="width: 50px;">#</th>
+                        <th><i class="fas fa-tag"></i> NOMBRE</th>
+                        <th class="text-center"><i class="fas fa-layer-group"></i> TIPO</th>
+                        <th><i class="fas fa-file-invoice-dollar"></i> CUENTA CONTABLE</th>
+                        <th class="text-center"><i class="fas fa-hashtag"></i> NÚMERO</th>
+                        <th><i class="fas fa-building"></i> SUCURSAL</th>
+                        <th class="text-right"><i class="fas fa-coins"></i> SALDO INICIAL</th>
+                        <th class="text-center" style="width: 120px;"><i class="fas fa-cog"></i> ACCIONES</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for cash in cash_set %}
+                        <tr class="align-middle">
+                            <td class="text-center text-muted font-weight-bold">{{ forloop.counter }}</td>
+                            <td>
+                                <span class="font-weight-bold text-primary">{{ cash.name|upper }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if cash.accounting_account.code|slice:":3" == "101" %}
+                                    <span class="badge badge-info badge-pill px-3 py-2">
+                                        <i class="fas fa-cash-register"></i> CAJA
+                                    </span>
+                                {% elif cash.accounting_account.code|slice:":3" == "104" %}
+                                    <span class="badge badge-success badge-pill px-3 py-2">
+                                        <i class="fas fa-university"></i> BANCO
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-secondary badge-pill px-3 py-2">
+                                        <i class="fas fa-wallet"></i> OTRO
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted font-weight-bold">{{ cash.accounting_account.code }}</small>
+                                <br>
+                                <span class="text-dark">{{ cash.accounting_account.description|upper }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if cash.account_number %}
+                                    <span class="badge badge-light border">{{ cash.account_number }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if cash.subsidiary %}
+                                    <i class="fas fa-building text-muted"></i> {{ cash.subsidiary.name }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-right">
+                                <span class="font-weight-bold text-success">
+                                    S/ {{ cash.initial|floatformat:2 }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <button pk="{{ cash.id }}"
+                                        type="button"
+                                        data-toggle="modal" data-target="#modal-entity"
+                                        class="btn btn-sm btn-outline-primary entity-edit"
+                                        title="Editar entidad">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 {% else %}
-    Lo sentimos, no hay cuentas registradas</h1>
+    <div class="card shadow-sm border-0">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No hay entidades registradas</h5>
+            <p class="text-muted mb-0">Comience creando una nueva entidad haciendo clic en el botón "NUEVA ENTIDAD"</p>
+        </div>
+    </div>
 {% endif %}

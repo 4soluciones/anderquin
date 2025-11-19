@@ -1,103 +1,148 @@
-<form class="needs-validation" id="new-entity-form" method="POST">
-
+<form class="needs-validation" id="new-entity-form" method="POST" novalidate>
     {% csrf_token %}
+    <input type="hidden" id="id-entity" name="entity">
 
-    <div class="mb-3">
-        <label for="id-entity-name">Banco/Caja</label>
-        <input type="hidden" id="id-entity" name="entity">
-        <input type="text" class="form-control text-uppercase" id="id-entity-name" name="entity-name" placeholder="" value="" required>
-        <div class="invalid-feedback">
-            Valid account code is required.
+    <div class="form-section mb-3 roboto-condensed-regular">
+        <h6 class="text-primary mb-2 font-weight-bold roboto-condensed-regular">
+            <i class="fas fa-layer-group"></i> Información General
+        </h6>
+        
+        <div class="mb-3">
+            <label for="id-entity-type" class="form-label font-weight-bold">
+                Tipo de Cuenta <span class="text-danger">*</span>
+            </label>
+            <select id="id-entity-type" name="entity-type" class="form-control" required>
+                <option value="" disabled selected>SELECCIONE TIPO DE CUENTA...</option>
+                <option value="caja">Cuenta de Caja</option>
+                <option value="corriente">Cuenta Corriente</option>
+            </select>
+            <div class="invalid-feedback">
+                Por favor seleccione un tipo de cuenta.
+            </div>
+            <small class="form-text text-muted">
+                <i class="fas fa-info-circle"></i> Seleccione el tipo de cuenta que desea crear
+            </small>
         </div>
-    </div>
 
-    <div class="mb-3">
-        <label for="id-entity-subsidiary-name">Sucursal</label>
-        <input type="hidden" id="id-entity-subsidiary" name="entity-subsidiary" value="{{ subsidiary_obj.id }}">
-        <input type="text" class="form-control" id="id-entity-subsidiary-name" name="entity-subsidiary-name" placeholder=""
-               value="{{ subsidiary_obj.name }}" readonly>
-        <div class="invalid-feedback">
-            Valid value name is required.
+        <div class="mb-3">
+            <label for="id-entity-name" class="form-label font-weight-bold">
+                <i class="fas fa-tag"></i> Nombre de la Entidad <span class="text-danger">*</span>
+            </label>
+            <input type="text" 
+                   class="form-control text-uppercase" 
+                   id="id-entity-name" 
+                   name="entity-name" 
+                   placeholder="Ej: CAJA PRINCIPAL, BANCO BBVA, etc." 
+                   value="" autocomplete="off"
+                   required>
+            <div class="invalid-feedback">
+                El nombre es requerido.
+            </div>
         </div>
-    </div>
 
-    <hr class="mb-4">
-
-    <div class="row">
-
-
-        <div class="col-md-6 mb-3">
-            <label for="id-entity-account-code">Cuenta</label>
-            <select id="id-entity-account-code" name="entity-account-code" required>
-                <option value="" disabled selected>SELECCIONE...</option>
-                {% for account in account_set %}
-                    {% if account.code|length == 3 %}
-                        <option pk="{{ account.pk }}" value="{{ account.code }}">{{ account.code }} - {{ account.description|upper }}</option>
-
-                    {% else %}
-
-                        {% if account.code|length == 4 %}
-                            <option pk="{{ account.pk }}" value="{{ account.code }}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ account.code }}
-                                - {{ account.description|upper }}</option>
-                        {% else %}
-
-                            {% if account.code|length == 5 %}
-                                <option pk="{{ account.pk }}" value="{{ account.code }}">
-                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ account.code }}
-                                    - {{ account.description|upper }}</option>
-                            {% else %}
-
-                                {% if account.code|length == 6 %}
-                                    <option pk="{{ account.pk }}" value="{{ account.code }}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ account.code }}
-                                        - {{ account.description|upper }}</option>
-                                {% endif %}
-
-                            {% endif %}
-
-                        {% endif %}
-
-                    {% endif %}
+        <div class="mb-3" id="subsidiary-field" style="display: none;">
+            <label for="id-entity-subsidiary" class="form-label font-weight-bold">
+                <i class="fas fa-building"></i> Sucursal <span class="text-danger">*</span>
+            </label>
+            <select id="id-entity-subsidiary" name="entity-subsidiary" class="form-control">
+                <option value="" disabled selected>SELECCIONE UNA SUCURSAL...</option>
+                {% for subsidiary in subsidiary_set %}
+                    <option value="{{ subsidiary.id }}">{{ subsidiary.name }}</option>
                 {% endfor %}
             </select>
             <div class="invalid-feedback">
-                Valid account name is required.
+                La sucursal es requerida para cuentas de caja.
+            </div>
+            <small class="form-text text-muted">
+                <i class="fas fa-info-circle"></i> Solo requerido para cuentas de caja
+            </small>
+        </div>
+    </div>
+
+    <hr class="my-3 border-primary">
+
+    <div class="form-section mb-3">
+        <h6 class="text-primary mb-2 font-weight-bold roboto-condensed-regular">
+            <i class="fas fa-book"></i> Información Contable
+        </h6>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="id-entity-account-code" class="form-label font-weight-bold">
+                    <i class="fas fa-file-invoice-dollar"></i> Cuenta Contable <span class="text-danger">*</span>
+                </label>
+                <select id="id-entity-account-code" name="entity-account-code" class="form-control" required>
+                    <option value="" disabled selected>SELECCIONE TIPO PRIMERO...</option>
+                </select>
+                <div class="invalid-feedback">
+                    Por favor seleccione una cuenta contable.
+                </div>
+                <small class="form-text text-muted">
+                    Se seleccionará automáticamente según el tipo elegido
+                </small>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="id-entity-account-number" class="form-label font-weight-bold">
+                    <i class="fas fa-hashtag"></i> Número de Cuenta
+                </label>
+                <input type="text"
+                       class="form-control text-uppercase"
+                       id="id-entity-account-number"
+                       maxlength="14"
+                       name="entity-account-number"
+                       placeholder="Ej: 001-12345678">
+                <small class="form-text text-muted">
+                    <i class="fas fa-info-circle"></i> Opcional - Número de cuenta bancaria o caja
+                </small>
             </div>
         </div>
+    </div>
 
+    <hr class="my-3 border-primary">
 
-        <div class="col-md-6 mb-3">
-            <label for="id-entity-account-number">Numero de cuenta</label>
-            <input type="text"
-                   class="form-control text-uppercase"
-                   id="id-entity-account-number"
-                   maxlength="14"
-                   name="entity-account-number">
+    <div class="form-section mb-3">
+        <h6 class="text-primary mb-2 font-weight-bold roboto-condensed-regular">
+            <i class="fas fa-coins"></i> Saldo Inicial
+        </h6>
+        
+        <div class="mb-3">
+            <label for="id-entity-initial" class="form-label font-weight-bold">
+                <i class="fas fa-money-bill-wave"></i> Saldo Inicial
+            </label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text bg-light">S/</span>
+                </div>
+                <input type="text"
+                       class="form-control decimal text-right"
+                       id="id-entity-initial"
+                       name="entity-initial" 
+                       placeholder="0.00" 
+                       value="0.00">
+            </div>
+            <small class="form-text text-muted">
+                <i class="fas fa-info-circle"></i> Opcional. Por defecto será 0.00
+            </small>
             <div class="invalid-feedback">
-                Valid value name is required.
+                Ingrese un valor numérico válido.
             </div>
         </div>
-
     </div>
 
+    <hr class="my-3">
 
-    <hr class="mb-4">
-
-    <div class="mb-3">
-        <label for="id-entity-initial">Saldo inicial</label>
-        <input type="text"
-               class="form-control decimal"
-               id="id-entity-initial"
-               name="entity-initial" placeholder="" value=""
-               required="">
-        <div class="invalid-feedback">
-            Valid value name is required.
-        </div>
+    <div class="form-actions d-flex">
+        <button class="btn btn-primary flex-fill mr-2" type="submit" id="btn-entity-save">
+            <i class="fas fa-save"></i> Guardar Entidad
+        </button>
+        <button class="btn btn-success flex-fill mr-2" type="button" id="btn-entity-update" style="display: none;">
+            <i class="fas fa-sync-alt"></i> Actualizar Entidad
+        </button>
+        <button class="btn btn-secondary" type="button" data-dismiss="modal">
+            <i class="fas fa-times"></i> Cancelar
+        </button>
     </div>
-
-
-    <hr class="mb-4">
-    <button class="btn btn-primary btn-lg btn-block" type="submit" id="btn-entity-save">Guardar</button>
-    <button class="btn btn-success btn-lg btn-block" type="button" id="btn-entity-update">Actualizar</button>
 </form>
 
 

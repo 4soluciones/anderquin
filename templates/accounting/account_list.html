@@ -7,127 +7,231 @@
 {% block body %}
     <div class="container-fluid">
 
-        <a class="btn btn-outline-info mb-3 mt-3" data-toggle="modal" data-target="#modal-account">
-            <i class="fas fa-adjust"></i> &nbsp;NUEVA CUENTA
-        </a>
+        <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+            <div class="d-flex align-items-center">
+                <h5 class="mb-0 text-primary mr-3 roboto-condensed-regular">
+                    <i class="fas fa-wallet"></i> Gestión de Entidades
+                </h5>
+                <a class="btn btn-primary text-white shadow-sm new-entity px-4 py-2" data-toggle="modal" data-target="#modal-entity">
+                    <i class="fas fa-plus-circle"></i> Nueva Entidad
+                </a>
+            </div>
+        </div>
 
-        <a class="btn btn-outline-info mb-3 mt-3 new-entity" data-toggle="modal" data-target="#modal-entity">
-            <i class="fas fa-compress"></i> &nbsp;NUEVA ENTIDAD
-        </a>
-
-        <div class="table-responsive" id="account-grid-list">{% include "accounting/account_grid_list.html" %}</div>
+        <div class="table-responsive" id="account-grid-list">{% include "accounting/account_grid_list.html" with cash_set=cash_set %}</div>
 
     </div>
 
 
-    <div class="modal" id="modal-account" tabindex="-1" role="dialog">
-
-        <div class="modal-dialog modal-dialog-centered modal-xl">
-            <div class="modal-content">
-                <div class="modal-header pb-2 pt-2">
-                    <h4 class="modal-title mb-3 mt-3">Nueva Cuenta</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <div class="modal fade" id="modal-entity" tabindex="-1" role="dialog" aria-labelledby="modalEntityLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-primary text-white">
+                    <h4 class="modal-title mb-0 roboto-condensed-regular" id="modalEntityLabel">
+                        <i class="fas fa-plus-circle"></i> Nueva Entidad
+                    </h4>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    {% include "accounting/new_account_form.html" with formatdate=formatdate %}
+                <div class="modal-body p-4">
+                    {% include "accounting/new_cash_form.html" with formatdate=formatdate subsidiary_set=subsidiary_set %}
                 </div>
             </div>
         </div>
-
-    </div>
-
-    <div class="modal" id="modal-entity" tabindex="-1" role="dialog">
-
-        <div class="modal-dialog modal-dialog-centered modal-xl">
-            <div class="modal-content">
-                <div class="modal-header pb-2 pt-2">
-                    <h4 class="modal-title mb-3 mt-3">Nueva Entidad</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    {% include "accounting/new_cash_form.html" with formatdate=formatdate %}
-                </div>
-            </div>
-        </div>
-
     </div>
 
 {% endblock body %}
 
+{% block extracss %}
+<style>
+    .form-section {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #007bff;
+    }
+    
+    .form-section h6 {
+        border-bottom: 2px solid #dee2e6;
+        padding-bottom: 0.4rem;
+        font-size: 0.95rem;
+    }
+    
+    .table thead th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .badge-pill {
+        font-size: 0.7rem;
+        padding: 0.35rem 0.75rem;
+    }
+    
+    .card {
+        border-radius: 0.5rem;
+    }
+    
+    .card-header {
+        border-radius: 0.5rem 0.5rem 0 0 !important;
+        padding: 0.75rem 1rem;
+    }
+    
+    .card-header h5 {
+        font-size: 1rem;
+        margin-bottom: 0;
+    }
+    
+    .modal-content {
+        border-radius: 0.5rem;
+    }
+    
+    .modal-header {
+        border-radius: 0.5rem 0.5rem 0 0;
+        padding: 0.75rem 1rem;
+    }
+    
+    .modal-header h4 {
+        font-size: 1.1rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    .input-group-text {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+        transition: background-color 0.2s;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .form-control {
+        font-size: 0.9rem;
+    }
+    
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+</style>
+{% endblock extracss %}
+
 {% block extrajs %}
     <script type="text/javascript">
-        $('#table-account-grid tr.subsidiary').each(function (){
-            if ($(this).attr('pk') == '{{ subsidiary_obj.id }}'){
-                $(this).addClass('text-success font-weight-bold');
-            }
-            else{
-                $(this).remove();
-            }
-
-        });
 
 
-
-        $('#id-account-parent-code').select2({
-            theme: 'bootstrap4',
-        });
 
         $('#id-entity-account-code').select2({
             theme: 'bootstrap4',
         });
 
-        $('#id-account-parent-code').on('select2:select', function (e) {
-            let data = e.params.data;
-            $('#id-new-account-code').val(data['id']);
+        $('#id-entity-subsidiary').select2({
+            theme: 'bootstrap4',
         });
 
-        $('#table-account-grid').dataTable();
+        //$('#table-account-grid').dataTable();
 
-        $('#btn-entity-update').fadeOut();
+        $('#btn-entity-update').hide();
 
         function refreshTable() {
             $('#table-account-grid').DataTable().draw();
         }
 
-        $('#new-account-form').submit(function (event) {
-            event.preventDefault();
+        // Manejar cambio de tipo de cuenta
+        $('#id-entity-type').on('change', function() {
+            let accountType = $(this).val();
+            let accountSelect = $('#id-entity-account-code');
+            let subsidiaryField = $('#subsidiary-field');
+            
+            // Limpiar selección actual
+            accountSelect.empty().append('<option value="" disabled selected>SELECCIONE...</option>');
+            
+            // Mostrar/ocultar campo de sucursal
+            if (accountType === 'caja') {
+                subsidiaryField.show();
+                $('#id-entity-subsidiary').prop('required', true);
+                // Cargar cuentas de caja (códigos que empiezan con 101)
+                loadAccountsByType('101');
+            } else if (accountType === 'corriente') {
+                subsidiaryField.hide();
+                $('#id-entity-subsidiary').prop('required', false);
+                $('#id-entity-subsidiary').val('').trigger('change');
+                // Cargar cuentas corrientes (códigos que empiezan con 104 u otros que no sean 101)
+                loadAccountsByType('corriente');
+            } else {
+                subsidiaryField.hide();
+                $('#id-entity-subsidiary').prop('required', false);
+                accountSelect.empty().append('<option value="" disabled selected>SELECCIONE TIPO PRIMERO...</option>');
+            }
+        });
 
-            let _data = new FormData($('#new-account-form').get(0));
-
-            $("#btn-new-account").attr("disabled", "true");
-
+        function loadAccountsByType(type) {
             $.ajax({
-                url: '/accounting/new_account/',
-                type: "POST",
-                data: _data,
-                cache: false,
-                processData: false,
-                contentType: false,
-                success: function (response, textStatus, xhr) {
-                    if (xhr.status === 200) {
-                        $('#account-grid-list').html(response.grid);
-                        refreshTable();
-                        toastr.success(response['message'], '¡Bien hecho!');
-                        setTimeout(function(){ location.reload();}, 1000);
+                url: '/accounting/get_accounts_by_type/',
+                type: 'GET',
+                data: {'type': type},
+                success: function(response) {
+                    if (response.success && response.accounts.length > 0) {
+                        let accountSelect = $('#id-entity-account-code');
+                        accountSelect.empty();
+                        
+                        $.each(response.accounts, function(index, account) {
+                            let indent = '';
+                            let codeLength = account.code.length;
+                            for (let i = 3; i < codeLength; i++) {
+                                indent += '&nbsp;&nbsp;&nbsp;&nbsp;';
+                            }
+                            
+                            let option = $('<option></option>')
+                                .attr('pk', account.pk)
+                                .attr('value', account.code)
+                                .html(indent + account.code + ' - ' + account.description.toUpperCase());
+                            
+                            // Seleccionar automáticamente la primera opción
+                            if (index === 0) {
+                                option.prop('selected', true);
+                            }
+                            
+                            accountSelect.append(option);
+                        });
+                        
+                        accountSelect.trigger('change');
+                    } else {
+                        let accountSelect = $('#id-entity-account-code');
+                        accountSelect.empty().append('<option value="" disabled selected>NO HAY CUENTAS DISPONIBLES</option>');
+                        toastr.warning('No hay cuentas disponibles para este tipo', 'Advertencia');
                     }
                 },
-                error: function (jqXhr, textStatus, xhr) {
-                    if (jqXhr.status === 500) {
-                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
-                    }
+                error: function() {
+                    toastr.error('Error al cargar las cuentas', '¡Error!');
                 }
             });
-            $("#btn-new-account").removeAttr("disabled", "false");
-            $('#modal-account').modal('hide');
-
-        });
+        }
 
         $('#new-entity-form').submit(function (event) {
             event.preventDefault();
+
+            let accountType = $('#id-entity-type').val();
+            if (!accountType) {
+                toastr.error('Por favor seleccione un tipo de cuenta', '¡Error!');
+                return;
+            }
+
+            if (accountType === 'caja' && !$('#id-entity-subsidiary').val()) {
+                toastr.error('Por favor seleccione una sucursal para cuentas de caja', '¡Error!');
+                return;
+            }
 
             let _data = new FormData($('#new-entity-form').get(0));
 
@@ -171,16 +275,23 @@
         });
 
         $(document).on('click', '.new-entity', function () {
-            $('#btn-entity-save').fadeIn();
-            $('#btn-entity-update').fadeOut();
-            $('#modal-entity .modal-title').text('Nueva Entidad');
-
+            $('#btn-entity-save').show();
+            $('#btn-entity-update').hide();
+            $('#modal-entity .modal-title').html('<i class="fas fa-plus-circle"></i> Nueva Entidad');
+            $('#modalEntityLabel').html('<i class="fas fa-plus-circle"></i> Nueva Entidad');
+            $('#new-entity-form')[0].reset();
+            $('#id-entity').val('');
+            $('#id-entity-type').val('').trigger('change');
+            $('#subsidiary-field').hide();
+            $('#id-entity-account-code').empty().append('<option value="" disabled selected>SELECCIONE TIPO PRIMERO...</option>');
+            $('#id-entity-initial').val('0.00');
         });
 
         $(document).on('click', '.entity-edit', function () {
-            $('#btn-entity-save').fadeOut();
-            $('#btn-entity-update').fadeIn();
-            $('#modal-entity .modal-title').text('Editar Entidad');
+            $('#btn-entity-save').hide();
+            $('#btn-entity-update').show();
+            $('#modal-entity .modal-title').html('<i class="fas fa-edit"></i> Editar Entidad');
+            $('#modalEntityLabel').html('<i class="fas fa-edit"></i> Editar Entidad');
             let search = $(this).attr('pk');
             $.ajax({
                 url: '/accounting/get_entity/',
@@ -190,22 +301,47 @@
                 success: function (response, textStatus, xhr) {
                     if (xhr.status === 200) {
                         let myObj = JSON.parse(response.obj);
-                        $('#id-entity').val(myObj[0]['pk']);
-                        $('#id-entity-name').val(myObj[0]['fields']['name']);
-                        $('#id-entity-account-number').val(myObj[0]['fields']['account_number']);
-                        $('#id-entity-account-code option[pk]').removeAttr('selected');
-                        $('#id-entity-account-code option[pk="' + myObj[0]['fields']['accounting_account'] + '"]').attr('selected', 'selected').trigger('change');
-                        $('#id-entity-initial').val(myObj[0]['fields']['initial']);
+                        let entity = myObj[0];
+                        
+                        $('#id-entity').val(entity['pk']);
+                        $('#id-entity-name').val(entity['name']);
+                        $('#id-entity-account-number').val(entity['account_number'] || '');
+                        $('#id-entity-initial').val(entity['initial'] || '0.00');
+                        
+                        // Establecer tipo de cuenta y cargar cuentas correspondientes
+                        $('#id-entity-type').val(entity['type']).trigger('change');
+                        
+                        // Esperar a que se carguen las cuentas antes de seleccionar
+                        setTimeout(function() {
+                            $('#id-entity-account-code option[pk="' + entity['account_pk'] + '"]').prop('selected', true).trigger('change');
+                            
+                            // Establecer sucursal si existe
+                            if (entity['subsidiary_id']) {
+                                $('#id-entity-subsidiary').val(entity['subsidiary_id']).trigger('change');
+                            }
+                        }, 500);
                     }
                 },
-                fail: function (response) {
-                    console.log(response);
+                error: function (jqXhr, textStatus, error) {
+                    toastr.error('Error al cargar la entidad', '¡Error!');
+                    console.log(error);
                 }
             });
         });
 
 
         $('#btn-entity-update').on('click', function () {
+            let accountType = $('#id-entity-type').val();
+            if (!accountType) {
+                toastr.error('Por favor seleccione un tipo de cuenta', '¡Error!');
+                return;
+            }
+
+            if (accountType === 'caja' && !$('#id-entity-subsidiary').val()) {
+                toastr.error('Por favor seleccione una sucursal para cuentas de caja', '¡Error!');
+                return;
+            }
+
             let _data = new FormData($('#new-entity-form').get(0));
             $("#btn-entity-update").attr("disabled", "true");
             $.ajax({
@@ -230,8 +366,8 @@
                 }
             });
             $("#btn-entity-update").removeAttr("disabled", "false");
-            $('#btn-entity-save').fadeIn();
-            $('#btn-entity-update').fadeOut();
+            $('#btn-entity-save').show();
+            $('#btn-entity-update').hide();
 
         });
 

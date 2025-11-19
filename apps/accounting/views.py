@@ -2,7 +2,7 @@ from django.db.models.functions import Coalesce
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from apps.hrm.views import get_subsidiary_by_user
-from apps.hrm.models import Worker, WorkerType, Employee
+from apps.hrm.models import Worker, WorkerType, Employee, Subsidiary
 from apps.buys.models import Purchase, PurchaseDetail, CreditNote, CreditNoteDetail
 from apps.sales.models import Subsidiary, SubsidiaryStore, Order, OrderDetail, TransactionPayment, LoanPayment, \
     Supplier, Client, ProductDetail, SupplierAddress, Product, Unit
@@ -489,15 +489,17 @@ def get_account_list(request):
     if request.method == 'GET':
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
-        account_set = AccountingAccount.objects.filter(code__startswith='10').order_by('code')
         user_id = request.user.id
         user_obj = User.objects.get(pk=int(user_id))
         subsidiary_obj = get_subsidiary_by_user(user_obj)
+        subsidiary_set = Subsidiary.objects.all().order_by('name')
+        cash_set = Cash.objects.all().order_by('name')
 
         return render(request, 'accounting/account_list.html', {
             'formatdate': formatdate,
             'subsidiary_obj': subsidiary_obj,
-            'account_set': account_set,
+            'subsidiary_set': subsidiary_set,
+            'cash_set': cash_set,
         })
 
 
@@ -710,64 +712,89 @@ def close_cash(request):
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
-def new_account(request):
-    if request.method == 'POST':
-        _account_parent_code = request.POST.get('account-parent-code', '')
-        _new_account_code = request.POST.get('new-account-code', '')
-        _new_account_name = request.POST.get('new-account-name', '')
-
-        account_parent_obj = AccountingAccount.objects.get(code=str(_account_parent_code))
-
-        search_account = AccountingAccount.objects.filter(code=str(_new_account_code))
-        if search_account:
-            data = {'error': 'Ya existe una cuenta con este codigo'}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
+def get_accounts_by_type(request):
+    if request.method == 'GET':
+        account_type = request.GET.get('type', '')
+        accounts = []
+        
+        if account_type == '101':
+            # Cuentas de caja (códigos que empiezan con 101)
+            account_set = AccountingAccount.objects.filter(code__startswith='101').order_by('code')
+        elif account_type == 'corriente':
+            # Cuentas corrientes: bancos (104) y otros (10 pero no 101)
+            account_set = AccountingAccount.objects.filter(
+                Q(code__startswith='104') | 
+                (Q(code__startswith='10') & ~Q(code__startswith='101'))
+            ).order_by('code')
         else:
-
-            try:
-                accounting_account_obj = AccountingAccount(
-                    code=str(_new_account_code),
-                    description=str(_new_account_name),
-                    parent_code=account_parent_obj.code
-                )
-                accounting_account_obj.save()
-            except DatabaseError as e:
-                data = {'error': str(e)}
-                response = JsonResponse(data)
-                response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-                return response
-
-            account_set = AccountingAccount.objects.filter(code__startswith='10').order_by('code')
-            tpl = loader.get_template('accounting/account_grid_list.html')
-            context = ({'account_set': account_set, })
-            return JsonResponse({
-                'message': 'Guardado con exito.',
-                'grid': tpl.render(context),
-            }, status=HTTPStatus.OK)
-
-    return JsonResponse({'error': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+            account_set = AccountingAccount.objects.none()
+        
+        for account in account_set:
+            accounts.append({
+                'pk': account.pk,
+                'code': account.code,
+                'description': account.description
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'accounts': accounts
+        }, status=HTTPStatus.OK)
+    
+    return JsonResponse({'success': False, 'error': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
 def new_entity(request):
     if request.method == 'POST':
         _entity_name = request.POST.get('entity-name', '')
+        _entity_type = request.POST.get('entity-type', '')
         _entity_subsidiary = request.POST.get('entity-subsidiary', '')
         _entity_account_code = request.POST.get('entity-account-code', '')
         _entity_account_number = request.POST.get('entity-account-number', '')
-        _entity_initial = request.POST.get('entity-initial', '')
+        _entity_initial = request.POST.get('entity-initial', '0.00')
 
-        accounting_account_obj = AccountingAccount.objects.get(code=str(_entity_account_code))
-        subsidiary_obj = Subsidiary.objects.get(id=int(_entity_subsidiary))
+        if not _entity_type:
+            data = {'error': 'Debe seleccionar un tipo de cuenta'}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+
+        if _entity_type == 'caja' and not _entity_subsidiary:
+            data = {'error': 'Debe seleccionar una sucursal para cuentas de caja'}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+
+        try:
+            accounting_account_obj = AccountingAccount.objects.get(code=str(_entity_account_code))
+        except AccountingAccount.DoesNotExist:
+            data = {'error': 'La cuenta contable seleccionada no existe'}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+
+        subsidiary_obj = None
+        if _entity_type == 'caja' and _entity_subsidiary:
+            try:
+                subsidiary_obj = Subsidiary.objects.get(id=int(_entity_subsidiary))
+            except Subsidiary.DoesNotExist:
+                data = {'error': 'La sucursal seleccionada no existe'}
+                response = JsonResponse(data)
+                response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+                return response
+
+        try:
+            initial_value = decimal.Decimal(_entity_initial) if _entity_initial else decimal.Decimal('0.00')
+        except (ValueError, decimal.InvalidOperation):
+            initial_value = decimal.Decimal('0.00')
 
         try:
             cash_obj = Cash(
                 name=str(_entity_name.upper()),
                 subsidiary=subsidiary_obj,
-                account_number=str(_entity_account_number),
+                account_number=str(_entity_account_number) if _entity_account_number else '',
                 accounting_account=accounting_account_obj,
-                initial=decimal.Decimal(_entity_initial),
+                initial=initial_value,
             )
             cash_obj.save()
         except DatabaseError as e:
@@ -776,9 +803,9 @@ def new_entity(request):
             response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
             return response
 
-        account_set = AccountingAccount.objects.filter(code__startswith='10').order_by('code')
+        cash_set = Cash.objects.all().order_by('name')
         tpl = loader.get_template('accounting/account_grid_list.html')
-        context = ({'account_set': account_set, })
+        context = ({'cash_set': cash_set, })
         return JsonResponse({
             'message': 'Guardado con exito.',
             'grid': tpl.render(context),
@@ -790,9 +817,32 @@ def new_entity(request):
 def get_entity(request):
     if request.method == 'GET':
         pk = request.GET.get('pk', '')
-        cash_obj = Cash.objects.filter(id=pk)
-        serialized_obj = serializers.serialize('json', cash_obj)
-        return JsonResponse({'obj': serialized_obj}, status=HTTPStatus.OK)
+        try:
+            cash_obj = Cash.objects.get(id=pk)
+            account_code = cash_obj.accounting_account.code if cash_obj.accounting_account else ''
+            
+            # Determinar tipo de cuenta
+            entity_type = ''
+            if account_code.startswith('101'):
+                entity_type = 'caja'
+            elif account_code.startswith('104') or (account_code.startswith('10') and not account_code.startswith('101')):
+                entity_type = 'corriente'
+            
+            entity_data = {
+                'pk': cash_obj.pk,
+                'name': cash_obj.name,
+                'account_number': cash_obj.account_number or '',
+                'account_code': account_code,
+                'account_pk': cash_obj.accounting_account.pk if cash_obj.accounting_account else None,
+                'subsidiary_id': cash_obj.subsidiary.id if cash_obj.subsidiary else None,
+                'subsidiary_name': cash_obj.subsidiary.name if cash_obj.subsidiary else '',
+                'initial': str(cash_obj.initial),
+                'type': entity_type
+            }
+            
+            return JsonResponse({'obj': json.dumps([entity_data])}, status=HTTPStatus.OK)
+        except Cash.DoesNotExist:
+            return JsonResponse({'error': 'Entidad no encontrada'}, status=HTTPStatus.NOT_FOUND)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
@@ -800,21 +850,46 @@ def update_entity(request):
     if request.method == 'POST':
         _entity_id = request.POST.get('entity', '')
         _entity_name = request.POST.get('entity-name', '')
+        _entity_type = request.POST.get('entity-type', '')
+        _entity_subsidiary = request.POST.get('entity-subsidiary', '')
         _entity_account_code = request.POST.get('entity-account-code', '')
         _entity_account_number = request.POST.get('entity-account-number', '')
-        # _entity_initial = request.POST.get('entity-initial', '')
 
-        cash_obj = Cash.objects.get(id=int(_entity_id))
-        accounting_account_obj = AccountingAccount.objects.get(code=str(_entity_account_code))
+        try:
+            cash_obj = Cash.objects.get(id=int(_entity_id))
+        except Cash.DoesNotExist:
+            data = {'error': 'La entidad no existe'}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+
+        try:
+            accounting_account_obj = AccountingAccount.objects.get(code=str(_entity_account_code))
+        except AccountingAccount.DoesNotExist:
+            data = {'error': 'La cuenta contable seleccionada no existe'}
+            response = JsonResponse(data)
+            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+            return response
+
+        subsidiary_obj = None
+        if _entity_type == 'caja' and _entity_subsidiary:
+            try:
+                subsidiary_obj = Subsidiary.objects.get(id=int(_entity_subsidiary))
+            except Subsidiary.DoesNotExist:
+                data = {'error': 'La sucursal seleccionada no existe'}
+                response = JsonResponse(data)
+                response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+                return response
 
         cash_obj.name = _entity_name.upper()
-        cash_obj.account_number = str(_entity_account_number)
+        cash_obj.account_number = str(_entity_account_number) if _entity_account_number else ''
         cash_obj.accounting_account = accounting_account_obj
+        cash_obj.subsidiary = subsidiary_obj
         cash_obj.save()
 
-        account_set = AccountingAccount.objects.filter(code__startswith='10').order_by('code')
+        cash_set = Cash.objects.all().order_by('name')
         tpl = loader.get_template('accounting/account_grid_list.html')
-        context = ({'account_set': account_set, })
+        context = ({'cash_set': cash_set, })
 
         return JsonResponse({
             'message': 'Cambios guardados con exito.',

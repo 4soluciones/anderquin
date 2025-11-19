@@ -25,7 +25,7 @@ urlpatterns = [
 
     # accounts
     path('get_account_list/', login_required(get_account_list), name='get_account_list'),
-    path('new_account/', login_required(new_account), name='new_account'),
+    path('get_accounts_by_type/', login_required(get_accounts_by_type), name='get_accounts_by_type'),
     path('new_entity/', login_required(new_entity), name='new_entity'),
     path('get_entity/', login_required(get_entity), name='get_entity'),
     path('update_entity/', login_required(update_entity), name='update_entity'),
