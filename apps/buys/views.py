@@ -2009,17 +2009,17 @@ def save_update_purchase(request):
         check_igv = str(data_purchase["Check_Igv"])
         check_dollar = str(data_purchase["Check_Dollar"])
         client_reference = int(data_purchase["client_reference_id"])
-        client_entity = data_purchase["client_final"]
+        # client_entity = data_purchase["client_final"]
 
         check_subsidiary = str(data_purchase["check-subsidiary"])
         check_provider = str(data_purchase["check-provider"])
-        check_client_entity = str(data_purchase["check-client-final"])
+        # check_client_entity = str(data_purchase["check-client-final"])
         check_client_reference = str(data_purchase["check-client"])
 
         address_subsidiary = data_purchase["address_subsidiary"]
         address_provider = data_purchase["address_provider"]
         client_address_reference = data_purchase["client_address_reference"]
-        client_address_entity = data_purchase["client_final_address"]
+        # client_address_entity = data_purchase["client_final_address"]
 
         observations = str(data_purchase["observations"])
         contract_detail_obj = None
@@ -2041,8 +2041,8 @@ def save_update_purchase(request):
         if client_reference:
             client_reference_obj = Client.objects.get(id=int(client_reference))
         client_entity_obj = None
-        if client_entity:
-            client_entity_obj = Client.objects.get(id=int(client_entity))
+        # if client_entity:
+        #     client_entity_obj = Client.objects.get(id=int(client_entity))
         delivery_address = ''
         subsidiary_address_obj = None
         address_provider_obj = None
@@ -2069,13 +2069,13 @@ def save_update_purchase(request):
                 delivery_address = client_address_obj.address
                 city = client_address_obj.district.description
 
-        elif check_client_entity == '1':
-            client_address_entity_set = ClientAddress.objects.filter(id=int(client_address_entity))
-            delivery_choice = 'CP'
-            if client_address_entity_set.exists():
-                client_address_obj = client_address_entity_set.last()
-                delivery_address = client_address_obj.address
-                city = client_address_obj.district.description
+        # elif check_client_entity == '1':
+        #     client_address_entity_set = ClientAddress.objects.filter(id=int(client_address_entity))
+        #     delivery_choice = 'CP'
+        #     if client_address_entity_set.exists():
+        #         client_address_obj = client_address_entity_set.last()
+        #         delivery_address = client_address_obj.address
+        #         city = client_address_obj.district.description
 
         correlative = int(data_purchase["correlative"])
         _bill_number = f'OC-{datetime.now().year}-{str(correlative).zfill(4)}'
@@ -2100,7 +2100,7 @@ def save_update_purchase(request):
             purchase_obj.payment_condition = pay_condition
             purchase_obj.currency_type = currency_type
             purchase_obj.client_reference = client_reference_obj
-            purchase_obj.client_reference_entity = client_entity_obj
+            # purchase_obj.client_reference_entity = client_entity_obj
             purchase_obj.delivery_address = delivery_address.upper()
             purchase_obj.delivery_choice = delivery_choice
             purchase_obj.observation = observations.upper()

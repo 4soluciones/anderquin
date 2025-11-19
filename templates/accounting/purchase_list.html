@@ -12,15 +12,14 @@
                 <table>
                     <tr>
                         <td class="pl-2 pr-2 text-dark">Seleccione Proveedor:</td>
-                        {#                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_initial"#}
-                        {##}
-                        {#                                                     value="{{ date }}" required>#}
-                        {#                        </td>#}
-                        {#                        <td class="pl-2 pr-2 text-dark">Fecha final</td>#}
-                        {#                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_final"#}
-                        {##}
-                        {#                                                     value="{{ date }}" required>#}
-                        {#                        </td>#}
+                        <td class="pl-2 pr-2 text-dark">Fecha inicial:</td>
+                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_initial"
+                                                     value="{{ date }}" required>
+                        </td>
+                        <td class="pl-2 pr-2 text-dark">Fecha final:</td>
+                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_final"
+                                                     value="{{ date }}" required>
+                        </td>
                         <td class="pl-2 pr-2">
                             <select class="form-control" id="id-supplier" name="supplier">
                                 <option disabled selected value=""> Seleccione</option>
@@ -191,12 +190,16 @@
         $("#id_btn_export_pdf").click(function () {
             let _combo = $('#id-supplier').val();
             let _payment_status = $('#id-payment-status').val();
+            let _start_date = $('#id_date_initial').val();
+            let _end_date = $('#id_date_final').val();
             
             if (_combo > 0) {
                 let url = '/accounting/print_pdf_purchases_report/';
                 let params = new URLSearchParams({
                     'supplier_id': _combo,
-                    'payment_status': _payment_status
+                    'payment_status': _payment_status,
+                    'start_date': _start_date,
+                    'end_date': _end_date
                 });
                 
                 window.open(url + '?' + params.toString(), '_blank');
@@ -209,12 +212,16 @@
         $("#id_btn_export_excel").click(function () {
             let _combo = $('#id-supplier').val();
             let _payment_status = $('#id-payment-status').val();
+            let _start_date = $('#id_date_initial').val();
+            let _end_date = $('#id_date_final').val();
             
             if (_combo > 0) {
                 let url = '/accounting/export_excel_purchases_report/';
                 let params = new URLSearchParams({
                     'supplier_id': _combo,
-                    'payment_status': _payment_status
+                    'payment_status': _payment_status,
+                    'start_date': _start_date,
+                    'end_date': _end_date
                 });
                 
                 window.open(url + '?' + params.toString(), '_blank');

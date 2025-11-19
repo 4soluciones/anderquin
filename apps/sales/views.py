@@ -5153,9 +5153,7 @@ def accounts_receivable_report(request):
         # Obtener clientes para el filtro
         clients = Client.objects.filter(
             order__isnull=False, 
-            order__subsidiary=subsidiary_obj, 
-            order__order_type='V',
-            order__status_pay='P'
+            order__subsidiary=subsidiary_obj,
         ).distinct('id').values('id', 'names').order_by('id', 'names')
 
         return render(request, 'sales/accounts_receivable_report.html', {
@@ -5225,11 +5223,18 @@ def accounts_receivable_report(request):
                 order_id=order.id,
                 type='V'
             )
+            # Calcular garantias realizados
+            loan_payments_warranties = LoanPayment.objects.filter(
+                order_id=order.id,
+                type='G'
+            )
             
             total_paid = sum([lp.pay for lp in loan_payments]) if loan_payments.exists() else decimal.Decimal('0.00')
-            pending_amount = order_total - total_paid
-            
-            # Obtener detalles de pagos
+            total_warranties = sum([lp.pay for lp in loan_payments_warranties]) if loan_payments_warranties.exists() else decimal.Decimal('0.00')
+            pending_amount = order_total - (total_paid + order.total_retention + order.total_warranty)
+            pending_warranty = order.total_warranty - total_warranties
+
+            # Obtener detalles de pagos de factura (type='V')
             payment_details = []
             for lp in loan_payments:
                 transaction_payments = TransactionPayment.objects.filter(loan_payment=lp)
@@ -5244,6 +5249,48 @@ def accounts_receivable_report(request):
                         'loan_payment_id': lp.id
                     })
 
+            # Obtener detalles de pagos de garantía (type='G')
+            warranty_details = []
+            for lp in loan_payments_warranties:
+                transaction_payments = TransactionPayment.objects.filter(loan_payment=lp)
+                for tp in transaction_payments:
+                    file_url = lp.file.url if lp.file and lp.file.name != 'img/image_placeholder.jpg' else None
+                    warranty_details.append({
+                        'date': lp.operation_date if lp.operation_date else lp.create_at.date(),
+                        'amount': tp.payment,
+                        'type': tp.get_type_display(),
+                        'operation_code': tp.operation_code if tp.operation_code else '-',
+                        'file': file_url,
+                        'loan_payment_id': lp.id
+                    })
+
+            # Verificar si la orden tiene las tres fases
+            has_all_phases = order.phase_c and order.phase_d and order.phase_g
+            
+            # Verificar si la orden está completamente pagada (factura + garantía si existe)
+            is_paid = pending_amount == 0
+            is_warranty_complete = pending_warranty <= 0 if order.total_warranty > 0 else True
+            is_complete = is_paid and is_warranty_complete
+            
+            # Actualizar el status de la orden en la base de datos
+            if is_complete:
+                if order.status != 'C':
+                    order.status = 'C'
+                    order.save(update_fields=['status'])
+                if order.status_pay != 'C':
+                    order.status_pay = 'C'
+                    order.save(update_fields=['status_pay'])
+            else:
+                if order.status == 'C' and not is_complete:
+                    order.status = 'P'
+                    order.save(update_fields=['status'])
+                if is_paid and order.status_pay != 'C':
+                    order.status_pay = 'C'
+                    order.save(update_fields=['status_pay'])
+                elif not is_paid and order.status_pay != 'P':
+                    order.status_pay = 'P'
+                    order.save(update_fields=['status_pay'])
+
             orders_data.append({
                 'order_id': order.id,
                 'order_date': order.create_at,
@@ -5252,16 +5299,22 @@ def accounts_receivable_report(request):
                 'total_payed': order.total_payed if order.total_payed else decimal.Decimal('0.00'),  # Total pagado del modelo
                 'total_retention': order.total_retention if order.total_retention else decimal.Decimal('0.00'),
                 'total_warranty': order.total_warranty if order.total_warranty else decimal.Decimal('0.00'),
+                'total_warranties_paid': total_warranties,
                 'pay_day_warranty': order.pay_day_warranty,
                 'pending_amount': pending_amount,
+                'pending_warranty': pending_warranty,
                 'payment_details': payment_details,
+                'warranty_details': warranty_details,
                 'correlative': order.correlative if order.correlative else '-',
                 'serial': order.serial if order.serial else '-',
                 'document': f"{order.serial or ''}-{order.correlative or ''}",
                 'type_document': order.get_type_document_display() if order.type_document else 'SIN DOCUMENTO',
                 'client_id': order.client.id if order.client else 0,
                 'client_name': order.client.names if order.client else 'SIN CLIENTE',
-                'is_paid': pending_amount == 0,
+                'is_paid': is_paid,
+                'is_warranty_complete': is_warranty_complete,
+                'is_complete': is_complete,
+                'has_all_phases': has_all_phases,
                 'phase_c': order.phase_c,
                 'phase_d': order.phase_d,
                 'phase_g': order.phase_g,
@@ -5272,10 +5325,11 @@ def accounts_receivable_report(request):
 
         # Calcular totales
         total_debt = sum([order['order_total'] for order in orders_data])
-        total_paid = sum([order['total_paid'] for order in orders_data])
+        total_paid = sum([order['total_paid'] for order in orders_data])  # Pagos de factura (type='V')
         total_payed = sum([order['total_payed'] for order in orders_data])
         total_retention = sum([order['total_retention'] for order in orders_data])
-        total_warranty = sum([order['total_warranty'] for order in orders_data])
+        total_warranty = sum([order['total_warranty'] for order in orders_data])  # Monto total de garantía
+        total_warranties_paid = sum([order['total_warranties_paid'] for order in orders_data])  # Garantías pagadas (type='G')
         total_pending = sum([order['pending_amount'] for order in orders_data])
         total_orders = len(orders_data)
 
@@ -5290,6 +5344,7 @@ def accounts_receivable_report(request):
             'total_payed': total_payed,
             'total_retention': total_retention,
             'total_warranty': total_warranty,
+            'total_warranties_paid': total_warranties_paid,
             'total_pending': total_pending,
             'total_orders': total_orders
         }
@@ -5314,23 +5369,33 @@ def get_client_payment_modal(request):
         loan_payments = LoanPayment.objects.filter(order_id=order.id, type='V')
         total_paid = sum([lp.pay for lp in loan_payments]) if loan_payments.exists() else decimal.Decimal('0.00')
         # El saldo por verificar es la diferencia entre el total y lo que está registrado en total_payed
-        pending_amount = order_total - (order.total_payed if order.total_payed else decimal.Decimal('0.00'))
+        # pending_amount = order_total - (order.total_payed if order.total_payed else decimal.Decimal('0.00'))
         
         # Obtener cuentas de caja disponibles
         cash_accounts = Cash.objects.filter(
-            accounting_account__code__startswith='101'
+            accounting_account__code__startswith='104'
         )
         
         mydate = datetime.now()
         formatdate = mydate.strftime("%Y-%m-%d")
         
+        # Calcular monto pendiente
+        pending_amount = order_total - (total_paid + order.total_retention + order.total_warranty)
+        
+        # Verificar si la orden tiene las tres fases
+        has_all_phases = order.phase_c and order.phase_d and order.phase_g
+        
         tpl = loader.get_template('sales/client_payment_modal.html')
         context = {
             'order': order,
             'client': client,
-            'order_total': order_total,
+            'order_total': '{:,}'.format(round(order_total, 2)),
             'total_paid': total_paid,
+            'total_payed': '{:,}'.format(round(order.total_payed, 2)),
+            'total_warranty': '{:,}'.format(round(order.total_warranty, 2)),
+            'total_retention': '{:,}'.format(round(order.total_retention, 2)),
             'pending_amount': pending_amount,
+            'has_all_phases': has_all_phases,
             'cash_accounts': cash_accounts,
             'payment_types': TransactionPayment._meta.get_field('type').choices,
             'formatdate': formatdate,
@@ -5443,10 +5508,22 @@ def get_warranty_verification_modal(request):
         formatdate = mydate.strftime("%Y-%m-%d")
         
         tpl = loader.get_template('sales/warranty_verification_modal.html')
+
+        cash_accounts = Cash.objects.filter(
+            accounting_account__code__startswith='104'
+        )
+        
+        # Verificar si la orden tiene las tres fases
+        has_all_phases = order.phase_c and order.phase_d and order.phase_g
+        
         context = {
             'order': order,
+            'total_warranty': '{:,}'.format(round(order.total_warranty, 2)),
             'client': client,
             'formatdate': formatdate,
+            'has_all_phases': has_all_phases,
+            'cash_accounts': cash_accounts,
+            'payment_types': TransactionPayment._meta.get_field('type').choices,
         }
         
         return JsonResponse({
@@ -5462,24 +5539,55 @@ def save_warranty_verification(request):
     if request.method == 'POST':
         try:
             order_id = request.POST.get('order_id')
+            client_id = request.POST.get('client_id')
             warranty_payment_date = request.POST.get('warranty_payment_date')
             warranty_operation_code = request.POST.get('warranty_operation_code', '')
             warranty_observation = request.POST.get('warranty_observation', '')
-            
+            warranty_payment_type = request.POST.get('warranty_payment_type', '')
+            cash_account_id = request.POST.get('warranty_cash_account_id')
+
             order = Order.objects.get(id=order_id)
-            
-            # Actualizar fecha de pago de garantía
-            if warranty_payment_date:
-                order.pay_day_warranty = datetime.strptime(warranty_payment_date, '%Y-%m-%d').date()
-            
+            client = Client.objects.get(id=client_id)
+            cash_account = Cash.objects.get(id=cash_account_id) if cash_account_id else None
+
             # Guardar archivo si se proporciona
+            warranty_file = None
             if 'warranty_file' in request.FILES:
                 warranty_file = request.FILES['warranty_file']
-                # Aquí podrías guardar el archivo en un modelo específico si lo necesitas
-                # Por ahora solo guardamos la fecha
-            
+
+            loan_payment = LoanPayment.objects.create(
+                pay=order.total_warranty,
+                order_detail=order.orderdetail_set.first(),  # Usar el primer OrderDetail
+                type='G',  # Garantia
+                operation_date=warranty_payment_date,
+                observation=warranty_observation,
+                order=order,
+                file=warranty_file if warranty_file else 'img/image_placeholder.jpg'
+            )
+
+            TransactionPayment.objects.create(
+                payment=order.total_warranty,
+                type=warranty_payment_type,
+                operation_code=warranty_operation_code,
+                loan_payment=loan_payment
+            )
+
+            if cash_account:
+                CashFlow.objects.create(
+                    transaction_date=warranty_payment_date,
+                    description=f"Garantia de la Factura: {order.serial}-{order.correlative or order.id}",
+                    type='E',  # Entrada
+                    total=order.total_warranty,
+                    cash=cash_account,
+                    operation_code=warranty_operation_code,
+                    order=order,
+                    user=request.user,
+                    client=client
+                )
+
+            order.status = 'C'
             order.save()
-            
+
             return JsonResponse({
                 'success': True,
                 'message': 'Garantía verificada exitosamente'
@@ -5556,7 +5664,7 @@ def get_warranty_details_modal(request):
 
 def get_payment_detail_view(request):
     """
-    Obtener vista detallada de todos los pagos de una orden
+    Obtener vista detallada de un pago específico (factura o garantía)
     """
     if request.method == 'GET':
         loan_payment_id = request.GET.get('loan_payment_id')
@@ -5566,26 +5674,46 @@ def get_payment_detail_view(request):
         order = Order.objects.get(id=order_id)
         client = Client.objects.get(id=client_id) if client_id else order.client
         
-        # Obtener todos los pagos de la orden
-        loan_payments = LoanPayment.objects.filter(order_id=order.id, type='V').order_by('-create_at')
-        payments_list = []
-        for lp in loan_payments:
-            transaction_payments = TransactionPayment.objects.filter(loan_payment=lp)
-            file_url = lp.file.url if lp.file and lp.file.name != 'img/image_placeholder.jpg' else None
-            payments_list.append({
-                'loan_payment': lp,
-                'transaction_payments': transaction_payments,
-                'file_url': file_url,
-                'date': lp.operation_date if lp.operation_date else lp.create_at.date(),
-                'amount': lp.pay,
-                'observation': lp.observation or ''
-            })
+        # Obtener el pago específico
+        loan_payment = LoanPayment.objects.get(id=loan_payment_id)
+        payment_type = loan_payment.type  # 'V' para factura, 'G' para garantía
+        
+        # Obtener dirección principal del cliente
+        main_address = client.clientaddress_set.filter(type_address='P').first()
+        client_address = None
+        if main_address:
+            address_parts = []
+            if main_address.address:
+                address_parts.append(main_address.address)
+            if main_address.district:
+                address_parts.append(str(main_address.district))
+            if main_address.province:
+                address_parts.append(str(main_address.province))
+            if main_address.department:
+                address_parts.append(str(main_address.department))
+            client_address = ', '.join(address_parts) if address_parts else None
+        
+        # Obtener transacciones del pago
+        transaction_payments = TransactionPayment.objects.filter(loan_payment=loan_payment)
+        file_url = loan_payment.file.url if loan_payment.file and loan_payment.file.name != 'img/image_placeholder.jpg' else None
+        
+        payment_data = {
+            'loan_payment': loan_payment,
+            'transaction_payments': transaction_payments,
+            'file_url': file_url,
+            'date': loan_payment.operation_date if loan_payment.operation_date else loan_payment.create_at.date(),
+            'amount': '{:,}'.format(round(loan_payment.pay, 2)),
+            'observation': loan_payment.observation or ''
+        }
         
         tpl = loader.get_template('sales/payment_detail_view_modal.html')
         context = {
             'order': order,
             'client': client,
-            'payments_list': payments_list,
+            'client_address': client_address,
+            'payment_data': payment_data,
+            'payment_type': payment_type,  # 'V' o 'G'
+            'is_warranty': payment_type == 'G',
         }
         
         return JsonResponse({

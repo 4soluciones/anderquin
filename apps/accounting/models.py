@@ -338,6 +338,7 @@ class Tributes(models.Model):
 
 class Bill(models.Model):
     STATUS_CHOICES = (('S', 'SIN ALMACEN'), ('E', 'EN ALMACEN'), ('A', 'ANULADO'),)
+    STATUS_PAY = (('P', 'PENDIENTE'), ('C', 'COMPLETADA'), ('A', 'ANULADO'),)
     id = models.AutoField(primary_key=True)
     register_date = models.DateField(null=True, blank=True)
     expiration_date = models.DateField(null=True, blank=True)
@@ -356,6 +357,7 @@ class Bill(models.Model):
     store_destiny = models.ForeignKey('sales.SubsidiaryStore', on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField('Status', max_length=1, choices=STATUS_CHOICES, default='S')
     observation = models.TextField('Observación', blank=True, null=True)
+    status_pay = models.CharField('Status Pay', max_length=1, choices=STATUS_PAY, default='P')
 
     def __str__(self):
         return str(self.serial + '-' + self.correlative)

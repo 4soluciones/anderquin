@@ -571,7 +571,7 @@ class OrderBill(models.Model):
 
 
 class LoanPayment(models.Model):
-    TYPE_CHOICES = (('V', 'Venta'), ('C', 'Compra'),)
+    TYPE_CHOICES = (('V', 'Venta'), ('C', 'Compra'), ('G', 'Garantia'))
     id = models.AutoField(primary_key=True)
     pay = models.DecimalField('Pago', max_digits=30, decimal_places=15, default=0)
     order_detail = models.ForeignKey('OrderDetail', on_delete=models.SET_NULL, null=True, blank=True)
@@ -588,7 +588,7 @@ class LoanPayment(models.Model):
 
 
 class TransactionPayment(models.Model):
-    TYPE_CHOICES = (('E', 'Contado'), ('D', 'Deposito'), ('C', 'Credito'), ('C', 'Nota de Credito'))
+    TYPE_CHOICES = (('E', 'Contado'), ('D', 'Deposito'), ('C', 'Credito'), ('C', 'Nota de Credito'), ('G', 'Garantia'))
     id = models.AutoField(primary_key=True)
     payment = models.DecimalField('Pago', max_digits=10, decimal_places=2, default=0)
     type = models.CharField('Tipo de pago', max_length=1, choices=TYPE_CHOICES, default='E', )

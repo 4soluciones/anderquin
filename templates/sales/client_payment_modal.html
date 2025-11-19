@@ -1,6 +1,6 @@
 <div class="modal-content roboto-condensed-regular">
     <div class="modal-header bg-success text-white">
-        <h5 class="modal-title" id="clientPaymentModalLabel">
+        <h5 class="modal-title roboto-condensed-regular text-white" id="clientPaymentModalLabel">
             <i class="fas fa-check-circle mr-2"></i>
             Verificar Pago de Cliente
         </h5>
@@ -21,6 +21,7 @@
                                 Información del Cliente
                             </h6>
                             <p class="mb-1"><strong>Nombre:</strong> {{ client.names }}</p>
+                            <p class="mb-1"><strong>COD:</strong> {{ client.cod_siaf }}</p>
                             {% if client.phone %}
                                 <p class="mb-1"><strong>Teléfono:</strong> {{ client.phone }}</p>
                             {% endif %}
@@ -37,9 +38,9 @@
                                 <i class="fas fa-file-invoice mr-2"></i>
                                 Información de la Orden
                             </h6>
-                            <p class="mb-1"><strong>Orden:</strong> {{ order.correlative }}</p>
+                            <p class="mb-1"><strong>Nro Factura: </strong>{{ order.serial }} - {{ order.correlative }}</p>
                             <p class="mb-1"><strong>Fecha:</strong> {{ order.create_at|date:"d/m/Y" }}</p>
-                            <p class="mb-0"><strong>Total:</strong> S/ {{ order_total|floatformat:2 }}</p>
+                            <p class="mb-0"><strong>Total:</strong> S/ {{ order_total }}</p>
                         </div>
                     </div>
                 </div>
@@ -49,7 +50,7 @@
             {% if order.phase_c or order.phase_d or order.phase_g %}
             <div class="card mb-3 border-primary">
                 <div class="card-header bg-primary text-white">
-                    <h6 class="mb-0 roboto-condensed-regular">
+                    <h6 class="mb-0 roboto-condensed-regular text-white">
                         <i class="fas fa-calendar-alt mr-2"></i>
                         Fases de la Orden
                     </h6>
@@ -88,20 +89,32 @@
             </div>
             {% endif %}
 
+            <!-- Validación de Fases -->
+            {% if not has_all_phases %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <strong>Advertencia:</strong> La orden aún no tiene completadas las tres fases con sus fechas correspondientes.
+                Por favor, complete las fases antes de verificar el pago.
+            </div>
+            {% else %}
             <!-- Resumen de Pagos -->
             <div class="alert alert-info">
                 <div class="row text-center">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <h6 class="mb-0">Total de la Orden</h6>
-                        <strong class="text-primary">S/ {{ order_total|floatformat:2 }}</strong>
+                        <strong class="text-primary">S/ {{ order_total }}</strong>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <h6 class="mb-0">Total Pagado</h6>
-                        <strong class="text-success">S/ {{ order.total_payed|floatformat:2 }}</strong>
+                        <strong class="text-success">S/ {{ total_payed }}</strong>
                     </div>
-                    <div class="col-md-4">
-                        <h6 class="mb-0">Saldo por Verificar</h6>
-                        <strong class="text-danger">S/ {{ pending_amount|floatformat:2 }}</strong>
+                    <div class="col-md-3">
+                        <h6 class="mb-0">Total Garantia</h6>
+                        <strong class="text-danger">S/ {{ total_warranty }}</strong>
+                    </div>
+                    <div class="col-md-3">
+                        <h6 class="mb-0">Total Retencion</h6>
+                        <strong class="text-secondary">S/ {{ total_retention }}</strong>
                     </div>
                 </div>
             </div>
@@ -115,7 +128,7 @@
                             Monto del Pago *
                         </label>
                         <input type="number" class="form-control" name="payment_amount" 
-                               step="0.01" max="{{ pending_amount }}" required
+                               step="0.01" max="{{ pending_amount|floatformat:2 }}" required
                                placeholder="Ingrese el monto">
                         <small class="form-text text-muted">
                             Máximo: S/ {{ pending_amount|floatformat:2 }}
@@ -204,6 +217,7 @@
                 <textarea class="form-control" name="observation" rows="3" 
                           placeholder="Observaciones adicionales sobre el pago..."></textarea>
             </div>
+            {% endif %}
 
             <!-- Campos ocultos -->
             <input type="hidden" name="order_id" value="{{ order.id }}">
@@ -215,10 +229,12 @@
                 <i class="fas fa-times mr-1"></i>
                 Cancelar
             </button>
+            {% if has_all_phases %}
             <button type="submit" class="btn btn-success">
                 <i class="fas fa-check-circle mr-1"></i>
                 Verificar Pago
             </button>
+            {% endif %}
         </div>
     </form>
 </div>
@@ -232,7 +248,7 @@
 
     // Validar monto máximo
     $('input[name="payment_amount"]').on('input', function() {
-        var maxAmount = {{ pending_amount }};
+        var maxAmount = parseFloat('{{ pending_amount|floatformat:2 }}');
         var currentAmount = parseFloat($(this).val());
         
         if (currentAmount > maxAmount) {
@@ -243,8 +259,14 @@
 
     // Validar formulario antes de enviar
     $('#form-client-payment').on('submit', function(e) {
+        {% if not has_all_phases %}
+        e.preventDefault();
+        toastr.error('La orden debe tener completadas las tres fases antes de verificar el pago', 'Error');
+        return false;
+        {% endif %}
+        
         var paymentAmount = parseFloat($('input[name="payment_amount"]').val());
-        var maxAmount = {{ pending_amount }};
+        var maxAmount = parseFloat('{{ pending_amount|floatformat:2 }}');
         
         if (paymentAmount > maxAmount) {
             e.preventDefault();

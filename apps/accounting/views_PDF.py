@@ -34,7 +34,7 @@ from .models import BillPurchase, Bill, CashFlow
 from ..hrm.models import Worker, Subsidiary
 from ..hrm.views import get_subsidiary_by_user
 from ..buys.models import Purchase, PurchaseDetail, MoneyChange
-from ..sales.models import Supplier, ProductSupplier, ProductDetail, Client
+from ..sales.models import Supplier, ProductSupplier, ProductDetail, Client, LoanPayment
 from ..sales.number_to_letters import numero_a_moneda
 from django.contrib.auth.models import User
 
@@ -535,31 +535,28 @@ class OutputInvoiceGuide(Flowable):
         canvas.restoreState()
 
 
-def get_bills_data(user_id, supplier_id, payment_status='all'):
+def get_bills_data(user_id, supplier_id, payment_status='all', start_date=None, end_date=None):
     """Función auxiliar para obtener datos de facturas"""
     user_obj = User.objects.get(id=user_id)
     supplier_obj = Supplier.objects.get(id=supplier_id)
     
-    bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier').order_by('register_date')
+    bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier')
     
+    # Filtrar por rango de fechas si se proporcionan
+    if start_date and end_date:
+        bill_set = bill_set.filter(register_date__range=[start_date, end_date])
+    elif start_date:
+        bill_set = bill_set.filter(register_date__gte=start_date)
+    elif end_date:
+        bill_set = bill_set.filter(register_date__lte=end_date)
+    
+    # Filtrar por status_pay según el estado de pago solicitado
     if payment_status == 'paid':
-        paid_bills = []
-        for bill in bill_set:
-            repay_loan = decimal.Decimal(bill.repay_loan())
-            bill_total = decimal.Decimal(bill.bill_total_total)
-            missing_payment = round(bill_total, 2) - round(repay_loan, 2)
-            if missing_payment == 0:
-                paid_bills.append(bill)
-        bill_set = paid_bills
+        bill_set = bill_set.filter(status_pay='C')  # COMPLETADA
     elif payment_status == 'pending':
-        pending_bills = []
-        for bill in bill_set:
-            repay_loan = decimal.Decimal(bill.repay_loan())
-            bill_total = decimal.Decimal(bill.bill_total_total)
-            missing_payment = round(bill_total, 2) - round(repay_loan, 2)
-            if missing_payment > 0:
-                pending_bills.append(bill)
-        bill_set = pending_bills
+        bill_set = bill_set.filter(status_pay='P')  # PENDIENTE
+    
+    bill_set = bill_set.order_by('register_date')
     
     return bill_set, supplier_obj
 
@@ -570,11 +567,13 @@ def print_pdf_purchases_report(request):
         user_id = request.user.id
         supplier_id = request.GET.get('supplier_id')
         payment_status = request.GET.get('payment_status', 'all')
+        start_date = request.GET.get('start_date', None)
+        end_date = request.GET.get('end_date', None)
         
         if not supplier_id:
             return HttpResponse('Error: Proveedor no especificado', status=400)
         
-        bill_set, supplier_obj = get_bills_data(user_id, supplier_id, payment_status)
+        bill_set, supplier_obj = get_bills_data(user_id, supplier_id, payment_status, start_date, end_date)
         
         # Configuración del PDF
         _a4 = (8.3 * inch, 11.7 * inch)
@@ -596,13 +595,22 @@ def print_pdf_purchases_report(request):
         elif payment_status == 'pending':
             title = "REPORTE DE FACTURAS PENDIENTES"
         
+        # Formatear rango de fechas si se proporciona
+        date_range_text = 'Fecha: ' + datetime.now().strftime("%d/%m/%Y")
+        if start_date and end_date:
+            date_range_text = f'Rango de fechas: {start_date} al {end_date}'
+        elif start_date:
+            date_range_text = f'Desde: {start_date}'
+        elif end_date:
+            date_range_text = f'Hasta: {end_date}'
+        
         tbl_header = [
             [Paragraph('INDUSTRIAS ANDERQUIN EIRL', styles["Justify_Newgot_title"])],
             [Paragraph('JR. CARABAYA NRO. 443 - JULIACA', styles['Normal'])],
             [Paragraph('RUC: 20604193053', styles['Normal'])],
             [Paragraph(title, styles["Center_Newgot_title_small"])],
             [Paragraph('Proveedor: ' + supplier_obj.business_name, styles['Normal'])],
-            [Paragraph('Fecha: ' + datetime.now().strftime("%d/%m/%Y"), styles['Normal'])],
+            [Paragraph(date_range_text, styles['Normal'])],
         ]
         
         header_table = Table(tbl_header)
@@ -615,87 +623,104 @@ def print_pdf_purchases_report(request):
             ('PADDING', (0, 3), (-1, 3), 10),  # Padding para el título
         ]))
         
-        # Encabezados de columnas
-        headers = ['Referencia', 'N° Doc', 'Fecha Base', 'Fecha Venc.', 'Días', 
-                  'Importe Doc', 'Importe Faltante', 'Importe Pagado']
+        # Encabezados de columnas según la imagen
+        headers = ['FECHA EMISION', 'Nº DE DOCUMENTO', 'IMPORTE FAC', 'FECHA DEPOSITO', 
+                  'IMPORTE DEPOSITADO', 'ESTADO', 'SALDO', 'PROVEEDOR']
         
         header_row = [Paragraph(h, styles['Center_Square']) for h in headers]
         
         # Datos
         data_rows = []
-        sum_total = 0
-        sum_total_paid = 0
-        sum_total_missing = 0
+        sum_total_deposited = 0
         
         for bill in bill_set:
-            repay_loan = decimal.Decimal(bill.repay_loan())
+            # Obtener el monto pagado, asegurándose de que sea un valor válido
+            repay_loan_value = bill.repay_loan()
+            if repay_loan_value is None:
+                repay_loan_value = 0
+            repay_loan = decimal.Decimal(repay_loan_value)
             bill_total = decimal.Decimal(bill.bill_total_total)
             missing_payment = round(bill_total, 2) - round(repay_loan, 2)
             
-            # Calcular días de mora
-            days_difference = 0
-            if bill_total != repay_loan and bill.expiration_date:
-                expiration_date = datetime.strptime(str(bill.expiration_date), '%Y-%m-%d')
-                date_now = datetime.now()
-                difference_date = date_now - expiration_date
-                days_difference = difference_date.days
+            # Obtener fecha del último depósito - mejorado para facturas pagadas
+            # Primero intentar obtener el pago más reciente con operation_date
+            last_payment_with_date = bill.loanpayment_set.filter(
+                type='C', 
+                operation_date__isnull=False
+            ).order_by('-operation_date').first()
+            
+            # Si no hay uno con operation_date, buscar el más reciente por create_at
+            if not last_payment_with_date:
+                last_payment_with_date = bill.loanpayment_set.filter(
+                    type='C'
+                ).order_by('-create_at').first()
+            
+            deposit_date = '-'
+            if last_payment_with_date:
+                if last_payment_with_date.operation_date:
+                    deposit_date = last_payment_with_date.operation_date.strftime("%d/%m/%Y")
+                elif last_payment_with_date.create_at:
+                    deposit_date = last_payment_with_date.create_at.date().strftime("%d/%m/%Y")
+            
+            # Estado
+            estado = 'CANCELADO' if missing_payment == 0 else 'PENDIENTE'
+            
+            # Saldo (vacío si está cancelado)
+            saldo = '' if missing_payment == 0 else f"S/ {missing_payment:,.2f}"
             
             row = [
-                Paragraph(f"{bill.serial}-{str(bill.correlative).zfill(7)}", styles['Center_Square']),
-                Paragraph(str(bill.order_number or '-'), styles['Center_Square']),
                 Paragraph(bill.register_date.strftime("%d/%m/%Y"), styles['Center_Square']),
-                Paragraph(bill.expiration_date.strftime("%d/%m/%Y") if bill.expiration_date else '-', styles['Center_Square']),
-                Paragraph(str(days_difference), styles['Center_Square']),
+                Paragraph(f"{bill.serial}-{str(bill.correlative).zfill(7)}", styles['Center_Square']),
                 Paragraph(f"S/ {bill_total:,.2f}", styles['Center_Square']),
-                Paragraph(f"S/ {missing_payment:,.2f}", styles['Center_Square']),
+                Paragraph(deposit_date, styles['Center_Square']),
                 Paragraph(f"S/ {repay_loan:,.2f}", styles['Center_Square']),
+                Paragraph(estado, styles['Center_Square']),
+                Paragraph(saldo, styles['Center_Square']),
+                Paragraph(supplier_obj.business_name, styles['Center_Square']),
             ]
             data_rows.append(row)
             
-            sum_total += bill_total
-            sum_total_paid += repay_loan
-            sum_total_missing += missing_payment
+            sum_total_deposited += repay_loan
         
         # Tabla de datos
         all_data = [header_row] + data_rows
-        # Usar todo el ancho disponible de A4 (menos márgenes reducidos)
-        available_width = _bts - 20  # Restar márgenes izquierdo y derecho (10 cada uno)
-        col_widths = [available_width * 0.15, available_width * 0.12, available_width * 0.12, 
-                     available_width * 0.12, available_width * 0.08, available_width * 0.16, 
-                     available_width * 0.12, available_width * 0.13]
+        # Usar todo el ancho disponible de A4
+        available_width = _bts - 20
+        col_widths = [available_width * 0.12, available_width * 0.14, available_width * 0.12, 
+                     available_width * 0.12, available_width * 0.14, available_width * 0.12, 
+                     available_width * 0.12, available_width * 0.12]
         
         data_table = Table(all_data, colWidths=col_widths)
         data_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),  # Fondo gris claro para el encabezado
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),  # Texto negro para el encabezado
+            ('BACKGROUND', (0, 0), (-1, 0), HexColor('#E1D5E7')),  # Fondo morado claro para el encabezado
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
             ('ALIGNMENT', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Square-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 7),  # Reducir tamaño de fuente del encabezado
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),  # Reducir padding
-            ('TOPPADDING', (0, 0), (-1, 0), 6),  # Agregar padding superior
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('TOPPADDING', (0, 0), (-1, 0), 6),
             ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),  # Reducir grosor de líneas
-            ('FONTSIZE', (0, 1), (-1, -1), 6),  # Reducir tamaño de fuente de datos
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('FONTSIZE', (0, 1), (-1, -1), 7),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('LEFTPADDING', (0, 0), (-1, -1), 4),  # Reducir padding lateral
+            ('LEFTPADDING', (0, 0), (-1, -1), 4),
             ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+            # Alternar colores de fila
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, HexColor('#FFFACD')]),
         ]))
         
-        # Totales
+        # Fila de TOTAL
         totals_data = [
-            ['TOTAL DOCUMENTOS', f"S/ {sum_total:,.2f}"],
-            ['TOTAL PAGADO', f"S/ {sum_total_paid:,.2f}"],
-            ['TOTAL PENDIENTE', f"S/ {sum_total_missing:,.2f}"],
+            ['', '', '', 'TOTAL', f"S/ {sum_total_deposited:,.2f}", '', '', '']
         ]
         
-        totals_table = Table(totals_data, colWidths=[_bts * 60/100, _bts * 40/100])
+        totals_table = Table(totals_data, colWidths=col_widths)
         totals_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), colors.lightgrey),
-            ('FONTNAME', (0, 0), (-1, -1), 'Square-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 9),
-            ('ALIGNMENT', (0, 0), (0, -1), 'LEFT'),
-            ('ALIGNMENT', (1, 0), (1, -1), 'RIGHT'),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('BACKGROUND', (0, 0), (-1, 0), HexColor('#FFFF00')),  # Fondo amarillo para el total
+            ('FONTNAME', (0, 0), (-1, 0), 'Square-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('ALIGNMENT', (0, 0), (-1, -1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('PADDING', (0, 0), (-1, -1), 8),
         ]))
@@ -709,7 +734,7 @@ def print_pdf_purchases_report(request):
         elements.append(header_table)
         elements.append(Spacer(1, 20))
         elements.append(data_table)
-        elements.append(Spacer(1, 20))
+        elements.append(Spacer(1, 10))
         elements.append(totals_table)
         
         doc.build(elements)
@@ -731,11 +756,13 @@ def export_excel_purchases_report(request):
         user_id = request.user.id
         supplier_id = request.GET.get('supplier_id')
         payment_status = request.GET.get('payment_status', 'all')
+        start_date = request.GET.get('start_date', None)
+        end_date = request.GET.get('end_date', None)
         
         if not supplier_id:
             return HttpResponse('Error: Proveedor no especificado', status=400)
         
-        bill_set, supplier_obj = get_bills_data(user_id, supplier_id, payment_status)
+        bill_set, supplier_obj = get_bills_data(user_id, supplier_id, payment_status, start_date, end_date)
         
         # Crear workbook
         wb = openpyxl.Workbook()
@@ -788,85 +815,149 @@ def export_excel_purchases_report(request):
         ws['A4'].font = data_font
         ws['A4'].alignment = center_alignment
         
+        # Formatear rango de fechas si se proporciona
+        date_range_text = f'Fecha: {datetime.now().strftime("%d/%m/%Y")}'
+        if start_date and end_date:
+            date_range_text = f'Rango de fechas: {start_date} al {end_date}'
+        elif start_date:
+            date_range_text = f'Desde: {start_date}'
+        elif end_date:
+            date_range_text = f'Hasta: {end_date}'
+        
         ws.merge_cells('A5:H5')
-        ws['A5'] = f'Fecha: {datetime.now().strftime("%d/%m/%Y")}'
+        ws['A5'] = date_range_text
         ws['A5'].font = data_font
         ws['A5'].alignment = center_alignment
         
-        # Encabezados
-        headers = ['Referencia', 'N° Doc', 'Fecha Base', 'Fecha Vencimiento', 
-                  'Días Mora', 'Importe Doc', 'Importe Faltante', 'Importe Pagado']
+        # Encabezados según la imagen con formato de dos líneas
+        headers = [
+            'FECHA\nEMISION',           # Columna 1
+            'Nº DE\nDOCUMENTO',         # Columna 2
+            'IMPORTE\nFAC',             # Columna 3
+            'FECHA\nDEPOSITO',          # Columna 4
+            'IMPORTE\nDEPOSITADO',      # Columna 5
+            'ESTADO',                   # Columna 6
+            'SALDO',                    # Columna 7
+            'PROVEEDOR'                 # Columna 8
+        ]
+        
+        # Color morado claro para el encabezado
+        header_fill = PatternFill(start_color='E1D5E7', end_color='E1D5E7', fill_type='solid')
+        
+        # Alineación con wrap_text para permitir múltiples líneas
+        header_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
         
         for col, header in enumerate(headers, 1):
             cell = ws.cell(row=7, column=col, value=header)
             cell.font = header_font
             cell.fill = header_fill
-            cell.alignment = center_alignment
+            cell.alignment = header_alignment
             cell.border = thin_border
         
         # Datos
         row = 8
-        sum_total = 0
-        sum_total_paid = 0
-        sum_total_missing = 0
+        sum_total_deposited = 0
         
         for bill in bill_set:
-            repay_loan = decimal.Decimal(bill.repay_loan())
+            # Obtener el monto pagado, asegurándose de que sea un valor válido
+            repay_loan_value = bill.repay_loan()
+            if repay_loan_value is None:
+                repay_loan_value = 0
+            repay_loan = decimal.Decimal(repay_loan_value)
             bill_total = decimal.Decimal(bill.bill_total_total)
             missing_payment = round(bill_total, 2) - round(repay_loan, 2)
             
-            # Calcular días de mora
-            days_difference = 0
-            if bill_total != repay_loan and bill.expiration_date:
-                expiration_date = datetime.strptime(str(bill.expiration_date), '%Y-%m-%d')
-                date_now = datetime.now()
-                difference_date = date_now - expiration_date
-                days_difference = difference_date.days
+            # Obtener fecha del último depósito - mejorado para facturas pagadas
+            # Primero intentar obtener el pago más reciente con operation_date
+            last_payment_with_date = bill.loanpayment_set.filter(
+                type='C', 
+                operation_date__isnull=False
+            ).order_by('-operation_date').first()
+            
+            # Si no hay uno con operation_date, buscar el más reciente por create_at
+            if not last_payment_with_date:
+                last_payment_with_date = bill.loanpayment_set.filter(
+                    type='C'
+                ).order_by('-create_at').first()
+            
+            deposit_date = '-'
+            if last_payment_with_date:
+                if last_payment_with_date.operation_date:
+                    deposit_date = last_payment_with_date.operation_date.strftime("%d/%m/%Y")
+                elif last_payment_with_date.create_at:
+                    deposit_date = last_payment_with_date.create_at.date().strftime("%d/%m/%Y")
+            
+            # Estado
+            estado = 'CANCELADO' if missing_payment == 0 else 'PENDIENTE'
+            
+            # Saldo (vacío si está cancelado)
+            saldo = '' if missing_payment == 0 else float(missing_payment)
             
             # Datos de la fila
-            ws.cell(row=row, column=1, value=f"{bill.serial}-{str(bill.correlative).zfill(7)}").border = thin_border
-            ws.cell(row=row, column=2, value=bill.order_number or '-').border = thin_border
-            ws.cell(row=row, column=3, value=bill.register_date.strftime("%d/%m/%Y")).border = thin_border
-            ws.cell(row=row, column=4, value=bill.expiration_date.strftime("%d/%m/%Y") if bill.expiration_date else '-').border = thin_border
-            ws.cell(row=row, column=5, value=days_difference).border = thin_border
-            ws.cell(row=row, column=6, value=float(bill_total)).border = thin_border
-            ws.cell(row=row, column=7, value=float(missing_payment)).border = thin_border
-            ws.cell(row=row, column=8, value=float(repay_loan)).border = thin_border
+            ws.cell(row=row, column=1, value=bill.register_date.strftime("%d/%m/%Y")).border = thin_border
+            ws.cell(row=row, column=2, value=f"{bill.serial}-{str(bill.correlative).zfill(7)}").border = thin_border
+            ws.cell(row=row, column=3, value=float(bill_total)).border = thin_border
+            ws.cell(row=row, column=4, value=deposit_date).border = thin_border
+            ws.cell(row=row, column=5, value=float(repay_loan)).border = thin_border
+            ws.cell(row=row, column=6, value=estado).border = thin_border
+            ws.cell(row=row, column=7, value=saldo).border = thin_border
+            ws.cell(row=row, column=8, value=supplier_obj.business_name).border = thin_border
             
-            # Aplicar formato a números
-            ws.cell(row=row, column=6).number_format = '#,##0.00'
-            ws.cell(row=row, column=7).number_format = '#,##0.00'
-            ws.cell(row=row, column=8).number_format = '#,##0.00'
+            # Aplicar formato contable personalizado con S/ a números
+            # Formato: positivo;negativo;cero;texto
+            custom_format = '_("S/"* #,##0.00_);_("S/"* (#,##0.00);_("S/"* "-"??_);_(@_)'
+            ws.cell(row=row, column=3).number_format = custom_format
+            if saldo != '':
+                ws.cell(row=row, column=7).number_format = custom_format
+            ws.cell(row=row, column=5).number_format = custom_format
             
-            # Aplicar fuente a toda la fila
+            # Aplicar fuente y alineación a toda la fila
             for col in range(1, 9):
                 ws.cell(row=row, column=col).font = data_font
                 ws.cell(row=row, column=col).alignment = center_alignment
             
-            sum_total += bill_total
-            sum_total_paid += repay_loan
-            sum_total_missing += missing_payment
+            # Alternar colores de fila (blanco y amarillo claro)
+            # La fila 8 es par (índice 0), así que empezamos con amarillo claro
+            if (row - 8) % 2 == 0:
+                fill_color = PatternFill(start_color='FFFACD', end_color='FFFACD', fill_type='solid')
+            else:
+                fill_color = PatternFill(start_color='FFFFFF', end_color='FFFFFF', fill_type='solid')
+            
+            for col in range(1, 9):
+                ws.cell(row=row, column=col).fill = fill_color
+            
+            sum_total_deposited += repay_loan
             
             row += 1
         
-        # Totales
+        # Fila de TOTAL con fondo amarillo
         total_row = row + 1
-        ws.cell(row=total_row, column=5, value='TOTAL DOCUMENTOS:').font = header_font
-        ws.cell(row=total_row, column=6, value=float(sum_total)).font = header_font
-        ws.cell(row=total_row, column=6).number_format = '#,##0.00'
+        total_fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
         
-        ws.cell(row=total_row + 1, column=5, value='TOTAL PAGADO:').font = header_font
-        ws.cell(row=total_row + 1, column=8, value=float(sum_total_paid)).font = header_font
-        ws.cell(row=total_row + 1, column=8).number_format = '#,##0.00'
+        ws.cell(row=total_row, column=1, value='').border = thin_border
+        ws.cell(row=total_row, column=2, value='').border = thin_border
+        ws.cell(row=total_row, column=3, value='').border = thin_border
+        ws.cell(row=total_row, column=4, value='TOTAL').border = thin_border
+        ws.cell(row=total_row, column=4).font = header_font
+        ws.cell(row=total_row, column=5, value=float(sum_total_deposited)).border = thin_border
+        ws.cell(row=total_row, column=5).font = header_font
+        ws.cell(row=total_row, column=5).number_format = '_("S/"* #,##0.00_);_("S/"* (#,##0.00);_("S/"* "-"??_);_(@_)'
+        ws.cell(row=total_row, column=6, value='').border = thin_border
+        ws.cell(row=total_row, column=7, value='').border = thin_border
+        ws.cell(row=total_row, column=8, value='').border = thin_border
         
-        ws.cell(row=total_row + 2, column=5, value='TOTAL PENDIENTE:').font = header_font
-        ws.cell(row=total_row + 2, column=7, value=float(sum_total_missing)).font = header_font
-        ws.cell(row=total_row + 2, column=7).number_format = '#,##0.00'
+        # Aplicar fondo amarillo a toda la fila de total
+        for col in range(1, 9):
+            ws.cell(row=total_row, column=col).fill = total_fill
+            ws.cell(row=total_row, column=col).alignment = center_alignment
         
-        # Ajustar ancho de columnas
-        column_widths = [15, 12, 12, 15, 10, 15, 15, 15]
+        # Ajustar ancho de columnas y altura de fila de encabezado
+        column_widths = [12, 15, 12, 12, 15, 12, 12, 20]
         for i, width in enumerate(column_widths, 1):
             ws.column_dimensions[get_column_letter(i)].width = width
+        
+        # Ajustar altura de la fila de encabezado para que se vean las dos líneas
+        ws.row_dimensions[7].height = 30
         
         # Guardar
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

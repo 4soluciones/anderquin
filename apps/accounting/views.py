@@ -56,40 +56,26 @@ def get_purchases_by_date(request):
         supplier_obj = Supplier.objects.get(id=pk)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
         
-        # Filtrar facturas según el estado de pago
+        # Filtrar por rango de fechas si se proporcionan
+        bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier',
+                                                                             'store_destiny__subsidiary')
+        
+        if start_date and end_date:
+            bill_set = bill_set.filter(register_date__range=[start_date, end_date])
+        elif start_date:
+            bill_set = bill_set.filter(register_date__gte=start_date)
+        elif end_date:
+            bill_set = bill_set.filter(register_date__lte=end_date)
+        
+        # Filtrar facturas según el estado de pago usando status_pay
         if payment_status == 'paid':
-            # Solo facturas completamente pagadas (missing_payment = 0)
-            bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier',
-                                                                                 'store_destiny__subsidiary').order_by(
-                'register_date')
-            # Filtrar en Python las facturas completamente pagadas
-            paid_bills = []
-            for bill in bill_set:
-                repay_loan = decimal.Decimal(bill.repay_loan())
-                bill_total = decimal.Decimal(bill.bill_total_total)
-                missing_payment = round(bill_total, 2) - round(repay_loan, 2)
-                if missing_payment == 0:
-                    paid_bills.append(bill)
-            bill_set = paid_bills
+            # Solo facturas completamente pagadas (status_pay = 'C')
+            bill_set = bill_set.filter(status_pay='C')
         elif payment_status == 'pending':
-            # Solo facturas pendientes (missing_payment > 0)
-            bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier',
-                                                                                 'store_destiny__subsidiary').order_by(
-                'register_date')
-            # Filtrar en Python las facturas pendientes
-            pending_bills = []
-            for bill in bill_set:
-                repay_loan = decimal.Decimal(bill.repay_loan())
-                bill_total = decimal.Decimal(bill.bill_total_total)
-                missing_payment = round(bill_total, 2) - round(repay_loan, 2)
-                if missing_payment > 0:
-                    pending_bills.append(bill)
-            bill_set = pending_bills
-        else:
-            # Todas las facturas
-            bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier',
-                                                                                 'store_destiny__subsidiary').order_by(
-                'register_date')
+            # Solo facturas pendientes (status_pay = 'P')
+            bill_set = bill_set.filter(status_pay='P')
+        
+        bill_set = bill_set.order_by('register_date')
 
         return JsonResponse({
             'grid': get_dict_purchases(bill_set),
@@ -107,22 +93,24 @@ def get_purchases_paid_by_date(request):
         supplier_obj = Supplier.objects.get(id=pk)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
         
-        # Obtener solo facturas completamente pagadas
-        bill_set = Bill.objects.filter(supplier=supplier_obj).select_related('supplier',
-                                                                             'store_destiny__subsidiary').order_by(
-            'register_date')
+        # Obtener solo facturas completamente pagadas usando status_pay
+        bill_set = Bill.objects.filter(
+            supplier=supplier_obj,
+            status_pay='C'  # COMPLETADA
+        ).select_related('supplier', 'store_destiny__subsidiary')
         
-        # Filtrar facturas completamente pagadas
-        paid_bills = []
-        for bill in bill_set:
-            repay_loan = decimal.Decimal(bill.repay_loan())
-            bill_total = decimal.Decimal(bill.bill_total_total)
-            missing_payment = round(bill_total, 2) - round(repay_loan, 2)
-            if missing_payment == 0:
-                paid_bills.append(bill)
+        # Filtrar por rango de fechas si se proporcionan
+        if start_date and end_date:
+            bill_set = bill_set.filter(register_date__range=[start_date, end_date])
+        elif start_date:
+            bill_set = bill_set.filter(register_date__gte=start_date)
+        elif end_date:
+            bill_set = bill_set.filter(register_date__lte=end_date)
+        
+        bill_set = bill_set.order_by('register_date')
 
         return JsonResponse({
-            'grid': get_dict_purchases_paid(paid_bills),
+            'grid': get_dict_purchases_paid(bill_set),
         }, status=HTTPStatus.OK)
 
 
@@ -472,6 +460,20 @@ def new_payment_purchase(request):
             date_converter = datetime.strptime(credit_note_date, '%Y-%m-%d').date()
             formatdate = date_converter.strftime("%d/%m/%y")
             bill_pay = credit_total
+
+        # Actualizar status_pay después de registrar el pago
+        # Recargar el objeto bill para obtener los pagos actualizados
+        bill_obj.refresh_from_db()
+        repay_loan = decimal.Decimal(bill_obj.repay_loan())
+        bill_total = decimal.Decimal(bill_obj.bill_total_total)
+        missing_payment = round(bill_total, 2) - round(repay_loan, 2)
+        
+        # Si el pago está completo, actualizar status_pay a 'C' (COMPLETADA)
+        if missing_payment == 0:
+            bill_obj.status_pay = 'C'
+        else:
+            bill_obj.status_pay = 'P'
+        bill_obj.save()
 
         return JsonResponse({
             'message': 'Pago registrado con exito.',

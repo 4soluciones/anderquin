@@ -91,6 +91,71 @@
             }
         });
 
+        // Cuando se hace clic en el botón de registrar garantía
+        $(document).on('click', '.check-warranty', function() {
+            let orderId = $(this).attr('order');
+            $('#warranty-order-id').val(orderId);
+
+            // Establecer fecha actual
+            let today = new Date().toISOString().split('T')[0];
+            $('#warranty-payment-date').val(today);
+        });
+
+        // Guardar fecha de pago de garantía
+    $('#save-warranty-payment').on('click', function () {
+        let orderId = $('#warranty-order-id').val();
+        let paymentDate = $('#warranty-payment-date').val();
+
+        if (!paymentDate) {
+            toastr.error('Por favor seleccione una fecha', '¡Mensaje!');
+            return false;
+        }
+
+        $.ajax({
+            url: '/buys/save_warranty_payment/',
+            dataType: 'json',
+            type: 'GET',
+            data: {
+                'order': orderId,
+                'payment_date': paymentDate,
+            },
+            success: function (response) {
+                if (response.success) {
+                    let order = response.order_id;
+                    let paymentDate = response.payment_date;
+                    let [year, month, day] = paymentDate.split('-');
+                    let formattedDateStr = `${day}-${month}-${year}`;
+
+                    // Actualizar la celda de garantía - buscar el div que contiene el botón
+                    let targetDiv = $(`.check-warranty[order="${order}"]`).closest('div[order]');
+                    if (targetDiv.length === 0) {
+                        // Si no se encuentra, buscar directamente el div con el atributo order
+                        targetDiv = $(`div[order="${order}"]`).filter(function () {
+                            return $(this).find('.check-warranty').length > 0 || $(this).text().includes('Registrar');
+                        });
+                    }
+
+                    if (targetDiv.length > 0) {
+                        targetDiv.html(`<div class="small text-success font-weight-bold">${formattedDateStr}</div>`);
+                    } else {
+                        // Recargar la página si no se encuentra el elemento
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1000);
+                    }
+
+                    toastr.success('Fecha de pago de garantía registrada', '¡Mensaje!');
+                    $('#modal-warranty').modal('hide');
+                } else {
+                    toastr.error(response.message || 'Error al guardar', 'Error');
+                }
+            },
+            error: function () {
+                toastr.error('Ocurrió un problema al guardar la fecha', '¡Mensaje!');
+            }
+        });
+    });
+
     </script>
 
 {% endblock extrajs %}

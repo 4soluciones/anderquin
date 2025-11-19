@@ -50,8 +50,8 @@
                         <select class="form-control" id="id_payment_status" name="payment_status">
                             <option value="all">Todos los pagos</option>
                             <option value="pending">Pendientes</option>
+                            <option value="without_warranty">Pendientes sin garantía</option>
                             <option value="paid">Completados</option>
-                            <option value="without_warranty">Pagos sin garantía</option>
                         </select>
                     </div>
                     <div class="col-md-3 d-flex align-items-end">
@@ -239,30 +239,6 @@
                 },
                 error: function (response) {
                     toastr.error('Error al cargar el modal', '¡Error!');
-                }
-            });
-        });
-
-        // Ver detalles de garantía
-        $(document).on('click', '.btn-view-warranty', function () {
-            let _order_id = $(this).attr('data-order-id');
-            let _client_id = $(this).attr('data-client-id');
-            
-            $.ajax({
-                url: '/sales/get_warranty_details_modal/',
-                async: true,
-                dataType: 'json',
-                type: 'GET',
-                data: {
-                    'order_id': _order_id,
-                    'client_id': _client_id
-                },
-                success: function (response) {
-                    $('#client-payment-content').html(response.modal);
-                    $('#modal-client-payment').modal('show');
-                },
-                error: function (response) {
-                    toastr.error('Error al cargar los detalles', '¡Error!');
                 }
             });
         });
