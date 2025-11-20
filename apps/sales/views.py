@@ -5331,7 +5331,7 @@ def accounts_receivable_report(request):
         total_paid = sum([order['total_paid'] for order in orders_data])  # Pagos de factura (type='V')
         total_payed = sum([order['total_payed'] for order in orders_data])
         total_retention = sum([order['total_retention'] for order in orders_data])
-        total_warranty = sum([order['total_warranty'] for order in orders_data])  # Monto total de garantía
+        # total_warranty = sum([order['total_warranty'] for order in orders_data])  # Monto total de garantía
         total_warranties_paid = sum([order['total_warranties_paid'] for order in orders_data])  # Garantías pagadas (type='G')
         total_pending = sum([order['pending_amount'] for order in orders_data])
         total_orders = len(orders_data)
@@ -5346,7 +5346,7 @@ def accounts_receivable_report(request):
             'total_paid': total_paid,
             'total_payed': total_payed,
             'total_retention': total_retention,
-            'total_warranty': total_warranty,
+            # 'total_warranty': total_warranty,
             'total_warranties_paid': total_warranties_paid,
             'total_pending': total_pending,
             'total_orders': total_orders
@@ -5383,7 +5383,12 @@ def get_client_payment_modal(request):
         formatdate = mydate.strftime("%Y-%m-%d")
         
         # Calcular monto pendiente
+        print(order_total)
+        print(total_paid)
+        print(order.total_retention)
+        print(order.total_warranty)
         pending_amount = order_total - (total_paid + order.total_retention + order.total_warranty)
+        print(pending_amount)
 
         # Verificar si la orden tiene las tres fases
         has_all_phases = order.phase_c and order.phase_d and order.phase_g

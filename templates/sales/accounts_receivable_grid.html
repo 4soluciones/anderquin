@@ -121,7 +121,7 @@
                         {% elif order.is_paid and order.is_warranty_complete %}
                             <!-- Factura pagada y garantía completa: ocupar todo el ancho -->
                             <div class="col-md-6 p-1">
-                        {% elif not order.is_paid and order.total_warranty == 0 %}
+                        {% elif not order.is_paid and order.total_warranty == 0.00 %}
                             <!-- Factura sin pagar y sin garantía ocupar todo el ancho -->
                             <div class="col-md-12 p-1">
                         {% else %}
@@ -177,9 +177,9 @@
                                 </div>
                             {% endif %}
                         </div>
-                        
+
                         <!-- Columna derecha: Pagos de Garantía (type='G') -->
-                        {% if order.total_warranty > 0 or order.phase_g %}
+                        {% if order.total_warranty > 0 and order.phase_g %}
                             {% if not order.is_paid or order.total_warranty > 0 %}
                                 <div class="col-md-6 p-1">
                                     <div class="small font-weight-bold mb-1 text-warning">
