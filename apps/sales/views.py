@@ -5381,7 +5381,7 @@ def get_client_payment_modal(request):
         
         # Calcular monto pendiente
         pending_amount = order_total - (total_paid + order.total_retention + order.total_warranty)
-        
+        print(pending_amount)
         # Verificar si la orden tiene las tres fases
         has_all_phases = order.phase_c and order.phase_d and order.phase_g
         
@@ -5394,7 +5394,7 @@ def get_client_payment_modal(request):
             'total_payed': '{:,}'.format(round(order.total_payed, 2)),
             'total_warranty': '{:,}'.format(round(order.total_warranty, 2)),
             'total_retention': '{:,}'.format(round(order.total_retention, 2)),
-            'pending_amount': pending_amount,
+            'pending_amount': str(pending_amount),
             'has_all_phases': has_all_phases,
             'cash_accounts': cash_accounts,
             'payment_types': TransactionPayment._meta.get_field('type').choices,

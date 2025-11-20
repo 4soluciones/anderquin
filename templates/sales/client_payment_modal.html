@@ -222,6 +222,7 @@
             <!-- Campos ocultos -->
             <input type="hidden" name="order_id" value="{{ order.id }}">
             <input type="hidden" name="client_id" value="{{ client.id }}">
+            <input type="hidden" name="pending_amount" id="pending_amount" value="{{ pending_amount }}">
         </div>
 
         <div class="modal-footer">
@@ -247,13 +248,36 @@
     });
 
     // Validar monto máximo
-    $('input[name="payment_amount"]').on('input', function() {
-        var maxAmount = parseFloat('{{ pending_amount|floatformat:2 }}');
-        var currentAmount = parseFloat($(this).val());
+    $('input[name="payment_amount"]').on('blur', function() {
+        var inputValue = $(this).val().trim();
         
-        if (currentAmount > maxAmount) {
+        // Si el campo está vacío, no validar
+        if (!inputValue) {
+            return;
+        }
+        
+        var maxAmount = parseFloat($('#pending_amount').val()) || 0;
+        var currentAmount = Number(inputValue) || 0;
+        //console.log("maxAmount", maxAmount)
+        //console.log("currentAmount", currentAmount)
+        // Comparar números directamente con tolerancia para decimales
+        if (isNaN(currentAmount) || currentAmount <= 0) {
+            $(this).val('');
+            toastr.warning('El monto debe ser un número válido mayor a cero', 'Advertencia');
+            return;
+        }
+        
+        // Redondear a 2 decimales para comparación precisa
+        var roundedCurrent = Math.round(currentAmount * 100) / 100;
+        var roundedMax = Math.round(maxAmount * 100) / 100;
+        //console.log("roundedCurrent", roundedCurrent)
+        //console.log("roundedMax", roundedMax)
+        if (roundedCurrent > roundedMax) {
             $(this).val(maxAmount);
             toastr.warning('El monto no puede exceder el saldo pendiente', 'Advertencia');
+        } else {
+            // Formatear el valor a 2 decimales si es válido
+            $(this).val(currentAmount.toFixed(2));
         }
     });
 
