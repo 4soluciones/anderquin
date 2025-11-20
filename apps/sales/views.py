@@ -5232,7 +5232,7 @@ def accounts_receivable_report(request):
             total_paid = sum([lp.pay for lp in loan_payments]) if loan_payments.exists() else decimal.Decimal('0.00')
             total_warranties = sum([lp.pay for lp in loan_payments_warranties]) if loan_payments_warranties.exists() else decimal.Decimal('0.00')
             pending_amount = order_total - (total_paid + order.total_retention + order.total_warranty)
-            pending_warranty = order.total_warranty - total_warranties
+            pending_warranty = decimal.Decimal(order.total_warranty) - decimal.Decimal(total_warranties)
 
             # Obtener detalles de pagos de factura (type='V')
             payment_details = []
@@ -5271,7 +5271,10 @@ def accounts_receivable_report(request):
             is_paid = pending_amount == 0
             is_warranty_complete = pending_warranty <= 0 if order.total_warranty > 0 else True
             is_complete = is_paid and is_warranty_complete
-            
+            print("bill", order.serial + order.correlative)
+            print("is_warranty_complete", is_warranty_complete)
+            print("pending_warranty", pending_warranty)
+            print("-------------")
             # Actualizar el status de la orden en la base de datos
             if is_complete:
                 if order.status != 'C':
@@ -5302,7 +5305,7 @@ def accounts_receivable_report(request):
                 'total_warranties_paid': total_warranties,
                 'pay_day_warranty': order.pay_day_warranty,
                 'pending_amount': pending_amount,
-                'pending_warranty': pending_warranty,
+                'pending_warranty': str(pending_warranty),
                 'payment_details': payment_details,
                 'warranty_details': warranty_details,
                 'correlative': order.correlative if order.correlative else '-',
@@ -5381,7 +5384,7 @@ def get_client_payment_modal(request):
         
         # Calcular monto pendiente
         pending_amount = order_total - (total_paid + order.total_retention + order.total_warranty)
-        print(pending_amount)
+
         # Verificar si la orden tiene las tres fases
         has_all_phases = order.phase_c and order.phase_d and order.phase_g
         

@@ -112,7 +112,19 @@
                 <td class="align-middle">
                     <div class="row m-0">
                         <!-- Columna izquierda: Pagos de Factura (type='V') -->
-                        <div class="col-md-6 p-1 border-right">
+                        {% if order.total_warranty == 0 and not order.phase_g %}
+                            <!-- Sin garantía: ocupar todo el ancho -->
+                            <div class="col-md-12 p-1">
+                        {% elif order.is_paid and order.total_warranty == 0 %}
+                            <!-- Factura pagada sin garantía: ocupar todo el ancho -->
+                            <div class="col-md-12 p-1">
+                        {% elif order.is_paid and order.is_warranty_complete %}
+                            <!-- Factura pagada y garantía completa: ocupar todo el ancho -->
+                            <div class="col-md-6 p-1">
+                        {% else %}
+                            <!-- Con garantía pendiente: mitad del ancho -->
+                            <div class="col-md-6 p-1 border-right">
+                        {% endif %}
                             <div class="small font-weight-bold mb-1 text-info">
                                 <i class="fas fa-file-invoice-dollar mr-1"></i>FACTURA
                             </div>
@@ -164,60 +176,64 @@
                         </div>
                         
                         <!-- Columna derecha: Pagos de Garantía (type='G') -->
-                        <div class="col-md-6 p-1">
-                            <div class="small font-weight-bold mb-1 text-warning">
-                                <i class="fas fa-shield-alt mr-1"></i>GARANTÍA
-                            </div>
-                            {% if order.warranty_details %}
-                                <div class="payment-details" style="max-height: 150px; overflow-y: auto;">
-                                    {% for warranty in order.warranty_details %}
-                                        <div class="mb-2 p-2 border rounded" style="background-color: #fff9e6; cursor: pointer;"
-                                             onclick="viewPaymentDetail('{{ warranty.loan_payment_id }}', '{{ order.order_id }}', '{{ order.client_id }}')">
-                                            <small class="d-block">
-                                                <i class="fas fa-calendar text-warning mr-1"></i>
-                                                {{ warranty.date|date:"d/m/Y" }}
-                                            </small>
-                                            <small class="d-block">
-                                                <i class="fas fa-money-bill text-success mr-1"></i>
-                                                S/ {{ warranty.amount|replace_round_separator }}
-                                                <span class="badge badge-sm badge-primary ml-1 font-weight-bold" style="background-color: #007bff; color: white; padding: 0.2rem 0.4rem;">{{ warranty.type }}</span>
-                                            </small>
-                                            {% if warranty.operation_code and warranty.operation_code != '-' %}
-                                                <small class="d-block text-muted">
-                                                    <i class="fas fa-hashtag mr-1"></i>{{ warranty.operation_code }}
-                                                </small>
-                                            {% endif %}
-                                            {% if warranty.file %}
-                                                <small class="d-block text-primary">
-                                                    <i class="fas fa-file-check mr-1"></i>Comprobante disponible
-                                                </small>
-                                            {% endif %}
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                <div class="text-muted small">
-                                    <i class="fas fa-exclamation-circle"></i> Sin pagos
-                                </div>
-                            {% endif %}
-                            {% if order.total_warranty > 0 %}
-                                {% if order.is_warranty_complete %}
-                                    <div class="badge badge-info mt-2" style="font-size: 0.7rem; background-color: #17a2b8; color: white;">
-                                        <i class="fas fa-check mr-1"></i>Garantía Pagada
+                        {% if order.total_warranty > 0 or order.phase_g %}
+                            {% if not order.is_paid or order.total_warranty > 0 %}
+                                <div class="col-md-6 p-1">
+                                    <div class="small font-weight-bold mb-1 text-warning">
+                                        <i class="fas fa-shield-alt mr-1"></i>GARANTÍA
                                     </div>
-                                {% else %}
-                                    {% if order.is_paid %}
-                                        <button type="button" class="btn btn-xs btn-warning btn-verify-warranty mt-2"
-                                                data-order-id="{{ order.order_id }}"
-                                                data-client-id="{{ order.client_id }}"
-                                                style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">
-                                            <i class="fas fa-shield-alt mr-1"></i>
-                                            Verificar Garantía
-                                        </button>
+                                    {% if order.warranty_details %}
+                                        <div class="payment-details" style="max-height: 150px; overflow-y: auto;">
+                                            {% for warranty in order.warranty_details %}
+                                                <div class="mb-2 p-2 border rounded" style="background-color: #fff9e6; cursor: pointer;"
+                                                     onclick="viewPaymentDetail('{{ warranty.loan_payment_id }}', '{{ order.order_id }}', '{{ order.client_id }}')">
+                                                    <small class="d-block">
+                                                        <i class="fas fa-calendar text-warning mr-1"></i>
+                                                        {{ warranty.date|date:"d/m/Y" }}
+                                                    </small>
+                                                    <small class="d-block">
+                                                        <i class="fas fa-money-bill text-success mr-1"></i>
+                                                        S/ {{ warranty.amount|replace_round_separator }}
+                                                        <span class="badge badge-sm badge-primary ml-1 font-weight-bold" style="background-color: #007bff; color: white; padding: 0.2rem 0.4rem;">{{ warranty.type }}</span>
+                                                    </small>
+                                                    {% if warranty.operation_code and warranty.operation_code != '-' %}
+                                                        <small class="d-block text-muted">
+                                                            <i class="fas fa-hashtag mr-1"></i>{{ warranty.operation_code }}
+                                                        </small>
+                                                    {% endif %}
+                                                    {% if warranty.file %}
+                                                        <small class="d-block text-primary">
+                                                            <i class="fas fa-file-check mr-1"></i>Comprobante disponible
+                                                        </small>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-muted small">
+                                            <i class="fas fa-exclamation-circle"></i> Sin pagos
+                                        </div>
                                     {% endif %}
-                                {% endif %}
+                                    {% if order.total_warranty > 0 %}
+                                        {% if order.is_warranty_complete %}
+                                            <div class="badge badge-info mt-2" style="font-size: 0.7rem; background-color: #17a2b8; color: white;">
+                                                <i class="fas fa-check mr-1"></i>Garantía Pagada
+                                            </div>
+                                        {% else %}
+                                            {% if order.is_paid %}
+                                                <button type="button" class="btn btn-xs btn-warning btn-verify-warranty mt-2"
+                                                        data-order-id="{{ order.order_id }}"
+                                                        data-client-id="{{ order.client_id }}"
+                                                        style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">
+                                                    <i class="fas fa-shield-alt mr-1"></i>
+                                                    Verificar Garantía
+                                                </button>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
                             {% endif %}
-                        </div>
+                        {% endif %}
                     </div>
                 </td>
                 <td class="align-middle text-center">
