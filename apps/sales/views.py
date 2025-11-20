@@ -5271,10 +5271,10 @@ def accounts_receivable_report(request):
             is_paid = pending_amount == 0
             is_warranty_complete = pending_warranty <= 0 if order.total_warranty > 0 else True
             is_complete = is_paid and is_warranty_complete
-            print("bill", order.serial + order.correlative)
-            print("is_warranty_complete", is_warranty_complete)
-            print("pending_warranty", pending_warranty)
-            print("-------------")
+            # print("bill", order.serial + order.correlative)
+            # print("is_warranty_complete", is_warranty_complete)
+            # print("pending_warranty", pending_warranty)
+            # print("-------------")
             # Actualizar el status de la orden en la base de datos
             if is_complete:
                 if order.status != 'C':
