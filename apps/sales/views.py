@@ -25,7 +25,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models.fields.files import ImageFieldFile
 from django.template import loader
 from datetime import datetime, timedelta
-from django.db import DatabaseError, IntegrityError
+from django.db import DatabaseError, IntegrityError, transaction
 from django.core import serializers
 from apps.sales.views_SUNAT import send_bill_nubefact, send_receipt_nubefact, query_apis_net_dni_ruc
 from apps.sales.number_to_letters import numero_a_letras, numero_a_moneda
@@ -981,269 +981,209 @@ def get_correlative_by_subsidiary(subsidiary_obj=None, serial=None):
 @csrf_exempt
 def save_order(request):
     if request.method == 'POST':
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        try:
+            with transaction.atomic():
+                user_id = request.user.id
+                user_obj = User.objects.get(id=user_id)
+                subsidiary_obj = get_subsidiary_by_user(user_obj)
 
-        _order_id = request.POST.get('order', '')
-        _guide_id = request.POST.get('guide_id', '')
-        _client_id = request.POST.get('client-id', '')
-        _type_payment = request.POST.get('transaction_payment_type', '')
-        # _serial = request.POST.get('serial', '')
-        _serial_text = request.POST.get('serial_text', '')
-        _correlative = request.POST.get('correlative', '')
-        _observation = request.POST.get('observation', '')
-        _type_document = request.POST.get('type_document', '')
-        _date = request.POST.get('date', '')
-        _sum_total = request.POST.get('sum-total', '')
+                _order_id = request.POST.get('order', '')
+                _guide_id = request.POST.get('guide_id', '')
+                _client_id = request.POST.get('client-id', '')
+                _type_payment = request.POST.get('transaction_payment_type', '')
+                # _serial = request.POST.get('serial', '')
+                _serial_text = request.POST.get('serial_text', '')
+                _correlative = request.POST.get('correlative', '')
+                _observation = request.POST.get('observation', '')
+                _type_document = request.POST.get('type_document', '')
+                _date = request.POST.get('date', '')
+                _sum_total = request.POST.get('sum-total', '')
 
-        _condition_days = request.POST.get('condition_days', '')
-        _order_buy = request.POST.get('order_buy', '')
-        _cod_unit_exe = request.POST.get('cod_unit_exe', '')
-        _n_contract = request.POST.get('n_contract', '')
+                _condition_days = request.POST.get('condition_days', '')
+                _order_buy = request.POST.get('order_buy', '')
+                _cod_unit_exe = request.POST.get('cod_unit_exe', '')
+                _n_contract = request.POST.get('n_contract', '')
 
-        subsidiary_store_sales_obj = SubsidiaryStore.objects.get(subsidiary=subsidiary_obj, category='V')
-        client_obj = Client.objects.get(pk=int(_client_id))
+                subsidiary_store_sales_obj = SubsidiaryStore.objects.get(subsidiary=subsidiary_obj, category='V')
+                client_obj = Client.objects.get(pk=int(_client_id))
 
-        detail = json.loads(request.POST.get('detail', ''))
-        credit = json.loads(request.POST.get('credit', ''))
+                detail = json.loads(request.POST.get('detail', ''))
+                credit = json.loads(request.POST.get('credit', ''))
 
-        if _order_id == '':
-            order_obj = Order(
-                order_type='V',
-                client=client_obj,
-                serial=_serial_text,
-                user=user_obj,
-                total=decimal.Decimal(_sum_total),
-                status='C',
-                subsidiary_store=subsidiary_store_sales_obj,
-                subsidiary=subsidiary_obj,
-                create_at=_date,
-                # correlative=get_correlative_order(subsidiary_obj, 'V'),
-                correlative=_correlative,
-                way_to_pay_type=_type_payment,
-                observation=_observation,
-                type_document=_type_document,
-                pay_condition=_condition_days,
-                order_buy=_order_buy
-            )
-            order_obj.save()
+                if _order_id == '':
+                    order_obj = Order(
+                        order_type='V',
+                        client=client_obj,
+                        serial=_serial_text,
+                        user=user_obj,
+                        total=decimal.Decimal(_sum_total),
+                        status='C',
+                        subsidiary_store=subsidiary_store_sales_obj,
+                        subsidiary=subsidiary_obj,
+                        create_at=_date,
+                        # correlative=get_correlative_order(subsidiary_obj, 'V'),
+                        correlative=_correlative,
+                        way_to_pay_type=_type_payment,
+                        observation=_observation,
+                        type_document=_type_document,
+                        pay_condition=_condition_days,
+                        order_buy=_order_buy
+                    )
+                    order_obj.save()
 
-            for detail in detail:
-                product_id = int(detail['product'])
-                commentary = str(detail['commentary'])
-                unit_id = int(detail['unit'])
-                quantity = decimal.Decimal(detail['quantity'])
-                price = decimal.Decimal(detail['price'])
-                total = decimal.Decimal(detail['detailTotal'])
-                store_product_id = int(detail['store'])
-                batch_id = detail['batch']
-                product_obj = Product.objects.get(id=product_id)
-                unit_obj = Unit.objects.get(id=unit_id)
-                product_store_obj = ProductStore.objects.get(id=store_product_id)
-                quantity_minimum_unit = calculate_minimum_unit(quantity, unit_obj, product_obj)
+                    for detail in detail:
+                        product_id = int(detail['product'])
+                        commentary = str(detail['commentary'])
+                        unit_id = int(detail['unit'])
+                        quantity = decimal.Decimal(detail['quantity'])
+                        price = decimal.Decimal(detail['price'])
+                        total = decimal.Decimal(detail['detailTotal'])
+                        store_product_id = int(detail['store'])
+                        batch_id = detail['batch']
+                        product_obj = Product.objects.get(id=product_id)
+                        unit_obj = Unit.objects.get(id=unit_id)
+                        product_store_obj = ProductStore.objects.get(id=store_product_id)
+                        quantity_minimum_unit = calculate_minimum_unit(quantity, unit_obj, product_obj)
 
-                order_detail_obj = OrderDetail(
-                    order=order_obj,
-                    product=product_obj,
-                    quantity_sold=quantity,
-                    price_unit=price,
-                    unit=unit_obj,
-                    status='V',
-                    commentary=commentary
-                )
-                order_detail_obj.save()
-                if _type_document == 'F':
-                    type_document = '01'
-                elif _type_payment == 'B':
-                    type_document = '03'
-                else:
-                    type_document = '00'
-
-                # Manejar múltiples lotes separados por comas
-                if batch_id != '0' and batch_id != '':
-                    # Si hay múltiples lotes separados por comas
-                    if ',' in str(batch_id):
-                        batch_ids = [bid.strip() for bid in str(batch_id).split(',')]
-                        # Obtener los lotes y sus cantidades desde GuideDetailBatch
-                        guide_detail_id = detail.get('guide_detail', '')
-                        if guide_detail_id:
-                            guide_detail_obj = GuideDetail.objects.get(id=guide_detail_id)
-                            batch_details = guide_detail_obj.batch_details.all()
-                            
-                            # Usar la nueva función para múltiples lotes
-                            kardex_ouput_multi_batch(
-                                product_store_obj.id, 
-                                quantity_minimum_unit,
-                                order_detail_obj=order_detail_obj,
-                                type_document=type_document, 
-                                type_operation='01', 
-                                batch_details=batch_details
-                            )
+                        order_detail_obj = OrderDetail(
+                            order=order_obj,
+                            product=product_obj,
+                            quantity_sold=quantity,
+                            price_unit=price,
+                            unit=unit_obj,
+                            status='V',
+                            commentary=commentary
+                        )
+                        order_detail_obj.save()
+                        if _type_document == 'F':
+                            type_document = '01'
+                        elif _type_payment == 'B':
+                            type_document = '03'
                         else:
-                            # Fallback: usar el primer lote disponible
-                            first_batch_id = batch_ids[0]
-                            batch_obj = Batch.objects.get(id=int(first_batch_id))
+                            type_document = '00'
+
+                        # Manejar múltiples lotes separados por comas
+                        if batch_id != '0' and batch_id != '':
+                            # Si hay múltiples lotes separados por comas
+                            if ',' in str(batch_id):
+                                batch_ids = [bid.strip() for bid in str(batch_id).split(',')]
+                                # Obtener los lotes y sus cantidades desde GuideDetailBatch
+                                guide_detail_id = detail.get('guide_detail', '')
+                                if guide_detail_id:
+                                    guide_detail_obj = GuideDetail.objects.get(id=guide_detail_id)
+                                    batch_details = guide_detail_obj.batch_details.all()
+                                    
+                                    # Usar la nueva función para múltiples lotes
+                                    kardex_ouput_multi_batch(
+                                        product_store_obj.id, 
+                                        quantity_minimum_unit,
+                                        order_detail_obj=order_detail_obj,
+                                        type_document=type_document, 
+                                        type_operation='01', 
+                                        batch_details=batch_details
+                                    )
+                                else:
+                                    # Fallback: usar el primer lote disponible
+                                    first_batch_id = batch_ids[0]
+                                    batch_obj = Batch.objects.get(id=int(first_batch_id))
+                                    kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
+                                               type_document=type_document, type_operation='01', batch_obj=batch_obj)
+                            else:
+                                # Un solo lote
+                                batch_obj = Batch.objects.get(id=int(batch_id))
+                                kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
+                                           type_document=type_document, type_operation='01', batch_obj=batch_obj)
+                        else:
+                            # Sin lote específico, usar el lote con menor número
+                            min_batch_number = Batch.objects.filter(
+                                product_store=product_store_obj).aggregate(Min('batch_number'))['batch_number__min']
+
+                            batch_obj = Batch.objects.filter(product_store=product_store_obj,
+                                                             batch_number=min_batch_number).order_by('id').last()
+
                             kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
                                        type_document=type_document, type_operation='01', batch_obj=batch_obj)
-                    else:
-                        # Un solo lote
-                        batch_obj = Batch.objects.get(id=int(batch_id))
-                        kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
-                                   type_document=type_document, type_operation='01', batch_obj=batch_obj)
+
+                        guide_detail_id = detail['guide_detail']
+                        if guide_detail_id:
+                            guide_detail_obj = GuideDetail.objects.get(id=guide_detail_id)
+                            kardex_obj = Kardex.objects.get(order_detail=order_detail_obj)
+                            kardex_obj.guide_detail = guide_detail_obj
+                            kardex_obj.save()
+
                 else:
-                    # Sin lote específico, usar el lote con menor número
-                    min_batch_number = Batch.objects.filter(
-                        product_store=product_store_obj).aggregate(Min('batch_number'))['batch_number__min']
+                    order_obj = save_order_with_order_id(_order_id, client_obj, _serial_text, user_obj, _sum_total, _date,
+                                                         _correlative, _type_payment, _observation, _type_document,
+                                                         subsidiary_store_sales_obj, detail)
 
-                    batch_obj = Batch.objects.filter(product_store=product_store_obj, remaining_quantity__gt=0,
-                                                     batch_number=min_batch_number).order_by('id').last()
+                code_operation = '-'
+                cash_obj = None
+                if _type_payment in ['E', 'D']:
+                    cash_id = request.POST.get('cash_id' if _type_payment == 'E' else 'id_cash_deposit', '')
+                    cash_obj = Cash.objects.get(id=int(cash_id))
 
-                    kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
-                               type_document=type_document, type_operation='01', batch_obj=batch_obj)
+                    if _type_payment == 'D':
+                        code_operation = request.POST.get('code-operation', '')
 
-                guide_detail_id = detail['guide_detail']
-                if guide_detail_id:
-                    guide_detail_obj = GuideDetail.objects.get(id=guide_detail_id)
-                    kardex_obj = Kardex.objects.get(order_detail=order_detail_obj)
-                    kardex_obj.guide_detail = guide_detail_obj
-                    kardex_obj.save()
+                    loan_payment_obj = LoanPayment(
+                        pay=decimal.Decimal(_sum_total),
+                        order=order_obj,
+                        create_at=_date,
+                        type='V',
+                        operation_date=_date
+                    )
+                    loan_payment_obj.save()
 
-        else:
-            order_obj = save_order_with_order_id(_order_id, client_obj, _serial_text, user_obj, _sum_total, _date,
-                                                 _correlative, _type_payment, _observation, _type_document,
-                                                 subsidiary_store_sales_obj, detail)
+                    transaction_payment_obj = TransactionPayment(
+                        payment=decimal.Decimal(_sum_total),
+                        type=_type_payment,
+                        operation_code=code_operation,
+                        loan_payment=loan_payment_obj
+                    )
+                    transaction_payment_obj.save()
 
-        code_operation = '-'
-        cash_obj = None
-        if _type_payment in ['E', 'D']:
-            cash_id = request.POST.get('cash_id' if _type_payment == 'E' else 'id_cash_deposit', '')
-            cash_obj = Cash.objects.get(id=int(cash_id))
+                    cash_flow_obj = CashFlow(
+                        transaction_date=_date,
+                        description=f"{order_obj.subsidiary.serial}-{str(order_obj.correlative).zfill(6)}",
+                        document_type_attached='T',
+                        type=_type_payment,
+                        total=_sum_total,
+                        operation_code=code_operation,
+                        order=order_obj,
+                        user=user_obj,
+                        cash=cash_obj
+                    )
+                    cash_flow_obj.save()
 
-            if _type_payment == 'D':
-                code_operation = request.POST.get('code-operation', '')
+                elif _type_payment == 'C':
+                    for c in credit:
+                        PaymentFees.objects.create(date=c['date'], order=order_obj,
+                                                   amount=decimal.Decimal(c['amount']))
 
-            loan_payment_obj = LoanPayment(
-                pay=decimal.Decimal(_sum_total),
-                order=order_obj,
-                create_at=_date,
-                type='V',
-                operation_date=_date
-            )
-            loan_payment_obj.save()
+                correlative_no_zeros = _correlative.lstrip('0')
+                subsidiary_serial = SubsidiarySerial.objects.filter(subsidiary=subsidiary_obj, serial=_serial_text,
+                                                                    type_document=_type_document).last()
+                subsidiary_serial.correlative = int(correlative_no_zeros)
+                subsidiary_serial.save()
 
-            transaction_payment_obj = TransactionPayment(
-                payment=decimal.Decimal(_sum_total),
-                type=_type_payment,
-                operation_code=code_operation,
-                loan_payment=loan_payment_obj
-            )
-            transaction_payment_obj.save()
+                if _guide_id:
+                    guide_obj = Guide.objects.get(pk=int(_guide_id))
+                    contract_detail_obj = ContractDetail.objects.get(id=guide_obj.contract_detail.id)
+                    contract_detail_obj.order = order_obj
+                    contract_detail_obj.save()
 
-            cash_flow_obj = CashFlow(
-                transaction_date=_date,
-                description=f"{order_obj.subsidiary.serial}-{str(order_obj.correlative).zfill(6)}",
-                document_type_attached='T',
-                type=_type_payment,
-                total=_sum_total,
-                operation_code=code_operation,
-                order=order_obj,
-                user=user_obj,
-                cash=cash_obj
-            )
-            cash_flow_obj.save()
+                return JsonResponse({
+                    'message': 'Venta generada',
+                    'order_id': order_obj.id,
+                    'guide': _guide_id
+                }, status=HTTPStatus.OK)
 
-        elif _type_payment == 'C':
-            for c in credit:
-                PaymentFees.objects.create(date=c['date'], order=order_obj,
-                                           amount=decimal.Decimal(c['amount']))
+        except Exception as e:
+            return JsonResponse({
+                'message': f'Error al guardar la orden: {str(e)}',
+                'error': True
+            }, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-        correlative_no_zeros = _correlative.lstrip('0')
-        subsidiary_serial = SubsidiarySerial.objects.filter(subsidiary=subsidiary_obj, serial=_serial_text,
-                                                            type_document=_type_document).last()
-        subsidiary_serial.correlative = int(correlative_no_zeros)
-        subsidiary_serial.save()
-
-        if _guide_id:
-            guide_obj = Guide.objects.get(pk=int(_guide_id))
-            contract_detail_obj = ContractDetail.objects.get(id=guide_obj.contract_detail.id)
-            contract_detail_obj.order = order_obj
-            contract_detail_obj.save()
-
-        # if _type == 'E':
-        #     if _bill_type == 'F':
-        #         r = send_bill_nubefact(order_sale_obj.id)
-        #         msg_sunat = r.get('sunat_description')
-        #         sunat_pdf = r.get('enlace_del_pdf')
-        #         codigo_hash = r.get('codigo_hash')
-        #         if codigo_hash:
-        #             order_bill_obj = OrderBill(order=order_sale_obj,
-        #                                        serial=r.get('serie'),
-        #                                        type=r.get('tipo_de_comprobante'),
-        #                                        sunat_status=r.get('aceptada_por_sunat'),
-        #                                        sunat_description=r.get('sunat_description'),
-        #                                        user=user_obj,
-        #                                        sunat_enlace_pdf=r.get('enlace_del_pdf'),
-        #                                        code_qr=r.get('cadena_para_codigo_qr'),
-        #                                        code_hash=r.get('codigo_hash'),
-        #                                        n_receipt=r.get('numero'),
-        #                                        status='E',
-        #                                        created_at=order_sale_obj.create_at,
-        #                                        is_demo=value_is_demo
-        #                                        )
-        #             order_bill_obj.save()
-        #         else:
-        #             objects_to_delete = OrderDetail.objects.filter(order=order_sale_obj)
-        #             objects_to_delete.delete()
-        #             order_sale_obj.delete()
-        #             if r.get('errors'):
-        #                 data = {'error': str(r.get('errors'))}
-        #             elif r.get('error'):
-        #                 data = {'error': str(r.get('error'))}
-        #             response = JsonResponse(data)
-        #             response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        #             return response
-        #
-        #     elif _bill_type == 'B':
-        #         r = send_receipt_nubefact(order_sale_obj.id, is_demo)
-        #         msg_sunat = r.get('sunat_description')
-        #         sunat_pdf = r.get('enlace_del_pdf')
-        #         codigo_hash = r.get('codigo_hash')
-        #         if codigo_hash:
-        #             order_bill_obj = OrderBill(order=order_sale_obj,
-        #                                        serial=r.get('serie'),
-        #                                        type=r.get('tipo_de_comprobante'),
-        #                                        sunat_status=r.get('aceptada_por_sunat'),
-        #                                        sunat_description=r.get('sunat_description'),
-        #                                        user=user_obj,
-        #                                        sunat_enlace_pdf=r.get('enlace_del_pdf'),
-        #                                        code_qr=r.get('cadena_para_codigo_qr'),
-        #                                        code_hash=r.get('codigo_hash'),
-        #                                        n_receipt=r.get('numero'),
-        #                                        status='E',
-        #                                        created_at=order_sale_obj.create_at,
-        #                                        is_demo=value_is_demo
-        #                                        )
-        #             order_bill_obj.save()
-        #         else:
-        #             objects_to_delete = OrderDetail.objects.filter(order=order_sale_obj)
-        #             objects_to_delete.delete()
-        #             order_sale_obj.delete()
-        #             if r.get('errors'):
-        #                 data = {'error': str(r.get('errors'))}
-        #             elif r.get('error'):
-        #                 data = {'error': str(r.get('error'))}
-        #             response = JsonResponse(data)
-        #             response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        #             return response
-
-        return JsonResponse({
-            'message': 'Venta generada',
-            'order_id': order_obj.id,
-            'guide': _guide_id
-            # 'msg_sunat': msg_sunat,
-            # 'sunat_pdf': sunat_pdf,
-        }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
@@ -1323,13 +1263,8 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
 
 
 def calculate_minimum_unit(quantity, unit_obj, product_obj):
-    product_detail = ProductDetail.objects.filter(
-        product=product_obj).annotate(Min('quantity_minimum')).first()
     product_detail_sent = ProductDetail.objects.get(product=product_obj, unit=unit_obj)
-    if product_detail.quantity_minimum > 1:
-        new_quantity = quantity * product_detail.quantity_minimum
-    else:
-        new_quantity = quantity * product_detail.quantity_minimum * product_detail_sent.quantity_minimum
+    new_quantity = quantity * product_detail_sent.quantity_minimum
     return new_quantity
 
 
@@ -5189,7 +5124,7 @@ def accounts_receivable_report(request):
                 order_type='V',
                 status__in=['P', 'C'],  # Estado de la orden (Pendiente o Completado)
                 status_pay=status_pay_filter  # Estado del pago
-            ).order_by('create_at')
+            )
         else:
             # Traer todas las órdenes (tanto pendientes como completadas)
             orders_query = Order.objects.filter(
@@ -5197,7 +5132,7 @@ def accounts_receivable_report(request):
                 order_type='V',
                 status__in=['P', 'C'],  # Estado de la orden (Pendiente o Completado)
                 status_pay__in=['P', 'C']  # Todas las órdenes de pago
-            ).order_by('create_at')
+            )
 
         if client_id:
             orders_query = orders_query.filter(client_id=client_id)
@@ -5324,7 +5259,7 @@ def accounts_receivable_report(request):
             })
 
         # Ordenar por fecha descendente
-        orders_data.sort(key=lambda x: x['order_date'], reverse=True)
+        orders_data.sort(key=lambda x: x['order_date'])
 
         # Calcular totales
         total_debt = sum([order['order_total'] for order in orders_data])
