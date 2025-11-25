@@ -1,116 +1,163 @@
-<form class="needs-validation" id="new-disbursement-transaction-form" method="POST">
-
+<form class="needs-validation" id="new-disbursement-transaction-form" method="POST" novalidate>
     {% csrf_token %}
-    <div class="row">
-        <div class="col-4">
-            <label for="id-disbursement-cash" class="font-weight-bold">Caja</label>
-            <select class="custom-select"
-                    id="id-disbursement-cash" name="disbursement-cash" required>
-                <option value="" disabled selected>SELECCIONE...</option>
+    
+    <!-- Caja y Saldo Actual (ocultos o en una fila separada) -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="id-disbursement-cash" class="font-weight-bold">
+                <i class="fas fa-cash-register mr-1"></i>Caja:
+            </label>
+            <select class="form-control" id="id-disbursement-cash" name="disbursement-cash" required>
+                <option value="" disabled selected>Seleccione una caja...</option>
                 {% for c in only_cash_set %}
-                    <option value="{{ c.pk }}"
-                            current-balance="{{ c.current_balance|floatformat:2|default_if_none:"0" }}">{{ c.name }}</option>
+                    <option value="{{ c.pk }}" current-balance="{{ c.current_balance|floatformat:2|default:'0' }}">
+                        {{ c.name }}
+                    </option>
                 {% endfor %}
             </select>
-        </div>
-        <div class="col-1">
-            <label class="font-weight-bold">Operación</label>
-            <div class="custom-control custom-radio">
-                <input id="cash-input" name="operationMethod" type="radio" class="custom-control-input" value="E"
-                       checked>
-                <label class="custom-control-label text-uppercase" for="cash-input">Entrada</label>
+            <div class="invalid-feedback">
+                Por favor seleccione una caja.
             </div>
         </div>
-        <div class="col-1">
-            <label>&nbsp;</label>
-            <div class="custom-control custom-radio">
-                <input id="cash-output" name="operationMethod" type="radio" class="custom-control-input" value="S">
-                <label class="custom-control-label text-uppercase" for="cash-output">Salida</label>
-            </div>
-        </div>
-        <div class="col-2">
-            <label>&nbsp;</label>
-            <div class="custom-control">
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" id="invoice-input" disabled>
-                    <label class="custom-control-label text-uppercase" for="invoice-input">Con Factura</label>
-                </div>
-            </div>
+        <div class="col-md-6">
+            <label for="id-disbursement-current-balance" class="font-weight-bold">
+                <i class="fas fa-wallet mr-1"></i>Saldo Actual:
+            </label>
+            <input type="text" class="form-control bg-light text-right font-weight-bold" id="id-disbursement-current-balance" 
+                   name="current-balance" readonly value="0.00" style="font-size: 1.1rem;">
         </div>
     </div>
-    <hr class="mb-3">
 
-    <div class="row">
-        <div class="col-md-6 ">
-            <label for="id-disbursement-description" class="font-weight-bold">Concepto:</label>
-            <input type="text"
-                   class="form-control text-uppercase"
-                   id="id-disbursement-description"
-                   maxlength="100"
-                   name="disbursement-description" required>
+    <hr class="my-4">
+
+    <!-- Primera Fila: Fecha, Concepto, Personal -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label for="id-operation-date" class="font-weight-bold">
+                <i class="fas fa-calendar mr-1"></i>Fecha:
+            </label>
+            <input type="date" class="form-control" id="id-operation-date" name="operation-date"
+                   value="{{ formatdate }}" required>
             <div class="invalid-feedback">
-                Valid value name is required.
+                Por favor seleccione una fecha.
             </div>
         </div>
-        <div class="col-md-6 ">
-            <label for="client_id" class="font-weight-bold">Cliente:</label>
-            <select class="custom-select"
-                    id="client_id" name="client-id" required>
-                <option value="0" selected >seleccione...</option>
+        <div class="col-md-6">
+            <label for="id-disbursement-description" class="font-weight-bold">
+                <i class="fas fa-align-left mr-1"></i>Concepto:
+            </label>
+            <input type="text" class="form-control text-uppercase" id="id-disbursement-description"
+                   maxlength="200" name="disbursement-description" required placeholder="Ingrese el concepto">
+            <div class="invalid-feedback">
+                Por favor ingrese un concepto.
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label for="client_id" class="font-weight-bold">
+                <i class="fas fa-user mr-1"></i>Cliente:
+            </label>
+            <select class="form-control" id="client_id" name="client-id">
+                <option value="0" selected>NINGUNO / RESPONSABLE</option>
                 {% for c in client_set %}
                     <option value="{{ c.id }}">{{ c.names }}</option>
                 {% endfor %}
             </select>
         </div>
-
     </div>
 
-    <hr class="mb-3">
-
-    <div class="row">
-
-        <div class="col-md-6 mb-3">
-            <label for="id-operation-date" class="font-weight-bold">Fecha de registro</label>
-            <input type="date" class="form-control"
-                   id="id-operation-date"
-                   name="operation-date"
-                   value="{{ formatdate }}"
-                   required>
-            <div class="invalid-feedback">
-                Valid date is required.
+    <!-- Segunda Fila: Comprobante, Serie, Número -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="id-document-type" class="font-weight-bold">
+                <i class="fas fa-file-invoice mr-1"></i>Comprobante:
+            </label>
+            <select class="form-control" id="id-document-type" name="document-type">
+                <option value="O" selected>OTRO</option>
+                <option value="F">FACTURA</option>
+                <option value="B">BOLETA DE VENTA</option>
+                <option value="T">TICKET</option>
+                <option value="V">VALE</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="id-serial" class="font-weight-bold">Serie:</label>
+            <input type="text" class="form-control" id="id-serial" name="serial" 
+                   maxlength="5" placeholder="0000" value="0000">
+        </div>
+        <div class="col-md-2">
+            <label for="id-number" class="font-weight-bold">Número:</label>
+            <input type="text" class="form-control" id="id-number" name="number" 
+                   placeholder="0" value="0">
+        </div>
+        <div class="col-md-4">
+            <div class="custom-control custom-checkbox mt-4 pt-2">
+                <input type="checkbox" class="custom-control-input" id="invoice-input">
+                <label class="custom-control-label" for="invoice-input">
+                    <i class="fas fa-file-invoice mr-1"></i>Con Factura (incluye IGV)
+                </label>
             </div>
         </div>
-
-
-        <div class="col-md-2 mb-3 text-right ">
-            <label for="id-disbursement-total">Sub-Total</label>
-            <input type="text"
-                   class="form-control decimal"
-                   id="id_subtotal"
-                   value="0.00"
-                   name="subtotal" readonly>
-        </div>
-
-        <div class="col-md-2 mb-3 text-right">
-            <label for="id-disbursement-total">IGV</label>
-            <input type="text"
-                   class="form-control decimal"
-                   id="igv"
-                   value="0.00"
-                   name="igv" readonly>
-        </div>
-
-        <div class="col-md-2 mb-3 text-right">
-            <label for="id-disbursement-total" class="text-right">Monto</label>
-            <input type="text"
-                   class="form-control decimal text-right"
-                   id="id-disbursement-total"
-                   name="disbursement-total">
-        </div>
-
     </div>
 
+    <!-- Tercera Fila: Operación, Importe, Obs -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label class="font-weight-bold mb-2">
+                <i class="fas fa-exchange-alt mr-1"></i>Operación:
+            </label>
+            <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
+                <label class="btn btn-outline-success active" style="flex: 1;">
+                    <input type="radio" name="operationMethod" id="cash-input" value="E" checked>
+                    <i class="fas fa-arrow-down mr-1"></i>INGRESO
+                </label>
+                <label class="btn btn-outline-danger" style="flex: 1;">
+                    <input type="radio" name="operationMethod" id="cash-output" value="S">
+                    <i class="fas fa-arrow-up mr-1"></i>EGRESO
+                </label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label for="id-disbursement-total" class="font-weight-bold">
+                <i class="fas fa-money-bill-wave mr-1"></i>Importe:
+            </label>
+            <input type="text" class="form-control decimal text-right font-weight-bold" 
+                   id="id-disbursement-total" name="disbursement-total" required 
+                   placeholder="0.00" style="font-size: 1.1rem;">
+            <div class="invalid-feedback">
+                Por favor ingrese un importe válido.
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label for="id_subtotal" class="font-weight-bold">Subtotal:</label>
+            <input type="text" class="form-control decimal text-right bg-light" id="id_subtotal"
+                   value="0.00" name="subtotal" readonly>
+        </div>
+        <div class="col-md-3">
+            <label for="igv" class="font-weight-bold">IGV:</label>
+            <input type="text" class="form-control decimal text-right bg-light" id="igv"
+                   value="0.00" name="igv" readonly>
+        </div>
+    </div>
 
-    <hr class="mb-4">
-    <button class="btn btn-primary btn-lg btn-block" type="submit" id="btn-disbursement-operation-save">Guardar</button>
+    <!-- Cuarta Fila: Observaciones -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <label for="id-observation" class="font-weight-bold">
+                <i class="fas fa-comment-alt mr-1"></i>Obs:
+            </label>
+            <input type="text" class="form-control" id="id-observation" name="observation" 
+                   maxlength="200" placeholder="Observaciones (opcional)">
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    <!-- Botones de acción -->
+    <div class="row">
+        <div class="col-12 text-right">
+            <button class="btn btn-primary btn-lg shadow-sm" type="submit" id="btn-disbursement-operation-save">
+                <i class="fas fa-save mr-2"></i>Guardar
+            </button>
+        </div>
+    </div>
 </form>

@@ -5189,7 +5189,7 @@ def accounts_receivable_report(request):
                 order_type='V',
                 status__in=['P', 'C'],  # Estado de la orden (Pendiente o Completado)
                 status_pay=status_pay_filter  # Estado del pago
-            ).order_by('create_at')
+            ).order_by('id')
         else:
             # Traer todas las órdenes (tanto pendientes como completadas)
             orders_query = Order.objects.filter(
@@ -5197,7 +5197,7 @@ def accounts_receivable_report(request):
                 order_type='V',
                 status__in=['P', 'C'],  # Estado de la orden (Pendiente o Completado)
                 status_pay__in=['P', 'C']  # Todas las órdenes de pago
-            ).order_by('create_at')
+            ).order_by('id')
 
         if client_id:
             orders_query = orders_query.filter(client_id=client_id)

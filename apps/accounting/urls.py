@@ -39,13 +39,9 @@ urlpatterns = [
     path('new_bank_transaction/', login_required(new_bank_transaction), name='new_bank_transaction'),
     path('new_cash_disbursement/', login_required(new_cash_disbursement), name='new_cash_disbursement'),
     path('new_transfer_bank/', login_required(new_transfer_bank), name='new_transfer_bank'),
-    path('get_cash_by_subsidiary/', login_required(get_cash_by_subsidiary), name='get_cash_by_subsidiary'),
-    path('new_cash_transfer_to_cash/', login_required(new_cash_transfer_to_cash), name='new_cash_transfer_to_cash'),
-    path('get_confirm_cash_to_cash_transfer/', login_required(get_confirm_cash_to_cash_transfer), name='get_confirm_cash_to_cash_transfer'),
-    path('new_cash_to_bank/', login_required(new_cash_to_bank), name='new_cash_to_bank'),
-    path('accept_cash_to_cash_transfer/', login_required(accept_cash_to_cash_transfer), name='accept_cash_to_cash_transfer'),
-    path('desist_cash_to_cash_transfer/', login_required(desist_cash_to_cash_transfer), name='desist_cash_to_cash_transfer'),
-    path('new_bank_to_cash_transfer/', login_required(new_bank_to_cash_transfer), name='new_bank_to_cash_transfer'),
+    path('get_cash_flow_for_edit/', login_required(get_cash_flow_for_edit), name='get_cash_flow_for_edit'),
+    path('update_cash_flow/', login_required(update_cash_flow), name='update_cash_flow'),
+    path('cancel_cash_flow/', login_required(cancel_cash_flow), name='cancel_cash_flow'),
 
     # reportes
     path('get_cash_report/', login_required(get_cash_report), name='get_cash_report'),

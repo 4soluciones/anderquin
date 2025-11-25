@@ -1,48 +1,49 @@
-<form class="needs-validation" id="cash-form" method="POST">
-
+<form class="needs-validation" id="cash-form" method="POST" novalidate>
     {% csrf_token %}
 
-    <div class="mb-3">
-        <label for="id-select-cash">Caja</label>
-
-        <select class="custom-select my-1 mr-sm-2" id="id-select-cash" name="select-cash" required>
-            <option value="" disabled selected>SELECCIONE...</option>
-
+    <div class="form-group">
+        <label for="id-select-cash" class="font-weight-bold">
+            <i class="fas fa-cash-register mr-1"></i>Caja:
+        </label>
+        <select class="form-control" id="id-select-cash" name="select-cash" required>
+            <option value="" disabled selected>Seleccione una caja...</option>
             {% for c in only_cash_set %}
                 <option value="{{ c.pk }}">{{ c.name }}</option>
             {% endfor %}
-
         </select>
-
-
         <div class="invalid-feedback">
-            Valid account name is required.
+            Por favor seleccione una caja.
         </div>
     </div>
 
+    <div class="form-group">
+        <label for="cash-amount" class="font-weight-bold">
+            <i class="fas fa-wallet mr-1"></i>Saldo Inicial / Día Anterior:
+        </label>
+        <input type="text" class="form-control bg-light font-weight-bold text-right" 
+               id="cash-amount" name="cash-amount" readonly 
+               style="font-size: 1.1rem;" placeholder="0.00">
+        <small class="form-text text-muted">
+            El saldo se calculará automáticamente al seleccionar la caja.
+        </small>
+    </div>
 
-    <div class="mb-3">
-        <label for="account-value">Saldo inicial/día anterior</label>
-        <input type="text" class="form-control" id="cash-amount" name="cash-amount" readonly>
+    <hr class="my-4">
+
+    <div class="form-group">
+        <label for="cash-date" class="font-weight-bold">
+            <i class="fas fa-calendar mr-1"></i>Fecha de Registro:
+        </label>
+        <input type="date" class="form-control" id="cash-date" name="cash-date" 
+               value="{{ formatdate }}" required>
         <div class="invalid-feedback">
-            Valid value name is required.
+            Por favor seleccione una fecha.
         </div>
     </div>
 
-    <hr class="mb-4">
+    <hr class="my-4">
 
-    <div class="mb-3">
-        <label for="account-created">Fecha de registro</label>
-        <input type="date" class="form-control" id="cash-date" name="cash-date" placeholder="" value="{{ formatdate }}"
-               required="">
-        <div class="invalid-feedback">
-            Valid date is required.
-        </div>
-    </div>
-
-
-    <hr class="mb-4">
-    <button class="btn btn-primary btn-lg btn-block" type="submit" id="btn-save">Aperturar</button>
+    <button class="btn btn-success btn-lg btn-block shadow-sm" type="submit" id="btn-save">
+        <i class="fas fa-box-open mr-2"></i>Aperturar Caja
+    </button>
 </form>
-
-

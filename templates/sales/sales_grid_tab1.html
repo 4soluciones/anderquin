@@ -104,13 +104,11 @@
                             <select class="form-control form-control-sm text-uppercase"
                                     id="client_address"
                                     name="name_address">
-                                {% if guide_obj %}
-                                    <option value="{{ guide_obj.client.clientaddress_set.last.address }}" selected>
-                                        {{ guide_obj.client.clientaddress_set.last.address }}
+                                {% for cd in guide_obj.client.clientaddress_set.all %}
+                                    <option value="{{ cd.address }}" {% if cd.type_adress == 'P' %}selected{% endif %}>
+                                        {{ cd.address }}
                                     </option>
-                                {% else %}
-                                    <option value="" selected disabled>Seleccione una dirección</option>
-                                {% endif %}
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="form-group col-md-2 mb-2 text-uppercase small">

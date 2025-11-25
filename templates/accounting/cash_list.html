@@ -1,79 +1,85 @@
 {% extends 'home.html' %}
 
 {% block title %}
-    Caja
+    Movimientos diarios de Caja
 {% endblock title %}
 
 {% block body %}
     <div class="container-fluid">
-        <div class="row mt-3">
-            <div class="col-sm-6">
-                <form class="form-inline" id="search-form" method="POST">
-                    {% csrf_token %}
-                    <label class="my-1 mr-2" for="id-cash">CAJA :</label>
-                    <select class="custom-select my-1 mr-sm-2" id="id-cash" name="cash" required>
-                        <option value="" disabled selected>SELECCIONE...</option>
-
-                        {% for c in only_cash_set %}
-                            <option value="{{ c.pk }}">{{ c.name }}</option>
-                        {% endfor %}
-
-                    </select>
-
-                    <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>
-                    <input type="date" class="form-control my-1 mr-sm-2" id="id-start-date" name="start-date"
-                           value="{{ formatdate }}">
-                    {##}
-                    {#            <label class="my-1 mr-2" for="id-end-date">Fecha final</label>#}
-                    {#            <input type="date" class="form-control my-1 mr-sm-2" id="id-end-date" name="end-date" readonly#}
-                    {#                   value="{{ formatdate }}">#}
-
-                    <button type="submit" class="btn btn-primary my-1">
-                        <i class="fas fa-search-dollar" id="btn-search"></i> Buscar
-                    </button>
-
-                </form>
-            </div>
-            <div class="col-sm-6">
-
-                <button type="button" class="btn btn-outline-success m-1" data-toggle="modal"
-                        data-target="#modal-account">
-                    <i class="fas fa-box-open"></i> Aperturar
-                </button>
-
-                <button type="button" class="btn btn-outline-success m-1" data-toggle="modal"
-                        data-target="#modal-disbursement" id="in-out">
-                    <i class="fas fa-closed-captioning"></i> Ingresos / Salidas
-                </button>
-
-                <button type="button" class="btn btn-outline-danger m-1" data-toggle="modal"
-                        data-target="#modal-transfers" id="open-transfer-cash">
-                    <i class="fas fa-external-link-square-alt"></i> Traslados
-                </button>
-
-                <button type="button" class="btn btn-outline-danger m-1 confirm-transfer-cash-to-cash">
-                    <i class="fas fa-clipboard-check"></i> Confirmar traslado
-                </button>
-
-                <button type="button" class="btn btn-outline-dark m-1 cash-to-bank" data-toggle="modal"
-                        data-target="#modal-cash-to-bank" id="open-cash-to-bank">
-                    <i class="fas fa-external-link-square-alt"></i> Deposito a Cuenta Bancaria
-                </button>
-
+        <!-- Header Section -->
+        <div class="row mt-4 mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h4 class="mb-0 text-primary">
+                                    <i class="fas fa-cash-register mr-2"></i>Movimientos diarios de Caja
+                                </h4>
+                                <p class="text-muted mb-0 mt-1">Gestión de movimientos diarios de caja</p>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <button type="button" class="btn btn-success btn-lg shadow-sm" data-toggle="modal"
+                                        data-target="#modal-account">
+                                    <i class="fas fa-box-open mr-2"></i>Aperturar Caja
+                                </button>
+                                <button type="button" class="btn btn-primary btn-lg shadow-sm ml-2" data-toggle="modal"
+                                        data-target="#modal-disbursement" id="btn-new-movement">
+                                    <i class="fas fa-plus-circle mr-2"></i>Nuevo Movimiento
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div id="account-grid-list">{% include "accounting/cash_grid_list.html" %}</div>
 
+        <!-- Search Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <form class="form-inline" id="search-form" method="POST">
+                            {% csrf_token %}
+                            <div class="form-group mr-3">
+                                <label class="mr-2 font-weight-bold" for="id-cash">Caja:</label>
+                                <select class="form-control" id="id-cash" name="cash" required style="min-width: 200px;">
+                                    <option value="" disabled selected>Seleccione una caja...</option>
+                                    {% for c in only_cash_set %}
+                                        <option value="{{ c.pk }}">{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group mr-3">
+                                <label class="mr-2 font-weight-bold" for="id-start-date">Fecha:</label>
+                                <input type="date" class="form-control" id="id-start-date" name="start-date"
+                                       value="{{ formatdate }}" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search mr-2" id="btn-search"></i>Buscar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid Section -->
+        <div id="account-grid-list">
+            {% include "accounting/cash_grid_list.html" %}
+        </div>
     </div>
 
-
-    <div class="modal" id="modal-account" tabindex="-1" role="dialog">
-
-        <div class="modal-dialog modal-dialog-centered modal-xl">
-            <div class="modal-content">
-                <div class="modal-header pb-2 pt-2">
-                    <h4 class="modal-title mb-3 mt-3">Abrir Caja</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <!-- Modal Apertura de Caja -->
+    <div class="modal fade" id="modal-account" tabindex="-1" role="dialog" aria-labelledby="modalAccountLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalAccountLabel">
+                        <i class="fas fa-box-open mr-2"></i>Aperturar Caja
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -82,525 +88,490 @@
                 </div>
             </div>
         </div>
-
     </div>
 
-
-    <div class="modal" id="modal-disbursement" tabindex="-1" role="dialog">
-
-        <div class="modal-dialog modal-dialog-centered modal-xl">
-            <div class="modal-content">
-                <div class="modal-header pb-2 pt-2">
-                    <h4 class="modal-title mb-3 mt-3 text-uppercase montserrat">Movimientos caja</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <!-- Modal Movimientos -->
+    <div class="modal fade" id="modal-disbursement" tabindex="-1" role="dialog" aria-labelledby="modalDisbursementLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalDisbursementLabel">
+                        <i class="fas fa-exchange-alt mr-2"></i>Nuevo Movimiento
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body bg-light">
+                <div class="modal-body">
                     {% include "accounting/new_cash_disbursements.html" with formatdate=formatdate %}
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal" id="modal-transfers" tabindex="-1" role="dialog">
-
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header pb-2 pt-2">
-                    <h4 class="modal-title mb-3 mt-3 text-uppercase">Transferencias de Cajas</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <!-- Modal Editar Movimiento -->
+    <div class="modal fade" id="modal-edit-movement" tabindex="-1" role="dialog" aria-labelledby="modalEditLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title" id="modalEditLabel">
+                        <i class="fas fa-edit mr-2"></i>Editar Movimiento
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    {% include "accounting/new_cash_transfers.html" with formatdate=formatdate %}
+                    <form id="edit-movement-form">
+                        {% csrf_token %}
+                        <input type="hidden" id="edit-cash-flow-id" name="cash_flow_id">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit-description" class="font-weight-bold">Concepto:</label>
+                                    <input type="text" class="form-control text-uppercase" id="edit-description" name="description" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="edit-transaction-date" class="font-weight-bold">Fecha:</label>
+                                    <input type="date" class="form-control" id="edit-transaction-date" name="transaction_date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="edit-client" class="font-weight-bold">Cliente:</label>
+                                    <select class="form-control" id="edit-client" name="client_id">
+                                        <option value="0">NINGUNO</option>
+                                        {% for c in client_set %}
+                                            <option value="{{ c.id }}">{{ c.names }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="edit-document-type" class="font-weight-bold">Comprobante:</label>
+                                    <select class="form-control" id="edit-document-type" name="document_type">
+                                        <option value="O">OTRO</option>
+                                        <option value="F">FACTURA</option>
+                                        <option value="B">BOLETA DE VENTA</option>
+                                        <option value="T">TICKET</option>
+                                        <option value="V">VALE</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="edit-serial" class="font-weight-bold">Serie:</label>
+                                    <input type="text" class="form-control" id="edit-serial" name="serial" maxlength="5">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="edit-number" class="font-weight-bold">Número:</label>
+                                    <input type="text" class="form-control" id="edit-number" name="n_receipt">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="edit-total" class="font-weight-bold">Importe:</label>
+                                    <input type="text" class="form-control decimal text-right font-weight-bold" id="edit-total" name="total" required style="font-size: 1.1rem;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="edit-subtotal" class="font-weight-bold">Subtotal:</label>
+                                    <input type="text" class="form-control decimal text-right bg-light" id="edit-subtotal" name="subtotal" value="0.00" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="edit-igv" class="font-weight-bold">IGV:</label>
+                                    <input type="text" class="form-control decimal text-right bg-light" id="edit-igv" name="igv" value="0.00" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mb-0">
+                            <button type="submit" class="btn btn-warning btn-block btn-lg">
+                                <i class="fas fa-save mr-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-    <div class="modal fade" id="modal-confirm-transfers" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle"
-         aria-hidden="true"></div>
 
-    <div class="modal" id="modal-cash-to-bank" tabindex="-1" role="dialog">
-
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header pb-2 pt-2">
-                    <h4 class="modal-title mb-3 mt-3 text-uppercase">Deposito de Caja a Cuenta Bancaria</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <!-- Modal Anular Movimiento -->
+    <div class="modal fade" id="modal-cancel-movement" tabindex="-1" role="dialog" aria-labelledby="modalCancelLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalCancelLabel">
+                        <i class="fas fa-times-circle mr-2"></i>Anular Movimiento
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    {% include "accounting/new_cash_to_bank.html" with formatdate=formatdate %}
+                    <form id="cancel-movement-form">
+                        {% csrf_token %}
+                        <input type="hidden" id="cancel-cash-flow-id" name="cash_flow_id">
+                        <div class="form-group">
+                            <label for="cancel-reason" class="font-weight-bold">Motivo de anulación:</label>
+                            <textarea class="form-control" id="cancel-reason" name="reason" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group mb-0">
+                            <button type="submit" class="btn btn-danger btn-block">
+                                <i class="fas fa-ban mr-2"></i>Confirmar Anulación
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-
 
 {% endblock body %}
 
 {% block extrajs %}
     <script type="text/javascript">
-
-        $('#client_id').select2({
-            theme: 'bootstrap4',
-        });
-
-        $('#cash-output').change(function () {
-            $('#invoice-input').removeAttr('disabled');
-            $("#id-disbursement-total").val('');
-            $("#id_subtotal").val('0.00');
-            $("#igv").val('0.00');
-        });
-
-        $('#cash-input').change(function () {
-            $('#invoice-input').attr('disabled', 'disabled');
-            $('#invoice-input').prop("checked", false);
-            $("#id-disbursement-total").val('');
-            $("#id_subtotal").val('0.00');
-            $("#igv").val('0.00');
-        });
-
-        $('#id-disbursement-total').keyup(function () {
-
-            let subtotal;
-            let igv;
-            let total = $(this).val();
-            if ($("#invoice-input").is(':checked')) {
-                subtotal = total / 1.18;
-                igv = total - subtotal
-                $("#id_subtotal").val(subtotal.toFixed(2));
-                $("#igv").val(igv.toFixed(2));
-            }
-        });
-
-        $('#open-transfer-cash').click(function () {
-            $('#id-cash-origin').val('0');
-            $('#id-subsidiary-origin').val('');
-            $('#id-current-balance').val('');
-            $('#id-cash-destiny').val('0');
-            $('#id-subsidiary-destiny').val('');
-            $('#id-transfer-description').val('');
-        });
-
-        $('#open-cash-to-bank').click(function () {
-            $('#id-cash-origin-deposit').val('0');
-            $('#id-bank-account').val('0');
-            $('#id-current-balance-deposit').val('');
-            $('#id-transfer-subsidiary-destiny').val('')
-            $('#id-deposit-amount').val('');
-            $('#id-description-deposit').val('');
-            $('#id-code-operation-deposit').val('');
-        });
-
-        $('#in-out').click(function () {
-            $('#id-disbursement-cash').val('0');
-            $('#id-disbursement-current-balance').val('');
-            $('#id-disbursement-operation-date').val('');
-            $('#id_subtotal').val('0.00')
-            $('#igv').val('0.00');
-            $('#id-disbursement-total').val('');
-            $('#id-disbursement-description ').val('');
-            $('#cash-input').prop("checked", true);
-            $('#invoice-input').prop("checked", false);
-            $('#invoice-input').attr('disabled', 'disabled');
-        });
-
-
-        $('#search-form').submit(function (event) {
-            event.preventDefault();
-
-            let _data = new FormData($('#search-form').get(0));
-
-            $("#btn-search").attr("disabled", "true");
-
-            $.ajax({
-                url: '/accounting/get_cash_control_list/',
-                type: "POST",
-                data: _data,
-                cache: false,
-                processData: false,
-                contentType: false,
-                success: function (response, textStatus, xhr) {
-                    if (xhr.status === 200) {
-                        $('#account-grid-list').html(response.grid);
-                        toastr.info(response['message'], '¡Bien hecho!');
-                    }
-                },
-                error: function (jqXhr, textStatus, xhr) {
-                    if (jqXhr.status === 500) {
-                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
-                        $('#account-grid-list').html('<div class="alert alert-info alert-dismissible fade show mt-3" role="alert">\n' +
-                            '        <strong>Atencion!</strong> Tu debes ingresar una fecha primero.\n' +
-                            '        <button type="button" class="close" data-dismiss="alert" aria-label="Close">\n' +
-                            '            <span aria-hidden="true">×</span>\n' +
-                            '        </button>\n' +
-                            '    </div>');
-                    }
-                }
+        $(document).ready(function() {
+            // Inicializar Select2 para clientes
+            $('#client_id, #edit-client').select2({
+                theme: 'bootstrap4',
+                width: '100%'
             });
-            $("#btn-search").removeAttr("disabled", "false");
-            $('#search-form').modal('hide');
 
-        });
-
-
-        $('#cash-form').submit(function (event) {
-            event.preventDefault();
-            let data = new FormData($('#cash-form').get(0));
-
-            let _id_date = $('#cash-date').val();
-            let _id_amount = $('#cash-amount').val();
-
-            if (_id_date.length === 0) {
-                toastr.warning('¡Favor seleccionar una fecha!', 'Error de Datos');
-                return false;
-            }
-
-
-            $('#btn-save').attr("disabled", "true");
-
-            $.ajax({
-                url: '/accounting/open_cash/',
-                type: "POST",
-                data: data,
-                cache: false,
-                processData: false,
-                contentType: false,
-                success: function (response, textStatus, xhr) {
-                    if (xhr.status == 200) {
-                        // $('#product-detail-grid').html(response.grid);
-                        $('#modal-account').modal('hide');
-                        toastr.success(response['message'], '¡Bien hecho!');
-                    }
-                },
-                error: function (jqXhr, textStatus, xhr) {
-                    if (jqXhr.status == 500) {
-                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
-                    }
-                }
+            // Limpiar formulario de movimiento al abrir modal
+            $('#btn-new-movement').click(function () {
+                $('#id-disbursement-cash').val('');
+                $('#id-disbursement-current-balance').val('0.00');
+                $('#id-operation-date').val('{{ formatdate }}');
+                $('#id_subtotal').val('0.00');
+                $('#igv').val('0.00');
+                $('#id-disbursement-total').val('');
+                $('#id-disbursement-description').val('');
+                $('#client_id').val('0').trigger('change');
+                $('#id-document-type').val('O');
+                $('#id-serial').val('0000');
+                $('#id-number').val('0');
+                $('#id-observation').val('');
+                $('#cash-input').prop("checked", true);
+                $('#cash-output').prop("checked", false);
+                $('#invoice-input').prop("checked", false);
+                $('#invoice-input').attr('disabled', 'disabled');
             });
-            $('#btn-save').removeAttr("disabled", "false");
 
-        });
+            // Manejo de tipo de operación
+            $('#cash-output').change(function () {
+                $('#invoice-input').removeAttr('disabled');
+                $("#id-disbursement-total").val('');
+                $("#id_subtotal").val('0.00');
+                $("#igv").val('0.00');
+            });
 
-        $(document).on('click', '.cash-update', function () {
+            $('#cash-input').change(function () {
+                $('#invoice-input').attr('disabled', 'disabled');
+                $('#invoice-input').prop("checked", false);
+                $("#id-disbursement-total").val('');
+                $("#id_subtotal").val('0.00');
+                $("#igv").val('0.00');
+            });
 
-
-            let _pk = $(this).attr('pk');
-            let _date = $(this).attr('date');
-            let _status = $(this).attr('status');
-
-
-            $.ajax({
-                url: '/accounting/close_cash/',
-                async: true,
-                dataType: 'json', // for response
-                type: 'GET',
-                data: {'pk': _pk, 'date': _date, 'status': _status},
-                contentType: 'application/json;charset=UTF-8',
-                headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                success: function (response, textStatus, xhr) {
-                    if (xhr.status == 200) {
-                        // $('#product-detail-grid').html(response.grid);
-
-                        $('#modal-account').modal('hide');
-                        toastr.success(response['message'], '¡Bien hecho!');
-                        setTimeout(function () {
-                            location.reload();
-                        }, 1000);
-
-                    }
-                },
-                error: function (jqXhr, textStatus, xhr) {
-                    if (jqXhr.status == 500) {
-                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
-                    }
+            // Cálculo de IGV en formulario nuevo movimiento
+            $('#id-disbursement-total').keyup(function () {
+                let subtotal;
+                let igv;
+                let total = parseFloat($(this).val().replace(/,/g, '')) || 0;
+                if ($("#invoice-input").is(':checked') && total > 0) {
+                    subtotal = total / 1.18;
+                    igv = total - subtotal;
+                    $("#id_subtotal").val(subtotal.toFixed(2));
+                    $("#igv").val(igv.toFixed(2));
+                } else {
+                    $("#id_subtotal").val('0.00');
+                    $("#igv").val('0.00');
                 }
             });
 
+            // Cálculo de IGV en formulario de edición
+            $('#edit-total').keyup(function () {
+                let subtotal;
+                let igv;
+                let total = parseFloat($(this).val().replace(/,/g, '')) || 0;
+                if (total > 0) {
+                    subtotal = total / 1.18;
+                    igv = total - subtotal;
+                    $("#edit-subtotal").val(subtotal.toFixed(2));
+                    $("#edit-igv").val(igv.toFixed(2));
+                } else {
+                    $("#edit-subtotal").val('0.00');
+                    $("#edit-igv").val('0.00');
+                }
+            });
 
-        });
-
-
-        $("#id-select-cash").change(function () {
-
-            if ($("#id-select-cash").val() != '') {
+            // Búsqueda de movimientos
+            $('#search-form').submit(function (event) {
+                event.preventDefault();
+                let _data = new FormData($('#search-form').get(0));
+                $("#btn-search").attr("disabled", "true");
 
                 $.ajax({
-                    url: '/accounting/get_initial_balance/',
+                    url: '/accounting/get_cash_control_list/',
+                    type: "POST",
+                    data: _data,
+                    cache: false,
+                    processData: false,
+                    contentType: false,
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status === 200) {
+                            $('#account-grid-list').html(response.grid);
+                            toastr.success('Movimientos cargados correctamente', 'Éxito');
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        if (jqXhr.status === 500) {
+                            toastr.error(jqXhr.responseJSON.error, 'Error');
+                            $('#account-grid-list').html('<div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">' +
+                                '<strong>¡Atención!</strong> ' + (jqXhr.responseJSON.error || 'No hay operaciones registradas para esta fecha.') +
+                                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                                '<span aria-hidden="true">&times;</span></button></div>');
+                        }
+                    }
+                });
+                $("#btn-search").removeAttr("disabled");
+            });
+
+            // Apertura de caja
+            $('#cash-form').submit(function (event) {
+                event.preventDefault();
+                let data = new FormData($('#cash-form').get(0));
+                let _id_date = $('#cash-date').val();
+
+                if (_id_date.length === 0) {
+                    toastr.warning('¡Favor seleccionar una fecha!', 'Error de Datos');
+                    return false;
+                }
+
+                $('#btn-save').attr("disabled", "true");
+
+                $.ajax({
+                    url: '/accounting/open_cash/',
+                    type: "POST",
+                    data: data,
+                    cache: false,
+                    processData: false,
+                    contentType: false,
+                    success: function (response, textStatus, xhr) {
+                        if (xhr.status == 200) {
+                            $('#modal-account').modal('hide');
+                            toastr.success(response['message'], '¡Éxito!');
+                            $('#cash-form')[0].reset();
+                        }
+                    },
+                    error: function (jqXhr, textStatus, xhr) {
+                        if (jqXhr.status == 500) {
+                            toastr.error(jqXhr.responseJSON.error, 'Error');
+                        }
+                    }
+                });
+                $('#btn-save').removeAttr("disabled");
+            });
+
+            // Cerrar/Abrir caja
+            $(document).on('click', '.cash-update', function () {
+                let _pk = $(this).attr('pk');
+                let _date = $(this).attr('date');
+                let _status = $(this).attr('status');
+
+                $.ajax({
+                    url: '/accounting/close_cash/',
                     async: true,
-                    dataType: 'json', // for response
+                    dataType: 'json',
                     type: 'GET',
-                    data: {'cash': $("#id-select-cash").val()},
+                    data: {'pk': _pk, 'date': _date, 'status': _status},
                     contentType: 'application/json;charset=UTF-8',
                     headers: {"X-CSRFToken": '{{ csrf_token }}'},
                     success: function (response, textStatus, xhr) {
-                        if (xhr.status === 200) {
-                            toastr.success(response.message, '¡Bien hecho!');
-                            $("#cash-amount").val(parseFloat(response.initial_balance).toFixed(2));
-
+                        if (xhr.status == 200) {
+                            toastr.success(response['message'], '¡Éxito!');
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1000);
                         }
                     },
-                    fail: function (response) {
-                        toastr.error("Error. ", '¡Inconcebible!');
+                    error: function (jqXhr, textStatus, xhr) {
+                        if (jqXhr.status == 500) {
+                            toastr.error(jqXhr.responseJSON.error, 'Error');
+                        }
                     }
                 });
-            }
-        });
+            });
 
-        $('#id-start-date').change(function () {
-            $('#id-end-date').val($(this).val());
-        });
-
-
-        $('#id-disbursement-cash').change(function () {
-            $('#id-disbursement-current-balance').val($(this).find('option:selected').attr('current-balance'));
-        });
-
-
-        $('#new-disbursement-transaction-form').submit(function (event) {
-            event.preventDefault();
-            let data = new FormData($('#new-disbursement-transaction-form').get(0));
-
-            $('#btn-disbursement-operation-save').attr("disabled", "true");
-
-            $.ajax({
-                url: '/accounting/new_cash_disbursement/',
-                type: "POST",
-                data: data,
-                cache: false,
-                processData: false,
-                contentType: false,
-                success: function (response, textStatus, xhr) {
-                    if (xhr.status === 200) {
-                        // $('#product-detail-grid').html(response.grid);
-                        $('#modal-disbursement').modal('hide');
-                        toastr.success(response['message'], '¡Bien hecho!');
-                    }
-                },
-                error: function (jqXhr, textStatus, xhr) {
-                    if (jqXhr.status === 500) {
-                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
-                    }
+            // Obtener saldo inicial
+            $("#id-select-cash").change(function () {
+                if ($("#id-select-cash").val() != '') {
+                    $.ajax({
+                        url: '/accounting/get_initial_balance/',
+                        async: true,
+                        dataType: 'json',
+                        type: 'GET',
+                        data: {'cash': $("#id-select-cash").val()},
+                        contentType: 'application/json;charset=UTF-8',
+                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                        success: function (response, textStatus, xhr) {
+                            if (xhr.status === 200) {
+                                $("#cash-amount").val(parseFloat(response.initial_balance).toFixed(2));
+                            }
+                        },
+                        error: function (response) {
+                            toastr.error("Error al obtener el saldo", 'Error');
+                        }
+                    });
                 }
             });
-            $('#btn-disbursement-operation-save').removeAttr("disabled", "false");
-        });
 
-        $('#new-transfers-transaction-form').submit(function (event) {
-            event.preventDefault();
-            let data = new FormData($('#new-transfers-transaction-form').get(0));
-
-            $('#btn-disbursement-operation-save').attr("disabled", "true");
-
-            $.ajax({
-                url: '/accounting/new_cash_disbursement/',
-                type: "POST",
-                data: data,
-                cache: false,
-                processData: false,
-                contentType: false,
-                success: function (response, textStatus, xhr) {
-                    if (xhr.status == 200) {
-                        // $('#product-detail-grid').html(response.grid);
-                        $('#modal-transfers').modal('hide');
-                        toastr.success(response['message'], '¡Bien hecho!');
-                    }
-                },
-                error: function (jqXhr, textStatus, xhr) {
-                    if (jqXhr.status == 500) {
-                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
-                    }
-                }
+            // Obtener saldo actual al seleccionar caja en movimiento
+            $('#id-disbursement-cash').change(function () {
+                $('#id-disbursement-current-balance').val($(this).find('option:selected').attr('current-balance'));
             });
-            $('#btn-disbursement-operation-save').removeAttr("disabled", "false");
-        });
 
-        $("#id-cash-origin").change(function () {
-
-            if ($("#id-cash-origin").val() != '') {
+            // Guardar movimiento
+            $('#new-disbursement-transaction-form').submit(function (event) {
+                event.preventDefault();
+                let data = new FormData($('#new-disbursement-transaction-form').get(0));
+                $('#btn-disbursement-operation-save').attr("disabled", "true");
 
                 $.ajax({
-                    url: '/accounting/get_cash_by_subsidiary/',
-                    async: true,
-                    dataType: 'json', // for response
-                    type: 'GET',
-                    data: {'cash_id': $("#id-cash-origin").val()},
-                    contentType: 'application/json;charset=UTF-8',
-                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                    url: '/accounting/new_cash_disbursement/',
+                    type: "POST",
+                    data: data,
+                    cache: false,
+                    processData: false,
+                    contentType: false,
                     success: function (response, textStatus, xhr) {
                         if (xhr.status === 200) {
-                            toastr.success(response.message, '¡Bien hecho!');
-                            $("#id-subsidiary-origin").val(response.cash_subsidiary);
-
+                            $('#modal-disbursement').modal('hide');
+                            toastr.success(response['message'], '¡Éxito!');
+                            $('#new-disbursement-transaction-form')[0].reset();
+                            // Recargar grid si hay búsqueda activa
+                            if ($('#id-cash').val() && $('#id-start-date').val()) {
+                                $('#search-form').submit();
+                            }
                         }
                     },
-                    fail: function (response) {
-                        toastr.error("Error. ", '¡Inconcebible!');
+                    error: function (jqXhr, textStatus, xhr) {
+                        if (jqXhr.status === 500) {
+                            toastr.error(jqXhr.responseJSON.error, 'Error');
+                        }
                     }
                 });
-            }
-        });
-        $("#id-cash-destiny").change(function () {
+                $('#btn-disbursement-operation-save').removeAttr("disabled");
+            });
 
-            if ($("#id-cash-destiny").val() != '') {
+            // Editar movimiento
+            $(document).on('click', '.btn-edit-movement', function () {
+                let cash_flow_id = $(this).data('id');
+                
+                $.ajax({
+                    url: '/accounting/get_cash_flow_for_edit/',
+                    type: 'GET',
+                    data: {'cash_flow_id': cash_flow_id},
+                    success: function (response) {
+                        if (response.success) {
+                            let data = response.data;
+                            $('#edit-cash-flow-id').val(data.id);
+                            $('#edit-description').val(data.description);
+                            $('#edit-total').val(data.total);
+                            $('#edit-subtotal').val(data.subtotal || '0.00');
+                            $('#edit-igv').val(data.igv || '0.00');
+                            $('#edit-transaction-date').val(data.transaction_date);
+                            $('#edit-client').val(data.client_id || '0').trigger('change');
+                            $('#edit-document-type').val(data.document_type || 'O');
+                            $('#edit-serial').val(data.serial || '0000');
+                            $('#edit-number').val(data.n_receipt || '0');
+                            $('#modal-edit-movement').modal('show');
+                        }
+                    },
+                    error: function (jqXhr) {
+                        toastr.error(jqXhr.responseJSON.error || 'Error al cargar el movimiento', 'Error');
+                    }
+                });
+            });
+
+            // Guardar edición
+            $('#edit-movement-form').submit(function (event) {
+                event.preventDefault();
+                let data = new FormData($('#edit-movement-form').get(0));
 
                 $.ajax({
-                    url: '/accounting/get_cash_by_subsidiary/',
-                    async: true,
-                    dataType: 'json', // for response
-                    type: 'GET',
-                    data: {'cash_id': $("#id-cash-destiny").val()},
-                    contentType: 'application/json;charset=UTF-8',
-                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                    success: function (response, textStatus, xhr) {
-                        if (xhr.status === 200) {
-                            toastr.success(response.message, '¡Bien hecho!');
-                            $("#id-subsidiary-destiny").val(response.cash_subsidiary);
-
+                    url: '/accounting/update_cash_flow/',
+                    type: 'POST',
+                    data: data,
+                    cache: false,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (response.success) {
+                            $('#modal-edit-movement').modal('hide');
+                            toastr.success(response.message, '¡Éxito!');
+                            // Recargar grid
+                            if ($('#id-cash').val() && $('#id-start-date').val()) {
+                                $('#search-form').submit();
+                            }
                         }
                     },
-                    fail: function (response) {
-                        toastr.error("Error. ", '¡Inconcebible!');
+                    error: function (jqXhr) {
+                        toastr.error(jqXhr.responseJSON.error || 'Error al actualizar el movimiento', 'Error');
                     }
                 });
-            }
-        });
+            });
 
-        $("#id-cash-origin").change(function () {
+            // Anular movimiento
+            $(document).on('click', '.btn-cancel-movement', function () {
+                let cash_flow_id = $(this).data('id');
+                $('#cancel-cash-flow-id').val(cash_flow_id);
+                $('#cancel-reason').val('');
+                $('#modal-cancel-movement').modal('show');
+            });
 
-            if ($("#id-cash-origin").val() != '') {
+            // Confirmar anulación
+            $('#cancel-movement-form').submit(function (event) {
+                event.preventDefault();
+                let data = new FormData($('#cancel-movement-form').get(0));
 
                 $.ajax({
-                    url: '/accounting/get_initial_balance/',
-                    async: true,
-                    dataType: 'json', // for response
-                    type: 'GET',
-                    data: {'cash': $("#id-cash-origin").val()},
-                    contentType: 'application/json;charset=UTF-8',
-                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                    success: function (response, textStatus, xhr) {
-                        if (xhr.status === 200) {
-                            toastr.success(response.message, '¡Bien hecho!');
-                            $("#id-current-balance").val(parseFloat(response.initial_balance).toFixed(2));
-
+                    url: '/accounting/cancel_cash_flow/',
+                    type: 'POST',
+                    data: data,
+                    cache: false,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (response.success) {
+                            $('#modal-cancel-movement').modal('hide');
+                            toastr.success(response.message, '¡Éxito!');
+                            // Recargar grid
+                            if ($('#id-cash').val() && $('#id-start-date').val()) {
+                                $('#search-form').submit();
+                            }
                         }
                     },
-                    fail: function (response) {
-                        toastr.error("Error. ", '¡Inconcebible!');
+                    error: function (jqXhr) {
+                        toastr.error(jqXhr.responseJSON.error || 'Error al anular el movimiento', 'Error');
                     }
                 });
-            }
-        });
-
-        $('#new-transfer-form').submit(function (event) {
-            event.preventDefault();
-            let data = new FormData($('#new-transfer-form').get(0));
-
-            $('#btn-transfer-cash-save').attr("disabled", "true");
-
-            $.ajax({
-                url: '/accounting/new_cash_transfer_to_cash/',
-                type: "POST",
-                data: data,
-                cache: false,
-                processData: false,
-                contentType: false,
-                success: function (response, textStatus, xhr) {
-                    if (xhr.status == 200) {
-                        // $('#product-detail-grid').html(response.grid);
-                        $('#modal-transfers').modal('hide');
-                        toastr.success(response['message'], '¡Bien hecho!');
-                    }
-                },
-                error: function (jqXhr, textStatus, xhr) {
-                    if (jqXhr.status == 500) {
-                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
-                    }
-                }
-            });
-            $('#btn-transfer-cash-save').removeAttr("disabled", "false");
-        });
-
-        $(document).on('click', '.confirm-transfer-cash-to-cash', function () {
-
-            $.ajax({
-                url: '/accounting/get_confirm_cash_to_cash_transfer/',
-                dataType: 'json',
-                type: 'GET',
-
-                success: function (response) {
-                    console.log(response);
-                    if (response.success) {
-                        $('#modal-confirm-transfers').html(response.grid);
-                        $('#modal-confirm-transfers').modal('show');
-                    }
-                },
-                fail: function (response) {
-                    console.log(response);
-                }
             });
         });
-
-        $("#id-cash-origin-deposit").change(function () {
-
-            if ($("#id-cash-origin-deposit").val() != '') {
-
-                $.ajax({
-                    url: '/accounting/get_initial_balance/',
-                    async: true,
-                    dataType: 'json', // for response
-                    type: 'GET',
-                    data: {'cash': $("#id-cash-origin-deposit").val()},
-                    contentType: 'application/json;charset=UTF-8',
-                    headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                    success: function (response, textStatus, xhr) {
-                        if (xhr.status === 200) {
-                            toastr.success(response.message, '¡Bien hecho!');
-                            $("#id-current-balance-deposit").val(parseFloat(response.initial_balance).toFixed(2));
-
-                        }
-                    },
-                    fail: function (response) {
-                        toastr.error("Error. ", '¡Inconcebible!');
-                    }
-                });
-            }
-        });
-
-        $('#new-cash-to-bank-form').submit(function (event) {
-            event.preventDefault();
-            let data = new FormData($('#new-cash-to-bank-form').get(0));
-
-            $('#btn-deposit-cash-to-bank-sav').attr("disabled", "true");
-
-            $.ajax({
-                url: '/accounting/new_cash_to_bank/',
-                type: "POST",
-                data: data,
-                cache: false,
-                processData: false,
-                contentType: false,
-                success: function (response, textStatus, xhr) {
-                    if (xhr.status == 200) {
-                        // $('#product-detail-grid').html(response.grid);
-                        $('#modal-cash-to-bank').modal('hide');
-                        toastr.success(response['message'], '¡Bien hecho!');
-                    }
-                },
-                error: function (jqXhr, textStatus, xhr) {
-                    if (jqXhr.status == 500) {
-                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
-                    }
-                }
-            });
-            $('#btn-deposit-cash-to-bank-sav').removeAttr("disabled", "false");
-        });
-
-
     </script>
 {% endblock extrajs %}

@@ -548,29 +548,15 @@ def get_cash_control_list(request):
         cash_set = Cash.objects.filter(subsidiary=subsidiary_obj)
         only_cash_set = cash_set.filter(accounting_account__code__startswith='101')
 
-        cash_all_set = Cash.objects.filter(accounting_account__code__startswith='101').exclude(
-            subsidiary=subsidiary_obj).order_by('id')
-
-        accounts_banks_set = Cash.objects.filter(accounting_account__code__startswith='104')
-
         return render(request, 'accounting/cash_list.html', {
             'formatdate': formatdate,
             'only_cash_set': only_cash_set,
             'client_set': client_set,
-            'cash_all_set': cash_all_set,
-            'accounts_banks_set': accounts_banks_set,
-            'choices_operation_types': CashFlow._meta.get_field('operation_type').choices,
         })
     elif request.method == 'POST':
         id_cash = int(request.POST.get('cash'))
         start_date = str(request.POST.get('start-date'))
-        # end_date = str(request.POST.get('end-date'))
         cash_flow_set = CashFlow.objects.filter(transaction_date__date=start_date, cash__id=id_cash).order_by('id')
-        # if start_date == end_date:
-        #     cash_flow_set = CashFlow.objects.filter(transaction_date__date=start_date, cash__id=id_cash).order_by('id')
-        # else:
-        #     cash_flow_set = CashFlow.objects.filter(transaction_date__date__range=[start_date, end_date],
-        #                                             cash__id=id_cash).order_by('id')
 
         has_rows = False
         if cash_flow_set:
@@ -581,13 +567,32 @@ def get_cash_control_list(request):
             response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
             return response
 
+        # Calcular totales
+        opening_flow = cash_flow_set.filter(type='A').first()
+        initial_balance = decimal.Decimal('0.00')
+        if opening_flow:
+            initial_balance = opening_flow.total
+        
+        # Calcular totales de entradas y salidas (excluyendo apertura y cierre)
+        movements = cash_flow_set.exclude(type__in=['A', 'C'])
+        total_inputs = movements.filter(type='E').aggregate(total=Coalesce(Sum('total'), decimal.Decimal('0.00')))['total'] or decimal.Decimal('0.00')
+        total_outputs = movements.filter(type='S').aggregate(total=Coalesce(Sum('total'), decimal.Decimal('0.00')))['total'] or decimal.Decimal('0.00')
+        
+        # Saldo final = saldo inicial + entradas - salidas
+        final_balance = initial_balance + total_inputs - total_outputs
+
         tpl = loader.get_template('accounting/cash_grid_list.html')
         context = ({
             'cash_flow_set': cash_flow_set,
-            'has_rows': has_rows
+            'has_rows': has_rows,
+            'initial_balance': initial_balance,
+            'total_inputs': total_inputs,
+            'total_outputs': total_outputs,
+            'final_balance': final_balance
         })
         return JsonResponse({
             'grid': tpl.render(context, request),
+            'message': 'Movimientos cargados correctamente'
         }, status=HTTPStatus.OK)
 
 
@@ -600,17 +605,6 @@ def get_account_cash():
         amount = ledge_entry_obj.amount
     context = {'account': account_obj, 'amount': amount}
     return context
-
-
-def get_cash_by_subsidiary(request):
-    if request.method == 'GET':
-        pk = request.GET.get('cash_id', '')
-        cash_obj = Cash.objects.get(id=pk)
-        cash_subsidiary = cash_obj.subsidiary.name
-        only_cash_set = AccountingAccount.objects.filter(code__startswith='10').order_by('code')
-
-        return JsonResponse({'cash_subsidiary': cash_subsidiary}, status=HTTPStatus.OK)
-    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
 def open_cash(request):
@@ -975,18 +969,22 @@ def new_cash_disbursement(request):
     if request.method == 'POST':
         _cash = request.POST.get('disbursement-cash')
         _date = request.POST.get('operation-date')
-        _total = decimal.Decimal(request.POST.get('disbursement-total'))
+        _total = decimal.Decimal(request.POST.get('disbursement-total').replace(',', ''))
         _description = request.POST.get('disbursement-description')
         _operation_method = request.POST.get('operationMethod')
-        client = request.POST.get('client-id')
+        client = request.POST.get('client-id', '0')
         _igv = request.POST.get('igv', '0.00')
         _sub_total = request.POST.get('subtotal', '0.00')
+        _document_type = request.POST.get('document-type', 'O')
+        _serial = request.POST.get('serial', '0000')
+        _number = request.POST.get('number', '0')
+        _observation = request.POST.get('observation', '')
 
         cash_obj = Cash.objects.get(id=int(_cash))
 
         cash_flow_set = CashFlow.objects.filter(transaction_date__date=_date, cash=cash_obj)
         client_obj = None
-        if client != '0':
+        if client and client != '0':
             client_obj = Client.objects.get(id=int(client))
 
         if cash_flow_set:
@@ -1000,17 +998,24 @@ def new_cash_disbursement(request):
                 user_id = request.user.id
                 user_obj = User.objects.get(id=user_id)
 
+                # Si hay observaciones, agregarlas a la descripción
+                if _observation:
+                    _description = f"{_description} - {_observation}"
+
                 cash_flow_obj = CashFlow(
                     transaction_date=_date,
                     cash=cash_obj,
                     description=_description,
                     total=_total,
                     operation_type='0',
-                    igv=_igv,
-                    subtotal=_sub_total,
+                    igv=decimal.Decimal(_igv.replace(',', '')) if _igv else decimal.Decimal('0.00'),
+                    subtotal=decimal.Decimal(_sub_total.replace(',', '')) if _sub_total else decimal.Decimal('0.00'),
                     user=user_obj,
                     type=_operation_method,
-                    client=client_obj
+                    client=client_obj,
+                    document_type_attached=_document_type,
+                    serial=_serial,
+                    n_receipt=int(_number) if _number and _number.isdigit() else 0
                 )
                 cash_flow_obj.save()
 
@@ -1026,192 +1031,176 @@ def new_cash_disbursement(request):
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
-def new_cash_transfer_to_cash(request):
+def get_cash_flow_for_edit(request):
+    """Obtiene los datos de un movimiento de caja para editar"""
+    if request.method == 'GET':
+        cash_flow_id = request.GET.get('cash_flow_id', '')
+        try:
+            cash_flow_obj = CashFlow.objects.get(id=int(cash_flow_id))
+            
+            # No permitir editar aperturas o cierres
+            if cash_flow_obj.type in ['A', 'C']:
+                return JsonResponse({
+                    'error': 'No se puede editar una apertura o cierre de caja'
+                }, status=HTTPStatus.BAD_REQUEST)
+            
+            data = {
+                'id': cash_flow_obj.id,
+                'description': cash_flow_obj.description,
+                'total': str(cash_flow_obj.total),
+                'subtotal': str(cash_flow_obj.subtotal),
+                'igv': str(cash_flow_obj.igv),
+                'transaction_date': cash_flow_obj.transaction_date.strftime('%Y-%m-%d'),
+                'type': cash_flow_obj.type,
+                'client_id': cash_flow_obj.client.id if cash_flow_obj.client else None,
+                'document_type': cash_flow_obj.document_type_attached or 'O',
+                'serial': cash_flow_obj.serial or '0000',
+                'n_receipt': cash_flow_obj.n_receipt or 0,
+            }
+            
+            return JsonResponse({
+                'success': True,
+                'data': data
+            }, status=HTTPStatus.OK)
+        except CashFlow.DoesNotExist:
+            return JsonResponse({
+                'error': 'Movimiento no encontrado'
+            }, status=HTTPStatus.NOT_FOUND)
+    return JsonResponse({'error': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def update_cash_flow(request):
+    """Actualiza un movimiento de caja"""
     if request.method == 'POST':
-        _date = request.POST.get('transfer-date')
-        _cash_origin = request.POST.get('cash-origin')
-        _cash_destiny = request.POST.get('cash-destiny')
-        _amount = request.POST.get('transfer-total-amount')
-        _concept = request.POST.get('transfer-description')
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-
-        # COMPROBANDO QUE LAS CAJAS ESTEN ABIERTAS
-        cashflow_set = CashFlow.objects.filter(cash_id=_cash_origin,
-                                               transaction_date__date=_date,
-                                               type='A')
-        if cashflow_set.count() > 0:
-            cash_origin_obj = cashflow_set.first().cash
-            current_balance = cash_origin_obj.current_balance()
-
-            if decimal.Decimal(_amount) > current_balance:
-                data = {
-                    'error': "El monto excede al saldo actual de la Caja"}
-                response = JsonResponse(data)
-                response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-                return response
-
-        else:
-            data = {
-                'error': "No existe una Apertura de Caja, Favor de revisar los Control de Cajas"}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
-
-        cashflow_set = CashFlow.objects.filter(cash_id=_cash_destiny,
-                                               transaction_date__date=_date,
-                                               type='A')
-        if cashflow_set.count() > 0:
-            cash_destiny_obj = cashflow_set.first().cash
-        else:
-            data = {
-                'error': "No existe una Apertura de Caja, Favor de revisar los Control de Cajas"}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
-
-        cash_transfer_obj = CashTransfer(status='P')
-        cash_transfer_obj.save()
-
-        # GUARDANDO EL ORIGEN
-        cash_transfer_route_origin_obj = CashTransferRoute(
-            cash_transfer=cash_transfer_obj,
-            cash=cash_origin_obj,
-            type='O'
-        )
-        cash_transfer_route_origin_obj.save()
-
-        # GUARDANDO EL DESTINO
-        cash_transfer_route_input_obj = CashTransferRoute(
-            cash_transfer=cash_transfer_obj,
-            cash=cash_destiny_obj,
-            type='D'
-        )
-        cash_transfer_route_input_obj.save()
-
-        # GUARDANDO EL USUARIO
-        cash_transfer_action_obj = CashTransferAction(
-            cash_transfer=cash_transfer_obj,
-            user=user_obj,
-            operation='E',
-            register_date=_date,
-        )
-        cash_transfer_action_obj.save()
-
-        # GUARDAMOS LA OPERACION
-        cash_flow_output_obj = CashFlow(
-            transaction_date=_date,
-            cash=cash_origin_obj,
-            description=_concept,
-            total=_amount,
-            operation_type='6',
-            user=user_obj,
-            cash_transfer=cash_transfer_obj,
-            type='S')
-        cash_flow_output_obj.save()
-
-        return JsonResponse({
-            'message': 'Operación registrada con exito.',
-        }, status=HTTPStatus.OK)
-    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+        cash_flow_id = request.POST.get('cash_flow_id', '')
+        description = request.POST.get('description', '')
+        total = request.POST.get('total', '0')
+        subtotal = request.POST.get('subtotal', '0')
+        igv = request.POST.get('igv', '0')
+        transaction_date = request.POST.get('transaction_date', '')
+        client_id = request.POST.get('client_id', '0')
+        document_type = request.POST.get('document_type', 'O')
+        serial = request.POST.get('serial', '0000')
+        n_receipt = request.POST.get('n_receipt', '0')
+        
+        try:
+            cash_flow_obj = CashFlow.objects.get(id=int(cash_flow_id))
+            
+            # No permitir editar aperturas o cierres
+            if cash_flow_obj.type in ['A', 'C']:
+                return JsonResponse({
+                    'error': 'No se puede editar una apertura o cierre de caja'
+                }, status=HTTPStatus.BAD_REQUEST)
+            
+            # Verificar que la caja no esté cerrada
+            cash_obj = cash_flow_obj.cash
+            cash_flow_set = CashFlow.objects.filter(
+                cash=cash_obj,
+                transaction_date__date=transaction_date
+            )
+            closed = cash_flow_set.filter(type='C')
+            if closed.exists():
+                return JsonResponse({
+                    'error': 'No se puede editar un movimiento de una caja cerrada'
+                }, status=HTTPStatus.BAD_REQUEST)
+            
+            # Actualizar datos
+            cash_flow_obj.description = description
+            cash_flow_obj.total = decimal.Decimal(total.replace(',', ''))
+            cash_flow_obj.subtotal = decimal.Decimal(subtotal.replace(',', ''))
+            cash_flow_obj.igv = decimal.Decimal(igv.replace(',', ''))
+            cash_flow_obj.transaction_date = datetime.strptime(transaction_date, '%Y-%m-%d')
+            cash_flow_obj.document_type_attached = document_type
+            cash_flow_obj.serial = serial
+            cash_flow_obj.n_receipt = int(n_receipt) if n_receipt and n_receipt.isdigit() else 0
+            
+            if client_id and client_id != '0':
+                client_obj = Client.objects.get(id=int(client_id))
+                cash_flow_obj.client = client_obj
+            else:
+                cash_flow_obj.client = None
+            
+            cash_flow_obj.save()
+            
+            return JsonResponse({
+                'message': 'Movimiento actualizado con éxito.',
+                'success': True
+            }, status=HTTPStatus.OK)
+        except CashFlow.DoesNotExist:
+            return JsonResponse({
+                'error': 'Movimiento no encontrado'
+            }, status=HTTPStatus.NOT_FOUND)
+        except Exception as e:
+            return JsonResponse({
+                'error': str(e)
+            }, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    return JsonResponse({'error': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
-def get_last_cash_open(cash_id):
-    cash_obj = Cash.objects.get(id=cash_id)
-    last_cash = CashFlow.objects.filter(cash=cash_obj, type='A').last()
-    return last_cash
-
-
-def new_cash_to_bank(request):
+def cancel_cash_flow(request):
+    """Anula un movimiento de caja creando un movimiento inverso"""
     if request.method == 'POST':
-        _date = request.POST.get('deposit-date')
-        _cash_origin_deposit = request.POST.get('cash-origin-deposit')
-        _current_balance_deposit = request.POST.get('current-balance-deposit')
-        _bank_account = request.POST.get('bank-account')
-        _amount_deposit = request.POST.get('deposit-amount')
-        _description_deposit = request.POST.get('description-deposit')
-        _code_operation = request.POST.get('code-operation-deposit')
-        user_id = request.user.id
-        bank_obj_destiny_deposit = Cash.objects.get(id=int(_bank_account))
-        user_obj = User.objects.get(id=user_id)
-        last_cash_date = get_last_cash_open(_cash_origin_deposit).transaction_date
-        last_cash_open = get_last_cash_open(_cash_origin_deposit)
-        las_cash_closed = CashFlow.objects.filter(type='C', cash=last_cash_open.cash,
-                                                  transaction_date__date=last_cash_date.date())
-        # COMPROBANDO CAJAS ABIERTAS
-        if las_cash_closed:
-            data = {
-                'error': "No existe una Apertura de Caja, Favor de revisar los Control de Cajas"}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
-        else:
-            cashflow_set = CashFlow.objects.filter(cash=_cash_origin_deposit,
-                                                   type='A')
-            cash_origin_obj = cashflow_set.first().cash
-            current_balance = cash_origin_obj.current_balance()
-            if decimal.Decimal(_amount_deposit) > current_balance:
-                data = {
-                    'error': "El monto excede al saldo actual de la Caja"}
-                response = JsonResponse(data)
-                response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-                return response
-
-        cash_transfer_obj = CashTransfer(status='A')
-        cash_transfer_obj.save()
-
-        # GUARDANDO EL ORIGEN - LA CAJA
-        cash_transfer_route_origin_obj = CashTransferRoute(
-            cash_transfer=cash_transfer_obj,
-            cash=cash_origin_obj,
-            type='O'
-        )
-        cash_transfer_route_origin_obj.save()
-
-        # GUARDANDO EL DESTINO - BANCO
-        cash_transfer_route_input_obj = CashTransferRoute(
-            cash_transfer=cash_transfer_obj,
-            cash=bank_obj_destiny_deposit,
-            type='D'
-        )
-        cash_transfer_route_input_obj.save()
-
-        # GUARDANDO EL USUARIO
-        cash_transfer_action_obj = CashTransferAction(
-            cash_transfer=cash_transfer_obj,
-            user=user_obj,
-            operation='E',
-            register_date=_date,
-        )
-        cash_transfer_action_obj.save()
-
-        # GUARDAMOS LA OPERACION
-        cash_flow_output_obj = CashFlow(
-            transaction_date=last_cash_date,
-            cash=cash_origin_obj,
-            description=_description_deposit,
-            total=_amount_deposit,
-            operation_type='7',
-            user=user_obj,
-            cash_transfer=cash_transfer_obj,
-            type='S')
-        cash_flow_output_obj.save()
-
-        cash_flow_input_obj = CashFlow(
-            transaction_date=_date,
-            cash=bank_obj_destiny_deposit,
-            description=_description_deposit,
-            total=_amount_deposit,
-            operation_type='7',
-            operation_code=_code_operation,
-            user=user_obj,
-            type='D')
-        cash_flow_input_obj.save()
-
-        return JsonResponse({
-            'message': 'Operación registrada con exito.',
-        }, status=HTTPStatus.OK)
-    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+        cash_flow_id = request.POST.get('cash_flow_id', '')
+        reason = request.POST.get('reason', '')
+        
+        try:
+            cash_flow_obj = CashFlow.objects.get(id=int(cash_flow_id))
+            
+            # No permitir anular aperturas o cierres
+            if cash_flow_obj.type in ['A', 'C']:
+                return JsonResponse({
+                    'error': 'No se puede anular una apertura o cierre de caja'
+                }, status=HTTPStatus.BAD_REQUEST)
+            
+            # Verificar que la caja no esté cerrada
+            cash_obj = cash_flow_obj.cash
+            transaction_date = cash_flow_obj.transaction_date.date()
+            cash_flow_set = CashFlow.objects.filter(
+                cash=cash_obj,
+                transaction_date__date=transaction_date
+            )
+            closed = cash_flow_set.filter(type='C')
+            if closed.exists():
+                return JsonResponse({
+                    'error': 'No se puede anular un movimiento de una caja cerrada'
+                }, status=HTTPStatus.BAD_REQUEST)
+            
+            user_id = request.user.id
+            user_obj = User.objects.get(id=user_id)
+            
+            # Crear movimiento inverso
+            inverse_type = 'E' if cash_flow_obj.type == 'S' else 'S'
+            description = f'ANULACIÓN: {cash_flow_obj.description}'
+            if reason:
+                description += f' - Motivo: {reason}'
+            
+            cash_flow_cancel_obj = CashFlow(
+                transaction_date=cash_flow_obj.transaction_date,
+                cash=cash_obj,
+                description=description,
+                total=cash_flow_obj.total,
+                subtotal=cash_flow_obj.subtotal,
+                igv=cash_flow_obj.igv,
+                operation_type='0',
+                user=user_obj,
+                type=inverse_type,
+                client=cash_flow_obj.client
+            )
+            cash_flow_cancel_obj.save()
+            
+            return JsonResponse({
+                'message': 'Movimiento anulado con éxito.',
+                'success': True
+            }, status=HTTPStatus.OK)
+        except CashFlow.DoesNotExist:
+            return JsonResponse({
+                'error': 'Movimiento no encontrado'
+            }, status=HTTPStatus.NOT_FOUND)
+        except Exception as e:
+            return JsonResponse({
+                'error': str(e)
+            }, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    return JsonResponse({'error': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
 def get_bank_control_list(request):
@@ -1368,154 +1357,6 @@ def new_transfer_bank(request):
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
-def get_confirm_cash_to_cash_transfer(request):
-    if request.method == 'GET':
-        # pk = request.GET.get('pk', '')
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        cash_transfer_set = CashTransfer.objects.filter(status='P', cashtransferroute__cash__subsidiary=subsidiary_obj)
-
-        t = loader.get_template('accounting/confirm_cash_transfers.html')
-        c = ({
-            'cash_transfer_set': cash_transfer_set,
-            'subsidiary_obj': subsidiary_obj,
-        })
-        return JsonResponse({
-            'success': True,
-            'grid': t.render(c, request),
-        })
-
-
-def accept_cash_to_cash_transfer(request):
-    if request.method == 'GET':
-        pk = request.GET.get('pk', '')
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-
-        my_date = datetime.now()
-        formatdate = my_date.strftime("%Y-%m-%d")
-
-        cash_transfer_obj = CashTransfer.objects.get(id=int(pk))
-        cash_destiny_obj = cash_transfer_obj.get_destiny()
-        cash_origin_obj = cash_transfer_obj.get_origin()
-
-        cash_flow_origin_set = CashFlow.objects.filter(cash=cash_origin_obj).last()
-
-        cash_origin_obj_date = cash_flow_origin_set.transaction_date.date()
-
-        cash_flow_destiny_set = CashFlow.objects.filter(cash=cash_destiny_obj, type='A')
-        cash_destiny_obj_date = cash_flow_destiny_set.last().transaction_date.date()
-
-        if cash_flow_destiny_set.count() == 0:
-            data = {
-                'error': "No existe una Apertura de Caja, Favor de revisar los Control de Cajas"}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
-
-        if cash_flow_destiny_set:
-            last_cash_flow_destiny_obj = cash_flow_destiny_set.last()
-            check_closed = CashFlow.objects.filter(type='C', cash=cash_destiny_obj,
-                                                   transaction_date__date=last_cash_flow_destiny_obj.transaction_date.date())
-
-            if check_closed:
-                data = {
-                    'error': "Aperture caja de destino"}
-                response = JsonResponse(data)
-                response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-                return response
-
-            else:
-                cash_transfer_obj.status = 'A'
-                cash_transfer_obj.save()
-
-                cash_transfer_action_obj = CashTransferAction(
-                    cash_transfer=cash_transfer_obj,
-                    user=user_obj,
-                    operation='A',
-                    register_date=formatdate,
-                )
-                cash_transfer_action_obj.save()
-
-                cash_flow_origin_obj = CashFlow.objects.get(cash=cash_origin_obj, cash_transfer=cash_transfer_obj)
-                cash_flow_input_obj = CashFlow(
-                    transaction_date=cash_destiny_obj_date,
-                    cash=cash_destiny_obj,
-                    description=cash_flow_origin_obj.description,
-                    total=cash_flow_origin_obj.total,
-                    operation_type='6',
-                    user=user_obj,
-                    type='E')
-                cash_flow_input_obj.save()
-        else:
-            data = {
-                'error': "No existe una Apertura de Caja, Favor de revisar los Control de Cajas"}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
-    return JsonResponse({'success': True, }, status=HTTPStatus.OK)
-
-
-def desist_cash_to_cash_transfer(request):
-    if request.method == 'GET':
-        pk = request.GET.get('pk', '')
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-
-        my_date = datetime.now()
-        formatdate = my_date.strftime("%Y-%m-%d")
-
-        cash_transfer_obj = CashTransfer.objects.get(id=int(pk))
-        cash_transfer_obj.status = 'C'
-        cash_transfer_obj.save()
-
-        cash_transfer_action_obj = CashTransferAction(
-            cash_transfer=cash_transfer_obj,
-            user=user_obj,
-            operation='C',
-            register_date=formatdate,
-        )
-        cash_transfer_action_obj.save()
-
-        cash_destiny_obj = cash_transfer_obj.get_destiny()
-        cash_origin_obj = cash_transfer_obj.get_origin()
-
-        cash_flow_origin_obj = CashFlow.objects.get(cash=cash_origin_obj, cash_transfer=cash_transfer_obj)
-        cash_flow_input_obj = CashFlow(
-            transaction_date=formatdate,
-            cash=cash_origin_obj,
-            description=str(
-                'SE CANCELO LA OPERACIÓN: ' + cash_flow_origin_obj.description + ' POR EL USUARIO: ' + user_obj.worker_set.last().employee.full_name()),
-            total=cash_flow_origin_obj.total,
-            operation_type='6',
-            user=user_obj,
-            type='E')
-        cash_flow_input_obj.save()
-
-        return JsonResponse({
-            'success': True,
-        }, status=HTTPStatus.OK)
-
-
-def new_bank_to_cash_transfer(request):
-    if request.method == 'POST':
-        _date = request.POST.get('btc-date')
-        _bank_origin = request.POST.get('btc-bank-origin')
-        _cash_destiny = request.POST.get('btc-cash-destiny')
-        _current_balance = request.POST.get('btc-current-balance')
-        _total = request.POST.get('btc-total')
-        _description = request.POST.get('btc-description')
-
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        bank_origin_obj = Cash.objects.get(id=int(_bank_origin))
-        cash_destiny_obj = Cash.objects.get(id=int(_cash_destiny))
-
-        return JsonResponse({
-            'message': 'Operación registrada con exito.',
-        }, status=HTTPStatus.OK)
-    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
 def get_cash_report(request):
