@@ -26,7 +26,7 @@ import os
 import datetime
 
 from ..sales.format_dates import utc_to_local
-from ..sales.models import ProductDetail
+from ..sales.models import ProductDetail, ClientAddress
 from ..sales.views import calculate_minimum_unit
 
 PAGE_HEIGHT = defaultPageSize[1]
@@ -1570,8 +1570,9 @@ def guide(request, pk=None):
     client = guide_obj.contract_detail.contract.client.names
     client_type_document = guide_obj.contract_detail.contract.client.clienttype_set.last().document_type.short_description
     client_document_number = guide_obj.contract_detail.contract.client.clienttype_set.last().document_number
-    client_address = guide_obj.contract_detail.contract.client.clientaddress_set.last().address
     client_obj = guide_obj.client
+    client_address = ClientAddress.objects.filter(client=client_obj, type_address='P').last()
+    # client_address = guide_obj.contract_detail.contract.client.clientaddress_set.last().address
 
     date = utc_to_local(guide_obj.date_issue)
     date_transfer = utc_to_local(guide_obj.transfer_date)
@@ -1645,7 +1646,7 @@ def guide(request, pk=None):
           'Doc. Referencia', '')] +
         [('Destinatario', ': ' + client, '', '', 'Doc. Identidad',
           ': ' + client_type_document + ' ' + client_document_number)] +
-        [('Dirección', ': ' + client_address.title(), '', '', '', '')] +
+        [('Dirección', ': ' + client_address.address, '', '', '', '')] +
         [('Ref. Llegada', '', '', '', '', '')],
         colWidths=[w * 15 / 100, w * 10 / 100, w * 20 / 100, w * 20 / 100, w * 17 / 100, w * 18 / 100],
         rowHeights=[inch * 0.18, inch * 0.15, inch * 0.15, inch * 0.18])

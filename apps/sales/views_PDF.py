@@ -21,7 +21,7 @@ from reportlab.pdfgen.canvas import Canvas
 from functools import partial
 from reportlab.lib.colors import PCMYKColor, PCMYKColorSep, Color, black, blue, red, pink, green
 from .models import Product, Client, Order, OrderDetail, SubsidiaryStore, ProductStore, Kardex, LoanPayment, OrderBill, \
-    TransactionPayment
+    TransactionPayment, ClientAddress
 from django.contrib.auth.models import User
 from apps.hrm.views import get_subsidiary_by_user
 from .number_to_letters import numero_a_moneda
@@ -703,7 +703,8 @@ def print_order_bill(request, pk=None):
         credit_list.setStyle(TableStyle(style_credit))
 
     if type_client == '06':
-        info_address = client_obj.clientaddress_set.last().address
+        client_address_obj = ClientAddress.objects.filter(client=client_obj, type_address='P').last()
+        info_address = client_address_obj.address
 
     tbl2_col1 = [
         ['Señor(es) :', Paragraph(str(client_obj.names), styles['Left_Square'])],

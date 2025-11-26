@@ -5151,8 +5151,9 @@ def accounts_receivable_report(request):
         
         for order in orders_query:
             # Calcular total de la orden
-            order_total = get_total_order(order.id)
-            
+            # order_total = get_total_order(order.id)
+            order_total = order.total
+
             # Calcular pagos realizados
             loan_payments = LoanPayment.objects.filter(
                 order_id=order.id,
