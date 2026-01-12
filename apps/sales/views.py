@@ -1086,13 +1086,15 @@ def save_order(request):
                                     # Fallback: usar el primer lote disponible
                                     first_batch_id = batch_ids[0]
                                     batch_obj = Batch.objects.get(id=int(first_batch_id))
-                                    kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
-                                               type_document=type_document, type_operation='01', batch_obj=batch_obj)
+                                    kardex_ouput(product_store_obj.id, quantity_minimum_unit,
+                                                 order_detail_obj=order_detail_obj, type_document=type_document,
+                                                 type_operation='01', batch_obj=batch_obj)
                             else:
                                 # Un solo lote
                                 batch_obj = Batch.objects.get(id=int(batch_id))
-                                kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
-                                           type_document=type_document, type_operation='01', batch_obj=batch_obj)
+                                kardex_ouput(product_store_obj.id, quantity_minimum_unit,
+                                             order_detail_obj=order_detail_obj, type_document=type_document,
+                                             type_operation='01', batch_obj=batch_obj)
                         else:
                             # Sin lote específico, usar el lote con menor número
                             min_batch_number = Batch.objects.filter(
@@ -1102,7 +1104,7 @@ def save_order(request):
                                                              batch_number=min_batch_number).order_by('id').last()
 
                             kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
-                                       type_document=type_document, type_operation='01', batch_obj=batch_obj)
+                                         type_document=type_document, type_operation='01', batch_obj=batch_obj)
 
                         guide_detail_id = detail['guide_detail']
                         if guide_detail_id:
@@ -4183,7 +4185,7 @@ def save_detail_to_warehouse(request):
 
         user_id = request.user.id
         user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        # subsidiary_obj = get_subsidiary_by_user(user_obj)
         subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(store))
 
         for d in data_purchase['Details']:
@@ -4192,10 +4194,11 @@ def save_detail_to_warehouse(request):
             product_obj = Product.objects.get(id=product_id)
             unit_id = int(d['UnitPurchase'])
             unit_obj = Unit.objects.get(id=unit_id)
-            price_purchase_unit = ProductDetail.objects.get(product=product_obj, unit__name='UND').price_purchase
+            # price_purchase_unit = ProductDetail.objects.get(product=product_obj, unit__name='UND').price_purchase
 
             unit_min_product = ProductDetail.objects.get(product=product_obj, unit=unit_obj).quantity_minimum
-            price_purchase = decimal.Decimal(d['PricePurchase'])
+            price_purchase = decimal.Decimal(d['PricePurchase'])  # PRICE UNIT WITH IGV (NO UNITS)
+            price_purchase_unit = (price_purchase / unit_min_product) / decimal.Decimal(1.18)
 
             unit_und_obj = Unit.objects.get(name='UND')
 
