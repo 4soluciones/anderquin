@@ -1032,7 +1032,7 @@ def get_buys_by_contract(request):
                     address_dict = [{
                         'id': cd.id,
                         'address': cd.address,
-                        'district': cd.district.description,
+                        'district': cd.district.description if cd.district else '',
                     } for cd in client_address_set]
                 else:
                     address_dict = []
