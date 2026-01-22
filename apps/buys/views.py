@@ -2190,11 +2190,21 @@ def get_client(request):
                 
                 # Obtener todas las direcciones del cliente
                 client_addresses = []
+                principal_address = None  # Dirección principal (tipo 'P')
                 for address in c.clientaddress_set.all():
-                    client_addresses.append({
+                    address_data = {
                         'id': address.id,
-                        'address': address.address
-                    })
+                        'address': address.address,
+                        'type_address': address.type_address
+                    }
+                    client_addresses.append(address_data)
+                    # Guardar la dirección principal
+                    if address.type_address == 'P':
+                        principal_address = address.address
+                
+                # Si no hay dirección principal, usar la primera disponible
+                if not principal_address and client_addresses:
+                    principal_address = client_addresses[0]['address']
                 
                 # Crear texto de búsqueda mejorado
                 search_text = f"{c.names} - {document_number}"
@@ -2207,6 +2217,7 @@ def get_client(request):
                     'type_client': c.type_client,
                     'number_document': document_number,
                     'address': client_addresses,
+                    'last_address': principal_address or '',  # Dirección principal
                     'cod_siaf': c.cod_siaf
                 })
 
