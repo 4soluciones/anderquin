@@ -218,6 +218,7 @@ class ContractDetailItem(models.Model):
     quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
     price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
     contract_detail = models.ForeignKey(ContractDetail, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):

@@ -1,183 +1,186 @@
 {% load app_filters %}
 {% if contract_set %}
-    <div class="card-body p-1 table-responsive small">
-        <table id="client-data-grid" class="table table-bordered align-content-center w-100 h-100 roboto-condensed-regular table-responsive-sm">
+    <div class="card-body p-2">
+        <div class="table-responsive">
+            <table id="client-data-grid" class="table table-hover table-bordered align-content-center w-100 roboto-condensed-regular mb-0">
                 <thead>
-                <tr class="text-center text-white text-uppercase " style="background: #3e6787; font-size: 12px;">
-{#                    <th class="th-sm align-middle" style="width: 1%">#</th>#}
-                    <th class="th-sm align-middle" style="width: 14%">Nº de contrato</th>
-                    <th class="th-sm align-middle" style="width: 15%">Cliente</th>
-                    <th class="th-sm align-middle" style="width: 5%">Fecha</th>
-                    <th class="th-sm align-middle" style="width: 50%">Fechas de Entrega</th>
-                    <th class="th-sm align-middle" style="width: 5%">Estado</th>
-                    <th class="th-sm align-middle" style="width: 10%">Observaciones</th>
+                <tr class="text-center text-uppercase thead-light">
+                    <th class="align-middle" style="font-size: 0.875rem; font-weight: 600; color: #495057; background-color: #f8f9fa; width: 3%;">
+                        <i class="fas fa-cog"></i>
+                    </th>
+                    <th class="align-middle d-none d-md-table-cell" style="font-size: 0.875rem; font-weight: 600; color: #495057; background-color: #f8f9fa; width: 15%;">
+                        <i class="fas fa-file-contract mr-1"></i>Nº de contrato
+                    </th>
+                    <th class="align-middle" style="font-size: 0.875rem; font-weight: 600; color: #495057; background-color: #f8f9fa; width: 20%;">
+                        <i class="fas fa-user mr-1"></i>Cliente
+                    </th>
+                    <th class="align-middle d-none d-lg-table-cell" style="font-size: 0.875rem; font-weight: 600; color: #495057; background-color: #f8f9fa; width: 5%;">
+                        <i class="fas fa-calendar mr-1"></i>Fecha
+                    </th>
+                    <th class="align-middle" style="font-size: 0.875rem; font-weight: 600; color: #495057; background-color: #f8f9fa; width: 42%;">
+                        <i class="fas fa-calendar-check mr-1"></i>Fechas de Entrega
+                    </th>
+                    <th class="align-middle d-none d-md-table-cell" style="font-size: 0.875rem; font-weight: 600; color: #495057; background-color: #f8f9fa; width: 5%;">
+                        <i class="fas fa-info-circle mr-1"></i>Estado
+                    </th>
+                    <th class="align-middle d-none d-xl-table-cell" style="font-size: 0.875rem; font-weight: 600; color: #495057; background-color: #f8f9fa; width: 10%;">
+                        <i class="fas fa-comment mr-1"></i>Observaciones
+                    </th>
                 </tr>
                 </thead>
-                <tbody style="font-size: 11px;">
+                <tbody style="font-size: 0.875rem;">
                 {% for c in contract_dict %}
                     <tr class="text-center" pk="{{ c.id }}">
-{#                        <td class="align-middle">                            {{ forloop.counter }}                        </td>#}
-                        <td class="align-middle font-weight-bold p-0">
-                            <div class="row col-12 p-0">
-                                <div class="col-sm-3 pr-0">
-                                    <button class="btn btn-sm btn-edit-contract mb-1" pk="{{ c.id }}">
-                                        <i class="fas fa-edit fa-xs" style="color: #ffc107;"></i>
-                                    </button>
-                                </div>
-                                <div class="col-sm-9 mt-2 pr-0 pl-0">
-                                    {{ c.contract_number }}
-                                </div>
-                            </div>
+                        <td class="align-middle" style="width: 3%;" >
+                            <button class="btn btn-sm btn-outline-primary btn-edit-contract" pk="{{ c.id }}" title="Editar contrato" style="border-radius: 50%; width: 32px; height: 32px; padding: 0;">
+                                <i class="fas fa-edit" style="font-size: 0.75rem;"></i>
+                            </button>
                         </td>
-                        <td class="align-middle p-0">{{ c.client }}</td>
-                        <td class="align-middle p-0">{{ c.register_date|date:'d-m-Y' }}</td>
-                        <td class="align-middle text-center">
-                            <div id="accordion">
-                                <div class="card" style="background-color: #d7f2f6">
-                                    <div class="card-header p-0" id="heading-{{ c.id }}">
-                                        <h5 class="mb-0">
-                                            <button class="btn btn-link collapsed text-dark roboto-condensed-regular p-0 font-weight-bold"
-                                                    data-toggle="collapse" style="font-size: 11px"
+                        <td class="align-middle d-none d-md-table-cell" style="width: 15%;">
+                            <span class="font-weight-bold" style="color: #495057; font-size: 0.85rem;">{{ c.contract_number }}</span>
+                        </td>
+                        <td class="align-middle text-left" style="width: 20%;">
+                            <div class="d-md-none mb-1">
+                                <span class="font-weight-bold text-dark" style="font-size: 0.85rem;">{{ c.contract_number }}</span>
+                                <span class="text-muted small ml-2">{{ c.register_date|date:'d-m-Y' }}</span>
+                            </div>
+                            <div class="text-dark font-weight-normal" style="color: #495057;">{{ c.client }}</div>
+                        </td>
+                        <td class="align-middle d-none d-lg-table-cell" style="width: 5%;">
+                            <span class="text-muted">{{ c.register_date|date:'d-m-Y' }}</span>
+                        </td>
+                        <td class="align-middle" style="width: 42%;">
+                            <div id="accordion-{{ c.id }}">
+                                <div class="card border-light shadow-sm">
+                                    <div class="card-header bg-light p-2" id="heading-{{ c.id }}">
+                                        <h6 class="mb-0">
+                                            <button class="btn btn-link collapsed text-dark roboto-condensed-regular p-1 font-weight-bold w-100 text-left"
+                                                    data-toggle="collapse" style="font-size: 0.875rem; text-decoration: none;"
                                                     data-target="#collapse-{{ c.id }}" aria-expanded="false"
                                                     aria-controls="collapse-{{ c.id }}">
-                                                Fechas de Entrega <i class="fas fa-sort-down"></i>
+                                                <i class="fas fa-calendar-alt mr-2 text-primary"></i>Fechas de Entrega
+                                                <i class="fas fa-chevron-down float-right mt-1"></i>
                                             </button>
-                                        </h5>
+                                        </h6>
                                     </div>
                                     <div id="collapse-{{ c.id }}" class="collapse" aria-labelledby="heading-{{ c.id }}"
-                                         data-parent="#accordion">
-                                        <div class="card-body pt-1 pb-1 pr-0">
-                                            <div class="row pl-0">
+                                         data-parent="#accordion-{{ c.id }}">
+                                        <div class="card-body p-2 bg-light">
+                                            <div class="d-flex flex-wrap gap-2 mb-2">
                                                 <button type="button"
-                                                        class="btn btn-sm btn-warning font-weight-light generate-oc m-1">
-                                                    Generar O/C Proveedor
-                                                    <span class="badge badge-light b-oc">0</span>
+                                                        class="btn btn-sm btn-warning font-weight-light generate-oc">
+                                                    <i class="fas fa-shopping-cart mr-1"></i>Generar O/C Proveedor
+                                                    <span class="badge badge-light b-oc ml-1">0</span>
                                                 </button>
                                                 <button type="button"
-                                                        class="btn btn-sm btn-info font-weight-light generate-guides m-1">
-                                                    Generar Guia de Remision
-                                                    <span class="badge badge-light b-guide">0</span>
+                                                        class="btn btn-sm btn-info font-weight-light generate-guides">
+                                                    <i class="fas fa-truck mr-1"></i>Generar Guía de Remisión
+                                                    <span class="badge badge-light b-guide ml-1">0</span>
                                                 </button>
                                             </div>
                                         </div>
                                         <div class="card-body p-0">
-                                            <table class="table table-bordered table-sm dates roboto-condensed-regular m-0 table-responsive-sm"
-                                                   style="background-color: #bfdecb; font-size: 10px">
-                                                <thead>
-                                                <tr class="text-center font-weight-bold text-uppercase bg-light align-middle">
-{#                                                    <th class="th-sm" style="width: 3%"><i class="fas fa-check"></i></th>#}
-                                                    <th class="th-sm" style="width: 3%">#</th>
-                                                    <th class="th-sm" style="width: 10%">Fecha</th>
-                                                    {#                                    <th class="th-sm" style="width: 10%">O/C</th>#}
-                                                    <th class="th-sm" style="width: 54%">Producto</th>
-                                                    <th class="th-sm" style="width: 10%">Orden Compra</th>
-                                                    <th class="th-sm" style="width: 10%">Guia de remision</th>
-                                                    <th class="th-sm" style="width: 10%">Factura Venta</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {% for d in c.contract_detail %}
-                                                    <tr class="text-center" pk="{{ c.id }}">
-{#                                                        <td class="align-middle">#}
-{#                                                            {% if not d.purchase %}#}
-{#                                                                <div class="form-check">#}
-{#                                                                    <input class="form-check-input check-dates"#}
-{#                                                                           style="transform: scale(1.4);"#}
-{#                                                                           type="checkbox" value=""#}
-{#                                                                           id="{{ c.id }}">#}
-{#                                                                    <label class="form-check-label"#}
-{#                                                                           for="{{ c.id }}"> </label>#}
-{#                                                                </div>#}
-{#                                                            {% endif %}#}
-{#                                                        </td>#}
-                                                        <td class="align-middle font-weight-bold p-0">{{ d.nro_quota|default_if_none:'-' }}</td>
-                                                        <td class="align-middle font-weight-bold p-0">
-                                                            {{ d.date|date:'d-m-Y' }}
-                                                        </td>
-                                                        {#                                        <td class="align-middle">#}
-                                                        {#                                            {% if d.purchase_set.all %}#}
-                                                        {#                                                <span class="font-weight-bold">{{ d.purchase_set.all.last.bill_number }}</span>#}
-                                                        {#                                            {% else %}#}
-                                                        {#                                                -#}
-                                                        {#                                            {% endif %}#}
-                                                        {#                                        </td>#}
-                                                        <td class="items-table">
-                                                            <table class="table table-borderless table-sm mb-0 items"
-                                                                   style="background-color: #bfdecb">
-                                                                <tbody>
-                                                                {% for e in d.contract_detail_item %}
-                                                                    <tr class="p-0 m-0" cd="{{ d.id }}" cdi="{{ e.id }}"
-                                                                        product="{{ e.product_id }}">
-                                                                        <td class="align-middle text-left p-0 m-0 item-quantity" style="width: 20%">{{ e.quantity|floatformat:0 }} UND</td>
-{#                                                                        <td class="align-middle text-left p-0 m-0">UND#}
-{#                                                                        </td>#}
-                                                                        <td class="align-middle text-left p-0 m-0" style="width: 80%">{{ e.product_name }}</td>
-                                                                    </tr>
-                                                                {% endfor %}
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                        <td class="align-middle item-check">
-                                                            {% if d.purchase %}
-                                                                <a class="btn btn-sm btn-success font-weight-light" style="font-size: 10px"
-                                                                   href="{% url 'buys:print_pdf_purchase_order' d.purchase %}">
-                                                                    {{ d.bill_number }}</a>
-                                                            {% else %}
-                                                                <div class="form-check">
-                                                                    <input class="form-check-input check-dates"
-                                                                           style="transform: scale(1.4);"
-                                                                           type="checkbox" value=""
-                                                                           id="{{ c.id }}">
-                                                                    <label class="form-check-label"
-                                                                           for="{{ c.id }}"> </label>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered dates roboto-condensed-regular m-0"
+                                                       style="font-size: 0.8rem;">
+                                                    <thead class="thead-light">
+                                                    <tr class="text-center font-weight-bold text-uppercase align-middle">
+                                                        <th class="align-middle" style="font-size: 0.75rem; background-color: #f8f9fa;">#</th>
+                                                        <th class="align-middle d-none d-md-table-cell" style="font-size: 0.75rem; background-color: #f8f9fa;">Fecha</th>
+                                                        <th class="align-middle" style="font-size: 0.75rem; background-color: #f8f9fa;">Producto</th>
+                                                        <th class="align-middle d-none d-lg-table-cell" style="font-size: 0.75rem; background-color: #f8f9fa;">Orden Compra</th>
+                                                        <th class="align-middle d-none d-lg-table-cell" style="font-size: 0.75rem; background-color: #f8f9fa;">Guía Remisión</th>
+                                                        <th class="align-middle d-none d-xl-table-cell" style="font-size: 0.75rem; background-color: #f8f9fa;">Factura Venta</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    {% for d in c.contract_detail %}
+                                                        <tr class="text-center" pk="{{ c.id }}">
+                                                            <td class="align-middle font-weight-bold">
+                                                                <span class="badge badge-secondary">{{ d.nro_quota|default_if_none:'-' }}</span>
+                                                            </td>
+                                                            <td class="align-middle d-none d-md-table-cell">
+                                                                <span class="text-muted small">{{ d.date|date:'d-m-Y' }}</span>
+                                                            </td>
+                                                            <td class="items-table text-left">
+                                                                <div class="d-md-none mb-2">
+                                                                    <small class="text-muted font-weight-bold">
+                                                                        <i class="fas fa-calendar mr-1"></i>{{ d.date|date:'d-m-Y' }}
+                                                                    </small>
                                                                 </div>
-                                                            {% endif %}
-                                                        </td>
-                                                        {#                                                        <td class="align-middle">#}
-                                                        {#                                                            {% if d.purchase_set.all %}#}
-                                                        {#                                                                <a class="btn btn-sm btn-success font-weight-light"#}
-                                                        {#                                                                   href="{% url 'buys:print_pdf_purchase_order' d.purchase_set.all.last.id %}">#}
-                                                        {#                                                                    {{ d.purchase_set.all.last.bill_number }}</a>#}
-                                                        {##}
-                                                        {#                                                            {% else %}#}
-                                                        {#                                                                <a class="btn btn-sm btn-warning font-weight-light"#}
-                                                        {#                                                                   href="{% url 'buys:buy_list' d.id %}">#}
-                                                        {#                                                                    <i class="fas fa-money-check-alt"></i> Generar#}
-                                                        {#                                                                    O/C</a>#}
-                                                        {#                                                            {% endif %}#}
-                                                        {#                                                        </td>#}
-                                                        <td class="align-middle item-check-guide">
-                                                            {% if d.guide %}
-                                                                <a class="btn btn-sm btn-danger font-weight-light" style="font-size: 10px"
-                                                                   href="{% url 'comercial:guide' d.guide %}">
-                                                                    {{ d.guide_serial }}-{{ d.guide_correlative|zfill:5 }}</a>
-                                                            {% else %}
-{#                                                                <a class="btn btn-sm btn-primary font-weight-light" style="font-size: 10px"#}
-{#                                                                   href="{% url 'comercial:new_guide' d.id %}">#}
-{#                                                                   Generar Guía </a>#}
-                                                                <div class="form-check">
-                                                                    <input class="form-check-input check-dates-guide"
-                                                                           style="transform: scale(1.4);"
-                                                                           type="checkbox" value=""
-                                                                           id="{{ c.id }}">
-                                                                    <label class="form-check-label"
-                                                                           for="{{ c.id }}"> </label>
+                                                                <div class="product-list">
+                                                                    {% for e in d.contract_detail_item %}
+                                                                        <div class="mb-2 p-2 bg-light rounded border-left border-primary" cd="{{ d.id }}" cdi="{{ e.id }}" product="{{ e.product_id }}" style="border-left-width: 3px !important;">
+                                                                            <div class="d-flex align-items-center flex-wrap">
+                                                                                <span class="badge badge-primary mr-2 mb-1" style="font-size: 0.75rem;">{{ e.quantity|floatformat:0 }} UND</span>
+                                                                                <span class="text-dark font-weight-normal" style="font-size: 0.875rem;">{{ e.product_name }}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    {% endfor %}
                                                                 </div>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td class="align-middle text-center">
-                                                            {% if d.guide %}
-                                                                {% if d.order %}
-                                                                    <a class="btn btn-sm btn-warning font-weight-bold" style="font-size: 10px"
-                                                                       href="{% url 'sales:print_order_bill' d.order %}">
-                                                                        {{ d.order_serial }}-{{ d.order_correlative|zfill:5 }}</a>
+                                                                <div class="d-lg-none mt-2">
+                                                                    <div class="small">
+                                                                        {% if d.purchase %}
+                                                                            <a class="btn btn-xs btn-success mb-1" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;"
+                                                                               href="{% url 'buys:print_pdf_purchase_order' d.purchase %}">
+                                                                                <i class="fas fa-file-pdf mr-1"></i>OC: {{ d.bill_number }}
+                                                                            </a>
+                                                                        {% endif %}
+                                                                        {% if d.guide %}
+                                                                            <a class="btn btn-xs btn-danger mb-1" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;"
+                                                                               href="{% url 'comercial:guide' d.guide %}">
+                                                                                <i class="fas fa-file-alt mr-1"></i>Guía: {{ d.guide_serial }}-{{ d.guide_correlative|zfill:5 }}
+                                                                            </a>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td class="align-middle item-check d-none d-lg-table-cell">
+                                                                {% if d.purchase %}
+                                                                    <a class="btn btn-sm btn-success font-weight-light" style="font-size: 0.75rem;"
+                                                                       href="{% url 'buys:print_pdf_purchase_order' d.purchase %}">
+                                                                        <i class="fas fa-file-pdf mr-1"></i>{{ d.bill_number }}
+                                                                    </a>
                                                                 {% else %}
-                                                                    <a class="btn btn-sm btn-warning font-weight-light" style="font-size: 10px"
-                                                                       href="{% url 'sales:sales' d.guide %}">
-                                                                        Generar Factura</a>
+                                                                    <div class="form-check d-flex justify-content-center">
+                                                                        <input class="form-check-input check-dates" style="transform: scale(1.2);"
+                                                                               type="checkbox" value="" id="oc-{{ c.id }}-{{ d.id }}">
+                                                                        <label class="form-check-label ml-1" for="oc-{{ c.id }}-{{ d.id }}"></label>
+                                                                    </div>
                                                                 {% endif %}
-                                                            {% endif %}
-                                                        </td>
+                                                            </td>
+
+                                                            <td class="align-middle item-check-guide d-none d-lg-table-cell">
+                                                                {% if d.guide %}
+                                                                    <a class="btn btn-sm btn-danger font-weight-light" style="font-size: 0.75rem;"
+                                                                       href="{% url 'comercial:guide' d.guide %}">
+                                                                        <i class="fas fa-file-alt mr-1"></i>{{ d.guide_serial }}-{{ d.guide_correlative|zfill:5 }}
+                                                                    </a>
+                                                                {% else %}
+                                                                    <div class="form-check d-flex justify-content-center">
+                                                                        <input class="form-check-input check-dates-guide" style="transform: scale(1.2);"
+                                                                               type="checkbox" value="" id="guide-{{ c.id }}-{{ d.id }}">
+                                                                        <label class="form-check-label ml-1" for="guide-{{ c.id }}-{{ d.id }}"></label>
+                                                                    </div>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td class="align-middle text-center d-none d-xl-table-cell">
+                                                                {% if d.guide %}
+                                                                    {% if d.order %}
+                                                                        <a class="btn btn-sm btn-warning font-weight-light" style="font-size: 0.75rem;"
+                                                                           href="{% url 'sales:print_order_bill' d.order %}">
+                                                                            <i class="fas fa-file-invoice mr-1"></i>{{ d.order_serial }}-{{ d.order_correlative|zfill:5 }}
+                                                                        </a>
+                                                                    {% else %}
+                                                                        <a class="btn btn-sm btn-warning font-weight-light" style="font-size: 0.75rem;"
+                                                                           href="{% url 'sales:sales' d.guide %}">
+                                                                            <i class="fas fa-plus-circle mr-1"></i>Generar Factura
+                                                                        </a>
+                                                                    {% endif %}
+                                                                {% else %}
+                                                                    <span class="text-muted">-</span>
+                                                                {% endif %}
+                                                            </td>
                                                     </tr>
                                                 {% endfor %}
                                                 </tbody>
@@ -188,18 +191,117 @@
                             </div>
 
                         </td>
-                        <td class="align-middle p-0">{{ c.status }}</td>
-                        <td class="align-middle p-0">{{ c.observation|default_if_none:'-'|upper }}</td>
-                        {#                        <td class="align-middle">#}
-                        {#                            <button type="button" class="btn btn-warning btn-sm item-edit"#}
-                        {#                                    pk="{{ c.id }}"><i class="fa fa-pencil-alt fa-1x"></i>#}
-                        {#                            </button>#}
-                        {#                        </td>#}
+                        <td class="align-middle d-none d-md-table-cell" style="width: 5%;">
+                            {% if c.status == 'PENDIENTE' %}
+                                <span class="badge badge-warning">{{ c.status }}</span>
+                            {% elif c.status == 'COMPLETADO' %}
+                                <span class="badge badge-success">{{ c.status }}</span>
+                            {% elif c.status == 'SUSPENDIDO' %}
+                                <span class="badge badge-secondary">{{ c.status }}</span>
+                            {% elif c.status == 'ANULADO' %}
+                                <span class="badge badge-danger">{{ c.status }}</span>
+                            {% else %}
+                                <span class="badge badge-info">{{ c.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="align-middle d-none d-xl-table-cell" style="width: 10%;">
+                            <span class="text-muted small">{{ c.observation|default_if_none:'-'|upper|truncatewords:10 }}</span>
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
+        </div>
     </div>
+
+    <style>
+        @media (max-width: 768px) {
+            #client-data-grid {
+                font-size: 0.8rem;
+            }
+            .product-list .badge {
+                font-size: 0.7rem;
+            }
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+        @media (max-width: 576px) {
+            #client-data-grid {
+                font-size: 0.75rem;
+            }
+            .product-list {
+                font-size: 0.8rem;
+            }
+        }
+        .gap-2 > * {
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .card-header .btn-link:hover {
+            text-decoration: none;
+            color: #0056b3 !important;
+        }
+        .card-header .btn-link:focus {
+            box-shadow: none;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.08) !important;
+            transition: background-color 0.2s ease;
+        }
+        .border-left {
+            border-left: 3px solid #007bff !important;
+        }
+        .btn-outline-primary {
+            border-color: #6c9bd2;
+            color: #5a8fc2;
+        }
+        .btn-outline-primary:hover {
+            background-color: #e7f1ff;
+            border-color: #5a8fc2;
+            color: #4a7ba8;
+            transform: scale(1.05);
+            transition: all 0.2s ease;
+        }
+        .btn-outline-primary:focus {
+            box-shadow: 0 0 0 0.2rem rgba(108, 155, 210, 0.25);
+        }
+        #client-data-grid tbody tr {
+            transition: background-color 0.2s ease;
+        }
+        #client-data-grid tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        #client-data-grid tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        .badge-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .badge-secondary {
+            background-color: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+        .badge-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .badge-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
 
 {% else %}
     <div class="alert alert-info alert-dismissible fade show" role="alert">

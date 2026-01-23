@@ -1,4 +1,4 @@
-{% extends 'home.html' %}
+º{% extends 'home.html' %}
 
 {% block title %}
     Contratos
@@ -143,6 +143,15 @@
 {% block extrajs %}
 
     <script type="text/javascript">
+
+        let product_set = [
+            {% for p in product_set %}
+                [
+                    '{{ p.id }}',
+                    '{{ p.name }}'
+                ],
+            {% endfor %}
+        ]
 
         let old_timestamp = null;
 
@@ -291,35 +300,27 @@
             let sum_quantity = 0;
             let sum_amount = 0;
             $('.dates-quotas td.item-quantity input.quantity').each(function () {
-                let quantity = Number($(this).val())
+                let quantity = Number($(this).val().replace(/,/g, ''))
                 sum_quantity = sum_quantity + quantity
             });
             $('.dates-quotas td.item-amount input.amount').each(function () {
-                let amount = Number($(this).val())
+                let amount = Number($(this).val().replace(/,/g, ''))
                 sum_amount = sum_amount + amount
             });
-            $("#total-quantity").val(sum_quantity.toFixed(2));
-            $("#total-amount").val(sum_amount.toFixed(2));
+            $("#total-quantity").val(sum_quantity.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            $("#total-amount").val(sum_amount.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
         }
 
         $(document).on('keyup', '.quantity', function () {
             let _tr = $(this).parent('td').parent('tr');
-            let _quantity_row = Number($(this).val());
-            let _price_unit_row = Number(_tr.find('td.item-price-unit input.price-unit').val());
+            let _quantity_row = Number($(this).val().replace(/,/g, ''));
+            let _price_unit_row = Number(_tr.find('td.item-price-unit input.price-unit').val().replace(/,/g, ''));
             let _amount = _tr.find('td.item-amount input.amount');
             let _new_amount = _quantity_row * _price_unit_row
-            _amount.val(_new_amount.toFixed(2))
+            _amount.val(_new_amount.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
             calculateTotal()
         });
 
-        let product_set = [
-            {% for p in product_set %}
-                [
-                    '{{ p.id }}',
-                    '{{ p.name }}'
-                ],
-            {% endfor %}
-        ]
 
         function validateHeader() {
             let flag = true;
@@ -327,11 +328,12 @@
             $('#tbody-product-add tr').each(function () {
                 let $tr = $(this);
                 let product = $tr.find('.product-add').val();
+                let unit = $tr.find('.unit-add').val();
                 let quantity = $tr.find('.quantity-add').val();
                 let price = $tr.find('.price-unit-add').val();
 
-                if (product === '0' || quantity === '' || price === '') {
-                    toastr.warning('Por favor, complete todos los campos antes de continuar: Producto, Cantidad y Precio Unitario');
+                if (product === '0' || unit === '0' || quantity === '' || price === '') {
+                    toastr.warning('Por favor, complete todos los campos antes de continuar: Producto, Tipo UND, Cantidad y Precio Unitario');
                     flag = false;
                     return false;
                 }
@@ -339,6 +341,68 @@
 
             return flag;
         }
+
+        function loadUnitsForProduct(productId, unitSelectElement, selectedUnitId = null, callback = null) {
+            if (!productId || productId === '0') {
+                $(unitSelectElement).html('<option value="0">Seleccione producto</option>').prop('disabled', true);
+                if (callback) callback('');
+                return;
+            }
+
+            $.ajax({
+                url: '/buys/get_units_product/',
+                type: 'GET',
+                data: {'ip': productId},
+                dataType: 'json',
+                success: function (response) {
+                    let units = JSON.parse(response.units);
+                    let options = '<option value="0">Seleccione unidad</option>';
+                    let undUnitId = null;
+                    
+                    for (let i = 0; i < units.length; i++) {
+                        let unit = units[i];
+                        // Buscar UND para usarlo por defecto si no hay unidad seleccionada
+                        if (unit.fields.name === 'UND' || unit.fields.name === 'und') {
+                            undUnitId = unit.pk;
+                        }
+                        let selected = (selectedUnitId && unit.pk == selectedUnitId) ? 'selected' : '';
+                        options += '<option value="' + unit.pk + '" ' + selected + '>' + unit.fields.name + '</option>';
+                    }
+                    
+                    $(unitSelectElement).html(options).prop('disabled', false);
+                    
+                    // Si no hay unidad seleccionada, usar UND por defecto, si no existe UND usar la primera
+                    if (!selectedUnitId || selectedUnitId === '0') {
+                        if (undUnitId) {
+                            $(unitSelectElement).val(undUnitId);
+                        } else if (units.length > 0) {
+                            $(unitSelectElement).val(units[0].pk);
+                        }
+                    }
+                    
+                    if (callback) callback(options);
+                },
+                error: function () {
+                    toastr.error('Error al cargar las unidades del producto', 'Error');
+                    $(unitSelectElement).html('<option value="0">Error al cargar</option>').prop('disabled', true);
+                    if (callback) callback('');
+                }
+            });
+        }
+
+        $(document).on('change', '.product-add', function () {
+            let $tr = $(this).closest('tr');
+            let productId = $(this).val();
+            let unitSelect = $tr.find('.unit-add');
+            loadUnitsForProduct(productId, unitSelect);
+        });
+
+        $(document).on('change', '.dates-quotas .product', function () {
+            let $tr = $(this).closest('tr');
+            let productId = $(this).val();
+            let unitSelect = $tr.find('.unit');
+            loadUnitsForProduct(productId, unitSelect);
+        });
 
         function addDates() {
             let _nro_dates = $('#nro_dates');
@@ -380,11 +444,12 @@
                     '<table id="table-date-' + _number + '" class="table table-hover table-sm align-content-center table-bordered mb-0">' +
                     '<thead>' +
                     '<tr class="text-center text-white" style="background: #1a77c8">' +
-                    '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Item' + '</th>' +
-                    '<th scope="col" class="align-middle font-weight-normal" style="width: 60%;">' + 'Producto' + '</th>' +
-                    '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Cantidad' + '</th>' +
-                    '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'P. U.' + '</th>' +
-                    '<th scope="col" class="align-middle font-weight-normal" style="width: 10%;">' + 'Monto' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 8%;">' + 'Item' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 40%;">' + 'Producto' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 12%;">' + 'Tipo UND' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 12%;">' + 'Cantidad' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 12%;">' + 'P. U.' + '</th>' +
+                    '<th scope="col" class="align-middle font-weight-normal" style="width: 12%;">' + 'Monto' + '</th>' +
                     '</tr>' +
                     '</thead>' +
                     '<tbody id="details-table-date-' + _number + '" number="' + _number + '">' +
@@ -396,9 +461,11 @@
 
                 $('#tbody-product-add tr').each(function () {
                     let selectOptions = '';
+                    let unitSelectOptions = '';
                     let _tr = $(this);
                     let item = _tr.attr("i");
                     let product = _tr.find('td.item-product-add select.product-add').val()
+                    let unit = _tr.find('td.item-unit-add select.unit-add').val()
                     let _quantity = _tr.find('td.item-quantity-add input.quantity-add');
                     let _quantity_add = Number(_quantity.val()) / Number(_nro_dates.val());
                     let _price_unit = _tr.find('td.item-price-unit-add input.price-unit-add');
@@ -412,11 +479,21 @@
                             selectOptions += '<option value="' + productId + '">' + product_set[j][1] + '</option>';
                         }
                     }
-                    $('#details-table-date-' + _number).append(
-                        '<tr class="text-center">' +
+
+                    // Cargar unidades del producto
+                    loadUnitsForProduct(product, null, unit, function(unitOptions) {
+                        unitSelectOptions = unitOptions;
+                    });
+
+                    let rowHtml = '<tr class="text-center">' +
                         '<td class="item-number align-middle text-center">' + item + '</td>' +
                         '<td class="item-product align-middle text-center">' +
-                        '<select id="product_id" class="form-control form-control-sm product">' + selectOptions +
+                        '<select class="form-control form-control-sm product">' + selectOptions +
+                        '</select>' +
+                        '</td>' +
+                        '<td class="item-unit align-middle text-center">' +
+                        '<select class="form-control form-control-sm unit" data-product="' + product + '">' +
+                        '<option value="0">Cargando...</option>' +
                         '</select>' +
                         '</td>' +
                         '<td class="item-quantity align-middle text-center">' +
@@ -426,9 +503,16 @@
                         '<input type="text" class="form-control text-right price-unit" placeholder="0.00" autocomplete="off" value="' + _price_unit.val() + ' ">' +
                         '</td>' +
                         '<td class="item-amount align-middle text-center">' +
-                        '<input type="text" class="form-control text-right amount" placeholder="0.00" autocomplete="off" value="' + _amount.toFixed(2) + '">' +
+                        '<input type="text" class="form-control text-right amount" placeholder="0.00" autocomplete="off" value="' + _amount.toFixed(2) + '" readonly>' +
                         '</td>' +
-                        '</tr>');
+                        '</tr>';
+                    
+                    $('#details-table-date-' + _number).append(rowHtml);
+                    
+                    // Cargar unidades después de agregar la fila
+                    let newRow = $('#details-table-date-' + _number + ' tr:last');
+                    let unitSelect = newRow.find('.unit');
+                    loadUnitsForProduct(product, unitSelect, unit);
                 });
 
             }
@@ -448,6 +532,8 @@
             $('#total').val('');*/
             $('#tbody-product-add tr:not([i="1"])').remove();
             $('#tbody-product-add tr[i="1"]').find('input').val('');
+            $('#tbody-product-add tr[i="1"]').find('select.product-add').val('0');
+            $('#tbody-product-add tr[i="1"]').find('select.unit-add').html('<option value="0">Seleccione producto</option>').prop('disabled', true);
 
             $('#btn-add-dates').removeAttr('disabled');
             $('#product_add-id').val('0');
@@ -503,6 +589,7 @@
                 $(`tbody#details-table-date-${nro_quota} tr`).each(function () {
                     itemObj = {
                         "product": $(this).find("td.item-product select.product").val(),
+                        "unit": $(this).find("td.item-unit select.unit").val(),
                         "quantity": $(this).find("td.item-quantity input.quantity").val(),
                         "price_unit": $(this).find("td.item-price-unit input.price-unit").val(),
                     }
@@ -654,8 +741,13 @@
             $('#table-product-add > tbody').append(
                 '<tr class="text-center">' +
                 '<td class="item-product-add align-middle text-center">' +
-                '<select id="product_add-id" class="form-control form-control-sm product-add">' +
+                '<select class="form-control form-control-sm product-add">' +
                 '<option value="0">Seleccione</option>' + _products + '</select>' +
+                '</td>' +
+                '<td class="item-unit-add align-middle text-center pt-0">' +
+                '<select class="form-control form-control-sm unit-add" disabled>' +
+                '<option value="0">Seleccione producto</option>' +
+                '</select>' +
                 '</td>' +
                 '<td class="item-quantity-add align-middle text-center pt-0">' +
                 '<input type="text" class="form-control form-control-sm text-right quantity-add" placeholder="0.00" autocomplete="off">' +
@@ -664,7 +756,7 @@
                 '<input type="text" class="form-control form-control-sm text-right price-unit-add" placeholder="0.00" autocomplete="off">' +
                 '</td>' +
                 '<td class="item-amount-add align-middle text-center pt-0">' +
-                '<input type="text" class="form-control form-control-sm text-right amount-add" placeholder="0.00" autocomplete="off">' +
+                '<input type="text" class="form-control form-control-sm text-right amount-add" placeholder="0.00" autocomplete="off" readonly>' +
                 '</td>' +
                 '<td class="align-middle pt-0">' +
                 '<button type="button" onclick="deleteItemHeader(this)" class="btn btn-danger btn-sm delete-detail"><i class="fa fa-trash"></i></button>' +
@@ -697,10 +789,10 @@
 
         function calculateTotalHeader(input) {
             let _tr = input.closest('tr');
-            let _quantity = Number(_tr.find('.quantity-add').val());
-            let _price_unit = Number(_tr.find('.price-unit-add').val());
+            let _quantity = Number(_tr.find('.quantity-add').val().replace(/,/g, ''));
+            let _price_unit = Number(_tr.find('.price-unit-add').val().replace(/,/g, ''));
             let _total = _quantity * _price_unit;
-            _tr.find('.amount-add').val(_total.toFixed(2));
+            _tr.find('.amount-add').val(_total.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
         }
 
@@ -711,17 +803,22 @@
             let checkedCount = 0;
             table.find('tbody tr td.item-check input.check-dates').each(function () {
                 let checkbox = $(this);
-                let itemsTable = checkbox.closest('tr').find('td.items-table table.items');
+                let productList = checkbox.closest('tr').find('td.items-table div.product-list');
                 if (checkbox.prop('checked')) {
                     checkedCount++;
-                    itemsTable.find('tbody tr').each(function () {
-                        let _tr = $(this);
-                        let productID = parseInt(_tr.attr('product'));
-                        let quantity = parseFloat(_tr.find('td.item-quantity').text());
-                        let idContractDetail = parseInt(_tr.attr('cd'));
+                    productList.find('div[product]').each(function () {
+                        let _div = $(this);
+                        let productID = parseInt(_div.attr('product'));
+                        // Extraer cantidad del badge (formato: "X UND")
+                        let quantityText = _div.find('span.badge').text().trim();
+                        let quantity = parseFloat(quantityText.replace(/\s*UND\s*/i, '')) || 0;
+                        let idContractDetail = parseInt(_div.attr('cd'));
                         if (selectedData[productID]) {
                             selectedData[productID].quantity += quantity;
-                            selectedData[productID].contractDetailIDs.push(idContractDetail);
+                            // Evitar duplicados en contractDetailIDs
+                            if (selectedData[productID].contractDetailIDs.indexOf(idContractDetail) === -1) {
+                                selectedData[productID].contractDetailIDs.push(idContractDetail);
+                            }
                         } else {
                             selectedData[productID] = {
                                 quantity: quantity,
@@ -785,17 +882,22 @@
             let checkedCount = 0;
             table.find('tbody tr td.item-check-guide input.check-dates-guide').each(function () {
                 let checkbox = $(this);
-                let itemsTable = checkbox.closest('tr').find('td.items-table table.items');
+                let productList = checkbox.closest('tr').find('td.items-table div.product-list');
                 if (checkbox.prop('checked')) {
                     checkedCount++;
-                    itemsTable.find('tbody tr').each(function () {
-                        let _tr = $(this);
-                        let productID = parseInt(_tr.attr('product'));
-                        let quantity = parseFloat(_tr.find('td.item-quantity').text());
-                        let idContractDetail = parseInt(_tr.attr('cd'));
+                    productList.find('div[product]').each(function () {
+                        let _div = $(this);
+                        let productID = parseInt(_div.attr('product'));
+                        // Extraer cantidad del badge (formato: "X UND")
+                        let quantityText = _div.find('span.badge').text().trim();
+                        let quantity = parseFloat(quantityText.replace(/\s*UND\s*/i, '')) || 0;
+                        let idContractDetail = parseInt(_div.attr('cd'));
                         if (selectedDataGuide[productID]) {
                             selectedDataGuide[productID].quantity += quantity;
-                            selectedDataGuide[productID].contractDetailIDs.push(idContractDetail);
+                            // Evitar duplicados en contractDetailIDs
+                            if (selectedDataGuide[productID].contractDetailIDs.indexOf(idContractDetail) === -1) {
+                                selectedDataGuide[productID].contractDetailIDs.push(idContractDetail);
+                            }
                         } else {
                             selectedDataGuide[productID] = {
                                 quantity: quantity,

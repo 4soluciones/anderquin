@@ -1628,7 +1628,7 @@ def modal_contract_create(request):
         c = ({
             'date_now': date_now,
             'client_set': Client.objects.all(),
-            'product_set': Product.objects.filter(is_enabled=True),
+            'product_set': Product.objects.filter(is_enabled=True).order_by('id'),
             'user_set': User.objects.filter(is_active=True, is_superuser=False)
         })
         return JsonResponse({
@@ -1683,12 +1683,17 @@ def save_contract(request):
             contract_detail_obj.save()
             for i in c['items']:
                 product = i['product']
+                unit = i.get('unit', None)
                 quantity = i['quantity']
                 price_unit = decimal.Decimal(i['price_unit'])
                 product_obj = Product.objects.get(id=int(product))
+                unit_obj = None
+                if unit and unit != '0':
+                    unit_obj = Unit.objects.get(id=int(unit))
                 contract_detail_item_obj = ContractDetailItem(
                     quantity=quantity,
                     product=product_obj,
+                    unit=unit_obj,
                     contract_detail=contract_detail_obj,
                     price_unit=price_unit
                 )
@@ -1806,13 +1811,18 @@ def save_update_contract(request):
                     contract_detail_obj.save()
                     for i in d['items']:
                         product = i['product']
+                        unit = i.get('unit', None)
                         quantity = i['quantity']
                         price_unit = decimal.Decimal(i['price_unit'])
                         contract_detail_item = i['contract_detail_item']
                         contract_detail_item_obj = ContractDetailItem.objects.get(id=int(contract_detail_item))
                         product_obj = Product.objects.get(id=int(product))
+                        unit_obj = None
+                        if unit and unit != '0':
+                            unit_obj = Unit.objects.get(id=int(unit))
                         contract_detail_item_obj.quantity = quantity
                         contract_detail_item_obj.product = product_obj
+                        contract_detail_item_obj.unit = unit_obj
                         contract_detail_item_obj.price_unit = price_unit
                         contract_detail_item_obj.contract_detail = contract_detail_obj
                         contract_detail_item_obj.save()
@@ -1825,12 +1835,17 @@ def save_update_contract(request):
                     new_contract_detail_obj.save()
                     for i in d['items']:
                         product = i['product']
+                        unit = i.get('unit', None)
                         quantity = i['quantity']
                         price_unit = decimal.Decimal(i['price_unit'])
                         product_obj = Product.objects.get(id=int(product))
+                        unit_obj = None
+                        if unit and unit != '0':
+                            unit_obj = Unit.objects.get(id=int(unit))
                         new_contract_detail_item_obj = ContractDetailItem(
                             quantity=quantity,
                             product=product_obj,
+                            unit=unit_obj,
                             contract_detail=new_contract_detail_obj,
                             price_unit=price_unit
                         )
