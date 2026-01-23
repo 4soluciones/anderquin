@@ -6,7 +6,80 @@ from .models import *
 class FormClient(forms.ModelForm):
     class Meta:
         model = Client
-        fields = ('names', 'phone', 'email')
+        fields = ('names', 'phone', 'email', 'price_type')
+        widgets = {
+            'price_type': forms.Select(
+                attrs={
+                    'class': 'form-control form-control-sm',
+                }
+            ),
+        }
+
+
+class FormPriceType(forms.ModelForm):
+    class Meta:
+        model = PriceType
+        fields = ('name', 'description', 'is_enabled')
+        labels = {
+            'name': 'Nombre',
+            'description': 'Descripción',
+            'is_enabled': 'Habilitado',
+        }
+        widgets = {
+            'name': forms.TextInput(
+                attrs={
+                    'class': 'form-control form-control-sm',
+                    'placeholder': 'Ingrese nombre',
+                    'required': 'true',
+                }
+            ),
+            'description': forms.Textarea(
+                attrs={
+                    'class': 'form-control form-control-sm',
+                    'rows': 3,
+                }
+            ),
+            'is_enabled': forms.CheckboxInput(
+                attrs={
+                    'class': 'form-check-input',
+                }
+            ),
+        }
+
+
+class FormProductPrice(forms.ModelForm):
+    class Meta:
+        model = ProductPrice
+        fields = ('price_type', 'product_detail', 'price', 'is_enabled')
+        labels = {
+            'price_type': 'Tipo de Precio',
+            'product_detail': 'Presentación',
+            'price': 'Precio',
+            'is_enabled': 'Habilitado',
+        }
+        widgets = {
+            'price_type': forms.Select(
+                attrs={
+                    'class': 'form-control form-control-sm',
+                }
+            ),
+            'product_detail': forms.Select(
+                attrs={
+                    'class': 'form-control form-control-sm',
+                }
+            ),
+            'price': forms.NumberInput(
+                attrs={
+                    'class': 'form-control form-control-sm',
+                    'step': '0.01',
+                }
+            ),
+            'is_enabled': forms.CheckboxInput(
+                attrs={
+                    'class': 'form-check-input',
+                }
+            ),
+        }
 
 
 class FormSubsidiaryStore(forms.ModelForm):

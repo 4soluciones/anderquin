@@ -1,6 +1,6 @@
 import pytz
 from django.db.models.functions import Coalesce, Cast
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, View, CreateView, UpdateView
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
@@ -443,6 +443,7 @@ class ClientList(View):
         contexto['subsidiaries'] = Subsidiary.objects.all()
         contexto['type_client'] = Client._meta.get_field('type_client').choices
         contexto['type_address'] = ClientAddress._meta.get_field('type_address').choices
+        contexto['price_types'] = PriceType.objects.filter(is_enabled=True)
         return contexto
 
     def get(self, request, *args, **kwargs):
@@ -467,12 +468,21 @@ def client_save(request):
 
         document_type_obj = DocumentType.objects.get(id=document_type)
 
+        price_type_id = data_client.get("price_type", '')
+        price_type_obj = None
+        if price_type_id and str(price_type_id) != '' and str(price_type_id) != '0':
+            try:
+                price_type_obj = PriceType.objects.get(id=int(price_type_id))
+            except PriceType.DoesNotExist:
+                pass
+
         client_obj = Client(
             names=names.upper(),
             phone=phone,
             email=email,
             cod_siaf=siaf,
-            type_client=type_client
+            type_client=type_client,
+            price_type=price_type_obj
         )
         client_obj.save()
 
@@ -1654,8 +1664,42 @@ def get_unit_by_product(request):
 def get_price_by_product(request):
     if request.method == 'GET':
         pk = request.GET.get('pk', '')
-        product_detail_obj = ProductDetail.objects.filter(product_id=int(pk)).first()
-        price = product_detail_obj.price_sale
+        client_id = request.GET.get('client_id', '')
+        unit_id = request.GET.get('unit_id', '')
+        
+        try:
+            if unit_id:
+                product_detail_obj = ProductDetail.objects.filter(
+                    product_id=int(pk),
+                    unit_id=int(unit_id)
+                ).first()
+            else:
+                product_detail_obj = ProductDetail.objects.filter(product_id=int(pk)).first()
+            
+            if not product_detail_obj:
+                return JsonResponse({'price_unit': 0})
+            
+            price = product_detail_obj.price_sale
+            
+            # Si hay un cliente, intentar obtener el precio según su tipo de precio
+            if client_id:
+                try:
+                    client_obj = Client.objects.get(id=int(client_id))
+                    if client_obj.price_type:
+                        try:
+                            product_price_obj = ProductPrice.objects.get(
+                                price_type=client_obj.price_type,
+                                product_detail=product_detail_obj,
+                                is_enabled=True
+                            )
+                            price = product_price_obj.price
+                        except ProductPrice.DoesNotExist:
+                            pass  # Usar precio por defecto si no existe precio específico
+                except Client.DoesNotExist:
+                    pass  # Usar precio por defecto si no existe el cliente
+            
+        except Exception as e:
+            price = 0
 
     return JsonResponse({'price_unit': price})
 
@@ -2834,11 +2878,24 @@ def report_payments_by_client(request):
         }, status=HTTPStatus.OK)
 
 
-def get_price_of_product(product_detail_set=None, product=None, unit=None):
+def get_price_of_product(product_detail_set=None, product=None, unit=None, client=None):
     price = 0
     for pd in product_detail_set:
         if pd.product == product and pd.unit == unit:
             price = pd.price_sale
+            
+            # Si hay un cliente con tipo de precio, usar ese precio
+            if client and client.price_type:
+                try:
+                    product_price_obj = ProductPrice.objects.get(
+                        price_type=client.price_type,
+                        product_detail=pd,
+                        is_enabled=True
+                    )
+                    price = product_price_obj.price
+                except ProductPrice.DoesNotExist:
+                    pass  # Usar precio por defecto si no existe precio específico
+            break
     return price
 
 
@@ -3195,7 +3252,8 @@ def modal_client_create(request):
             'document_types': DocumentType.objects.all(),
             'subsidiaries': Subsidiary.objects.all(),
             'type_client': Client._meta.get_field('type_client').choices,
-            'type_address': ClientAddress._meta.get_field('type_address').choices
+            'type_address': ClientAddress._meta.get_field('type_address').choices,
+            'price_types': PriceType.objects.filter(is_enabled=True)
         })
         return JsonResponse({
             'form': t.render(c, request),
@@ -3237,7 +3295,8 @@ def modal_client_update(request):
             'departments': departments_list,  # Solo los relacionados
             'type_client': Client._meta.get_field('type_client').choices,
             'document_types': DocumentType.objects.all(),
-            'type_address': ClientAddress._meta.get_field('type_address').choices
+            'type_address': ClientAddress._meta.get_field('type_address').choices,
+            'price_types': PriceType.objects.filter(is_enabled=True)
         })
         return JsonResponse({
             'form': t.render(c, request),
@@ -3264,11 +3323,20 @@ def client_update(request):
 
             document_type_obj = DocumentType.objects.get(id=document_type)
 
+            price_type_id = data_client.get("price_type", '')
+            price_type_obj = None
+            if price_type_id and str(price_type_id) != '' and str(price_type_id) != '0':
+                try:
+                    price_type_obj = PriceType.objects.get(id=int(price_type_id))
+                except PriceType.DoesNotExist:
+                    pass
+
             client_obj.names = names.upper()
             client_obj.phone = phone
             client_obj.email = email
             client_obj.cod_siaf = siaf
             client_obj.type_client = type_client
+            client_obj.price_type = price_type_obj
             client_obj.save()
 
             client_type_obj = ClientType.objects.get(client=client_obj)
@@ -5740,3 +5808,374 @@ def get_order_by_correlative(request):
                 'success': False,
                 'message': 'No se encontro la Cotización Numero: ' + str(correlative),
             }, status=HTTPStatus.OK)
+
+
+# ==================== MÓDULO DE PRECIOS ====================
+
+class PriceManagementView(View):
+    """Vista unificada para gestión de precios"""
+    model_price_type = PriceType
+    model_product_price = ProductPrice
+    form_class_price_type = FormPriceType
+    form_class_product_price = FormProductPrice
+    template_name = 'sales/price_management.html'
+
+    def get_queryset_price_types(self):
+        return self.model_price_type.objects.all().order_by('id')
+
+    def get_queryset_product_prices(self):
+        return self.model_product_price.objects.select_related('price_type', 'product_detail__product', 'product_detail__unit').all().order_by('price_type__name', 'product_detail__product__name')
+
+    def get_context_data(self, **kwargs):
+        contexto = {}
+        contexto['price_types'] = self.get_queryset_price_types()
+        contexto['product_prices'] = self.get_queryset_product_prices()
+        contexto['form_price_type'] = self.form_class_price_type
+        contexto['form_product_price'] = self.form_class_product_price
+        contexto['price_types_enabled'] = PriceType.objects.filter(is_enabled=True)
+        contexto['product_details'] = ProductDetail.objects.filter(is_enabled=True).select_related('product', 'unit').order_by('product__name', 'unit__name')
+        return contexto
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context_data())
+
+
+class PriceTypeList(View):
+    """Vista legacy - redirige a la vista unificada"""
+    def get(self, request, *args, **kwargs):
+        return redirect('sales:price_management')
+
+
+class ProductPriceList(View):
+    """Vista legacy - redirige a la vista unificada"""
+    def get(self, request, *args, **kwargs):
+        return redirect('sales:price_management')
+
+
+def price_type_save(request):
+    if request.method == 'POST':
+        try:
+            price_type_id = request.POST.get('price_type_id', '')
+            name = request.POST.get('name', '').strip()
+            description = request.POST.get('description', '').strip()
+            is_enabled = request.POST.get('is_enabled', '') == 'on'
+
+            if price_type_id:
+                # Actualizar
+                price_type_obj = PriceType.objects.get(id=int(price_type_id))
+                price_type_obj.name = name
+                price_type_obj.description = description
+                price_type_obj.is_enabled = is_enabled
+                price_type_obj.save()
+                message = 'Tipo de precio actualizado correctamente'
+            else:
+                # Crear
+                price_type_obj = PriceType.objects.create(
+                    name=name,
+                    description=description,
+                    is_enabled=is_enabled
+                )
+                message = 'Tipo de precio creado correctamente'
+
+            return JsonResponse({
+                'success': True,
+                'message': message,
+                'price_type_id': price_type_obj.id
+            }, status=HTTPStatus.OK)
+
+        except IntegrityError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Ya existe un tipo de precio con este nombre o código'
+            }, status=HTTPStatus.BAD_REQUEST)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            }, status=HTTPStatus.BAD_REQUEST)
+
+    return JsonResponse({'message': 'Error de petición.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def price_type_delete(request):
+    if request.method == 'POST':
+        try:
+            price_type_id = request.POST.get('price_type_id', '')
+            if price_type_id:
+                price_type_obj = PriceType.objects.get(id=int(price_type_id))
+                # Verificar si tiene precios asociados
+                if price_type_obj.productprice_set.exists():
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'No se puede eliminar porque tiene precios de productos asociados'
+                    }, status=HTTPStatus.BAD_REQUEST)
+                # Verificar si tiene clientes asociados
+                if price_type_obj.client_set.exists():
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'No se puede eliminar porque tiene clientes asociados'
+                    }, status=HTTPStatus.BAD_REQUEST)
+                price_type_obj.delete()
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Tipo de precio eliminado correctamente'
+                }, status=HTTPStatus.OK)
+        except PriceType.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Tipo de precio no encontrado'
+            }, status=HTTPStatus.NOT_FOUND)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            }, status=HTTPStatus.BAD_REQUEST)
+
+    return JsonResponse({'message': 'Error de petición.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+class ProductPriceList(View):
+    model = ProductPrice
+    form_class = FormProductPrice
+    template_name = 'sales/product_price_list.html'
+
+    def get_queryset(self):
+        return self.model.objects.select_related('price_type', 'product_detail__product', 'product_detail__unit').all().order_by('price_type__type', 'product_detail__product__name')
+
+    def get_context_data(self, **kwargs):
+        contexto = {}
+        contexto['product_prices'] = self.get_queryset()
+        contexto['form'] = self.form_class
+        contexto['price_types'] = PriceType.objects.filter(is_enabled=True)
+        contexto['product_details'] = ProductDetail.objects.filter(is_enabled=True).select_related('product', 'unit')
+        return contexto
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context_data())
+
+
+def product_price_save(request):
+    if request.method == 'POST':
+        try:
+            product_price_id = request.POST.get('product_price_id', '')
+            price_type_id = request.POST.get('price_type', '').strip()
+            product_detail_id = request.POST.get('product_detail', '').strip()
+            price = request.POST.get('price', '').strip()
+            is_enabled = request.POST.get('is_enabled', '') == 'on'
+
+            if not price_type_id or not product_detail_id:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Tipo de precio y producto son requeridos'
+                }, status=HTTPStatus.BAD_REQUEST)
+
+            # Si el precio es 0 o vacío, no guardar
+            if not price or price == '' or decimal.Decimal(price) == 0:
+                # Si existe un precio, eliminarlo
+                if product_price_id:
+                    try:
+                        ProductPrice.objects.get(id=int(product_price_id)).delete()
+                        return JsonResponse({
+                            'success': True,
+                            'message': 'Precio eliminado (precio en 0)',
+                            'product_price_id': None
+                        }, status=HTTPStatus.OK)
+                    except ProductPrice.DoesNotExist:
+                        pass
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Precio no guardado (precio en 0)',
+                    'product_price_id': None
+                }, status=HTTPStatus.OK)
+
+            price_decimal = decimal.Decimal(price)
+
+            if product_price_id:
+                # Actualizar
+                product_price_obj = ProductPrice.objects.get(id=int(product_price_id))
+                product_price_obj.price = price_decimal
+                product_price_obj.is_enabled = is_enabled
+                product_price_obj.save()
+                message = 'Precio actualizado correctamente'
+            else:
+                # Crear o actualizar si existe
+                product_price_obj, created = ProductPrice.objects.update_or_create(
+                    price_type_id=int(price_type_id),
+                    product_detail_id=int(product_detail_id),
+                    defaults={
+                        'price': price_decimal,
+                        'is_enabled': is_enabled
+                    }
+                )
+                message = 'Precio guardado correctamente'
+
+            return JsonResponse({
+                'success': True,
+                'message': message,
+                'product_price_id': product_price_obj.id
+            }, status=HTTPStatus.OK)
+
+        except IntegrityError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Ya existe un precio para este tipo de precio y presentación'
+            }, status=HTTPStatus.BAD_REQUEST)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            }, status=HTTPStatus.BAD_REQUEST)
+
+    return JsonResponse({'message': 'Error de petición.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def product_price_delete(request):
+    if request.method == 'POST':
+        try:
+            product_price_id = request.POST.get('product_price_id', '')
+            if product_price_id:
+                product_price_obj = ProductPrice.objects.get(id=int(product_price_id))
+                product_price_obj.delete()
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Precio de producto eliminado correctamente'
+                }, status=HTTPStatus.OK)
+        except ProductPrice.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Precio de producto no encontrado'
+            }, status=HTTPStatus.NOT_FOUND)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            }, status=HTTPStatus.BAD_REQUEST)
+
+    return JsonResponse({'message': 'Error de petición.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_price_by_client_and_product(request):
+    """Obtiene el precio de un producto según el tipo de precio del cliente"""
+    if request.method == 'GET':
+        try:
+            client_id = request.GET.get('client_id', '')
+            product_id = request.GET.get('product_id', '')
+            unit_id = request.GET.get('unit_id', '')
+
+            if not client_id or not product_id or not unit_id:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Faltan parámetros requeridos'
+                }, status=HTTPStatus.BAD_REQUEST)
+
+            client_obj = Client.objects.get(id=int(client_id))
+            product_detail_obj = ProductDetail.objects.get(
+                product_id=int(product_id),
+                unit_id=int(unit_id)
+            )
+
+            # Si el cliente tiene un tipo de precio asignado
+            if client_obj.price_type:
+                try:
+                    product_price_obj = ProductPrice.objects.get(
+                        price_type=client_obj.price_type,
+                        product_detail=product_detail_obj,
+                        is_enabled=True
+                    )
+                    price = product_price_obj.price
+                except ProductPrice.DoesNotExist:
+                    # Si no existe precio específico, usar el precio de venta por defecto
+                    price = product_detail_obj.price_sale
+            else:
+                # Si no tiene tipo de precio, usar el precio de venta por defecto
+                price = product_detail_obj.price_sale
+
+            return JsonResponse({
+                'success': True,
+                'price': float(price),
+                'price_type': client_obj.price_type.name if client_obj.price_type else 'Precio por defecto'
+            }, status=HTTPStatus.OK)
+
+        except Client.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Cliente no encontrado'
+            }, status=HTTPStatus.NOT_FOUND)
+        except ProductDetail.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Presentación de producto no encontrada'
+            }, status=HTTPStatus.NOT_FOUND)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            }, status=HTTPStatus.BAD_REQUEST)
+
+    return JsonResponse({'message': 'Error de petición.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_prices_by_price_type(request):
+    """Obtiene todos los productos con sus precios para un tipo de precio específico"""
+    if request.method == 'GET':
+        try:
+            price_type_id = request.GET.get('price_type_id', '')
+            
+            if not price_type_id:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Falta el parámetro price_type_id'
+                }, status=HTTPStatus.BAD_REQUEST)
+
+            price_type_obj = PriceType.objects.get(id=int(price_type_id))
+            
+            # Obtener todos los productos habilitados
+            product_details = ProductDetail.objects.filter(is_enabled=True).select_related('product', 'unit').order_by('product__name', 'unit__name')
+            
+            # Obtener precios existentes para este tipo de precio
+            existing_prices = ProductPrice.objects.filter(
+                price_type=price_type_obj
+            ).select_related('product_detail__product', 'product_detail__unit')
+            
+            # Crear un diccionario de precios existentes por product_detail_id
+            prices_dict = {pp.product_detail.id: {
+                'id': pp.id,
+                'price': float(pp.price),
+                'is_enabled': pp.is_enabled
+            } for pp in existing_prices}
+
+            # Construir la lista con todos los productos
+            products_list = []
+            for pd in product_details:
+                price_info = prices_dict.get(pd.id, None)
+                products_list.append({
+                    'product_detail_id': pd.id,
+                    'product_id': pd.product.id,
+                    'product_name': pd.product.name,
+                    'unit_id': pd.unit.id,
+                    'unit_name': pd.unit.name,
+                    'price_id': price_info['id'] if price_info else None,
+                    'price': price_info['price'] if price_info else 0.0,
+                    'is_enabled': price_info['is_enabled'] if price_info else True,
+                    'has_price': price_info is not None
+                })
+
+            return JsonResponse({
+                'success': True,
+                'price_type': price_type_obj.name,
+                'price_type_id': price_type_obj.id,
+                'products': products_list
+            }, status=HTTPStatus.OK)
+
+        except PriceType.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Tipo de precio no encontrado'
+            }, status=HTTPStatus.NOT_FOUND)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            }, status=HTTPStatus.BAD_REQUEST)
+
+    return JsonResponse({'message': 'Error de petición.'}, status=HTTPStatus.BAD_REQUEST)

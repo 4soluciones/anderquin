@@ -1,0 +1,522 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    Gestión de Precios
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid roboto-condensed-regular m-2">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-0 roboto-condensed-regular text-white"><i class="fas fa-dollar-sign mr-2"></i>MÓDULO DE GESTIÓN DE PRECIOS</h4>
+                    </div>
+                    <div class="col-md-4 text-right">
+                        <small>Administración de tipos de precio y precios de productos</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs nav-justified" id="priceTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="price-types-tab" data-toggle="tab" href="#price-types" role="tab"
+                           aria-controls="price-types" aria-selected="true">
+                            <i class="fas fa-tags mr-2"></i>Tipos de Precio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="product-prices-tab" data-toggle="tab" href="#product-prices" role="tab"
+                           aria-controls="product-prices" aria-selected="false">
+                            <i class="fas fa-shopping-cart mr-2"></i>Precios de Productos
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content p-4" id="priceTabsContent">
+                    <!-- Tab Tipos de Precio -->
+                    <div class="tab-pane fade show active" id="price-types" role="tabpanel" aria-labelledby="price-types-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0 roboto-condensed-regular font-weight-bold">Tipos de Precio</h5>
+                            <button type="button" onclick="showModalPriceType()" 
+                                    class="btn btn-success btn-sm">
+                                <i class="fas fa-plus mr-1"></i>Nuevo Tipo de Precio
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th width="5%">ID</th>
+                                        <th width="25%">Nombre</th>
+                                        <th width="40%">Descripción</th>
+                                        <th width="10%">Estado</th>
+                                        <th width="20%">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for price_type in price_types %}
+                                    <tr>
+                                        <td>{{ price_type.id }}</td>
+                                        <td><strong>{{ price_type.name }}</strong></td>
+                                        <td>{{ price_type.description|default:"<em class='text-muted'>Sin descripción</em>"|safe }}</td>
+                                        <td>
+                                            {% if price_type.is_enabled %}
+                                                <span class="badge badge-success badge-pill">Habilitado</span>
+                                            {% else %}
+                                                <span class="badge badge-danger badge-pill">Deshabilitado</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-primary" 
+                                                    onclick="editPriceType({{ price_type.id }}, '{{ price_type.name|escapejs }}', '{{ price_type.description|default:""|escapejs }}', {{ price_type.is_enabled|lower }})"
+                                                    title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    onclick="deletePriceType({{ price_type.id }})"
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4">
+                                            <i class="fas fa-inbox fa-3x text-muted mb-2"></i>
+                                            <p class="text-muted">No hay tipos de precio registrados</p>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tab Precios de Productos -->
+                    <div class="tab-pane fade" id="product-prices" role="tabpanel" aria-labelledby="product-prices-tab">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h5 class="mb-0 roboto-condensed-regular font-weight-bold">Precios de Productos</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-tags"></i> Tipo de Precio:</span>
+                                    </div>
+                                    <select class="form-control" id="select-price-type" onchange="loadProductsByPriceType()">
+                                        <option value="">Seleccione un tipo de precio...</option>
+                                        {% for price_type in price_types_enabled %}
+                                        <option value="{{ price_type.id }}">{{ price_type.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="products-price-container" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                <strong id="selected-price-type-name"></strong> - Configure los precios para cada producto. 
+                                Los productos sin precio (0) no se guardarán.
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-bordered" id="products-price-table">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th width="5%">#</th>
+                                            <th width="40%">Producto</th>
+                                            <th width="15%">Unidad</th>
+                                            <th width="20%">Precio (S/)</th>
+                                            <th width="20%">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="products-price-tbody">
+                                        <!-- Se llenará dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="no-price-type-selected" class="text-center py-5">
+                            <i class="fas fa-hand-pointer fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Seleccione un tipo de precio para comenzar a configurar los precios de los productos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar tipo de precio -->
+    <div class="modal fade" id="modal-price-type" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modal-price-type-title">
+                        <i class="fas fa-tags mr-2"></i>NUEVO TIPO DE PRECIO
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="form-price-type">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" id="price_type_id" name="price_type_id">
+                        <div class="form-group">
+                            <label for="name"><strong>Nombre</strong> <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" required 
+                                   placeholder="Ej: Precio Distribuidor">
+                        </div>
+                        <div class="form-group">
+                            <label for="description"><strong>Descripción</strong></label>
+                            <textarea class="form-control" id="description" name="description" rows="3" 
+                                      placeholder="Descripción opcional del tipo de precio"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="is_enabled" name="is_enabled" checked>
+                                <label class="form-check-label" for="is_enabled">
+                                    <strong>Habilitado</strong>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save mr-1"></i>Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock body %}
+
+{% block extrajs %}
+    <style>
+        .nav-tabs .nav-link {
+            color: #495057;
+            font-weight: 500;
+            border: none;
+            border-bottom: 3px solid transparent;
+        }
+        .nav-tabs .nav-link:hover {
+            border-color: #dee2e6;
+            color: #007bff;
+        }
+        .nav-tabs .nav-link.active {
+            color: #007bff;
+            background-color: transparent;
+            border-color: #007bff;
+            border-bottom: 3px solid #007bff;
+        }
+        .table thead th {
+            border-top: none;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        .card {
+            border-radius: 8px;
+        }
+        .modal-content {
+            border-radius: 8px;
+            border: none;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
+
+    <script type="text/javascript">
+        function showModalPriceType() {
+            $('#form-price-type')[0].reset();
+            $('#price_type_id').val('');
+            $('#modal-price-type-title').html('<i class="fas fa-tags mr-2"></i>NUEVO TIPO DE PRECIO');
+            $('#modal-price-type').modal('show');
+        }
+
+        function editPriceType(id, name, description, is_enabled) {
+            $('#price_type_id').val(id);
+            $('#name').val(name);
+            $('#description').val(description);
+            $('#is_enabled').prop('checked', is_enabled);
+            $('#modal-price-type-title').html('<i class="fas fa-edit mr-2"></i>EDITAR TIPO DE PRECIO');
+            $('#modal-price-type').modal('show');
+        }
+
+        $('#form-price-type').on('submit', function(e) {
+            e.preventDefault();
+            let formData = new FormData(this);
+            
+            $.ajax({
+                url: '{% url "sales:price_type_save" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message, '¡Éxito!');
+                        $('#modal-price-type').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        toastr.error(response.message, '¡Error!');
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Error al guardar';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    toastr.error(errorMsg, '¡Error!');
+                }
+            });
+        });
+
+        function deletePriceType(id) {
+            if (!confirm('¿Está seguro de eliminar este tipo de precio?')) {
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append('price_type_id', id);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            $.ajax({
+                url: '{% url "sales:price_type_delete" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message, '¡Éxito!');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        toastr.error(response.message, '¡Error!');
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Error al eliminar';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    toastr.error(errorMsg, '¡Error!');
+                }
+            });
+        }
+
+        function loadProductsByPriceType() {
+            let priceTypeId = $('#select-price-type').val();
+            
+            if (!priceTypeId) {
+                $('#products-price-container').hide();
+                $('#no-price-type-selected').show();
+                return;
+            }
+
+            // Mostrar loading
+            $('#products-price-tbody').html('<tr><td colspan="5" class="text-center"><i class="fas fa-spinner fa-spin"></i> Cargando productos...</td></tr>');
+            $('#products-price-container').show();
+            $('#no-price-type-selected').hide();
+
+            $.ajax({
+                url: '{% url "sales:get_prices_by_price_type" %}',
+                type: 'GET',
+                data: { 'price_type_id': priceTypeId },
+                success: function(response) {
+                    if (response.success) {
+                        $('#selected-price-type-name').text(response.price_type);
+                        let tbody = $('#products-price-tbody');
+                        tbody.empty();
+                        
+                        if (response.products.length === 0) {
+                            tbody.html('<tr><td colspan="5" class="text-center py-4"><i class="fas fa-inbox fa-2x text-muted mb-2"></i><p class="text-muted">No hay productos disponibles</p></td></tr>');
+                        } else {
+                            response.products.forEach(function(product, index) {
+                                let priceValue = product.price > 0 ? product.price : '';
+                                let priceId = product.price_id || '';
+                                let row = `
+                                    <tr data-product-detail-id="${product.product_detail_id}" data-price-id="${priceId || ''}">
+                                        <td>${index + 1}</td>
+                                        <td><strong>${product.product_name}</strong></td>
+                                        <td><span class="badge badge-secondary">${product.unit_name}</span></td>
+                                        <td>
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">S/</span>
+                                                </div>
+                                                <input type="number" 
+                                                       class="form-control price-input" 
+                                                       step="0.01" 
+                                                       min="0" 
+                                                       value="${priceValue}"
+                                                       data-product-detail-id="${product.product_detail_id}"
+                                                       data-price-id="${priceId}"
+                                                       placeholder="0.00">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-success save-price-btn" 
+                                                    onclick="saveProductPrice(${priceTypeId}, ${product.product_detail_id}, this)"
+                                                    title="Guardar">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            ${priceId ? `
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-danger delete-price-btn" 
+                                                    onclick="deleteProductPrice(${priceId})"
+                                                    title="Eliminar">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            ` : ''}
+                                        </td>
+                                    </tr>
+                                `;
+                                tbody.append(row);
+                            });
+                        }
+                    } else {
+                        toastr.error(response.message, '¡Error!');
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Error al cargar productos';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    toastr.error(errorMsg, '¡Error!');
+                }
+            });
+        }
+
+        function saveProductPrice(priceTypeId, productDetailId, btnElement) {
+            let row = $(btnElement).closest('tr');
+            let input = row.find('.price-input');
+            let price = input.val();
+            let priceId = input.data('price-id') || '';
+
+            // Si el precio es 0 o vacío, no guardar
+            if (!price || price === '' || parseFloat(price) === 0) {
+                toastr.warning('El precio debe ser mayor a 0 para guardar', '¡Atención!');
+                return;
+            }
+
+            // Deshabilitar botón mientras se guarda
+            $(btnElement).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+            let formData = new FormData();
+            formData.append('price_type', priceTypeId);
+            formData.append('product_detail', productDetailId);
+            formData.append('price', price);
+            formData.append('is_enabled', 'on');
+            if (priceId) {
+                formData.append('product_price_id', priceId);
+            }
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            $.ajax({
+                url: '{% url "sales:product_price_save" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message, '¡Éxito!');
+                        // Actualizar el data-price-id del input y agregar botón de eliminar si no existe
+                        if (response.product_price_id) {
+                            input.data('price-id', response.product_price_id);
+                            row.attr('data-price-id', response.product_price_id);
+                            
+                            // Agregar botón de eliminar si no existe
+                            if (!row.find('.delete-price-btn').length) {
+                                let deleteBtn = $(`<button type="button" 
+                                                        class="btn btn-sm btn-danger delete-price-btn ml-1" 
+                                                        onclick="deleteProductPrice(${response.product_price_id})"
+                                                        title="Eliminar">
+                                                    <i class="fas fa-times"></i>
+                                                </button>`);
+                                $(btnElement).after(deleteBtn);
+                            } else {
+                                // Actualizar el onclick del botón de eliminar existente
+                                row.find('.delete-price-btn').attr('onclick', `deleteProductPrice(${response.product_price_id})`);
+                            }
+                        }
+                    } else {
+                        toastr.error(response.message, '¡Error!');
+                    }
+                    $(btnElement).prop('disabled', false).html('<i class="fas fa-check"></i>');
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Error al guardar';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    toastr.error(errorMsg, '¡Error!');
+                    $(btnElement).prop('disabled', false).html('<i class="fas fa-check"></i>');
+                }
+            });
+        }
+
+
+        function deleteProductPrice(id) {
+            if (!confirm('¿Está seguro de eliminar este precio de producto?')) {
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append('product_price_id', id);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            $.ajax({
+                url: '{% url "sales:product_price_delete" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message, '¡Éxito!');
+                        // Limpiar el input y remover el botón de eliminar
+                        let row = $('tr[data-price-id="' + id + '"]');
+                        row.find('.price-input').val('').data('price-id', '');
+                        row.attr('data-price-id', '');
+                        row.find('.delete-price-btn').remove();
+                        // Recargar la lista
+                        loadProductsByPriceType();
+                    } else {
+                        toastr.error(response.message, '¡Error!');
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Error al eliminar';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    toastr.error(errorMsg, '¡Error!');
+                }
+            });
+        }
+    </script>
+{% endblock extrajs %}
+

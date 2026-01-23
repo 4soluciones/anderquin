@@ -154,5 +154,16 @@ urlpatterns = [
     path('sales_report_professional/', login_required(sales_report_professional), name='sales_report_professional'),
     path('print_sales_report_professional/', login_required(print_sales_report_professional), name='print_sales_report_professional'),
 
+    # MÓDULO DE PRECIOS
+    path('price_management/', login_required(PriceManagementView.as_view()), name='price_management'),
+    path('price_type_list/', login_required(PriceTypeList.as_view()), name='price_type_list'),  # Legacy redirect
+    path('product_price_list/', login_required(ProductPriceList.as_view()), name='product_price_list'),  # Legacy redirect
+    path('price_type_save/', login_required(price_type_save), name='price_type_save'),
+    path('price_type_delete/', login_required(price_type_delete), name='price_type_delete'),
+    path('product_price_save/', login_required(product_price_save), name='product_price_save'),
+    path('product_price_delete/', login_required(product_price_delete), name='product_price_delete'),
+    path('get_price_by_client_and_product/', login_required(get_price_by_client_and_product), name='get_price_by_client_and_product'),
+    path('get_prices_by_price_type/', login_required(get_prices_by_price_type), name='get_prices_by_price_type'),
+
 ]
 

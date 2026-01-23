@@ -1,0 +1,205 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    Tipos de Precio
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="card p-2">
+            <div class="row">
+                <div class="col-lg-2 pt-3 ml-3">
+                    <button type="button" onclick="showModalPriceType()"
+                            class="btn btn-outline-success btn-sm"><i class="nav-icon fas fa-plus"></i>
+                        NUEVO TIPO DE PRECIO
+                    </button>
+                </div>
+                <div class="col-lg-8 text-center pt-2">
+                    <h2 class="font-weight-bold"> MÓDULO DE PRECIOS - TIPOS DE PRECIO</h2>
+                </div>
+            </div>
+
+            <div class="card-body p-2">
+                <table id="price-type-data-grid" class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for price_type in price_types %}
+                        <tr>
+                            <td>{{ price_type.id }}</td>
+                            <td>{{ price_type.name }}</td>
+                            <td>{{ price_type.get_type_display }}</td>
+                            <td>{{ price_type.description|default:"-" }}</td>
+                            <td>
+                                {% if price_type.is_enabled %}
+                                    <span class="badge badge-success">Habilitado</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Deshabilitado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-primary" 
+                                        onclick="editPriceType({{ price_type.id }}, '{{ price_type.name }}', '{{ price_type.type }}', '{{ price_type.description|default:"" }}', {{ price_type.is_enabled|lower }})">
+                                    <i class="fas fa-edit"></i> Editar
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger" 
+                                        onclick="deletePriceType({{ price_type.id }})">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No hay tipos de precio registrados</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar tipo de precio -->
+    <div class="modal fade" id="modal-price-type" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal-price-type-title">NUEVO TIPO DE PRECIO</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="form-price-type">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <input type="hidden" id="price_type_id" name="price_type_id">
+                        <div class="form-group">
+                            <label for="name">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="type">Tipo <span class="text-danger">*</span></label>
+                            <select class="form-control" id="type" name="type" required>
+                                <option value="">Seleccione...</option>
+                                {% for choice in type_choices %}
+                                <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Descripción</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="is_enabled" name="is_enabled" checked>
+                                <label class="form-check-label" for="is_enabled">Habilitado</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock body %}
+
+{% block extrajs %}
+    <script type="text/javascript">
+        function showModalPriceType() {
+            $('#form-price-type')[0].reset();
+            $('#price_type_id').val('');
+            $('#modal-price-type-title').text('NUEVO TIPO DE PRECIO');
+            $('#modal-price-type').modal('show');
+        }
+
+        function editPriceType(id, name, type, description, is_enabled) {
+            $('#price_type_id').val(id);
+            $('#name').val(name);
+            $('#type').val(type);
+            $('#description').val(description);
+            $('#is_enabled').prop('checked', is_enabled);
+            $('#modal-price-type-title').text('EDITAR TIPO DE PRECIO');
+            $('#modal-price-type').modal('show');
+        }
+
+        $('#form-price-type').on('submit', function(e) {
+            e.preventDefault();
+            let formData = new FormData(this);
+            
+            $.ajax({
+                url: '{% url "sales:price_type_save" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message, '¡Éxito!');
+                        $('#modal-price-type').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        toastr.error(response.message, '¡Error!');
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Error al guardar';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    toastr.error(errorMsg, '¡Error!');
+                }
+            });
+        });
+
+        function deletePriceType(id) {
+            if (!confirm('¿Está seguro de eliminar este tipo de precio?')) {
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append('price_type_id', id);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            $.ajax({
+                url: '{% url "sales:price_type_delete" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message, '¡Éxito!');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        toastr.error(response.message, '¡Error!');
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Error al eliminar';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    toastr.error(errorMsg, '¡Error!');
+                }
+            });
+        }
+    </script>
+{% endblock extrajs %}
+

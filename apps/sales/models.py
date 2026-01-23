@@ -326,6 +326,38 @@ class RequirementDetail(models.Model):
         verbose_name_plural = 'Detalles de requerimiento'
 
 
+class PriceType(models.Model):
+    """Modelo para tipos de precio personalizados"""
+    id = models.AutoField(primary_key=True)
+    name = models.CharField('Nombre', max_length=50, unique=True)
+    description = models.CharField('Descripción', max_length=200, null=True, blank=True)
+    is_enabled = models.BooleanField('Habilitado', default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Tipo de Precio'
+        verbose_name_plural = 'Tipos de Precio'
+
+
+class ProductPrice(models.Model):
+    """Modelo para almacenar precios de productos según tipo de precio"""
+    id = models.AutoField(primary_key=True)
+    price_type = models.ForeignKey('PriceType', verbose_name='Tipo de Precio', on_delete=models.CASCADE)
+    product_detail = models.ForeignKey('ProductDetail', verbose_name='Presentación', on_delete=models.CASCADE)
+    price = models.DecimalField('Precio', max_digits=12, decimal_places=6, default=0)
+    is_enabled = models.BooleanField('Habilitado', default=True)
+
+    def __str__(self):
+        return f"{self.price_type.name} - {self.product_detail.product.name} - {self.product_detail.unit.name}"
+
+    class Meta:
+        unique_together = ('price_type', 'product_detail',)
+        verbose_name = 'Precio de Producto'
+        verbose_name_plural = 'Precios de Productos'
+
+
 class Client(models.Model):
     TYPE_CHOICES = (('PU', 'PUBLICO'), ('PR', 'PRIVADO'))
     id = models.AutoField(primary_key=True)
@@ -334,6 +366,7 @@ class Client(models.Model):
     email = models.EmailField('Correo electronico', max_length=50, null=True, blank=True)
     type_client = models.CharField('Tipo de Cliente', max_length=2, choices=TYPE_CHOICES, default='PU')
     cod_siaf = models.CharField(max_length=45, null=True, blank=True)
+    price_type = models.ForeignKey('PriceType', verbose_name='Tipo de Precio', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.names
