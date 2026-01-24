@@ -4297,10 +4297,24 @@ def save_detail_to_warehouse(request):
                                                 price_purchase_unit, bill_detail_obj=detail_entered_obj)
 
                 else:
-                    total_cost = decimal.Decimal(sum_quantity_entered_total_in_units) * decimal.Decimal(price_purchase_unit)
-                    kardex_obj = kardex_input(product_store_obj.id, sum_quantity_entered_total_in_units, total_cost,
-                                              type_document='01', type_operation='02',
-                                              bill_detail_obj=detail_entered_obj)
+                    # Verificar si existe algún registro de kardex para este product_store
+                    has_kardex = Kardex.objects.filter(product_store_id=product_store_obj.id).exists()
+                    
+                    if not has_kardex:
+                        # Si no hay registros de kardex, usar kardex_initial
+                        # Actualizar el stock del product_store sumando la nueva cantidad
+                        new_total_stock = product_store_obj.stock + sum_quantity_entered_total_in_units
+                        product_store_obj.stock = new_total_stock
+                        product_store_obj.save()
+                        # kardex_initial debe reflejar el stock total (actual + nueva cantidad)
+                        kardex_obj = kardex_initial(product_store_obj, new_total_stock,
+                                                    price_purchase_unit, bill_detail_obj=detail_entered_obj)
+                    else:
+                        # Si ya hay registros de kardex, usar kardex_input
+                        total_cost = decimal.Decimal(sum_quantity_entered_total_in_units) * decimal.Decimal(price_purchase_unit)
+                        kardex_obj = kardex_input(product_store_obj.id, sum_quantity_entered_total_in_units, total_cost,
+                                                  type_document='01', type_operation='02',
+                                                  bill_detail_obj=detail_entered_obj)
 
                 for b in d['Batch']:
                     entered_quantity_principal = decimal.Decimal(b['EnteredQuantityPrincipal'])
