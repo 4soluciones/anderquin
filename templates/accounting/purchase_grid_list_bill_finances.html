@@ -28,8 +28,15 @@
                 </thead>
                 <tbody class="bg-white text-secondary">
                 {% for b in bill_dict %}
-                    <tr class="text-center details" pk="{{ b.id }}">
-                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.register_date|date:'d/m/Y' }}</td>
+                    <tr class="text-center details {% if b.has_oc %}bg-soft-primary{% endif %}" pk="{{ b.id }}" {% if b.has_oc %}style="background-color: #f0f7ff;"{% endif %}>
+                        <td class="align-middle" rowspan="{{ b.row_count }}">
+                            {{ b.register_date|date:'d/m/Y' }}
+                            {% if b.has_oc %}
+                                <br><span class="badge badge-primary font-weight-normal mt-1" style="font-size: 0.7rem; background-color: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb;">CON OC</span>
+                            {% else %}
+                                <br><span class="badge badge-light font-weight-normal mt-1" style="font-size: 0.7rem; color: #6c757d; border: 1px solid #dee2e6;">DIRECTA</span>
+                            {% endif %}
+                        </td>
                         <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.expiration_date|date:'d/m/Y' }}</td>
                         <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.order_number|upper }}</td>
                         <td class="align-middle text-center font-weight-bold text-dark" rowspan="{{ b.row_count }}">{{ b.serial }} - {{ b.correlative }}</td>

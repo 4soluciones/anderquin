@@ -71,6 +71,64 @@
     </tbody>
 </table>
 
+{% if summary %}
+<div class="row mt-4 justify-content-end">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <table class="table table-sm table-hover mb-0 roboto-condensed-regular">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="border-0"></th>
+                            <th class="text-right border-0 py-2" style="width: 120px; text-decoration: underline;">UNIDADES</th>
+                            <th class="text-right border-0 py-2" style="width: 150px; text-decoration: underline;">VALORIZADO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="pl-3 py-2 align-middle">Inventario Inicial</td>
+                            <td class="text-right pr-3 py-2 align-middle">
+                                {% if summary.initial_units > 0 %}{{ summary.initial_units|replace_round_separator }}{% else %}-{% endif %}
+                            </td>
+                            <td class="text-right pr-3 py-2 align-middle">
+                                {{ summary.initial_valorized|replace_round_separator }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="pl-3 py-2 align-middle">(+) Compras</td>
+                            <td class="text-right pr-3 py-2 align-middle">
+                                {{ summary.purchase_units|replace_round_separator }}
+                            </td>
+                            <td class="text-right pr-3 py-2 align-middle">
+                                {{ summary.purchase_valorized|replace_round_separator }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="pl-3 py-2 align-middle">(-) Inventario Final</td>
+                            <td class="text-right pr-3 py-2 align-middle">
+                                {{ summary.final_units|replace_round_separator }}
+                            </td>
+                            <td class="text-right pr-3 py-2 align-middle">
+                                {{ summary.final_valorized|replace_round_separator }}
+                            </td>
+                        </tr>
+                        <tr class="font-weight-bold" style="font-size: 1.05rem;">
+                            <td class="pl-3 py-3 align-middle">(=) Costo de Venta</td>
+                            <td class="text-right pr-3 py-3 align-middle shadow-sm" style="background-color: #ffff00; color: #000;">
+                                {{ summary.cost_sales_units|replace_round_separator }}
+                            </td>
+                            <td class="text-right pr-3 py-3 align-middle shadow-sm" style="background-color: #0080c0; color: #fff;">
+                                {{ summary.cost_sales_valorized|replace_round_separator }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% else %}
     <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
         <strong>Atencion!</strong> No hay operaciones registradas.

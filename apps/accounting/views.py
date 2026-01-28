@@ -2205,13 +2205,26 @@ def get_purchase_list_finances(request):
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
     
+    # Obtener filtros de fecha
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    # Filtros base
+    filters = {
+        'bill_status__in': ['S', 'I'],
+        'status__in': ['S', 'A'],
+        'bill_number__isnull': False
+    }
+
+    # Aplicar filtros de fecha si existen
+    if start_date:
+        filters['purchase_date__gte'] = start_date
+    if end_date:
+        filters['purchase_date__lte'] = end_date
+
     # Optimización: usar select_related para relaciones ForeignKey y prefetch_related para relaciones reversas
     # También usar annotate para verificar si tiene BillPurchase sin consultas adicionales
-    purchases_set = Purchase.objects.filter(
-        bill_status__in=['S', 'I'], 
-        status__in=['S', 'A'],
-        bill_number__isnull=False
-    ).select_related(
+    purchases_set = Purchase.objects.filter(**filters).select_related(
         'supplier',           # Optimiza acceso a supplier.name y supplier.id
         'client_reference',   # Optimiza acceso a client_reference.names
         'client_reference_entity',  # Optimiza acceso a client_reference_entity.names
@@ -2268,6 +2281,8 @@ def get_purchase_list_finances(request):
 
     return render(request, 'accounting/purchase_list_finances.html', {
         'purchases': purchase_dict,
+        'start_date': start_date,
+        'end_date': end_date,
     })
 
 
@@ -2663,7 +2678,16 @@ def save_bill(request):
 
 def get_purchases_with_bill(request):
     if request.method == 'GET':
-        bill_set = Bill.objects.filter(status__in=['S', 'E']).order_by('-id')
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+
+        filters = {'status__in': ['S', 'E']}
+        if start_date:
+            filters['register_date__gte'] = start_date
+        if end_date:
+            filters['register_date__lte'] = end_date
+
+        bill_set = Bill.objects.filter(**filters).prefetch_related('billpurchase_set').order_by('-id')
         bill_dict = []
 
         for b in bill_set:
@@ -2671,6 +2695,7 @@ def get_purchases_with_bill(request):
             if b.sum_quantity_invoice() != b.sum_quantity_purchased():
                 status = 'INCOMPLETO'
 
+            has_oc = b.billpurchase_set.exists()
             rowspan = b.billdetail_set.filter(status_quantity='C').count()
 
             if b.billdetail_set.count() == 0:
@@ -2691,6 +2716,7 @@ def get_purchases_with_bill(request):
                 'sum_quantity_invoice': b.sum_quantity_invoice(),
                 'sum_quantity_purchased': b.sum_quantity_purchased(),
                 'status': status,
+                'has_oc': has_oc,
                 # 'bill_purchase': [],
                 'bill_detail': [],
                 'row_count': rowspan

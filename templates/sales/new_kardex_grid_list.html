@@ -1,6 +1,6 @@
 {% load operations %}
 {% if kardex_dict %}
-    <table class="table table-bordered table-sm table-striped roboto-condensed-regular text-uppercase">
+<table class="table table-bordered table-sm table-striped roboto-condensed-regular text-uppercase">
     <thead>
         <tr style="background-color: #0B3040" class="text-white">
             <th scope="col" colspan="5" class="align-middle text-center small">
@@ -16,22 +16,23 @@
             <th scope="col" class="align-middle text-center small">Fecha</th>
             <th scope="col" class="align-middle text-center small">Tipo</th>
             <th scope="col" class="align-middle text-center small">Serie</th>
-
             <th scope="col" class="align-middle text-center small">Numero</th>
             <th scope="col" class="align-middle text-center small">Tipo de Operacion</th>
-            <th scope="col" class="align-middle text-center small">Cantidad</th>
 
+            <th scope="col" class="align-middle text-center small">Cantidad</th>
             <th scope="col" class="align-middle text-center small">Costo<br>Unitario</th>
             <th scope="col" class="align-middle text-center small">Costo<br>Total</th>
-            <th scope="col" class="align-middle text-center small">Cantidad2</th>
 
-            <th scope="col" class="align-middle text-center small">Costo<br>Unitario3</th>
-            <th scope="col" class="align-middle text-center small">Costo<br>Total4</th>
-            <th scope="col" class="align-middle text-center small">Cantidad5</th>
-            <th scope="col" class="align-middle text-center small">Costo<br>Unitario6</th>
-            <th scope="col" class="align-middle text-center small">Costo<br>Total7</th>
+            <th scope="col" class="align-middle text-center small">Cantidad</th>
+            <th scope="col" class="align-middle text-center small">Costo<br>Unitario</th>
+            <th scope="col" class="align-middle text-center small">Costo<br>Total</th>
+
+            <th scope="col" class="align-middle text-center small">Cantidad</th>
+            <th scope="col" class="align-middle text-center small">Costo<br>Unitario</th>
+            <th scope="col" class="align-middle text-center small">Costo<br>Total</th>
         </tr>
     </thead>
+
     <tbody>
         {% for k in kardex_dict %}
         <tr class="detail" ps="{{ k.product_store }}" k_id="{{ k.id }}">
@@ -40,42 +41,168 @@
             <td class="align-middle text-center">{{ k.type_document }}</td>
             <td class="align-middle text-center">{{ k.serial }}</td>
             <td class="align-middle text-center">{{ k.number }}</td>
-
             <td class="align-middle text-center">{{ k.type_operation }}</td>
-            <td class="align-middle text-center">{% if k.operation == 'E' %}{{ k.quantity|replace_round_separator }}{% else %}-{% endif %}</td>
-            <td class="align-middle text-center">{% if k.operation == 'E' %}{{ k.unit_cost }}{% else %}-{% endif %}</td>
-            <td class="align-middle text-center">{% if k.operation == 'E' %}{{ k.total_cost|replace_round_separator }}{% else %}-{% endif %}</td>
-            <td class="align-middle text-center">{% if k.operation == 'S' %}{{ k.quantity|replace_round_separator }}{% else %}-{% endif %}</td>
-            <td class="align-middle text-center">{% if k.operation == 'S' %}{{ k.unit_cost }}{% else %}-{% endif %}</td>
-            <td class="align-middle text-center">{% if k.operation == 'S' %}{{ k.total_cost|replace_round_separator }}{% else %}-{% endif %}</td>
+
+            {# ENTRADAS #}
+            <td class="align-middle text-center">
+                {% if k.operation == 'E' %}
+                    {{ k.quantity|replace_round_separator_us }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td class="align-middle text-center">
+                {% if k.operation == 'E' %}
+                    {{ k.unit_cost }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td class="align-middle text-center">
+                {% if k.operation == 'E' %}
+                    {{ k.total_cost|replace_round_separator_us }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            {# SALIDAS #}
+            <td class="align-middle text-center">
+                {% if k.operation == 'S' %}
+                    {{ k.quantity|replace_round_separator_us }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td class="align-middle text-center">
+                {% if k.operation == 'S' %}
+                    {{ k.unit_cost }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td class="align-middle text-center">
+                {% if k.operation == 'S' %}
+                    {{ k.total_cost|replace_round_separator_us }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            {# SALDO #}
             <td class="align-middle text-center" {% if k.operation == 'C' %} style="background-color: #D0D0D0; font-weight: bold" {% endif %}>
-                {{ k.remaining_quantity|replace_round_separator }}</td>
+                {{ k.remaining_quantity|replace_round_separator_us }}
+            </td>
             <td class="align-middle text-center" {% if k.operation == 'C' %} style="background-color: #D0D0D0; font-weight: bold" {% endif %}>
-                {{ k.remaining_price }}</td>
+                {{ k.remaining_price }}
+            </td>
             <td class="align-middle text-center" {% if k.operation == 'C' %} style="background-color: #D0D0D0; font-weight: bold" {% endif %}>
-                {{ k.remaining_price_total|replace_round_separator }}</td>
+                {{ k.remaining_price_total|replace_round_separator_us }}
+            </td>
         </tr>
         {% endfor %}
+
+        {# TOTALES: Entradas/Salidas suman. Saldo muestra el saldo FINAL (última fila) #}
         <tr>
             <td class="align-middle text-center font-weight-bold">Total</td>
             <td class="align-middle text-center" colspan="5" style="border-bottom-color: #ffffff"></td>
-            <td class="align-middle text-center font-weight-bold">{{ sum_quantities_entries|replace_round_separator }}</td>
+
+            <td class="align-middle text-center font-weight-bold">
+                {{ sum_quantities_entries|replace_round_separator_us }}
+            </td>
             <td class="align-middle text-center" style="background-color: #595959"></td>
-            <td class="align-middle text-center font-weight-bold">{{ sum_total_cost_entries|replace_round_separator }}</td>
-            <td class="align-middle text-center font-weight-bold">{{ sum_quantities_exits|replace_round_separator }}</td>
+            <td class="align-middle text-center font-weight-bold">
+                {{ sum_total_cost_entries|replace_round_separator_us }}
+            </td>
+
+            <td class="align-middle text-center font-weight-bold">
+                {{ sum_quantities_exits|replace_round_separator_us }}
+            </td>
             <td class="align-middle text-center" style="background-color: #595959"></td>
-            <td class="align-middle text-center font-weight-bold">{{ sum_total_cost_exits|replace_round_separator }}</td>
-            <td class="align-middle text-center font-weight-bold" style="background-color: #D0D0D0">{{ sum_remaining_quantity|replace_round_separator }}</td>
-            <td class="align-middle text-center font-weight-bold" style="background-color: #D0D0D0">{{ sum_remaining_price }}</td>
-            <td class="align-middle text-center font-weight-bold" style="background-color: #D0D0D0">{{ sum_remaining_price_total|replace_round_separator }}</td>
+            <td class="align-middle text-center font-weight-bold">
+                {{ sum_total_cost_exits|replace_round_separator_us }}
+            </td>
+
+            <td class="align-middle text-center font-weight-bold" style="background-color: #D0D0D0">
+                {% if summary %}{{ summary.final_units|replace_round_separator_us }}{% else %}-{% endif %}
+            </td>
+            <td class="align-middle text-center font-weight-bold" style="background-color: #D0D0D0">
+                {{ final_remaining_price }}
+            </td>
+            <td class="align-middle text-center font-weight-bold" style="background-color: #D0D0D0">
+                {% if summary %}{{ summary.final_valorized|replace_round_separator_us }}{% else %}-{% endif %}
+            </td>
         </tr>
     </tbody>
 </table>
-{% else %}
-    <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
-        <strong>Atencion!</strong> El producto no cuenta operaciones registradas en la sede y almacen seleccionados.
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
+
+{% if summary %}
+<div class="row mt-4 justify-content-end">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <table class="table table-sm table-hover mb-0 roboto-condensed-regular">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="border-0"></th>
+                            <th class="text-right border-0 py-2" style="width: 120px; text-decoration: underline;">UNIDADES</th>
+                            <th class="text-right border-0 py-2" style="width: 150px; text-decoration: underline;">VALORIZADO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="pl-3 py-2 align-middle">Inventario Inicial</td>
+                            <td class="text-right pr-3 py-2 align-middle">
+                                {% if summary.initial_units > 0 %}
+                                    {{ summary.initial_units|replace_round_separator_us }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="text-right pr-3 py-2 align-middle">
+                                {{ summary.initial_valorized|replace_round_separator_us }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="pl-3 py-2 align-middle">(+) Compras</td>
+                            <td class="text-right pr-3 py-2 align-middle">
+                                {{ summary.purchase_units|replace_round_separator_us }}
+                            </td>
+                            <td class="text-right pr-3 py-2 align-middle">
+                                {{ summary.purchase_valorized|replace_round_separator_us }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="pl-3 py-2 align-middle">(-) Inventario Final</td>
+                            <td class="text-right pr-3 py-2 align-middle">
+                                {{ summary.final_units|replace_round_separator_us }}
+                            </td>
+                            <td class="text-right pr-3 py-2 align-middle">
+                                {{ summary.final_valorized|replace_round_separator_us }}
+                            </td>
+                        </tr>
+                        <tr class="font-weight-bold" style="font-size: 1.05rem;">
+                            <td class="pl-3 py-3 align-middle">(=) Costo de Venta</td>
+                            <td class="text-right pr-3 py-3 align-middle shadow-sm" style="background-color: #ffff00; color: #000;">
+                                {{ summary.cost_sales_units|replace_round_separator_us }}
+                            </td>
+                            <td class="text-right pr-3 py-3 align-middle shadow-sm" style="background-color: #0080c0; color: #fff;">
+                                {{ summary.cost_sales_valorized|replace_round_separator_us }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+</div>
+{% endif %}
+
+{% else %}
+<div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+    <strong>Atencion!</strong> El producto no cuenta operaciones registradas en la sede y almacen seleccionados.
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
 {% endif %}

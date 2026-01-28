@@ -388,27 +388,43 @@ def get_list_kardex(request):
                 'guide_detail__guide__guide_motive',
             ).order_by('id')
 
-            # CODE FOR REPAIR KARDEX PRICE_UNIT
+            # Summary calculations
+            initial_units = decimal.Decimal(0)
+            initial_valorized = decimal.Decimal(0)
+            purchase_units = decimal.Decimal(0)
+            purchase_valorized = decimal.Decimal(0)
+            final_units = decimal.Decimal(0)
+            final_valorized = decimal.Decimal(0)
 
-            # for i in inventories:
-            #     quantity = i.quantity
-            #     remaining_quantity = i.remaining_quantity
-            #     kardex_obj = Kardex.objects.get(id=i.id)
-            #     if i.operation == 'C':
-            #         kardex_obj.remaining_price = price_purchase_unit
-            #         kardex_obj.remaining_price_total = remaining_quantity * price_purchase_unit
-            #         kardex_obj.save()
-            #     else:
-            #         kardex_obj.price_unit = price_purchase_unit
-            #         kardex_obj.price_total = quantity * price_purchase_unit
-            #
-            #         kardex_obj.remaining_price = price_purchase_unit
-            #         kardex_obj.remaining_price_total = remaining_quantity * price_purchase_unit
-            #
-            #         kardex_obj.save()
+            if inventories:
+                for k in inventories:
+                    if k.type_operation == '16':
+                        initial_units += k.remaining_quantity
+                        initial_valorized += k.remaining_price_total
+                    if k.operation == 'E':
+                        purchase_units += k.quantity
+                        purchase_valorized += k.price_total
+                
+                last_record = inventories.last()
+                final_units = last_record.remaining_quantity
+                final_valorized = last_record.remaining_price_total
+
+            cost_sales_units = initial_units + purchase_units - final_units
+            cost_sales_valorized = initial_valorized + purchase_valorized - final_valorized
+
+            summary = {
+                'initial_units': initial_units,
+                'initial_valorized': initial_valorized,
+                'purchase_units': purchase_units,
+                'purchase_valorized': purchase_valorized,
+                'final_units': final_units,
+                'final_valorized': final_valorized,
+                'cost_sales_units': cost_sales_units,
+                'cost_sales_valorized': cost_sales_valorized
+            }
 
         t = loader.get_template('sales/kardex_grid_list.html')
-        c = ({'product': product, 'inventories': inventories})
+        c = ({'product': product, 'inventories': inventories, 'summary': summary})
 
         return JsonResponse({
             'success': True,
@@ -4824,16 +4840,29 @@ def get_sales_list(request, guide=None):
     return JsonResponse({'message': 'Error actualice o contacte con sistemas.'}, status=HTTPStatus.BAD_REQUEST)
 
 
+from decimal import Decimal, ROUND_HALF_UP
+
+
+QTY_0 = Decimal("0.00")
+
+def q2(x):  # 2 decimales para cantidades
+    return (x or Decimal("0")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+def q4(x):  # 4 decimales para mostrar costo unitario
+    return (x or Decimal("0")).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+
+
 def kardex_list(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
+
     subsidiaries = Subsidiary.objects.all()
     subsidiaries_stores = SubsidiaryStore.objects.all()
+
     if request.method == 'GET':
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
-
         return render(request, 'sales/new_kardex_list.html', {
             'formatdate': formatdate,
             'product_set': Product.objects.filter(is_enabled=True).order_by('id'),
@@ -4841,188 +4870,203 @@ def kardex_list(request):
             'subsidiaries_stores': subsidiaries_stores,
         })
 
-    # elif request.method == 'POST':
-    #     product_id = request.POST.get('product')
-    #     subsidiary_id = request.POST.get('subsidiary')
-    #     subsidiary_store = request.POST.get('subsidiary_store')
-    #
-    #     product_store_obj = ProductStore.objects.get(product_id=product_id, subsidiary_store_id=subsidiary_store)
-    #     kardex_set = Kardex.objects.filter(product_store=product_store_obj).select_related(
-    #         'product_store__product',
-    #         'purchase_detail',
-    #         'order_detail__order',
-    #         'loan_payment',
-    #         'guide_detail__guide__guide_motive',
-    #         ).order_by('id')
-    #
-    #     kardex_dict = []
-    #
-    #     for k in kardex_set:
-    #         serial = ''
-    #         number = ''
-    #         if k.type_operation == '02':
-    #             serial = k.bill_detail.bill.serial
-    #             number = k.bill_detail.bill.correlative
-    #         elif k.type_operation == '01':
-    #             serial = k.order_detail.order.serial
-    #             number = k.order_detail.order.correlative
-    #
-    #         item = {
-    #             'id': k.id,
-    #             'period': k.create_at.strftime("%Y-%m"),
-    #             'date': k.create_at.strftime("%Y-%m-%d"),
-    #             'type_document': k.type_document,
-    #             'serial': serial,
-    #             'number': number,
-    #             'type_operation': k.type_operation,
-    #             'quantity': k.quantity,
-    #             'unit_cost': k.price_unit,
-    #             'total_cost': k.price_total
-    #         }
-    #         kardex_dict.append(item)
-    #     print(kardex_dict)
-    #     tpl = loader.get_template('sales/new_kardex_grid_list.html')
-    #     context = ({
-    #         'product_id': product_id,
-    #     })
-    #     return JsonResponse({
-    #         'grid': tpl.render(context, request),
-    #     }, status=HTTPStatus.OK)
+    if request.method != 'POST':
+        return JsonResponse({'message': 'Error actualice o contacte con sistemas.'}, status=HTTPStatus.BAD_REQUEST)
 
-    elif request.method == 'POST':
-        product_id = request.POST.get('product')
-        subsidiary_id = request.POST.get('subsidiary')
-        subsidiary_store = request.POST.get('subsidiary_store')
+    product_id = request.POST.get('product')
+    subsidiary_id = request.POST.get('subsidiary')
+    subsidiary_store = request.POST.get('subsidiary_store')
 
-        product_store_set = ProductStore.objects.filter(product_id=product_id, subsidiary_store_id=subsidiary_store)
-        if product_store_set.exists():
-            product_store_obj = product_store_set.last()
-            kardex_set = Kardex.objects.filter(product_store=product_store_obj).select_related(
-                'product_store',
-                'order_detail__order',
-                'guide_detail',
-                'bill_detail__bill',
-                'credit_note_detail__credit_note'
-            ).order_by('id')
+    product_store_qs = ProductStore.objects.filter(product_id=product_id, subsidiary_store_id=subsidiary_store)
+    if not product_store_qs.exists():
+        data = {'error': "El Producto no cuenta con kardex en el Almacen Seleccionado"}
+        return JsonResponse(data, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-            kardex_dict = []
+    product_store_obj = product_store_qs.last()
 
-            sum_quantities_entries = 0
-            sum_total_cost_entries = 0
-            sum_quantities_exits = 0
-            sum_total_cost_exits = 0
+    kardex_qs = (Kardex.objects
+        .filter(product_store=product_store_obj)
+        .select_related(
+            'product_store',
+            'order_detail__order',
+            'guide_detail',
+            'bill_detail__bill',
+            'credit_note_detail__credit_note'
+        )
+        .order_by('create_at', 'id')  # mejor que solo id
+    )
 
-            sum_remaining_quantity = 0
-            sum_remaining_price = 0
-            sum_remaining_price_total = 0
+    # === Estado inicial (C) ===
+    initial = kardex_qs.filter(operation='C').order_by('create_at', 'id').first()
 
-            remaining_quantity = decimal.Decimal(0.0)
-            remaining_price_total = decimal.Decimal(0.0)
-            initial_operation = next((k for k in kardex_set if k.operation == 'C'), None)
+    saldo_qty = Decimal("0")
+    saldo_unit = Decimal("0")
+    saldo_total = Decimal("0")
 
-            if initial_operation:
-                remaining_quantity = initial_operation.remaining_quantity
-                remaining_price = initial_operation.remaining_price
-                remaining_price_total = initial_operation.remaining_price_total
+    kardex_dict = []
 
-                sum_remaining_quantity += remaining_quantity
-                sum_remaining_price += remaining_price
-                sum_remaining_price_total += remaining_price_total
+    # Sumas de resumen
+    sum_quantities_entries = Decimal("0")
+    sum_total_cost_entries = Decimal("0")
+    sum_quantities_exits = Decimal("0")
+    sum_total_cost_exits = Decimal("0")
 
-                item = {
-                    'id': initial_operation.id,
-                    'operation': initial_operation.operation,
-                    'period': initial_operation.create_at.strftime("%Y-%m"),
-                    'date': initial_operation.create_at.strftime("%d/%m/%Y"),
-                    'type_document': initial_operation.type_document,
-                    'serial': '',
-                    'number': '',
-                    'type_operation': initial_operation.type_operation,
-                    'quantity': initial_operation.quantity,
-                    'unit_cost': initial_operation.price_unit,
-                    'total_cost': initial_operation.price_total,
-                    'remaining_quantity': remaining_quantity,
-                    'remaining_price': round(remaining_price, 4),
-                    'remaining_price_total': remaining_price_total
-                }
-                kardex_dict.append(item)
+    purchase_units = Decimal("0")
+    purchase_valorized = Decimal("0")
 
-            for k in kardex_set:
-                if k.operation == 'C':
-                    continue
+    if initial:
+        # Tomo el saldo inicial desde los campos remaining_*
+        saldo_qty = initial.remaining_quantity or Decimal("0")
+        saldo_unit = initial.remaining_price or Decimal("0")
+        saldo_total = initial.remaining_price_total or Decimal("0")
 
-                serial = ''
-                number = ''
-                if k.type_operation == '02' and k.type_document == '01' or k.type_document == '02':
-                    serial = k.bill_detail.bill.serial
-                    number = k.bill_detail.bill.correlative
-                elif k.type_operation and k.type_document == '01' or k.type_document == '02':
-                    # print(k.order_detail)
-                    # print(k.id)
-                    serial = k.order_detail.order.serial
-                    number = k.order_detail.order.correlative
-                elif k.type_operation == '06':
-                    nro_document = k.credit_note_detail.credit_note.nro_document
-                    serial, number = nro_document.split('-')
+        item = {
+            'id': initial.id,
+            'operation': initial.operation,
+            'period': initial.create_at.strftime("%Y-%m"),
+            'date': initial.create_at.strftime("%d/%m/%Y"),
+            'type_document': initial.type_document,
+            'serial': '',
+            'number': '',
+            'type_operation': initial.type_operation,
+            'quantity': q2(initial.quantity),
+            'unit_cost': q4(initial.price_unit),
+            'total_cost': initial.price_total,
+            'remaining_quantity': q2(saldo_qty),
+            'remaining_price': q4(saldo_unit),
+            'remaining_price_total': saldo_total,
+        }
+        kardex_dict.append(item)
 
-                if k.operation == 'E':
-                    remaining_quantity += k.quantity
-                    remaining_price_total += k.price_total
-                    sum_quantities_entries += k.quantity
-                    sum_total_cost_entries += k.price_total
-                elif k.operation == 'S':
-                    remaining_quantity -= k.quantity
-                    remaining_price_total -= k.price_total
-                    sum_quantities_exits += k.quantity
-                    sum_total_cost_exits += k.price_total
+    # Procesar movimientos (sin volver a meter C)
+    for k in kardex_qs.exclude(operation='C'):
+        serial = ''
+        number = ''
 
-                remaining_price = remaining_price_total / remaining_quantity if remaining_quantity != 0 else 0
+        if k.bill_detail and k.bill_detail.bill:
+            serial = k.bill_detail.bill.serial
+            number = k.bill_detail.bill.correlative
+        elif k.order_detail and k.order_detail.order:
+            serial = k.order_detail.order.serial
+            number = k.order_detail.order.correlative
+        elif k.credit_note_detail and k.credit_note_detail.credit_note:
+            nro_document = k.credit_note_detail.credit_note.nro_document
+            if '-' in nro_document:
+                serial, number = nro_document.split('-', 1)
+            else:
+                number = nro_document
 
-                sum_remaining_quantity += remaining_quantity
-                sum_remaining_price += remaining_price
-                sum_remaining_price_total += remaining_price_total
+        qty = k.quantity or Decimal("0")
 
-                item = {
-                    'id': k.id,
-                    'product_store': k.product_store.id,
-                    'operation': k.operation,
-                    'period': k.create_at.strftime("%Y-%m"),
-                    'date': k.create_at.strftime("%d/%m/%Y"),
-                    'type_document': k.type_document,
-                    'serial': serial,
-                    'number': number.zfill(7),
-                    'type_operation': k.type_operation,
-                    'quantity': k.quantity,
-                    'unit_cost': round(k.price_unit, 4),
-                    'total_cost': k.price_total,
-                    'remaining_quantity': remaining_quantity,
-                    'remaining_price': round(remaining_price, 4),
-                    'remaining_price_total': remaining_price_total
-                }
-                kardex_dict.append(item)
-            tpl = loader.get_template('sales/new_kardex_grid_list.html')
-            context = ({
-                'product_id': product_id,
-                'kardex_dict': kardex_dict,
-                'sum_quantities_entries': sum_quantities_entries,
-                'sum_total_cost_entries': sum_total_cost_entries,
-                'sum_quantities_exits': sum_quantities_exits,
-                'sum_total_cost_exits': sum_total_cost_exits,
-                'sum_remaining_quantity': sum_remaining_quantity,
-                'sum_remaining_price': round(sum_remaining_price, 4),
-                'sum_remaining_price_total': sum_remaining_price_total,
-            })
-            return JsonResponse({
-                'grid': tpl.render(context, request),
-            }, status=HTTPStatus.OK)
+        # Valores a mostrar por fila
+        entry_qty = Decimal("0")
+        entry_unit = Decimal("0")
+        entry_total = Decimal("0")
+
+        exit_qty = Decimal("0")
+        exit_unit = Decimal("0")
+        exit_total = Decimal("0")
+
+        if k.operation == 'E':
+            # ENTRADA: usa el costo del movimiento
+            entry_qty = qty
+            entry_total = k.price_total if k.price_total is not None else (qty * (k.price_unit or Decimal("0")))
+            entry_unit = (entry_total / entry_qty) if entry_qty != 0 else Decimal("0")
+
+            saldo_qty += entry_qty
+            saldo_total += entry_total
+
+            # Recalcular promedio SOLO en entrada
+            saldo_unit = (saldo_total / saldo_qty) if saldo_qty != 0 else Decimal("0")
+
+            sum_quantities_entries += entry_qty
+            sum_total_cost_entries += entry_total
+            purchase_units += entry_qty
+            purchase_valorized += entry_total
+
+            # Para tu grilla (manteniendo tus keys)
+            unit_cost_to_show = entry_unit
+            total_cost_to_show = entry_total
+
+        elif k.operation == 'S':
+            # SALIDA: se valoriza con el promedio vigente (antes de mover)
+            exit_qty = qty
+            exit_unit = saldo_unit
+            exit_total = exit_qty * exit_unit
+
+            saldo_qty -= exit_qty
+            saldo_total -= exit_total
+            # NO recalcular promedio aquí
+
+            sum_quantities_exits += exit_qty
+            sum_total_cost_exits += exit_total
+
+            unit_cost_to_show = exit_unit
+            total_cost_to_show = exit_total
 
         else:
-            data = {'error': "El Producto no cuenta con kardex en el Almacen Seleccionado"}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
+            # si aparece otra operación inesperada, no rompe
+            unit_cost_to_show = k.price_unit or Decimal("0")
+            total_cost_to_show = k.price_total or Decimal("0")
 
-    return JsonResponse({'message': 'Error actualice o contacte con sistemas.'}, status=HTTPStatus.BAD_REQUEST)
+        item = {
+            'id': k.id,
+            'product_store': k.product_store.id if k.product_store_id else None,
+            'operation': k.operation,
+            'period': k.create_at.strftime("%Y-%m"),
+            'date': k.create_at.strftime("%d/%m/%Y"),
+            'type_document': k.type_document,
+            'serial': serial,
+            'number': str(number).zfill(7) if number != '' else '',
+            'type_operation': k.type_operation,
+            'quantity': q2(qty),
+            'unit_cost': q4(unit_cost_to_show),
+            'total_cost': total_cost_to_show,
+            'remaining_quantity': q2(saldo_qty),
+            'remaining_price': q4(saldo_unit),
+            'remaining_price_total': saldo_total,
+        }
+        kardex_dict.append(item)
+
+    # Resumen tipo costo de ventas
+    initial_units = initial.remaining_quantity if initial else Decimal("0")
+    initial_valorized = initial.remaining_price_total if initial else Decimal("0")
+
+    final_units = saldo_qty
+    final_valorized = saldo_total
+
+    cost_sales_units = initial_units + purchase_units - final_units
+    cost_sales_valorized = initial_valorized + purchase_valorized - final_valorized
+
+    summary = {
+        'initial_units': initial_units,
+        'initial_valorized': initial_valorized,
+        'purchase_units': purchase_units,
+        'purchase_valorized': purchase_valorized,
+        'final_units': final_units,
+        'final_valorized': final_valorized,
+        'cost_sales_units': cost_sales_units,
+        'cost_sales_valorized': cost_sales_valorized
+    }
+
+    tpl = loader.get_template('sales/new_kardex_grid_list.html')
+
+    final_remaining_price = kardex_dict[-1]['remaining_price'] if kardex_dict else 0
+
+    context = {
+        'product_id': product_id,
+        'kardex_dict': kardex_dict,
+        'sum_quantities_entries': sum_quantities_entries,
+        'sum_total_cost_entries': sum_total_cost_entries,
+        'sum_quantities_exits': sum_quantities_exits,
+        'sum_total_cost_exits': sum_total_cost_exits,
+        'final_remaining_quantity' : q2(saldo_qty),
+        'final_remaining_price': final_remaining_price,
+        'final_remaining_total' : saldo_total,
+        'summary': summary
+    }
+
+    return JsonResponse({'grid': tpl.render(context, request)}, status=HTTPStatus.OK)
 
 
 def get_product_autocomplete(request):
