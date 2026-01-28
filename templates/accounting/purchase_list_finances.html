@@ -224,7 +224,7 @@
                 toastr.warning('No puedes seleccionar Ordenes de Compra de diferentes proveedores para generar una factura.', 'Mensaje');
             }
 
-            if (!error && purchasesID.length > 0) {
+            if (!error) {
                 //console.log(purchasesID)
                 $.ajax({
                     url: '/accounting/modal_bill_create/',
@@ -270,9 +270,37 @@
                 toastr.warning('¡Ingresar el correlativo de la Factura!', 'Error de Datos');
                 return false;
             }
-            if (bill_order_number.val() === '') {
-                toastr.warning('¡Ingresar el numero de pedido!', 'Error de Datos');
-                return false;
+            
+            // Obtener el modo manual desde el input hidden
+            let isManualMode = $('#is_manual_mode').val() === 'true';
+            
+            if (isManualMode) {
+                // Validar que se haya seleccionado o buscado un proveedor
+                let supplier_id_val = supplier_id.val();
+                let supplier_ruc_val = $('#supplier_ruc_value').val();
+                let supplier_name_val = $('#supplier_name').val();
+                let supplier_name_text = $('#supplier_name option:selected').text();
+                
+                // Verificar si es una opción temporal (proveedor nuevo)
+                let isTemporarySupplier = supplier_name_val && supplier_name_val.startsWith('TEMP_');
+                
+                if (!supplier_name_val || supplier_name_val === '' || supplier_name_text === 'Seleccionar Proveedor...') {
+                    toastr.warning('Debe seleccionar un proveedor o buscar uno por RUC', 'Error de Datos');
+                    return false;
+                }
+                
+                // Si es un proveedor temporal (nuevo), debe tener RUC
+                if (isTemporarySupplier && !supplier_ruc_val) {
+                    toastr.warning('Debe buscar un proveedor por RUC primero', 'Error de Datos');
+                    return false;
+                }
+                // En modo manual no se valida el número de pedido
+            } else {
+                // Modo con órdenes de compra - validar número de pedido
+                if (bill_order_number.val() === '') {
+                    toastr.warning('¡Ingresar el numero de pedido!', 'Error de Datos');
+                    return false;
+                }
             }
 
             /*if (checkQuantity() === true) {
@@ -283,8 +311,16 @@
                 }
             }*/
 
+            // Obtener datos del proveedor
+            let supplier_id_val = supplier_id.val();
+            let supplier_name_selected = $('#supplier_name option:selected');
+            let isTemporarySupplier = supplier_id_val === '' || (supplier_id_val && supplier_id_val.startsWith('TEMP_'));
+            
             let Bill = {
-                "supplier_id": supplier_id.val(),
+                "supplier_id": isTemporarySupplier ? '' : supplier_id_val,
+                "supplier_ruc": $('#supplier_ruc_value').val() || '',
+                "supplier_name_new": supplier_name_selected.text() || '',
+                "supplier_address_new": $('#address').val() || '',
 
                 "purchase_id": purchases.val(),
                 "bill_date": bill_date.val(),
@@ -312,24 +348,85 @@
                 Bill.billPurchases.push(details)
             })*/
             let billPurchases = {};
-            $('#bill-details tr').each(function () {
-                let product_id = $(this).attr('product');
-                let details = {
-                    'unit_id': $(this).find('td.unit select.unit-select').val(),
-                    'purchaseDetailID': $(this).attr('detail'),
-                    'purchaseID': $(this).attr('purchase'),
-                    'purchaseQuantity': $(this).find('td.item-quantity input.quantity-purchased').val(),
-                    'invoiceQuantity': $(this).find('td.item-quantity input.quantity-invoice').val(),
-                    'invoiceQuantityMinimum': $(this).find('td.item-quantity-min input.quantity-min').val(),
-                    'priceUnit': $(this).find('td.item-price input.price-product').val()
-                };
-                if (!billPurchases[product_id]) {
-                    billPurchases[product_id] = [];
+            let hasError = false;
+            let rowCount = 0;
+            
+            $('#bill-details tr:not(.empty-row-template)').each(function () {
+                rowCount++;
+                let $tr = $(this);
+                let product_id = $tr.attr('product') || $tr.attr('data-product');
+                
+                // Validar que el producto no esté vacío
+                if (!product_id || product_id === '' || product_id === 'undefined') {
+                    hasError = true;
+                    toastr.warning('Todas las filas deben tener un producto seleccionado. Fila ' + rowCount, 'Error de Datos');
+                    return false; // Continúa con la siguiente iteración
                 }
-                billPurchases[product_id].push(details);
+                
+                // Validar que tenga unidad seleccionada
+                let unit_id = $tr.find('td.unit select.unit-select').val();
+                if (!unit_id || unit_id === '') {
+                    hasError = true;
+                    toastr.warning('Todas las filas deben tener una unidad seleccionada. Fila ' + rowCount, 'Error de Datos');
+                    return false;
+                }
+                
+                // Validar que tenga cantidad
+                let invoiceQuantity = $tr.find('td.item-quantity input.quantity-invoice').val();
+                if (!invoiceQuantity || parseFloat(invoiceQuantity) <= 0) {
+                    hasError = true;
+                    toastr.warning('Todas las filas deben tener una cantidad mayor a 0. Fila ' + rowCount, 'Error de Datos');
+                    return false;
+                }
+                
+                // Validar que tenga precio
+                let priceUnit = $tr.find('td.item-price input.price-product').val();
+                if (!priceUnit || parseFloat(priceUnit) <= 0) {
+                    hasError = true;
+                    toastr.warning('Todas las filas deben tener un precio mayor a 0. Fila ' + rowCount, 'Error de Datos');
+                    return false;
+                }
+                
+                let details = {
+                    'unit_id': unit_id,
+                    'purchaseDetailID': $tr.attr('detail') || $tr.data('detail') || '',
+                    'purchaseID': $tr.attr('purchase') || $tr.data('purchase') || '',
+                    'purchaseQuantity': $tr.find('td.item-quantity input.quantity-purchased').val() || 0,
+                    'invoiceQuantity': invoiceQuantity.toString().replace(',', '.'),
+                    'invoiceQuantityMinimum': $tr.find('td.item-quantity-min input.quantity-min').val() || 0,
+                    'priceUnit': priceUnit.toString().replace(',', '.')
+                };
+                
+                // Asegurar que product_id sea string para usarlo como clave
+                let productKey = String(product_id);
+                if (!billPurchases[productKey]) {
+                    billPurchases[productKey] = [];
+                }
+                billPurchases[productKey].push(details);
             });
+            
+            // Si hay errores, detener el proceso
+            if (hasError) {
+                $('#btn-save-bill').prop('disabled', false);
+                return false;
+            }
+            
+            // Validar que haya al menos un detalle
+            if (Object.keys(billPurchases).length === 0) {
+                toastr.warning('Debe agregar al menos un producto al detalle de la factura', 'Error de Datos');
+                $('#btn-save-bill').prop('disabled', false);
+                return false;
+            }
+            
             Bill.billPurchases = billPurchases;
-            //console.log(Bill)
+            
+            // Debug: mostrar en consola los datos que se enviarán
+            console.log('Datos a enviar:', {
+                'billPurchases': billPurchases,
+                'total_productos': Object.keys(billPurchases).length,
+                'is_manual': isManualMode
+            });
+            
             //let purchases_array = JSON.parse(purchases.val())
             $('#btn-save-bill').prop('disabled', true)
             $.ajax({
@@ -350,9 +447,17 @@
                         $('#modal-bill-create').modal('hide');
                     }
                 },
-                error: function (jqXhr, textStatus, xhr) {
-                    console.log(jqXhr);
-                    toastr.error('Error', '¡Ocurrio un error!');
+                error: function (jqXhr, textStatus, error) {
+                    console.log('Error completo:', jqXhr);
+                    console.log('Response Text:', jqXhr.responseText);
+                    let errorMessage = 'Error al guardar la factura';
+                    if (jqXhr.responseJSON && jqXhr.responseJSON.message) {
+                        errorMessage = jqXhr.responseJSON.message;
+                    } else if (jqXhr.responseJSON && jqXhr.responseJSON.error) {
+                        errorMessage = jqXhr.responseJSON.error;
+                    }
+                    toastr.error(errorMessage, '¡Ocurrió un error!');
+                    $('#btn-save-bill').prop('disabled', false);
                     $('#container-loading').css('display', 'none');
                 }
             });
@@ -389,22 +494,23 @@
         $(document).on('click', '.btn-show-bill', function (e) {
             let _bill_id = $(this).attr("pk");
             let _table = $(this).closest('tbody').find('tr[pk="' + _bill_id + '"].show-detail').find('td.table-details-bill');
-            let _icon = $(this).find('i.see-icon')
+            let _icon = $(this).find('i');
 
-            if (_icon.hasClass("fas fa-sort-down fa-lg")) {
-                _icon.removeClass('fas fa-sort-down fa-lg');
-                _icon.addClass('fas fa-sort-up fa-lg')
+            if (_icon.hasClass("fa-eye")) {
+                _icon.removeClass('fa-eye');
+                _icon.addClass('fa-eye-slash');
 
                 openDetail(_bill_id, _table)
             } else {
-                _icon.removeClass('fas fa-sort-up fa-lg');
-                _icon.addClass('fas fa-sort-down fa-lg');
+                _icon.removeClass('fa-eye-slash');
+                _icon.addClass('fa-eye');
 
                 closeDetail(_table)
             }
         });
 
         function openDetail(_bill_id, _table) {
+            console.log(_bill_id, _table)
             $.ajax({
                 url: '/accounting/get_bill/',
                 async: true,

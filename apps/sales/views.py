@@ -2140,6 +2140,40 @@ def new_loan_payment(request):
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
 
 
+def get_products_ajax(request):
+    """Autocomplete para buscar productos - retorna en formato jQuery UI Autocomplete"""
+    if request.method == 'GET':
+        term = request.GET.get('term', '').strip()
+        results = []
+
+        try:
+            if term and len(term) >= 1:
+                # Buscar productos por nombre que contengan el término
+                products = Product.objects.filter(
+                    Q(name__icontains=term)
+                ).values('id', 'name').order_by('name')[:20]
+
+                # Formatear correctamente para jQuery UI Autocomplete
+                for product in products:
+                    product_name = str(product['name']).strip()
+                    if product_name:  # Solo agregar si tiene nombre
+                        results.append({
+                            'label': product_name,  # Lo que se muestra en el dropdown
+                            'value': product_name,  # Lo que se inserta en el input
+                            'id': int(product['id']),  # ID para uso interno
+                        })
+        except Exception as e:
+            import traceback
+            print(f"Error en autocomplete: {e}")
+            print(traceback.format_exc())
+            results = []
+
+        # Asegurar que siempre devolvemos un array válido
+        return JsonResponse(results, safe=False, status=HTTPStatus.OK)
+
+    return JsonResponse([], safe=False, status=HTTPStatus.BAD_REQUEST)
+
+
 def get_supplies_view(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)

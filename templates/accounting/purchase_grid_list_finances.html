@@ -1,80 +1,94 @@
 {% if purchases %}
-    <div class="card-body p-2 table-responsive small">
-        <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
-            <table id="purchase-list-finances"
-                   class="table table-bordered align-content-center w-100 h-100 table-info">
-                <thead>
-                <tr class="font-weight-bold text-uppercase bg-warning text-center">
-                    <th class="th-sm" style="width: 5%"><i class="fas fa-check"></i>
-                    <th class="th-sm" style="width: 5%">Fecha</th>
-                    <th class="th-sm" style="width: 5%">Orden de Compra</th>
-                    <th class="th-sm" style="width: 16%">Proveedor</th>
-                    <th class="th-sm" style="width: 20%">Cliente</th>
-                    <th class="th-sm" style="width: 20%">Cliente Referido</th>
-                    <th class="th-sm" style="width: 5%">Usuario</th>
-                    <th class="th-sm" style="width: 5%">Estado</th>
-{#                    <th class="th-sm" style="width: 5%">Accion</th>#}
-                </tr>
-                </thead>
-                <tbody id="body-finances" style="font-size: 13px;">
-                {% for p in purchases %}
-                    <tr class="text-center" pk="{{ p.id }}" supplier="{{ p.supplier_id }}" style="background-color: {% if p.has_incomplete %}#dbd2d2{% endif %} ">
-                        <td class="align-middle item-check">
-                            <div class="form-check">
-                                <input class="form-check-input check-oc"
-                                       type="checkbox" value="" style="transform: scale(1.5)"
-                                       id="{{ c.id }}">
-                                <label class="form-check-label"
-                                       for="{{ c.id }}"> </label>
-                            </div>
-                        </td>
-                        <td class="align-middle">{{ p.purchase_date|date:'d-m-Y' }}</td>
-                        <td class="align-middle text-center">
-                            <span class="font-weight-bold"> {{ p.bill_number }}</span><br>
-                        </td>
-                        <td class="align-middle text-center">{{ p.supplier_name }}</td>
-                        <td class="align-middle text-center">{{ p.client_reference|upper }}</td>
-                        <td class="align-middle text-center">{{ p.client_reference_entity|default:'-'|default_if_none:'-' }}</td>
-                        <td class="align-middle text-center">{{ p.user|upper }}</td>
-                        <td class="align-middle text-center font-weight-bold">
-                            {% if p.has_incomplete %}
-                                INCOMPLETO
-                            {% else %}
-                                PENDIENTE
-                            {% endif %}
-                        </td>
-{#                        <td class="p-1">#}
-{#                            <div class="btn-group">#}
-{#                                <button type="button" class="btn btn-success  dropdown-toggle"#}
-{#                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">#}
-{#                                    <i class="fas fa-layer-group"></i>#}
-{#                                </button>#}
-{#                                <div class="dropdown-menu bg-secondary text-white font-italic">#}
-{#                                    <a class="dropdown-item bill-create" pk="{{ p.id }}">#}
-{#                                        <i class="fas fa-file-invoice"></i> Generar Factura </a>#}
-{#                                </div>#}
-{#                            </div>#}
-{#                        </td>#}
-                    </tr>
-                {% endfor %}
-                </tbody>
-                <tfoot>
-                <tr class="text-center bg-warning text-uppercase">
-                    <th class="th-sm" style="width: 5%"><i class="fas fa-check"></i>
-                    <th class="th-sm" style="width: 5%">Fecha</th>
-                    <th class="th-sm" style="width: 5%">Orden de Compra</th>
-                    <th class="th-sm" style="width: 16%">Proveedor</th>
-                    <th class="th-sm" style="width: 20%">Cliente</th>
-                    <th class="th-sm" style="width: 20%">Cliente Referido</th>
-                    <th class="th-sm" style="width: 5%">Usuario</th>
-                    <th class="th-sm" style="width: 5%">Estado</th>
-{#                    <th class="th-sm" style="width: 5%">Accion</th>#}
-                </tr>
-                </tfoot>
-            </table>
+    <div class="card border-0 shadow-sm roboto-condensed-regular">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table id="purchase-list-finances" class="table table-hover table-bordered align-middle w-100 mb-0" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                    <thead style="background-color: #f8f9fa;">
+                        <tr class="text-center text-secondary text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                            <th class="py-3 border-bottom-0 font-weight-bold" style="width: 5%;">
+                                <i class="fas fa-check-double"></i>
+                            </th>
+                            <th class="py-3 border-bottom-0 font-weight-bold" style="width: 5%;">Fecha</th>
+                            <th class="py-3 border-bottom-0 font-weight-bold" style="width: 10%;">Orden de Compra</th>
+                            <th class="py-3 border-bottom-0 font-weight-bold text-left pl-4" style="width: 30%;">Proveedor</th>
+                            <th class="py-3 border-bottom-0 font-weight-bold text-left" style="width: 40%;">Cliente</th>
+                            <th class="py-3 border-bottom-0 font-weight-bold" style="width: 5%;">Usuario</th>
+                            <th class="py-3 border-bottom-0 font-weight-bold" style="width: 5%;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-finances" style="font-size: 0.875rem; color: #495057;">
+                        {% for p in purchases %}
+                        <tr class="text-center border-bottom" pk="{{ p.id }}" supplier="{{ p.supplier_id }}">
+                            <td class="align-middle item-check">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input check-oc" id="check-{{ p.id }}">
+                                    <label class="custom-control-label" for="check-{{ p.id }}"></label>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                <span class="text-muted">{{ p.purchase_date|date:'d/m/Y' }}</span>
+                            </td>
+                            <td class="align-middle">
+                                <span class="font-weight-bold text-dark">{{ p.bill_number }}</span>
+                            </td>
+                            <td class="align-middle text-left pl-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-xs mr-2 rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                        <i class="fas fa-building text-secondary" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <span class="font-weight-bold text-dark roboto-condensed-regular">{{ p.supplier_name }}</span>
+                                </div>
+                            </td>
+                            <td class="align-middle text-left">
+                                <div class="d-flex flex-column">
+                                    {% if p.client_reference != '-' %}
+                                        <div class="d-flex align-items-center">
+                                            <i class="far fa-user text-muted mr-2"></i>
+                                            <span class="font-weight-bold text-dark roboto-condensed-regular">{{ p.client_reference|title }}</span>
+                                        </div>
+                                    {% endif %}
+                                    {% if p.client_reference_entity != '-' %}
+                                        <div class="d-flex align-items-center mt-1">
+                                            <i class="fas fa-sitemap text-muted mr-2" style="font-size: 0.8rem;"></i>
+                                            <span class="text-muted small roboto-condensed-regular">{{ p.client_reference_entity|title }}</span>
+                                        </div>
+                                    {% endif %}
+                                    {% if p.client_reference == '-' and p.client_reference_entity == '-' %}
+                                        <span class="text-muted small">-</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                <span class="badge badge-light border text-muted font-weight-normal px-2 py-1">{{ p.user|upper }}</span>
+                            </td>
+                            <td class="align-middle">
+                                {% if p.has_incomplete %}
+                                    <span class="badge badge-pill" style="background-color: #ffebee; color: #c62828; font-weight: 500; padding: 6px 12px;">
+                                        Incompleto
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-pill" style="background-color: #fff8e1; color: #f57f17; font-weight: 500; padding: 6px 12px;">
+                                        Pendiente
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
 {% else %}
-    <h1>No existen compras registradas</h1>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <div class="mb-3">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px; background-color: #f8f9fa;">
+                    <i class="fas fa-inbox fa-2x text-muted"></i>
+                </div>
+            </div>
+            <h5 class="text-dark font-weight-bold">No existen compras registradas</h5>
+            <p class="text-muted">No hay órdenes de compra disponibles en este momento.</p>
+        </div>
+    </div>
 {% endif %}

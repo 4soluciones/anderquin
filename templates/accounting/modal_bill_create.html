@@ -1,14 +1,16 @@
 {% load operations %}
 <div class="modal-dialog modal-xl roboto-condensed-regular" role="document">
-    <div class="modal-content">
-        <div class="modal-header bg-light">
-            <h4 class="modal-title roboto-condensed-regular font-weight-bold">GENERAR FACTURA:<span
-                    class="font-weight-bold"></span></h4>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <div class="modal-content shadow-lg">
+        <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-bottom: none;">
+            <h4 class="modal-title text-white roboto-condensed-regular font-weight-bold">
+                <i class="fas fa-file-invoice-dollar mr-2"></i>GENERAR FACTURA
+            </h4>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
         <input type="hidden" class="form-control" id="purchase_id" name="purchase-id" value="{{ oc_ids }}">
+        <input type="hidden" id="is_manual_mode" value="{% if is_manual %}true{% else %}false{% endif %}">
 
         <div class="modal-body p-2">
 
@@ -20,7 +22,6 @@
                         background: var(--white);
                         opacity: 0.5;
                         width: 100%;
-                        !important: ;
                         bottom: 6px;
                         padding: 10em 23em 20em 26em;
                         z-index: 2000;
@@ -41,19 +42,54 @@
                 </div>
             </div>
 
-            <div class="card" style="background-color: #82cdd2">
-                <label class="mt-2 ml-3 font-weight-bold text-uppercase ">Datos de la factura</label>
-                <div class="card-body pt-1" style="background-color: #f0f1f5">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                <label class="mt-3 ml-3 font-weight-bold text-uppercase" style="color: #2d3748; font-size: 1.1rem;">
+                    <i class="fas fa-info-circle mr-2"></i>Datos de la factura
+                </label>
+                <div class="card-body pt-2" style="background-color: #ffffff; border-radius: 0 0 8px 8px;">
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="row">
+                                {% if is_manual %}
+                                <div class="col-lg-2">
+                                    <label class="mb-1 mt-1 font-weight-light" for="supplier_ruc">RUC:</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="supplier_ruc" name="supplier_ruc"
+                                               placeholder="Ingrese RUC" maxlength="11" autocomplete="off">
+                                        <div class="input-group-append">
+                                            <button type="button" class="btn btn-primary btn-sm" id="btn-search-ruc" title="Buscar RUC en SUNAT">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="client">Razón Social:</label>
+                                    <select class="form-control" id="supplier_name" name="supplier_name">
+                                        <option value="">Seleccionar Proveedor...</option>
+                                        {% for supplier in suppliers_set %}
+                                            <option value="{{ supplier.id }}" data-address="{{ supplier.supplieraddress_set.first.address }}" data-ruc="{{ supplier.ruc }}">
+                                                {{ supplier.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="form-text text-muted">O busque por RUC arriba</small>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="mb-1 mt-1 font-weight-light"
+                                           for="address">Dirección:</label>
+                                    <input type="text" class="form-control text-uppercase" id="address" name="address"
+                                           placeholder="Dirección del proveedor"
+                                           value="{{ supplier_address }}">
+                                </div>
+                                {% else %}
                                 <div class="col-lg-3">
                                     <label class="mb-1 mt-1 font-weight-light"
                                            for="client">Razón Social:</label>
                                     <input type="text" class="form-control" id="supplier_name" disabled
                                            style="background-color: #e7ded9"
                                            value="{{ supplier_name }}">
-                                    <input type="hidden" id="supplier_id" value="{{ supplier_id }}">
                                 </div>
                                 <div class="col-lg-9">
                                     <label class="mb-1 mt-1 font-weight-light"
@@ -62,6 +98,9 @@
                                            style="background-color: #e7ded9"
                                            value="{{ supplier_address }}">
                                 </div>
+                                {% endif %}
+                                <input type="hidden" id="supplier_id" value="{{ supplier_id }}">
+                                <input type="hidden" id="supplier_ruc_value" value="">
                             </div>
                             <div class="row">
                                 <div class="col-lg-3">
@@ -115,12 +154,12 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-lg-6">
+                                <div class="col-lg-6 {% if is_manual %}d-none{% endif %}">
                                     <label class="mb-1 mt-2 font-weight-light" for="order_number">Nº Pedido:</label>
                                     <input type="text" class="form-control" autocomplete="off"
                                            id="order_number" name=order_number">
                                 </div>
-                                <div class="col-lg-6">
+                                <div class="col-lg-6 {% if is_manual %}d-none{% endif %}" id="div-purchases-numbers">
                                     <label for="purchases_numbers" class="mb-1 mt-2 font-weight-light">Nro de
                                         Ordenes:</label>
                                     <input type="text" class="form-control font-weight-bold" id="purchases_numbers"
@@ -139,23 +178,40 @@
                                 </div>
                             </div>
 
-                            <div class="d-flex mt-3">
-                                <hr class="my-auto flex-grow-1 bg-lightblue">
-                                <div class="px-2 font-weight-bold" style="font-size: .8375rem;">DETALLE DE FACTURA</div>
-                                <hr class="my-auto flex-grow-1 bg-lightblue">
+                            <div class="d-flex mt-4 mb-3">
+                                <hr class="my-auto flex-grow-1" style="border-color: #cbd5e0;">
+                                <div class="px-3 font-weight-bold" style="font-size: 1rem; color: #2d3748; background: white;">
+                                    <i class="fas fa-list-ul mr-2"></i>DETALLE DE FACTURA
+                                </div>
+                                <hr class="my-auto flex-grow-1" style="border-color: #cbd5e0;">
                             </div>
+                            {% if is_manual %}
+                            <div class="row mt-2 mb-3">
+                                <div class="col-sm-12">
+                                    <button type="button" class="btn btn-success btn-sm shadow-sm" id="btn-add-row" style="border-radius: 6px;">
+                                        <i class="fas fa-plus mr-2"></i>Agregar Detalle
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
                             <div class="row mt-2">
                                 <div class="col-sm-12 p-1">
                                     <div class="card col-sm-12 p-0">
                                         <table class="table-hover table-sm table-bordered" id="id-table-bill"
-                                               style="width: 100%;">
+                                               style="width: 100%; border-collapse: separate; border-spacing: 0;">
                                             <thead class="text-uppercase small text-center">
-                                            <tr class="text-white" style="background: #0783d6">
-                                                <th scope="col" class="font-weight-normal" style="width: 8%;">O/C</th>
-{#                                                <th scope="col" class="font-weight-normal" style="width: 5%;">Nº</th>#}
-                                                <th scope="col" class="font-weight-normal" style="width: 37%;">
-                                                    Descripcion
-                                                </th>
+                                            <tr class="text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                                {% if is_manual %}
+                                                    <th scope="col" class="font-weight-normal" style="width: 45%;">
+                                                        Descripcion
+                                                    </th>
+                                                {% else %}
+                                                    <th scope="col" class="font-weight-normal" style="width: 8%;">O/C
+                                                    </th>
+                                                    <th scope="col" class="font-weight-normal" style="width: 37%;">
+                                                        Descripcion
+                                                    </th>
+                                                {% endif %}
                                                 <th scope="col" class="font-weight-normal" style="width: 10%;">
                                                     Cantidad
                                                 </th>
@@ -175,15 +231,25 @@
                                                     <tr class="" product="{{ d.product_id }}" unit_id="{{ d.unit_id }}"
                                                         detail="{{ d.detail_id }}" purchase="{{ d.purchase_id }}"
                                                         {% if d.has_bill %}style="background-color: #eedede" {% endif %}>
-                                                        <td class="item-number align-middle text-center"
+                                                        {% if not is_manual %}
+                                                            <td class="item-number align-middle text-center"
                                                             style="font-size: 11px; background-color: #ececbe">{{ d.purchase_number }}</td>
-{#                                                        <td class="item-number align-middle text-center">{{ forloop.parentloop.counter }}</td>#}
+                                                        {% endif %}
                                                         <td class="align-middle text-left product-item-table">
-                                                            <input type="text"
-                                                                   class="form-control text-uppercase product-table dropdown-toggle"
-                                                                   data-toggle="dropdown" aria-expanded="false"
-                                                                   placeholder="Ingrese producto..."
-                                                                   value="{{ d.product_name }}"></td>
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text bg-light border-right-0">
+                                                                        <i class="fas fa-box text-primary"></i>
+                                                                    </span>
+                                                                </div>
+                                                                <input type="text"
+                                                                       class="form-control text-uppercase product-table product-autocomplete"
+                                                                       data-toggle="dropdown" aria-expanded="false"
+                                                                       placeholder="Buscar producto..."
+                                                                       value="{{ d.product_name }}"
+                                                                       style="border-left: 0;">
+                                                            </div>
+                                                        </td>
                                                         <td class="align-middle item-quantity">
                                                             <input type="text"
                                                                    class="form-control text-center quantity-invoice text-uppercase"
@@ -226,10 +292,68 @@
                                                     </tr>
                                                 {% endfor %}
                                             {% endfor %}
+                                            {% if is_manual %}
+                                            <tr class="empty-row-template" style="display: none;">
+                                                <td class="align-middle text-left product-item-table">
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text bg-light border-right-0">
+                                                                <i class="fas fa-box text-primary"></i>
+                                                            </span>
+                                                        </div>
+                                                        <input type="text"
+                                                               class="form-control text-uppercase product-table product-autocomplete"
+                                                               placeholder="Buscar producto..."
+                                                               autocomplete="off"
+                                                               style="border-left: 0;">
+                                                    </div>
+                                                </td>
+                                                <td class="align-middle item-quantity">
+                                                    <input type="text"
+                                                           class="form-control text-center quantity-invoice"
+                                                           placeholder="0"
+                                                           value="">
+                                                    <input type="hidden"
+                                                           class="quantity-purchased"
+                                                           value="">
+                                                </td>
+                                                <td class="align-middle unit">
+                                                    <select class="form-control text-center unit-select">
+                                                        <option value="">Seleccionar</option>
+                                                    </select>
+                                                </td>
+                                                <td class="align-middle item-quantity-min">
+                                                    <input type="text" readonly
+                                                           class="form-control text-center quantity-min"
+                                                           placeholder="0"
+                                                           value="">
+                                                </td>
+                                                <td class="align-middle item-price">
+                                                    <input type="text"
+                                                           class="form-control text-center price-product"
+                                                           placeholder="0.00"
+                                                           value="">
+                                                </td>
+                                                <td class="align-middle item-amount">
+                                                    <div class="input-icon">
+                                                        <input type="text"
+                                                               class="form-control text-right subtotal"
+                                                               placeholder="0.00"
+                                                               readonly
+                                                               value=""><i class="change-money">S/</i>
+                                                    </div>
+                                                </td>
+                                                <td class="align-middle text-center">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm btn-delete-row">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {% endif %}
                                             </tbody>
                                             <tfoot>
                                             <tr class="text-center">
-                                                <td class="align-middle font-weight-normal text-right" colspan="6">Base
+                                                <td class="align-middle font-weight-normal text-right" {% if is_manual %} colspan="5" {% else %} colspan="6"{% endif %}>Base
                                                     Imponible
                                                 </td>
                                                 <td class="foot-base">
@@ -244,7 +368,7 @@
                                                 </td>
                                             </tr>
                                             <tr class="text-center">
-                                                <td class="align-middle font-weight-normal text-right" colspan="6">
+                                                <td class="align-middle font-weight-normal text-right" {% if is_manual %} colspan="5" {% else %} colspan="6"{% endif %}>
                                                     IGV(18%)
                                                 </td>
                                                 <td class="foot-base">
@@ -259,7 +383,7 @@
                                                 </td>
                                             </tr>
                                             <tr class="text-center">
-                                                <td class="align-middle font-weight-normal text-right" colspan="6">
+                                                <td class="align-middle font-weight-normal text-right" {% if is_manual %} colspan="5" {% else %} colspan="6"{% endif %}>
                                                     Importe Total
                                                 </td>
                                                 <td class="foot-base">
@@ -285,10 +409,12 @@
                 </div>
             </div>
         </div>
-        <div class="modal-footer bg-light p-2">
-            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
-            &nbsp;
-            <button id="btn-save-bill" type="button" class="btn btn-primary font-weight-light">Registrar Factura
+        <div class="modal-footer p-3" style="background-color: #f8f9fa; border-top: 1px solid #dee2e6;">
+            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">
+                <i class="fas fa-times mr-2"></i>Cerrar
+            </button>
+            <button id="btn-save-bill" type="button" class="btn btn-primary font-weight-light shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                <i class="fas fa-save mr-2"></i>Registrar Factura
             </button>
         </div>
 
@@ -300,8 +426,7 @@
                 background: #bdd9f5;
                 opacity: 0.5;
                 width: 100%;
-                {#height: 46em;#}
-                !important;bottom: 6px;
+                bottom: 6px;
                 padding-right: 65em;
                 padding-left: 55em;
                 padding-top: 22em;" id="loading">
@@ -313,10 +438,357 @@
 
 <script type="text/javascript">
 
+    // Función para inicializar autocomplete de productos (debe estar fuera del bloque condicional)
+    function initProductAutocomplete($input) {
+        // Destruir autocomplete existente si ya está inicializado
+        if ($input.hasClass('ui-autocomplete-input')) {
+            $input.autocomplete('destroy');
+        }
+        
+        $input.autocomplete({
+            source: function(request, response) {
+                // Usar función para mejor manejo de errores
+                $.ajax({
+                    url: '/sales/get_products_ajax/',
+                    dataType: 'json',
+                    data: {
+                        term: request.term
+                    },
+                    success: function(data) {
+                        // Verificar que data sea un array válido
+                        if (Array.isArray(data)) {
+                            response(data);
+                        } else {
+                            console.error('Respuesta inválida del servidor:', data);
+                            response([]);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error en autocomplete:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        response([]);
+                    }
+                });
+            },
+            minLength: 1,
+            delay: 300,
+            autoFocus: true,
+            select: function (event, ui) {
+                event.preventDefault(); // Prevenir comportamiento por defecto
+
+                let $tr = $(this).closest('tr');
+
+                // Verificar que ui.item existe y tiene las propiedades necesarias
+                if (!ui.item || !ui.item.id) {
+                    console.error('Item inválido seleccionado:', ui.item);
+                    return false;
+                }
+
+                // Establecer el producto seleccionado
+                $(this).val(ui.item.label);
+                $tr.attr('product', ui.item.id);
+                $tr.attr('data-product', ui.item.id);
+                
+                // Asegurar que el atributo product esté establecido correctamente
+                if (!$tr.attr('product')) {
+                    $tr.attr('product', ui.item.id);
+                }
+
+                // Obtener unidades del producto
+                $.ajax({
+                    url: '/accounting/get_product_units/',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: { 'product_id': ui.item.id },
+                    success: function (response) {
+                        if (response.success && response.units && response.units.length > 0) {
+                            let $unitSelect = $tr.find('.unit-select');
+                            $unitSelect.empty();
+                            $unitSelect.append('<option value="">Seleccionar</option>');
+
+                            $.each(response.units, function (index, unit) {
+                                $unitSelect.append(
+                                    '<option value="' + unit.unit_id + '" data-unit="' + unit.quantity_minimum + '" data-quantity="' + unit.quantity_minimum + '">' +
+                                    unit.unit_name + ' (' + unit.quantity_minimum + ')' +
+                                    '</option>'
+                                );
+                            });
+
+                            // Seleccionar la primera unidad por defecto
+                            $unitSelect.val(response.units[0].unit_id);
+                            $unitSelect.trigger('change');
+                        } else {
+                            console.warn('No se encontraron unidades para el producto:', ui.item.id);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error al cargar unidades:', error);
+                        console.error('Response:', xhr.responseText);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error('Error al cargar las unidades del producto', 'Error');
+                        }
+                    }
+                });
+
+                // Limpiar campos relacionados
+                $tr.find('.quantity-invoice').val('');
+                $tr.find('.quantity-min').val('');
+                $tr.find('.price-product').val('');
+                $tr.find('.subtotal').val('');
+
+                return false;
+            },
+            focus: function(event, ui) {
+                // Mostrar el label cuando se navega con el teclado
+                event.preventDefault();
+                if (ui.item && ui.item.label) {
+                    $(this).val(ui.item.label);
+                }
+                return false;
+            },
+            open: function() {
+                // Ajustar z-index del dropdown para que aparezca sobre el modal
+                $(this).autocomplete('widget').css({
+                    'z-index': 10000,
+                    'max-height': '300px',
+                    'overflow-y': 'auto',
+                    'border-radius': '6px',
+                    'box-shadow': '0 4px 6px rgba(0, 0, 0, 0.1)'
+                });
+            }
+        });
+        
+        // Agregar estilos personalizados al input de autocomplete
+        $input.css({
+            'border-radius': '4px',
+            'transition': 'all 0.3s ease'
+        });
+        
+        $input.on('focus', function() {
+            $(this).css({
+                'border-color': '#667eea',
+                'box-shadow': '0 0 0 0.2rem rgba(102, 126, 234, 0.25)'
+            });
+        });
+        
+        $input.on('blur', function() {
+            $(this).css({
+                'border-color': '#ced4da',
+                'box-shadow': 'none'
+            });
+        });
+    }
+
+    // Manejar cambio de proveedor en modo manual
+    {% if is_manual %}
+    $('#supplier_name').select2({
+        theme: 'bootstrap4',
+        placeholder: 'Buscar proveedor...',
+        allowClear: true
+    });
+
+    $('#supplier_name').on('change', function () {
+        let selectedOption = $(this).find('option:selected');
+        let supplierAddress = selectedOption.data('address');
+        let supplierId = $(this).val();
+        let supplierRuc = selectedOption.data('ruc');
+        
+        // Si es una opción temporal (empieza con TEMP_), no tiene ID real
+        if (supplierId && supplierId.startsWith('TEMP_')) {
+            // Es un proveedor nuevo buscado por RUC
+            $('#supplier_id').val(''); // No hay ID porque es nuevo
+            $('#supplier_ruc_value').val(supplierRuc || '');
+            $('#supplier_ruc').val(supplierRuc || '');
+        } else {
+            // Es un proveedor existente
+            $('#supplier_id').val(supplierId || '');
+            $('#supplier_ruc_value').val(supplierRuc || '');
+            $('#supplier_ruc').val(supplierRuc || '');
+        }
+        
+        // Actualizar dirección (siempre, ya sea proveedor nuevo o existente)
+        $('#address').val(supplierAddress || '');
+    });
+
+    // Buscar RUC en SUNAT
+    function searchRUC() {
+        let ruc = $('#supplier_ruc').val().trim();
+        
+        if (!ruc) {
+            toastr.warning('Por favor ingrese un RUC', 'Advertencia');
+            return false;
+        }
+        
+        if (ruc.length !== 11) {
+            toastr.warning('El RUC debe tener 11 dígitos', 'Advertencia');
+            return false;
+        }
+        
+        // Mostrar loading
+        $('#btn-search-ruc').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+        
+        $.ajax({
+            url: '/buys/get_sunat/',
+            async: true,
+            dataType: 'json',
+            type: 'GET',
+            data: {
+                'nro_document': ruc,
+                'type': '06'  // RUC
+            },
+            contentType: 'application/json;charset=UTF-8',
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (response, textStatus, xhr) {
+                if (xhr.status === 200 && response.result) {
+                    // Llenar automáticamente los campos
+                    let businessName = response.result;
+                    let address = response.address || '';
+                    
+                    // Verificar si el proveedor ya existe en el select
+                    let supplierExists = false;
+                    let existingOption = null;
+                    $('#supplier_name option').each(function() {
+                        if ($(this).data('ruc') === ruc) {
+                            supplierExists = true;
+                            existingOption = $(this);
+                            return false;
+                        }
+                    });
+                    
+                    if (supplierExists && existingOption) {
+                        // Si existe, seleccionarlo
+                        $('#supplier_name').val(existingOption.val()).trigger('change');
+                        toastr.info('Proveedor encontrado en la base de datos', 'Información');
+                    } else {
+                        // Si no existe, crear una nueva opción y agregarla al select
+                        // Usar un valor temporal único basado en el RUC
+                        let tempValue = 'TEMP_' + ruc;
+                        
+                        // Crear la nueva opción con todos los atributos data necesarios
+                        let newOption = $('<option></option>')
+                            .attr('value', tempValue)
+                            .attr('data-address', address)
+                            .attr('data-ruc', ruc)
+                            .text(businessName);
+                        
+                        // Agregar la opción al select
+                        $('#supplier_name').append(newOption);
+                        
+                        // Seleccionar la nueva opción y actualizar Select2
+                        $('#supplier_name').val(tempValue).trigger('change.select2');
+                        
+                        // Guardar el RUC y los datos del proveedor nuevo
+                        $('#supplier_ruc_value').val(ruc);
+                        $('#supplier_id').val(''); // Limpiar el ID ya que es un proveedor nuevo
+                        
+                        // Actualizar la dirección manualmente
+                        $('#address').val(address);
+                        
+                        toastr.success('RUC encontrado. Los datos se han cargado automáticamente', 'Éxito');
+                    }
+                }
+                $('#btn-search-ruc').prop('disabled', false).html('<i class="fas fa-search"></i>');
+            },
+            error: function (jqXhr, textStatus, error) {
+                let errorMessage = 'Error al buscar RUC';
+                if (jqXhr.responseJSON && jqXhr.responseJSON.error) {
+                    errorMessage = jqXhr.responseJSON.error;
+                    // Si el error es que el proveedor ya existe, intentar buscarlo
+                    if (errorMessage.includes('YA SE ENCUENTRA REGISTRADO')) {
+                        // Buscar el proveedor en el select por RUC
+                        let found = false;
+                        $('#supplier_name option').each(function() {
+                            if ($(this).data('ruc') === ruc) {
+                                $('#supplier_name').val($(this).val()).trigger('change');
+                                toastr.info('El proveedor ya existe en la base de datos y ha sido seleccionado', 'Información');
+                                found = true;
+                                return false;
+                            }
+                        });
+                        if (!found) {
+                            toastr.warning('El proveedor existe pero no está disponible en la lista', 'Advertencia');
+                        }
+                    } else {
+                        toastr.error(errorMessage, 'Error');
+                    }
+                } else {
+                    toastr.error(errorMessage, 'Error');
+                }
+                $('#btn-search-ruc').prop('disabled', false).html('<i class="fas fa-search"></i>');
+            }
+        });
+    }
+
+    // Buscar RUC al hacer clic en el botón
+    $(document).on('click', '#btn-search-ruc', function() {
+        searchRUC();
+    });
+
+    // Buscar RUC al presionar Enter en el campo RUC
+    $(document).on('keypress', '#supplier_ruc', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            searchRUC();
+        }
+    });
+
+    // Agregar nueva fila a la tabla de detalles
+    $(document).on('click', '#btn-add-row', function () {
+        let $templateRow = $('.empty-row-template').first();
+        if ($templateRow.length) {
+            let $newRow = $templateRow.clone();
+            $newRow.removeClass('empty-row-template').show();
+            $newRow.attr('product', '').attr('unit_id', '');
+            $('#bill-details').append($newRow);
+            
+            // Reinicializar autocomplete para el nuevo producto
+            let $newProductInput = $newRow.find('.product-table');
+            initProductAutocomplete($newProductInput);
+        }
+    });
+
+    // Eliminar fila
+    $(document).on('click', '.btn-delete-row', function () {
+        $(this).closest('tr').remove();
+        sum_table();
+    });
+    {% endif %}
+
+    // Autocomplete para productos
+    $(document).on('focus', '.product-table', function () {
+        // Si no tiene autocomplete inicializado aún, inicializarlo
+        if (!$(this).hasClass('ui-autocomplete-input')) {
+            initProductAutocomplete($(this));
+        }
+    });
+
     $(document).ready(function () {
-        $('#bill-details tr').each(function () {
+        // Si es modo manual y no hay filas, agregar una fila vacía automáticamente
+        {% if is_manual %}
+        if ($('#bill-details tr:not(.empty-row-template)').length === 0) {
+            let $templateRow = $('.empty-row-template').first();
+            if ($templateRow.length) {
+                let $newRow = $templateRow.clone();
+                $newRow.removeClass('empty-row-template').show();
+                $newRow.attr('product', '').attr('unit_id', '');
+                $('#bill-details').append($newRow);
+                
+                // Inicializar autocomplete para el nuevo producto
+                let $newProductInput = $newRow.find('.product-table');
+                initProductAutocomplete($newProductInput);
+            }
+        }
+        {% endif %}
+        
+        $('#bill-details tr:not(.empty-row-template)').each(function () {
             let _tr = $(this);
             calculateQuantityMinimum(_tr);
+        });
+        
+        // Inicializar autocomplete para productos existentes
+        $('.product-table').each(function () {
+            initProductAutocomplete($(this));
         });
     });
 
@@ -331,44 +803,60 @@
         igv.val(_igvCalculate.toFixed(2))
     });
 
-    $('.quantity-invoice').keyup(function () {
-        let _tr = $(this).parent('td').parent('tr');
+    // Usar delegación de eventos para manejar inputs dinámicos
+    $(document).on('keyup', '.quantity-invoice', function () {
+        let _tr = $(this).closest('tr');
         let $quantity = _tr.find('td.item-quantity input.quantity-invoice');
         let $quantity_purchased = _tr.find('td.item-quantity input.quantity-purchased');
-        if (Number($quantity.val().replace(',', '.')) > Number($quantity_purchased.val().replace(',', '.'))) {
-            toastr.warning('La cantidad a Facturar no puede superar a la cantidad de la Orden de Compra', 'Error de llenado');
-            $quantity.val($quantity_purchased.val())
-            return false;
-        } else {
-            calculate_total(_tr);
-            sum_table();
+        
+        // Si no hay cantidad comprada (modo manual), no validar contra eso
+        if ($quantity_purchased.val()) {
+            if (Number($quantity.val().replace(',', '.')) > Number($quantity_purchased.val().replace(',', '.'))) {
+                toastr.warning('La cantidad a Facturar no puede superar a la cantidad de la Orden de Compra', 'Error de llenado');
+                $quantity.val($quantity_purchased.val())
+                return false;
+            }
         }
-    });
-
-    $('.price-product').keyup(function () {
-        let _tr = $(this).parent('td').parent('tr');
+        // Calcular cantidad mínima (Cant. x Units) y total
+        calculateQuantityMinimum(_tr);
         calculate_total(_tr);
         sum_table();
     });
 
-    $('.unit-select').change(function () {
-        let _tr = $(this).parent('td').parent('tr');
-        calculateQuantityMinimum(_tr)
+    // Usar delegación de eventos para manejar inputs dinámicos
+    $(document).on('keyup', '.price-product', function () {
+        let _tr = $(this).closest('tr');
+        calculate_total(_tr);
+        sum_table();
+    });
+
+    // Usar delegación de eventos para manejar selects dinámicos
+    $(document).on('change', '.unit-select', function () {
+        let _tr = $(this).closest('tr');
+        calculateQuantityMinimum(_tr);
+        // Recalcular total después de cambiar unidad
+        calculate_total(_tr);
+        sum_table();
     });
 
     function calculateQuantityMinimum(_tr){
-
-        let $quantity = _tr.find('td.item-quantity input.quantity-invoice').val();
-        let $select_quantity_minimum = _tr.find('select.unit-select option:selected').data('unit');
-        let quantity_minim = $quantity * $select_quantity_minimum
-        _tr.find('td.item-quantity-min input.quantity-min').val(quantity_minim.toFixed(2));
-
+        let $quantityInput = _tr.find('td.item-quantity input.quantity-invoice');
+        let $quantity = parseFloat($quantityInput.val().replace(',', '.')) || 0;
+        let $selectedOption = _tr.find('select.unit-select option:selected');
+        let $select_quantity_minimum = $selectedOption.data('unit') || $selectedOption.data('quantity') || 0;
+        
+        if ($select_quantity_minimum && $quantity > 0) {
+            let quantity_minim = $quantity * $select_quantity_minimum;
+            _tr.find('td.item-quantity-min input.quantity-min').val(quantity_minim.toFixed(2));
+        } else {
+            _tr.find('td.item-quantity-min input.quantity-min').val('0.00');
+        }
     }
 
     function calculate_total(_tr) {
-        let $quantity = Number(_tr.find('td.item-quantity input.quantity-invoice').val().replace(',', '.'));
-        let $price_unit = Number(_tr.find('td.item-price input.price-product').val());
-        let amount = $quantity * $price_unit
+        let $quantity = parseFloat(_tr.find('td.item-quantity input.quantity-invoice').val().replace(',', '.')) || 0;
+        let $price_unit = parseFloat(_tr.find('td.item-price input.price-product').val().replace(',', '.')) || 0;
+        let amount = $quantity * $price_unit;
         _tr.find('td.item-amount input.subtotal').val(amount.toFixed(2));
     }
 
@@ -378,7 +866,7 @@
         let sum_total = 0;
         let _total;
         $("#id-table-bill tbody#bill-details tr").each(function () {
-            let td_total = Number($(this).find("td.item-amount input.subtotal").val());
+            let td_total = Number($(this).find("td.item-amount input.subtotal").val()) || 0;
             sum_total = sum_total + td_total
         });
         base = sum_total / 1.18
@@ -390,3 +878,130 @@
     }
 
 </script>
+
+<style>
+    /* Estilos mejorados para el autocomplete */
+    .ui-autocomplete {
+        max-height: 300px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border: 1px solid #e2e8f0;
+        background: white;
+        z-index: 10000 !important;
+    }
+    
+    .ui-autocomplete .ui-menu-item {
+        padding: 0;
+        border: none;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .ui-autocomplete .ui-menu-item:last-child {
+        border-bottom: none;
+    }
+    
+    .ui-autocomplete .ui-menu-item-wrapper {
+        padding: 12px 15px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .ui-autocomplete .ui-menu-item-wrapper:hover,
+    .ui-autocomplete .ui-menu-item-wrapper.ui-state-active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        margin: 0;
+    }
+    
+    .product-autocomplete {
+        font-size: 0.95rem;
+    }
+    
+    .product-autocomplete:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    /* Estilos mejorados para la tabla */
+    #id-table-bill {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    #id-table-bill thead th {
+        padding: 12px 8px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        border: none;
+    }
+    
+    #id-table-bill tbody td {
+        padding: 10px 8px;
+        vertical-align: middle;
+        border-color: #e2e8f0;
+    }
+    
+    #id-table-bill tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    #id-table-bill tfoot td {
+        padding: 12px 8px;
+        background-color: #f8f9fa;
+        border-top: 2px solid #667eea;
+        font-weight: 600;
+    }
+    
+    /* Estilos para inputs */
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .input-group-text {
+        border-color: #ced4da;
+    }
+    
+    /* Botón de eliminar fila */
+    .btn-delete-row {
+        transition: all 0.2s ease;
+    }
+    
+    .btn-delete-row:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Modal mejorado */
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    /* Scrollbar personalizado para autocomplete */
+    .ui-autocomplete::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .ui-autocomplete::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    
+    .ui-autocomplete::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 4px;
+    }
+    
+    .ui-autocomplete::-webkit-scrollbar-thumb:hover {
+        background: #764ba2;
+    }
+</style>

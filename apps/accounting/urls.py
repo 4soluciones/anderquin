@@ -67,6 +67,7 @@ urlpatterns = [
     path('save_bill/', login_required(save_bill), name='save_bill'),
     path('cancel_bill/', login_required(cancel_bill), name='cancel_bill'),
     path('get_bill/', login_required(get_bill), name='get_bill'),
+    path('get_product_units/', login_required(get_product_units), name='get_product_units'),
     path('print_pdf_bill_finances/<int:pk>/', print_pdf_bill_finances, name='print_pdf_bill_finances'),
     
     # Reportes PDF y Excel

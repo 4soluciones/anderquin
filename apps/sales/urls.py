@@ -13,6 +13,7 @@ urlpatterns = [
     path('json_product_edit/<int:pk>/',
          login_required(JsonProductUpdate.as_view()), name='json_product_edit'),
     path('get_product/', get_product, name='get_product'),
+    path('get_products_ajax/', get_products_ajax, name='get_products_ajax'),
     path('get_supplies_view/', get_supplies_view, name='get_supplies_view'),
     path('new_quantity_on_hand/', new_quantity_on_hand, name='new_quantity_on_hand'),
 

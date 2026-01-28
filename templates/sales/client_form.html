@@ -2,7 +2,8 @@
 <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content">
         <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title font-weight-bold roboto-condensed-regular"><i class="fas fa-user-plus mr-2"></i>REGISTRAR NUEVO CLIENTE</h5>
+            <h5 class="modal-title font-weight-bold roboto-condensed-regular text-white"><i
+                    class="fas fa-user-plus mr-2"></i>REGISTRAR NUEVO CLIENTE</h5>
             <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -43,9 +44,10 @@
             </div>
 
             <!-- Sección: Información del Documento -->
-            <div class="card mb-3 border-primary">
+            <div class="card mb-3 border-primary roboto-condensed-regular">
                 <div class="card-header bg-light">
-                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-id-card mr-2"></i>Información del Documento</h6>
+                    <h6 class="mb-0 font-weight-bold text-primary roboto-condensed-regular"><i
+                            class="fas fa-id-card mr-2"></i>Información del Documento</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -58,7 +60,7 @@
                                 <option value="01">DNI</option>
                                 <option value="06">RUC</option>
                                 {% for type in document_types %}
-                                    <option value="{{ type.id }}">{{ type.short_description }}</option>
+                                <option value="{{ type.id }}">{{ type.short_description }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -67,11 +69,11 @@
                                 Número de Documento <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="document_number"
-                                       name="document_number" autocomplete="off"
-                                       placeholder="Ingrese el número de documento">
+                                <input type="text" class="form-control" id="document_number" name="document_number"
+                                    autocomplete="off" placeholder="Ingrese el número de documento">
                                 <div class="input-group-append">
-                                    <button class="btn btn-warning" id="btn-nro-client" type="button" title="Buscar en RENIEC/SUNAT">
+                                    <button class="btn btn-warning" id="btn-nro-client" type="button"
+                                        title="Buscar en RENIEC/SUNAT">
                                         <i class="fas fa-search"></i> Buscar
                                     </button>
                                 </div>
@@ -82,9 +84,10 @@
             </div>
 
             <!-- Sección: Datos Personales/Empresa -->
-            <div class="card mb-3 border-primary">
+            <div class="card mb-3 border-primary roboto-condensed-regular">
                 <div class="card-header bg-light">
-                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-user mr-2"></i>Datos Personales / Empresa</h6>
+                    <h6 class="mb-0 font-weight-bold text-primary roboto-condensed-regular"><i
+                            class="fas fa-user mr-2"></i>Datos Personales / Empresa</h6>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
@@ -92,8 +95,8 @@
                             <label class="mb-2 font-weight-semibold" for="names">
                                 Nombres / Razón Social <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control" id="names" autocomplete="off"
-                                   name="names" placeholder="Ingrese nombres o razón social">
+                            <input type="text" class="form-control" id="names" autocomplete="off" name="names"
+                                placeholder="Ingrese nombres o razón social">
                         </div>
                     </div>
                     <div class="row">
@@ -106,7 +109,7 @@
                                     </span>
                                 </div>
                                 <input type="text" class="form-control" id="phone" name="phone"
-                                       placeholder="Ingrese número de teléfono">
+                                    placeholder="Ingrese número de teléfono">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -118,7 +121,7 @@
                                     </span>
                                 </div>
                                 <input type="email" class="form-control" id="email" name="email"
-                                       placeholder="correo@ejemplo.com">
+                                    placeholder="correo@ejemplo.com">
                             </div>
                         </div>
                     </div>
@@ -126,9 +129,10 @@
             </div>
 
             <!-- Sección: Tipo de Cliente -->
-            <div class="card mb-3 border-primary">
+            <div class="card mb-3 border-primary roboto-condensed-regular">
                 <div class="card-header bg-light">
-                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-tag mr-2"></i>Tipo de Cliente</h6>
+                    <h6 class="mb-0 font-weight-bold text-primary roboto-condensed-regular"><i
+                            class="fas fa-tag mr-2"></i>Tipo de Cliente</h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -139,16 +143,28 @@
                             <select class="form-control" id="id_type_client" name="type_client">
                                 <option value="0">Seleccionar</option>
                                 {% for t in type_client %}
-                                    <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                <option value="{{ t.0 }}">{{ t.1 }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-6 siaf d-none">
+                        <div class="col-md-6">
+                            <label class="mb-2 font-weight-semibold" for="price_type">
+                                Tipo de Precio
+                            </label>
+                            <select class="form-control" id="price_type" name="price_type">
+                                <option value="0">Seleccionar</option>
+                                {% for pt in price_types %}
+                                <option value="{{ pt.id }}"
+                                        {% if client_obj.price_type.id == pt.id %}selected{% endif %}>{{ pt.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-12 mt-3 siaf d-none">
                             <label class="mb-2 font-weight-semibold" for="cod_siaf">
                                 Código de Unidad Ejecutora (SIAF)
                             </label>
                             <input type="text" class="form-control" id="cod_siaf" name="siaf"
-                                   placeholder="Ingrese código SIAF">
+                                placeholder="Ingrese código SIAF">
                         </div>
                     </div>
                 </div>
@@ -157,7 +173,8 @@
             <!-- Sección: Dirección - Cliente Público -->
             <div class="card mb-3 border-success public d-none">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 font-weight-bold text-success"><i class="fas fa-map-marker-alt mr-2"></i>Direcciones del Cliente Público</h6>
+                    <h6 class="mb-0 font-weight-bold text-success"><i class="fas fa-map-marker-alt mr-2"></i>Direcciones
+                        del Cliente Público</h6>
                     <button type="button" class="btn btn-sm btn-outline-success" id="id-add-new-address-public">
                         <i class="fas fa-plus mr-1"></i> Agregar Dirección
                     </button>
@@ -175,8 +192,8 @@
                                             <i class="fas fa-address-card text-success"></i>
                                         </span>
                                     </div>
-                                    <input type="text" class="form-control public-address" id="address" autocomplete="off"
-                                           name="address" placeholder="Ingrese la dirección completa">
+                                    <input type="text" class="form-control public-address" id="address"
+                                        autocomplete="off" name="address" placeholder="Ingrese la dirección completa">
                                 </div>
                             </div>
                         </div>
@@ -211,7 +228,7 @@
                                 </label>
                                 <select id="type_address" name="type_address" class="form-control">
                                     {% for t in type_address %}
-                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                    <option value="{{ t.0 }}">{{ t.1 }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -223,7 +240,8 @@
             <!-- Sección: Dirección - Cliente Privado -->
             <div class="card mb-3 border-info private main d-none">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 font-weight-bold text-info"><i class="fas fa-map-marker-alt mr-2"></i>Direcciones del Cliente Privado</h6>
+                    <h6 class="mb-0 font-weight-bold text-info"><i class="fas fa-map-marker-alt mr-2"></i>Direcciones
+                        del Cliente Privado</h6>
                     <button type="button" class="btn btn-sm btn-outline-success" id="id-add-new-addressee">
                         <i class="fas fa-plus mr-1"></i> Agregar Dirección
                     </button>
@@ -242,7 +260,7 @@
                                         </span>
                                     </div>
                                     <input type="text" class="form-control new-address" id="new_address"
-                                           autocomplete="off" name="address" placeholder="Ingrese la dirección completa">
+                                        autocomplete="off" name="address" placeholder="Ingrese la dirección completa">
                                 </div>
                             </div>
                         </div>
@@ -251,7 +269,8 @@
                                 <label class="mb-2 font-weight-semibold" for="id_department2">
                                     Departamento <span class="text-danger">*</span>
                                 </label>
-                                <select id="id_department2" name="id_department2" class="form-control select2-department department">
+                                <select id="id_department2" name="id_department2"
+                                    class="form-control select2-department department">
                                     <option value="0">Seleccionar</option>
                                 </select>
                             </div>
@@ -259,7 +278,8 @@
                                 <label class="mb-2 font-weight-semibold" for="id_province2">
                                     Provincia <span class="text-danger">*</span>
                                 </label>
-                                <select id="id_province2" name="id_province2" class="form-control select2-province province">
+                                <select id="id_province2" name="id_province2"
+                                    class="form-control select2-province province">
                                     <option value="0">Seleccionar</option>
                                 </select>
                             </div>
@@ -267,7 +287,8 @@
                                 <label class="mb-2 font-weight-semibold" for="id_district2">
                                     Distrito <span class="text-danger">*</span>
                                 </label>
-                                <select id="id_district2" name="id_district2" class="form-control select2-district district">
+                                <select id="id_district2" name="id_district2"
+                                    class="form-control select2-district district">
                                     <option value="0">Seleccionar</option>
                                 </select>
                             </div>
@@ -277,7 +298,7 @@
                                 </label>
                                 <select id="type_address2" name="type_address2" class="form-control type-address">
                                     {% for t in type_address %}
-                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
+                                    <option value="{{ t.0 }}">{{ t.1 }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -315,195 +336,20 @@
 </div>
 
 
-
-
-{#<div class="modal-dialog modal-xl" role="document">#}
-{#    <div class="modal-content">#}
-{#        <div class="modal-header bg-light">#}
-{#            <h6 class="modal-title roboto-condensed-regular">REGISTRAR NUEVO LIBRO</h6>#}
-{#            <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
-{#                <span aria-hidden="true">&times;</span>#}
-{#            </button>#}
-{#        </div>#}
-{#        <input type="hidden" class="form-control" id="client_id" name="client-id">#}
-{##}
-{#        <div class="modal-body p-2">#}
-{##}
-{#            <div class="mr-3 ml-0" style="#}
-{#                        display: none;#}
-{#                        position: absolute;#}
-{#                        top: 8px;#}
-{#                        left: 0;#}
-{#                        background: var(--white);#}
-{#                        opacity: 0.5;#}
-{#                        width: 100%;#}
-{#                        !important: ;#}
-{#                        bottom: 6px;#}
-{#                        padding: 10em 23em 20em 26em;#}
-{#                        z-index: 2000;#}
-{#                        right: 0;" id="container-loading">#}
-{##}
-{#                <div class="spinner-border border-0" role="status" style="width: auto; height: auto">#}
-{#                    <div class="container">#}
-{#                        <div class="row">#}
-{#                            <div class="col-md-12">#}
-{#                                <div class="col-md-12">#}
-{#                                    <div class="loader-inner"></div>#}
-{#                                    <div class="loader-inner"></div>#}
-{#                                    <div class="loader-inner"></div>#}
-{#                                </div>#}
-{#                            </div>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                    <i class="fas fa-3x fa-sync fa-spin"></i>#}
-{#                </div>#}
-{##}
-{#            </div>#}
-{#            <div class="card roboto-condensed-regular">#}
-{#                <div class="card-body bg-light">#}
-{#                    <div class="row">#}
-{#                        <div class="col-lg-12">#}
-{#                            <div class="row">#}
-{#                                <div class="col-lg-8">#}
-{#                                    <label class="mb-1 mt-1 font-weight-light"#}
-{#                                           for="document_number">Nombre o Sigla de la Entidad :</label>#}
-{#                                    <div class="input-group">#}
-{#                                        <input type="text" class="form-control" id="document_number"#}
-{#                                               name="document_number" autocomplete="off"#}
-{#                                               placeholder="EMPRESA DE GENERACION ELECTRICA DE AREQUIPA S.A. - EGASA">#}
-{#                                        <div class="input-group-append">#}
-{#                                            <button class="btn btn-warning btn-sm" id="btn-nro-client" type="button">#}
-{#                                                <i class="fas fa-search fa-sm"></i>#}
-{#                                            </button>#}
-{#                                        </div>#}
-{#                                    </div>#}
-{#                                </div>#}
-{#                                <div class="col-lg-4 pl-0">#}
-{#                                    <label class="mb-1 mt-1 font-weight-light"#}
-{#                                           for="document_type">Tipo de Procedimiento :</label>#}
-{#                                    <select class="form-control" id="document_type" name="document_type">#}
-{#                                        <option value="01">ADJUDICACION SIMPLIFICADA</option>#}
-{#                                    </select>#}
-{#                                </div>#}
-{##}
-{#                            </div>#}
-{#                            <div class="row dni">#}
-{#                                <div class="col-lg-2">#}
-{#                                    <label class="mb-1 mt-1 font-weight-light"#}
-{#                                           for="document_number">Nomeclatura :</label>#}
-{#                                    <div class="input-group">#}
-{#                                        <input type="text" class="form-control" id="document_number"#}
-{#                                               name="document_number" autocomplete="off"#}
-{#                                               placeholder="AS-SM-15-2024-EGASA-1">#}
-{#                                    </div>#}
-{#                                </div>#}
-{#                                <div class="col-lg-2">#}
-{#                                    <label class="mb-1 mt-1 font-weight-light"#}
-{#                                           for="document_type">Numero de convocatoria :</label>#}
-{#                                    <input type="text" class="form-control" id="document_number"#}
-{#                                               name="document_number" autocomplete="off"#}
-{#                                               placeholder="1RA">#}
-{#                                </div>#}
-{#                                <div class="col-lg-1">#}
-{#                                    <label class="mb-1 mt-1 font-weight-light"#}
-{#                                           for="document_type">Nº Tomos:</label>#}
-{#                                    <input type="text" class="form-control" id="document_number"#}
-{#                                               name="document_number" autocomplete="off"#}
-{#                                               placeholder="1">#}
-{#                                </div>#}
-{#                                <div class="col-lg-1">#}
-{#                                    <label class="mb-1 mt-1 font-weight-light"#}
-{#                                           for="document_type">Año :</label>#}
-{#                                    <input type="text" class="form-control" id="document_number"#}
-{#                                               name="document_number" autocomplete="off"#}
-{#                                               placeholder="2024">#}
-{#                                </div>#}
-{#                                <div class="col-lg-2 pl-0">#}
-{#                                    <label class="mb-1 mt-1 font-weight-light"#}
-{#                                           for="document_type">Nº de Proc. :</label>#}
-{#                                    <input type="text" class="form-control" id="document_number"#}
-{#                                               name="document_number" autocomplete="off"#}
-{#                                               placeholder="15">#}
-{#                                </div>#}
-{#                                <div class="col-lg-2 pl-0">#}
-{#                                    <label class="mb-1 mt-1 font-weight-light"#}
-{#                                           for="document_type">Ubicacion:</label>#}
-{#                                    <input type="text" class="form-control" id="document_number"#}
-{#                                               name="document_number" autocomplete="off"#}
-{#                                               placeholder="A 010102">#}
-{#                                </div>#}
-{#                                <div class="col-lg-2 pl-0">#}
-{#                                    <label class="mb-1 mt-1 font-weight-light"#}
-{#                                           for="document_type">Estado :</label>#}
-{#                                    <input type="text" class="form-control" id="document_number"#}
-{#                                               name="document_number" autocomplete="off"#}
-{#                                               placeholder="ARCHIVADO">#}
-{#                                </div>#}
-{#                            </div>#}
-{#                            <div class="row">#}
-{#                                <div class="col-lg-2">#}
-{#                                    <label class="mb-1 mt-1 font-weight-light"#}
-{#                                           for="document_number">Objeto de Contratación :</label>#}
-{#                                    <div class="input-group">#}
-{#                                        <input type="text" class="form-control" id="document_number"#}
-{#                                               name="document_number" autocomplete="off"#}
-{#                                               placeholder="SERVICIO">#}
-{#                                    </div>#}
-{#                                </div>#}
-{#                                <div class="col-lg-10">#}
-{#                                    <label class="mb-1 mt-1 font-weight-light"#}
-{#                                           for="document_type">Descripción de Objeto :</label>#}
-{#                                    <input type="text" class="form-control" id="document_number"#}
-{#                                               name="document_number" autocomplete="off"#}
-{#                                               placeholder="SERVICIO DE MONITOREO DE PARÁMETROS HIDROLÓGICOS Y DE LECHO DE RÍO EN LAS PRESAS PILLONES, CHALHUANCA Y BAMPUTAÑE">#}
-{#                                </div>#}
-{#                            </div>#}
-{##}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{#        </div>#}
-{#        <div class="modal-footer bg-light p-2">#}
-{#            <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>#}
-{#            &nbsp;#}
-{#            <button id="btn-save-client" type="button" class="btn btn-primary font-weight-light">Registrar#}
-{#            </button>#}
-{#        </div>#}
-{##}
-{#        <div class="mr-3 ml-0" style="#}
-{#                display: none;#}
-{#                position: fixed;#}
-{#                top: 8px;#}
-{#                left: 5px;#}
-{#                background: #bdd9f5;#}
-{#                opacity: 0.5;#}
-{#                width: 100%;#}
-                {#height: 46em;#}
-{#                !important;bottom: 6px;#}
-{#                padding-right: 65em;#}
-{#                padding-left: 55em;#}
-{#                padding-top: 22em;" id="loading">#}
-{##}
-{#        </div>#}
-{##}
-{#    </div>#}
-{#</div>#}
-
 <script type="text/javascript">
 
-     loader = '<div class="container">' +
-            '<div class="row">' +
-            '<div class="col-md-12">' +
-            '<div class="loader">' +
-            '<p><strong>Cargando Reniec/Sunat...</strong></p>' +
-            '<div class="loader-inner"></div>' +
-            '<div class="loader-inner"></div>' +
-            '<div class="loader-inner"></div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
+    loader = '<div class="container">' +
+        '<div class="row">' +
+        '<div class="col-md-12">' +
+        '<div class="loader">' +
+        '<p><strong>Cargando Reniec/Sunat...</strong></p>' +
+        '<div class="loader-inner"></div>' +
+        '<div class="loader-inner"></div>' +
+        '<div class="loader-inner"></div>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
 
 
 
@@ -581,7 +427,7 @@
                     'type': $type_document
                 },
                 contentType: 'application/json;charset=UTF-8',
-                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                headers: { "X-CSRFToken": '{{ csrf_token }}' },
                 success: function (response, textStatus, xhr) {
                     if (xhr.status === 200) {
                         resolve(response);
@@ -630,7 +476,7 @@
     $(document).on('shown.bs.modal', '#modal-client-create', function () {
         // Configurar Select2 para departamentos
         initSelect2Ajax('.select2-department', '/sales/get_departments_ajax/');
-        
+
         // Configurar Select2 para provincias (se filtrará por departamento)
         $('.select2-province').select2({
             theme: 'bootstrap4',
@@ -657,7 +503,7 @@
             },
             minimumInputLength: 0
         });
-        
+
         // Configurar Select2 para distritos (se filtrará por provincia)
         $('.select2-district').select2({
             theme: 'bootstrap4',
@@ -704,9 +550,9 @@
     $(document).on('click', '#id-add-new-address-public', function () {
         let typeAddressHtml = '';
         {% for t in type_address %}
-            typeAddressHtml += '<option value="{{ t.0 }}">{{ t.1 }}</option>';
+        typeAddressHtml += '<option value="{{ t.0 }}">{{ t.1 }}</option>';
         {% endfor %}
-        
+
         let addressBlock = '<hr class="my-4">' +
             '<div class="address-block-public">' +
             '    <div class="row mb-3">' +
@@ -752,18 +598,18 @@
             '        </div>' +
             '    </div>' +
             '</div>';
-        
+
         let $cardBody = $(this).closest('.card').find('.card-body');
         if ($cardBody.find('.address-block-public').length > 0) {
             $cardBody.find('.address-block-public').last().after(addressBlock);
         } else {
             $cardBody.append(addressBlock);
         }
-        
+
         // Inicializar Select2 para los nuevos campos
         let $newBlock = $cardBody.find('.address-block-public').last();
         initSelect2Ajax($newBlock.find('.select2-department'), '/sales/get_departments_ajax/');
-        
+
         $newBlock.find('.select2-province').select2({
             theme: 'bootstrap4',
             language: 'es',
@@ -789,7 +635,7 @@
             },
             minimumInputLength: 0
         });
-        
+
         $newBlock.find('.select2-district').select2({
             theme: 'bootstrap4',
             language: 'es',

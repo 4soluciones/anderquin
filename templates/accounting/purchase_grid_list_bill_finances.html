@@ -1,79 +1,69 @@
 {% load operations %}
 {% if bill_dict %}
-    <div class="card-body p-2 table-responsive small">
+    <div class="card-body p-0 table-responsive">
         <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
             <table id="purchase-list-with-bill"
-                   class="table table-bordered align-content-center w-100 h-100 table-info">
-                <thead>
-                <tr class="font-weight-bold text-uppercase bg-warning text-center">
-                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Fecha de <br> Registro</th>
-                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Fecha de <br>Expiracion</th>
-                    <th class="th-sm align-middle" style="width: 5%" rowspan="2">Número de <br>Pedido</th>
-                    <th class="th-sm align-middle" style="width: 7%" rowspan="2">Número <br>Comprobante</th>
-                    <th class="th-sm align-middle" style="width: 8%" rowspan="2">Proveedor</th>
-                    <th class="th-sm align-middle" style="width: 12%" rowspan="2">Direccion de Entrega</th>
-                    <th class="th-sm align-middle" style="width: 6%" rowspan="2">Subtotal</th>
-                    <th class="th-sm align-middle" style="width: 6%" rowspan="2">Igv(18%)</th>
-                    <th class="th-sm align-middle" style="width: 6%" rowspan="2">Total</th>
-                    <th class="th-sm align-middle" style="width: 2%" rowspan="2">Acciones</th>
+                   class="table table-hover table-bordered w-100 mb-0" style="font-size: 0.9rem;">
+                <thead class="bg-light text-dark">
+                <tr class="text-center text-uppercase text-secondary" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                    <th class="align-middle border-bottom-0" style="width: 6%" rowspan="2">Fecha<br>Registro</th>
+                    <th class="align-middle border-bottom-0" style="width: 6%" rowspan="2">Fecha<br>Expiración</th>
+                    <th class="align-middle border-bottom-0" style="width: 6%" rowspan="2">N°<br>Pedido</th>
+                    <th class="align-middle border-bottom-0" style="width: 8%" rowspan="2">N°<br>Comprobante</th>
+                    <th class="align-middle border-bottom-0" style="width: 10%" rowspan="2">Proveedor</th>
+                    <th class="align-middle border-bottom-0" style="width: 15%" rowspan="2">Dirección de Entrega</th>
+                    <th class="align-middle border-bottom-0" style="width: 7%" rowspan="2">Subtotal</th>
+                    <th class="align-middle border-bottom-0" style="width: 6%" rowspan="2">IGV (18%)</th>
+                    <th class="align-middle border-bottom-0" style="width: 7%" rowspan="2">Total</th>
+                    <th class="align-middle border-bottom-0" style="width: 5%" rowspan="2">Acciones</th>
 
-                    <th class="th-sm" colspan="4">Detalle de Factura</th>
+                    <th class="align-middle border-bottom" colspan="4">Detalle de Factura</th>
                 </tr>
-                <tr class="font-weight-bold text-uppercase bg-warning text-center">
-                    <th class="th-sm" style="width: 18%">Producto</th>
-                    <th class="th-sm" style="width: 4%">Cant.</th>
-                    <th class="th-sm" style="width: 5%">Unidad</th>
-                    <th class="th-sm" style="width: 5%">Prec. Unit.</th>
+                <tr class="text-center text-uppercase text-secondary" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                    <th class="align-middle border-top-0" style="width: 15%">Producto</th>
+                    <th class="align-middle border-top-0" style="width: 4%">Cant.</th>
+                    <th class="align-middle border-top-0" style="width: 5%">Unidad</th>
+                    <th class="align-middle border-top-0" style="width: 6%">P. Unit.</th>
                 </tr>
                 </thead>
-                <tbody id="body-finances-bill" style="font-size: 13px;">
+                <tbody class="bg-white text-secondary">
                 {% for b in bill_dict %}
                     <tr class="text-center details" pk="{{ b.id }}">
-                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.register_date|date:'d-m-Y' }}</td>
-                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.expiration_date|date:'d-m-Y' }}</td>
+                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.register_date|date:'d/m/Y' }}</td>
+                        <td class="align-middle" rowspan="{{ b.row_count }}">{{ b.expiration_date|date:'d/m/Y' }}</td>
                         <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.order_number|upper }}</td>
-                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">{{ b.serial }} - {{ b.correlative }}</td>
+                        <td class="align-middle text-center font-weight-bold text-dark" rowspan="{{ b.row_count }}">{{ b.serial }} - {{ b.correlative }}</td>
                         <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.supplier_name }}</td>
-                        <td class="align-middle text-center" rowspan="{{ b.row_count }}">{{ b.delivery_address }}</td>
-                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_base_total|thousands_separator }}</td>
-                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_igv_total|thousands_separator }}</td>
-                        <td class="align-middle text-right font-weight-bold" rowspan="{{ b.row_count }}">S/ {{ b.bill_total_total|thousands_separator }}</td>
-                        <td class="align-middle text-center font-weight-bold" rowspan="{{ b.row_count }}">
-                            <div class="btn-group btn-group-toggle" data-toggle="button">
-                                <button type="button" class="btn btn-danger btn-sm bill-cancel" pk="{{ b.id }}">
+                        <td class="align-middle text-center small" rowspan="{{ b.row_count }}">{{ b.delivery_address }}</td>
+                        <td class="align-middle text-right" rowspan="{{ b.row_count }}">S/ {{ b.bill_base_total|thousands_separator }}</td>
+                        <td class="align-middle text-right" rowspan="{{ b.row_count }}">S/ {{ b.bill_igv_total|thousands_separator }}</td>
+                        <td class="align-middle text-right font-weight-bold text-dark" rowspan="{{ b.row_count }}">S/ {{ b.bill_total_total|thousands_separator }}</td>
+                        <td class="align-middle text-center" rowspan="{{ b.row_count }}">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-danger btn-sm bill-cancel" pk="{{ b.id }}" title="Anular">
                                     <i class="fas fa-ban"></i>
                                 </button>
-                                <button type="button" class="btn btn-success btn-sm btn-show-bill" pk="{{ b.id }}">
-                                    <i class="fas fa-sort-down fa-lg see-icon"></i>
+                                <button type="button" class="btn btn-outline-info btn-sm btn-show-bill" pk="{{ b.id }}" title="Ver Detalle">
+                                    <i class="fas fa-eye"></i>
                                 </button>
                             </div>
                         </td>
-{#                        <td colspan="4" class="p-0">#}
-{#                            <table>#}
-{#                                <tbody>#}
-{#                                {% for d in b.bill_detail %}#}
-{#                                    <tr>#}
-{#                                        <td class="align-middle text-center text-primary font-weight-bold"#}
-{#                                            style="width: 16%">{{ d.product }}</td>#}
-{#                                        <td class="align-middle text-center" style="width: 5%">{{ d.quantity }}</td>#}
-{#                                        <td class="align-middle text-center" style="width: 5%">{{ d.unit }}</td>#}
-{#                                        <td class="align-middle text-center" style="width: 6%">#}
-{#                                            S/ {{ d.price_unit }}</td>#}
-{#                                    </tr>#}
-{#                                {% endfor %}#}
-{#                                </tbody>#}
-{#                            </table>#}
-{#                        </td>#}
                         {% for d in b.bill_detail %}
-                            <td class="align-middle text-center text-primary font-weight-bold">{{ d.product }}</td>
+                            {% if not forloop.first %}
+                                <tr class="text-center details">
+                            {% endif %}
+                            <td class="align-middle text-left pl-2">{{ d.product }}</td>
                             <td class="align-middle text-center">{{ d.quantity }}</td>
                             <td class="align-middle text-center">{{ d.unit }}</td>
-                            <td class="align-middle text-center">S/ {{ d.price_unit }}</td>
+                            <td class="align-middle text-right pr-2">S/ {{ d.price_unit }}</td>
+                            </tr>
+                        {% empty %}
+                            <td colspan="4" class="align-middle text-muted font-italic">Sin detalles</td>
                             </tr>
                         {% endfor %}
-                    </tr>
-                    <tr class="show-detail" pk="{{ b.id }}" style="display: none">
-                        <td colspan="10" class="table-details-bill p-0"></td>
+                    
+                    <tr class="show-detail bg-light" pk="{{ b.id }}" style="display: none">
+                        <td colspan="14" class="table-details-bill p-0 border-0"></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -81,12 +71,13 @@
         </div>
     </div>
 {% else %}
-    <div class="card text-center roboto-condensed-regular p-3 border-info m-3">
-        <div class="card-header font-weight-bold text-black-50" style="background-color: #88a3b9 ">
-            Atencion!
-        </div>
-        <div class="card-body">
-            <h5 class="card-title text-info roboto-condensed-regular font-weight-bold">No existen Facturas...</h5>
+    <div class="card border-0 shadow-sm mt-3">
+        <div class="card-body text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-file-invoice-dollar fa-3x text-muted"></i>
+            </div>
+            <h5 class="text-dark font-weight-bold">No existen Facturas</h5>
+            <p class="text-muted mb-0">No se encontraron registros de facturas en el sistema.</p>
         </div>
     </div>
 {% endif %}
