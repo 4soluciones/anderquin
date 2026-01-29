@@ -2634,10 +2634,18 @@ def create_credit_note_ajax(request):
                     description=product_obj.name
                 )
                 
-                # Kardex Registration
+                # Kardex Registration - Buscar almacén mediante bill_detail_id en Kardex
+                bill_detail_id = item.get('bill_detail_id')
+                subsidiary_store = bill_obj.store_destiny  # Default fallback
+                
+                if bill_detail_id:
+                    kardex_entry = Kardex.objects.filter(bill_detail_id=bill_detail_id).last()
+                    if kardex_entry and kardex_entry.product_store:
+                        subsidiary_store = kardex_entry.product_store.subsidiary_store
+
                 product_store = ProductStore.objects.filter(
                     product=product_obj,
-                    subsidiary_store=bill_obj.store_destiny
+                    subsidiary_store=subsidiary_store
                 ).first()
                 
                 if product_store:
@@ -2701,6 +2709,7 @@ def get_bill_details_ajax(request):
                 warehouse_name = kardex_entry.product_store.subsidiary_store.name
             
             items.append({
+                'bill_detail_id': d.id,
                 'product_id': d.product.id,
                 'product_name': d.product.name,
                 'quantity': float(d.quantity),
@@ -2708,7 +2717,8 @@ def get_bill_details_ajax(request):
                 'unit_name': d.unit.name,
                 'price_unit': float(d.price_unit),
                 'total': float(d.quantity * d.price_unit),
-                'warehouse_name': warehouse_name
+                'warehouse_name': warehouse_name,
+                'warehouse_id': kardex_entry.product_store.subsidiary_store.id if kardex_entry and kardex_entry.product_store else None
             })
             
         return JsonResponse({
