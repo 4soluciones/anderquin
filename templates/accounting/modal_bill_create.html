@@ -102,6 +102,82 @@
                                 <input type="hidden" id="supplier_id" value="{{ supplier_id }}">
                                 <input type="hidden" id="supplier_ruc_value" value="">
                             </div>
+
+                            {% if not is_manual %}
+                            <!-- Sección de Búsqueda de OC (Solo si no es manual) -->
+                            <div class="accordion mt-4" id="accordionOC">
+                                <div class="card border-0 shadow-sm" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+                                    <div class="card-header bg-white py-2" id="headingOC" style="border-radius: 12px 12px 0 0; cursor: pointer;" data-toggle="collapse" data-target="#collapseOC" aria-expanded="true" aria-controls="collapseOC">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-6">
+                                                <h6 class="mb-0 font-weight-bold text-primary roboto-condensed-regular">
+                                                    <i class="fas fa-search-plus mr-2"></i>CONSULTAR ÓRDENES DE COMPRA DISPONIBLES
+                                                </h6>
+                                            </div>
+                                            <div class="col-md-6 text-right">
+                                                <span class="badge badge-soft-info p-2 mr-2" style="background-color: #e0f2fe; color: #0369a1;">
+                                                    <i class="fas fa-info-circle mr-1"></i> Seleccione para agregar al detalle
+                                                </span>
+                                                <i class="fas fa-chevron-down text-muted transition-icon"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="collapseOC" class="collapse show" aria-labelledby="headingOC" data-parent="#accordionOC">
+                                        <div class="card-body">
+                                            <div class="row align-items-end">
+                                                <div class="col-md-4">
+                                                    <label class="small font-weight-bold text-muted text-uppercase mb-1">Proveedor</label>
+                                                    <select class="form-control select2-modal" id="supplier_search_oc">
+                                                        <option value="{{ supplier_id }}" selected>{{ supplier_name }}</option>
+                                                        {% for supplier in suppliers_set %}
+                                                            {% if supplier.id != supplier_id %}
+                                                                <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="small font-weight-bold text-muted text-uppercase mb-1">Desde</label>
+                                                    <input type="date" id="oc_start_date" class="form-control">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="small font-weight-bold text-muted text-uppercase mb-1">Hasta</label>
+                                                    <input type="date" id="oc_end_date" class="form-control">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button type="button" id="btn-search-oc-modal" class="btn btn-primary btn-block shadow-sm">
+                                                        <i class="fas fa-sync-alt mr-1"></i> BUSCAR
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="row mt-4">
+                                                <div class="col-12">
+                                                    <div class="table-responsive" style="max-height: 250px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                                        <table class="table table-hover mb-0" id="table-available-oc">
+                                                            <thead class="bg-light sticky-top">
+                                                                <tr class="small text-muted text-uppercase">
+                                                                    <th style="width: 40px"></th>
+                                                                    <th style="width: 150px">N° O/C</th>
+                                                                    <th style="width: 100px">Fecha</th>
+                                                                    <th style="width: 160px">Cliente Ref.</th>
+                                                                    <th>Productos Pendientes</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="body-available-oc">
+                                                                <tr class="text-center py-4">
+                                                                    <td colspan="5" class="text-muted italic">Realice una búsqueda para ver OCs disponibles</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
                             <div class="row">
                                 <div class="col-lg-3">
                                     <label class="mb-1 mt-1 font-weight-light"
@@ -436,6 +512,42 @@
     </div>
 </div>
 
+
+<style>
+    .select2-container--bootstrap4 .select2-selection {
+        border-radius: 8px !important;
+    }
+    .badge-soft-info {
+        font-weight: 600;
+        border-radius: 6px;
+    }
+    #table-available-oc thead th {
+        border-top: none;
+        font-weight: 700;
+        font-size: 0.75rem;
+        background-color: #f1f5f9;
+        color: #64748b;
+    }
+    #table-available-oc tbody td {
+        vertical-align: middle;
+        font-size: 0.85rem;
+    }
+    .check-oc-modal {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    .bg-soft-primary {
+        background-color: #eff6ff;
+    }
+    .transition-icon {
+        transition: transform 0.3s ease;
+    }
+    [aria-expanded="false"] .transition-icon {
+        transform: rotate(-90deg);
+    }
+</style>
+
 <script type="text/javascript">
 
     // Función para inicializar autocomplete de productos (debe estar fuera del bloque condicional)
@@ -762,6 +874,155 @@
             initProductAutocomplete($(this));
         }
     });
+
+
+    {% if not is_manual %}
+    $('.select2-modal').select2({
+        theme: 'bootstrap4',
+        dropdownParent: $('#modal-bill-create')
+    });
+
+    // Búsqueda de OC en el modal
+    $(document).off('click', '#btn-search-oc-modal').on('click', '#btn-search-oc-modal', function() {
+        let supplier_id = $('#supplier_search_oc').val();
+        let start = $('#oc_start_date').val();
+        let end = $('#oc_end_date').val();
+
+        if (!supplier_id) {
+            toastr.warning('Seleccione un proveedor');
+            return;
+        }
+
+        $('#body-available-oc').html('<tr><td colspan="5" class="text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Buscando...</td></tr>');
+
+        $.ajax({
+            url: '/accounting/get_pending_oc_ajax/',
+            type: 'GET',
+            data: {
+                'supplier_id': supplier_id,
+                'start_date': start,
+                'end_date': end
+            },
+            success: function(response) {
+                if (response.success) {
+                    let html = '';
+                    if (response.purchases.length === 0) {
+                        html = '<tr><td colspan="5" class="text-center py-4 text-muted">No se encontraron órdenes de compra pendientes</td></tr>';
+                    } else {
+                        response.purchases.forEach(p => {
+                            let productsStr = p.details.map(d => `<span class="badge badge-light border mr-1 mb-1">${d.product_name} (${d.pending_qty})</span>`).join(' ');
+                            
+                            // Verificar si esta OC ya está en el detalle
+                            let checked = '';
+                            let current_oc_ids = $('#purchase_id').val();
+                            if (current_oc_ids.includes(p.id.toString())) {
+                                checked = 'checked';
+                            }
+
+                            html += `
+                                <tr class="${checked ? 'bg-soft-primary' : ''}">
+                                    <td class="text-center">
+                                        <input type="checkbox" class="check-oc-modal" data-id="${p.id}" data-number="${p.bill_number}" ${checked}>
+                                    </td>
+                                    <td class="font-weight-bold text-dark">${p.bill_number}</td>
+                                    <td>${p.date}</td>
+                                    <td>${p.client}</td>
+                                    <td style="max-width: 300px;">${productsStr}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+                    $('#body-available-oc').html(html);
+                } else {
+                    toastr.error(response.message);
+                }
+            }
+        });
+    });
+
+    // Al marcar/desmarcar una OC en el modal
+    $(document).off('change', '.check-oc-modal').on('change', '.check-oc-modal', function() {
+        let isChecked = $(this).prop('checked');
+        let ocId = $(this).data('id');
+        let ocNumber = $(this).data('number');
+        let $tr_parent = $(this).closest('tr');
+
+        if (isChecked) {
+            $tr_parent.addClass('bg-soft-primary');
+            addOCToDetails(ocId);
+        } else {
+            $tr_parent.removeClass('bg-soft-primary');
+            removeOCFromDetails(ocId);
+        }
+    });
+
+    function addOCToDetails(ocId) {
+        // Primero, actualizar el input hidden de IDs de OC
+        let currentIds = JSON.parse($('#purchase_id').val() || '[]');
+        if (!currentIds.includes(ocId)) {
+            currentIds.push(ocId);
+            $('#purchase_id').val(JSON.stringify(currentIds.sort()));
+        }
+
+        // Obtener detalles de la OC y agregarlos a la tabla
+        $.ajax({
+            url: '/accounting/modal_bill_create/',
+            type: 'GET',
+            data: { 'purchases': JSON.stringify([ocId]) },
+            success: function(response) {
+                // El response contiene el form completo, necesitamos extraer solo los <tr>
+                let $temp = $('<div>').append(response.form);
+                let $newRows = $temp.find('#bill-details tr:not(.empty-row-template)');
+                
+                $newRows.each(function() {
+                    let productId = $(this).attr('product');
+                    let detailId = $(this).attr('detail');
+                    
+                    // Evitar duplicados si ya existe el mismo detalle
+                    if ($(`#bill-details tr[detail="${detailId}"]`).length === 0) {
+                        $('#bill-details').append($(this));
+                    }
+                });
+
+                // Actualizar números de OC en el header del modal
+                updateOCNumbersLabel();
+                sum_table();
+                
+                // Reiniciar autocompletes si es necesario
+                $('.product-table').each(function () {
+                    if (!$(this).hasClass('ui-autocomplete-input')) {
+                        initProductAutocomplete($(this));
+                    }
+                });
+            }
+        });
+    }
+
+    function removeOCFromDetails(ocId) {
+        // Actualizar IDs
+        let currentIds = JSON.parse($('#purchase_id').val() || '[]');
+        currentIds = currentIds.filter(id => id != ocId);
+        $('#purchase_id').val(JSON.stringify(currentIds.sort()));
+
+        // Remover filas asociadas a esta OC
+        $(`#bill-details tr[purchase="${ocId}"]`).remove();
+
+        updateOCNumbersLabel();
+        sum_table();
+    }
+
+    function updateOCNumbersLabel() {
+        let numbers = [];
+        $('.check-oc-modal:checked').each(function() {
+            numbers.push($(this).data('number'));
+        });
+        
+        // También considerar las OCs que ya estaban si no están en la lista actual
+        // Pero la lógica de check-oc-modal debería cubrirlas si se busco al proveedor
+        
+        $('#purchases_numbers').val(numbers.join(', '));
+    }
+    {% endif %}
 
     $(document).ready(function () {
         // Si es modo manual y no hay filas, agregar una fila vacía automáticamente

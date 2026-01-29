@@ -1,0 +1,117 @@
+{% extends 'home.html' %}
+
+{% block title %}
+    Notas de Crédito de Compra
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid roboto-condensed-regular">
+        <div class="card shadow-sm border-0 mt-3">
+            <div class="card-header bg-white py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <h4 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-file-invoice-dollar mr-2"></i> Notas de Crédito de Compra
+                        </h4>
+                    </div>
+                    <div class="col-md-5">
+                        <form method="GET" action="." id="filter-form" class="form-inline justify-content-center">
+                            <div class="form-group mr-2">
+                                <label class="mr-2 small font-weight-bold">Desde:</label>
+                                <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date }}">
+                            </div>
+                            <div class="form-group mr-2">
+                                <label class="mr-2 small font-weight-bold">Hasta:</label>
+                                <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date }}">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm btn-icon-split shadow-sm">
+                                <span class="icon text-white-50"><i class="fas fa-search"></i></span>
+                                <span class="text">Filtrar</span>
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-3 text-right">
+                        <button type="button" class="btn btn-success shadow-sm" id="btn-open-credit-note-modal">
+                            <i class="fas fa-plus mr-1"></i> Registrar NC
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="table-credit-notes">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Nro Documento</th>
+                                <th>Factura Relacionada</th>
+                                <th>Proveedor</th>
+                                <th>Motivo</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cn in credit_notes %}
+                                <tr>
+                                    <td>{{ cn.issue_date|date:"d/m/Y" }}</td>
+                                    <td><strong>{{ cn.nro_document }}</strong></td>
+                                    <td>{{ cn.bill.serial }}-{{ cn.bill.correlative }}</td>
+                                    <td>{{ cn.bill.supplier.name }}</td>
+                                    <td>{{ cn.motive|truncatechars:50 }}</td>
+                                    <td>
+                                        {% if cn.status == 'E' %}
+                                            <span class="badge badge-success">EMITIDA</span>
+                                        {% elif cn.status == 'P' %}
+                                            <span class="badge badge-warning">PENDIENTE</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">ANULADA</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-info view-details" pk="{{ cn.id }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">No se encontraron notas de crédito registradas.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Container -->
+    <div class="modal fade" id="modal-register-credit-note" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+        <div id="modal-content-container"></div>
+    </div>
+{% endblock body %}
+
+{% block extrajs %}
+    <script>
+        $(document).ready(function() {
+            $('#btn-open-credit-note-modal').click(function() {
+                openRegisterCreditNoteModal();
+            });
+        });
+
+        function openRegisterCreditNoteModal() {
+            $.ajax({
+                url: '{% url "accounting:modal_register_credit_note" %}',
+                type: 'GET',
+                success: function(response) {
+                    $('#modal-content-container').html(response);
+                    $('#modal-register-credit-note').modal('show');
+                },
+                error: function() {
+                    toastr.error('No se pudo cargar el formulario');
+                }
+            });
+        }
+    </script>
+{% endblock extrajs %}

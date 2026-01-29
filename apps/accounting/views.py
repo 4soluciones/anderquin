@@ -1,16 +1,17 @@
+from django.contrib.auth.decorators import login_required
 from django.db.models.functions import Coalesce
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from apps.hrm.views import get_subsidiary_by_user
 from apps.hrm.models import Worker, WorkerType, Employee, Subsidiary
 from apps.buys.models import Purchase, PurchaseDetail, CreditNote, CreditNoteDetail
+from .models import *
+import decimal
 from apps.sales.models import Subsidiary, SubsidiaryStore, Order, OrderDetail, TransactionPayment, LoanPayment, \
-    Supplier, Client, ProductDetail, SupplierAddress, Product, Unit
+    Supplier, Client, ProductDetail, SupplierAddress, Product, Unit, Kardex, ProductStore, Batch
 from django.template import loader, Context
 from django.http import JsonResponse
 from http import HTTPStatus
-from .models import *
-import decimal
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
@@ -2209,6 +2210,11 @@ def get_purchase_list_finances(request):
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
 
+    if not start_date and not end_date:
+        today = datetime.now().strftime("%Y-%m-%d")
+        start_date = today
+        end_date = today
+
     # Filtros base
     filters = {
         'bill_status__in': ['S', 'I'],
@@ -2289,10 +2295,13 @@ def get_purchase_list_finances(request):
 def modal_bill_create(request):
     if request.method == 'GET':
         purchases_ids = sorted(json.loads(request.GET.get('purchases', '[]')))
+        is_manual_param = request.GET.get('is_manual')
+        
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
         user_id = request.user.id
         user_obj = User.objects.get(id=user_id)
+        
         unit_description = ''
         oc_numbers = []
         all_purchases_ids = []
@@ -2305,10 +2314,11 @@ def modal_bill_create(request):
         supplier_name = ''
         supplier_address = ''
         first_address = ''
-        is_manual = False
-        suppliers_set = []
+        
+        suppliers_set = Supplier.objects.all().order_by('name')
 
         if purchases_ids:
+            is_manual = False
             for p in purchases_ids:
                 purchase_obj = Purchase.objects.get(id=p)
                 if not first_address:
@@ -2317,7 +2327,10 @@ def modal_bill_create(request):
                 oc_number = purchase_obj.bill_number
                 supplier_id = purchase_obj.supplier.id
                 supplier_name = purchase_obj.supplier.name
-                supplier_address = SupplierAddress.objects.get(supplier__id=supplier_id, type_address='P').address
+                # Obtener dirección principal P
+                addr_obj = SupplierAddress.objects.filter(supplier__id=supplier_id, type_address='P').first()
+                supplier_address = addr_obj.address if addr_obj else ''
+                
                 oc_numbers.append(oc_number)
                 all_purchases_ids.append(p)
 
@@ -2343,6 +2356,9 @@ def modal_bill_create(request):
                             quantity_total_invoice += b.quantity_invoice
                     quantity = pd.quantity - quantity_total_invoice
 
+                    if quantity <= 0:
+                        continue
+
                     amount = quantity * pd.price_unit
 
                     item_detail = {
@@ -2352,59 +2368,59 @@ def modal_bill_create(request):
                         'unit_id': unit_id,
                         'unit_name': pd.unit.name,
                         'unit_description': pd.unit.description,
-                        'price_unit': price_unit,
-                        'quantity': quantity,
-                        'quantity_minimum': product_detail.quantity_minimum,
-                        'amount': amount,
+                        'price_unit': float(price_unit),
+                        'quantity': float(quantity),
+                        'quantity_minimum': float(product_detail.quantity_minimum) if product_detail else 0,
+                        'amount': float(amount),
                         'purchase_id': pd.purchase.id,
                         'purchase_number': pd.purchase.bill_number,
                         'has_bill': has_bill,
                         'units': []
                     }
-                    for pd in ProductDetail.objects.filter(product_id=product_id):
+                    for pdet in ProductDetail.objects.filter(product_id=product_id):
                         unit_data = {
-                            'id': pd.id,
-                            'unit_id': pd.unit.id,
-                            'unit_name': pd.unit.name,
-                            'quantity_minimum': round(pd.quantity_minimum, 0),
+                            'unit_id': pdet.unit.id,
+                            'unit_name': pdet.unit.name,
+                            'quantity_minimum': float(round(pdet.quantity_minimum, 0)),
                         }
                         item_detail.get('units').append(unit_data)
 
                     acc_total += amount
                     quantity_total += quantity
                     item_purchase.get('details').append(item_detail)
-                purchase_dict.append(item_purchase)
+                
+                if item_purchase['details']:
+                    purchase_dict.append(item_purchase)
 
-                base_total = acc_total / decimal.Decimal(1.18)
-                igv_total = acc_total - base_total
+            base_total = acc_total / decimal.Decimal(1.18)
+            igv_total = acc_total - base_total
         else:
-            is_manual = True
-            suppliers_set = Supplier.objects.all().order_by('name')
-
+            is_manual = True if is_manual_param != 'false' else False
 
         t = loader.get_template('accounting/modal_bill_create.html')
         c = ({
             'formatdate': formatdate,
             'supplier_id': supplier_id,
             'supplier_name': supplier_name,
+            'suppliers_set': suppliers_set,
             'supplier_address': supplier_address,
             'detail_purchase': purchase_dict,
-            'oc_ids': all_purchases_ids,
+            'oc_ids': json.dumps(all_purchases_ids),
             'oc_numbers': ', '.join(oc_numbers),
             'unit_name': unit_description,
             'user_obj': user_obj,
-            'quantity_total': round(quantity_total, 0),
-            'base_total': round(base_total, 2),
-            'igv_total': round(igv_total, 2),
-            'bill_total': round(acc_total, 2),
+            'quantity_total': float(round(quantity_total, 0)),
+            'base_total': float(round(base_total, 2)),
+            'igv_total': float(round(igv_total, 2)),
+            'bill_total': float(round(acc_total, 2)),
             'first_address': first_address,
             'is_manual': is_manual,
-            'suppliers_set': suppliers_set,
         })
         return JsonResponse({
             'form': t.render(c, request),
-        })
-
+            'success': True,
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion'}, status=HTTPStatus.BAD_REQUEST)
 
 def save_bill(request):
     if request.method == 'GET':
@@ -2423,8 +2439,6 @@ def save_bill(request):
             bill_igv = decimal.Decimal(data_bill["bill_igv"].replace(',', '.'))
             bill_total = decimal.Decimal(data_bill["bill_total"].replace(',', '.'))
 
-            bill_quantity = str(data_bill.get("bill_quantity", 0))
-
             supplier_id = str(data_bill.get("supplier_id", ""))
             supplier_ruc = str(data_bill.get("supplier_ruc", ""))
             supplier_name_new = str(data_bill.get("supplier_name_new", ""))
@@ -2432,50 +2446,22 @@ def save_bill(request):
 
             observation = str(data_bill.get("observation", ""))
 
-            # Si no hay supplier_id pero hay RUC, crear un nuevo proveedor
             if not supplier_id or supplier_id == '':
                 if supplier_ruc and supplier_name_new:
-                    # Verificar si el proveedor ya existe por RUC
                     existing_supplier = Supplier.objects.filter(ruc=supplier_ruc).first()
                     if existing_supplier:
                         supplier_obj = existing_supplier
                     else:
-                        # Crear nuevo proveedor
                         supplier_obj = Supplier.objects.create(
                             ruc=supplier_ruc,
                             name=supplier_name_new.upper(),
                             business_name=supplier_name_new.upper(),
                             address=supplier_address_new.upper() if supplier_address_new else ''
                         )
-                        # Si hay dirección, crear SupplierAddress
-                        if supplier_address_new:
-                            # Intentar obtener el distrito por defecto o usar None
-                            try:
-                                # Buscar un distrito por defecto (puedes ajustar esto según tu lógica)
-                                from apps.sales.models import District
-                                default_district = District.objects.first()
-                                if default_district:
-                                    SupplierAddress.objects.create(
-                                        supplier=supplier_obj,
-                                        address=supplier_address_new.upper(),
-                                        district=default_district,
-                                        type_address='P'
-                                    )
-                            except Exception:
-                                pass  # Si no se puede crear la dirección, continuar sin ella
                 else:
-                    return JsonResponse({
-                        'error': True,
-                        'message': 'Debe seleccionar un proveedor o buscar uno por RUC'
-                    }, status=HTTPStatus.BAD_REQUEST)
+                    return JsonResponse({'error': True, 'message': 'Debe seleccionar un proveedor'}, status=HTTPStatus.BAD_REQUEST)
             else:
-                try:
-                    supplier_obj = Supplier.objects.get(id=supplier_id)
-                except Supplier.DoesNotExist:
-                    return JsonResponse({
-                        'error': True,
-                        'message': 'El proveedor seleccionado no existe'
-                    }, status=HTTPStatus.BAD_REQUEST)
+                supplier_obj = Supplier.objects.get(id=supplier_id)
 
             bill_obj = Bill(
                 register_date=bill_date,
@@ -2492,194 +2478,282 @@ def save_bill(request):
             )
             bill_obj.save()
 
-            product_obj = None
-            unit_obj = None
-            price_unit = None
-            
-            # Validar si es modo manual o modo con órdenes de compra
-            # Es manual si no hay purchase_id o si todos los detalles no tienen purchaseDetailID
-            purchases_data = data_bill.get("purchase_id", "")
-            has_purchases = purchases_data and str(purchases_data).strip() != '' and str(purchases_data) != '[]'
-            
-            is_manual = not has_purchases
-            
-            # Si hay billPurchases, verificar si alguno tiene purchaseDetailID
-            if not is_manual and data_bill.get('billPurchases', {}):
-                has_purchase_details = False
-                for product_id, details_list in data_bill.get('billPurchases', {}).items():
-                    if not isinstance(details_list, list):
-                        details_list = [details_list]
-                    for details in details_list:
-                        purchase_detail_id = details.get('purchaseDetailID')
-                        if purchase_detail_id and purchase_detail_id != '':
-                            has_purchase_details = True
-                            break
-                    if has_purchase_details:
-                        break
-                # Si no hay ningún purchaseDetailID, es modo manual
-                if not has_purchase_details:
-                    is_manual = True
-            
-            # Procesar los detalles de la factura
+            is_manual = data_bill.get('is_manual', True)
             bill_purchases_data = data_bill.get('billPurchases', {})
             
-            # Debug: verificar qué datos llegaron
-            if not bill_purchases_data or len(bill_purchases_data) == 0:
-                return JsonResponse({
-                    'error': True,
-                    'message': 'No se recibieron detalles de productos. billPurchases está vacío.'
-                }, status=HTTPStatus.BAD_REQUEST)
-            
-            # Contador para verificar que se guarden detalles
-            details_saved_count = 0
-            
-            if len(bill_purchases_data) > 0:
-                for product_id_str, details_list in bill_purchases_data.items():
-                    try:
-                        # Convertir product_id a int, puede venir como string
-                        product_id = int(str(product_id_str).strip())
-                    except (ValueError, TypeError) as e:
-                        # Log del error para debugging
-                        print(f"Error al convertir product_id '{product_id_str}': {str(e)}")
-                        continue  # Saltar si el product_id no es válido
+            for product_id_str, details_list in bill_purchases_data.items():
+                product_id = int(product_id_str)
+                if not isinstance(details_list, list): details_list = [details_list]
+                
+                quantity_sum_invoice = decimal.Decimal('0.00')
+                product_obj = Product.objects.get(id=product_id)
+                unit_obj = None
+                price_unit = None
+                
+                for details in details_list:
+                    unit_id = int(details.get('unit_id'))
+                    unit_obj = Unit.objects.get(id=unit_id)
+                    q_invoice = decimal.Decimal(str(details.get('invoiceQuantity', 0)).replace(',', '.'))
+                    p_unit = decimal.Decimal(str(details.get('priceUnit', 0)).replace(',', '.'))
+                    price_unit = p_unit
                     
-                    if not isinstance(details_list, list):
-                        details_list = [details_list]
-                    
-                    if not details_list or len(details_list) == 0:
-                        continue  # Saltar si no hay detalles
+                    purchase_detail_id = details.get('purchaseDetailID')
+                    if purchase_detail_id:
+                        pd_obj = PurchaseDetail.objects.get(id=int(purchase_detail_id))
+                        q_purchased = decimal.Decimal(str(details.get('purchaseQuantity', 0)).replace(',', '.'))
                         
-                    quantity_sum_invoice = decimal.Decimal('0.00')
-                    price_unit = None
-                    unit_obj = None
-                    product_obj = None
-                    
-                    for details in details_list:
-                        if not details:
-                            continue
-                            
-                        try:
-                            product_obj = Product.objects.get(id=product_id)
-                            unit_id = details.get('unit_id')
-                            
-                            if not unit_id or unit_id == '':
-                                print(f"Advertencia: unit_id vacío para producto {product_id}")
-                                continue
-                            
-                            # Convertir unit_id a int si viene como string
-                            try:
-                                unit_id = int(unit_id)
-                            except (ValueError, TypeError):
-                                print(f"Error: unit_id '{unit_id}' no es un número válido")
-                                continue
-                                
-                            purchase_detail_id = details.get('purchaseDetailID', '')
-                            
-                            # Convertir cantidad y precio, manejando diferentes formatos
-                            invoice_quantity_str = str(details.get('invoiceQuantity', 0)).replace(',', '.').strip()
-                            price_unit_str = str(details.get('priceUnit', 0)).replace(',', '.').strip()
-                            
-                            try:
-                                quantity_invoice = decimal.Decimal(invoice_quantity_str) if invoice_quantity_str and invoice_quantity_str != '' else decimal.Decimal('0')
-                                price_unit = decimal.Decimal(price_unit_str) if price_unit_str and price_unit_str != '' else decimal.Decimal('0')
-                            except (ValueError, decimal.InvalidOperation) as e:
-                                # Si hay error al convertir, usar 0
-                                print(f"Error al convertir cantidad/precio: {str(e)}")
-                                quantity_invoice = decimal.Decimal('0')
-                                price_unit = decimal.Decimal('0')
-                            
-                            if quantity_invoice <= 0 or price_unit <= 0:
-                                print(f"Advertencia: cantidad ({quantity_invoice}) o precio ({price_unit}) <= 0 para producto {product_id}")
-                                continue
-                            
-                            try:
-                                product_detail_obj = ProductDetail.objects.get(unit__id=unit_id, product=product_obj)
-                            except ProductDetail.DoesNotExist:
-                                print(f"Error: No existe ProductDetail para producto {product_id} y unidad {unit_id}")
-                                continue
-                                
-                            try:
-                                unit_obj = Unit.objects.get(id=unit_id)
-                            except Unit.DoesNotExist:
-                                print(f"Error: No existe Unit con id {unit_id}")
-                                continue
+                        bill_purchase_obj = BillPurchase(
+                            purchase_detail=pd_obj,
+                            quantity_invoice=q_invoice,
+                            quantity_purchased=q_purchased,
+                            bill=bill_obj,
+                            purchase=pd_obj.purchase
+                        )
+                        bill_purchase_obj.save()
+                        
+                        # Update OC status
+                        total_billed = BillPurchase.objects.filter(purchase_detail=pd_obj).aggregate(total=Sum('quantity_invoice'))['total'] or 0
+                        if total_billed >= pd_obj.quantity:
+                            # Check all details of this purchase
+                            all_done = True
+                            for other_pd in pd_obj.purchase.purchasedetail_set.all():
+                                other_billed = BillPurchase.objects.filter(purchase_detail=other_pd).aggregate(total=Sum('quantity_invoice'))['total'] or 0
+                                if other_billed < other_pd.quantity:
+                                    all_done = False
+                                    break
+                            pd_obj.purchase.bill_status = 'C' if all_done else 'I'
+                            pd_obj.purchase.save()
 
-                            # Modo con órdenes de compra (no manual) - solo procesar si hay purchaseDetailID
-                            if not is_manual and purchase_detail_id and purchase_detail_id != '':
-                                try:
-                                    purchase_id = details.get('purchaseID')
-                                    quantity_purchased = decimal.Decimal(str(details.get('purchaseQuantity', 0)).replace(',', '.'))
-                                    
-                                    purchase_detail_obj = PurchaseDetail.objects.get(id=int(purchase_detail_id))
-                                    purchase_obj = purchase_detail_obj.purchase
-                                    
-                                    quantity_difference = quantity_purchased - quantity_invoice
-                                    if quantity_difference < 1:
-                                        purchase_obj.bill_status = 'C'
-                                    else:
-                                        purchase_obj.bill_status = 'I'
-                                    purchase_obj.save()
+                    quantity_sum_invoice += q_invoice
 
-                                    bill_purchase_obj = BillPurchase(
-                                        purchase_detail=purchase_detail_obj,
-                                        quantity_invoice=quantity_invoice,
-                                        quantity_purchased=quantity_purchased,
-                                        bill=bill_obj,
-                                        purchase=purchase_detail_obj.purchase
-                                    )
-                                    bill_purchase_obj.save()
-                                except (PurchaseDetail.DoesNotExist, ValueError, TypeError) as e:
-                                    # Si hay error al procesar la orden de compra, continuar con el siguiente detalle
-                                    pass
-                            
-                            quantity_sum_invoice += quantity_invoice
-                        except (Product.DoesNotExist, Unit.DoesNotExist, ValueError, TypeError, decimal.InvalidOperation) as e:
-                            # Si hay error con este producto, continuar con el siguiente
-                            continue
+                if quantity_sum_invoice > 0:
+                    BillDetail.objects.create(
+                        bill=bill_obj,
+                        product=product_obj,
+                        quantity=quantity_sum_invoice,
+                        unit=unit_obj,
+                        price_unit=price_unit,
+                        status_quantity='C'
+                    )
 
-                    # Crear BillDetail solo si hay datos válidos y cantidad > 0
-                    if product_obj and unit_obj and price_unit is not None and quantity_sum_invoice > 0:
-                        try:
-                            bill_detail_obj = BillDetail(
-                                bill=bill_obj,
-                                product=product_obj,
-                                quantity=quantity_sum_invoice,
-                                unit=unit_obj,
-                                price_unit=price_unit,
-                                status_quantity='C',
-                            )
-                            bill_detail_obj.save()
-                            details_saved_count += 1
-                        except Exception as e:
-                            # Si hay error al guardar el detalle, continuar con el siguiente producto
-                            # Log del error para debugging
-                            import traceback
-                            print(f"Error al guardar BillDetail: {str(e)}")
-                            print(traceback.format_exc())
-                            continue
-            # Verificar que se hayan guardado al menos un BillDetail
-            bill_details_count = bill_obj.billdetail_set.count()
-            if bill_details_count == 0:
-                # Si no se guardó ningún detalle, eliminar la factura y retornar error
-                bill_obj.delete()
-                return JsonResponse({
-                    'error': True,
-                    'message': 'No se pudieron guardar los detalles de la factura. Verifique que todos los productos tengan datos válidos (producto, unidad, cantidad y precio).'
-                }, status=HTTPStatus.BAD_REQUEST)
-
-            return JsonResponse({
-                'success': True,
-                'message': f'Factura Registrada Correctamente con {bill_details_count} producto(s)',
-            }, status=HTTPStatus.OK)
+            return JsonResponse({'success': True, 'message': 'Factura Registrada Correctamente'}, status=HTTPStatus.OK)
         except Exception as e:
             return JsonResponse({'error': True, 'message': str(e)})
-    return JsonResponse({'error': True, 'message': 'Error de peticion. Contactar con Sistemas'})
+    return JsonResponse({'error': True, 'message': 'Error de peticion'})
 
 
+@xframe_options_exempt
+@login_required
+def credit_note_list(request):
+    if request.method == 'GET':
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        
+        # Default dates for the form if not provided
+        mydate = datetime.now()
+        today_str = mydate.strftime("%Y-%m-%d")
+        
+        if not start_date:
+            start_date = today_str
+        if not end_date:
+            end_date = today_str
+
+        # Base query
+        query = Q()
+        
+        # Date filtering
+        if start_date and end_date:
+            query &= Q(issue_date__range=[start_date, end_date])
+            
+        credit_notes = CreditNote.objects.filter(query).distinct().order_by('-issue_date')
+            
+        return render(request, 'accounting/credit_note_list.html', {
+            'credit_notes': credit_notes,
+            'start_date': start_date,
+            'end_date': end_date,
+        })
+
+
+@xframe_options_exempt
+def modal_register_credit_note(request):
+    if request.method == 'GET':
+        mydate = datetime.now()
+        formatdate = mydate.strftime("%Y-%m-%d")
+        return render(request, 'accounting/credit_note_modal.html', {
+            'date': formatdate,
+        })
+    return JsonResponse({'error': True, 'message': 'Método no permitido'}, status=HTTPStatus.METHOD_NOT_ALLOWED)
+
+
+@xframe_options_exempt
+def create_credit_note_ajax(request):
+    if request.method == 'POST':
+        from apps.sales.views import kardex_ouput
+        try:
+            credit_note_json = request.POST.get('credit_note')
+            if not credit_note_json:
+                return JsonResponse({'error': True, 'message': 'No se recibieron datos de la nota de crédito'}, status=HTTPStatus.BAD_REQUEST)
+                
+            data = json.loads(credit_note_json)
+            bill_id = data.get('bill_id')
+            nro_document = data.get('nro_document')
+            issue_date = data.get('issue_date')
+            motive = data.get('motive')
+            details = data.get('details', [])
+            
+            if not bill_id:
+                return JsonResponse({'error': True, 'message': 'Debe seleccionar una factura válida'}, status=HTTPStatus.BAD_REQUEST)
+                
+            bill_obj = Bill.objects.get(id=bill_id)
+            
+            credit_note_obj = CreditNote.objects.create(
+                nro_document=nro_document,
+                issue_date=issue_date,
+                bill=bill_obj,
+                motive=motive,
+                status='E'
+            )
+            
+            for item in details:
+                product_id = item.get('product_id')
+                quantity = decimal.Decimal(str(item.get('quantity')))
+                price_unit = decimal.Decimal(str(item.get('price_unit')))
+                total = decimal.Decimal(str(item.get('total')))
+                unit_id = item.get('unit_id')
+                
+                product_obj = Product.objects.get(id=product_id)
+                unit_obj = Unit.objects.get(id=unit_id)
+                
+                cn_detail = CreditNoteDetail.objects.create(
+                    credit_note=credit_note_obj,
+                    product=product_obj,
+                    quantity=quantity,
+                    price_unit=price_unit,
+                    total=total,
+                    unit=unit_obj,
+                    description=product_obj.name
+                )
+                
+                # Kardex Registration
+                product_store = ProductStore.objects.filter(
+                    product=product_obj,
+                    subsidiary_store=bill_obj.store_destiny
+                ).first()
+                
+                if product_store:
+                    batch_obj = Batch.objects.filter(
+                        product_store=product_store,
+                        remaining_quantity__gt=0
+                    ).first()
+                    
+                    if not batch_obj:
+                        batch_obj = Batch.objects.filter(product_store=product_store).last()
+                    
+                    if batch_obj:
+                        kardex_ouput(
+                            product_store_id=product_store.id,
+                            quantity=quantity,
+                            credit_note_detail_obj=cn_detail,
+                            type_document='07',
+                            type_operation='05',
+                            batch_obj=batch_obj
+                        )
+            
+            return JsonResponse({'success': True, 'message': 'Nota de crédito registrada correctamente'})
+        except Bill.DoesNotExist:
+            return JsonResponse({'error': True, 'message': 'La factura seleccionada no existe'}, status=HTTPStatus.NOT_FOUND)
+        except Exception as e:
+            return JsonResponse({'error': True, 'message': f'Error: {str(e)}'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    return JsonResponse({'error': True, 'message': 'Método no permitido'}, status=HTTPStatus.METHOD_NOT_ALLOWED)
+
+
+@xframe_options_exempt
+def search_bill_ajax(request):
+    term = request.GET.get('term', '')
+    bills = Bill.objects.filter(
+        Q(serial__icontains=term) | Q(correlative__icontains=term)
+    ).order_by('-register_date')[:10]
+    
+    results = []
+    for b in bills:
+        results.append({
+            'id': b.id,
+            'text': f"{b.serial}-{b.correlative} | {b.supplier.name} | {b.register_date}"
+        })
+    
+    return JsonResponse({'results': results})
+
+
+@xframe_options_exempt
+def get_bill_details_ajax(request):
+    bill_id = request.GET.get('bill_id')
+    try:
+        bill = Bill.objects.get(id=bill_id)
+        # Filtrar solo los que tienen status_quantity 'I'
+        details = BillDetail.objects.filter(bill=bill, status_quantity='I')
+        
+        items = []
+        for d in details:
+            # Buscar información del almacén en el Kardex
+            kardex_entry = Kardex.objects.filter(bill_detail=d).last()
+            warehouse_name = "No especificado"
+            if kardex_entry and kardex_entry.product_store:
+                warehouse_name = kardex_entry.product_store.subsidiary_store.name
+            
+            items.append({
+                'product_id': d.product.id,
+                'product_name': d.product.name,
+                'quantity': float(d.quantity),
+                'unit_id': d.unit.id,
+                'unit_name': d.unit.name,
+                'price_unit': float(d.price_unit),
+                'total': float(d.quantity * d.price_unit),
+                'warehouse_name': warehouse_name
+            })
+            
+        return JsonResponse({
+            'success': True,
+            'supplier_name': bill.supplier.name,
+            'details': items
+        })
+    except Exception as e:
+        return JsonResponse({'error': True, 'message': str(e)})
+
+
+@login_required(login_url='/')
+def get_pending_oc_ajax(request):
+    if request.method == 'GET':
+        supplier_id = request.GET.get('supplier_id')
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        if not supplier_id: return JsonResponse({'success': False, 'message': 'Debe seleccionar un proveedor'})
+        filters = {'supplier_id': supplier_id, 'bill_status__in': ['S', 'I'], 'status__in': ['S', 'A'], 'bill_number__isnull': False}
+        if start_date: filters['purchase_date__gte'] = start_date
+        if end_date: filters['purchase_date__lte'] = end_date
+        purchases = Purchase.objects.filter(**filters).order_by('-purchase_date')
+        purchase_list = []
+        for p in purchases:
+            details_data = []
+            for pd in p.purchasedetail_set.all():
+                billed_qty = BillPurchase.objects.filter(purchase_detail=pd).aggregate(total=Sum('quantity_invoice'))['total'] or 0
+                pending_qty = pd.quantity - billed_qty
+                if pending_qty > 0:
+                    details_data.append({'id': pd.id, 'product_name': pd.product.name, 'pending_qty': float(pending_qty), 'unit_name': pd.unit.name, 'price_unit': float(pd.price_unit)})
+            if details_data:
+                purchase_list.append({'id': p.id, 'bill_number': p.bill_number, 'date': p.purchase_date.strftime('%d/%m/%Y'), 'client': p.client_reference.names if p.client_reference else '-', 'details': details_data})
+        return JsonResponse({'success': True, 'purchases': purchase_list})
+
+
+@login_required(login_url='/')
 def get_purchases_with_bill(request):
     if request.method == 'GET':
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
+        
+        if not start_date and not end_date:
+            today = datetime.now().strftime("%Y-%m-%d")
+            start_date = today
+            end_date = today
 
         filters = {'status__in': ['S', 'E']}
         if start_date:
@@ -2698,7 +2772,7 @@ def get_purchases_with_bill(request):
             has_oc = b.billpurchase_set.exists()
             rowspan = b.billdetail_set.filter(status_quantity='C').count()
 
-            if b.billdetail_set.count() == 0:
+            if rowspan == 0:
                 rowspan = 1
 
             item_bill = {
@@ -2717,19 +2791,10 @@ def get_purchases_with_bill(request):
                 'sum_quantity_purchased': b.sum_quantity_purchased(),
                 'status': status,
                 'has_oc': has_oc,
-                # 'bill_purchase': [],
                 'bill_detail': [],
                 'row_count': rowspan
             }
-            # for d in b.billpurchase_set.all():
-            #     item_detail = {
-            #         'id': d.id,
-            #         'bill_number': d.purchase_detail.purchase.bill_number,
-            #         'client_reference': d.purchase_detail.purchase.client_reference,
-            #         'client_reference_entity': d.purchase_detail.purchase.client_reference_entity
-            #     }
-            #     item_bill.get('bill_purchase').append(item_detail)
-            for d in b.billdetail_set.filter(status_quantity='C'):
+            for d in b.billdetail_set.filter(status_quantity='C').select_related('product', 'unit'):
                 item_detail = {
                     'id': d.id,
                     'product': d.product.name,
@@ -2743,7 +2808,6 @@ def get_purchases_with_bill(request):
         t = loader.get_template('accounting/purchase_grid_list_bill_finances.html')
         c = ({
             'bill_dict': bill_dict,
-            # 'bill_set': bill_set
         })
         return JsonResponse({
             'grid': t.render(c, request),

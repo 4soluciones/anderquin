@@ -1,0 +1,282 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}
+    Registrar Nota de Crédito
+{% endblock title %}
+
+{% block body %}
+    <div class="container-fluid roboto-condensed-regular pb-5">
+        <div class="card shadow-sm border-0 mt-3">
+            <div class="card-header bg-primary text-white py-3">
+                <h4 class="m-0 font-weight-bold">
+                    <i class="fas fa-file-invoice mr-2"></i> Registro de Nota de Crédito de Compra
+                </h4>
+            </div>
+            <div class="card-body">
+                <form id="form-credit-note">
+                    <div class="row">
+                        <!-- Left Pillar: Header Info -->
+                        <div class="col-md-4">
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                    <h5 class="card-title text-primary"><i class="fas fa-search mr-2"></i> Buscar Factura</h5>
+                                    <div class="form-group">
+                                        <label>Factura de Compra:</label>
+                                        <select class="form-control select2" id="bill-search" name="bill_id" required>
+                                            <option value="">Buscar por serie-correlativo...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Proveedor:</label>
+                                        <input type="text" class="form-control" id="supplier-name" readonly placeholder="Se cargará al elegir factura">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card bg-light border-0 mt-3">
+                                <div class="card-body">
+                                    <h5 class="card-title text-primary"><i class="fas fa-info-circle mr-2"></i> Datos de la Nota</h5>
+                                    <div class="form-group">
+                                        <label>Nro. de Documento (NC):</label>
+                                        <input type="text" class="form-control" id="nro-document" name="nro_document" placeholder="F001-0000001" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fecha de Emisión:</label>
+                                        <input type="date" class="form-control" id="issue-date" name="issue_date" value="{{ date }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Motivo:</label>
+                                        <textarea class="form-control" id="motive" name="motive" rows="3" placeholder="Ej. Devolución de mercadería por falla..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Pillar: Details Table -->
+                        <div class="col-md-8">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-white">
+                                    <h5 class="m-0 text-primary"><i class="fas fa-list mr-2"></i> Detalles de la Nota</h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0" id="table-details">
+                                            <thead class="bg-light text-primary">
+                                                <tr>
+                                                    <th style="width: 40%">Producto</th>
+                                                    <th style="width: 15%">Cantidad</th>
+                                                    <th style="width: 15%">Precio Unit.</th>
+                                                    <th style="width: 20%">Total</th>
+                                                    <th style="width: 10%" class="text-center"><i class="fas fa-trash"></i></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="details-tbody">
+                                                <tr>
+                                                    <td colspan="5" class="text-center text-muted py-5">
+                                                        <i class="fas fa-info-circle mr-2"></i> Seleccione una factura para cargar los detalles
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot class="bg-light font-weight-bold">
+                                                <tr>
+                                                    <td colspan="3" class="text-right">TOTAL NOTA DE CRÉDITO:</td>
+                                                    <td id="grand-total" class="text-primary text-lg">0.00</td>
+                                                    <td></td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 text-right">
+                                <a href="{% url 'accounting:credit_note_list' %}" class="btn btn-secondary mr-2">
+                                    Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-lg shadow">
+                                    <i class="fas fa-save mr-1"></i> Guardar Nota de Crédito
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock body %}
+
+{% block extrajs %}
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 for Bill Search
+            $('#bill-search').select2({
+                theme: 'bootstrap4',
+                ajax: {
+                    url: '{% url "accounting:search_bill_ajax" %}',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return { term: params.term };
+                    },
+                    processResults: function (data) {
+                        return { results: data.results };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 2
+            });
+
+            // Bill selection event
+            $('#bill-search').on('select2:select', function (e) {
+                let billId = e.params.data.id;
+                loadBillDetails(billId);
+            });
+
+            function loadBillDetails(billId) {
+                $.ajax({
+                    url: '{% url "accounting:get_bill_details_ajax" %}',
+                    data: { bill_id: billId },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#supplier-name').val(response.supplier_name);
+                            renderTableRows(response.details);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    }
+                });
+            }
+
+            function renderTableRows(details) {
+                let tbody = $('#details-tbody');
+                tbody.empty();
+
+                if (details.length === 0) {
+                    tbody.append('<tr><td colspan="5" class="text-center text-muted py-5">No hay detalles en esta factura</td></tr>');
+                    return;
+                }
+
+                details.forEach(item => {
+                    let row = `
+                        <tr data-product-id="${item.product_id}" data-unit-id="${item.unit_id}">
+                            <td>
+                                <strong>${item.product_name}</strong><br>
+                                <small class="text-muted">${item.unit_name}</small>
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" class="form-control row-quantity" 
+                                    value="${item.quantity}" max="${item.quantity}" min="0">
+                            </td>
+                            <td>
+                                <input type="number" step="0.0001" class="form-control row-price" 
+                                    value="${item.price_unit.toFixed(4)}">
+                            </td>
+                            <td class="row-total font-weight-bold">${item.total.toFixed(2)}</td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.append(row);
+                });
+                calculateGrandTotal();
+            }
+
+            // Recalculate event
+            $(document).on('input', '.row-quantity, .row-price', function() {
+                let row = $(this).closest('tr');
+                let quantity = parseFloat(row.find('.row-quantity').val()) || 0;
+                let price = parseFloat(row.find('.row-price').val()) || 0;
+                let total = quantity * price;
+                row.find('.row-total').text(total.toFixed(2));
+                calculateGrandTotal();
+            });
+
+            // Remove row
+            $(document).on('click', '.remove-row', function() {
+                $(this).closest('tr').remove();
+                if ($('#details-tbody tr').length === 0) {
+                    $('#details-tbody').append('<tr><td colspan="5" class="text-center text-muted py-5">No hay items</td></tr>');
+                }
+                calculateGrandTotal();
+            });
+
+            function calculateGrandTotal() {
+                let sum = 0;
+                $('.row-total').each(function() {
+                    sum += parseFloat($(this).text()) || 0;
+                });
+                $('#grand-total').text(sum.toFixed(2));
+            }
+
+            // Form submission
+            $('#form-credit-note').on('submit', function(e) {
+                e.preventDefault();
+                
+                let details = [];
+                $('#details-tbody tr').each(function() {
+                    let row = $(this);
+                    if (row.attr('data-product-id')) {
+                        details.push({
+                            product_id: row.attr('data-product-id'),
+                            unit_id: row.attr('data-unit-id'),
+                            quantity: row.find('.row-quantity').val(),
+                            price_unit: row.find('.row-price').val(),
+                            total: row.find('.row-total').text()
+                        });
+                    }
+                });
+
+                if (details.length === 0) {
+                    toastr.warning('Debe agregar al menos un item');
+                    return;
+                }
+
+                let formData = {
+                    bill_id: $('#bill-search').val(),
+                    nro_document: $('#nro-document').val(),
+                    issue_date: $('#issue-date').val(),
+                    motive: $('#motive').val(),
+                    details: details
+                };
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "Se registrará la nota de crédito y se actualizará el stock.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, guardar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '{% url "accounting:register_credit_note" %}',
+                            type: 'POST',
+                            data: {
+                                credit_note: JSON.stringify(formData),
+                                csrfmiddlewaretoken: '{{ csrf_token }}'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire('¡Éxito!', response.message, 'success').then(() => {
+                                        window.location.href = '{% url "accounting:credit_note_list" %}';
+                                    });
+                                } else {
+                                    toastr.error(response.message);
+                                }
+                            },
+                            error: function(xhr) {
+                                toastr.error('Error al procesar la solicitud');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock extrajs %}

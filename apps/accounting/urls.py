@@ -68,10 +68,17 @@ urlpatterns = [
     path('cancel_bill/', login_required(cancel_bill), name='cancel_bill'),
     path('get_bill/', login_required(get_bill), name='get_bill'),
     path('get_product_units/', login_required(get_product_units), name='get_product_units'),
+    path('get_pending_oc_ajax/', login_required(get_pending_oc_ajax), name='get_pending_oc_ajax'),
     path('print_pdf_bill_finances/<int:pk>/', print_pdf_bill_finances, name='print_pdf_bill_finances'),
     
     # Reportes PDF y Excel
     path('print_pdf_purchases_report/', login_required(print_pdf_purchases_report), name='print_pdf_purchases_report'),
     path('export_excel_purchases_report/', login_required(export_excel_purchases_report), name='export_excel_purchases_report'),
 
+    # Credit Notes
+    path('credit_note_list/', login_required(credit_note_list), name='credit_note_list'),
+    path('modal_register_credit_note/', login_required(modal_register_credit_note), name='modal_register_credit_note'),
+    path('create_credit_note_ajax/', login_required(create_credit_note_ajax), name='create_credit_note_ajax'),
+    path('search_bill_ajax/', login_required(search_bill_ajax), name='search_bill_ajax'),
+    path('get_bill_details_ajax/', login_required(get_bill_details_ajax), name='get_bill_details_ajax'),
 ]
