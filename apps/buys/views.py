@@ -2621,27 +2621,29 @@ def buys_credit_note(request):
 
 def save_credit_note(request):
     if request.method == 'POST':
-        nro_document = request.POST.get('nro-document', '')
-        date_issue = request.POST.get('date-issue', '')
+        credit_serial = request.POST.get('credit-serial', '')
+        credit_number = request.POST.get('credit-number', '')
+        date_issue = request.POST.get('credit-date-issue', '')
         bill_serial = request.POST.get('bill-serial', '')
         bill_correlative = request.POST.get('bill-correlative', '')
         detail = json.loads(request.POST.get('detail', ''))
         purchase_obj = None
         purchase_detail_id = ''
-        for detail in detail:
-            purchase_detail_id = int(detail['purchaseDetail'])
+        for d in detail:
+            purchase_detail_id = int(d['purchaseDetail'])
             purchase_detail_obj = PurchaseDetail.objects.get(id=int(purchase_detail_id))
             purchase_obj = purchase_detail_obj.purchase
             # parent_purchase_id = purchase_obj.parent_purchase.id
         bill_obj = Bill.objects.get(serial=bill_serial, correlative=bill_correlative)
-        CreditNote.objects.create(nro_document=nro_document, issue_date=date_issue, bill=bill_obj,
+        CreditNote.objects.create(credit_note_serial=credit_serial, credit_note_number=credit_number,
+                                  issue_date=date_issue, bill=bill_obj,
                                   purchase=purchase_obj)
 
         return JsonResponse({
             'message': 'Nota de Credito registrada',
             'parent': purchase_obj.id,
             'purchase_detail_id': purchase_detail_id,
-            'nro_document': nro_document,
+            'nro_document': f"{credit_serial}-{credit_number}",
             'bill': str(bill_obj)
         }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)

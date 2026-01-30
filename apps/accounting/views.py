@@ -426,7 +426,8 @@ def new_payment_purchase(request):
                 transaction_payment_obj.save()
 
         elif payment_method == 'C':
-            credit_note_number = str(request.POST.get('credit-note-number'))
+            credit_serial = str(request.POST.get('credit-serial', ''))
+            credit_number = str(request.POST.get('credit-number', ''))
             credit_note_date = str(request.POST.get('credit-note-date'))
             credit_note_motive = str(request.POST.get('credit-note-motive'))
 
@@ -437,15 +438,21 @@ def new_payment_purchase(request):
             credit_price_unit = decimal.Decimal(request.POST.get('credit-price-unit').replace(',', ''))
             credit_total = decimal.Decimal(request.POST.get('credit-total').replace(',', ''))
 
-            if credit_note_number == '':
+            if credit_serial == '' and credit_number == '':
                 credit_search = int(request.POST.get('credit-search'))
                 credit_note_obj = CreditNote.objects.get(id=credit_search)
                 credit_note_obj.bill = bill_obj
                 credit_note_obj.status = 'E'
                 credit_note_obj.save()
             else:
-                credit_note_obj = CreditNote.objects.create(nro_document=credit_note_number, issue_date=credit_note_date,
-                                                            bill=bill_obj, motive=credit_note_motive, status='E')
+                credit_note_obj = CreditNote.objects.create(
+                    credit_note_serial=credit_serial,
+                    credit_note_number=credit_number,
+                    issue_date=credit_note_date,
+                    bill=bill_obj,
+                    motive=credit_note_motive,
+                    status='E'
+                )
 
                 CreditNoteDetail.objects.create(code=credit_code, quantity=credit_quantity, total=credit_total,
                                                 description=credit_description, price_unit=credit_price_unit,
@@ -453,11 +460,11 @@ def new_payment_purchase(request):
 
             loan_payment_obj = LoanPayment.objects.create(pay=credit_total, type='C', bill=bill_obj,
                                                           operation_date=credit_note_date,
-                                                          observation='Nota de crédito ' + credit_note_obj.nro_document)
+                                                          observation='Nota de crédito ' + f"{credit_note_obj.credit_note_serial}-{credit_note_obj.credit_note_number}")
 
             TransactionPayment.objects.create(payment=credit_total, loan_payment=loan_payment_obj, type='C',
-                                              operation_code=credit_note_obj.nro_document)
-            code_operation = credit_note_number
+                                              operation_code=f"{credit_note_obj.credit_note_serial}-{credit_note_obj.credit_note_number}")
+            code_operation = f"{credit_serial}-{credit_number}"
             date_converter = datetime.strptime(credit_note_date, '%Y-%m-%d').date()
             formatdate = date_converter.strftime("%d/%m/%y")
             bill_pay = credit_total
@@ -2566,11 +2573,25 @@ def credit_note_list(request):
             query &= Q(issue_date__range=[start_date, end_date])
             
         credit_notes = CreditNote.objects.filter(query).distinct().order_by('-issue_date')
+        
+        # Calculate stats
+        total_count = credit_notes.count()
+        emitted_count = credit_notes.filter(status='E').count()
+        pending_count = credit_notes.filter(status='P').count()
+        
+        # Calculate total amount (using a list comprehension for simplicity with get_total)
+        total_amount = sum(float(cn.get_total()) for cn in credit_notes)
             
         return render(request, 'accounting/credit_note_list.html', {
             'credit_notes': credit_notes,
             'start_date': start_date,
             'end_date': end_date,
+            'stats': {
+                'total_count': total_count,
+                'emitted_count': emitted_count,
+                'pending_count': pending_count,
+                'total_amount': total_amount,
+            }
         })
 
 
@@ -2596,7 +2617,8 @@ def create_credit_note_ajax(request):
                 
             data = json.loads(credit_note_json)
             bill_id = data.get('bill_id')
-            nro_document = data.get('nro_document')
+            credit_note_serial = data.get('credit_note_serial')
+            credit_note_number = data.get('credit_note_number')
             issue_date = data.get('issue_date')
             motive = data.get('motive')
             details = data.get('details', [])
@@ -2607,7 +2629,8 @@ def create_credit_note_ajax(request):
             bill_obj = Bill.objects.get(id=bill_id)
             
             credit_note_obj = CreditNote.objects.create(
-                nro_document=nro_document,
+                credit_note_serial=credit_note_serial,
+                credit_note_number=credit_note_number,
                 issue_date=issue_date,
                 bill=bill_obj,
                 motive=motive,
@@ -2623,7 +2646,14 @@ def create_credit_note_ajax(request):
                 
                 product_obj = Product.objects.get(id=product_id)
                 unit_obj = Unit.objects.get(id=unit_id)
-                
+
+                # Conversion to units (UND) for Kardex
+                product_detail = ProductDetail.objects.filter(product=product_obj, unit=unit_obj).first()
+                quantity_units = quantity
+                if product_detail:
+                    quantity_units = (quantity * product_detail.quantity_minimum).quantize(decimal.Decimal('0.00'),
+                                                                                           rounding=decimal.ROUND_UP)
+
                 cn_detail = CreditNoteDetail.objects.create(
                     credit_note=credit_note_obj,
                     product=product_obj,
@@ -2637,7 +2667,8 @@ def create_credit_note_ajax(request):
                 # Kardex Registration - Buscar almacén mediante bill_detail_id en Kardex
                 bill_detail_id = item.get('bill_detail_id')
                 subsidiary_store = bill_obj.store_destiny  # Default fallback
-                
+
+                kardex_entry = None
                 if bill_detail_id:
                     kardex_entry = Kardex.objects.filter(bill_detail_id=bill_detail_id).last()
                     if kardex_entry and kardex_entry.product_store:
@@ -2649,10 +2680,9 @@ def create_credit_note_ajax(request):
                 ).first()
                 
                 if product_store:
-                    batch_obj = Batch.objects.filter(
-                        product_store=product_store,
-                        remaining_quantity__gt=0
-                    ).first()
+                    batch_obj = None
+                    if kardex_entry:
+                        batch_obj = Batch.objects.filter(kardex=kardex_entry).first()
                     
                     if not batch_obj:
                         batch_obj = Batch.objects.filter(product_store=product_store).last()
@@ -2660,10 +2690,10 @@ def create_credit_note_ajax(request):
                     if batch_obj:
                         kardex_ouput(
                             product_store_id=product_store.id,
-                            quantity=quantity,
+                            quantity=quantity_units,
                             credit_note_detail_obj=cn_detail,
                             type_document='07',
-                            type_operation='05',
+                            type_operation='06',
                             batch_obj=batch_obj
                         )
             
@@ -2678,8 +2708,11 @@ def create_credit_note_ajax(request):
 @xframe_options_exempt
 def search_bill_ajax(request):
     term = request.GET.get('term', '')
+    # Excluir facturas que ya tienen una nota de crédito
     bills = Bill.objects.filter(
         Q(serial__icontains=term) | Q(correlative__icontains=term)
+    ).exclude(
+        Exists(CreditNote.objects.filter(bill=OuterRef('pk')))
     ).order_by('-register_date')[:10]
     
     results = []
@@ -2705,8 +2738,24 @@ def get_bill_details_ajax(request):
             # Buscar información del almacén en el Kardex
             kardex_entry = Kardex.objects.filter(bill_detail=d).last()
             warehouse_name = "No especificado"
+            warehouse_id = None
             if kardex_entry and kardex_entry.product_store:
                 warehouse_name = kardex_entry.product_store.subsidiary_store.name
+                warehouse_id = kardex_entry.product_store.subsidiary_store.id
+            
+            # Obtener unidades disponibles para este producto
+            units = []
+            product_details = ProductDetail.objects.filter(product=d.product).select_related('unit')
+            current_factor = 1
+            
+            for pd in product_details:
+                units.append({
+                    'id': pd.unit.id,
+                    'name': pd.unit.name,
+                    'factor': float(pd.quantity_minimum)
+                })
+                if pd.unit.id == d.unit.id:
+                    current_factor = float(pd.quantity_minimum)
             
             items.append({
                 'bill_detail_id': d.id,
@@ -2718,7 +2767,9 @@ def get_bill_details_ajax(request):
                 'price_unit': float(d.price_unit),
                 'total': float(d.quantity * d.price_unit),
                 'warehouse_name': warehouse_name,
-                'warehouse_id': kardex_entry.product_store.subsidiary_store.id if kardex_entry and kardex_entry.product_store else None
+                'warehouse_id': warehouse_id,
+                'units': units,
+                'current_factor': current_factor
             })
             
         return JsonResponse({
@@ -2933,3 +2984,27 @@ def edit_file(request):
             return JsonResponse({'message': str(e)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return JsonResponse({'message': 'Método no permitido'}, status=HTTPStatus.METHOD_NOT_ALLOWED)
+
+
+@xframe_options_exempt
+def get_credit_note_details_ajax(request):
+    if request.method == 'GET':
+        pk = request.GET.get('pk')
+        try:
+            credit_note = CreditNote.objects.get(id=pk)
+            details = credit_note.creditnotedetail_set.all().select_related('product', 'unit')
+            
+            t = loader.get_template('accounting/credit_note_details_modal.html')
+            c = {
+                'credit_note': credit_note,
+                'details': details,
+            }
+            return JsonResponse({
+                'success': True,
+                'modal': t.render(c, request),
+            })
+        except CreditNote.DoesNotExist:
+            return JsonResponse({'error': True, 'message': 'Nota de crédito no encontrada'}, status=HTTPStatus.NOT_FOUND)
+        except Exception as e:
+            return JsonResponse({'error': True, 'message': str(e)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    return JsonResponse({'error': True, 'message': 'Método no permitido'}, status=HTTPStatus.METHOD_NOT_ALLOWED)

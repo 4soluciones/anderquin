@@ -44,98 +44,84 @@
             <td class="align-middle text-center">{{ k.type_operation }}</td>
 
             {# ENTRADAS #}
-            <td class="align-middle text-center">
-                {% if k.operation == 'E' %}
-                    {{ k.quantity|replace_round_separator_us }}
+            <td class="align-middle text-right">
+                {% if k.entry_qty != 0 %}{{ k.entry_qty|replace_round_separator_us }}{% else %}-{% endif %}
+            </td>
+            <td class="align-middle text-right">
+                {% if k.entry_qty != 0 %}
+                    {{ k.entry_unit|replace_round_separator_us_four }}
                 {% else %}
                     -
                 {% endif %}
             </td>
-            <td class="align-middle text-center">
-                {% if k.operation == 'E' %}
-                    {{ k.unit_cost }}
-                {% else %}
-                    -
-                {% endif %}
-            </td>
-            <td class="align-middle text-center">
-                {% if k.operation == 'E' %}
-                    {{ k.total_cost|replace_round_separator_us }}
+            <td class="align-middle text-right">
+                {% if k.entry_qty != 0 %}
+                    {{ k.entry_total|replace_round_separator_us }}
                 {% else %}
                     -
                 {% endif %}
             </td>
 
             {# SALIDAS #}
-            <td class="align-middle text-center">
-                {% if k.operation == 'S' %}
-                    {{ k.quantity|replace_round_separator_us }}
+            <td class="align-middle text-right">
+                {% if k.exit_qty != 0 %}{{ k.exit_qty|replace_round_separator_us }}{% else %}-{% endif %}
+
+            </td>
+            <td class="align-middle text-right">
+                {% if k.exit_qty != 0 %}
+                    {{ k.exit_unit|replace_round_separator_us_four }}
                 {% else %}
                     -
                 {% endif %}
             </td>
-            <td class="align-middle text-center">
-                {% if k.operation == 'S' %}
-                    {{ k.unit_cost }}
-                {% else %}
-                    -
-                {% endif %}
-            </td>
-            <td class="align-middle text-center">
-                {% if k.operation == 'S' %}
-                    {{ k.total_cost|replace_round_separator_us }}
+            <td class="align-middle text-right">
+                {% if k.exit_qty != 0 %}
+                    {{ k.exit_total|replace_round_separator_us }}
                 {% else %}
                     -
                 {% endif %}
             </td>
 
             {# SALDO #}
-            <td class="align-middle text-center" {% if k.operation == 'C' %} style="background-color: #D0D0D0; font-weight: bold" {% endif %}>
+            <td class="align-middle text-right" {% if k.operation == 'C' %} style="background-color: #D0D0D0; font-weight: bold" {% endif %}>
                 {{ k.remaining_quantity|replace_round_separator_us }}
             </td>
-            <td class="align-middle text-center" {% if k.operation == 'C' %} style="background-color: #D0D0D0; font-weight: bold" {% endif %}>
-                {{ k.remaining_price }}
+            <td class="align-middle text-right" {% if k.operation == 'C' %} style="background-color: #D0D0D0; font-weight: bold" {% endif %}>
+                {{ k.remaining_price|replace_round_separator_us_four }}
             </td>
-            <td class="align-middle text-center" {% if k.operation == 'C' %} style="background-color: #D0D0D0; font-weight: bold" {% endif %}>
+            <td class="align-middle text-right" {% if k.operation == 'C' %} style="background-color: #D0D0D0; font-weight: bold" {% endif %}>
                 {{ k.remaining_price_total|replace_round_separator_us }}
             </td>
         </tr>
         {% endfor %}
 
-        {# TOTALES: Entradas/Salidas suman. Saldo muestra el saldo FINAL (última fila) #}
+        {# TOTALES #}
         <tr>
-            <td class="align-middle text-center font-weight-bold">Total</td>
-            <td class="align-middle text-center" colspan="5" style="border-bottom-color: #ffffff"></td>
+            <td class="align-middle text-right font-weight-bold">Total</td>
+            <td class="align-middle text-right" colspan="5" style="border-bottom-color: #ffffff"></td>
 
-            <td class="align-middle text-center font-weight-bold">
-                {{ sum_quantities_entries|replace_round_separator_us }}
-            </td>
-            <td class="align-middle text-center" style="background-color: #595959"></td>
-            <td class="align-middle text-center font-weight-bold">
-                {{ sum_total_cost_entries|replace_round_separator_us }}
-            </td>
+            <td class="align-middle text-right font-weight-bold">{{ sum_quantities_entries|replace_round_separator_us }}</td>
+            <td class="align-middle text-right" style="background-color: #595959"></td>
+            <td class="align-middle text-right font-weight-bold">{{ sum_total_cost_entries|replace_round_separator_us }}</td>
 
-            <td class="align-middle text-center font-weight-bold">
-                {{ sum_quantities_exits|replace_round_separator_us }}
-            </td>
-            <td class="align-middle text-center" style="background-color: #595959"></td>
-            <td class="align-middle text-center font-weight-bold">
-                {{ sum_total_cost_exits|replace_round_separator_us }}
-            </td>
+            <td class="align-middle text-right font-weight-bold">{{ sum_quantities_exits|replace_round_separator_us }}</td>
+            <td class="align-middle text-right" style="background-color: #595959"></td>
+            <td class="align-middle text-right font-weight-bold">{{ sum_total_cost_exits|replace_round_separator_us }}</td>
 
-            <td class="align-middle text-center font-weight-bold" style="background-color: #D0D0D0">
-                {% if summary %}{{ summary.final_units|replace_round_separator_us }}{% else %}-{% endif %}
+            <td class="align-middle text-right font-weight-bold" style="background-color: #D0D0D0">
+                {{ sum_saldo_qty|replace_round_separator_us }}
             </td>
-            <td class="align-middle text-center font-weight-bold" style="background-color: #D0D0D0">
-                {{ final_remaining_price }}
+            <td class="align-middle text-right font-weight-bold" style="background-color: #D0D0D0">
+                {{ sum_saldo_unit|replace_round_separator_us }}
             </td>
-            <td class="align-middle text-center font-weight-bold" style="background-color: #D0D0D0">
-                {% if summary %}{{ summary.final_valorized|replace_round_separator_us }}{% else %}-{% endif %}
+            <td class="align-middle text-right font-weight-bold" style="background-color: #D0D0D0">
+                {{ sum_saldo_total|replace_round_separator_us }}
             </td>
         </tr>
     </tbody>
 </table>
 
+{# Resumen se queda igual #}
 {% if summary %}
 <div class="row mt-4 justify-content-end">
     <div class="col-md-5">
@@ -153,11 +139,7 @@
                         <tr>
                             <td class="pl-3 py-2 align-middle">Inventario Inicial</td>
                             <td class="text-right pr-3 py-2 align-middle">
-                                {% if summary.initial_units > 0 %}
-                                    {{ summary.initial_units|replace_round_separator_us }}
-                                {% else %}
-                                    -
-                                {% endif %}
+                                {% if summary.initial_units > 0 %}{{ summary.initial_units|replace_round_separator_us }}{% else %}-{% endif %}
                             </td>
                             <td class="text-right pr-3 py-2 align-middle">
                                 {{ summary.initial_valorized|replace_round_separator_us }}
@@ -197,7 +179,6 @@
     </div>
 </div>
 {% endif %}
-
 {% else %}
 <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
     <strong>Atencion!</strong> El producto no cuenta operaciones registradas en la sede y almacen seleccionados.

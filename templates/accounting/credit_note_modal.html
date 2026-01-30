@@ -1,10 +1,10 @@
 <div class="modal-dialog modal-xl" role="document">
-    <div class="modal-content border-0 shadow-lg">
-        <div class="modal-header bg-primary text-white py-3">
-            <h5 class="modal-title font-weight-bold">
-                <i class="fas fa-file-invoice mr-2"></i> Registrar Nota de Crédito de Compra
-            </h5>
-            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+    <div class="modal-content border-0 shadow-lg roboto-condensed-regular">
+        <div class="modal-header" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-bottom: none;">
+            <h4 class="modal-title text-white font-weight-bold">
+                <i class="fas fa-file-invoice mr-2"></i> REGISTRAR NOTA DE CRÉDITO DE COMPRA
+            </h4>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
@@ -15,7 +15,7 @@
                     <div class="col-md-4">
                         <div class="card border-0 shadow-sm mb-3">
                             <div class="card-body">
-                                <h6 class="text-primary font-weight-bold mb-3"><i class="fas fa-search mr-2"></i> Buscar Factura</h6>
+                                <h6 class="text-success font-weight-bold mb-3 roboto-condensed-regular"><i class="fas fa-search mr-2"></i> Buscar Factura</h6>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Factura de Compra:</label>
                                     <select class="form-control select2-modal" id="bill-search-modal" name="bill_id" required style="width: 100%;">
@@ -31,10 +31,16 @@
 
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
-                                <h6 class="text-primary font-weight-bold mb-3"><i class="fas fa-info-circle mr-2"></i> Datos de la Nota</h6>
+                                <h6 class="text-success font-weight-bold mb-3 roboto-condensed-regular"><i class="fas fa-info-circle mr-2"></i> Datos de la Nota</h6>
                                 <div class="form-group">
-                                    <label class="small font-weight-bold">Nro. de Documento (NC):</label>
-                                    <input type="text" class="form-control form-control-sm" id="nro-document-modal" name="nro_document" placeholder="F001-0000001" required>
+                                    <label class="small font-weight-bold">Doc. Nota de Crédito (Serie y Número):</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control" id="serial-modal" name="credit_note_serial" placeholder="F001" required style="max-width: 80px;">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">-</span>
+                                        </div>
+                                        <input type="text" class="form-control" id="number-modal" name="credit_note_number" placeholder="00000001" required>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="small font-weight-bold">Fecha de Emisión:</label>
@@ -52,23 +58,24 @@
                     <div class="col-md-8">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-header bg-white py-3">
-                                <h6 class="m-0 text-primary font-weight-bold"><i class="fas fa-list mr-2"></i> Detalles de la Nota</h6>
+                                <h6 class="m-0 text-success font-weight-bold roboto-condensed-regular"><i class="fas fa-list mr-2"></i> Detalles de la Nota</h6>
                             </div>
                             <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
                                 <div class="table-responsive">
-                                    <table class="table table-hover mb-0" id="table-details-modal">
+                                    <table class="table table-hover mb-0 table-bordered" id="table-details-modal">
                                         <thead class="bg-light text-primary">
                                             <tr>
-                                                <th class="small font-weight-bold" style="width: 35%">Producto / Almacén</th>
+                                                <th class="small font-weight-bold" style="width: 30%">Producto / Almacén</th>
+                                                <th class="small font-weight-bold" style="width: 15%">Und.</th>
                                                 <th class="small font-weight-bold" style="width: 15%">Cantidad</th>
                                                 <th class="small font-weight-bold" style="width: 15%">Precio Unit.</th>
-                                                <th class="small font-weight-bold" style="width: 20%">Total</th>
-                                                <th class="small font-weight-bold text-center" style="width: 15%">Acción</th>
+                                                <th class="small font-weight-bold" style="width: 15%">Total</th>
+                                                <th class="small font-weight-bold text-center" style="width: 10%">Acción</th>
                                             </tr>
                                         </thead>
                                         <tbody id="details-tbody-modal">
                                             <tr>
-                                                <td colspan="5" class="text-center text-muted py-5">
+                                                <td colspan="6" class="text-center text-muted py-5">
                                                     <i class="fas fa-info-circle mr-2"></i> Seleccione una factura
                                                 </td>
                                             </tr>
@@ -78,8 +85,8 @@
                             </div>
                             <div class="card-footer bg-white py-3">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="m-0 font-weight-bold text-dark">TOTAL NC:</h5>
-                                    <h5 class="m-0 font-weight-bold text-primary" id="grand-total-modal">0.00</h5>
+                                    <h5 class="m-0 font-weight-bold text-dark roboto-condensed-regular">TOTAL NC:</h5>
+                                    <h5 class="m-0 font-weight-bold text-success roboto-condensed-regular" id="grand-total-modal">0.00</h5>
                                 </div>
                             </div>
                         </div>
@@ -87,9 +94,11 @@
                 </div>
             </form>
         </div>
-        <div class="modal-footer bg-light">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-            <button type="button" class="btn btn-primary" id="btn-save-credit-note-modal">
+        <div class="modal-footer bg-white border-top">
+            <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">
+                <i class="fas fa-times mr-2"></i> Cerrar
+            </button>
+            <button type="button" class="btn btn-success px-4 font-weight-bold" id="btn-save-credit-note-modal">
                 <i class="fas fa-save mr-1"></i> Guardar Nota de Crédito
             </button>
         </div>
@@ -152,26 +161,56 @@
             // Event: Calcular totales al cambiar cantidad o precio
             $(document).on('input', '.row-quantity-modal, .row-price-modal', function() {
                 let row = $(this).closest('tr');
-                let quantity = parseFloat(row.find('.row-quantity-modal').val()) || 0;
-                let price = parseFloat(row.find('.row-price-modal').val()) || 0;
-                let total = quantity * price;
-                row.find('.row-total-modal').text(total.toFixed(2));
-                calculateGrandTotal();
+                updateRowTotal(row);
+            });
+
+            // Event: Cambiar Unidad y aplicar equivalencias
+            $(document).on('change', '.row-unit-modal', function() {
+                let row = $(this).closest('tr');
+                let selectedOption = $(this).find('option:selected');
+                
+                let oldFactor = parseFloat(row.attr('data-current-factor')) || 1;
+                let newFactor = parseFloat(selectedOption.attr('data-factor')) || 1;
+                
+                let oldQuantity = parseFloat(row.find('.row-quantity-modal').val()) || 0;
+                let oldPrice = parseFloat(row.find('.row-price-modal').val()) || 0;
+
+                // Conversión: Cantidad Nueva = Cantidad Antigua * (Factor Antiguo / Factor Nuevo)
+                let newQuantity = oldQuantity * (oldFactor / newFactor);
+                // Conversión: Precio Nuevo = Precio Antiguo * (Factor Nuevo / Factor Antiguo)
+                let newPrice = oldPrice * (newFactor / oldFactor);
+
+                row.find('.row-quantity-modal').val(newQuantity.toFixed(2));
+                row.find('.row-price-modal').val(newPrice.toFixed(4));
+                
+                // Actualizar factor actual y unit_id en la fila
+                row.attr('data-current-factor', newFactor);
+                row.attr('data-unit-id', $(this).val());
+
+                updateRowTotal(row);
             });
 
             // Event: Remover fila
             $(document).on('click', '.remove-row-modal', function() {
                 $(this).closest('tr').remove();
                 if ($('#details-tbody-modal tr').length === 0) {
-                    $('#details-tbody-modal').html('<tr><td colspan="5" class="text-center text-muted py-5"><i class="fas fa-info-circle mr-2"></i> No hay items</td></tr>');
+                    $('#details-tbody-modal').html('<tr><td colspan="6" class="text-center text-muted py-5"><i class="fas fa-info-circle mr-2"></i> No hay items</td></tr>');
                 }
                 calculateGrandTotal();
             });
         }
 
+        function updateRowTotal(row) {
+            let quantity = parseFloat(row.find('.row-quantity-modal').val()) || 0;
+            let price = parseFloat(row.find('.row-price-modal').val()) || 0;
+            let total = quantity * price;
+            row.find('.row-total-modal').text(total.toFixed(2));
+            calculateGrandTotal();
+        }
+
         function loadBillDetails(billId) {
             // Mostrar loading
-            $('#details-tbody-modal').html('<tr><td colspan="5" class="text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i> Cargando detalles...</td></tr>');
+            $('#details-tbody-modal').html('<tr><td colspan="6" class="text-center py-4"><i class="fas fa-spinner fa-spin mr-2"></i> Cargando detalles...</td></tr>');
 
             $.ajax({
                 url: '{% url "accounting:get_bill_details_ajax" %}',
@@ -184,13 +223,13 @@
                         renderTableRows(response.details);
                     } else {
                         toastr.error(response.message || 'Error al cargar detalles');
-                        $('#details-tbody-modal').html('<tr><td colspan="5" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i> Error al cargar detalles</td></tr>');
+                        $('#details-tbody-modal').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i> Error al cargar detalles</td></tr>');
                     }
                 },
                 error: function(xhr, status, error) {
                     console.error('Error al cargar detalles:', error);
                     toastr.error('Error de red al cargar detalles de la factura');
-                    $('#details-tbody-modal').html('<tr><td colspan="5" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i> Error de conexión</td></tr>');
+                    $('#details-tbody-modal').html('<tr><td colspan="6" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle mr-2"></i> Error de conexión</td></tr>');
                 }
             });
         }
@@ -200,16 +239,22 @@
             tbody.empty();
 
             if (!details || details.length === 0) {
-                tbody.html('<tr><td colspan="5" class="text-center text-muted py-5">No hay detalles "Ingresados" en esta factura</td></tr>');
+                tbody.html('<tr><td colspan="6" class="text-center text-muted py-5">No hay detalles "Ingresados" en esta factura</td></tr>');
                 $('#grand-total-modal').text('0.00');
                 return;
             }
 
             details.forEach(item => {
+                let unitOptions = '';
+                item.units.forEach(u => {
+                    unitOptions += `<option value="${u.id}" data-factor="${u.factor}" ${u.id == item.unit_id ? 'selected' : ''}>${u.name}</option>`;
+                });
+
                 let row = `
                     <tr data-bill-detail-id="${item.bill_detail_id}"
                         data-product-id="${item.product_id}"
                         data-unit-id="${item.unit_id}"
+                        data-current-factor="${item.current_factor}"
                         data-warehouse-id="${item.warehouse_id || ''}"
                         data-warehouse-name="${item.warehouse_name || ''}">
                         <td class="small">
@@ -217,9 +262,13 @@
                             <span class="badge badge-info"><i class="fas fa-warehouse mr-1"></i> ${item.warehouse_name}</span>
                         </td>
                         <td>
+                            <select class="form-control form-control-sm row-unit-modal">
+                                ${unitOptions}
+                            </select>
+                        </td>
+                        <td>
                             <input type="number" step="0.01" class="form-control form-control-sm row-quantity-modal"
                                 value="${parseFloat(item.quantity).toFixed(2)}"
-                                max="${parseFloat(item.quantity).toFixed(2)}"
                                 min="0" required>
                         </td>
                         <td>
@@ -257,11 +306,13 @@
                 return;
             }
 
-            // Validar número de documento
-            let nroDoc = $('#nro-document-modal').val().trim();
-            if (!nroDoc) {
-                toastr.warning('Debe ingresar el número de documento de la NC');
-                $('#nro-document-modal').focus();
+            // Validar serie y número
+            let serial = $('#serial-modal').val().trim();
+            let number = $('#number-modal').val().trim();
+            if (!serial || !number) {
+                toastr.warning('Debe ingresar la serie y el número de la NC');
+                if (!serial) $('#serial-modal').focus();
+                else $('#number-modal').focus();
                 return;
             }
 
@@ -320,7 +371,8 @@
             // Preparar datos
             let formData = {
                 bill_id: billId,
-                nro_document: nroDoc,
+                credit_note_serial: serial,
+                credit_note_number: number,
                 issue_date: issueDate,
                 motive: $('#motive-modal').val().trim(),
                 details: details
@@ -374,7 +426,8 @@
 
             // Limpiar campos
             $('#supplier-name-modal').val('');
-            $('#nro-document-modal').val('');
+            $('#serial-modal').val('');
+            $('#number-modal').val('');
             $('#issue-date-modal').val('{{ date }}');
             $('#motive-modal').val('');
 

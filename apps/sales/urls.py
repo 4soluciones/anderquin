@@ -166,5 +166,12 @@ urlpatterns = [
     path('get_price_by_client_and_product/', login_required(get_price_by_client_and_product), name='get_price_by_client_and_product'),
     path('get_prices_by_price_type/', login_required(get_prices_by_price_type), name='get_prices_by_price_type'),
 
-]
+    # NOTAS DE CREDITO DE VENTAS
+    path('credit_note_order_list/', login_required(credit_note_order_list), name='credit_note_order_list'),
+    path('modal_credit_note_order/', login_required(modal_credit_note_order), name='modal_credit_note_order'),
+    path('view_credit_note_order_detail/', login_required(view_credit_note_order_detail), name='view_credit_note_order_detail'),
+    path('save_credit_note_order/', login_required(save_credit_note_order), name='save_credit_note_order'),
+    path('search_order_for_credit_note/', search_order_for_credit_note, name='search_order_for_credit_note'),
+    path('get_order_details_ajax/', get_order_details_ajax, name='get_order_details_ajax'),
 
+]

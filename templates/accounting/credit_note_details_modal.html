@@ -1,0 +1,90 @@
+<div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content border-0 shadow-lg roboto-condensed-regular">
+        <div class="modal-header bg-info text-white py-3">
+            <h5 class="modal-title font-weight-bold roboto-condensed-regular text-white">
+                <i class="fas fa-search-dollar mr-2"></i> Detalle de Nota de Crédito: {{ credit_note.credit_note_serial }}-{{ credit_note.credit_note_number }}
+            </h5>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body bg-light">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="text-info font-weight-bold mb-3"><i class="fas fa-info-circle mr-2"></i> Información General</h6>
+                            <p class="mb-1"><strong>Nro. Documento:</strong> {{ credit_note.credit_note_serial }}-{{ credit_note.credit_note_number }}</p>
+                            <p class="mb-1"><strong>Fecha Emisión:</strong> {{ credit_note.issue_date|date:"d/m/Y" }}</p>
+                            <p class="mb-1"><strong>Factura Afectada:</strong> {{ credit_note.bill.serial }}-{{ credit_note.bill.correlative }}</p>
+                            <p class="mb-1"><strong>Estado:</strong> 
+                                {% if credit_note.status == 'E' %}
+                                    <span class="badge badge-success">EMITIDA</span>
+                                {% elif credit_note.status == 'P' %}
+                                    <span class="badge badge-warning">PENDIENTE</span>
+                                {% else %}
+                                    <span class="badge badge-danger">ANULADA</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="text-info font-weight-bold mb-3"><i class="fas fa-truck mr-2"></i> Proveedor y Motivo</h6>
+                            <p class="mb-1"><strong>Proveedor:</strong> {{ credit_note.bill.supplier.name }}</p>
+                            <p class="mb-1"><strong>Motivo:</strong> {{ credit_note.motive|default:"-" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-info"><i class="fas fa-list mr-2"></i> Ítems de la Nota</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="small font-weight-bold text-info">Producto</th>
+                                    <th class="small font-weight-bold text-info text-center">Und.</th>
+                                    <th class="small font-weight-bold text-info text-center">Cantidad</th>
+                                    <th class="small font-weight-bold text-info text-right">Precio Unit.</th>
+                                    <th class="small font-weight-bold text-info text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in details %}
+                                    <tr>
+                                        <td class="small">{{ item.product.name }}</td>
+                                        <td class="small text-center"><span class="badge badge-secondary">{{ item.unit.name }}</span></td>
+                                        <td class="small text-center">{{ item.quantity|floatformat:2 }}</td>
+                                        <td class="small text-right">{{ item.price_unit|floatformat:4 }}</td>
+                                        <td class="small text-right font-weight-bold text-dark">{{ item.total|floatformat:2 }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="bg-light">
+                                <tr>
+                                    <th colspan="4" class="text-right text-dark">TOTAL NOTA DE CRÉDITO:</th>
+                                    <th class="text-right text-info h5 mb-0">
+                                        S/ {{ credit_note.get_total|floatformat:2 }}
+                                    </th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            <a href="{% url 'accounting:print_pdf_bill_finances' credit_note.bill.id %}" target="_blank" class="btn btn-info shadow-sm">
+                <i class="fas fa-print mr-1 text-white"></i> <span class="text-white">Imprimir Factura Rel.</span>
+            </a>
+        </div>
+    </div>
+</div>

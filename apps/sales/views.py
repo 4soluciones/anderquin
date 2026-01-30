@@ -1044,7 +1044,7 @@ def save_order(request):
                         user=user_obj,
                         total=decimal.Decimal(_sum_total),
                         status='C',
-                        subsidiary_store=subsidiary_store_sales_obj,
+                        # subsidiary_store=subsidiary_store_sales_obj,
                         subsidiary=subsidiary_obj,
                         create_at=_date,
                         # correlative=get_correlative_order(subsidiary_obj, 'V'),
@@ -1078,7 +1078,8 @@ def save_order(request):
                             price_unit=price,
                             unit=unit_obj,
                             status='V',
-                            commentary=commentary
+                            commentary=commentary,
+                            product_store=product_store_obj
                         )
                         order_detail_obj.save()
                         if _type_document == 'F':
@@ -1141,8 +1142,7 @@ def save_order(request):
 
                 else:
                     order_obj = save_order_with_order_id(_order_id, client_obj, _serial_text, user_obj, _sum_total, _date,
-                                                         _correlative, _type_payment, _observation, _type_document,
-                                                         subsidiary_store_sales_obj, detail)
+                                                         _correlative, _type_payment, _observation, _type_document, detail)
 
                 code_operation = '-'
                 cash_obj = None
@@ -1216,7 +1216,7 @@ def save_order(request):
 
 
 def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_total, _date, _correlative,
-                             _type_payment, _observation, _type_document, subsidiary_store_sales_obj, detail):
+                             _type_payment, _observation, _type_document, detail):
     order_obj = Order.objects.get(id=int(order_id))
     order_obj.client = client_obj
     order_obj.serial = _serial_text
@@ -1241,8 +1241,9 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
 
             quantity_minimum_unit = calculate_minimum_unit(detail_obj.quantity_sold, detail_obj.unit,
                                                            detail_obj.product)
-            product_store_obj = ProductStore.objects.get(product=detail_obj.product,
-                                                         subsidiary_store=subsidiary_store_sales_obj)
+            # product_store_obj = ProductStore.objects.get(product=detail_obj.product,
+            #                                              subsidiary_store=subsidiary_store_sales_obj)
+            product_store_obj = detail_obj.product_store
             if _type_document == 'F':
                 type_document = '01'
             elif _type_payment == 'B':
@@ -1332,7 +1333,8 @@ def kardex_input(
         bill_detail_obj=None,
         type_document='00',
         type_operation='99',
-        credit_note_detail_obj=None
+        credit_note_detail_obj=None,
+        credit_note_order_detail_obj=None
         # distribution_detail_obj=None,
 ):
     product_store = ProductStore.objects.get(pk=int(product_store_id))
@@ -1369,7 +1371,8 @@ def kardex_input(
         bill_detail=bill_detail_obj,
         type_document=type_document,
         type_operation=type_operation,
-        credit_note_detail=credit_note_detail_obj
+        credit_note_detail=credit_note_detail_obj,
+        credit_note_order_detail=credit_note_order_detail_obj
     )
 
     product_store.stock = new_stock
@@ -1584,7 +1587,7 @@ def get_dict_order_queries(order_set, is_pdf=False, is_unit=False):
             'client': o.client,
             'user': o.user,
             'total': o.total,
-            'subsidiary': o.subsidiary_store.subsidiary.name,
+            'subsidiary': o.subsidiary.name,
             'create_at': o.create_at,
             'order_detail_set': [],
             'type': o.get_type_display(),
@@ -1756,7 +1759,7 @@ def get_dict_orders(client_obj=None, start_date=None, end_date=None):
         Prefetch(
             'cashflow_set', queryset=CashFlow.objects.select_related('cash')
         ),
-    ).select_related('subsidiary_store', 'subsidiary', 'client').order_by('id')
+    ).select_related('subsidiary', 'client').order_by('id')
 
     dictionary = []
 
@@ -2486,7 +2489,7 @@ def get_report_sales_subsidiary(request):
             print(sales_vs_expenses_set)
             for s in subsidiary_set:
                 t = Order.objects.filter(
-                    subsidiary_store__subsidiary_id=s.id,
+                    subsidiary_id=s.id,
                     create_at__date__range=(date_initial, date_final), type__in=['V', 'R']
                 ).aggregate(r=Coalesce(Sum('total'), 0))
                 sales_dict = {
@@ -2512,7 +2515,7 @@ def get_report_sales_subsidiary(request):
                 }
                 subsidiary_sales = []
                 order_set = Order.objects.filter(
-                    subsidiary_store__subsidiary_id=s.id,
+                    subsidiary_id=s.id,
                     create_at__range=(date_initial, date_final), type__in=['V', 'R']
                 ).values('create_at').annotate(totales=Sum('total'))
                 for vt in order_set:
@@ -2638,7 +2641,7 @@ def get_report_sales_subsidiary(request):
                 # recovered
                 distribution_mobil_set = LoanPayment.objects.filter(
                     operation_date__range=[date_initial, date_final],
-                    order_detail__order__subsidiary_store__subsidiary_id=s.id
+                    order_detail__order__subsidiary_id=s.id
                 ).aggregate(r=Coalesce(Sum('quantity'), 0))
                 recovered_dict = {
                     'label': s.name,
@@ -2649,7 +2652,7 @@ def get_report_sales_subsidiary(request):
                 # borrowed
                 order_detail_set = OrderDetail.objects.filter(
                     order__distribution_mobil__date_distribution__range=[date_initial, date_final],
-                    order__subsidiary_store__subsidiary_id=s.id,
+                    order__subsidiary_id=s.id,
                     unit__name='B'
                 ).aggregate(r=Coalesce(Sum('quantity_sold'), 0))
                 borrowed_dict = {
@@ -2662,7 +2665,7 @@ def get_report_sales_subsidiary(request):
 
                 '''expenses_set = CashFlow.objects.filter(
                     order__distribution_mobil__date_distribution__range=[date_initial, date_final],
-                    order__subsidiary_store__subsidiary_id=s.id,
+                    order__subsidiary_id=s.id,
                     type='S'
                 ).values(
                     'order__distribution_mobil__truck__pk',
@@ -2739,7 +2742,7 @@ def get_report_sales_subsidiary(request):
 
 
 def get_order_sales(pk, date_initial, date_final):
-    order_set = Order.objects.filter(subsidiary_store__subsidiary_id=pk,
+    order_set = Order.objects.filter(subsidiary_id=pk,
                                      create_at__range=(
                                          date_initial, date_final), type__in=['V', 'R']).values('create_at').annotate(
         totales=Sum('total'))
@@ -2755,7 +2758,7 @@ def get_cash_payment(pk, date_initial, date_final):
 
 
 def get_order_sales_total(pk, date_initial, date_final):
-    totales = Order.objects.filter(subsidiary_store__subsidiary_id=pk,
+    totales = Order.objects.filter(subsidiary_id=pk,
                                    create_at__range=(
                                        date_initial, date_final), type__in=['V', 'R']).aggregate(Sum('total'))
     return totales['total__sum']
@@ -3998,78 +4001,95 @@ def get_order_by_id(request):
                     'message': 'La Orden ya se encuentra registrada, ',
                     'bill': 'Comprobante ' + str(order_obj.serial) + '-' + str(order_obj.correlative),
                 }, status=HTTPStatus.OK)
-            else:
-                # type_document = order_obj.client.clienttype_set.last().document_type.id
-                # document_number = order_obj.client.clienttype_set.last().document_number
-                # client_name = order_obj.client.names
-                # validity_date = order_obj.validity_date
-                # date_completion = order_obj.date_completion
-                # place_delivery = order_obj.place_delivery
-                # type_quotation = order_obj.type_quotation
-                # type_name_quotation = order_obj.type_name_quotation
-                transaction_payment_type = order_obj.way_to_pay_type
-                # observation = order_obj.observation
-                correlative = order_obj.correlative
-                order_detail_set = OrderDetail.objects.filter(order=order_obj)
-                detail = []
-                for d in order_detail_set:
-                    quantity_minimum_unit = calculate_minimum_unit(d.quantity_sold, d.unit, d.product)
-                    # stock = 0
-                    # product_store_id = None
-                    # product_store_set = ProductStore.objects.filter(product=d.product,
-                    #                                                 subsidiary_store=d.order.subsidiary_store)
 
-                    # if product_store_set.exists():
-                    #     product_store_obj = product_store_set.last()
-                    #     product_store_id = product_store_obj.id
-                    #     stock = product_store_obj.stock
-                    detail_batch_set = BillDetailBatch.objects.filter(order=order_obj)
-                    batch_id = ''
-                    batch_number = ''
-                    if detail_batch_set.exists():
-                        detail_batch_obj = detail_batch_set.last()
-                        batch_set = Batch.objects.filter(batch_number=detail_batch_obj.batch_number)
-                        if batch_set.exists():
-                            batch_obj = batch_set.last()
-                            batch_id = batch_obj.id
-                            batch_number = batch_obj.batch_number
-                    new_row = {
-                        'id': d.id,
-                        'product_id': d.product.id,
-                        'product_name': d.product.name,
-                        'product_brand': d.product.product_brand.name,
-                        'unit_id': d.unit.id,
-                        'unit_name': d.unit.name,
-                        'quantity': d.quantity_sold,
-                        'price': d.price_unit,
-                        # 'store': product_store_id,
-                        # 'stock': round(stock, 0),
-                        'unit_min': quantity_minimum_unit,
-                        'batch_id': batch_id,
-                        'batch_number': batch_number,
-                    }
-                    detail.append(new_row)
-                return JsonResponse({
-                    'success': True,
-                    'order_id': order_obj.id,
-                    # 'document_type': type_document,
-                    # 'document_number': document_number,
-                    # 'client_name': client_name,
-                    # 'validity_date': validity_date,
-                    # 'date_completion': date_completion,
-                    # 'place_delivery': place_delivery,
-                    # 'type_quotation': type_quotation,
-                    # 'type_name_quotation': type_name_quotation,
-                    # 'observation': observation,
-                    'transaction_payment_type': transaction_payment_type,
-                    'correlative': correlative,
-                    'detail': detail,
-                }, status=HTTPStatus.OK)
-        else:
+
+def search_order_for_credit_note(request):
+    if request.method == 'GET':
+        query = request.GET.get('query', '')
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        
+        # Search by ID, or Serial, or Correlative
+        orders = Order.objects.filter(
+            (Q(id__icontains=query) if query.isdigit() else Q()) | 
+            Q(serial__icontains=query) | 
+            Q(correlative__icontains=query),
+            subsidiary=subsidiary_obj,
+            order_type='V'
+        ).select_related('client').order_by('-id')[:10]
+        
+        results = []
+        for o in orders:
+            results.append({
+                'id': o.id,
+                'serial': o.serial,
+                'correlative': o.correlative,
+                'client_name': o.client.names if o.client else 'Cliente Público',
+                'total': float(o.total),
+                'date': o.create_at.strftime("%d/%m/%Y") if o.create_at else ''
+            })
+            
+        return JsonResponse({'success': True, 'orders': results})
+
+    else:
+        return JsonResponse({
+            'success': False,
+            'message': 'Error de petición',
+        }, status=HTTPStatus.BAD_REQUEST)
+
+
+def get_order_details_ajax(request):
+    if request.method == 'GET':
+        order_id = request.GET.get('order_id', '')
+        if not order_id:
+            return JsonResponse({'success': False, 'message': 'ID de orden no proporcionado'})
+        
+        try:
+            order_obj = Order.objects.select_related('client').get(id=int(order_id))
+            order_details = order_obj.orderdetail_set.all().select_related('product', 'unit')
+            
+            details = []
+            for d in order_details:
+                # Get all presentation units for this product
+                product_details = ProductDetail.objects.filter(product=d.product, is_enabled=True).select_related('unit')
+                units = []
+                current_factor = 1.0
+                
+                for pd in product_details:
+                    units.append({
+                        'id': pd.unit.id,
+                        'name': pd.unit.name,
+                        'factor': float(pd.quantity_minimum)
+                    })
+                    if pd.unit.id == d.unit.id:
+                        current_factor = float(pd.quantity_minimum)
+                
+                details.append({
+                    'id': d.id,
+                    'product_name': d.product.name,
+                    'product_id': d.product.id,
+                    'unit_id': d.unit.id,
+                    'unit_name': d.unit.name,
+                    'quantity': float(d.quantity_sold),
+                    'price_unit': float(d.price_unit),
+                    'total': float(d.multiply()),
+                    'current_factor': current_factor,
+                    'units': units
+                })
+            
             return JsonResponse({
-                'success': False,
-                'message': 'No se encontro la Venta Numero: ' + str(order_id),
-            }, status=HTTPStatus.OK)
+                'success': True,
+                'client_name': order_obj.client.names if order_obj.client else 'Cliente Público',
+                'serial': order_obj.serial,
+                'correlative': order_obj.correlative,
+                'details': details
+            })
+        except Order.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Orden no encontrada'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})
 
 
 def get_name_business(request):
@@ -4504,7 +4524,7 @@ def get_details_by_bill(request):
             credit_note_set = CreditNote.objects.filter(bill_note=d.bill)
             if credit_note_set.exists():
                 credit_note_obj = credit_note_set.last()
-                credit_number = credit_note_obj.nro_document
+                credit_number = f"{credit_note_obj.credit_note_serial}-{credit_note_obj.credit_note_number}"
                 if credit_note_obj.bill is not None:
                     bill_applied = credit_note_obj.bill
 
@@ -4642,7 +4662,8 @@ def bill_credit_note(request):
 
 def bill_create_credit_note(request):
     if request.method == 'POST':
-        credit_nro_document = request.POST.get('credit-nro-document', '')
+        credit_serial = request.POST.get('credit-serial', '')
+        credit_number = request.POST.get('credit-number', '')
         credit_date_issue = request.POST.get('credit-date-issue', '')
         credit_bill = request.POST.get('credit-bill-applied', '')
         credit_note_motive = request.POST.get('credit-note-motive', '')
@@ -4664,7 +4685,8 @@ def bill_create_credit_note(request):
         subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(subsidiary_store))
         bill_obj = None
         bill_note_obj = bill_detail_obj.bill
-        credit_note_obj = CreditNote.objects.create(nro_document=credit_nro_document, issue_date=credit_date_issue,
+        credit_note_obj = CreditNote.objects.create(credit_note_serial=credit_serial, credit_note_number=credit_number,
+                                                    issue_date=credit_date_issue,
                                                     bill_note=bill_note_obj, motive=credit_note_motive)
 
         credit_note_detail_obj = CreditNoteDetail.objects.create(code=credit_code, quantity=credit_quantity,
@@ -4678,9 +4700,9 @@ def bill_create_credit_note(request):
 
             loan_payment_obj = LoanPayment.objects.create(pay=credit_total, type='C', bill=bill_obj,
                                                           operation_date=credit_date_issue,
-                                                          observation='Nota de crédito ' + credit_nro_document)
+                                                          observation='Nota de crédito ' + f"{credit_serial}-{credit_number}")
 
-            TransactionPayment.objects.create(payment=credit_total, type='C', operation_code=credit_nro_document,
+            TransactionPayment.objects.create(payment=credit_total, type='C', operation_code=f"{credit_serial}-{credit_number}",
                                               loan_payment=loan_payment_obj)
 
         product_store_id = ProductStore.objects.get(product=bill_detail_obj.product,
@@ -4720,10 +4742,206 @@ def bill_create_credit_note(request):
             'message': 'Nota de Credito registrada',
             # 'parent': purchase_obj.id,
             # 'purchase_detail_id': purchase_detail_id,
-            'nro_document': credit_nro_document,
+            'nro_document': f"{credit_serial}-{credit_number}",
             'bill': str(bill_obj)
         }, status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def credit_note_order_list(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        user_obj = User.objects.get(id=user_id)
+        subsidiary_obj = get_subsidiary_by_user(user_obj)
+        credit_note_order_set = CreditNoteOrder.objects.filter(order__subsidiary=subsidiary_obj).order_by('-id')
+        
+        return render(request, 'sales/credit_note_order_list.html', {
+            'credit_note_order_set': credit_note_order_set,
+        })
+
+
+def modal_credit_note_order(request):
+    if request.method == 'GET':
+        order_id = request.GET.get('order_id', '')
+        order_obj = None
+        order_detail_set = []
+        
+        if order_id and order_id.isdigit():
+            order_obj = Order.objects.get(id=int(order_id))
+            order_detail_set = order_obj.orderdetail_set.all()
+        
+        my_date = datetime.now()
+        date_now = my_date.strftime("%Y-%m-%d")
+        
+        # Get orders for the initial search dropdown (optional, can also use AJAX)
+        subsidiary_obj = get_subsidiary_by_user(request.user)
+        
+        t = loader.get_template('sales/modal_credit_note_order.html')
+        c = ({
+            'order_obj': order_obj,
+            'order_detail_set': order_detail_set,
+            'date': date_now,
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })
+
+
+def view_credit_note_order_detail(request):
+    """View to display credit note order details in a modal"""
+    if request.method == 'GET':
+        credit_note_id = request.GET.get('credit_note_id', '')
+        
+        try:
+            credit_note = CreditNoteOrder.objects.select_related('order', 'order__client').get(id=int(credit_note_id))
+            details = credit_note.creditnoteorderdetail_set.select_related('product', 'unit').all()
+            
+            # Calculate totals
+            total = credit_note.get_total()
+            subtotal = total / decimal.Decimal('1.18')
+            igv = total - subtotal
+            
+            t = loader.get_template('sales/modal_credit_note_order_detail.html')
+            c = {
+                'credit_note': credit_note,
+                'details': details,
+                'total': total,
+                'subtotal': subtotal,
+                'igv': igv,
+            }
+            
+            return JsonResponse({
+                'html': t.render(c, request),
+            })
+        except CreditNoteOrder.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Nota de crédito no encontrada'
+            }, status=404)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al cargar el detalle: {str(e)}'
+            }, status=500)
+    
+    return JsonResponse({'message': 'Método no permitido'}, status=400)
+
+
+@csrf_exempt
+def save_credit_note_order(request):
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                order_id = request.POST.get('order_id', '')
+                credit_serial = request.POST.get('credit_note_serial', '') # Corrected
+                credit_number = request.POST.get('credit_note_number', '') # Corrected
+                issue_date = request.POST.get('issue_date', '') # Corrected
+                motive = request.POST.get('motive', '') # Corrected
+                details_json = request.POST.get('details', '[]')
+                details = json.loads(details_json)
+                
+                order_obj = Order.objects.get(id=int(order_id))
+                
+                credit_note_order = CreditNoteOrder.objects.create(
+                    credit_note_serial=credit_serial,
+                    credit_note_number=credit_number,
+                    issue_date=issue_date,
+                    order=order_obj,
+                    motive=motive,
+                    status='E'
+                )
+                
+                for d in details:
+                    order_detail_id = d.get('order_detail_id')
+                    quantity_returned = decimal.Decimal(d.get('quantity'))
+                    unit_id = d.get('unit_id') # New: Unit from detail
+                    price_unit = decimal.Decimal(d.get('price_unit')) # New: Price from detail
+                    
+                    if quantity_returned <= 0:
+                        continue
+                        
+                    order_detail_obj = OrderDetail.objects.get(id=int(order_detail_id))
+                    unit_obj = Unit.objects.get(id=int(unit_id)) if unit_id else order_detail_obj.unit
+                    
+                    # Calculate total for the detail
+                    total_detail = quantity_returned * price_unit
+                    
+                    credit_note_detail = CreditNoteOrderDetail.objects.create(
+                        credit_note_order=credit_note_order,
+                        product=order_detail_obj.product,
+                        unit=unit_obj,
+                        quantity=quantity_returned,
+                        price_unit=price_unit,
+                        total=total_detail,
+                        description=order_detail_obj.product.name
+                    )
+                    
+                    # Kardex Integration
+                    # Find the source batch from the original sale's kardex
+                    kardex_sale = Kardex.objects.filter(order_detail=order_detail_obj, operation='S').last()
+                    
+                    product_store = order_detail_obj.product_store
+                    
+                    # Convert quantity to minimum units
+                    quantity_minimum = calculate_minimum_unit(quantity_returned, unit_obj, order_detail_obj.product)
+                    
+                    # Determine cost for kardex. We use the original price_unit from the Kardex Sale record if available
+                    # otherwise we use the order detail price (approximated)
+                    price_unit_cost = order_detail_obj.price_unit
+                    if kardex_sale:
+                        price_unit_cost = kardex_sale.price_unit
+                    
+                    total_cost_kardex = quantity_minimum * price_unit_cost
+                    
+                    # Call kardex_input with type_document='07' and type_operation='05'
+                    kardex_input_obj = kardex_input(
+                        product_store_id=product_store.id,
+                        quantity=quantity_minimum,
+                        total_cost=total_cost_kardex,
+                        order_detail_obj=order_detail_obj,
+                        type_document='07',
+                        type_operation='05',
+                        credit_note_order_detail_obj=credit_note_detail
+                    )
+                    
+                    # Update the batch - traceability requirement
+                    if kardex_sale:
+                        batch_movement = Batch.objects.filter(kardex=kardex_sale).last()
+                        if batch_movement:
+                            # Use same batch number and expiration date
+                            latest_batch_record = Batch.objects.filter(
+                                product_store=product_store,
+                                batch_number=batch_movement.batch_number
+                            ).order_by('-id').first()
+                            
+                            Batch.objects.create(
+                                batch_number=batch_movement.batch_number,
+                                expiration_date=batch_movement.expiration_date,
+                                quantity=quantity_minimum,
+                                remaining_quantity=(latest_batch_record.remaining_quantity if latest_batch_record else 0) + quantity_minimum,
+                                kardex=kardex_input_obj,
+                                product_store=product_store
+                            )
+                            
+                            # Also update the most recent record's remaining_quantity to maintain consistency
+                            if latest_batch_record:
+                                latest_batch_record.remaining_quantity += quantity_minimum
+                                latest_batch_record.save()
+
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Nota de Crédito registrada con éxito',
+                    'credit_note_id': credit_note_order.id
+                }, status=HTTPStatus.OK)
+                
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al guardar la nota de crédito: {str(e)}'
+            }, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    return JsonResponse({'message': 'Error de petición.'}, status=HTTPStatus.BAD_REQUEST)
+
 
 
 def get_sales_list(request, guide=None):
@@ -4845,12 +5063,14 @@ from decimal import Decimal, ROUND_HALF_UP
 
 QTY_0 = Decimal("0.00")
 
-def q2(x):  # 2 decimales para cantidades
+def q2(x):
     return (x or Decimal("0")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
-def q4(x):  # 4 decimales para mostrar costo unitario
+def q4(x):
     return (x or Decimal("0")).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
 
+def absd(x):
+    return abs(x or Decimal("0"))
 
 def kardex_list(request):
     user_id = request.user.id
@@ -4893,11 +5113,8 @@ def kardex_list(request):
             'bill_detail__bill',
             'credit_note_detail__credit_note'
         )
-        .order_by('create_at', 'id')  # mejor que solo id
+        .order_by('create_at', 'id')
     )
-
-    # === Estado inicial (C) ===
-    initial = kardex_qs.filter(operation='C').order_by('create_at', 'id').first()
 
     saldo_qty = Decimal("0")
     saldo_unit = Decimal("0")
@@ -4905,44 +5122,135 @@ def kardex_list(request):
 
     kardex_dict = []
 
-    # Sumas de resumen
+    # Sumas de totales columnas
     sum_quantities_entries = Decimal("0")
     sum_total_cost_entries = Decimal("0")
     sum_quantities_exits = Decimal("0")
     sum_total_cost_exits = Decimal("0")
+    
+    sum_saldo_qty = Decimal("0")
+    sum_saldo_unit = Decimal("0")
+    sum_saldo_total = Decimal("0")
 
+    # Sumas para resumen
     purchase_units = Decimal("0")
     purchase_valorized = Decimal("0")
+    
+    initial_units = Decimal("0")
+    initial_valorized = Decimal("0")
 
-    if initial:
-        # Tomo el saldo inicial desde los campos remaining_*
-        saldo_qty = initial.remaining_quantity or Decimal("0")
-        saldo_unit = initial.remaining_price or Decimal("0")
-        saldo_total = initial.remaining_price_total or Decimal("0")
+    # 1. Separar iniciales para que aparezcan siempre al inicio (operation 'C')
+    initial_qs = kardex_qs.filter(operation='C').order_by('create_at', 'id')
+    other_qs = kardex_qs.exclude(operation='C').order_by('create_at', 'id')
+
+    for k in initial_qs:
+        qty = k.remaining_quantity or Decimal("0")
+        price_unit = k.remaining_price or Decimal("0")
+        price_total = k.remaining_price_total or (qty * price_unit)
+        
+        saldo_qty += qty
+        saldo_total += price_total
+        if saldo_qty != 0:
+            saldo_unit = (saldo_total / saldo_qty).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+        else:
+            saldo_unit = price_unit
+
+        initial_units += qty
+        initial_valorized += price_total
 
         item = {
-            'id': initial.id,
-            'operation': initial.operation,
-            'period': initial.create_at.strftime("%Y-%m"),
-            'date': initial.create_at.strftime("%d/%m/%Y"),
-            'type_document': initial.type_document,
+            'id': k.id,
+            'operation': 'C',
+            'period': k.create_at.strftime("%Y-%m") if k.create_at else "",
+            'date': k.create_at.strftime("%d/%m/%Y") if k.create_at else "",
+            'type_document': k.type_document,
             'serial': '',
             'number': '',
-            'type_operation': initial.type_operation,
-            'quantity': q2(initial.quantity),
-            'unit_cost': q4(initial.price_unit),
-            'total_cost': initial.price_total,
+            'type_operation': k.type_operation,
+            'entry_qty': Decimal("0"),
+            'entry_unit': Decimal("0"),
+            'entry_total': Decimal("0"),
+            'exit_qty': Decimal("0"),
+            'exit_unit': Decimal("0"),
+            'exit_total': Decimal("0"),
             'remaining_quantity': q2(saldo_qty),
             'remaining_price': q4(saldo_unit),
             'remaining_price_total': saldo_total,
         }
         kardex_dict.append(item)
+        
+        sum_saldo_qty += saldo_qty
+        sum_saldo_unit += saldo_unit
+        sum_saldo_total += saldo_total
 
-    # Procesar movimientos (sin volver a meter C)
-    for k in kardex_qs.exclude(operation='C'):
+    # 2. Procesar el resto de operaciones
+    for k in other_qs:
+        qty = k.quantity or Decimal("0")
+        price_unit = k.price_unit or Decimal("0")
+        price_total = k.price_total or (qty * price_unit)
+
+        # Notas de credito especiales
+        # NC Compra: operation 'S', type_doc '07', type_op '06' -> Columna Entradas Negativo
+        is_nc_purchase = (k.operation == 'S' and k.type_document == '07' and k.type_operation == '06')
+        # NC Venta: operation 'E', type_doc '07', type_op '05' -> Columna Salidas Negativo
+        is_nc_sale = (k.operation == 'E' and k.type_document == '07' and k.type_operation == '05')
+
+        entry_qty = Decimal("0")
+        entry_unit = Decimal("0")
+        entry_total = Decimal("0")
+        
+        exit_qty = Decimal("0")
+        exit_unit = Decimal("0")
+        exit_total = Decimal("0")
+
+        if is_nc_purchase:
+            entry_qty = -qty
+            entry_total = -price_total
+            entry_unit = price_unit
+            
+            saldo_qty += entry_qty # resta del saldo
+            saldo_total += entry_total
+            if saldo_qty != 0:
+                saldo_unit = (saldo_total / saldo_qty).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+            
+            # Se resta de compras para el cuadro resumen
+            purchase_units += entry_qty
+            purchase_valorized += entry_total
+
+        elif is_nc_sale:
+            exit_qty = -qty
+            exit_total = -price_total
+            exit_unit = price_unit
+            
+            saldo_qty -= exit_qty # suma al saldo
+            saldo_total -= exit_total
+            if saldo_qty != 0:
+                saldo_unit = (saldo_total / saldo_qty).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+
+        elif k.operation == 'E':
+            entry_qty = qty
+            entry_unit = price_unit
+            entry_total = price_total
+            
+            saldo_qty += entry_qty
+            saldo_total += entry_total
+            if saldo_qty != 0:
+                saldo_unit = (saldo_total / saldo_qty).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
+
+            if k.type_document in ['01', '03']:
+                purchase_units += entry_qty
+                purchase_valorized += entry_total
+
+        elif k.operation == 'S':
+            exit_qty = qty
+            exit_unit = saldo_unit # Costo promedio anterior
+            exit_total = exit_qty * exit_unit
+            
+            saldo_qty -= exit_qty
+            saldo_total -= exit_total
+
         serial = ''
         number = ''
-
         if k.bill_detail and k.bill_detail.bill:
             serial = k.bill_detail.bill.serial
             number = k.bill_detail.bill.correlative
@@ -4950,109 +5258,52 @@ def kardex_list(request):
             serial = k.order_detail.order.serial
             number = k.order_detail.order.correlative
         elif k.credit_note_detail and k.credit_note_detail.credit_note:
-            nro_document = k.credit_note_detail.credit_note.nro_document
-            if '-' in nro_document:
-                serial, number = nro_document.split('-', 1)
-            else:
-                number = nro_document
-
-        qty = k.quantity or Decimal("0")
-
-        # Valores a mostrar por fila
-        entry_qty = Decimal("0")
-        entry_unit = Decimal("0")
-        entry_total = Decimal("0")
-
-        exit_qty = Decimal("0")
-        exit_unit = Decimal("0")
-        exit_total = Decimal("0")
-
-        if k.operation == 'E':
-            # ENTRADA: usa el costo del movimiento
-            entry_qty = qty
-            entry_total = k.price_total if k.price_total is not None else (qty * (k.price_unit or Decimal("0")))
-            entry_unit = (entry_total / entry_qty) if entry_qty != 0 else Decimal("0")
-
-            saldo_qty += entry_qty
-            saldo_total += entry_total
-
-            # Recalcular promedio SOLO en entrada
-            saldo_unit = (saldo_total / saldo_qty) if saldo_qty != 0 else Decimal("0")
-
-            sum_quantities_entries += entry_qty
-            sum_total_cost_entries += entry_total
-            purchase_units += entry_qty
-            purchase_valorized += entry_total
-
-            # Para tu grilla (manteniendo tus keys)
-            unit_cost_to_show = entry_unit
-            total_cost_to_show = entry_total
-
-        elif k.operation == 'S':
-            # SALIDA: se valoriza con el promedio vigente (antes de mover)
-            exit_qty = qty
-            exit_unit = saldo_unit
-            exit_total = exit_qty * exit_unit
-
-            saldo_qty -= exit_qty
-            saldo_total -= exit_total
-            # NO recalcular promedio aquí
-
-            sum_quantities_exits += exit_qty
-            sum_total_cost_exits += exit_total
-
-            unit_cost_to_show = exit_unit
-            total_cost_to_show = exit_total
-
-        else:
-            # si aparece otra operación inesperada, no rompe
-            unit_cost_to_show = k.price_unit or Decimal("0")
-            total_cost_to_show = k.price_total or Decimal("0")
+            serial = k.credit_note_detail.credit_note.credit_note_serial
+            number = k.credit_note_detail.credit_note.credit_note_number
 
         item = {
             'id': k.id,
-            'product_store': k.product_store.id if k.product_store_id else None,
             'operation': k.operation,
-            'period': k.create_at.strftime("%Y-%m"),
-            'date': k.create_at.strftime("%d/%m/%Y"),
+            'period': k.create_at.strftime("%Y-%m") if k.create_at else "",
+            'date': k.create_at.strftime("%d/%m/%Y") if k.create_at else "",
             'type_document': k.type_document,
             'serial': serial,
             'number': str(number).zfill(7) if number != '' else '',
             'type_operation': k.type_operation,
-            'quantity': q2(qty),
-            'unit_cost': q4(unit_cost_to_show),
-            'total_cost': total_cost_to_show,
+            'entry_qty': q2(entry_qty),
+            'entry_unit': q4(entry_unit),
+            'entry_total': entry_total,
+            'exit_qty': q2(exit_qty),
+            'exit_unit': q4(exit_unit),
+            'exit_total': exit_total,
             'remaining_quantity': q2(saldo_qty),
             'remaining_price': q4(saldo_unit),
             'remaining_price_total': saldo_total,
         }
         kardex_dict.append(item)
-
-    # Resumen tipo costo de ventas
-    initial_units = initial.remaining_quantity if initial else Decimal("0")
-    initial_valorized = initial.remaining_price_total if initial else Decimal("0")
-
-    final_units = saldo_qty
-    final_valorized = saldo_total
-
-    cost_sales_units = initial_units + purchase_units - final_units
-    cost_sales_valorized = initial_valorized + purchase_valorized - final_valorized
+        
+        sum_quantities_entries += entry_qty
+        sum_total_cost_entries += entry_total
+        sum_quantities_exits += exit_qty
+        sum_total_cost_exits += exit_total
+        
+        sum_saldo_qty += saldo_qty
+        sum_saldo_unit += saldo_unit
+        sum_saldo_total += saldo_total
 
     summary = {
         'initial_units': initial_units,
         'initial_valorized': initial_valorized,
         'purchase_units': purchase_units,
         'purchase_valorized': purchase_valorized,
-        'final_units': final_units,
-        'final_valorized': final_valorized,
-        'cost_sales_units': cost_sales_units,
-        'cost_sales_valorized': cost_sales_valorized
+        'final_units': saldo_qty,
+        'final_valorized': saldo_total,
+        'cost_sales_units': initial_units + purchase_units - saldo_qty,
+        'cost_sales_valorized': initial_valorized + purchase_valorized - saldo_total
     }
 
     tpl = loader.get_template('sales/new_kardex_grid_list.html')
-
-    final_remaining_price = kardex_dict[-1]['remaining_price'] if kardex_dict else 0
-
+    
     context = {
         'product_id': product_id,
         'kardex_dict': kardex_dict,
@@ -5060,9 +5311,9 @@ def kardex_list(request):
         'sum_total_cost_entries': sum_total_cost_entries,
         'sum_quantities_exits': sum_quantities_exits,
         'sum_total_cost_exits': sum_total_cost_exits,
-        'final_remaining_quantity' : q2(saldo_qty),
-        'final_remaining_price': final_remaining_price,
-        'final_remaining_total' : saldo_total,
+        'sum_saldo_qty': sum_saldo_qty,
+        'sum_saldo_unit': sum_saldo_unit,
+        'sum_saldo_total': sum_saldo_total,
         'summary': summary
     }
 
@@ -5852,15 +6103,12 @@ def get_order_by_correlative(request):
             order_detail_set = OrderDetail.objects.filter(order=order_obj)
             detail = []
             for d in order_detail_set:
-                product_store_obj = None
+                product_store_obj = d.product_store  # Use the product_store from OrderDetail
                 quantity_minimum_unit = calculate_minimum_unit(d.quantity_sold, d.unit, d.product)
                 stock = 0
                 product_store_id = None
-                product_store_set = ProductStore.objects.filter(product=d.product,
-                                                                subsidiary_store=d.order.subsidiary_store)
 
-                if product_store_set.exists():
-                    product_store_obj = product_store_set.last()
+                if product_store_obj:
                     product_store_id = product_store_obj.id
                     stock = product_store_obj.stock
 

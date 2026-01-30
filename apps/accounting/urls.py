@@ -81,4 +81,5 @@ urlpatterns = [
     path('create_credit_note_ajax/', login_required(create_credit_note_ajax), name='create_credit_note_ajax'),
     path('search_bill_ajax/', login_required(search_bill_ajax), name='search_bill_ajax'),
     path('get_bill_details_ajax/', login_required(get_bill_details_ajax), name='get_bill_details_ajax'),
+    path('get_credit_note_details_ajax/', login_required(get_credit_note_details_ajax), name='get_credit_note_details_ajax'),
 ]

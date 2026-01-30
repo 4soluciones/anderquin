@@ -354,6 +354,7 @@
             let quantity = parseFloat(tr.find('td.quantity-sales-price input.quantity-select').val());
             let stock = parseFloat(tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text());
             let store_id = tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary').attr('store_id');
+            let sub_store_id = tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary').attr('sub_store');
             let tr_table_stock = tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary');
             let batch_id = tr_table_stock.find('td.item-batch input.batch-id').val();
             let batch_number = tr_table_stock.find('td.item-batch input.number-batch').val();
@@ -387,7 +388,7 @@
             let quantity_minimum_calculate = quantity_minim * quantity
             //console.log("quantity_minimum_calculate", quantity_minimum_calculate)
             if (_flag_stock === true) {
-                addDetail(unit_id, product_id, quantity, price, name_unit, unescape(name_product), store_id, quantity_minim, product_brand, batch_id, batch_number);
+                addDetail(unit_id, product_id, quantity, price, name_unit, unescape(name_product), store_id, quantity_minim, product_brand, batch_id, batch_number, sub_store_id);
                 //tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text((stock - quantity * quantity_minim).toFixed(2));
                 tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock div.row').each(function () {
                     let current_stock = $(this).find('span.current-stock').text();
@@ -402,7 +403,7 @@
         });
 
 
-        function addDetail(a, b, c, d, e, f, g, h, i, batch_id, batch_number) {
+        function addDetail(a, b, c, d, e, f, g, h, i, batch_id, batch_number, sub_store_id) {
 
             let _unit_id = a
             let _product_id = b
@@ -418,7 +419,7 @@
             //console.log(_price.toFixed(2))
 
             $('#sales-details').append(
-                '<tr  guide_detail_id="' + '' + '" detail_id="' + 'NaN' + '" product="' + _product_id + '" store_p="' + _product_store + '" pu="' + _unit_id + '" batch="' + batch_id + '" class="text-uppercase small text-center" style="font-size: 14px;">' +
+                '<tr  guide_detail_id="' + '' + '" detail_id="' + 'NaN' + '" product="' + _product_id + '" store_p="' + _product_store + '" pu="' + _unit_id + '" batch="' + batch_id + '" sub_store="' + sub_store_id + '" class="text-uppercase small text-center" style="font-size: 14px;">' +
                 '<td class="align-middle">' + '</td>' +
                 '<td class="align-middle text-left item-product">' + '<input type="text" class="form-control form-control-sm input-product-name" value="' + _product_name + '">' + '</td>' +
                 '<td class="align-middle item-quantity">' + '<input type="text" class="form-control form-control-sm text-right input-quantity" disabled value="' + _quantity.toFixed(2) + '">' + '</td>' +
@@ -914,7 +915,8 @@
                     price: parseFloat($(this).find("td.item-price input.input-price").val()).toFixed(2),
                     detailTotal: parseFloat($(this).find("td.item-total input.input-total-detail").val()).toFixed(2),
                     store: $(this).attr("store_p"),
-                    batch: $(this).attr("batch")
+                    batch: $(this).attr("batch"),
+                    subStore: $(this).attr("sub_store"),
                 };
                 detailOrder.push(detailObj);
             });

@@ -1,0 +1,177 @@
+<div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content border-0 shadow-lg">
+        <div class="modal-header" style="background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%); border-bottom: none;">
+            <h4 class="modal-title text-white font-weight-bold">
+                <i class="fas fa-file-invoice mr-2"></i> DETALLE DE NOTA DE CRÉDITO
+            </h4>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        
+        <div class="modal-body p-0">
+            <!-- Header Information -->
+            <div class="bg-light p-4 border-bottom">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="text-primary font-weight-bold mb-3">
+                            <i class="fas fa-info-circle mr-2"></i> Información General
+                        </h5>
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <td class="text-muted font-weight-bold" style="width: 40%;">Serie-Número:</td>
+                                <td><span class="badge badge-info p-2">{{ credit_note.credit_note_serial }}-{{ credit_note.credit_note_number }}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted font-weight-bold">Fecha de Emisión:</td>
+                                <td class="font-weight-bold">{{ credit_note.issue_date|date:"d/m/Y" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted font-weight-bold">Estado:</td>
+                                <td>
+                                    {% if credit_note.status == 'E' %}
+                                        <span class="badge badge-success px-3">EMITIDA</span>
+                                    {% elif credit_note.status == 'P' %}
+                                        <span class="badge badge-warning px-3">PENDIENTE</span>
+                                    {% else %}
+                                        <span class="badge badge-danger px-3">ANULADA</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="text-primary font-weight-bold mb-3">
+                            <i class="fas fa-receipt mr-2"></i> Orden de Referencia
+                        </h5>
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <td class="text-muted font-weight-bold" style="width: 40%;">Orden:</td>
+                                <td><span class="badge badge-light border p-2">{{ credit_note.order.serial }}-{{ credit_note.order.correlative }}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted font-weight-bold">Cliente:</td>
+                                <td class="font-weight-bold">{{ credit_note.order.client.names }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted font-weight-bold">Fecha Orden:</td>
+                                <td>{{ credit_note.order.create_at|date:"d/m/Y" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if credit_note.motive %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="alert alert-info mb-0 border-0 shadow-sm">
+                            <strong><i class="fas fa-comment-dots mr-2"></i> Motivo de Devolución:</strong>
+                            <p class="mb-0 mt-2">{{ credit_note.motive }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Products Detail -->
+            <div class="p-4">
+                <h5 class="text-primary font-weight-bold mb-3">
+                    <i class="fas fa-boxes mr-2"></i> Productos Devueltos
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="bg-light text-muted small text-uppercase font-weight-bold">
+                            <tr>
+                                <th class="px-3" style="width: 5%;">#</th>
+                                <th style="width: 40%;">Producto</th>
+                                <th class="text-center" style="width: 15%;">Unidad</th>
+                                <th class="text-center" style="width: 15%;">Cantidad</th>
+                                <th class="text-right" style="width: 15%;">Precio Unit.</th>
+                                <th class="text-right px-3" style="width: 15%;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detail in details %}
+                            <tr>
+                                <td class="px-3 align-middle text-muted">{{ forloop.counter }}</td>
+                                <td class="align-middle">
+                                    <div class="font-weight-bold text-dark">{{ detail.product.name }}</div>
+                                    {% if detail.description and detail.description != detail.product.name %}
+                                        <small class="text-muted">{{ detail.description }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="badge badge-secondary">{{ detail.unit.name }}</span>
+                                </td>
+                                <td class="align-middle text-center font-weight-bold">
+                                    {{ detail.quantity|floatformat:2 }}
+                                </td>
+                                <td class="align-middle text-right">
+                                    S/ {{ detail.price_unit|floatformat:2 }}
+                                </td>
+                                <td class="align-middle text-right px-3 font-weight-bold text-primary">
+                                    S/ {{ detail.total|floatformat:2 }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                    No hay detalles registrados
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Totals -->
+            <div class="bg-light p-4 border-top">
+                <div class="row justify-content-end">
+                    <div class="col-md-5">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted font-weight-bold">SUBTOTAL:</span>
+                            <span class="font-weight-bold">S/ {{ subtotal|floatformat:2 }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted font-weight-bold">IGV (18%):</span>
+                            <span class="font-weight-bold">S/ {{ igv|floatformat:2 }}</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-dark h5 font-weight-bold mb-0">TOTAL NC:</span>
+                            <span class="text-info h4 font-weight-bold mb-0">S/ {{ total|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer bg-white border-top">
+            <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">
+                <i class="fas fa-times mr-2"></i> Cerrar
+            </button>
+            <button type="button" class="btn btn-primary px-4" onclick="printCreditNote({{ credit_note.id }})">
+                <i class="fas fa-print mr-2"></i> Imprimir
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-borderless td {
+        padding: 0.5rem 0;
+    }
+    .modal-body .table thead th {
+        border-top: none;
+        border-bottom: 2px solid #dee2e6;
+    }
+</style>
+
+<script>
+    function printCreditNote(creditNoteId) {
+        // Implement print functionality
+        toastr.info('Función de impresión en desarrollo', 'Información');
+    }
+</script>

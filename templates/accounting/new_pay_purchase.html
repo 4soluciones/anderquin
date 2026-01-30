@@ -206,16 +206,14 @@
                     <div class="row m-1 mt-2 text-uppercase">
                         <div class="col-md-3 p-1 border">
                             <div class="row">
-                                <label class="font-weight-bold col-8">Nº Nota Credito:</label>
-                                <div class="form-check col-4 text-right">
-                                    <input type="checkbox" class="form-check-input" id="check_search_credit">
-                                    <label class="form-check-label" for="check_search_credit" style="font-size: 0.8em">Buscar
-                                        N/C:</label>
+                                <label class="font-weight-bold col-12">Doc. NC (Serie y Número):</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control text-uppercase" id="credit-serial" name="credit-serial" placeholder="F001" style="max-width: 60px;">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">-</span>
+                                    </div>
+                                    <input type="text" class="form-control text-uppercase" id="credit-number" name="credit-number" placeholder="00000001">
                                 </div>
-                            </div>
-                            <input type="text" autocomplete="off" aria-label=""
-                                   class="form-control text-uppercase" name="credit-note-number" id="credit-note-number"
-                                   placeholder="Nº de nota de credito" maxlength="200">
                             <select id="credit_search" name="credit-search" aria-label="..."
                                     class="form-control d-none">
                                 <option disabled selected value="0">Seleccione N/C</option>
@@ -341,7 +339,7 @@
         {% for c in credit_note_pending_set %}
             {
                 'id': '{{ c.id }}',
-                'nro_document': '{{ c.nro_document }}',
+                'nro_document': '{{ c.credit_note_serial }}-{{ c.credit_note_number }}',
                 'issue_date': '{{ c.issue_date|date:'Y-m-d' }}',
                 'motive': '{{ c.motive }}',
                 'details': [
@@ -401,7 +399,8 @@
             }
         } else if (payment_method === 'C') {
             // Validar campos requeridos para nota de crédito
-            let credit_note_number = $('#credit-note-number').val();
+            let credit_serial = $('#credit-serial').val();
+            let credit_number = $('#credit-number').val();
             let credit_note_date = $('#credit-note-date').val();
             let credit_note_motive = $('#credit_note_motive').val();
             let credit_code = $('#credit-code').val();
@@ -419,8 +418,8 @@
                 toastr.warning('El monto a pagar no puede ser mayor al saldo restante', 'Mensaje');
                 return false
             }
-            if (credit_note_number === '') {
-                toastr.warning('Ingrese el número de nota de crédito', 'Mensaje');
+            if (credit_serial === '' || credit_number === '') {
+                toastr.warning('Ingrese la serie y el número de nota de crédito', 'Mensaje');
                 return false
             }
             if (credit_note_date === '') {
@@ -523,7 +522,9 @@
             $('#credit-note-number').addClass('d-none');
         } else {
             $('#credit_search').addClass('d-none');
-            $('#credit-note-number').removeClass('d-none');
+            $('#credit-serial').removeClass('d-none');
+            $('#credit-number').removeClass('d-none');
+            $('.input-group-text').closest('.input-group').removeClass('d-none');
             $('#credit_search').val('0');
             let today = new Date();
             let year = today.getFullYear();

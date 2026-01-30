@@ -435,8 +435,8 @@ class Order(models.Model):
     order_type = models.CharField('Tipo de Orden', max_length=1, choices=ORDER_TYPE_CHOICES, default='V')
     sale_type = models.CharField('Tipo de Venta', max_length=2, choices=SALE_TYPE_CHOICES, default='VC')
     type_document = models.CharField('Tipo Documento', max_length=1, choices=TYPE_DOCUMENT, default='T')
-    subsidiary_store = models.ForeignKey('SubsidiaryStore', verbose_name='Almacen Sucursal', on_delete=models.SET_NULL,
-                                         null=True, blank=True)
+    # subsidiary_store = models.ForeignKey('SubsidiaryStore', verbose_name='Almacen Sucursal', on_delete=models.SET_NULL,
+    #                                      null=True, blank=True)
     client = models.ForeignKey('Client', verbose_name='Cliente', on_delete=models.SET_NULL, null=True, blank=True)
     user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P')
@@ -507,6 +507,7 @@ class OrderDetail(models.Model):
     unit = models.ForeignKey('Unit', on_delete=models.CASCADE)
     commentary = models.CharField(max_length=200, null=True, blank=True)
     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='V')
+    product_store = models.ForeignKey('ProductStore', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return str(self.pk)
@@ -556,6 +557,7 @@ class Kardex(models.Model):
     bill_detail = models.ForeignKey('accounting.BillDetail', on_delete=models.SET_NULL, null=True, blank=True)
     credit_note_detail = models.ForeignKey('buys.CreditNoteDetail', on_delete=models.SET_NULL, null=True, blank=True)
     picking_detail = models.ForeignKey('comercial.PickingDetail', on_delete=models.SET_NULL, null=True, blank=True)
+    credit_note_order_detail = models.ForeignKey('CreditNoteOrderDetail', on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name = 'Registro de Kardex'
@@ -657,3 +659,38 @@ class PaymentFees(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+
+class CreditNoteOrder(models.Model):
+    STATUS_CHOICES = (('E', 'EMITIDA'), ('P', 'PENDIENTE'), ('A', 'ANULADA'),)
+    id = models.AutoField(primary_key=True)
+    credit_note_serial = models.CharField('Serie de documento', max_length=200, null=True, blank=True)
+    credit_note_number = models.CharField('Numero de documento', max_length=200, null=True, blank=True)
+    issue_date = models.DateField('Fecha de Emision', null=True, blank=True)
+    order = models.ForeignKey('Order', on_delete=models.CASCADE, null=True, blank=True)
+    motive = models.TextField('Motive', blank=True, null=True)
+    status = models.CharField('Tipo de moneda', max_length=1, choices=STATUS_CHOICES, default='P')
+
+    def __str__(self):
+        return f"{self.credit_note_serial}-{self.credit_note_number}"
+
+    def get_total(self):
+        return sum(item.total for item in self.creditnoteorderdetail_set.all())
+
+
+class CreditNoteOrderDetail(models.Model):
+    id = models.AutoField(primary_key=True)
+    code = models.CharField('Codigo', max_length=50, null=True, blank=True)
+    description = models.CharField('Description', max_length=200, null=True, blank=True)
+    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
+    price_unit = models.DecimalField('Precio unitario', max_digits=30, decimal_places=6, default=0)
+    credit_note_order = models.ForeignKey(CreditNoteOrder, on_delete=models.CASCADE, null=True, blank=True)
+    total = models.DecimalField('Total', max_digits=30, decimal_places=6, default=0)
+
+    def __str__(self):
+        return str(self.id)
+
+    def multiply(self):
+        return self.quantity * self.price_unit

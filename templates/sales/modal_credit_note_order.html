@@ -1,0 +1,369 @@
+<div class="modal-dialog modal-xl roboto-condensed-regular" role="document">
+    <div class="modal-content shadow-lg border-0">
+        <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-bottom: none;">
+            <h4 class="modal-title text-white font-weight-bold">
+                <i class="fas fa-file-invoice-dollar mr-2"></i> REGISTRAR NOTA DE CRÉDITO DE VENTA
+            </h4>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        
+        <div class="modal-body p-4 bg-light">
+            <form id="form-credit-note-order">
+                <div class="row">
+                    <!-- Columna Izquierda: Búsqueda y Datos Generales -->
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+                            <div class="card-body">
+                                <h6 class="text-primary font-weight-bold mb-3"><i class="fas fa-search mr-2"></i> BUSCAR VENTA</h6>
+                                <div class="form-group">
+                                    <label class="small font-weight-bold text-muted">Seleccionar Factura/Boleta:</label>
+                                    <select class="form-control select2-modal" id="order-search-modal" name="order_id" style="width: 100%;">
+                                        {% if order_obj %}
+                                            <option value="{{ order_obj.id }}" selected>{{ order_obj.serial }}-{{ order_obj.correlative }} ({{ order_obj.client.names }})</option>
+                                        {% else %}
+                                            <option value="">Buscar por Serie-Correlativo...</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="small font-weight-bold text-muted">Cliente:</label>
+                                    <input type="text" class="form-control bg-white border-0 shadow-none font-weight-bold" id="client-name-modal" readonly value="{{ order_obj.client.names|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+                            <div class="card-body">
+                                <h6 class="text-primary font-weight-bold mb-3"><i class="fas fa-info-circle mr-2"></i> DATOS DE LA NOTA</h6>
+                                <div class="form-group">
+                                    <label class="small font-weight-bold text-muted">Serie y Número:</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control text-uppercase" id="serial-modal" name="credit_note_serial" placeholder="F001" maxlength="4" required>
+                                        <div class="input-group-append"><span class="input-group-text">-</span></div>
+                                        <input type="text" class="form-control" id="number-modal" name="credit_note_number" placeholder="0001" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="small font-weight-bold text-muted">Fecha de Emisión:</label>
+                                    <input type="date" class="form-control" id="issue-date-modal" name="issue_date" value="{{ date }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="small font-weight-bold text-muted">Motivo de Devolución:</label>
+                                    <textarea class="form-control" id="motive-modal" name="motive" rows="3" placeholder="Describa el motivo..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Detalle de Productos -->
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+                            <div class="card-header bg-white py-3 border-0">
+                                <h6 class="m-0 text-primary font-weight-bold"><i class="fas fa-list mr-2"></i> DETALLE DE DEVOLUCIÓN</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                                    <table class="table table-hover mb-0" id="table-details-modal">
+                                        <thead class="bg-light text-muted small text-uppercase font-weight-bold">
+                                            <tr>
+                                                <th class="px-3" style="width: 40%">Producto</th>
+                                                <th style="width: 15%">Und.</th>
+                                                <th class="text-center" style="width: 15%">Cant.</th>
+                                                <th class="text-right" style="width: 15%">Precio</th>
+                                                <th class="text-right px-3" style="width: 15%">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="details-tbody-modal">
+                                            {% if order_detail_set %}
+                                                {% for d in order_detail_set %}
+                                                <tr data-order-detail-id="{{ d.id }}" data-product-id="{{ d.product.id }}" data-unit-id="{{ d.unit.id }}" data-current-factor="{{ d.quantity_sold|default:1 }}">
+                                                    <td class="px-3 align-middle">
+                                                        <span class="font-weight-bold text-dark d-block">{{ d.product.name }}</span>
+                                                        <small class="text-muted">Original: {{ d.quantity_sold }} {{ d.unit.name }}</small>
+                                                    </td>
+                                                    <td class="align-middle">
+                                                        <select class="form-control form-control-sm row-unit-modal">
+                                                            <option value="{{ d.unit.id }}" data-factor="1" selected>{{ d.unit.name }}</option>
+                                                        </select>
+                                                    </td>
+                                                    <td class="align-middle">
+                                                        <input type="number" step="0.01" class="form-control form-control-sm text-center row-quantity-modal" value="{{ d.quantity_sold }}" max="{{ d.quantity_sold }}">
+                                                    </td>
+                                                    <td class="align-middle text-right">
+                                                        <input type="text" class="form-control form-control-sm text-right border-0 bg-transparent row-price-modal" value="{{ d.price_unit }}" readonly>
+                                                    </td>
+                                                    <td class="align-middle text-right px-3 font-weight-bold text-primary row-total-modal">
+                                                        {{ d.multiply }}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="5" class="text-center py-5 text-muted italic">
+                                                        <i class="fas fa-info-circle mr-2"></i> Seleccione una venta para cargar los productos
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white py-4 border-0">
+                                <div class="row justify-content-end">
+                                    <div class="col-md-5">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted font-weight-bold">SUBTOTAL:</span>
+                                            <span class="font-weight-bold" id="subtotal-modal">S/ 0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted font-weight-bold">IGV (18%):</span>
+                                            <span class="font-weight-bold" id="igv-modal">S/ 0.00</span>
+                                        </div>
+                                        <hr>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-dark h5 font-weight-bold mb-0">TOTAL NC:</span>
+                                            <span class="text-primary h5 font-weight-bold mb-0" id="grand-total-modal">S/ 0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer p-3 bg-light border-top">
+            <button type="button" class="btn btn-outline-secondary px-4 font-weight-bold" data-dismiss="modal">
+                <i class="fas fa-times mr-2"></i>CANCELAR
+            </button>
+            <button type="button" class="btn btn-primary px-4 font-weight-bold shadow-sm" id="btn-save-credit-note-order" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                <i class="fas fa-save mr-2"></i>EMITIR NOTA DE CRÉDITO
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .select2-container--bootstrap4 .select2-selection {
+        border-radius: 8px !important;
+        border: 1px solid #ced4da !important;
+    }
+    .form-control {
+        border-radius: 8px;
+    }
+    .card {
+        transition: all 0.2s ease;
+    }
+    .row-quantity-modal:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.1rem rgba(102, 126, 234, 0.25);
+    }
+</style>
+
+<script>
+    (function() {
+        $(document).ready(function() {
+            initOrderSearch();
+            calculateGrandTotal();
+        });
+
+        function initOrderSearch() {
+            $('#order-search-modal').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $('#modal-credit-note-order'),
+                ajax: {
+                    url: '{% url "sales:search_order_for_credit_note" %}',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return { query: params.term };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.orders.map(o => ({
+                                id: o.id,
+                                text: `${o.serial}-${o.correlative} (${o.client_name}) - S/ ${o.total.toFixed(2)}`
+                            }))
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 2,
+                placeholder: 'Serie-Número o Cliente...',
+                allowClear: true
+            }).on('select2:select', function(e) {
+                loadOrderDetails(e.params.data.id);
+            });
+        }
+
+        function loadOrderDetails(orderId) {
+            $('#details-tbody-modal').html('<tr><td colspan="5" class="text-center py-5"><i class="fas fa-spinner fa-spin mr-2"></i> Cargando productos...</td></tr>');
+            
+            $.ajax({
+                url: '{% url "sales:get_order_details_ajax" %}',
+                data: { order_id: orderId },
+                success: function(resp) {
+                    if (resp.success) {
+                        $('#client-name-modal').val(resp.client_name);
+                        renderDetailsRows(resp.details);
+                    } else {
+                        toastr.error(resp.message || 'Error al cargar detalles');
+                    }
+                }
+            });
+        }
+
+        function renderDetailsRows(details) {
+            let html = '';
+            details.forEach(d => {
+                let unitOptions = '';
+                d.units.forEach(u => {
+                    unitOptions += `<option value="${u.id}" data-factor="${u.factor}" ${u.id == d.unit_id ? 'selected' : ''}>${u.name}</option>`;
+                });
+
+                html += `
+                    <tr data-order-detail-id="${d.id}" data-product-id="${d.product_id}" data-unit-id="${d.unit_id}" data-current-factor="${d.current_factor}">
+                        <td class="px-3 align-middle">
+                            <span class="font-weight-bold text-dark d-block">${d.product_name}</span>
+                            <small class="text-muted">Original: ${d.quantity} ${d.unit_name}</small>
+                        </td>
+                        <td class="align-middle">
+                            <select class="form-control form-control-sm row-unit-modal">
+                                ${unitOptions}
+                            </select>
+                        </td>
+                        <td class="align-middle">
+                            <input type="number" step="0.01" class="form-control form-control-sm text-center row-quantity-modal" value="${d.quantity}" max="${d.quantity}">
+                        </td>
+                        <td class="align-middle text-right">
+                            <input type="text" class="form-control form-control-sm text-right border-0 bg-transparent row-price-modal" value="${d.price_unit.toFixed(4)}" readonly>
+                        </td>
+                        <td class="align-middle text-right px-3 font-weight-bold text-primary row-total-modal">
+                            ${d.total.toFixed(2)}
+                        </td>
+                    </tr>
+                `;
+            });
+            $('#details-tbody-modal').html(html);
+            calculateGrandTotal();
+        }
+
+        // Logic for unit change (Conversion)
+        $(document).on('change', '.row-unit-modal', function() {
+            let row = $(this).closest('tr');
+            let selectedOption = $(this).find('option:selected');
+            
+            let oldFactor = parseFloat(row.attr('data-current-factor')) || 1;
+            let newFactor = parseFloat(selectedOption.attr('data-factor')) || 1;
+            
+            let oldQuantity = parseFloat(row.find('.row-quantity-modal').val()) || 0;
+            let oldPrice = parseFloat(row.find('.row-price-modal').val()) || 0;
+
+            // Conversion logic (same as accounting)
+            let newQuantity = oldQuantity * (oldFactor / newFactor);
+            let newPrice = oldPrice * (newFactor / oldFactor);
+
+            row.find('.row-quantity-modal').val(newQuantity.toFixed(2));
+            row.find('.row-price-modal').val(newPrice.toFixed(4));
+            
+            row.attr('data-current-factor', newFactor);
+            row.attr('data-unit-id', $(this).val());
+
+            updateRowTotal(row);
+        });
+
+        $(document).on('input', '.row-quantity-modal', function() {
+            updateRowTotal($(this).closest('tr'));
+        });
+
+        function updateRowTotal(row) {
+            let quantity = parseFloat(row.find('.row-quantity-modal').val()) || 0;
+            let price = parseFloat(row.find('.row-price-modal').val()) || 0;
+            let total = quantity * price;
+            row.find('.row-total-modal').text(total.toFixed(2));
+            calculateGrandTotal();
+        }
+
+        function calculateGrandTotal() {
+            let grandTotal = 0;
+            $('.row-total-modal').each(function() {
+                grandTotal += parseFloat($(this).text()) || 0;
+            });
+
+            let subtotal = grandTotal / 1.18;
+            let igv = grandTotal - subtotal;
+
+            $('#subtotal-modal').text('S/ ' + subtotal.toFixed(2));
+            $('#igv-modal').text('S/ ' + igv.toFixed(2));
+            $('#grand-total-modal').text('S/ ' + grandTotal.toFixed(2));
+        }
+
+        $('#btn-save-credit-note-order').click(function() {
+            let orderId = $('#order-search-modal').val();
+            let serial = $('#serial-modal').val();
+            let number = $('#number-modal').val();
+            let issueDate = $('#issue-date-modal').val();
+            let motive = $('#motive-modal').val();
+
+            if (!orderId || !serial || !number || !issueDate) {
+                toastr.warning('Por favor complete todos los datos obligatorios', 'Validación');
+                return;
+            }
+
+            let details = [];
+            $('#details-tbody-modal tr').each(function() {
+                let row = $(this);
+                if (row.attr('data-order-detail-id')) {
+                    details.push({
+                        order_detail_id: row.attr('data-order-detail-id'),
+                        product_id: row.attr('data-product-id'),
+                        unit_id: row.find('.row-unit-modal').val(),
+                        quantity: row.find('.row-quantity-modal').val(),
+                        price_unit: row.find('.row-price-modal').val(),
+                        total: row.find('.row-total-modal').text()
+                    });
+                }
+            });
+
+            if (details.length === 0) {
+                toastr.warning('No hay productos seleccionados', 'Validación');
+                return;
+            }
+
+            let data = {
+                order_id: orderId,
+                credit_note_serial: serial,
+                credit_note_number: number,
+                issue_date: issueDate,
+                motive: motive,
+                details: JSON.stringify(details)
+            };
+
+            $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i> PROCESANDO...');
+
+            $.ajax({
+                url: '{% url "sales:save_credit_note_order" %}',
+                type: 'POST',
+                data: data,
+                success: function(resp) {
+                    if (resp.success) {
+                        toastr.success(resp.message);
+                        $('#modal-credit-note-order').modal('hide');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        toastr.error(resp.message);
+                        $('#btn-save-credit-note-order').prop('disabled', false).html('<i class="fas fa-save mr-2"></i> EMITIR NOTA DE CRÉDITO');
+                    }
+                },
+                error: function() {
+                    toastr.error('Error al guardar la nota de crédito');
+                    $('#btn-save-credit-note-order').prop('disabled', false).html('<i class="fas fa-save mr-2"></i> EMITIR NOTA DE CRÉDITO');
+                }
+            });
+        });
+
+    })();
+</script>

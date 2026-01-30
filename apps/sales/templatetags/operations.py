@@ -105,6 +105,16 @@ def replace_round_separator_us(value):
     return value
 
 
+@register.filter(name='replace_round_separator_us_four')
+def replace_round_separator_us_four(value):
+    if value is not None and value != '':
+        value = float(value)
+        rounded_value = round(value, 4)
+        formatted_value = '{:,.4f}'.format(rounded_value)
+        return formatted_value
+    return value
+
+
 @register.filter
 def divide_stock(stock, qm):
     try:
