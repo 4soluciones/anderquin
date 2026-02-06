@@ -1376,41 +1376,44 @@
             }
         });
 
-        // Autocompletado de clientes
-        new Autocomplete('#autocomplete-client', {
-            search: input => {
-                const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
-                return new Promise(resolve => {
-                    if (input.length < 3) {
-                        return resolve([])
+        // Autocompletado de clientes (solo si el elemento existe)
+        const autocompleteClient = document.querySelector('#autocomplete-client');
+        if (autocompleteClient) {
+            new Autocomplete('#autocomplete-client', {
+                search: input => {
+                    const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
+                    return new Promise(resolve => {
+                        if (input.length < 3) {
+                            return resolve([])
+                        }
+                        fetch(url)
+                            .then(response => response.json())
+                            .then(data => {
+                                resolve(data.results)
+                            })
+                    })
+                },
+                renderResult: (result, props) => {
+                    let group = ''
+                    if (result.index % 3 === 0) {
+                        group = '<li class="group">Group</li>'
                     }
-                    fetch(url)
-                        .then(response => response.json())
-                        .then(data => {
-                            resolve(data.results)
-                        })
-                })
-            },
-            renderResult: (result, props) => {
-                let group = ''
-                if (result.index % 3 === 0) {
-                    group = '<li class="group">Group</li>'
-                }
-                return `
-                ${group}
-                <li ${props}>
-                 <div class="h6" style="font-family: roboto_condensed_regular">
-                    ${result.names}
-                 </div>
-                 <div class="wiki-snippet text-black">
-                    Tipo: ${result.type_client_display}
-                  </div>
-                </li>
-                `
-            },
-            getResultValue: result => result.names,
-            onSubmit: handleClientSubmit
-        })
+                    return `
+                    ${group}
+                    <li ${props}>
+                     <div class="h6" style="font-family: roboto_condensed_regular">
+                        ${result.names}
+                     </div>
+                     <div class="wiki-snippet text-black">
+                        Tipo: ${result.type_client_display}
+                      </div>
+                    </li>
+                    `
+                },
+                getResultValue: result => result.names,
+                onSubmit: handleClientSubmit
+            })
+        }
 
         // Manejo de selección de cliente
         async function handleClientSubmit(result) {
@@ -1446,56 +1449,59 @@
             }
         }
 
-        // Autocompletado de cliente final
-        new Autocomplete('#autocomplete-client-final', {
-            search: input => {
-                const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
-                return new Promise(resolve => {
-                    if (input.length < 3) {
-                        return resolve([])
+        // Autocompletado de cliente final (solo si el elemento existe)
+        const autocompleteClientFinal = document.querySelector('#autocomplete-client-final');
+        if (autocompleteClientFinal) {
+            new Autocomplete('#autocomplete-client-final', {
+                search: input => {
+                    const url = `/buys/get_client/?search=${encodeURI(input.toUpperCase())}`
+                    return new Promise(resolve => {
+                        if (input.length < 3) {
+                            return resolve([])
+                        }
+                        fetch(url)
+                            .then(response => response.json())
+                            .then(data => {
+                                resolve(data.results)
+                            })
+                    })
+                },
+                renderResult: (result, props) => {
+                    let group = ''
+                    if (result.index % 3 === 0) {
+                        group = '<li class="group">Group</li>'
                     }
-                    fetch(url)
-                        .then(response => response.json())
-                        .then(data => {
-                            resolve(data.results)
-                        })
-                })
-            },
-            renderResult: (result, props) => {
-                let group = ''
-                if (result.index % 3 === 0) {
-                    group = '<li class="group">Group</li>'
-                }
-                return `
-                ${group}
-                <li ${props}>
-                 <div class="h6" style="font-family: roboto_condensed_regular">
-                    ${result.names}
-                 </div>
-                 <div class="wiki-snippet text-black">
-                    Tipo: ${result.type_client_display}
-                  </div>
-                </li>
-                `
-            },
-            getResultValue: result => result.names,
-            onSubmit: result => {
-                if (result) {
-                    let client_id = result.id;
-                    let _client_address = result.address;
-                    let _select = $('#client_final_address');
-                    $('#client_final').val(client_id);
-                    _select.empty();
-                    _select.append($('<option>').val("0").text('Seleccione'));
-                    if (_client_address !== '[]') {
-                        for (let i = 0; i < _client_address.length; i++) {
-                            let option = $('<option>').val(_client_address[i]['id']).text(_client_address[i]['address'].toUpperCase());
-                            _select.append(option);
+                    return `
+                    ${group}
+                    <li ${props}>
+                     <div class="h6" style="font-family: roboto_condensed_regular">
+                        ${result.names}
+                     </div>
+                     <div class="wiki-snippet text-black">
+                        Tipo: ${result.type_client_display}
+                      </div>
+                    </li>
+                    `
+                },
+                getResultValue: result => result.names,
+                onSubmit: result => {
+                    if (result) {
+                        let client_id = result.id;
+                        let _client_address = result.address;
+                        let _select = $('#client_final_address');
+                        $('#client_final').val(client_id);
+                        _select.empty();
+                        _select.append($('<option>').val("0").text('Seleccione'));
+                        if (_client_address !== '[]') {
+                            for (let i = 0; i < _client_address.length; i++) {
+                                let option = $('<option>').val(_client_address[i]['id']).text(_client_address[i]['address'].toUpperCase());
+                                _select.append(option);
+                            }
                         }
                     }
                 }
-            }
-        })
+            })
+        }
 
         // Inicializar Select2 para clientes en detalles
         function initializeSelect2ClientDetail(selectElement) {
