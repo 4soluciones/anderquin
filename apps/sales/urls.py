@@ -121,6 +121,7 @@ urlpatterns = [
     path('check_stock/', login_required(check_stock), name='check_stock'),
     path('print_order_bill/<int:pk>/', print_order_bill, name='print_order_bill'),
     path('get_correlative/', login_required(get_correlative), name='get_correlative'),
+    path('get_order_store/', login_required(get_order_store), name='get_order_store'),
 
     # SALES GUIDE
     path('sales/<int:guide>/', get_sales_list, name='sales'),

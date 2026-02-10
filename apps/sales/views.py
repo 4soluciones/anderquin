@@ -1251,14 +1251,56 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
             else:
                 type_document = '00'
 
-            kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=detail_obj,
-                         type_document=type_document, type_operation='01')
+            # Manejar múltiples lotes separados por comas
+            batch_id = d.get('batch', '0')
+            if batch_id != '0' and batch_id != '':
+                # Si hay múltiples lotes separados por comas
+                if ',' in str(batch_id):
+                    batch_ids = [bid.strip() for bid in str(batch_id).split(',')]
+                    # Obtener los lotes y sus cantidades desde GuideDetailBatch
+                    guide_detail_id = d.get('guide_detail', '')
+                    if guide_detail_id:
+                        guide_detail_obj = GuideDetail.objects.get(id=guide_detail_id)
+                        batch_details = guide_detail_obj.batch_details.all()
+                        
+                        # Usar la nueva función para múltiples lotes
+                        kardex_ouput_multi_batch(
+                            product_store_obj.id, 
+                            quantity_minimum_unit,
+                            order_detail_obj=detail_obj,
+                            type_document=type_document, 
+                            type_operation='01', 
+                            batch_details=batch_details
+                        )
+                    else:
+                        # Fallback: usar el primer lote disponible
+                        first_batch_id = batch_ids[0]
+                        batch_obj = Batch.objects.get(id=int(first_batch_id))
+                        kardex_ouput(product_store_obj.id, quantity_minimum_unit,
+                                     order_detail_obj=detail_obj, type_document=type_document,
+                                     type_operation='01', batch_obj=batch_obj)
+                else:
+                    # Un solo lote
+                    batch_obj = Batch.objects.get(id=int(batch_id))
+                    kardex_ouput(product_store_obj.id, quantity_minimum_unit,
+                                 order_detail_obj=detail_obj, type_document=type_document,
+                                 type_operation='01', batch_obj=batch_obj)
+            else:
+                # Sin lote específico, usar el lote con menor número
+                min_batch_number = Batch.objects.filter(
+                    product_store=product_store_obj).aggregate(Min('batch_number'))['batch_number__min']
+
+                batch_obj = Batch.objects.filter(product_store=product_store_obj,
+                                                 batch_number=min_batch_number).order_by('id').last()
+
+                kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=detail_obj,
+                             type_document=type_document, type_operation='01', batch_obj=batch_obj)
         else:
-            product_id = int(detail['product'])
-            unit_id = int(detail['unit'])
-            quantity = decimal.Decimal(detail['quantity'])
-            price = decimal.Decimal(detail['price'])
-            store_product_id = int(detail['store'])
+            product_id = int(d['product'])
+            unit_id = int(d['unit'])
+            quantity = decimal.Decimal(d['quantity'])
+            price = decimal.Decimal(d['price'])
+            store_product_id = int(d['store'])
 
             product_obj = Product.objects.get(id=product_id)
             unit_obj = Unit.objects.get(id=unit_id)
@@ -1285,8 +1327,50 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
             else:
                 type_document = '00'
 
-            kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
-                         type_document=type_document, type_operation='01')
+            # Manejar múltiples lotes separados por comas
+            batch_id = d.get('batch', '0')
+            if batch_id != '0' and batch_id != '':
+                # Si hay múltiples lotes separados por comas
+                if ',' in str(batch_id):
+                    batch_ids = [bid.strip() for bid in str(batch_id).split(',')]
+                    # Obtener los lotes y sus cantidades desde GuideDetailBatch
+                    guide_detail_id = d.get('guide_detail', '')
+                    if guide_detail_id:
+                        guide_detail_obj = GuideDetail.objects.get(id=guide_detail_id)
+                        batch_details = guide_detail_obj.batch_details.all()
+                        
+                        # Usar la nueva función para múltiples lotes
+                        kardex_ouput_multi_batch(
+                            product_store_obj.id, 
+                            quantity_minimum_unit,
+                            order_detail_obj=order_detail_obj,
+                            type_document=type_document, 
+                            type_operation='01', 
+                            batch_details=batch_details
+                        )
+                    else:
+                        # Fallback: usar el primer lote disponible
+                        first_batch_id = batch_ids[0]
+                        batch_obj = Batch.objects.get(id=int(first_batch_id))
+                        kardex_ouput(product_store_obj.id, quantity_minimum_unit,
+                                     order_detail_obj=order_detail_obj, type_document=type_document,
+                                     type_operation='01', batch_obj=batch_obj)
+                else:
+                    # Un solo lote
+                    batch_obj = Batch.objects.get(id=int(batch_id))
+                    kardex_ouput(product_store_obj.id, quantity_minimum_unit,
+                                 order_detail_obj=order_detail_obj, type_document=type_document,
+                                 type_operation='01', batch_obj=batch_obj)
+            else:
+                # Sin lote específico, usar el lote con menor número
+                min_batch_number = Batch.objects.filter(
+                    product_store=product_store_obj).aggregate(Min('batch_number'))['batch_number__min']
+
+                batch_obj = Batch.objects.filter(product_store=product_store_obj,
+                                                 batch_number=min_batch_number).order_by('id').last()
+
+                kardex_ouput(product_store_obj.id, quantity_minimum_unit, order_detail_obj=order_detail_obj,
+                             type_document=type_document, type_operation='01', batch_obj=batch_obj)
 
     return order_obj
 
@@ -3931,7 +4015,7 @@ def create_warehouse_sale(request):
             order_type='V',
             status='P',
             sale_type='VA',
-            subsidiary_store=subsidiary_store_obj,
+            # subsidiary_store=subsidiary_store_obj,
             # correlative=get_correlative_order(subsidiary_obj, 'V'),
             subsidiary=subsidiary_obj,
             create_at=create_date,
@@ -3940,6 +4024,8 @@ def create_warehouse_sale(request):
         order_obj.save()
 
         product_obj = Product.objects.get(id=int(product_id))
+        product_store_obj = ProductStore.objects.get(product=product_obj,
+                                                     subsidiary_store=subsidiary_store_obj)
         product_detail = ProductDetail.objects.filter(product=product_obj)
         if unit_principal and quantity_principal != '0' and quantity_principal != '':
             unit_obj = Unit.objects.get(id=int(unit_principal))
@@ -3950,7 +4036,10 @@ def create_warehouse_sale(request):
                 quantity_sold=quantity_principal,
                 unit=unit_obj,
                 price_unit=product_detail_unit_principal.price_sale,
-                status='P'
+                status='P',
+                product_store=product_store_obj,
+                commentary=product_obj.name
+
             )
             detail_principal.save()
         if unit_id and quantity_unit != '0' and quantity_unit != '':
@@ -3962,7 +4051,9 @@ def create_warehouse_sale(request):
                 quantity_sold=quantity_unit,
                 unit=unit_obj,
                 price_unit=product_detail_unit_principal.price_sale,
-                status='P'
+                status='P',
+                product_store=product_store_obj,
+                commentary=product_obj.name
             )
             detail_principal.save()
 
@@ -4001,6 +4092,135 @@ def get_order_by_id(request):
                     'message': 'La Orden ya se encuentra registrada, ',
                     'bill': 'Comprobante ' + str(order_obj.serial) + '-' + str(order_obj.correlative),
                 }, status=HTTPStatus.OK)
+
+
+def get_order_store(request):
+    if request.method == 'GET':
+        order_id = request.GET.get('order_id', '')
+        if not order_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID de orden no proporcionado',
+            }, status=HTTPStatus.BAD_REQUEST)
+        
+        try:
+            user_id = request.user.id
+            user_obj = User.objects.get(id=user_id)
+            subsidiary_obj = get_subsidiary_by_user(user_obj)
+            order_set = Order.objects.filter(id=int(order_id), subsidiary=subsidiary_obj)
+            
+            if not order_set.exists():
+                return JsonResponse({
+                    'success': False,
+                    'message': 'La Orden no existe',
+                }, status=HTTPStatus.OK)
+            
+            order_obj = order_set.first()
+            
+            # Si la orden ya tiene serial, significa que ya está registrada
+            if order_obj.serial is not None and order_obj.serial != '':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'La Orden ya se encuentra registrada, ',
+                    'bill': 'Comprobante ' + str(order_obj.serial) + '-' + str(order_obj.correlative),
+                }, status=HTTPStatus.OK)
+            
+            # Verificar que la orden esté en estado pendiente y sea tipo venta almacén
+            if order_obj.status != 'P' or order_obj.sale_type != 'VA':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'La Orden no está disponible para venta de almacén',
+                }, status=HTTPStatus.OK)
+            
+            # Obtener los detalles de la orden
+            order_detail_set = OrderDetail.objects.filter(order=order_obj).select_related('product', 'unit', 'product_store')
+            detail = []
+            
+            for d in order_detail_set:
+                # Calcular unit_min (cantidad mínima en unidad base)
+                quantity_minimum_unit = calculate_minimum_unit(d.quantity_sold, d.unit, d.product)
+                
+                # Buscar lotes relacionados con esta orden y producto
+                batch_id = None
+                batch_number = ''
+                
+                # Buscar en BillDetailBatch relacionados con la orden y el producto
+                bill_detail_batch = BillDetailBatch.objects.filter(
+                    order=order_obj,
+                    product=d.product
+                ).first()
+                
+                if bill_detail_batch:
+                    batch_number = bill_detail_batch.batch_number or ''
+                    # Si hay un modelo Batch relacionado, obtener su ID
+                    if batch_number:
+                        batch_obj = Batch.objects.filter(batch_number=batch_number).first()
+                        if batch_obj:
+                            batch_id = batch_obj.id
+                
+                new_row = {
+                    'id': d.id,
+                    'product_id': d.product.id,
+                    'product_name': d.product.name,
+                    'quantity': float(d.quantity_sold),
+                    'price': float(d.price_unit),
+                    'unit_id': d.unit.id,
+                    'unit_name': d.unit.name,
+                    'unit_min': float(quantity_minimum_unit),
+                    'batch_id': batch_id,
+                    'batch_number': batch_number,
+                }
+                detail.append(new_row)
+            
+            # Obtener datos del cliente
+            client_id = None
+            client_name = ''
+            client_address = ''
+            client_addresses = []
+            cod_unit_exe = ''
+            
+            if order_obj.client:
+                client_id = order_obj.client.id
+                client_name = order_obj.client.names
+                # Obtener direcciones del cliente
+                client_addresses_list = order_obj.client.clientaddress_set.all()
+                for addr in client_addresses_list:
+                    client_addresses.append({
+                        'address': addr.address,
+                        'type': addr.type_adress
+                    })
+                    if addr.type_adress == 'P':  # Dirección principal
+                        client_address = addr.address
+                if not client_address and client_addresses_list:
+                    client_address = client_addresses_list.first().address
+                cod_unit_exe = order_obj.client.cod_siaf or ''
+            
+            return JsonResponse({
+                'success': True,
+                'order_id': order_obj.id,
+                'transaction_payment_type': order_obj.way_to_pay_type,
+                'type_document': order_obj.type_document,
+                'observation': order_obj.observation or '',
+                'order_buy': order_obj.order_buy or '',
+                'n_contract': order_obj.client.cod_siaf if order_obj.client else '',
+                'client_id': client_id,
+                'client_name': client_name,
+                'client_address': client_address,
+                'client_addresses': client_addresses,
+                'cod_unit_exe': cod_unit_exe,
+                'detail': detail,
+            }, status=HTTPStatus.OK)
+            
+        except ValueError:
+            return JsonResponse({
+                'success': False,
+                'message': 'ID de orden inválido',
+            }, status=HTTPStatus.BAD_REQUEST)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al obtener la orden: {str(e)}',
+            }, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def search_order_for_credit_note(request):
