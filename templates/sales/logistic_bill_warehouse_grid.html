@@ -1,65 +1,86 @@
 {% load operations %}
 {% if bill_dict %}
-    <div class="card-body p-1 table-responsive small">
-        <div class="table-responsive dataTables_wrapper roboto-condensed-regular">
-            <table id="purchase-list-with-bill"
-                   class="table table-striped table-bordered table-dark text-dark align-content-center table-info"
-                   style="font-size: 13px;background-color: #d0e2e9;">
-                <thead>
-                <tr class="font-weight-bold text-uppercase bg-warning text-center"
-                    style="background: #3e6787; font-size: 14px">
-                    <th class="th-sm align-middle" style="width: 10%" rowspan="2">Fecha de Registro</th>
-                    <th class="th-sm align-middle" style="width: 10%" rowspan="2">Fecha de Expiracion</th>
-                    <th class="th-sm align-middle" style="width: 10%" rowspan="2">Número de Factura</th>
-                    <th class="th-sm align-middle" style="width: 10%" rowspan="2">Número de Pedido</th>
-                    <th class="th-sm align-middle" style="width: 15%" rowspan="2">Proveedor</th>
-                    <th class="th-sm align-middle" style="width: 20%" rowspan="2">Direccion de Entrega</th>
-                    <th class="th-sm align-middle" style="width: 10%" rowspan="2">Estado</th>
-                    <th class="th-sm align-middle" style="width: 10%" rowspan="2">Acciones</th>
-                </tr>
-                </thead>
-                <tbody id="body-finances-bill" style="font-size: 12px;">
-                {% for b in bill_dict %}
-                    <tr class="text-center details" pk="{{ b.id }}">
-                        <td class="align-middle">{{ b.register_date|date:'d-m-Y' }}</td>
-                        <td class="align-middle">{{ b.expiration_date|date:'d-m-Y' }}</td>
-                        <td class="align-middle text-center font-weight-bold">{{ b.serial }} - {{ b.correlative }}</td>
-                        <td class="align-middle text-center">{{ b.order_number|upper }}</td>
-                        <td class="align-middle text-center">{{ b.supplier_name }}</td>
-                        <td class="align-middle text-center">{{ b.delivery_address }}</td>
-                        <td class="align-middle text-center font-weight-bold" {% if b.status_store == 'S' %}
-                            style="background-color: #f6dfdf" {% else %}style="background-color: #b2fac4"{% endif %}>
-                            {% if b.refund %}
-                                {{ b.status_store_text }} <span class="text-danger">(NC)</span>
-                            {% else %}
-                                {{ b.status_store_text }}
-                            {% endif %}
-                        </td>
-                        <td class="align-middle text-center font-weight-bold">
-                            <div class="btn-group" role="group" aria-label="Basic example">
-                                <button type="button" class="btn btn-sm btn-show-detail btn-outline-success" pk="{{ b.id }}">
-                                <i class="fas fa-sort-down fa-lg see-icon"></i> Ver Detalle
-                            </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr class="show-detail" pk="{{ b.id }}" style="display: none">
-                        <td colspan="1"></td>
-                        <td colspan="5" class="table-details-bill p-0"></td>
-                        <td colspan="1"></td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+    <div class="card border-0 roboto-condensed-regular" style="background-color: transparent;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table id="purchase-list-with-bill" class="table table-hover table-bordered align-middle w-100 mb-0" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #e3f2fd; border-color: #90caf9;">
+                    <thead style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%);">
+                        <tr class="text-center text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px; color: #0d47a1;">
+                            <th class="py-3 border-bottom-0 font-weight-bold" style="width: 10%;">Fecha de Registro</th>
+                            <th class="py-3 border-bottom-0 font-weight-bold" style="width: 10%;">Fecha de Expiración</th>
+                            <th class="py-3 border-bottom-0 font-weight-bold" style="width: 10%;">Número de Factura</th>
+                            <th class="py-3 border-bottom-0 font-weight-bold" style="width: 10%;">Número de Pedido</th>
+                            <th class="py-3 border-bottom-0 font-weight-bold text-left pl-4" style="width: 15%;">Proveedor</th>
+                            <th class="py-3 border-bottom-0 font-weight-bold text-left" style="width: 20%;">Dirección de Entrega</th>
+                            <th class="py-3 border-bottom-0 font-weight-bold" style="width: 10%;">Estado</th>
+                            <th class="py-3 border-bottom-0 font-weight-bold" style="width: 10%;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-finances-bill" style="font-size: 0.875rem; color: #1565c0; background-color: #f5fafd;">
+                        {% for b in bill_dict %}
+                            <tr class="text-center details border-bottom" pk="{{ b.id }}" style="background-color: #ffffff;">
+                                <td class="align-middle">
+                                    <span class="text-muted">{{ b.register_date|date:'d/m/Y' }}</span>
+                                </td>
+                                <td class="align-middle">
+                                    <span class="text-muted">{{ b.expiration_date|date:'d-m-Y' }}</span>
+                                </td>
+                                <td class="align-middle">
+                                    <span class="font-weight-bold" style="color: #0d47a1;">{{ b.serial }} - {{ b.correlative }}</span>
+                                </td>
+                                <td class="align-middle">
+                                    <span class="font-weight-bold" style="color: #0d47a1;">{{ b.order_number|upper }}</span>
+                                </td>
+                                <td class="align-middle text-left pl-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-xs mr-2 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: #e3f2fd;">
+                                            <i class="fas fa-building" style="font-size: 0.8rem; color: #1565c0;"></i>
+                                        </div>
+                                        <span class="font-weight-bold roboto-condensed-regular" style="color: #0d47a1;">{{ b.supplier_name }}</span>
+                                    </div>
+                                </td>
+                                <td class="align-middle text-left">
+                                    <span class="text-muted">{{ b.delivery_address }}</span>
+                                </td>
+                                <td class="align-middle">
+                                    <span class="badge badge-pill font-weight-bold px-2 py-1" {% if b.status_store == 'S' %}
+                                        style="background-color: #ffebee; color: #c62828;" {% else %}style="background-color: #e8f5e9; color: #2e7d32;"{% endif %}>
+                                        {% if b.refund %}
+                                            {{ b.status_store_text }} <span class="text-danger">(NC)</span>
+                                        {% else %}
+                                            {{ b.status_store_text }}
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td class="align-middle">
+                                    <div class="btn-group" role="group" aria-label="Acciones">
+                                        <button type="button" class="btn btn-sm btn-outline-primary btn-show-detail font-weight-bold" pk="{{ b.id }}" style="border-radius: 6px;">
+                                            <i class="fas fa-sort-down fa-lg see-icon"></i> Ver Detalle
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="show-detail" pk="{{ b.id }}" style="display: none; background-color: #e8f4fc;">
+                                <td colspan="1"></td>
+                                <td colspan="6" class="table-details-bill p-0"></td>
+                                <td colspan="1"></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 {% else %}
-    <div class="card text-center roboto-condensed-regular p-3 border-info m-3">
-        <div class="card-header font-weight-bold text-black-50" style="background-color: #88a3b9 ">
-            Atencion!
-        </div>
-        <div class="card-body">
-            <h5 class="card-title text-info roboto-condensed-regular font-weight-bold">No existen Facturas...</h5>
+    <div class="card border-0" style="background-color: transparent;">
+        <div class="card-body text-center py-5">
+            <div class="mb-3">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px; background-color: #e3f2fd;">
+                    <i class="fas fa-warehouse fa-2x" style="color: #1565c0;"></i>
+                </div>
+            </div>
+            <h5 class="font-weight-bold roboto-condensed-regular" style="color: #0d47a1;">No existen facturas en almacén</h5>
+            <p class="text-muted">No hay facturas registradas en almacén en este momento.</p>
         </div>
     </div>
 {% endif %}

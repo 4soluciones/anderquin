@@ -1,27 +1,48 @@
 {% extends 'home.html' %}
 
 {% block title %}
-    Logistica
+    Logística
 {% endblock title %}
 
 {% block body %}
 
-    <div class="card m-2 border-dark">
-        <div class="card-header bg-warning border-dark">
-            <h4 class="card-title text-center font-weight-bold roboto-condensed-regular">LOGÍSTICA - LISTADO DE FACTURAS
-                POR INGRESAR</h4>
-        </div>
-        <div class="card-body p-0">
-            <div class="card-body p-2">
-                <input id="myInput" type="text" placeholder="Ingrese factura a buscar..." aria-label="..."
-                       class="form-control form-control-lg text-uppercase">
+    <div class="container-fluid py-4 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+        <!-- Encabezado y Contenido -->
+        <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+            <div class="card-header py-3 position-relative" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="text-white mb-0 font-weight-bold roboto-condensed-regular">
+                            <i class="fas fa-truck-loading mr-2"></i> LOGÍSTICA - LISTADO DE FACTURAS POR INGRESAR
+                        </h3>
+                    </div>
+                </div>
             </div>
-            <div class="" id="purchase-grid-list">{% include "sales/logistic_list_grid.html" %}</div>
+
+            <div class="card-body border-bottom" style="background-color: #f0f8fc;">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <label class="small font-weight-bold text-uppercase text-muted mb-1">Buscar factura</label>
+                        <div class="input-group shadow-sm border-0">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-primary"></i></span>
+                            </div>
+                            <input id="myInput" type="text" placeholder="Ingrese factura a buscar..." aria-label="..."
+                                   class="form-control form-control-lg text-uppercase border-left-0"
+                                   style="border-radius: 0 5px 5px 0;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-0" style="background-color: #e3f2fd;">
+                <div id="purchase-grid-list">{% include "sales/logistic_list_grid.html" %}</div>
+            </div>
         </div>
     </div>
 
     <div class="modal fade" id="assignment" data-backdrop="static" data-keyboard="false"
-         tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle"
+         tabindex="-1" role="dialog" aria-labelledby="ModalAssignmentTitle"
          aria-hidden="true"></div>
 
     <div class="modal fade" id="modal-credit-note" tabindex="-1" role="dialog"
@@ -29,10 +50,21 @@
          aria-hidden="true"></div>
 
     <style>
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+            border-color: #1e3a5f;
+        }
+        #purchase-grid-list .card {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+        #purchase-list-with-bill td,
+        #purchase-list-with-bill th {
+            border-color: #bbdefb !important;
+        }
         .input-icon {
             position: relative;
         }
-
         .input-icon > i {
             position: absolute;
             display: block;
@@ -43,22 +75,18 @@
             text-align: center;
             font-style: normal;
         }
-
         .input-icon > input {
             padding-left: 25px;
             padding-right: 8px;
         }
-
         .input-icon-right > i {
             right: 0;
         }
-
         .input-icon-right > input {
             padding-left: 0;
             padding-right: 25px;
             text-align: right;
         }
-
     </style>
 
 {% endblock body %}
@@ -132,14 +160,11 @@
                 var value = $(this).val().toUpperCase();
                 if (value) {
                     $("#purchase-list-with-bill tbody tr td:contains('" + value + "')").each(function (index) {
-                        //console.log(index)
                         const parent = $(this).closest("tr")
                         const rowspan = $(this).attr("rowspan")
-                        //console.log(rowspan)
                         if (rowspan !== undefined) {
                             var current = parent
                             for (var i = 0; i < rowspan; i++) {
-                                console.log(current.text())
                                 current.show()
                                 current = current.next()
                             }
@@ -148,13 +173,11 @@
                         }
                     })
                 } else {
-                    //$("#purchase-list-with-bill tbody tr td").closest("tr").show()
                     $("#purchase-list-with-bill tbody tr").next("tr.details").show()
                 }
             });
         });
 
-        //$('.item-quantity-batch').keyup(function () {
         $(document).on('keyup', '.item-quantity-batch', function () {
             let quantity_batch = $(this);
             let tr = $(this).closest('td').parent('tr.entered-quantity');
@@ -248,17 +271,35 @@
         });
 
         $(document).on('click', '.btn-generate-sold', function () {
-            //$('.btn-generate-sold').click(function () {
             let store = $('#store');
             if (store.val() === '0' || store.val() === null) {
-                toastr.warning('¡Seleccione el Almacen de Destino!', 'Error de Datos');
+                toastr.warning('¡Seleccione el Almacén de Destino!', 'Error de Datos');
                 return false;
             }
 
-            let r = confirm("¿Esta seguro de Generar la Venta? ")
-            if (r === true) {
+            let tr = $(this).closest('tr');
+            let batch_number = tr.find('input.item-number-batch').val();
+            let entered_principal = tr.find('input.entered-quantity-principal').val() || '',
+                entered_units = tr.find('input.entered-quantity-units').val() || '';
+            let sold_principal = tr.find('input.sold-quantity-principal').val() || '',
+                sold_units = tr.find('input.sold-quantity-units').val() || '';
 
-                let tr = $(this).closest('tr')
+            // Validar: lote, cantidad ingresada y cantidad vendida antes de generar código
+            if (!batch_number || batch_number.trim() === '') {
+                toastr.warning('Debe ingresar el Nº de Lote antes de generar el código de venta', 'Error de Datos');
+                return false;
+            }
+            if ((!entered_principal || parseFloat(entered_principal) <= 0) && (!entered_units || parseFloat(entered_units) <= 0)) {
+                toastr.warning('Debe ingresar la cantidad INGRESADA antes de generar el código de venta', 'Error de Datos');
+                return false;
+            }
+            if ((!sold_principal || parseFloat(sold_principal) <= 0) && (!sold_units || parseFloat(sold_units) <= 0)) {
+                toastr.warning('Debe ingresar la cantidad VENDIDA antes de generar el código de venta', 'Error de Datos');
+                return false;
+            }
+
+            let r = confirm("¿Está seguro de Generar la Venta?")
+            if (r === true) {
                 let _tr_detail = $(this).closest('table').parent('td').parent('tr');
                 let check_sold = $(this).closest('table').find('thead tr td.title-sold input.check-sold');
                 let _product_id = _tr_detail.attr('product');
@@ -277,13 +318,6 @@
                 let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
                 let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
 
-                /*console.log('product_id', _product_id)
-                console.log('unit_principal', unit_principal)
-                console.log('unit_id', unit_id)
-                console.log("input_principal", input_principal_val)
-                console.log("input_units", input_units.val())
-                console.log("---------------")*/
-
                 $.ajax({
                     url: '/sales/create_warehouse_sale/',
                     dataType: 'json',
@@ -295,18 +329,18 @@
                         'unit_id': unit_id,
                         'store': store.val(),
                         'input_units': input_units.val(),
+
                     },
                     contentType: 'application/json;charset=UTF-8',
                     headers: {"X-CSRFToken": '{{ csrf_token }}'},
                     success: function (response, textStatus, xhr) {
                         if (xhr.status === 200) {
-                            let correlative_sale = response.correlative
-                            let order_id = response.order_id
+                            let order_id = response.order_id;
                             _input_correlative.val(order_id);
                             _input_order.val(order_id);
                             _div_sale.addClass('d-none');
                             _div_cancel.removeClass('d-none');
-                            toastr.success(response.message, '¡CODIGO DE VENTA GENERADO!');
+                            toastr.success('ID de orden ' + order_id + ' generado. Use este ID en el módulo de ventas.', '¡ID de Orden Generado!');
                         }
                     },
                     error: function (jqXhr, textStatus, xhr) {
@@ -315,25 +349,17 @@
 
                 });
 
-                /*_input_correlative.val("1");
-                _input_order.val("2");
-                _div_sale.addClass('d-none');
-                _div_cancel.removeClass('d-none');*/
-
                 if (input_principal) {
                     input_principal.prop('disabled', true);
                 }
                 check_sold.prop('disabled', true);
                 input_units.prop('disabled', true);
-                //_button.prop('disabled', true);
             }
         });
 
         $(document).on('click', '.btn-cancel-sold', function () {
-            //$('.btn-cancel-sold').click(function () {
             let tr = $(this).closest('tr')
             let _correlative = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod');
-            //let product_id = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod').attr("p");
             let _order_id = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id');
             let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
             let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
@@ -343,15 +369,8 @@
             if (tr.find('input.sold-quantity-principal').val()) {
                 input_principal = tr.find('input.sold-quantity-principal');
             }
-            /*console.log("_correlative", _correlative)
-            console.log("_order_id", _order_id.val())
-            console.log("_div_sale", _div_sale)
-            console.log("_div_cancel", _div_cancel)
-            console.log("check_sold", check_sold)
-            console.log("input_units", input_units)
-            console.log("input_principal", input_principal)*/
 
-            let r = confirm("¿Esta seguro de Eliminar la Venta")
+            let r = confirm("¿Está seguro de Eliminar la Venta?")
             if (r === true) {
                 $.ajax({
                     url: '/sales/delete_warehouse_sale/',
@@ -383,14 +402,11 @@
         });
 
         function sumQuantitiesBatch(tbody, quantity_minimum, product_id) {
-            /*** Quantity Entered ***/
             let quantity_entered_principal = 0;
             let quantity_entered_units = 0;
             let tbody_product = $(`#details-product-${product_id}`);
             let current_quantity = tbody_product.find('tr.detail td.item-current-quantity input.current-quantity-missing');
-            //let current_quantity_val = tbody_product.find('tr.detail td.item-current-quantity input.current-quantity-missing').val();
             let quantity_missing = tbody_product.find('tr.detail td.item-current-quantity input.quantity-missing');
-            //let quantity_missing_val = tbody_product.find('tr.detail td.item-current-quantity input.quantity-missing').val();
 
             tbody.find('tr').each(function () {
                 let value = parseFloat($(this).find('input.entered-quantity-principal').val()) || 0;
@@ -403,7 +419,7 @@
                 quantity_entered_units += value;
             });
             let sum_entered = in_units_entered + Number(quantity_entered_units)
-            /*** Quantity Entered ***/
+
             let quantity_returned_principal = 0;
             let quantity_returned_units = 0;
             tbody.find('tr').each(function () {
@@ -417,7 +433,7 @@
                 quantity_returned_units += value;
             });
             let sum_returned = in_units_returned + Number(quantity_returned_units)
-            /*** Quantity Sold ***/
+
             let quantity_sold_principal = 0;
             let quantity_sold_units = 0;
             tbody.find('tr').each(function () {
@@ -446,15 +462,15 @@
         }
 
         function checkSaleCodAndCloseModal() {
-        let allowClose = true;
+            let allowClose = true;
 
-        $(".sale-cod").each(function () {
-            if ($(this).val() !== "") {
-                allowClose = false;
-            }
-        });
-        return allowClose
-    }
+            $(".sale-cod").each(function () {
+                if ($(this).val() !== "") {
+                    allowClose = false;
+                }
+            });
+            return allowClose
+        }
     </script>
 
 {% endblock extrajs %}

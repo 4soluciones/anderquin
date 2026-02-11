@@ -1,18 +1,26 @@
 {% extends 'home.html' %}
 
 {% block title %}
-    Logistica
+    Logística - Facturas en Almacén
 {% endblock title %}
 
 {% block body %}
 
-    <div class="card m-2 border-dark">
-        <div class="card-header bg-info border-dark">
-            <h4 class="card-title text-center font-weight-bold roboto-condensed-regular">LOGÍSTICA - LISTADO DE FACTURAS
-                EN ALMACEN</h4>
-        </div>
-        <div class="card-body p-0">
-            <div class="" id="purchase-grid-list">{% include "sales/logistic_bill_warehouse_grid.html" %}</div>
+    <div class="container-fluid py-4 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+        <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+            <div class="card-header py-3 position-relative" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="text-white mb-0 font-weight-bold roboto-condensed-regular">
+                            <i class="fas fa-warehouse mr-2"></i> LOGÍSTICA - LISTADO DE FACTURAS EN ALMACÉN
+                        </h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-0" style="background-color: #e3f2fd;">
+                <div id="purchase-grid-list">{% include "sales/logistic_bill_warehouse_grid.html" %}</div>
+            </div>
         </div>
     </div>
 
@@ -21,40 +29,22 @@
          aria-hidden="true"></div>
 
     <div class="modal fade" id="modal-credit-note" tabindex="-1" role="dialog"
-         aria-labelledby="ModalHelpTitle"
+         aria-labelledby="ModalCreditNoteTitle"
          aria-hidden="true"></div>
 
     <style>
-        .input-icon {
-            position: relative;
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+            border-color: #1e3a5f;
         }
-
-        .input-icon > i {
-            position: absolute;
-            display: block;
-            transform: translate(0, -50%);
-            top: 50%;
-            pointer-events: none;
-            width: 25px;
-            text-align: center;
-            font-style: normal;
+        #purchase-grid-list .card {
+            background-color: transparent !important;
+            box-shadow: none !important;
         }
-
-        .input-icon > input {
-            padding-left: 25px;
-            padding-right: 8px;
+        #purchase-list-with-bill td,
+        #purchase-list-with-bill th {
+            border-color: #bbdefb !important;
         }
-
-        .input-icon-right > i {
-            right: 0;
-        }
-
-        .input-icon-right > input {
-            padding-left: 0;
-            padding-right: 25px;
-            text-align: right;
-        }
-
     </style>
 
 {% endblock body %}
@@ -111,7 +101,7 @@
                     $('#modal-credit-note').html(response.form);
                     $('#modal-credit-note').modal('show');
                 },
-                fail: function (response) {
+                error: function (response) {
                     toastr.error('Error en la petición', '¡Mensaje!');
                 }
             });

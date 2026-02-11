@@ -404,7 +404,7 @@ def get_list_kardex(request):
                     if k.operation == 'E':
                         purchase_units += k.quantity
                         purchase_valorized += k.price_total
-                
+
                 last_record = inventories.last()
                 final_units = last_record.remaining_quantity
                 final_valorized = last_record.remaining_price_total
@@ -515,18 +515,18 @@ def client_save(request):
                 # Si viene en formato de array (múltiples direcciones)
                 has_main_address = False
                 addresses_to_save = []
-                
+
                 for d in data_client['Addresses']:
                     new_address = str(d.get('new_address', d.get('publicAddress', '')))
                     district = str(d.get('district', d.get('publicDistrict', '')))
                     province = str(d.get('province', d.get('publicProvince', '')))
                     department = str(d.get('department', d.get('publicDepartment', '')))
                     type_address = str(d.get('type_address', 'P'))
-                    
+
                     # Validar que al menos una sea principal
                     if type_address == 'P':
                         has_main_address = True
-                    
+
                     district_obj = District.objects.get(id=district) if district and district != '0' else None
                     province_obj = Province.objects.get(id=province) if province and province != '0' else None
                     department_obj = Department.objects.get(id=department) if department and department != '0' else None
@@ -540,11 +540,11 @@ def client_save(request):
                         type_address=type_address
                     )
                     addresses_to_save.append((client_address_obj, type_address))
-                
+
                 # Si no hay dirección principal, marcar la primera como principal
                 if not has_main_address and addresses_to_save:
                     addresses_to_save[0][0].type_address = 'P'
-                
+
                 # Guardar todas las direcciones
                 for addr_obj, _ in addresses_to_save:
                     addr_obj.save()
@@ -555,11 +555,14 @@ def client_save(request):
                 public_province = str(data_client.get("publicProvince", ''))
                 public_department = str(data_client.get("publicDepartment", ''))
                 type_address = str(data_client.get("type_address", 'P'))
-                
+
                 if public_address:
-                    district_obj = District.objects.get(id=public_district) if public_district and public_district != '0' else None
-                    province_obj = Province.objects.get(id=public_province) if public_province and public_province != '0' else None
-                    department_obj = Department.objects.get(id=public_department) if public_department and public_department != '0' else None
+                    district_obj = District.objects.get(
+                        id=public_district) if public_district and public_district != '0' else None
+                    province_obj = Province.objects.get(
+                        id=public_province) if public_province and public_province != '0' else None
+                    department_obj = Department.objects.get(
+                        id=public_department) if public_department and public_department != '0' else None
 
                     client_address_obj = ClientAddress(
                         client=client_obj,
@@ -574,14 +577,14 @@ def client_save(request):
         elif type_client == 'PR':
             has_main_address = False
             addresses_to_save = []
-            
+
             for d in data_client['Addresses']:
                 new_address = str(d['new_address'])
                 district = str(d.get('district', ''))
                 province = str(d.get('province', ''))
                 department = str(d.get('department', ''))
                 type_address = str(d.get('type_address', 'P'))
-                
+
                 # Validar que al menos una sea principal
                 if type_address == 'P':
                     has_main_address = True
@@ -599,11 +602,11 @@ def client_save(request):
                     type_address=type_address
                 )
                 addresses_to_save.append((client_address_obj, type_address))
-            
+
             # Si no hay dirección principal, marcar la primera como principal
             if not has_main_address and addresses_to_save:
                 addresses_to_save[0][0].type_address = 'P'
-            
+
             # Guardar todas las direcciones
             for addr_obj, _ in addresses_to_save:
                 addr_obj.save()
@@ -1099,14 +1102,14 @@ def save_order(request):
                                 if guide_detail_id:
                                     guide_detail_obj = GuideDetail.objects.get(id=guide_detail_id)
                                     batch_details = guide_detail_obj.batch_details.all()
-                                    
+
                                     # Usar la nueva función para múltiples lotes
                                     kardex_ouput_multi_batch(
-                                        product_store_obj.id, 
+                                        product_store_obj.id,
                                         quantity_minimum_unit,
                                         order_detail_obj=order_detail_obj,
-                                        type_document=type_document, 
-                                        type_operation='01', 
+                                        type_document=type_document,
+                                        type_operation='01',
                                         batch_details=batch_details
                                     )
                                 else:
@@ -1141,8 +1144,10 @@ def save_order(request):
                             kardex_obj.save()
 
                 else:
-                    order_obj = save_order_with_order_id(_order_id, client_obj, _serial_text, user_obj, _sum_total, _date,
-                                                         _correlative, _type_payment, _observation, _type_document, detail)
+                    order_obj = save_order_with_order_id(_order_id, client_obj, _serial_text, user_obj, _sum_total,
+                                                         _date,
+                                                         _correlative, _type_payment, _observation, _type_document,
+                                                         detail)
 
                 code_operation = '-'
                 cash_obj = None
@@ -1262,14 +1267,14 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
                     if guide_detail_id:
                         guide_detail_obj = GuideDetail.objects.get(id=guide_detail_id)
                         batch_details = guide_detail_obj.batch_details.all()
-                        
+
                         # Usar la nueva función para múltiples lotes
                         kardex_ouput_multi_batch(
-                            product_store_obj.id, 
+                            product_store_obj.id,
                             quantity_minimum_unit,
                             order_detail_obj=detail_obj,
-                            type_document=type_document, 
-                            type_operation='01', 
+                            type_document=type_document,
+                            type_operation='01',
                             batch_details=batch_details
                         )
                     else:
@@ -1338,14 +1343,14 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
                     if guide_detail_id:
                         guide_detail_obj = GuideDetail.objects.get(id=guide_detail_id)
                         batch_details = guide_detail_obj.batch_details.all()
-                        
+
                         # Usar la nueva función para múltiples lotes
                         kardex_ouput_multi_batch(
-                            product_store_obj.id, 
+                            product_store_obj.id,
                             quantity_minimum_unit,
                             order_detail_obj=order_detail_obj,
-                            type_document=type_document, 
-                            type_operation='01', 
+                            type_document=type_document,
+                            type_operation='01',
                             batch_details=batch_details
                         )
                     else:
@@ -1545,7 +1550,7 @@ def kardex_ouput_multi_batch(
     product_store = ProductStore.objects.get(pk=int(product_store_id))
     old_stock = product_store.stock
     new_stock = old_stock - decimal.Decimal(total_quantity)
-    
+
     # Obtener el último kardex para calcular precios
     last_kardex = Kardex.objects.filter(product_store_id=product_store.id).last()
     last_remaining_quantity = last_kardex.remaining_quantity
@@ -1580,7 +1585,7 @@ def kardex_ouput_multi_batch(
         for batch_detail in batch_details:
             batch_obj = batch_detail.batch
             batch_quantity = batch_detail.quantity
-            
+
             # Crear registro de Batch con la cantidad específica del lote
             Batch.objects.create(
                 batch_number=batch_obj.batch_number,
@@ -1590,7 +1595,7 @@ def kardex_ouput_multi_batch(
                 kardex=kardex_obj,
                 product_store=product_store
             )
-            
+
             # Actualizar la cantidad restante del lote original
             batch_obj.remaining_quantity -= decimal.Decimal(batch_quantity)
             batch_obj.save()
@@ -1598,7 +1603,7 @@ def kardex_ouput_multi_batch(
     # Actualizar el stock del producto
     product_store.stock = new_stock
     product_store.save()
-    
+
     return kardex_obj
 
 
@@ -1769,7 +1774,7 @@ def get_price_by_product(request):
         pk = request.GET.get('pk', '')
         client_id = request.GET.get('client_id', '')
         unit_id = request.GET.get('unit_id', '')
-        
+
         try:
             if unit_id:
                 product_detail_obj = ProductDetail.objects.filter(
@@ -1778,12 +1783,12 @@ def get_price_by_product(request):
                 ).first()
             else:
                 product_detail_obj = ProductDetail.objects.filter(product_id=int(pk)).first()
-            
+
             if not product_detail_obj:
                 return JsonResponse({'price_unit': 0})
-            
+
             price = product_detail_obj.price_sale
-            
+
             # Si hay un cliente, intentar obtener el precio según su tipo de precio
             if client_id:
                 try:
@@ -1800,7 +1805,7 @@ def get_price_by_product(request):
                             pass  # Usar precio por defecto si no existe precio específico
                 except Client.DoesNotExist:
                     pass  # Usar precio por defecto si no existe el cliente
-            
+
         except Exception as e:
             price = 0
 
@@ -3020,7 +3025,7 @@ def get_price_of_product(product_detail_set=None, product=None, unit=None, clien
     for pd in product_detail_set:
         if pd.product == product and pd.unit == unit:
             price = pd.price_sale
-            
+
             # Si hay un cliente con tipo de precio, usar ese precio
             if client and client.price_type:
                 try:
@@ -3410,18 +3415,21 @@ def modal_client_update(request):
         districts_list = []
         provinces_list = []
         departments_list = []
-        
+
         # Solo cargar los relacionados con las direcciones del cliente
         if client_obj and client_obj.clientaddress_set.exists():
             address_ids = client_obj.clientaddress_set.values_list('district_id', 'province_id', 'department_id')
             district_ids = [a[0] for a in address_ids if a[0]]
             province_ids = [a[1] for a in address_ids if a[1]]
             department_ids = [a[2] for a in address_ids if a[2]]
-            
+
             if district_ids:
                 districts_list = list(District.objects.filter(id__in=district_ids).values('id', 'description'))
             if province_ids:
-                provinces_list = list(Province.objects.filter(id__in=province_ids).select_related('department').values('id', 'description', 'department_id'))
+                provinces_list = list(
+                    Province.objects.filter(id__in=province_ids).select_related('department').values('id',
+                                                                                                     'description',
+                                                                                                     'department_id'))
             if department_ids:
                 departments_list = list(Department.objects.filter(id__in=department_ids).values('id', 'description'))
 
@@ -3490,21 +3498,22 @@ def client_update(request):
                     # Si viene en formato de array (múltiples direcciones)
                     has_main_address = False
                     addresses_to_save = []
-                    
+
                     for d in data_client['Addresses']:
                         new_address = str(d.get('new_address', d.get('publicAddress', '')))
                         district = str(d.get('district', d.get('publicDistrict', '')))
                         province = str(d.get('province', d.get('publicProvince', '')))
                         department = str(d.get('department', d.get('publicDepartment', '')))
                         type_address = str(d.get('type_address', 'P'))
-                        
+
                         # Validar que al menos una sea principal
                         if type_address == 'P':
                             has_main_address = True
-                        
+
                         district_obj = District.objects.get(id=district) if district and district != '0' else None
                         province_obj = Province.objects.get(id=province) if province and province != '0' else None
-                        department_obj = Department.objects.get(id=department) if department and department != '0' else None
+                        department_obj = Department.objects.get(
+                            id=department) if department and department != '0' else None
 
                         client_address_obj = ClientAddress(
                             client=client_obj,
@@ -3515,11 +3524,11 @@ def client_update(request):
                             type_address=type_address
                         )
                         addresses_to_save.append((client_address_obj, type_address))
-                    
+
                     # Si no hay dirección principal, marcar la primera como principal
                     if not has_main_address and addresses_to_save:
                         addresses_to_save[0][0].type_address = 'P'
-                    
+
                     # Guardar todas las direcciones
                     for addr_obj, _ in addresses_to_save:
                         addr_obj.save()
@@ -3530,11 +3539,14 @@ def client_update(request):
                     public_province = str(data_client.get("publicProvince", ''))
                     public_department = str(data_client.get("publicDepartment", ''))
                     type_address = str(data_client.get("type_address", 'P'))
-                    
+
                     if public_address:
-                        district_obj = District.objects.get(id=public_district) if public_district and public_district != '0' else None
-                        province_obj = Province.objects.get(id=public_province) if public_province and public_province != '0' else None
-                        department_obj = Department.objects.get(id=public_department) if public_department and public_department != '0' else None
+                        district_obj = District.objects.get(
+                            id=public_district) if public_district and public_district != '0' else None
+                        province_obj = Province.objects.get(
+                            id=public_province) if public_province and public_province != '0' else None
+                        department_obj = Department.objects.get(
+                            id=public_department) if public_department and public_department != '0' else None
 
                         client_address_obj = ClientAddress(
                             client=client_obj,
@@ -3549,14 +3561,14 @@ def client_update(request):
             elif type_client == 'PR':
                 has_main_address = False
                 addresses_to_save = []
-                
+
                 for d in data_client['Addresses']:
                     new_address = str(d['new_address'])
                     district = str(d.get('district', ''))
                     province = str(d.get('province', ''))
                     department = str(d.get('department', ''))
                     type_address = str(d.get('type_address', 'P'))
-                    
+
                     # Validar que al menos una sea principal
                     if type_address == 'P':
                         has_main_address = True
@@ -3574,11 +3586,11 @@ def client_update(request):
                         type_address=type_address
                     )
                     addresses_to_save.append((client_address_obj, type_address))
-                
+
                 # Si no hay dirección principal, marcar la primera como principal
                 if not has_main_address and addresses_to_save:
                     addresses_to_save[0][0].type_address = 'P'
-                
+
                 # Guardar todas las direcciones
                 for addr_obj, _ in addresses_to_save:
                     addr_obj.save()
@@ -3601,12 +3613,12 @@ def get_departments_ajax(request):
     if request.method == 'GET':
         search = request.GET.get('search', '').strip()
         departments = Department.objects.all()
-        
+
         if search:
             departments = departments.filter(description__icontains=search)
-        
+
         departments_list = [{'id': d.id, 'text': d.description} for d in departments[:50]]  # Limitar a 50 resultados
-        
+
         return JsonResponse({
             'results': departments_list
         }, status=HTTPStatus.OK)
@@ -3618,21 +3630,21 @@ def get_provinces_ajax(request):
     if request.method == 'GET':
         search = request.GET.get('search', '').strip()
         department_id = request.GET.get('department_id', '')
-        
+
         provinces = Province.objects.select_related('department').all()
-        
+
         if department_id and department_id != '0':
             provinces = provinces.filter(department_id=department_id)
-        
+
         if search:
             provinces = provinces.filter(description__icontains=search)
-        
+
         provinces_list = [{
-            'id': p.id, 
+            'id': p.id,
             'text': p.description,
             'department_id': p.department.id
         } for p in provinces[:50]]  # Limitar a 50 resultados
-        
+
         return JsonResponse({
             'results': provinces_list
         }, status=HTTPStatus.OK)
@@ -3644,21 +3656,21 @@ def get_districts_ajax(request):
     if request.method == 'GET':
         search = request.GET.get('search', '').strip()
         province_id = request.GET.get('province_id', '')
-        
+
         districts = District.objects.select_related('province').all()
-        
+
         if province_id and province_id != '0':
             districts = districts.filter(province_id=province_id)
-        
+
         if search:
             districts = districts.filter(description__icontains=search)
-        
+
         districts_list = [{
-            'id': d.id, 
+            'id': d.id,
             'text': d.description,
             'province_id': d.province.id
         } for d in districts[:50]]  # Limitar a 50 resultados
-        
+
         return JsonResponse({
             'results': districts_list
         }, status=HTTPStatus.OK)
@@ -4024,8 +4036,7 @@ def create_warehouse_sale(request):
         order_obj.save()
 
         product_obj = Product.objects.get(id=int(product_id))
-        product_store_obj = ProductStore.objects.get(product=product_obj,
-                                                     subsidiary_store=subsidiary_store_obj)
+        product_store_obj = ProductStore.objects.get(product=product_obj, subsidiary_store=subsidiary_store_obj)
         product_detail = ProductDetail.objects.filter(product=product_obj)
         if unit_principal and quantity_principal != '0' and quantity_principal != '':
             unit_obj = Unit.objects.get(id=int(unit_principal))
@@ -4039,7 +4050,6 @@ def create_warehouse_sale(request):
                 status='P',
                 product_store=product_store_obj,
                 commentary=product_obj.name
-
             )
             detail_principal.save()
         if unit_id and quantity_unit != '0' and quantity_unit != '':
@@ -4102,21 +4112,21 @@ def get_order_store(request):
                 'success': False,
                 'message': 'ID de orden no proporcionado',
             }, status=HTTPStatus.BAD_REQUEST)
-        
+
         try:
             user_id = request.user.id
             user_obj = User.objects.get(id=user_id)
             subsidiary_obj = get_subsidiary_by_user(user_obj)
             order_set = Order.objects.filter(id=int(order_id), subsidiary=subsidiary_obj)
-            
+
             if not order_set.exists():
                 return JsonResponse({
                     'success': False,
                     'message': 'La Orden no existe',
                 }, status=HTTPStatus.OK)
-            
+
             order_obj = order_set.first()
-            
+
             # Si la orden ya tiene serial, significa que ya está registrada
             if order_obj.serial is not None and order_obj.serial != '':
                 return JsonResponse({
@@ -4124,32 +4134,33 @@ def get_order_store(request):
                     'message': 'La Orden ya se encuentra registrada, ',
                     'bill': 'Comprobante ' + str(order_obj.serial) + '-' + str(order_obj.correlative),
                 }, status=HTTPStatus.OK)
-            
+
             # Verificar que la orden esté en estado pendiente y sea tipo venta almacén
             if order_obj.status != 'P' or order_obj.sale_type != 'VA':
                 return JsonResponse({
                     'success': False,
                     'message': 'La Orden no está disponible para venta de almacén',
                 }, status=HTTPStatus.OK)
-            
+
             # Obtener los detalles de la orden
-            order_detail_set = OrderDetail.objects.filter(order=order_obj).select_related('product', 'unit', 'product_store')
+            order_detail_set = OrderDetail.objects.filter(order=order_obj).select_related('product', 'unit',
+                                                                                          'product_store')
             detail = []
-            
+
             for d in order_detail_set:
                 # Calcular unit_min (cantidad mínima en unidad base)
                 quantity_minimum_unit = calculate_minimum_unit(d.quantity_sold, d.unit, d.product)
-                
+
                 # Buscar lotes relacionados con esta orden y producto
                 batch_id = None
                 batch_number = ''
-                
+
                 # Buscar en BillDetailBatch relacionados con la orden y el producto
                 bill_detail_batch = BillDetailBatch.objects.filter(
                     order=order_obj,
                     product=d.product
                 ).first()
-                
+
                 if bill_detail_batch:
                     batch_number = bill_detail_batch.batch_number or ''
                     # Si hay un modelo Batch relacionado, obtener su ID
@@ -4157,7 +4168,7 @@ def get_order_store(request):
                         batch_obj = Batch.objects.filter(batch_number=batch_number).first()
                         if batch_obj:
                             batch_id = batch_obj.id
-                
+
                 new_row = {
                     'id': d.id,
                     'product_id': d.product.id,
@@ -4171,14 +4182,14 @@ def get_order_store(request):
                     'batch_number': batch_number,
                 }
                 detail.append(new_row)
-            
+
             # Obtener datos del cliente
             client_id = None
             client_name = ''
             client_address = ''
             client_addresses = []
             cod_unit_exe = ''
-            
+
             if order_obj.client:
                 client_id = order_obj.client.id
                 client_name = order_obj.client.names
@@ -4194,7 +4205,7 @@ def get_order_store(request):
                 if not client_address and client_addresses_list:
                     client_address = client_addresses_list.first().address
                 cod_unit_exe = order_obj.client.cod_siaf or ''
-            
+
             return JsonResponse({
                 'success': True,
                 'order_id': order_obj.id,
@@ -4210,7 +4221,7 @@ def get_order_store(request):
                 'cod_unit_exe': cod_unit_exe,
                 'detail': detail,
             }, status=HTTPStatus.OK)
-            
+
         except ValueError:
             return JsonResponse({
                 'success': False,
@@ -4229,16 +4240,16 @@ def search_order_for_credit_note(request):
         user_id = request.user.id
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        
+
         # Search by ID, or Serial, or Correlative
         orders = Order.objects.filter(
-            (Q(id__icontains=query) if query.isdigit() else Q()) | 
-            Q(serial__icontains=query) | 
+            (Q(id__icontains=query) if query.isdigit() else Q()) |
+            Q(serial__icontains=query) |
             Q(correlative__icontains=query),
             subsidiary=subsidiary_obj,
             order_type='V'
         ).select_related('client').order_by('-id')[:10]
-        
+
         results = []
         for o in orders:
             results.append({
@@ -4249,7 +4260,7 @@ def search_order_for_credit_note(request):
                 'total': float(o.total),
                 'date': o.create_at.strftime("%d/%m/%Y") if o.create_at else ''
             })
-            
+
         return JsonResponse({'success': True, 'orders': results})
 
     else:
@@ -4264,18 +4275,19 @@ def get_order_details_ajax(request):
         order_id = request.GET.get('order_id', '')
         if not order_id:
             return JsonResponse({'success': False, 'message': 'ID de orden no proporcionado'})
-        
+
         try:
             order_obj = Order.objects.select_related('client').get(id=int(order_id))
             order_details = order_obj.orderdetail_set.all().select_related('product', 'unit')
-            
+
             details = []
             for d in order_details:
                 # Get all presentation units for this product
-                product_details = ProductDetail.objects.filter(product=d.product, is_enabled=True).select_related('unit')
+                product_details = ProductDetail.objects.filter(product=d.product, is_enabled=True).select_related(
+                    'unit')
                 units = []
                 current_factor = 1.0
-                
+
                 for pd in product_details:
                     units.append({
                         'id': pd.unit.id,
@@ -4284,7 +4296,7 @@ def get_order_details_ajax(request):
                     })
                     if pd.unit.id == d.unit.id:
                         current_factor = float(pd.quantity_minimum)
-                
+
                 details.append({
                     'id': d.id,
                     'product_name': d.product.name,
@@ -4297,7 +4309,7 @@ def get_order_details_ajax(request):
                     'current_factor': current_factor,
                     'units': units
                 })
-            
+
             return JsonResponse({
                 'success': True,
                 'client_name': order_obj.client.names if order_obj.client else 'Cliente Público',
@@ -4589,7 +4601,7 @@ def save_detail_to_warehouse(request):
                 else:
                     # Verificar si existe algún registro de kardex para este product_store
                     has_kardex = Kardex.objects.filter(product_store_id=product_store_obj.id).exists()
-                    
+
                     if not has_kardex:
                         # Si no hay registros de kardex, usar kardex_initial
                         # Actualizar el stock del product_store sumando la nueva cantidad
@@ -4601,7 +4613,8 @@ def save_detail_to_warehouse(request):
                                                     price_purchase_unit, bill_detail_obj=detail_entered_obj)
                     else:
                         # Si ya hay registros de kardex, usar kardex_input
-                        total_cost = decimal.Decimal(sum_quantity_entered_total_in_units) * decimal.Decimal(price_purchase_unit)
+                        total_cost = decimal.Decimal(sum_quantity_entered_total_in_units) * decimal.Decimal(
+                            price_purchase_unit)
                         kardex_obj = kardex_input(product_store_obj.id, sum_quantity_entered_total_in_units, total_cost,
                                                   type_document='01', type_operation='02',
                                                   bill_detail_obj=detail_entered_obj)
@@ -4658,14 +4671,12 @@ def save_detail_to_warehouse(request):
                     returned_quantity_units = decimal.Decimal(b['ReturnedQuantityUnits'])
 
                     if returned_quantity_principal != 0 and returned_quantity_principal != '':
-
                         BillDetailBatch.objects.create(batch_number=return_batch_number, product=product_obj,
                                                        batch_expiration_date=return_batch_expiration,
                                                        quantity=returned_quantity_principal, unit=unit_obj,
                                                        bill_detail=detail_returned_obj)
 
                     if returned_quantity_units != 0 and returned_quantity_units != '':
-
                         BillDetailBatch.objects.create(batch_number=return_batch_number, product=product_obj,
                                                        batch_expiration_date=return_batch_expiration,
                                                        quantity=returned_quantity_units, unit=unit_und_obj,
@@ -4686,22 +4697,36 @@ def save_detail_to_warehouse(request):
                                                             product=product_obj, status_quantity='V', bill=bill_obj)
 
                 for b in d['Batch']:
-                    sold_quantity_principal = decimal.Decimal(b['SoldQuantityPrincipal'])
+                    sold_quantity_principal = decimal.Decimal(b.get('SoldQuantityPrincipal', 0))
                     sold_quantity_in_units = sold_quantity_principal * unit_min_product
                     sold_batch_number = b['batchNumber']
                     sold_batch_expiration = b['batchExpiration']
-                    sold_quantity_units = decimal.Decimal(b['SoldQuantityUnit'])
+                    sold_quantity_units = decimal.Decimal(b.get('SoldQuantityUnit', 0))
+                    sold_order_id = b.get('SoldOrderId', 0) or 0
 
-                    if sold_quantity_principal != 0 and sold_quantity_principal != '':
-                        order_sale_obj = Order.objects.get(id=int(b['SoldOrderId']))
+                    # Validar: cantidad vendida requiere número de lote y código de venta
+                    if (sold_quantity_principal and sold_quantity_principal > 0) or (
+                            sold_quantity_units and sold_quantity_units > 0):
+                        if not sold_order_id or int(sold_order_id) <= 0:
+                            return JsonResponse({
+                                'error': 'Las cantidades vendidas deben tener el código de venta generado. '
+                                         'Ingrese el Nº de Lote, cantidad ingresada, cantidad vendida y haga clic en "Cod." antes de guardar.',
+                            }, status=HTTPStatus.BAD_REQUEST)
+                        if not sold_batch_number or str(sold_batch_number).strip() == '':
+                            return JsonResponse({
+                                'error': 'Las cantidades vendidas deben tener el Nº de Lote ingresado.',
+                            }, status=HTTPStatus.BAD_REQUEST)
+
+                    if sold_quantity_principal and sold_quantity_principal > 0:
+                        order_sale_obj = Order.objects.get(id=int(sold_order_id))
                         BillDetailBatch.objects.create(batch_number=sold_batch_number, product=product_obj,
                                                        batch_expiration_date=sold_batch_expiration, unit=unit_obj,
                                                        quantity=sold_quantity_principal, bill_detail=detail_sold_obj,
                                                        order=order_sale_obj)
 
-                    if sold_quantity_units != 0 and sold_quantity_units != '':
-                        order_sale_obj = Order.objects.get(id=int(b['SoldOrderId']))
-                        BillDetailBatch.objects.create(batch_number=sold_batch_number,  product=product_obj,
+                    if sold_quantity_units and sold_quantity_units > 0:
+                        order_sale_obj = Order.objects.get(id=int(sold_order_id))
+                        BillDetailBatch.objects.create(batch_number=sold_batch_number, product=product_obj,
                                                        batch_expiration_date=sold_batch_expiration, unit=unit_und_obj,
                                                        quantity=sold_quantity_units, bill_detail=detail_sold_obj,
                                                        order=order_sale_obj)
@@ -4858,13 +4883,23 @@ def bill_credit_note(request):
             repay_loan_total = decimal.Decimal(b.repay_loan())
             bill_total = decimal.Decimal(b.bill_total_total)
             if bill_total != repay_loan_total:
+                supplier_name = (b.supplier.business_name or b.supplier.name) if b.supplier else '-'
                 item = {
                     'id': b.id,
                     'bill_number': b,
-                    'supplier': b.supplier.business_name,
+                    'supplier': supplier_name,
                     'total': str(round(b.bill_total_total, 2))
                 }
                 bill_new_dict.append(item)
+
+        # Datos del producto a devolver para pre-cargar en la nota de crédito
+        product = bill_detail_obj.product
+        product_code = product.code or product.internal_code or ''
+        product_name = product.name or ''
+        product_quantity = bill_detail_obj.quantity
+        product_unit = bill_detail_obj.unit
+        unit_name = product_unit.name if product_unit else 'UND'
+        unit_display = f"NIU-{unit_name}"
 
         t = loader.get_template('buys/modal_credit_note.html')
         c = ({
@@ -4874,6 +4909,11 @@ def bill_credit_note(request):
             'bill_obj': bill_obj,
             'date': date_now,
             'bill_set': bill_new_dict,
+            'product_code': product_code,
+            'product_name': product_name,
+            'product_quantity': product_quantity,
+            'unit_display': unit_display,
+            'unit_name': unit_name,
         })
         return JsonResponse({
             'form': t.render(c, request),
@@ -4922,7 +4962,8 @@ def bill_create_credit_note(request):
                                                           operation_date=credit_date_issue,
                                                           observation='Nota de crédito ' + f"{credit_serial}-{credit_number}")
 
-            TransactionPayment.objects.create(payment=credit_total, type='C', operation_code=f"{credit_serial}-{credit_number}",
+            TransactionPayment.objects.create(payment=credit_total, type='C',
+                                              operation_code=f"{credit_serial}-{credit_number}",
                                               loan_payment=loan_payment_obj)
 
         product_store_id = ProductStore.objects.get(product=bill_detail_obj.product,
@@ -4930,7 +4971,8 @@ def bill_create_credit_note(request):
         quantity_minimum = ProductDetail.objects.filter(product=bill_detail_obj.product,
                                                         unit=bill_detail_obj.unit).last().quantity_minimum
         total_cost = bill_detail_obj.quantity * bill_detail_obj.price_unit
-        kardex_credit_note_input(product_store_id, quantity_minimum * bill_detail_obj.quantity, total_cost, type_document='07',
+        kardex_credit_note_input(product_store_id, quantity_minimum * bill_detail_obj.quantity, total_cost,
+                                 type_document='07',
                                  type_operation='06', credit_note_detail_obj=credit_note_detail_obj)
 
         # bill_set = Bill.objects.filter(serial=bill_serial, correlative=bill_correlative)
@@ -4974,7 +5016,7 @@ def credit_note_order_list(request):
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
         credit_note_order_set = CreditNoteOrder.objects.filter(order__subsidiary=subsidiary_obj).order_by('-id')
-        
+
         return render(request, 'sales/credit_note_order_list.html', {
             'credit_note_order_set': credit_note_order_set,
         })
@@ -4985,17 +5027,17 @@ def modal_credit_note_order(request):
         order_id = request.GET.get('order_id', '')
         order_obj = None
         order_detail_set = []
-        
+
         if order_id and order_id.isdigit():
             order_obj = Order.objects.get(id=int(order_id))
             order_detail_set = order_obj.orderdetail_set.all()
-        
+
         my_date = datetime.now()
         date_now = my_date.strftime("%Y-%m-%d")
-        
+
         # Get orders for the initial search dropdown (optional, can also use AJAX)
         subsidiary_obj = get_subsidiary_by_user(request.user)
-        
+
         t = loader.get_template('sales/modal_credit_note_order.html')
         c = ({
             'order_obj': order_obj,
@@ -5011,16 +5053,16 @@ def view_credit_note_order_detail(request):
     """View to display credit note order details in a modal"""
     if request.method == 'GET':
         credit_note_id = request.GET.get('credit_note_id', '')
-        
+
         try:
             credit_note = CreditNoteOrder.objects.select_related('order', 'order__client').get(id=int(credit_note_id))
             details = credit_note.creditnoteorderdetail_set.select_related('product', 'unit').all()
-            
+
             # Calculate totals
             total = credit_note.get_total()
             subtotal = total / decimal.Decimal('1.18')
             igv = total - subtotal
-            
+
             t = loader.get_template('sales/modal_credit_note_order_detail.html')
             c = {
                 'credit_note': credit_note,
@@ -5029,7 +5071,7 @@ def view_credit_note_order_detail(request):
                 'subtotal': subtotal,
                 'igv': igv,
             }
-            
+
             return JsonResponse({
                 'html': t.render(c, request),
             })
@@ -5043,7 +5085,7 @@ def view_credit_note_order_detail(request):
                 'success': False,
                 'message': f'Error al cargar el detalle: {str(e)}'
             }, status=500)
-    
+
     return JsonResponse({'message': 'Método no permitido'}, status=400)
 
 
@@ -5053,15 +5095,15 @@ def save_credit_note_order(request):
         try:
             with transaction.atomic():
                 order_id = request.POST.get('order_id', '')
-                credit_serial = request.POST.get('credit_note_serial', '') # Corrected
-                credit_number = request.POST.get('credit_note_number', '') # Corrected
-                issue_date = request.POST.get('issue_date', '') # Corrected
-                motive = request.POST.get('motive', '') # Corrected
+                credit_serial = request.POST.get('credit_note_serial', '')  # Corrected
+                credit_number = request.POST.get('credit_note_number', '')  # Corrected
+                issue_date = request.POST.get('issue_date', '')  # Corrected
+                motive = request.POST.get('motive', '')  # Corrected
                 details_json = request.POST.get('details', '[]')
                 details = json.loads(details_json)
-                
+
                 order_obj = Order.objects.get(id=int(order_id))
-                
+
                 credit_note_order = CreditNoteOrder.objects.create(
                     credit_note_serial=credit_serial,
                     credit_note_number=credit_number,
@@ -5070,22 +5112,22 @@ def save_credit_note_order(request):
                     motive=motive,
                     status='E'
                 )
-                
+
                 for d in details:
                     order_detail_id = d.get('order_detail_id')
                     quantity_returned = decimal.Decimal(d.get('quantity'))
-                    unit_id = d.get('unit_id') # New: Unit from detail
-                    price_unit = decimal.Decimal(d.get('price_unit')) # New: Price from detail
-                    
+                    unit_id = d.get('unit_id')  # New: Unit from detail
+                    price_unit = decimal.Decimal(d.get('price_unit'))  # New: Price from detail
+
                     if quantity_returned <= 0:
                         continue
-                        
+
                     order_detail_obj = OrderDetail.objects.get(id=int(order_detail_id))
                     unit_obj = Unit.objects.get(id=int(unit_id)) if unit_id else order_detail_obj.unit
-                    
+
                     # Calculate total for the detail
                     total_detail = quantity_returned * price_unit
-                    
+
                     credit_note_detail = CreditNoteOrderDetail.objects.create(
                         credit_note_order=credit_note_order,
                         product=order_detail_obj.product,
@@ -5095,24 +5137,24 @@ def save_credit_note_order(request):
                         total=total_detail,
                         description=order_detail_obj.product.name
                     )
-                    
+
                     # Kardex Integration
                     # Find the source batch from the original sale's kardex
                     kardex_sale = Kardex.objects.filter(order_detail=order_detail_obj, operation='S').last()
-                    
+
                     product_store = order_detail_obj.product_store
-                    
+
                     # Convert quantity to minimum units
                     quantity_minimum = calculate_minimum_unit(quantity_returned, unit_obj, order_detail_obj.product)
-                    
+
                     # Determine cost for kardex. We use the original price_unit from the Kardex Sale record if available
                     # otherwise we use the order detail price (approximated)
                     price_unit_cost = order_detail_obj.price_unit
                     if kardex_sale:
                         price_unit_cost = kardex_sale.price_unit
-                    
+
                     total_cost_kardex = quantity_minimum * price_unit_cost
-                    
+
                     # Call kardex_input with type_document='07' and type_operation='05'
                     kardex_input_obj = kardex_input(
                         product_store_id=product_store.id,
@@ -5123,7 +5165,7 @@ def save_credit_note_order(request):
                         type_operation='05',
                         credit_note_order_detail_obj=credit_note_detail
                     )
-                    
+
                     # Update the batch - traceability requirement
                     if kardex_sale:
                         batch_movement = Batch.objects.filter(kardex=kardex_sale).last()
@@ -5133,16 +5175,17 @@ def save_credit_note_order(request):
                                 product_store=product_store,
                                 batch_number=batch_movement.batch_number
                             ).order_by('-id').first()
-                            
+
                             Batch.objects.create(
                                 batch_number=batch_movement.batch_number,
                                 expiration_date=batch_movement.expiration_date,
                                 quantity=quantity_minimum,
-                                remaining_quantity=(latest_batch_record.remaining_quantity if latest_batch_record else 0) + quantity_minimum,
+                                remaining_quantity=(
+                                                       latest_batch_record.remaining_quantity if latest_batch_record else 0) + quantity_minimum,
                                 kardex=kardex_input_obj,
                                 product_store=product_store
                             )
-                            
+
                             # Also update the most recent record's remaining_quantity to maintain consistency
                             if latest_batch_record:
                                 latest_batch_record.remaining_quantity += quantity_minimum
@@ -5153,7 +5196,7 @@ def save_credit_note_order(request):
                     'message': 'Nota de Crédito registrada con éxito',
                     'credit_note_id': credit_note_order.id
                 }, status=HTTPStatus.OK)
-                
+
         except Exception as e:
             return JsonResponse({
                 'success': False,
@@ -5161,7 +5204,6 @@ def save_credit_note_order(request):
             }, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return JsonResponse({'message': 'Error de petición.'}, status=HTTPStatus.BAD_REQUEST)
-
 
 
 def get_sales_list(request, guide=None):
@@ -5190,27 +5232,27 @@ def get_sales_list(request, guide=None):
 
             quantity_minimum = product_detail_get.quantity_minimum
             sub_total = round(price_sale * gd.quantity, 2)
-            
+
             # Obtener todas las unidades disponibles para este producto
             product_units = Unit.objects.filter(productdetail__product=gd.product)
-            
+
             # Obtener todos los lotes asociados a este detalle de guía desde GuideDetailBatch
             batch_details = gd.batch_details.all()  # related_name='batch_details'
-            
+
             # Si hay lotes en GuideDetailBatch, agruparlos por producto
             if batch_details.exists():
                 # La cantidad total es la de la guía, no la suma de los lotes
                 total_quantity = gd.quantity
                 total_subtotal = price_sale * gd.quantity
-                
+
                 # Crear lista de números de lote separados por comas
                 batch_numbers = [batch_detail.batch.batch_number for batch_detail in batch_details]
                 batch_numbers_str = ', '.join(batch_numbers)
-                
+
                 # Crear lista de IDs de lote para el atributo batch
                 batch_ids = [str(batch_detail.batch.id) for batch_detail in batch_details]
                 batch_ids_str = ', '.join(batch_ids)
-                
+
                 item_guide = {
                     'id': gd.id,
                     'quantity': str(round(total_quantity, 2)),
@@ -5280,17 +5322,20 @@ def get_sales_list(request, guide=None):
 
 from decimal import Decimal, ROUND_HALF_UP
 
-
 QTY_0 = Decimal("0.00")
+
 
 def q2(x):
     return (x or Decimal("0")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
+
 def q4(x):
     return (x or Decimal("0")).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
 
+
 def absd(x):
     return abs(x or Decimal("0"))
+
 
 def kardex_list(request):
     user_id = request.user.id
@@ -5325,16 +5370,16 @@ def kardex_list(request):
     product_store_obj = product_store_qs.last()
 
     kardex_qs = (Kardex.objects
-        .filter(product_store=product_store_obj)
-        .select_related(
-            'product_store',
-            'order_detail__order',
-            'guide_detail',
-            'bill_detail__bill',
-            'credit_note_detail__credit_note'
-        )
-        .order_by('create_at', 'id')
+                 .filter(product_store=product_store_obj)
+                 .select_related(
+        'product_store',
+        'order_detail__order',
+        'guide_detail',
+        'bill_detail__bill',
+        'credit_note_detail__credit_note'
     )
+                 .order_by('create_at', 'id')
+                 )
 
     saldo_qty = Decimal("0")
     saldo_unit = Decimal("0")
@@ -5347,7 +5392,7 @@ def kardex_list(request):
     sum_total_cost_entries = Decimal("0")
     sum_quantities_exits = Decimal("0")
     sum_total_cost_exits = Decimal("0")
-    
+
     sum_saldo_qty = Decimal("0")
     sum_saldo_unit = Decimal("0")
     sum_saldo_total = Decimal("0")
@@ -5355,7 +5400,7 @@ def kardex_list(request):
     # Sumas para resumen
     purchase_units = Decimal("0")
     purchase_valorized = Decimal("0")
-    
+
     initial_units = Decimal("0")
     initial_valorized = Decimal("0")
 
@@ -5367,7 +5412,7 @@ def kardex_list(request):
         qty = k.remaining_quantity or Decimal("0")
         price_unit = k.remaining_price or Decimal("0")
         price_total = k.remaining_price_total or (qty * price_unit)
-        
+
         saldo_qty += qty
         saldo_total += price_total
         if saldo_qty != 0:
@@ -5398,7 +5443,7 @@ def kardex_list(request):
             'remaining_price_total': saldo_total,
         }
         kardex_dict.append(item)
-        
+
         sum_saldo_qty += saldo_qty
         sum_saldo_unit += saldo_unit
         sum_saldo_total += saldo_total
@@ -5418,7 +5463,7 @@ def kardex_list(request):
         entry_qty = Decimal("0")
         entry_unit = Decimal("0")
         entry_total = Decimal("0")
-        
+
         exit_qty = Decimal("0")
         exit_unit = Decimal("0")
         exit_total = Decimal("0")
@@ -5427,12 +5472,12 @@ def kardex_list(request):
             entry_qty = -qty
             entry_total = -price_total
             entry_unit = price_unit
-            
-            saldo_qty += entry_qty # resta del saldo
+
+            saldo_qty += entry_qty  # resta del saldo
             saldo_total += entry_total
             if saldo_qty != 0:
                 saldo_unit = (saldo_total / saldo_qty).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
-            
+
             # Se resta de compras para el cuadro resumen
             purchase_units += entry_qty
             purchase_valorized += entry_total
@@ -5441,8 +5486,8 @@ def kardex_list(request):
             exit_qty = -qty
             exit_total = -price_total
             exit_unit = price_unit
-            
-            saldo_qty -= exit_qty # suma al saldo
+
+            saldo_qty -= exit_qty  # suma al saldo
             saldo_total -= exit_total
             if saldo_qty != 0:
                 saldo_unit = (saldo_total / saldo_qty).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
@@ -5451,7 +5496,7 @@ def kardex_list(request):
             entry_qty = qty
             entry_unit = price_unit
             entry_total = price_total
-            
+
             saldo_qty += entry_qty
             saldo_total += entry_total
             if saldo_qty != 0:
@@ -5463,9 +5508,9 @@ def kardex_list(request):
 
         elif k.operation == 'S':
             exit_qty = qty
-            exit_unit = saldo_unit # Costo promedio anterior
+            exit_unit = saldo_unit  # Costo promedio anterior
             exit_total = exit_qty * exit_unit
-            
+
             saldo_qty -= exit_qty
             saldo_total -= exit_total
 
@@ -5501,12 +5546,12 @@ def kardex_list(request):
             'remaining_price_total': saldo_total,
         }
         kardex_dict.append(item)
-        
+
         sum_quantities_entries += entry_qty
         sum_total_cost_entries += entry_total
         sum_quantities_exits += exit_qty
         sum_total_cost_exits += exit_total
-        
+
         sum_saldo_qty += saldo_qty
         sum_saldo_unit += saldo_unit
         sum_saldo_total += saldo_total
@@ -5523,7 +5568,7 @@ def kardex_list(request):
     }
 
     tpl = loader.get_template('sales/new_kardex_grid_list.html')
-    
+
     context = {
         'product_id': product_id,
         'kardex_dict': kardex_dict,
@@ -5662,17 +5707,17 @@ def sales_report_professional(request):
     from django.utils import timezone
     from datetime import datetime, timedelta
     import json
-    
+
     # Parámetros de filtro
     today = timezone.now().date()
     start_date = request.GET.get('start_date', today.strftime('%Y-%m-%d'))
     end_date = request.GET.get('end_date', today.strftime('%Y-%m-%d'))
     subsidiary_id = request.GET.get('subsidiary', '')
     client_id = request.GET.get('client', '')
-    
+
     # Filtro base para órdenes con tipo de documento B (Boleta) o F (Factura)
     orders = Order.objects.filter(type_document__in=['B', 'F'])
-    
+
     # Aplicar filtros adicionales
     if start_date:
         orders = orders.filter(create_at__date__gte=start_date)
@@ -5682,17 +5727,13 @@ def sales_report_professional(request):
         orders = orders.filter(subsidiary_id=subsidiary_id)
     if client_id:
         orders = orders.filter(client_id=client_id)
-    
 
-    
-
-    
     # Obtener datos para filtros
     from apps.hrm.models import Subsidiary
-    
+
     subsidiaries = Subsidiary.objects.all()
     clients = Client.objects.all()
-    
+
     # Contexto para la plantilla
     context = {
         'start_date': start_date,
@@ -5703,7 +5744,7 @@ def sales_report_professional(request):
         'subsidiaries': subsidiaries,
         'clients': clients,
     }
-    
+
     return render(request, 'sales/sales_report_professional.html', context)
 
 
@@ -5721,7 +5762,7 @@ def accounts_receivable_report(request):
 
         # Obtener clientes para el filtro
         clients = Client.objects.filter(
-            order__isnull=False, 
+            order__isnull=False,
             order__subsidiary=subsidiary_obj,
         ).distinct('id').values('id', 'names').order_by('id', 'names')
 
@@ -5770,7 +5811,7 @@ def accounts_receivable_report(request):
 
         if client_id:
             orders_query = orders_query.filter(client_id=client_id)
-        
+
         if start_date and end_date:
             orders_query = orders_query.filter(create_at__date__range=[start_date, end_date])
 
@@ -5782,7 +5823,7 @@ def accounts_receivable_report(request):
             )
 
         orders_data = []
-        
+
         for order in orders_query:
             # Calcular total de la orden
             # order_total = get_total_order(order.id)
@@ -5798,9 +5839,11 @@ def accounts_receivable_report(request):
                 order_id=order.id,
                 type='G'
             )
-            
+
             total_paid = sum([lp.pay for lp in loan_payments]) if loan_payments.exists() else decimal.Decimal('0.00')
-            total_warranties = sum([lp.pay for lp in loan_payments_warranties]) if loan_payments_warranties.exists() else decimal.Decimal('0.00')
+            total_warranties = sum(
+                [lp.pay for lp in loan_payments_warranties]) if loan_payments_warranties.exists() else decimal.Decimal(
+                '0.00')
             pending_amount = order_total - (total_paid + order.total_retention + order.total_warranty)
             pending_warranty = decimal.Decimal(order.total_warranty) - decimal.Decimal(total_warranties)
 
@@ -5836,7 +5879,7 @@ def accounts_receivable_report(request):
 
             # Verificar si la orden tiene las tres fases
             has_all_phases = order.phase_c and order.phase_d and order.phase_g
-            
+
             # Verificar si la orden está completamente pagada (factura + garantía si existe)
             is_paid = pending_amount == 0
             is_warranty_complete = pending_warranty <= 0 if order.total_warranty > 0 else True
@@ -5869,7 +5912,8 @@ def accounts_receivable_report(request):
                 'order_date': order.create_at,
                 'order_total': order_total,
                 'total_paid': total_paid,
-                'total_payed': order.total_payed if order.total_payed else decimal.Decimal('0.00'),  # Total pagado del modelo
+                'total_payed': order.total_payed if order.total_payed else decimal.Decimal('0.00'),
+                # Total pagado del modelo
                 'total_retention': order.total_retention if order.total_retention else decimal.Decimal('0.00'),
                 'total_warranty': order.total_warranty if order.total_warranty else decimal.Decimal('0.00'),
                 'total_warranties_paid': total_warranties,
@@ -5902,7 +5946,8 @@ def accounts_receivable_report(request):
         total_payed = sum([order['total_payed'] for order in orders_data])
         total_retention = sum([order['total_retention'] for order in orders_data])
         # total_warranty = sum([order['total_warranty'] for order in orders_data])  # Monto total de garantía
-        total_warranties_paid = sum([order['total_warranties_paid'] for order in orders_data])  # Garantías pagadas (type='G')
+        total_warranties_paid = sum(
+            [order['total_warranties_paid'] for order in orders_data])  # Garantías pagadas (type='G')
         total_pending = sum([order['pending_amount'] for order in orders_data])
         total_orders = len(orders_data)
 
@@ -5933,25 +5978,25 @@ def get_client_payment_modal(request):
     if request.method == 'GET':
         order_id = request.GET.get('order_id')
         client_id = request.GET.get('client_id')
-        
+
         order = Order.objects.get(id=order_id)
         client = Client.objects.get(id=client_id)
-        
+
         # Calcular total pendiente
         order_total = get_total_order(order.id)
         loan_payments = LoanPayment.objects.filter(order_id=order.id, type='V')
         total_paid = sum([lp.pay for lp in loan_payments]) if loan_payments.exists() else decimal.Decimal('0.00')
         # El saldo por verificar es la diferencia entre el total y lo que está registrado en total_payed
         # pending_amount = order_total - (order.total_payed if order.total_payed else decimal.Decimal('0.00'))
-        
+
         # Obtener cuentas de caja disponibles
         cash_accounts = Cash.objects.filter(
             accounting_account__code__startswith='104'
         )
-        
+
         mydate = datetime.now()
         formatdate = mydate.strftime("%Y-%m-%d")
-        
+
         # Calcular monto pendiente
         print(order_total)
         print(total_paid)
@@ -5962,7 +6007,7 @@ def get_client_payment_modal(request):
 
         # Verificar si la orden tiene las tres fases
         has_all_phases = order.phase_c and order.phase_d and order.phase_g
-        
+
         tpl = loader.get_template('sales/client_payment_modal.html')
         context = {
             'order': order,
@@ -5978,7 +6023,7 @@ def get_client_payment_modal(request):
             'payment_types': TransactionPayment._meta.get_field('type').choices,
             'formatdate': formatdate,
         }
-        
+
         return JsonResponse({
             'modal': tpl.render(context, request),
         }, status=HTTPStatus.OK)
@@ -5999,17 +6044,17 @@ def save_client_payment(request):
             cash_account_id = request.POST.get('cash_account_id')
             operation_date = request.POST.get('operation_date')
             observation = request.POST.get('observation', '')
-            
+
             # Obtener objetos
             order = Order.objects.get(id=order_id)
             client = Client.objects.get(id=client_id)
             cash_account = Cash.objects.get(id=cash_account_id) if cash_account_id else None
-            
+
             # Subir archivo si se proporciona
             payment_file = None
             if 'payment_file' in request.FILES:
                 payment_file = request.FILES['payment_file']
-            
+
             # Crear LoanPayment con archivo
             loan_payment = LoanPayment.objects.create(
                 pay=payment_amount,
@@ -6020,7 +6065,7 @@ def save_client_payment(request):
                 order=order,
                 file=payment_file if payment_file else 'img/image_placeholder.jpg'
             )
-            
+
             # Crear TransactionPayment
             transaction_payment = TransactionPayment.objects.create(
                 payment=payment_amount,
@@ -6028,7 +6073,7 @@ def save_client_payment(request):
                 operation_code=operation_code,
                 loan_payment=loan_payment
             )
-            
+
             # Crear CashFlow si es necesario
             if cash_account:
                 cash_flow = CashFlow.objects.create(
@@ -6042,28 +6087,28 @@ def save_client_payment(request):
                     user=request.user,
                     client=client
                 )
-            
+
             # Actualizar total_payed en la orden
             order_total = get_total_order(order.id)
             all_payments = LoanPayment.objects.filter(order_id=order.id, type='V')
             total_paid = sum([lp.pay for lp in all_payments])
-            
+
             # Actualizar total_payed (este es el campo que se verifica)
             order.total_payed = total_paid
-            
+
             # Verificar si la orden está completamente pagada
             if total_paid >= order_total:
                 order.status_pay = 'C'  # Completado
             else:
                 order.status_pay = 'P'  # Pendiente
-            
+
             order.save()
-            
+
             return JsonResponse({
                 'success': True,
                 'message': 'Pago registrado exitosamente'
             }, status=HTTPStatus.OK)
-            
+
         except Exception as e:
             return JsonResponse({
                 'success': False,
@@ -6078,22 +6123,22 @@ def get_warranty_verification_modal(request):
     if request.method == 'GET':
         order_id = request.GET.get('order_id')
         client_id = request.GET.get('client_id')
-        
+
         order = Order.objects.get(id=order_id)
         client = Client.objects.get(id=client_id)
-        
+
         mydate = datetime.now()
         formatdate = mydate.strftime("%Y-%m-%d")
-        
+
         tpl = loader.get_template('sales/warranty_verification_modal.html')
 
         cash_accounts = Cash.objects.filter(
             accounting_account__code__startswith='104'
         )
-        
+
         # Verificar si la orden tiene las tres fases
         has_all_phases = order.phase_c and order.phase_d and order.phase_g
-        
+
         context = {
             'order': order,
             'total_warranty': '{:,}'.format(round(order.total_warranty, 2)),
@@ -6103,7 +6148,7 @@ def get_warranty_verification_modal(request):
             'cash_accounts': cash_accounts,
             'payment_types': TransactionPayment._meta.get_field('type').choices,
         }
-        
+
         return JsonResponse({
             'modal': tpl.render(context, request),
         }, status=HTTPStatus.OK)
@@ -6170,7 +6215,7 @@ def save_warranty_verification(request):
                 'success': True,
                 'message': 'Garantía verificada exitosamente'
             }, status=HTTPStatus.OK)
-            
+
         except Exception as e:
             return JsonResponse({
                 'success': False,
@@ -6185,10 +6230,10 @@ def get_payment_details_modal(request):
     if request.method == 'GET':
         order_id = request.GET.get('order_id')
         client_id = request.GET.get('client_id')
-        
+
         order = Order.objects.get(id=order_id)
         client = Client.objects.get(id=client_id)
-        
+
         # Obtener todos los pagos
         loan_payments = LoanPayment.objects.filter(order_id=order.id, type='V').order_by('-create_at')
         payments_list = []
@@ -6205,14 +6250,14 @@ def get_payment_details_modal(request):
                     'loan_payment_id': lp.id,
                     'observation': lp.observation or ''
                 })
-        
+
         tpl = loader.get_template('sales/payment_details_view_modal.html')
         context = {
             'order': order,
             'client': client,
             'payments_list': payments_list,
         }
-        
+
         return JsonResponse({
             'modal': tpl.render(context, request),
         }, status=HTTPStatus.OK)
@@ -6225,16 +6270,16 @@ def get_warranty_details_modal(request):
     if request.method == 'GET':
         order_id = request.GET.get('order_id')
         client_id = request.GET.get('client_id')
-        
+
         order = Order.objects.get(id=order_id)
         client = Client.objects.get(id=client_id)
-        
+
         tpl = loader.get_template('sales/warranty_details_view_modal.html')
         context = {
             'order': order,
             'client': client,
         }
-        
+
         return JsonResponse({
             'modal': tpl.render(context, request),
         }, status=HTTPStatus.OK)
@@ -6248,14 +6293,14 @@ def get_payment_detail_view(request):
         loan_payment_id = request.GET.get('loan_payment_id')
         order_id = request.GET.get('order_id')
         client_id = request.GET.get('client_id')
-        
+
         order = Order.objects.get(id=order_id)
         client = Client.objects.get(id=client_id) if client_id else order.client
-        
+
         # Obtener el pago específico
         loan_payment = LoanPayment.objects.get(id=loan_payment_id)
         payment_type = loan_payment.type  # 'V' para factura, 'G' para garantía
-        
+
         # Obtener dirección principal del cliente
         main_address = client.clientaddress_set.filter(type_address='P').first()
         client_address = None
@@ -6270,11 +6315,11 @@ def get_payment_detail_view(request):
             if main_address.department:
                 address_parts.append(str(main_address.department))
             client_address = ', '.join(address_parts) if address_parts else None
-        
+
         # Obtener transacciones del pago
         transaction_payments = TransactionPayment.objects.filter(loan_payment=loan_payment)
         file_url = loan_payment.file.url if loan_payment.file and loan_payment.file.name != 'img/image_placeholder.jpg' else None
-        
+
         payment_data = {
             'loan_payment': loan_payment,
             'transaction_payments': transaction_payments,
@@ -6283,7 +6328,7 @@ def get_payment_detail_view(request):
             'amount': '{:,}'.format(round(loan_payment.pay, 2)),
             'observation': loan_payment.observation or ''
         }
-        
+
         tpl = loader.get_template('sales/payment_detail_view_modal.html')
         context = {
             'order': order,
@@ -6293,7 +6338,7 @@ def get_payment_detail_view(request):
             'payment_type': payment_type,  # 'V' o 'G'
             'is_warranty': payment_type == 'G',
         }
-        
+
         return JsonResponse({
             'modal': tpl.render(context, request),
         }, status=HTTPStatus.OK)
@@ -6384,7 +6429,9 @@ class PriceManagementView(View):
         return self.model_price_type.objects.all().order_by('id')
 
     def get_queryset_product_prices(self):
-        return self.model_product_price.objects.select_related('price_type', 'product_detail__product', 'product_detail__unit').all().order_by('price_type__name', 'product_detail__product__name')
+        return self.model_product_price.objects.select_related('price_type', 'product_detail__product',
+                                                               'product_detail__unit').all().order_by(
+            'price_type__name', 'product_detail__product__name')
 
     def get_context_data(self, **kwargs):
         contexto = {}
@@ -6393,7 +6440,9 @@ class PriceManagementView(View):
         contexto['form_price_type'] = self.form_class_price_type
         contexto['form_product_price'] = self.form_class_product_price
         contexto['price_types_enabled'] = PriceType.objects.filter(is_enabled=True)
-        contexto['product_details'] = ProductDetail.objects.filter(is_enabled=True).select_related('product', 'unit').order_by('product__name', 'unit__name')
+        contexto['product_details'] = ProductDetail.objects.filter(is_enabled=True).select_related('product',
+                                                                                                   'unit').order_by(
+            'product__name', 'unit__name')
         return contexto
 
     def get(self, request, *args, **kwargs):
@@ -6402,12 +6451,14 @@ class PriceManagementView(View):
 
 class PriceTypeList(View):
     """Vista legacy - redirige a la vista unificada"""
+
     def get(self, request, *args, **kwargs):
         return redirect('sales:price_management')
 
 
 class ProductPriceList(View):
     """Vista legacy - redirige a la vista unificada"""
+
     def get(self, request, *args, **kwargs):
         return redirect('sales:price_management')
 
@@ -6500,7 +6551,9 @@ class ProductPriceList(View):
     template_name = 'sales/product_price_list.html'
 
     def get_queryset(self):
-        return self.model.objects.select_related('price_type', 'product_detail__product', 'product_detail__unit').all().order_by('price_type__type', 'product_detail__product__name')
+        return self.model.objects.select_related('price_type', 'product_detail__product',
+                                                 'product_detail__unit').all().order_by('price_type__type',
+                                                                                        'product_detail__product__name')
 
     def get_context_data(self, **kwargs):
         contexto = {}
@@ -6680,7 +6733,7 @@ def get_prices_by_price_type(request):
     if request.method == 'GET':
         try:
             price_type_id = request.GET.get('price_type_id', '')
-            
+
             if not price_type_id:
                 return JsonResponse({
                     'success': False,
@@ -6688,15 +6741,16 @@ def get_prices_by_price_type(request):
                 }, status=HTTPStatus.BAD_REQUEST)
 
             price_type_obj = PriceType.objects.get(id=int(price_type_id))
-            
+
             # Obtener todos los productos habilitados
-            product_details = ProductDetail.objects.filter(is_enabled=True).select_related('product', 'unit').order_by('product__name', 'unit__name')
-            
+            product_details = ProductDetail.objects.filter(is_enabled=True).select_related('product', 'unit').order_by(
+                'product__name', 'unit__name')
+
             # Obtener precios existentes para este tipo de precio
             existing_prices = ProductPrice.objects.filter(
                 price_type=price_type_obj
             ).select_related('product_detail__product', 'product_detail__unit')
-            
+
             # Crear un diccionario de precios existentes por product_detail_id
             prices_dict = {pp.product_detail.id: {
                 'id': pp.id,

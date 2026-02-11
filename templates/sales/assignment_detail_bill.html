@@ -1,146 +1,147 @@
 {% load operations %}
 <div class="modal-dialog modal-xl" role="document">
 
-    <div class="modal-content">
-        <div class="modal-header text-left pb-1 bg-light">
-            <div class="card-body p-0 ">
-                <h5 class="modal-title roboto-condensed-regular font-weight-bold">INGRESO A ALMACEN:</h5>
-                <h7 class="modal-title roboto-condensed-regular font-weight-bold">
-                    FACTURA: {{ bill_obj }}</h7>
-                <br>
-                <h7 class="modal-title roboto-condensed-regular font-weight-bold">
-                    {{ bill_obj.supplier.name }}</h7>
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+        <div class="modal-header py-4" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+            <div class="d-flex flex-column">
+                <h5 class="modal-title text-white font-weight-bold roboto-condensed-regular mb-1">
+                    <i class="fas fa-warehouse mr-2"></i>INGRESO A ALMACÉN
+                </h5>
+                <span class="text-white-50 small">Factura: {{ bill_obj }}</span>
+                <span class="text-white font-weight-bold">{{ bill_obj.supplier.name }}</span>
             </div>
-            <button type="button" class="close col-sm-1" data-dismiss="modal" aria-label="Close">
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 1;">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-        <div class="modal-body roboto-condensed-regular">
+        <div class="modal-body roboto-condensed-regular bg-light">
             <input type="hidden" id="bill_id" value="{{ bill_obj.id }}">
-            <div class="card bg-light">
 
-                <div class="row p-2 text-uppercase">
-                    <div class="col-sm-4 col-md-4 col-lg-4">
-                        <label for="store">Seleccione Almacen de destino:</label>
-                        <select id="store" name="store" class="form-control">
-                            <option disabled selected value="0">Seleccione</option>
-                            {% for s in subsidiary_stores %}
-                                <option value="{{ s.id }}">{{ s.subsidiary.name }} - ALMACEN {{ s.name|upper }}</option>
-                            {% endfor %}
-                        </select>
+            <!-- Panel informativo del proceso -->
+            <div class="alert alert-light border mb-3 shadow-sm" style="border-radius: 8px; border-left: 4px solid #1e3a5f !important;">
+                <div class="d-flex align-items-start">
+                    <div class="mr-3 mt-1">
+                        <i class="fas fa-info-circle text-primary" style="font-size: 1.5rem;"></i>
                     </div>
-
-                    <div class="col-sm-4 col-md-4 col-lg-4">
-                        <label for="assign_date" class="">Fecha de Ingreso: (fecha de factura)</label>
-                        <input type="date" class="form-control form-control-sm" id="assign_date"
-                               name="assign_date"
-                               value="{{ bill_obj.register_date|date:'Y-m-d' }}" required>
+                    <div>
+                        <h6 class="font-weight-bold text-dark mb-2">Proceso de ingreso</h6>
+                        <ol class="mb-0 pl-3 small text-muted">
+                            <li><strong>Cantidad ingresada:</strong> Registre la cantidad que ingresa al almacén por cada lote.</li>
+                            <li><strong>Devuelta:</strong> Marque si parte de la cantidad ingresada será devuelta al proveedor.</li>
+                            <li><strong>Vendida:</strong> Marque si parte de la cantidad ingresada será vendida. Generará un <strong>código (ID Orden)</strong> para usar en el módulo de ventas.</li>
+                        </ol>
                     </div>
+                </div>
+            </div>
 
-                    <div class="col-sm-4 col-md-4 col-lg-4">
-                        <label for="guide_number" class="font-weight-bold">Nº de Guia:</label>
-                        <input type="text" class="form-control form-control-sm text-uppercase font-weight-bold"
-                               id="guide_number"
-                               name="guide_number"
-                               value="">
+            <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px;">
+
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-4 col-md-4 col-lg-4">
+                            <label for="store" class="small font-weight-bold text-uppercase text-muted mb-1">Almacén de destino</label>
+                            <div class="input-group shadow-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-white"><i class="fas fa-warehouse text-primary"></i></span>
+                                </div>
+                                <select id="store" name="store" class="form-control" style="border-left: 0;">
+                                    <option disabled selected value="0">Seleccione almacén</option>
+                                    {% for s in subsidiary_stores %}
+                                        <option value="{{ s.id }}">{{ s.subsidiary.name }} - ALMACÉN {{ s.name|upper }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4 col-md-4 col-lg-4">
+                            <label for="assign_date" class="small font-weight-bold text-uppercase text-muted mb-1">Fecha de ingreso</label>
+                            <div class="input-group shadow-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-white"><i class="far fa-calendar-alt text-primary"></i></span>
+                                </div>
+                                <input type="date" class="form-control" id="assign_date" name="assign_date"
+                                       value="{{ bill_obj.register_date|date:'Y-m-d' }}" required style="border-left: 0;">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4 col-md-4 col-lg-4">
+                            <label for="guide_number" class="small font-weight-bold text-uppercase text-muted mb-1">Nº de guía</label>
+                            <div class="input-group shadow-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-white"><i class="fas fa-file-alt text-primary"></i></span>
+                                </div>
+                                <input type="text" class="form-control text-uppercase" id="guide_number" name="guide_number"
+                                       value="" placeholder="Opcional" style="border-left: 0;">
+                            </div>
+                        </div>
                     </div>
-
                 </div>
 
-                <div class="card bg-light m-2">
+                <div class="card border-0 shadow-sm m-0" style="border-radius: 10px;">
                     {% for d in detail_bill %}
-                        <table class="table table-primary align-content-center table-bordered table-sm m-0" id="table-detail-product-{{ d.product_id }}">
+                        <table class="table table-bordered align-content-center table-sm m-0 mb-2" id="table-detail-product-{{ d.product_id }}" style="background: #fff;">
+                            <input type="hidden" class="unit-purchase" value="{{ d.unit_id }}">
+                            <input type="hidden" class="price-unit-purchase" value="{{ d.price_unit }}">
                             <thead>
-                            <tr class="bg-info text-uppercase">
-                                <input type="hidden" class="unit-purchase" id="unit_purchase"
-                                       value="{{ d.unit_id }}">
-                                <input type="hidden" class="price-unit-purchase" value="{{ d.price_unit }}"
-                                       id="price_unit_sold">
-                                <td colspan="2" class="text-center align-middle text-dark">
-                                    <div class="row pr-2 pl-2 font-weight-bold">
-                                        <div class="col-sm-2 text-right pt-1">
-                                            Producto:
-                                        </div>
-                                        <div class="col-sm-5 text-left pt-1">
-                                            <span class="font-weight-bold">{{ d.product_name }}</span>
-                                        </div>
-                                        <div class="col-sm-3 text-right pt-1">
-                                            CANTIDAD COMPRADA:
-                                        </div>
-                                        <div class="col-sm-2">
-                                            <input type="text" aria-label=""
-                                                   class="form-control form-control-sm font-weight-bold text-center quantity-purchased-in-units"
-                                                   id="quantity-purchased-in-units" autocomplete="off"
-                                                   value="{{ d.quantity|replace_round }}" readonly>
-                                        </div>
+                            <tr style="background: #f8f9fa;">
+                                <td colspan="2" class="border-0 py-2">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span class="font-weight-bold text-dark">{{ d.product_name }}</span>
+                                        <span class="badge badge-secondary px-2 py-1">Comprado: <input type="text" class="quantity-purchased-in-units bg-transparent border-0 text-center font-weight-bold" style="width: 45px;" value="{{ d.quantity|replace_round }}" readonly> UND</span>
                                     </div>
                                 </td>
-{#                                <td class="text-center align-middle">#}
-{#                                    <input type="text" aria-label=""#}
-{#                                           class="form-control form-control-sm font-weight-bold text-center quantity-purchased-in-units"#}
-{#                                           id="quantity-purchased-in-units" autocomplete="off"#}
-{#                                           value="{{ d.quantity|replace_round }}" readonly>#}
-{#                                </td>#}
                             </tr>
-                            <tr class="text-white bg-info text-uppercase">
-                                <th class="align-middle text-center bg-warning text-dark" style="width: 90%">
-                                    Despacho de Cantidades
-                                </th>
-                                {#                                    <th class="align-middle text-center bg-warning text-dark" style="width: 15%">#}
-                                {#                                        Cantidad Faltante (UND)#}
-                                {#                                    </th>#}
-                                <th class="align-middle text-center bg-warning text-dark" style="width: 10%; font-size: 0.8em">
-                                    Cant. Falt. (UND)
-                                </th>
+                            <tr style="background: #e9ecef;">
+                                <th class="align-middle text-center py-2" style="width: 90%">Despacho de cantidades</th>
+                                <th class="align-middle text-center py-2" style="width: 10%; font-size: 0.8rem;">Cant. falt. (UND)</th>
                             </tr>
                             </thead>
                             <tbody id="details-product-{{ d.product_id }}">
                             <tr class="detail" product="{{ d.product_id }}" purchase_detail="{{ d.id }}"
                                 qm="{{ d.quantity_minimum }}" unit="{{ d.unit_id }}" unit_name="{{ d.unit_name }}">
-                                <td class="align-middle item-quantity text-center">
-                                    <table class="table table-info table-sm table-responsive-sm mb-0" id="table-product-{{ d.product_id }}">
+                                <td class="align-middle item-quantity text-center p-0">
+                                    <table class="table table-sm table-bordered mb-0" id="table-product-{{ d.product_id }}" style="background: #fefefe;">
                                         <thead>
-                                        <tr class="text-uppercase title">
+                                        <tr class="text-uppercase title" style="background: #f8f9fa; font-size: 0.75rem;">
                                             <td colspan="2"></td>
-                                            <td {% if d.unit_name != 'UND' %}colspan="2"{% endif %} style="background-color: #d3f5ea">Ingresada</td>
-                                            <td class="title-return" {% if d.unit_name != 'UND' %}colspan="2"{% endif %} style="background-color: #ddefa1">
-                                                <div class="form-check">
-                                                    <input type="checkbox" class="form-check-input check-returned"
-                                                           p="{{ d.product_id }} "id="check-returned">
-                                                    <label class="form-check-label" for="check-returned">Devuelta</label>
-                                                </div>
+                                            <td {% if d.unit_name != 'UND' %}colspan="2"{% endif %} class="py-2" style="background: #d4edda;">Ingresada</td>
+                                            <td class="title-return py-2" {% if d.unit_name != 'UND' %}colspan="2"{% endif %} style="background: #fff3cd;">
+                                                <label class="mb-0 d-inline-flex align-items-center cursor-pointer" style="cursor: pointer;">
+                                                    <input type="checkbox" class="form-check-input check-returned mr-1" p="{{ d.product_id }}" id="check-returned-{{ d.product_id }}">
+                                                    <span>Devuelta</span>
+                                                </label>
                                             </td>
-                                            <td class="title-sold" {% if d.unit_name != 'UND' %}colspan="2"{% endif %} style="background-color: #efd692">
-                                                <div class="form-check">
-                                                    <input type="checkbox" class="form-check-input check-sold"
-                                                           p="{{ d.product_id }}" id="check-sold">
-                                                    <label class="form-check-label" for="check-sold">Vendida</label>
-                                                </div>
+                                            <td class="title-sold py-2" {% if d.unit_name != 'UND' %}colspan="2"{% endif %} style="background: #cce5ff;">
+                                                <label class="mb-0 d-inline-flex align-items-center" style="cursor: pointer;">
+                                                    <input type="checkbox" class="form-check-input check-sold mr-1" p="{{ d.product_id }}" id="check-sold-{{ d.product_id }}">
+                                                    <span>Vendida</span>
+                                                </label>
                                             </td>
+                                            <td class="item-sold d-none py-2" style="background: #d1ecf1;">ID Orden</td>
                                             <td colspan="2"></td>
                                         </tr>
-                                        <tr class="sub-title">
+                                        <tr class="sub-title" style="font-size: 0.7rem;">
                                             {% if d.unit_name == 'UND' %}
-                                                <th class="font-weight-lighter" style="width: 3%">#</th>
-                                                <th class="font-weight-lighter" style="width: 9%">Nº Lote:</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #d3f5ea">UNIDAD(ES)</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #ddefa1">UNIDAD(ES)</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #efd692">UNIDAD(ES)</th>
-                                                <th class="font-weight-lighter item-sold d-none" style="width: 16.5%; background-color: #efd692">VENTA</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%">VENC. LOTE:</th>
-                                                <th style="width: 5%"></th>
+                                                <th class="py-1" style="width: 3%">#</th>
+                                                <th class="py-1" style="width: 10%; background: #e8f5e9;">Nº Lote</th>
+                                                <th class="py-1" style="width: 10%; background: #d4edda;">UNIDAD(ES)</th>
+                                                <th class="py-1" style="width: 10%; background: #fff3cd;">UNIDAD(ES)</th>
+                                                <th class="py-1" style="width: 10%; background: #cce5ff;">UNIDAD(ES)</th>
+                                                <th class="py-1 item-sold d-none" style="width: 14%; background: #d1ecf1;">Código</th>
+                                                <th class="py-1" style="width: 10%">Venc. Lote</th>
+                                                <th class="py-1" style="width: 5%"></th>
                                             {% else %}
-                                                <th class="font-weight-lighter" style="width: 3%">#</th>
-                                                <th class="font-weight-lighter" style="width: 9%">Nº Lote:</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #d3f5ea">{{ d.unit_description }}</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #d3f5ea">UNIDAD(ES)</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #ddefa1">{{ d.unit_description }}</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #ddefa1">UNIDAD(ES)</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #efd692">{{ d.unit_description }}</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%; background-color: #efd692">UNIDAD(ES)</th>
-                                                <th class="font-weight-lighter item-sold d-none" style="width: 16.5%; background-color: #efd692">VENTA</th>
-                                                <th class="font-weight-lighter" style="width: 9.5%">VENC. LOTE:</th>
-                                                <th style="width: 5%"></th>
+                                                <th class="py-1" style="width: 3%">#</th>
+                                                <th class="py-1" style="width: 9%; background: #e8f5e9;">Nº Lote</th>
+                                                <th class="py-1" style="width: 8%; background: #d4edda;">{{ d.unit_description }}</th>
+                                                <th class="py-1" style="width: 8%; background: #d4edda;">UNIDAD(ES)</th>
+                                                <th class="py-1" style="width: 8%; background: #fff3cd;">{{ d.unit_description }}</th>
+                                                <th class="py-1" style="width: 8%; background: #fff3cd;">UNIDAD(ES)</th>
+                                                <th class="py-1" style="width: 8%; background: #cce5ff;">{{ d.unit_description }}</th>
+                                                <th class="py-1" style="width: 8%; background: #cce5ff;">UNIDAD(ES)</th>
+                                                <th class="py-1 item-sold d-none" style="width: 12%; background: #d1ecf1;">Código</th>
+                                                <th class="py-1" style="width: 9%">Venc. Lote</th>
+                                                <th class="py-1" style="width: 5%"></th>
                                             {% endif %}
                                         </tr>
                                         </thead>
@@ -200,26 +201,20 @@
                                                        autocomplete="off">
                                             </td>
                                             <td class="item-sold d-none">
-                                                <div class="row m-0">
-                                                    <div class="col-md-4 text-uppercase sale pl-0 pr-0">
-                                                        <button type="button"
-                                                                class="btn btn-success btn-sm btn-block btn-generate-sold">
-                                                            Cod.
+                                                <div class="row m-0 no-gutters align-items-center">
+                                                    <div class="col sale">
+                                                        <button type="button" class="btn btn-success btn-sm btn-block btn-generate-sold py-1" title="Genera el ID de orden para usar en el módulo de ventas">
+                                                            <i class="fas fa-barcode mr-1"></i>Obtener ID
                                                         </button>
                                                     </div>
-                                                    <div class="col-md-4 text-uppercase pl-0 delete-sale pr-1 d-none">
-                                                        <button type="button"
-                                                                class="btn btn-danger btn-sm btn-block btn-cancel-sold">
-                                                            <i class="fas fa-ban"></i>
+                                                    <div class="col delete-sale pr-1 d-none">
+                                                        <button type="button" class="btn btn-outline-danger btn-sm btn-block btn-cancel-sold py-1">
+                                                            <i class="fas fa-times"></i>
                                                         </button>
                                                     </div>
-                                                    <div class="col-md-8 text-uppercase pr-0 pl-0 item-sale">
-                                                        <input type="text" aria-label="" disabled
-                                                               class="form-control form-control-sm text-center font-weight-bold sale-cod"
-                                                               id="sale-cod" p="{{ d.product_id }}"
-                                                               name="sale-cod">
-                                                        <input type="hidden" class="sale-id" id="sale-id" value="0"
-                                                               name="sale-id">
+                                                    <div class="col-6 item-sale pl-0">
+                                                        <input type="text" disabled class="form-control form-control-sm text-center font-weight-bold sale-cod bg-light" placeholder="ID Orden" p="{{ d.product_id }}" name="sale-cod">
+                                                        <input type="hidden" class="sale-id" value="0" name="sale-id">
                                                     </div>
                                                 </div>
                                             </td>
@@ -239,14 +234,9 @@
                                         </tbody>
                                     </table>
                                 </td>
-                                <td class="align-middle text-center item-current-quantity">
-                                    <input type="text" id="quantity-missing" aria-label="..."
-                                           class="form-control form-control-sm font-weight-bold text-center quantity-missing"
-                                           readonly
-                                           style="background-color: #b8daff"
-                                           value="{{ d.quantity_in_units }}">
-                                    <input type="hidden" id="current-quantity-missing"
-                                           class="current-quantity-missing" value="{{ d.quantity_in_units }}">
+                                <td class="align-middle text-center item-current-quantity bg-light">
+                                    <input type="text" id="quantity-missing" class="form-control form-control-sm font-weight-bold text-center quantity-missing border-0 bg-transparent" readonly value="{{ d.quantity_in_units }}">
+                                    <input type="hidden" id="current-quantity-missing" class="current-quantity-missing" value="{{ d.quantity_in_units }}">
                                 </td>
                             </tr>
                             </tbody>
@@ -255,10 +245,13 @@
                 </div>
 
             </div><!-- modal-body -->
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="close-modal" data-dismiss="modal">Cerrar</button>
-                &nbsp;
-                <button id="assignment-changes" type="button" class="btn btn-primary">Guardar</button>
+            <div class="modal-footer bg-white border-top py-3">
+                <button type="button" class="btn btn-outline-secondary font-weight-bold" id="close-modal" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Cerrar
+                </button>
+                <button id="assignment-changes" type="button" class="btn btn-primary font-weight-bold px-4 shadow-sm">
+                    <i class="fas fa-save mr-1"></i>Guardar ingreso
+                </button>
             </div>
 
         </div>
@@ -266,11 +259,15 @@
 </div>
 
 <style>
-    .toast-center {
-        top: 5%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+    .toast-center { top: 5%; left: 50%; transform: translate(-50%, -50%); }
+    .modal-content .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+        border-color: #1e3a5f;
     }
+    .modal-content .table td, .modal-content .table th { vertical-align: middle !important; }
+    .modal-content .btn-add-batch { border-radius: 6px; }
+    .modal-content .btn-delete-row { border-radius: 6px; }
+    .cursor-pointer { cursor: pointer; }
 </style>
 
 <script type="text/javascript">
@@ -285,13 +282,22 @@
         return check;
     }
     function checkBatch() {
-        let check = false;
-        $('tbody[id^="details-batch-"] tr input.item-number-batch').each(function () {
-            if ($(this).val() === '' || $(this).val() === '0') {
-                check = true;
+        let hasError = false;
+        $('tbody[id^="details-batch-"] tr').each(function () {
+            let batchInput = $(this).find('input.item-number-batch');
+            let enteredPrincipal = parseFloat($(this).find('input.entered-quantity-principal').val()) || 0;
+            let enteredUnits = parseFloat($(this).find('input.entered-quantity-units').val()) || 0;
+            let returnedPrincipal = parseFloat($(this).find('input.returned-quantity-principal').val()) || 0;
+            let returnedUnits = parseFloat($(this).find('input.returned-quantity-units').val()) || 0;
+            let soldPrincipal = parseFloat($(this).find('input.sold-quantity-principal').val()) || 0;
+            let soldUnits = parseFloat($(this).find('input.sold-quantity-units').val()) || 0;
+            let hasQuantity = (enteredPrincipal + enteredUnits + returnedPrincipal + returnedUnits + soldPrincipal + soldUnits) > 0;
+            if (hasQuantity && (!batchInput.val() || batchInput.val().trim() === '')) {
+                hasError = true;
+                return false;
             }
         });
-        return check;
+        return hasError;
     }
 
     $('#assignment-changes').click(async function () {
@@ -299,11 +305,26 @@
         let store = $('#store');
         let guide_number = $('#guide_number');
         if (store.val() === '0' || store.val() === null) {
-            toastr.warning('¡Seleccionar el Almacen de Destino!', 'Error de Datos');
+            toastr.warning('¡Seleccione el Almacén de Destino!', 'Error de Datos');
             return false;
         }
         if (checkBatch() === true) {
-            toastr.warning('Ingresar el numero de Lote', 'Error de Datos!');
+            toastr.warning('Debe ingresar el Nº de Lote en todas las filas que tengan cantidades registradas.', 'Error de Datos');
+            return false;
+        }
+        // Validar: si hay cantidad vendida, debe tener código de venta generado
+        let hasSoldWithoutOrder = false;
+        $('tbody[id^="details-batch-"] tr').each(function () {
+            let soldPrincipal = parseFloat($(this).find('input.sold-quantity-principal').val()) || 0;
+            let soldUnits = parseFloat($(this).find('input.sold-quantity-units').val()) || 0;
+            let orderId = $(this).find('input.sale-id').val() || '0';
+            if ((soldPrincipal > 0 || soldUnits > 0) && (!orderId || orderId === '0')) {
+                hasSoldWithoutOrder = true;
+                return false; // break
+            }
+        });
+        if (hasSoldWithoutOrder) {
+            toastr.warning('Las cantidades VENDIDAS deben tener el ID de orden generado. Ingrese Nº Lote, cantidad ingresada, cantidad vendida y haga clic en "Obtener ID" antes de guardar.', 'Error de Datos');
             return false;
         }
         let details_bill = {
@@ -428,8 +449,11 @@
                 }
             },
             error: function (jqXhr, textStatus, xhr) {
-                //$('#assignment').modal('hide');
-                toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
+                let msg = 'Error al guardar. Verifique los datos.';
+                if (jqXhr.responseJSON) {
+                    msg = jqXhr.responseJSON.error || jqXhr.responseJSON.detalle || msg;
+                }
+                toastr.error(msg, '¡ERROR!');
             }
         });
     })
@@ -795,18 +819,15 @@
                 <td><input type="text" class="form-control form-control-sm text-center sold-quantity-units" unit="1" p="${product_id}" ${attrDisabled}></td>
                 <td class="item-sold ${itemSoldClass}">
                     <div class="row m-0">
-                        <div class="col-md-4 text-uppercase sale pl-0 pr-0">
-                            <button type="button" class="btn btn-success btn-sm btn-block btn-generate-sold">Cod.</button>
+                        <div class="col sale">
+                            <button type="button" class="btn btn-success btn-sm btn-block btn-generate-sold py-1"><i class="fas fa-barcode mr-1"></i>Obtener ID</button>
                         </div>
-                        <div class="col-md-4 text-uppercase pl-0 delete-sale pr-1 d-none">
-                            <button type="button" class="btn btn-danger btn-sm btn-block btn-cancel-sold"><i class="fas fa-ban"></i></button>
+                        <div class="col delete-sale pr-1 d-none">
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-block btn-cancel-sold py-1"><i class="fas fa-times"></i></button>
                         </div>
-                        <div class="col-md-8 text-uppercase pr-0 pl-0 item-sale">
-                            <input type="text" disabled
-                                   class="form-control form-control-sm text-center font-weight-bold sale-cod"
-                                   id="sale-cod" p="${product_id}"
-                                   name="sale-cod">
-                            <input type="hidden" class="sale-id" id="sale-id" name="sale-id" value="0">
+                        <div class="col-6 item-sale pl-0">
+                            <input type="text" disabled class="form-control form-control-sm text-center font-weight-bold sale-cod bg-light" placeholder="ID Orden" p="${product_id}" name="sale-cod">
+                            <input type="hidden" class="sale-id" name="sale-id" value="0">
                         </div>
                     </div>
                 </td>

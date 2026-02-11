@@ -1,18 +1,24 @@
 {% load operations %}
 <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
-    <div class="modal-content">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
         <form id="credit-form" method="POST">
             {% csrf_token %}
-            <div class="modal-header" style="background-color: rgb(21,99,181);">
-                <h6 class="modal-title text-white roboto-condensed-regular">REGISTRAR NOTA DE CRÉDITO</h6>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal-header py-3" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+                <h6 class="modal-title text-white font-weight-bold roboto-condensed-regular">
+                    <i class="fas fa-file-invoice mr-2"></i>REGISTRAR NOTA DE CRÉDITO
+                </h6>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 1;">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body roboto-condensed-regular">
+                <div class="alert alert-light border mb-3" style="border-left: 4px solid #1565c0;">
+                    <strong>Producto a devolver:</strong> {{ product_name|default:bill_detail_obj.product.name }} |
+                    <strong>Cantidad:</strong> {{ product_quantity|replace_round }} {{ unit_name|default:"UND" }}
+                </div>
                 <div class="card-body bg-light p-0">
                     <input type="hidden" name="bill" id="bill_id" value="{{ bill_obj.id }}">
-                    <input type="hidden" name="subsidiary_store" id="subsidiary_store_id" value="{{ bill_obj.store_destiny.id }}">
+                    <input type="hidden" name="subsidiary_store" id="subsidiary_store_id" value="{% if bill_obj.store_destiny %}{{ bill_obj.store_destiny.id }}{% endif %}">
                     <input type="hidden" name="bill_detail" id="bill_detail_id" value="{{ bill_detail_obj.id }}">
                     <div class="row m-1 mt-2">
                         <div class="col-md-2 p-1 border">
@@ -68,7 +74,7 @@
                                 <table class="table-hover table-sm table-bordered" id="id-table-detail-note"
                                        style="width: 100%;">
                                     <thead class="text-uppercase small text-center">
-                                    <tr class="text-white" style="background: #0783d6">
+                                    <tr class="text-white" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
                                         <th scope="col" class="font-weight-normal" style="width: 10%;">Código</th>
                                         <th scope="col" class="font-weight-normal" style="width: 10%;">Cantidad</th>
                                         <th scope="col" class="font-weight-normal" style="width: 10%;">Unidad</th>
@@ -81,26 +87,26 @@
                                     <tbody id="new-note-credit">
                                     <tr>
                                         <td class="text-center align-middle">
-                                            <input type="text" autocomplete="off" aria-label="..."
+                                            <input type="text" autocomplete="off" aria-label="Código"
                                                    class="form-control text-uppercase text-center" name="credit-code"
-                                                   id="credit-code" maxlength="200">
+                                                   id="credit-code" maxlength="200" value="{{ product_code|default:'' }}" placeholder="Código producto">
                                         </td>
                                         <td class="text-center align-middle">
-                                            <input type="text" autocomplete="off" aria-label="..."
+                                            <input type="text" autocomplete="off" aria-label="Cantidad"
                                                    class="form-control text-uppercase text-center"
                                                    name="credit-quantity"
-                                                   id="credit-quantity" maxlength="200">
+                                                   id="credit-quantity" maxlength="200" value="{{ product_quantity|replace_round }}" placeholder="Cantidad">
                                         </td>
                                         <td class="text-center align-middle">
-                                            <input type="text" autocomplete="off" aria-label="..."
+                                            <input type="text" autocomplete="off" aria-label="Unidad"
                                                    class="form-control text-uppercase text-center" name="credit-unit"
-                                                   value="NIU-UND"
+                                                   value="{{ unit_display|default:'NIU-UND' }}"
                                                    id="credit-unit" maxlength="200">
                                         </td>
                                         <td class="text-center align-middle">
-                                            <input type="text" autocomplete="off" aria-label="..."
+                                            <input type="text" autocomplete="off" aria-label="Descripción"
                                                    class="form-control text-uppercase" name="credit-description"
-                                                   id="credit-description" maxlength="200">
+                                                   id="credit-description" maxlength="200" value="{{ product_name|default:'' }}" placeholder="Descripción producto">
                                         </td>
                                         <td class="text-center align-middle">
                                             <input type="text" autocomplete="off" aria-label="..."
@@ -122,11 +128,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer p-1">
-                    <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal" id="btn-close">Cerrar
-                    </button>                    &nbsp;
-                    <button id="save-credit-note" type="submit" class="btn btn-sm btn-success">
-                        Registrar Nota de Credito
+                <div class="modal-footer py-3 bg-white border-top">
+                    <button type="button" class="btn btn-outline-secondary font-weight-bold" data-dismiss="modal" id="btn-close">
+                        <i class="fas fa-times mr-1"></i>Cerrar
+                    </button>
+                    <button id="save-credit-note" type="submit" class="btn btn-primary font-weight-bold px-4">
+                        <i class="fas fa-save mr-1"></i>Registrar Nota de Crédito
                     </button>
                 </div>
             </div>
