@@ -57,14 +57,34 @@
                         <td class="align-middle text-left">
                             {{ dt.product }}
                             {% if b.order_number %}
-                                <br><small class="text-muted">Nro Orden: {{ b.order_number }}</small>
-                                {% if b.order_number_bill %}<br><small class="text-muted">Comprobante: {{ b.order_number_bill }}</small>{% endif %}
+                                <br><small class="text-muted font-weight-bold">Nro Orden: {{ b.order_number }}</small>
+                                {% if b.order_number_bill %}<br><small class="text-muted font-weight-bold">Comprobante: {{ b.order_number_bill }}</small>{% endif %}
                             {% endif %}
                         </td>
                         <td class="align-middle font-weight-bold">{{ b.batch_number|upper }}</td>
                         <td class="align-middle">{% if b.batch_expiration %}{{ b.batch_expiration|date:'d/m/Y'}}{% else %}-{% endif %}</td>
-                        <td class="align-middle font-weight-bold">{{ b.batch_quantity|replace_round }}</td>
-                        <td class="align-middle">{{ b.batch_unit }}</td>
+                        <td class="align-middle font-weight-bold">
+                            {% if dt.status_quantity == 'I' or dt.status_quantity == 'D' or dt.status_quantity == 'V' %}
+                                {% if forloop.first %}
+                                    {{ dt.quantity_display }} <small class="text-muted" style="font-size: 0.65rem;">({{ dt.quantity_und_display|floatformat:2 }} UND)</small>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            {% else %}
+                                {{ b.batch_quantity|replace_round }}
+                            {% endif %}
+                        </td>
+                        <td class="align-middle">
+                            {% if dt.status_quantity == 'I' or dt.status_quantity == 'D' or dt.status_quantity == 'V' %}
+                                {% if forloop.first %}
+                                    {{ dt.unit_reference }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            {% else %}
+                                {{ b.batch_unit }}
+                            {% endif %}
+                        </td>
                         <td class="align-middle">{{ dt.store|default:"-" }}</td>
                         <td class="align-middle p-1 credit-note">
                             {% if dt.status_quantity == 'D' %}

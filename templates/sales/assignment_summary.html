@@ -1,0 +1,189 @@
+<div class="card border-0 shadow-lg mb-3" style="border-radius: 10px;">
+    <div class="card-header py-3" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+        <h5 class="text-white font-weight-bold mb-0">
+            <i class="fas fa-check-circle mr-2"></i>Resumen de Ingreso Registrado
+        </h5>
+    </div>
+    <div class="card-body">
+        <!-- Información General -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="info-box">
+                    <label class="small font-weight-bold text-uppercase text-muted mb-1">Factura</label>
+                    <p class="mb-0 font-weight-bold">{{ bill_obj }}</p>
+                </div>
+            </div>
+                    <div class="col-md-3">
+                        <div class="info-box">
+                            <label class="small font-weight-bold text-uppercase text-muted mb-1">Fecha de Ingreso</label>
+                            <p class="mb-0 font-weight-bold">{{ assign_date }}</p>
+                        </div>
+                    </div>
+            <div class="col-md-3">
+                <div class="info-box">
+                    <label class="small font-weight-bold text-uppercase text-muted mb-1">Almacén</label>
+                    <p class="mb-0 font-weight-bold">{{ subsidiary_name }} - {{ store_name }}</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-box">
+                    <label class="small font-weight-bold text-uppercase text-muted mb-1">Nº de Guía</label>
+                    <p class="mb-0 font-weight-bold">{{ guide_number|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Productos y Lotes -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th class="text-center" style="width: 5%;">#</th>
+                        <th style="width: 25%;">Producto</th>
+                        <th class="text-center" style="width: 12%;">Nº Lote</th>
+                        <th class="text-center" style="width: 12%;">Vencimiento</th>
+                        <th class="text-center" style="width: 12%; background: #d4edda;">Ingresada</th>
+                        <th class="text-center" style="width: 12%; background: #fff3cd;">Devuelta</th>
+                        <th class="text-center" style="width: 12%; background: #cce5ff;">Vendida</th>
+                        <th class="text-center" style="width: 10%;">ID Orden</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in summary_data.products %}
+                        {% for batch in product.batches %}
+                        <tr>
+                            {% if forloop.first %}
+                            <td class="text-center align-middle" rowspan="{{ product.batches|length }}">
+                                {{ forloop.parentloop.counter }}
+                            </td>
+                            <td class="align-middle font-weight-bold" rowspan="{{ product.batches|length }}">
+                                {{ product.product_name }}
+                            </td>
+                            {% endif %}
+                            <td class="text-center align-middle">
+                                <span class="badge badge-info">{{ batch.batch_number }}</span>
+                            </td>
+                            <td class="text-center align-middle">
+                                {{ batch.batch_expiration }}
+                            </td>
+                            <td class="text-center align-middle" style="background: #f0f9f4;">
+                                <strong>{{ batch.entered_quantity|floatformat:2 }}</strong>
+                            </td>
+                            <td class="text-center align-middle" style="background: #fffef5;">
+                                {% if batch.returned_quantity > 0 %}
+                                    <strong class="text-warning">{{ batch.returned_quantity|floatformat:2 }}</strong>
+                                    <br><small class="text-muted">NC: {{ batch.credit_note_id }}</small>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center align-middle" style="background: #f0f7ff;">
+                                {% if batch.sold_quantity > 0 %}
+                                    <strong class="text-info">{{ batch.sold_quantity|floatformat:2 }}</strong>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center align-middle">
+                                {% if batch.order_id %}
+                                    <span class="badge badge-success font-weight-bold" style="font-size: 1rem;">
+                                        {{ batch.order_id }}
+                                    </span>
+                                    <br><small class="text-muted">PENDIENTE_CE</small>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">No hay productos registrados</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Resumen de Notas de Crédito -->
+        {% if summary_data.credit_notes %}
+        <div class="mt-4">
+            <h6 class="font-weight-bold text-warning mb-2">
+                <i class="fas fa-undo mr-2"></i>Notas de Crédito Generadas
+            </h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="thead-warning">
+                        <tr>
+                            <th>ID</th>
+                            <th>Serie</th>
+                            <th>Número</th>
+                            <th>Producto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cn in summary_data.credit_notes %}
+                        <tr>
+                            <td>{{ cn.id }}</td>
+                            <td>{{ cn.serial }}</td>
+                            <td>{{ cn.number }}</td>
+                            <td>{{ cn.product }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Resumen de Órdenes de Venta -->
+        {% if summary_data.orders %}
+        <div class="mt-4">
+            <h6 class="font-weight-bold text-info mb-2">
+                <i class="fas fa-shopping-cart mr-2"></i>Órdenes de Venta Generadas
+            </h6>
+            <div class="alert alert-info">
+                <strong>Importante:</strong> Use los siguientes ID de Orden para completar las ventas en el módulo de ventas.
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead class="thead-info">
+                        <tr>
+                            <th>ID Orden</th>
+                            <th>Serie</th>
+                            <th>Correlativo</th>
+                            <th>Producto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in summary_data.orders %}
+                        <tr>
+                            <td><strong class="text-primary">{{ order.id }}</strong></td>
+                            <td>{{ order.serial }}</td>
+                            <td>{{ order.correlative }}</td>
+                            <td>{{ order.product }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .info-box {
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        border-left: 3px solid #1e3a5f;
+    }
+    .info-box label {
+        font-size: 0.75rem;
+    }
+    .info-box p {
+        font-size: 0.95rem;
+    }
+</style>
+

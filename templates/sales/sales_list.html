@@ -832,7 +832,7 @@
                         $('table#id-table-detail-order tbody#sales-details').empty();
                         Detail.forEach(
                             e =>
-                                addOrderDetail(e.id, e.product_id, e.product_name, e.quantity, e.price, e.unit_id, e.unit_name, e.unit_min, e.batch_id, e.batch_number)
+                                addOrderDetail(e.id, e.product_id, e.product_name, e.quantity, e.price, e.unit_id, e.unit_name, e.unit_min, e.batch_id, e.batch_number, e.store, e.subStore)
                         );
                         
                         toastr.success('Orden cargada correctamente', '¡Bien hecho!');
@@ -850,13 +850,13 @@
             });
         }
 
-        function addOrderDetail(detail, product_id, product_name, quantity, price, unit, unit_name, unit_min, batch_id, batch_number) {
+        function addOrderDetail(detail, product_id, product_name, quantity, price, unit, unit_name, unit_min, batch_id, batch_number, store, subStore) {
 
             let _total = quantity * price
             let disabledAttr = detail ? 'disabled' : '';
 
             $('#sales-details').append(
-                '<tr detail_id="' + detail + '" product="' + product_id + '" pu="' + unit + '" class="text-uppercase small text-center" style="font-size: 14px;">' +
+                '<tr detail_id="' + detail + '" product="' + product_id + '" store_p="' + (store || '') + '" pu="' + unit + '" batch="' + (batch_id || '') + '" sub_store="' + (subStore || '') + '" class="text-uppercase small text-center" style="font-size: 14px;">' +
                 '<td class="align-middle">' + '</td>' +
                 '<td class="align-middle text-left item-product">' + '<input type="text" class="form-control form-control-sm input-product-name"  value="' + product_name + '" ' + disabledAttr + '>' + '</td>' +
                 '<td class="align-middle item-quantity">' + '<input type="number" class="form-control form-control-sm text-right input-quantity" value="' + Number(quantity).toFixed(0) + '" ' + disabledAttr + '>' + '</td>' +
@@ -913,54 +913,10 @@
                     return false
                 }
             }
-            /*if (($('#type').val() === 'E') && ($('#id_serie').val() === '0')) {
-                toastr.warning('¡Favor de completar la serie!', 'Mensaje');
-                $('#id_serie').focus();
-                return false;
-            }*/
             if (hasRowDetails() === false) {
                 toastr.warning('¡Elija los productos..!', 'Mensaje');
                 return false;
             }
-
-            /*if ($('#id-type-order').val() === 'T') {
-                if ($('#id_date_completion').val() === '' || $('#id_place_delivery').val() === '' || $('#id_type_quotation').val() === '0' || $('#id_name_type_quotation').val() === '' || $('#id_observation').val() === '') {
-                    toastr.warning('Complete los campos de la cotización');
-                    return false;
-                }
-            }*/
-
-            /*if ($('#user_id').val() === '0') {
-                toastr.warning('Seleccione el Usuario');
-                return false;
-            }*/
-
-            /*let sales = {
-                "Details": [],
-                "Client": $('#id-client-sender').val(),
-                "Address": $('#id_address').val(),
-                "SaleTotal": $('#sum-total').val(),
-                "TransactionPaymentType": $('#transaction_payment_type').val(),
-                "Distribution": $('#id_distribution').val(),
-                "OrderType": 'V',
-                "Serie": $('#id_serie').val(),
-                "BillType": sessionStorage.BillType,
-                "Date": $('#date').val(),
-                "Demo": ($('#demo').is(':checked')) ? 1 : 0,
-                "type_payment": $('#transaction_payment_type').val(),
-                "cash": $('#id_cash').val(),
-                "date_cash": $('#id_date').val(),
-                "cash_deposit": $('#id_cash_deposit').val(),
-                "cod_operation": $('#code-operation').val(),
-                "validity_date": $('#id_validity_date').val(),
-                "date_completion": $('#id_date_completion').val(),
-                "place_delivery": $('#id_place_delivery').val(),
-                "type_quotation": $('#id_type_quotation').val(),
-                "observation": $('#id_observation').val(),
-                "name_type_quotation": $('#id_name_type_quotation').val(),
-                "order_sale_quotation": Number($('#id_order_sale_quotation').val()),
-                "userID": $('#user_id').val()
-            };*/
 
             let detailOrder = []
             let creditDict = []
@@ -1005,7 +961,7 @@
             data.append('detail', JSON.stringify(detailOrder));
             data.append('serial_text', selectedOptionText);
             data.append('credit', JSON.stringify(creditDict));
-            //console.log(detailOrder)
+            console.log(detailOrder)
             //$('#save-order').prop('disabled', true)
             $.ajax({
                 url: '/sales/save_order/',

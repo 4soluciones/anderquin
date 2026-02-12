@@ -75,6 +75,9 @@ urlpatterns = [
     path('bill/', login_required(bill_list), name='bill_list'),
     path('get_purchase_detail/', login_required(get_purchase_detail), name='get_purchase_detail'),
     path('get_purchases_by_client/', login_required(get_purchases_by_client), name='get_purchases_by_client'),
+    path('bill_credit_note/', login_required(bill_credit_note), name='bill_credit_note'),
+    path('bill_create_credit_note/', login_required(bill_create_credit_note), name='bill_create_credit_note'),
+
     # path('save_bill/', login_required(save_bill), name='save_bill'),
     # path('print_pdf_bill/<int:pk>/', print_pdf_bill, name='print_pdf_bill'),
 

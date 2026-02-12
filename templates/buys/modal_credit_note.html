@@ -13,18 +13,25 @@
             </div>
             <div class="modal-body roboto-condensed-regular">
                 <div class="alert alert-light border mb-3" style="border-left: 4px solid #1565c0;">
-                    <strong>Producto a devolver:</strong> {{ product_name|default:bill_detail_obj.product.name }} |
-                    <strong>Cantidad:</strong> {{ product_quantity|replace_round }} {{ unit_name|default:"UND" }}
+                    <strong>Producto a devolver:</strong> {{ product_name }} |
+                    <strong>Cantidad comprada:</strong> {{ product_quantity|replace_round }} {{ unit_name }} |
+                    <strong>Equivalencia en unidades:</strong> {{ quantity_in_units|replace_round }} {{ unit_und_name|default:"UND" }}
                 </div>
                 <div class="card-body bg-light p-0">
-                    <input type="hidden" name="bill" id="bill_id" value="{{ bill_obj.id }}">
+                    <input type="hidden" name="bill" id="bill_id" value="{% if bill_obj %}{{ bill_obj.id }}{% endif %}">
                     <input type="hidden" name="subsidiary_store" id="subsidiary_store_id" value="{% if bill_obj.store_destiny %}{{ bill_obj.store_destiny.id }}{% endif %}">
+{#                    {% if purchase_detail_obj %}#}
+{#                    <input type="hidden" name="purchase_detail" id="purchase_detail_id" value="{{ purchase_detail_obj.id }}">#}
+{#                    <input type="hidden" name="purchase" id="purchase_id" value="{{ purchase_obj.id }}">#}
+{#                    {% endif %}#}
+                    {% if bill_detail_obj %}
                     <input type="hidden" name="bill_detail" id="bill_detail_id" value="{{ bill_detail_obj.id }}">
+                    {% endif %}
                     <div class="row m-1 mt-2">
                         <div class="col-md-2 p-1 border">
-                            <label for="credit-serial" class="text-primary">Doc. NC (Serie y Número):</label>
+                            <label for="credit-serial" class="text-primary">Nº Nota de Crédito:</label>
                             <div class="input-group input-group-sm">
-                                <input type="text" class="form-control text-uppercase" id="credit-serial" name="credit-serial" placeholder="F001" required style="max-width: 60px;">
+                                <input type="text" class="form-control text-uppercase" id="credit-serial" name="credit-serial" placeholder="FN01" required style="max-width: 60px;">
                                 <div class="input-group-append">
                                     <span class="input-group-text">-</span>
                                 </div>
@@ -43,23 +50,19 @@
                             <select class="form-control" id="id_bill-applied" name="credit-bill-applied">
                                 <option selected value="0">Sin documento de referencia</option>
                                 {% for b in bill_set %}
-                                    <option value="{{ b.id }}">{{ b.bill_number }} | {{ b.supplier }} | S/ {{ b.total|replace_round_separator }}</option>
+                                    {% if b.bill_number %}
+                                        {# Caso cuando bill_set es una lista de diccionarios (sales) #}
+                                        <option value="{{ b.id }}" {% if bill_obj and b.id == bill_obj.id %}selected{% endif %}>
+                                            {{ b.bill_number.serial }}-{{ b.bill_number.correlative }} | {{ b.supplier }} | S/ {{ b.total }}
+                                        </option>
+                                    {% else %}
+                                        {# Caso cuando bill_set es una lista de objetos Bill (buys) #}
+                                        <option value="{{ b.id }}" {% if bill_obj and b.id == bill_obj.id %}selected{% endif %}>
+                                            {{ b.serial }}-{{ b.correlative }} | {{ b.supplier }} | S/ {{ b.bill_total_total|replace_round_separator }}
+                                        </option>
+                                    {% endif %}
                                 {% endfor %}
                             </select>
-{#                            <div class="input-group">#}
-{#                                <div class="input-group-prepend col-6 pr-0 pl-0">#}
-{#                                    <input type="text" class="form-control text-uppercase text-center font-weight-bold"#}
-{#                                           placeholder="F001" aria-label="" name="bill-serial"#}
-{#                                           id="bill_serial" autocomplete="off" value="{{ bill_serial }}">#}
-{#                                    <span class="input-group-text bg-light border-0">-</span>#}
-{#                                </div>#}
-{#                                <input type="text" class="form-control col-6 font-weight-bold text-center" placeholder="001"#}
-{#                                       aria-label="" name="bill-correlative"#}
-{#                                       id="bill_correlative" autocomplete="off" value="{{ bill_correlative }}">#}
-{#                            </div>#}
-                            {#                        <input type="text"#}
-                            {#                               class="form-control" name="bill-applied" id="id_bill-applied" required#}
-                            {#                               value="{{ bill_number }}">#}
                         </div>
                         <div class="col-md-3 p-1 border">
                             <label for="credit_note_motive" class="text-primary">Motivo:</label>
@@ -89,7 +92,7 @@
                                         <td class="text-center align-middle">
                                             <input type="text" autocomplete="off" aria-label="Código"
                                                    class="form-control text-uppercase text-center" name="credit-code"
-                                                   id="credit-code" maxlength="200" value="{{ product_code|default:'' }}" placeholder="Código producto">
+                                                   id="credit-code" maxlength="200" value="{{ product_code }}" placeholder="Código producto" readonly>
                                         </td>
                                         <td class="text-center align-middle">
                                             <input type="text" autocomplete="off" aria-label="Cantidad"
@@ -100,26 +103,26 @@
                                         <td class="text-center align-middle">
                                             <input type="text" autocomplete="off" aria-label="Unidad"
                                                    class="form-control text-uppercase text-center" name="credit-unit"
-                                                   value="{{ unit_display|default:'NIU-UND' }}"
-                                                   id="credit-unit" maxlength="200">
+                                                   value="{{ unit_display }}{% if bill_detail_obj.unit.description %}-{{ bill_detail_obj.unit.description }}{% elif purchase_detail_obj.unit.description %}-{{ purchase_detail_obj.unit.description }}{% endif %}"
+                                                   id="credit-unit" maxlength="200" readonly>
                                         </td>
                                         <td class="text-center align-middle">
                                             <input type="text" autocomplete="off" aria-label="Descripción"
                                                    class="form-control text-uppercase" name="credit-description"
-                                                   id="credit-description" maxlength="200" value="{{ product_name|default:'' }}" placeholder="Descripción producto">
+                                                   id="credit-description" maxlength="200" value="{{ product_name }}" placeholder="Descripción producto" readonly>
                                         </td>
                                         <td class="text-center align-middle">
-                                            <input type="text" autocomplete="off" aria-label="..."
+                                            <input type="text" autocomplete="off" aria-label="Precio unitario"
                                                    class="form-control text-uppercase text-right"
                                                    name="credit-price-unit"
-                                                   value="{{ bill_detail_obj.price_unit|replace_round }}"
+                                                   value="{% if bill_detail_obj %}{{ bill_detail_obj.price_unit|replace_round }}{% else %}{{ purchase_detail_obj.price_unit|replace_round }}{% endif %}"
                                                    id="credit-price-unit" maxlength="200">
                                         </td>
                                         <td class="text-center align-middle">
-                                            <input type="text" autocomplete="off" aria-label="..."
+                                            <input type="text" autocomplete="off" aria-label="Total"
                                                    class="form-control text-uppercase text-right" name="credit-total"
-                                                   value="{{ bill_detail_obj.amount|replace_round }}"
-                                                   id="credit-total" maxlength="200">
+                                                   value="{% if bill_detail_obj %}{{ bill_detail_obj.amount|replace_round }}{% else %}{{ purchase_detail_obj.multiplicate|replace_round }}{% endif %}"
+                                                   id="credit-total" maxlength="200" readonly>
                                         </td>
                                     </tr>
                                     </tbody>
@@ -141,17 +144,30 @@
     </div>
 </div>
 <script type="text/javascript">
+    // Función para calcular el total automáticamente
+    function calculateTotal() {
+        let quantity = parseFloat($('#credit-quantity').val()) || 0;
+        let priceUnit = parseFloat($('#credit-price-unit').val()) || 0;
+        let total = quantity * priceUnit;
+        $('#credit-total').val(total.toFixed(2));
+    }
+
+    // Calcular total cuando cambie la cantidad o el precio unitario
+    $(document).ready(function() {
+        $('#credit-quantity, #credit-price-unit').on('input', function() {
+            calculateTotal();
+        });
+        
+        // Calcular total inicial
+        calculateTotal();
+    });
+
     $('#credit-form').submit(function (e) {
         e.preventDefault();
-        /*let detailCredit = []
-        $("#new-note-credit tr").each(function () {
-            let detailObj = {billDetail: $(this).attr('bill_detail')};
-            detailCredit.push(detailObj);
-        });*/
         let data = new FormData($('#credit-form').get(0));
         //data.append('detail', JSON.stringify(detailCredit));
         $.ajax({
-            url: '/sales/bill_create_credit_note/',
+            url: '/buys/save_credit_note/',
             async: true,
             dataType: 'json',
             type: 'POST',
@@ -167,12 +183,6 @@
                     setTimeout(() => {
                         location.reload();
                     }, 500);
-                    /*let parent = response.parent
-                    let _tr = $('#purchase-data-grid tbody').find('tr[pk_parent="' + parent + '"]');
-                    let _td = _tr.find('table.table-details tbody tr[detail="'+ response.purchase_detail_id +'"] td.credit-note');
-                    _td.empty();
-                    _td.append('<span class="text-warning">' + response.nro_document + '</span><br>');
-                    _td.append('Factura: <span class="text-warning">' + response.bill + '</span>');*/
                     $('#modal-credit-note').modal('hide');
                 }
             },

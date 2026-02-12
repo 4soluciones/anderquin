@@ -85,9 +85,20 @@
                             <thead>
                             <tr style="background: #f8f9fa;">
                                 <td colspan="2" class="border-0 py-2">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <span class="font-weight-bold text-dark">{{ d.product_name }}</span>
-                                        <span class="badge badge-secondary px-2 py-1">Comprado: <input type="text" class="quantity-purchased-in-units bg-transparent border-0 text-center font-weight-bold" style="width: 45px;" value="{{ d.quantity|replace_round }}" readonly> UND</span>
+                                    <div class="d-flex align-items-center justify-content-center position-relative">
+                                        <span class="font-weight-bold text-dark position-absolute" style="left: 0;">{{ d.product_name }}</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge badge-secondary px-3 py-2" style="font-size: 1rem;">
+                                                <span class="text-white">CANTIDAD COMPRADA: </span>
+                                                <span class="font-weight-bold text-white" style="font-size: 1.1rem;">
+                                                    <input type="text" class="quantity-purchased-in-units bg-transparent border-0 text-center font-weight-bold text-white d-inline" style="width: 50px; font-size: 1.1rem;" value="{{ d.quantity }}" readonly>
+                                                    {{ d.unit_description }}
+                                                </span>
+                                                {% if d.unit_name != 'UND' %}
+                                                    <span class="text-white small" style="font-size: 0.65rem;">({{ d.quantity_in_units }} UND)</span>
+                                                {% endif %}
+                                            </span>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -117,7 +128,9 @@
                                                     <span>Vendida</span>
                                                 </label>
                                             </td>
+                                            <!-- COMENTADO: Columna de código ya no es necesaria, se genera automáticamente
                                             <td class="item-sold d-none py-2" style="background: #d1ecf1;">ID Orden</td>
+                                            -->
                                             <td colspan="2"></td>
                                         </tr>
                                         <tr class="sub-title" style="font-size: 0.7rem;">
@@ -127,7 +140,9 @@
                                                 <th class="py-1" style="width: 10%; background: #d4edda;">UNIDAD(ES)</th>
                                                 <th class="py-1" style="width: 10%; background: #fff3cd;">UNIDAD(ES)</th>
                                                 <th class="py-1" style="width: 10%; background: #cce5ff;">UNIDAD(ES)</th>
+                                                <!-- COMENTADO: Columna de código ya no es necesaria
                                                 <th class="py-1 item-sold d-none" style="width: 14%; background: #d1ecf1;">Código</th>
+                                                -->
                                                 <th class="py-1" style="width: 10%">Venc. Lote</th>
                                                 <th class="py-1" style="width: 5%"></th>
                                             {% else %}
@@ -139,8 +154,10 @@
                                                 <th class="py-1" style="width: 8%; background: #fff3cd;">UNIDAD(ES)</th>
                                                 <th class="py-1" style="width: 8%; background: #cce5ff;">{{ d.unit_description }}</th>
                                                 <th class="py-1" style="width: 8%; background: #cce5ff;">UNIDAD(ES)</th>
+                                                <!-- COMENTADO: Columna de código ya no es necesaria
                                                 <th class="py-1 item-sold d-none" style="width: 12%; background: #d1ecf1;">Código</th>
-                                                <th class="py-1" style="width: 9%">Venc. Lote</th>
+                                                -->
+                                                <th class="py-1" style="width: 9%">Fecha Venc. Lote</th>
                                                 <th class="py-1" style="width: 5%"></th>
                                             {% endif %}
                                         </tr>
@@ -200,24 +217,20 @@
                                                        disabled
                                                        autocomplete="off">
                                             </td>
+                                            <!-- COMENTADO: Columna de código ya no es necesaria, se genera automáticamente
                                             <td class="item-sold d-none">
-                                                <div class="row m-0 no-gutters align-items-center">
-                                                    <div class="col sale">
-                                                        <button type="button" class="btn btn-success btn-sm btn-block btn-generate-sold py-1" title="Genera el ID de orden para usar en el módulo de ventas">
-                                                            <i class="fas fa-barcode mr-1"></i>Obtener ID
-                                                        </button>
-                                                    </div>
-                                                    <div class="col delete-sale pr-1 d-none">
-                                                        <button type="button" class="btn btn-outline-danger btn-sm btn-block btn-cancel-sold py-1">
-                                                            <i class="fas fa-times"></i>
-                                                        </button>
-                                                    </div>
-                                                    <div class="col-6 item-sale pl-0">
-                                                        <input type="text" disabled class="form-control form-control-sm text-center font-weight-bold sale-cod bg-light" placeholder="ID Orden" p="{{ d.product_id }}" name="sale-cod">
-                                                        <input type="hidden" class="sale-id" value="0" name="sale-id">
-                                                    </div>
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <button type="button" class="btn btn-success btn-sm btn-generate-sold mb-1" title="Genera el ID de orden para usar en el módulo de ventas" style="white-space: nowrap;">
+                                                        <i class="fas fa-barcode mr-1"></i>Obtener ID
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm btn-cancel-sold d-none mb-1" style="white-space: nowrap;">
+                                                        <i class="fas fa-times"></i> Anular
+                                                    </button>
+                                                    <input type="text" readonly class="form-control form-control-sm text-center font-weight-bold sale-cod bg-light mt-1" placeholder="ID Orden" p="{{ d.product_id }}" name="sale-cod" style="min-width: 100px;">
+                                                    <input type="hidden" class="sale-id" value="0" name="sale-id">
                                                 </div>
                                             </td>
+                                            -->
                                             <td>
                                                 <input type="date" aria-label=""
                                                        class="form-control form-control-sm item-expiration-batch"
@@ -312,6 +325,8 @@
             toastr.warning('Debe ingresar el Nº de Lote en todas las filas que tengan cantidades registradas.', 'Error de Datos');
             return false;
         }
+        // COMENTADO: Validación de código de venta ya no es necesaria, se genera automáticamente
+        /*
         // Validar: si hay cantidad vendida, debe tener código de venta generado
         let hasSoldWithoutOrder = false;
         $('tbody[id^="details-batch-"] tr').each(function () {
@@ -327,6 +342,7 @@
             toastr.warning('Las cantidades VENDIDAS deben tener el ID de orden generado. Ingrese Nº Lote, cantidad ingresada, cantidad vendida y haga clic en "Obtener ID" antes de guardar.', 'Error de Datos');
             return false;
         }
+        */
         let details_bill = {
             "Details": [],
             "Bill": $('#bill_id').val(),
@@ -370,7 +386,9 @@
                 let _returned_quantity_units = $(this).find('input.returned-quantity-units').val();
                 let _sold_quantity_principal = $(this).find('input.sold-quantity-principal').val() !== undefined ? $(this).find('input.sold-quantity-principal').val() : 0;
                 let _sold_quantity_units = $(this).find('input.sold-quantity-units').val();
-                let _order = $(this).find('td.item-sold input.sale-id').val();
+                // COMENTADO: Ya no se necesita obtener el order_id, se genera automáticamente
+                // let _order = $(this).find('td.item-sold input.sale-id').val();
+                let _order = '0'; // Se generará automáticamente en el backend
 
                 SumQuantityEnteredPrincipal += Number(_entered_quantity_principal);
                 SumQuantityEnteredUnits += Number(_entered_quantity_units);
@@ -378,25 +396,6 @@
                 SumQuantityReturnedUnits += Number(_returned_quantity_units);
                 SumQuantitySoldPrincipal += Number(_sold_quantity_principal);
                 SumQuantitySoldUnits += Number(_sold_quantity_units);
-
-                //if (shouldStop) return false;
-
-                //let batch_number = $(this).find('input.item-number-batch').val();
-                /*let flag_batch = await checkNumberBatch(batch_number, store.val())
-                if (flag_batch === true) {
-                    toastr.warning('EL NUMERO DE LOTE YA SE ENCUENTRA REGISTRADO FAVOR DE REGISTRAR OTRO', 'ERROR');
-                    shouldStop = true;
-                    return false;
-                }*/
-                /*promises.push(
-                    (async () => {
-                        let flag_batch = await checkNumberBatch(batch_number, store.val());
-                        if (flag_batch === true) {
-                            toastr.warning('EL NUMERO DE LOTE YA SE ENCUENTRA REGISTRADO FAVOR DE REGISTRAR OTRO', 'ERROR');
-                            shouldStop = true;
-                        }
-                    })()
-                );*/
 
                 let batchObj = {
                     "batchNumber": $(this).find('input.item-number-batch').val(),
@@ -407,7 +406,7 @@
                     "ReturnedQuantityUnits": Number(_returned_quantity_units),
                     "SoldQuantityPrincipal": Number(_sold_quantity_principal),
                     "SoldQuantityUnit": Number(_sold_quantity_units),
-                    "SoldOrderId": _order,
+                    "SoldOrderId": '0', // COMENTADO: Se generará automáticamente en el backend
                 };
                 detailObj.Batch.push(batchObj);
             });
@@ -424,12 +423,7 @@
             detailObj.SumQuantitySoldTotalInUnits = SumQuantitySoldUnits + SumQuantitySoldPrincipal;
         });
 
-        //await Promise.all(promises);
 
-        /*if (shouldStop) {
-            return false;
-        }*/
-        //$('#assignment-changes').prop('disabled', true);
         console.log(details_bill);
         $.ajax({
             url: '/sales/save_detail_to_warehouse/',
@@ -440,12 +434,23 @@
             contentType: 'application/json;charset=UTF-8',
             headers: {"X-CSRFToken": '{{ csrf_token }}'},
             success: function (response, textStatus, xhr) {
-                if (xhr.status === 200) {
-                    toastr.success(response.message, '¡Mensaje!');
+                if (xhr.status === 200 && response.success && response.summary_html) {
+                    toastr.success(response.message, '¡Operación Exitosa!');
+                    // Ocultar tabla de despacho de cantidades y datos generales
+                    $('.card:has(.card-body:has(#products-table))').hide();
+                    $('.card:has(.card-body:has(#store))').hide();
+                    $('.alert.alert-light').hide();
+                    // Mostrar resumen
+                    $('.modal-body').prepend(response.summary_html);
+                    // Deshabilitar botón de guardar
+                    $('#assignment-changes').prop('disabled', true).html('<i class="fas fa-check mr-1"></i>Guardado');
+                    // Cambiar botón cerrar
+                    $('#close-modal').html('<i class="fas fa-times mr-1"></i>Cerrar');
+                } else if (xhr.status === 200) {
+                    toastr.success(response.message, '¡Operación Exitosa!');
                     setTimeout(() => {
                         location.reload();
                     }, 500);
-                    //$('#assignment').modal('hide');
                 }
             },
             error: function (jqXhr, textStatus, xhr) {
@@ -610,7 +615,9 @@
         sumQuantitiesMissing(_tr_entered, _tr_return, _tr, 'und', 'sold')
     });
 
-    /*function checkSaleCodAndCloseModal() {
+    // COMENTADO: Función ya no es necesaria, el código se genera automáticamente
+    /*
+    function checkSaleCodAndCloseModal() {
         let allowClose = true;
 
         $(".sale-cod").each(function () {
@@ -619,14 +626,21 @@
             }
         });
         return allowClose
-    }*/
+    }
+    */
+    function checkSaleCodAndCloseModal() {
+        // Siempre permite cerrar, ya que el código se genera automáticamente
+        return true;
+    }
 
     $('#close-modal, .close').click(function () {
+        // COMENTADO: Ya no se necesita validar, el código se genera automáticamente al guardar
         let allowClose = checkSaleCodAndCloseModal();
         if (allowClose) {
             $('#assignment').modal('hide');
         } else {
-            toastr.error('No puedes cerrar la ventana si ya se genero la venta, completa el guardado o Anula la venta');
+            // COMENTADO: Este mensaje ya no es necesario
+            // toastr.error('No puedes cerrar la ventana si ya se genero la venta, completa el guardado o Anula la venta');
             return false;
         }
     });
@@ -807,6 +821,18 @@
             returnedQuantityPrincipalCell = `<td><input type="text" class="form-control form-control-sm text-center returned-quantity-principal" p="${product_id}" ${attrDisabledReturn}></td>`;
             soldQuantityPrincipalCell = `<td><input type="text" class="form-control form-control-sm text-center sold-quantity-principal" p="${product_id}" ${attrDisabled}></td>`;
         }
+        // COMENTADO: Columna de código ya no es necesaria
+        let soldCodeCell = ''; // Ya no se incluye la columna de código
+        /*
+        let soldCodeCell = `<td class="item-sold ${itemSoldClass}">
+            <div class="d-flex flex-column align-items-center">
+                <button type="button" class="btn btn-success btn-sm btn-generate-sold mb-1" style="white-space: nowrap;"><i class="fas fa-barcode mr-1"></i>Obtener ID</button>
+                <button type="button" class="btn btn-outline-danger btn-sm btn-cancel-sold d-none mb-1" style="white-space: nowrap;"><i class="fas fa-times"></i> Anular</button>
+                <input type="text" readonly class="form-control form-control-sm text-center font-weight-bold sale-cod bg-light mt-1" placeholder="ID Orden" p="${product_id}" name="sale-cod" style="min-width: 100px;">
+                <input type="hidden" class="sale-id" name="sale-id" value="0">
+            </div>
+        </td>`;
+        */
         $(`tbody#details-batch-${product_id}`).append(`
             <tr class="">
                 <td class="text-center align-middle item-correlative"></td>
@@ -817,20 +843,7 @@
                 <td><input type="text" class="form-control form-control-sm text-center returned-quantity-units" p="${product_id}" ${attrDisabledReturn}></td>
                 ${soldQuantityPrincipalCell}
                 <td><input type="text" class="form-control form-control-sm text-center sold-quantity-units" unit="1" p="${product_id}" ${attrDisabled}></td>
-                <td class="item-sold ${itemSoldClass}">
-                    <div class="row m-0">
-                        <div class="col sale">
-                            <button type="button" class="btn btn-success btn-sm btn-block btn-generate-sold py-1"><i class="fas fa-barcode mr-1"></i>Obtener ID</button>
-                        </div>
-                        <div class="col delete-sale pr-1 d-none">
-                            <button type="button" class="btn btn-outline-danger btn-sm btn-block btn-cancel-sold py-1"><i class="fas fa-times"></i></button>
-                        </div>
-                        <div class="col-6 item-sale pl-0">
-                            <input type="text" disabled class="form-control form-control-sm text-center font-weight-bold sale-cod bg-light" placeholder="ID Orden" p="${product_id}" name="sale-cod">
-                            <input type="hidden" class="sale-id" name="sale-id" value="0">
-                        </div>
-                    </div>
-                </td>
+                ${soldCodeCell}
                 <td><input type="date" class="form-control form-control-sm item-expiration-batch" value="${formattedDate}"></td>
                 <td>
                     <button type="button" product="${product_id}"
@@ -877,28 +890,38 @@
     });
     $('.check-sold').change(function () {
         let product_id = $(this).attr('p');
-        let unit_name = $(this).closest('table').parent('td').parent('tr').attr('unit_name');
-        let col_span = unit_name === 'UND' ? 2 : 3;
+        // COMENTADO: Ya no se necesita manejar la columna de código
+        // let unit_name = $(this).closest('table').parent('td').parent('tr').attr('unit_name');
+        // let col_span_checked = unit_name === 'UND' ? 2 : 3;
+        // let col_span_unchecked = 2; // Siempre 2 cuando está desmarcado
         let tbody = $(`#details-batch-${product_id}`);
         if ($(this).is(':checked')) {
             tbody.find('tr').each(function () {
                 $(this).find('input.sold-quantity-principal').prop('disabled', false);
                 $(this).find('input.sold-quantity-units').prop('disabled', false);
-                $(this).find('input.sale-cod').prop('readonly', false);
+                // COMENTADO: Ya no se necesita manejar sale-cod
+                // $(this).find('input.sale-cod').prop('readonly', false);
             });
-            tbody.find('td.item-sold').removeClass('d-none');
-            tbody.parent('table').find('thead tr.sub-title th.item-sold').removeClass('d-none');
-            tbody.parent('table').find('thead tr.title td.title-sold').attr('colspan', col_span);
+            // COMENTADO: Ya no se muestra/oculta la columna de código
+            // tbody.find('td.item-sold').removeClass('d-none');
+            // tbody.parent('table').find('thead tr.sub-title th.item-sold').removeClass('d-none');
+            // tbody.parent('table').find('thead tr.title td.title-sold').attr('colspan', col_span_checked);
         }
         else {
             tbody.find('tr').each(function () {
-                $(this).find('input.sold-quantity-principal').prop('disabled', true);
-                $(this).find('input.sold-quantity-units').prop('disabled', true);
-                $(this).find('input.sale-cod').prop('readonly', true);
+                $(this).find('input.sold-quantity-principal').prop('disabled', true).val('');
+                $(this).find('input.sold-quantity-units').prop('disabled', true).val('');
+                // COMENTADO: Ya no se necesita manejar sale-cod
+                // $(this).find('input.sale-cod').prop('readonly', true).val('');
+                // $(this).find('input.sale-id').val('0');
+                // Resetear botones
+                // $(this).find('button.btn-generate-sold').removeClass('d-none');
+                // $(this).find('button.btn-cancel-sold').addClass('d-none');
             });
-            tbody.find('td.item-sold').addClass('d-none');
-            tbody.parent('table').find('thead tr.sub-title th.item-sold').addClass('d-none');
-            tbody.parent('table').find('thead tr.title td.title-sold').attr('colspan', col_span);
+            // COMENTADO: Ya no se muestra/oculta la columna de código
+            // tbody.find('td.item-sold').addClass('d-none');
+            // tbody.parent('table').find('thead tr.sub-title th.item-sold').addClass('d-none');
+            // tbody.parent('table').find('thead tr.title td.title-sold').attr('colspan', col_span_unchecked);
         }
     });
 

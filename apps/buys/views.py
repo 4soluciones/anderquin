@@ -24,7 +24,7 @@ from apps.sales.views import kardex_input, kardex_ouput, kardex_initial, calcula
     save_loan_payment_in_cash_flow, Client, ClientAddress, ClientType, ClientAssociate
 from .models import *
 from .views_PDF import query_apis_net_money
-from ..accounting.models import BillPurchase, Bill
+from ..accounting.models import BillPurchase, Bill, BillDetail
 from ..comercial.models import GuideMotive
 from ..sales.models import Product, Unit, Supplier, SubsidiaryStore, ProductStore, ProductDetail, Kardex, Cash, \
     CashFlow, TransactionPayment, SupplierAddress, Order, SupplierAccounts
@@ -2599,19 +2599,66 @@ def buys_credit_note(request):
         purchase_detail_obj = PurchaseDetail.objects.get(id=int(purchase_detail_id))
         bill_serial = '-'
         bill_correlative = '-'
+        bill_obj = None
         bill_purchase_set = BillPurchase.objects.filter(purchase=purchase_obj)
         if bill_purchase_set.exists():
             bill_purchase_obj = bill_purchase_set.last()
-            bill_serial = bill_purchase_obj.bill.serial
-            bill_correlative = bill_purchase_obj.bill.correlative
+            bill_obj = bill_purchase_obj.bill
+            bill_serial = bill_obj.serial
+            bill_correlative = bill_obj.correlative
+
+        # Obtener información del producto y unidades
+        product_obj = purchase_detail_obj.product
+        unit_obj = purchase_detail_obj.unit
+        
+        # Obtener cantidad en unidades (equivalencia)
+        quantity_in_units = purchase_detail_obj.quantity
+        try:
+            product_detail = ProductDetail.objects.get(product=product_obj, unit=unit_obj)
+            quantity_in_units = (purchase_detail_obj.quantity * product_detail.quantity_minimum).quantize(
+                decimal.Decimal('0.00'), rounding=decimal.ROUND_UP
+            )
+        except ProductDetail.DoesNotExist:
+            pass
+        
+        # Obtener unidad base (UND)
+        unit_und = Unit.objects.filter(description='UND').first()
+        if not unit_und:
+            unit_und = Unit.objects.filter(name__icontains='UND').first()
+        
+        # Obtener código del producto
+        product_code = product_obj.code if product_obj.code else ''
+        if not product_code and product_obj.barcode:
+            product_code = product_obj.barcode
+        
+        # Obtener lista de facturas relacionadas para documento de referencia
+        bill_set = []
+        # Obtener todas las facturas relacionadas con esta compra
+        bill_purchases = BillPurchase.objects.filter(purchase=purchase_obj).select_related('bill', 'bill__supplier')
+        for bp in bill_purchases:
+            bill_set.append(bp.bill)
+        
+        # Formato de unidad para mostrar (código SUNAT - nombre)
+        # El código SUNAT generalmente está en el name (ej: NIU, MTR, etc.)
+        unit_display = f"{unit_obj.name}-{unit_obj.description}" if unit_obj.description else unit_obj.name
 
         my_date = datetime.now()
         date_now = my_date.strftime("%Y-%m-%d")
         t = loader.get_template('buys/modal_credit_note.html')
         c = ({
             'purchase_detail_obj': purchase_detail_obj,
+            'purchase_obj': purchase_obj,
+            'bill_obj': bill_obj,
             'bill_serial': bill_serial,
             'bill_correlative': bill_correlative,
+            'bill_set': bill_set,
+            'product_code': product_code,
+            'product_name': product_obj.name,
+            'product_quantity': purchase_detail_obj.quantity,
+            'quantity_in_units': quantity_in_units,
+            'unit_name': unit_obj.name,
+            'unit_display': unit_display,
+            'unit_und_name': unit_und.name if unit_und else 'UND',
             'date': date_now,
         })
         return JsonResponse({
@@ -2643,6 +2690,146 @@ def save_credit_note(request):
             'message': 'Nota de Credito registrada',
             'parent': purchase_obj.id,
             'purchase_detail_id': purchase_detail_id,
+            'nro_document': f"{credit_serial}-{credit_number}",
+            'bill': str(bill_obj)
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def bill_credit_note(request):
+    if request.method == 'GET':
+        bill_detail_id = request.GET.get('bill_detail_id', '')
+        bill_id = request.GET.get('bill_id', '')
+        bill_obj = Bill.objects.get(id=int(bill_id))
+        bill_detail_obj = BillDetail.objects.get(id=int(bill_detail_id))
+        bill_serial = bill_obj.serial
+        bill_correlative = bill_obj.correlative
+        my_date = datetime.now()
+        date_now = my_date.strftime("%Y-%m-%d")
+
+        bill_set = Bill.objects.filter(status__in=['S', 'E']).order_by('register_date')
+
+        bill_new_dict = []
+        for b in bill_set:
+            repay_loan_total = decimal.Decimal(b.repay_loan())
+            bill_total = decimal.Decimal(b.bill_total_total)
+            if bill_total != repay_loan_total:
+                supplier_name = (b.supplier.business_name or b.supplier.name) if b.supplier else '-'
+                item = {
+                    'id': b.id,
+                    'bill_number': b,
+                    'supplier': supplier_name,
+                    'total': str(round(b.bill_total_total, 2))
+                }
+                bill_new_dict.append(item)
+
+        # Datos del producto a devolver para pre-cargar en la nota de crédito
+        product = bill_detail_obj.product
+        product_code = product.code or product.internal_code or ''
+        product_name = product.name or ''
+        product_quantity = bill_detail_obj.quantity
+        product_unit = bill_detail_obj.unit
+        unit_name = product_unit.name if product_unit else 'UND'
+        unit_display = f"{unit_name}-{product_unit.description}" if product_unit and product_unit.description else unit_name
+
+        # Obtener cantidad en unidades (equivalencia)
+        quantity_in_units = bill_detail_obj.quantity
+        try:
+            product_detail = ProductDetail.objects.get(product=product, unit=product_unit)
+            quantity_in_units = (bill_detail_obj.quantity * product_detail.quantity_minimum).quantize(
+                decimal.Decimal('0.00'), rounding=decimal.ROUND_UP
+            )
+        except ProductDetail.DoesNotExist:
+            pass
+
+        # Obtener unidad base (UND)
+        unit_und = Unit.objects.filter(description='UND').first()
+        if not unit_und:
+            unit_und = Unit.objects.filter(name__icontains='UND').first()
+        unit_und_name = unit_und.name if unit_und else 'UND'
+
+        t = loader.get_template('buys/modal_credit_note.html')
+        c = ({
+            'bill_detail_obj': bill_detail_obj,
+            'bill_serial': bill_serial,
+            'bill_correlative': bill_correlative,
+            'bill_obj': bill_obj,
+            'date': date_now,
+            'bill_set': bill_new_dict,
+            'product_code': product_code,
+            'product_name': product_name,
+            'product_quantity': product_quantity,
+            'quantity_in_units': quantity_in_units,
+            'unit_display': unit_display,
+            'unit_name': unit_name,
+            'unit_und_name': unit_und_name,
+            'purchase_detail_obj': None,
+            'purchase_obj': None,
+        })
+        return JsonResponse({
+            'form': t.render(c, request),
+        })
+
+
+def bill_create_credit_note(request):
+    if request.method == 'POST':
+        credit_serial = request.POST.get('credit-serial', '')
+        credit_number = request.POST.get('credit-number', '')
+        credit_date_issue = request.POST.get('credit-date-issue', '')
+        credit_bill = request.POST.get('credit-bill-applied', '')
+        credit_note_motive = request.POST.get('credit-note-motive', '')
+
+        # bill_correlative = request.POST.get('bill-correlative', '')
+        subsidiary_store = request.POST.get('subsidiary_store', '')
+        # detail = json.loads(request.POST.get('detail', ''))
+
+        credit_code = str(request.POST.get('credit-code'))
+        credit_quantity = str(request.POST.get('credit-quantity'))
+        credit_unit = str(request.POST.get('credit-unit'))
+        credit_description = str(request.POST.get('credit-description'))
+        credit_price_unit = decimal.Decimal(request.POST.get('credit-price-unit').replace(',', ''))
+        credit_total = decimal.Decimal(request.POST.get('credit-total').replace(',', ''))
+
+        bill_detail_id = request.POST.get('bill_detail', '')
+        bill_detail_obj = BillDetail.objects.get(id=int(bill_detail_id))
+
+        subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(subsidiary_store))
+        bill_obj = None
+        bill_note_obj = bill_detail_obj.bill
+        credit_note_obj = CreditNote.objects.create(credit_note_serial=credit_serial, credit_note_number=credit_number,
+                                                    issue_date=credit_date_issue,
+                                                    bill_note=bill_note_obj, motive=credit_note_motive)
+
+        credit_note_detail_obj = CreditNoteDetail.objects.create(code=credit_code, quantity=credit_quantity,
+                                                                 description=credit_description,
+                                                                 price_unit=credit_price_unit, total=credit_total,
+                                                                 credit_note=credit_note_obj)
+        if credit_bill != '0':
+            bill_obj = Bill.objects.get(id=int(credit_bill))
+            credit_note_obj.status = 'E'
+            credit_note_obj.save()
+
+            loan_payment_obj = LoanPayment.objects.create(pay=credit_total, type='C', bill=bill_obj,
+                                                          operation_date=credit_date_issue,
+                                                          observation='Nota de crédito ' + f"{credit_serial}-{credit_number}")
+
+            TransactionPayment.objects.create(payment=credit_total, type='C',
+                                              operation_code=f"{credit_serial}-{credit_number}",
+                                              loan_payment=loan_payment_obj)
+
+        product_store_id = ProductStore.objects.get(product=bill_detail_obj.product,
+                                                    subsidiary_store=subsidiary_store_obj).id
+        quantity_minimum = ProductDetail.objects.filter(product=bill_detail_obj.product,
+                                                        unit=bill_detail_obj.unit).last().quantity_minimum
+        total_cost = bill_detail_obj.quantity * bill_detail_obj.price_unit
+        kardex_credit_note_input(product_store_id, quantity_minimum * bill_detail_obj.quantity, total_cost,
+                                 type_document='07',
+                                 type_operation='06', credit_note_detail_obj=credit_note_detail_obj)
+
+        return JsonResponse({
+            'message': 'Nota de Credito registrada',
+            # 'parent': purchase_obj.id,
+            # 'purchase_detail_id': purchase_detail_id,
             'nro_document': f"{credit_serial}-{credit_number}",
             'bill': str(bill_obj)
         }, status=HTTPStatus.OK)

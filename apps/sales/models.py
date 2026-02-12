@@ -455,7 +455,7 @@ class Order(models.Model):
                                            default='0')
     order_sale_quotation = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
                                              related_name="order_quotation")
-    serial = models.CharField('Serie', max_length=5, null=True, blank=True)
+    serial = models.CharField('Serie', max_length=20, null=True, blank=True)
     pay_condition = models.CharField('Payment Condition', max_length=50, null=True, blank=True)
     order_buy = models.CharField('Order Buy', max_length=50, null=True, blank=True)
     phase_c = models.DateField('Fecha de Compromiso', null=True, blank=True)

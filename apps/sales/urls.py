@@ -140,8 +140,6 @@ urlpatterns = [
     path('save_detail_to_warehouse/', login_required(save_detail_to_warehouse), name='save_detail_to_warehouse'),
     path('get_details_by_bill/', login_required(get_details_by_bill), name='get_details_by_bill'),
     path('bills_in_warehouse/', login_required(get_bills_in_warehouse), name='bills_in_warehouse'),
-    path('bill_credit_note/', login_required(bill_credit_note), name='bill_credit_note'),
-    path('bill_create_credit_note/', login_required(bill_create_credit_note), name='bill_create_credit_note'),
     path('check_batch_number/', login_required(check_batch_number), name='check_batch_number'),
 
     # KARDEX

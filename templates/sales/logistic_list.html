@@ -313,10 +313,25 @@
                     input_principal_val = tr.find('input.sold-quantity-principal').val();
                     unit_principal = _tr_detail.attr("unit");
                 }
-                let _input_correlative = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod');
-                let _input_order = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id');
-                let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
-                let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
+                let _td_item_sold = $(this).closest('td.item-sold');
+                if (_td_item_sold.length === 0) {
+                    console.error('No se encontró td.item-sold');
+                    toastr.error('Error al encontrar elementos del formulario', '¡ERROR!');
+                    return false;
+                }
+                let _input_correlative = _td_item_sold.find('input.sale-cod');
+                let _input_order = _td_item_sold.find('input.sale-id');
+                let _btn_generate = _td_item_sold.find('button.btn-generate-sold');
+                let _btn_cancel = _td_item_sold.find('button.btn-cancel-sold');
+                
+                // Verificar que se encontraron los elementos
+                if (_input_correlative.length === 0 || _input_order.length === 0 || _btn_generate.length === 0 || _btn_cancel.length === 0) {
+                    console.error('No se encontraron todos los elementos necesarios');
+                    console.log('_input_correlative:', _input_correlative.length);
+                    console.log('_input_order:', _input_order.length);
+                    console.log('_btn_generate:', _btn_generate.length);
+                    console.log('_btn_cancel:', _btn_cancel.length);
+                }
 
                 $.ajax({
                     url: '/sales/create_warehouse_sale/',
@@ -336,15 +351,29 @@
                     success: function (response, textStatus, xhr) {
                         if (xhr.status === 200) {
                             let order_id = response.order_id;
-                            _input_correlative.val(order_id);
-                            _input_order.val(order_id);
-                            _div_sale.addClass('d-none');
-                            _div_cancel.removeClass('d-none');
-                            toastr.success('ID de orden ' + order_id + ' generado. Use este ID en el módulo de ventas.', '¡ID de Orden Generado!');
+                            if (order_id) {
+                                _input_correlative.val(order_id).prop('readonly', true);
+                                _input_order.val(order_id);
+                                _btn_generate.addClass('d-none');
+                                _btn_cancel.removeClass('d-none');
+                                toastr.success('ID de orden ' + order_id + ' generado. Use este ID en el módulo de ventas.', '¡ID de Orden Generado!');
+                            } else {
+                                console.error('No se recibió order_id en la respuesta:', response);
+                                toastr.error('No se recibió el ID de orden en la respuesta del servidor', '¡ERROR!');
+                            }
                         }
                     },
                     error: function (jqXhr, textStatus, xhr) {
-                        toastr.error(jqXhr.responseJSON.detalle, '¡ERROR!');
+                        let errorMsg = 'Error al generar el ID de orden';
+                        if (jqXhr.responseJSON && jqXhr.responseJSON.detalle) {
+                            errorMsg = jqXhr.responseJSON.detalle;
+                        } else if (jqXhr.responseJSON && jqXhr.responseJSON.error) {
+                            errorMsg = jqXhr.responseJSON.error;
+                        } else if (jqXhr.responseText) {
+                            errorMsg = jqXhr.responseText;
+                        }
+                        console.error('Error en AJAX:', jqXhr);
+                        toastr.error(errorMsg, '¡ERROR!');
                     }
 
                 });
@@ -359,10 +388,11 @@
 
         $(document).on('click', '.btn-cancel-sold', function () {
             let tr = $(this).closest('tr')
-            let _correlative = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-cod');
-            let _order_id = $(this).parent('div').parent('div.row').find('div.item-sale input.sale-id');
-            let _div_sale = $(this).parent('div').parent('div.row').find('div.sale');
-            let _div_cancel = $(this).parent('div').parent('div.row').find('div.delete-sale');
+            let _td_item_sold = $(this).closest('td.item-sold');
+            let _correlative = _td_item_sold.find('input.sale-cod');
+            let _order_id = _td_item_sold.find('input.sale-id');
+            let _btn_generate = _td_item_sold.find('button.btn-generate-sold');
+            let _btn_cancel = _td_item_sold.find('button.btn-cancel-sold');
             let check_sold = $(this).closest('table').find('thead tr td.title-sold input.check-sold');
             let input_principal
             let input_units = tr.find('input.sold-quantity-units');
@@ -381,10 +411,10 @@
                     headers: {"X-CSRFToken": '{{ csrf_token }}'},
                     success: function (response, textStatus, xhr) {
                         if (xhr.status === 200) {
-                            _correlative.val("");
-                            _order_id.val("");
-                            _div_sale.removeClass('d-none');
-                            _div_cancel.addClass('d-none');
+                            _correlative.val("").prop('readonly', true);
+                            _order_id.val("0");
+                            _btn_generate.removeClass('d-none');
+                            _btn_cancel.addClass('d-none');
                             check_sold.prop('disabled', false);
                             if (input_principal) {
                                 input_principal.prop('disabled', false);
