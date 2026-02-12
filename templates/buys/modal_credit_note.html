@@ -31,11 +31,11 @@
                         <div class="col-md-2 p-1 border">
                             <label for="credit-serial" class="text-primary">Nº Nota de Crédito:</label>
                             <div class="input-group input-group-sm">
-                                <input type="text" class="form-control text-uppercase" id="credit-serial" name="credit-serial" placeholder="FN01" required style="max-width: 60px;">
+                                <input type="text" class="form-control text-uppercase" id="credit-serial" name="credit-serial" placeholder="-" required style="max-width: 60px;">
                                 <div class="input-group-append">
                                     <span class="input-group-text">-</span>
                                 </div>
-                                <input type="text" class="form-control text-uppercase" id="credit-number" name="credit-number" placeholder="00000001" required>
+                                <input type="text" class="form-control text-uppercase" id="credit-number" name="credit-number" placeholder="-" required>
                             </div>
                         </div>
                         <div class="col-md-2 p-1 border">
@@ -82,8 +82,8 @@
                                         <th scope="col" class="font-weight-normal" style="width: 10%;">Cantidad</th>
                                         <th scope="col" class="font-weight-normal" style="width: 10%;">Unidad</th>
                                         <th scope="col" class="font-weight-normal" style="width: 50%;">Descripción</th>
-                                        <th scope="col" class="font-weight-normal" style="width: 10%;">P. Unitario</th>
-                                        <th scope="col" class="font-weight-normal" style="width: 10%;">V. Venta Total
+                                        <th scope="col" class="font-weight-normal" style="width: 10%;">P. Compra</th>
+                                        <th scope="col" class="font-weight-normal" style="width: 10%;">Total
                                         </th>
                                     </tr>
                                     </thead>
@@ -103,7 +103,8 @@
                                         <td class="text-center align-middle">
                                             <input type="text" autocomplete="off" aria-label="Unidad"
                                                    class="form-control text-uppercase text-center" name="credit-unit"
-                                                   value="{{ unit_display }}{% if bill_detail_obj.unit.description %}-{{ bill_detail_obj.unit.description }}{% elif purchase_detail_obj.unit.description %}-{{ purchase_detail_obj.unit.description }}{% endif %}"
+                                                   {# value="{{ unit_display }}{% if bill_detail_obj.unit.description %}-{{ bill_detail_obj.unit.description }}{% elif purchase_detail_obj.unit.description %}-{{ purchase_detail_obj.unit.description }}{% endif %}" #}
+                                                   value="{{ unit_display }}"
                                                    id="credit-unit" maxlength="200" readonly>
                                         </td>
                                         <td class="text-center align-middle">
@@ -115,14 +116,14 @@
                                             <input type="text" autocomplete="off" aria-label="Precio unitario"
                                                    class="form-control text-uppercase text-right"
                                                    name="credit-price-unit"
-                                                   value="{% if bill_detail_obj %}{{ bill_detail_obj.price_unit|replace_round }}{% else %}{{ purchase_detail_obj.price_unit|replace_round }}{% endif %}"
-                                                   id="credit-price-unit" maxlength="200">
+                                                   value="{% if bill_detail_obj %}{{ price_purchase|replace_round }}{% else %}{{ purchase_detail_obj.price_unit|replace_round }}{% endif %}"
+                                                   id="credit-price-unit" maxlength="200" title="Precio de compra desde ProductDetail">
                                         </td>
                                         <td class="text-center align-middle">
                                             <input type="text" autocomplete="off" aria-label="Total"
                                                    class="form-control text-uppercase text-right" name="credit-total"
-                                                   value="{% if bill_detail_obj %}{{ bill_detail_obj.amount|replace_round }}{% else %}{{ purchase_detail_obj.multiplicate|replace_round }}{% endif %}"
-                                                   id="credit-total" maxlength="200" readonly>
+                                                   value="{% if bill_detail_obj %}{{ amount_total|replace_round }}{% else %}{{ purchase_detail_obj.multiplicate|replace_round }}{% endif %}"
+                                                   id="credit-total" maxlength="200">
                                         </td>
                                     </tr>
                                     </tbody>
@@ -167,7 +168,7 @@
         let data = new FormData($('#credit-form').get(0));
         //data.append('detail', JSON.stringify(detailCredit));
         $.ajax({
-            url: '/buys/save_credit_note/',
+            url: '/buys/bill_create_credit_note/',
             async: true,
             dataType: 'json',
             type: 'POST',

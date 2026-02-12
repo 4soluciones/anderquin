@@ -3,17 +3,20 @@
     <table class="table table-sm table-bordered mb-0 table-details roboto-condensed-regular" pk="{{ bill_obj.id }}" style="background: #fff; font-size: 0.8rem;">
         <thead>
         <tr class="text-center text-uppercase" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
-            <th class="py-2" style="width: 12%;">Estado</th>
-            <th class="py-2" style="width: 22%;">Producto</th>
+            <th class="py-2" style="width: 14%;">Estado</th>
+            <th class="py-2" style="width: 24%;">Producto</th>
             <th class="py-2" style="width: 10%;">Lote</th>
             <th class="py-2" style="width: 10%;">Venc. Lote</th>
             <th class="py-2" style="width: 8%;">Cantidad</th>
             <th class="py-2" style="width: 10%;">Unidad</th>
-            <th class="py-2" style="width: 12%;">Almacén</th>
-            <th class="py-2" style="width: 16%;">Nota de Crédito</th>
         </tr>
         </thead>
         <tbody>
+        <tr class="almacen-header" style="background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);">
+            <td colspan="6" class="py-2 text-left font-weight-bold">
+                <i class="fas fa-warehouse mr-1 text-primary"></i>Almacén: {% if bill_obj.store_destiny %}{{ bill_obj.store_destiny.name }}{% else %}-{% endif %}
+            </td>
+        </tr>
         {% for dt in details_dict %}
             {% if dt.status_quantity == 'C' %}
                 <tr class="text-center" detail="{{ dt.id }}" style="background-color: #f5f5f5;">
@@ -30,21 +33,6 @@
                     <td class="align-middle">{% if dt.status_quantity == 'I' and dt.batch_number %}{{ dt.batch_expiration|date:'d/m/Y'}}{% else %}-{% endif %}</td>
                     <td class="align-middle font-weight-bold">{{ dt.quantity|replace_round }}</td>
                     <td class="align-middle">{{ dt.unit }}</td>
-                    <td class="align-middle">{{ dt.store|default:"-" }}</td>
-                    <td class="align-middle p-1 credit-note">
-                        {% if dt.status_quantity == 'D' %}
-                            {% if dt.credit_note %}
-                                <small>NC: <span class="font-weight-bold text-primary">{{ dt.credit_note|upper }}</span></small><br>
-                                <small>Factura: {{ dt.bill_applied }}</small>
-                            {% else %}
-                                <button type="button" class="btn btn-danger btn-sm generate-credit-note" pk="{{ dt.id }}" bill="{{ bill_obj.id }}">
-                                    <i class="fas fa-file-invoice mr-1"></i>Nota de Crédito
-                                </button>
-                            {% endif %}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
                 </tr>
             {% else %}
                 {% for b in dt.details_batch %}
@@ -53,6 +41,11 @@
                             <span class="badge badge-pill px-2 py-1 font-weight-bold" style="{% if dt.status_quantity == 'I' %}background-color: #2e7d32; color: #fff;{% elif dt.status_quantity == 'D' %}background-color: #e65100; color: #fff;{% elif dt.status_quantity == 'V' %}background-color: #1565c0; color: #fff;{% else %}background-color: #757575; color: #fff;{% endif %}">
                                 {{ dt.status_display }}
                             </span>
+                            {% if dt.status_quantity == 'I' or dt.status_quantity == 'D' or dt.status_quantity == 'V' %}
+                                {% if forloop.first and dt.show_conversion_und %}
+                                    <br><small class="text-muted d-block mt-1" style="font-size: 0.65rem;">({{ dt.quantity_und_display|floatformat:0 }} UND)</small>
+                                {% endif %}
+                            {% endif %}
                         </td>
                         <td class="align-middle text-left">
                             {{ dt.product }}
@@ -60,13 +53,25 @@
                                 <br><small class="text-muted font-weight-bold">Nro Orden: {{ b.order_number }}</small>
                                 {% if b.order_number_bill %}<br><small class="text-muted font-weight-bold">Comprobante: {{ b.order_number_bill }}</small>{% endif %}
                             {% endif %}
+                            {% if dt.status_quantity == 'D' %}
+                                <div class="mt-2 credit-note">
+                                    {% if dt.credit_note %}
+                                        <small class="text-primary font-weight-bold">NC: {{ dt.credit_note|upper }}</small><br>
+                                        <small class="text-muted">Factura: {{ dt.bill_applied }}</small>
+                                    {% else %}
+                                        <button type="button" class="btn btn-danger btn-sm generate-credit-note mt-1" pk="{{ dt.id }}" bill="{{ bill_obj.id }}">
+                                            <i class="fas fa-file-invoice mr-1"></i>Nota de Crédito
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
                         </td>
                         <td class="align-middle font-weight-bold">{{ b.batch_number|upper }}</td>
                         <td class="align-middle">{% if b.batch_expiration %}{{ b.batch_expiration|date:'d/m/Y'}}{% else %}-{% endif %}</td>
                         <td class="align-middle font-weight-bold">
                             {% if dt.status_quantity == 'I' or dt.status_quantity == 'D' or dt.status_quantity == 'V' %}
                                 {% if forloop.first %}
-                                    {{ dt.quantity_display }} <small class="text-muted" style="font-size: 0.65rem;">({{ dt.quantity_und_display|floatformat:2 }} UND)</small>
+                                    {{ dt.quantity_display }}
                                 {% else %}
                                     -
                                 {% endif %}
@@ -85,21 +90,36 @@
                                 {{ b.batch_unit }}
                             {% endif %}
                         </td>
-                        <td class="align-middle">{{ dt.store|default:"-" }}</td>
-                        <td class="align-middle p-1 credit-note">
-                            {% if dt.status_quantity == 'D' %}
-                                {% if dt.credit_note %}
-                                    <small>NC: <span class="font-weight-bold text-primary">{{ dt.credit_note|upper }}</span></small><br>
-                                    <small>Factura: {{ dt.bill_applied }}</small>
-                                {% else %}
-                                    <button type="button" class="btn btn-danger btn-sm generate-credit-note" pk="{{ dt.id }}" bill="{{ bill_obj.id }}">
-                                        <i class="fas fa-file-invoice mr-1"></i>Nota de Crédito
-                                    </button>
-                                {% endif %}
-                            {% else %}
-                                -
+                    </tr>
+                {% empty %}
+                    <tr class="text-center" detail="{{ dt.id }}" style="background-color: {% if dt.status_quantity == 'I' %}#e8f5e9{% elif dt.status_quantity == 'D' %}#fff3e0{% elif dt.status_quantity == 'V' %}#e3f2fd{% else %}#f5f5f5{% endif %};">
+                        <td class="align-middle">
+                            <span class="badge badge-pill px-2 py-1 font-weight-bold" style="{% if dt.status_quantity == 'I' %}background-color: #2e7d32; color: #fff;{% elif dt.status_quantity == 'D' %}background-color: #e65100; color: #fff;{% elif dt.status_quantity == 'V' %}background-color: #1565c0; color: #fff;{% else %}background-color: #757575; color: #fff;{% endif %}">
+                                {{ dt.status_display }}
+                            </span>
+                            {% if dt.show_conversion_und %}
+                                <br><small class="text-muted d-block mt-1" style="font-size: 0.65rem;">({{ dt.quantity_und_display|floatformat:0 }} UND)</small>
                             {% endif %}
                         </td>
+                        <td class="align-middle text-left">
+                            {{ dt.product }}
+                            {% if dt.status_quantity == 'D' %}
+                                <div class="mt-2 credit-note">
+                                    {% if dt.credit_note %}
+                                        <small class="text-primary font-weight-bold">NC: {{ dt.credit_note|upper }}</small><br>
+                                        <small class="text-muted">Factura: {{ dt.bill_applied }}</small>
+                                    {% else %}
+                                        <button type="button" class="btn btn-danger btn-sm generate-credit-note mt-1" pk="{{ dt.id }}" bill="{{ bill_obj.id }}">
+                                            <i class="fas fa-file-invoice mr-1"></i>Nota de Crédito
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td class="align-middle">-</td>
+                        <td class="align-middle">-</td>
+                        <td class="align-middle font-weight-bold">{{ dt.quantity_display }}</td>
+                        <td class="align-middle">{{ dt.unit_reference }}</td>
                     </tr>
                 {% endfor %}
             {% endif %}

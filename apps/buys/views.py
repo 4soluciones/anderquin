@@ -2640,8 +2640,9 @@ def buys_credit_note(request):
         
         # Formato de unidad para mostrar (código SUNAT - nombre)
         # El código SUNAT generalmente está en el name (ej: NIU, MTR, etc.)
-        unit_display = f"{unit_obj.name}-{unit_obj.description}" if unit_obj.description else unit_obj.name
-
+        # unit_display = f"{unit_obj.name}-{unit_obj.description}" if unit_obj.description else unit_obj.name
+        unit_display = f"{unit_obj.name}"
+        print(unit_display)
         my_date = datetime.now()
         date_now = my_date.strftime("%Y-%m-%d")
         t = loader.get_template('buys/modal_credit_note.html')
@@ -2730,17 +2731,25 @@ def bill_credit_note(request):
         product_quantity = bill_detail_obj.quantity
         product_unit = bill_detail_obj.unit
         unit_name = product_unit.name if product_unit else 'UND'
-        unit_display = f"{unit_name}-{product_unit.description}" if product_unit and product_unit.description else unit_name
+        # unit_display = f"{unit_name}-{product_unit.description}" if product_unit and product_unit.description else unit_name
+        unit_display = f"{unit_name}" if product_unit and product_unit.description else unit_name
 
-        # Obtener cantidad en unidades (equivalencia)
+        # Obtener cantidad en unidades (equivalencia) y precio de compra desde ProductDetail
         quantity_in_units = bill_detail_obj.quantity
+        price_purchase = bill_detail_obj.price_unit  # Fallback
         try:
-            product_detail = ProductDetail.objects.get(product=product, unit=product_unit)
-            quantity_in_units = (bill_detail_obj.quantity * product_detail.quantity_minimum).quantize(
+            product_detail_obj = ProductDetail.objects.get(product=product, unit=product_unit)
+            quantity_in_units = (bill_detail_obj.quantity * product_detail_obj.quantity_minimum).quantize(
                 decimal.Decimal('0.00'), rounding=decimal.ROUND_UP
             )
+            price_purchase = product_detail_obj.price_purchase
         except ProductDetail.DoesNotExist:
             pass
+
+        # Total: cantidad * precio de compra (ProductDetail)
+        amount_total = (bill_detail_obj.quantity * price_purchase).quantize(
+            decimal.Decimal('0.00'), rounding=decimal.ROUND_HALF_UP
+        )
 
         # Obtener unidad base (UND)
         unit_und = Unit.objects.filter(description='UND').first()
@@ -2763,6 +2772,8 @@ def bill_credit_note(request):
             'unit_display': unit_display,
             'unit_name': unit_name,
             'unit_und_name': unit_und_name,
+            'price_purchase': price_purchase,
+            'amount_total': amount_total,
             'purchase_detail_obj': None,
             'purchase_obj': None,
         })
@@ -2779,9 +2790,7 @@ def bill_create_credit_note(request):
         credit_bill = request.POST.get('credit-bill-applied', '')
         credit_note_motive = request.POST.get('credit-note-motive', '')
 
-        # bill_correlative = request.POST.get('bill-correlative', '')
         subsidiary_store = request.POST.get('subsidiary_store', '')
-        # detail = json.loads(request.POST.get('detail', ''))
 
         credit_code = str(request.POST.get('credit-code'))
         credit_quantity = str(request.POST.get('credit-quantity'))
@@ -2793,43 +2802,104 @@ def bill_create_credit_note(request):
         bill_detail_id = request.POST.get('bill_detail', '')
         bill_detail_obj = BillDetail.objects.get(id=int(bill_detail_id))
 
-        subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(subsidiary_store))
         bill_obj = None
         bill_note_obj = bill_detail_obj.bill
-        credit_note_obj = CreditNote.objects.create(credit_note_serial=credit_serial, credit_note_number=credit_number,
-                                                    issue_date=credit_date_issue,
-                                                    bill_note=bill_note_obj, motive=credit_note_motive)
 
-        credit_note_detail_obj = CreditNoteDetail.objects.create(code=credit_code, quantity=credit_quantity,
-                                                                 description=credit_description,
-                                                                 price_unit=credit_price_unit, total=credit_total,
-                                                                 credit_note=credit_note_obj)
+        # Devolución (D): la salida ya se registró en kardex y batch al momento de la devolución.
+        # Solo actualizar o crear los datos de la nota de crédito, sin registrar kardex.
+        is_already_registered = bill_detail_obj.status_quantity == 'D'
+
+        # Buscar CreditNote existente (PENDIENTE_NC) para este bill y producto
+        existing_credit_note = CreditNote.objects.filter(
+            credit_note_serial='PENDIENTE_NC',
+            creditnotedetail__product=bill_detail_obj.product
+        ).filter(
+            Q(bill_note=bill_note_obj) | Q(bill=bill_note_obj)
+        ).first()
+
+        if existing_credit_note:
+            # Actualizar CreditNote existente con serie, correlativo y datos
+            existing_credit_note.credit_note_serial = credit_serial
+            existing_credit_note.credit_note_number = credit_number
+            existing_credit_note.issue_date = credit_date_issue if credit_date_issue else existing_credit_note.issue_date
+            existing_credit_note.motive = credit_note_motive
+            existing_credit_note.save()
+            credit_note_obj = existing_credit_note
+
+            # Actualizar CreditNoteDetail que corresponde a este producto
+            credit_note_detail_obj = CreditNoteDetail.objects.filter(
+                credit_note=existing_credit_note,
+                product=bill_detail_obj.product
+            ).first()
+            if credit_note_detail_obj:
+                credit_note_detail_obj.code = credit_code
+                credit_note_detail_obj.quantity = credit_quantity
+                credit_note_detail_obj.description = credit_description
+                credit_note_detail_obj.price_unit = credit_price_unit
+                credit_note_detail_obj.total = credit_total
+                credit_note_detail_obj.save()
+            else:
+                credit_note_detail_obj = CreditNoteDetail.objects.create(
+                    code=credit_code, quantity=credit_quantity,
+                    description=credit_description,
+                    price_unit=credit_price_unit, total=credit_total,
+                    credit_note=credit_note_obj, product=bill_detail_obj.product,
+                    unit=bill_detail_obj.unit
+                )
+        else:
+            # Crear nueva CreditNote y CreditNoteDetail
+            credit_note_obj = CreditNote.objects.create(
+                credit_note_serial=credit_serial, credit_note_number=credit_number,
+                issue_date=credit_date_issue,
+                bill_note=bill_note_obj, motive=credit_note_motive
+            )
+            credit_note_detail_obj = CreditNoteDetail.objects.create(
+                code=credit_code, quantity=credit_quantity,
+                description=credit_description,
+                price_unit=credit_price_unit, total=credit_total,
+                credit_note=credit_note_obj, product=bill_detail_obj.product,
+                unit=bill_detail_obj.unit
+            )
+
         if credit_bill != '0':
             bill_obj = Bill.objects.get(id=int(credit_bill))
             credit_note_obj.status = 'E'
             credit_note_obj.save()
 
-            loan_payment_obj = LoanPayment.objects.create(pay=credit_total, type='C', bill=bill_obj,
-                                                          operation_date=credit_date_issue,
-                                                          observation='Nota de crédito ' + f"{credit_serial}-{credit_number}")
+            loan_payment_obj = LoanPayment.objects.create(
+                pay=credit_total, type='C', bill=bill_obj,
+                operation_date=credit_date_issue,
+                observation='Nota de crédito ' + f"{credit_serial}-{credit_number}"
+            )
+            TransactionPayment.objects.create(
+                payment=credit_total, type='C',
+                operation_code=f"{credit_serial}-{credit_number}",
+                loan_payment=loan_payment_obj
+            )
 
-            TransactionPayment.objects.create(payment=credit_total, type='C',
-                                              operation_code=f"{credit_serial}-{credit_number}",
-                                              loan_payment=loan_payment_obj)
-
-        product_store_id = ProductStore.objects.get(product=bill_detail_obj.product,
-                                                    subsidiary_store=subsidiary_store_obj).id
-        quantity_minimum = ProductDetail.objects.filter(product=bill_detail_obj.product,
-                                                        unit=bill_detail_obj.unit).last().quantity_minimum
-        total_cost = bill_detail_obj.quantity * bill_detail_obj.price_unit
-        kardex_credit_note_input(product_store_id, quantity_minimum * bill_detail_obj.quantity, total_cost,
-                                 type_document='07',
-                                 type_operation='06', credit_note_detail_obj=credit_note_detail_obj)
+        # Solo registrar kardex si la salida NO fue registrada previamente (status != 'D')
+        #if not is_already_registered and subsidiary_store:
+        #    subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(subsidiary_store))
+         #   product_store_id = ProductStore.objects.get(
+        #        product=bill_detail_obj.product,
+        #        subsidiary_store=subsidiary_store_obj
+        #    ).id
+        #    quantity_minimum = ProductDetail.objects.filter(
+        #        product=bill_detail_obj.product,
+        #        unit=bill_detail_obj.unit
+        #    ).last().quantity_minimum
+        #    total_cost = credit_total
+        #    kardex_credit_note_input(
+        #        product_store_id,
+        #        quantity_minimum * bill_detail_obj.quantity,
+        #        total_cost,
+        #        type_document='07',
+        #        type_operation='06',
+        #        credit_note_detail_obj=credit_note_detail_obj
+        #    )
 
         return JsonResponse({
             'message': 'Nota de Credito registrada',
-            # 'parent': purchase_obj.id,
-            # 'purchase_detail_id': purchase_detail_id,
             'nro_document': f"{credit_serial}-{credit_number}",
             'bill': str(bill_obj)
         }, status=HTTPStatus.OK)

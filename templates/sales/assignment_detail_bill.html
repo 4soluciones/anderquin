@@ -325,6 +325,39 @@
             toastr.warning('Debe ingresar el Nº de Lote en todas las filas que tengan cantidades registradas.', 'Error de Datos');
             return false;
         }
+        if (checkDuplicateBatchInForm()) {
+            toastr.warning('No pueden haber dos lotes con el mismo número. Corrija los números de lote duplicados en el formulario.', 'Error de Datos');
+            return false;
+        }
+        // Verificar que los números de lote no existan ya en la BD (mismo producto + mismo almacén)
+        let batchChecks = []; // [{batchNumber, productId}, ...]
+        $('tbody[id^="details-batch-"]').each(function () {
+            let productId = $(this).attr('id').replace('details-batch-', '');
+            let seenInProduct = {};
+            $(this).find('tr').each(function () {
+                let batchInput = $(this).find('input.item-number-batch');
+                let batchNumber = (batchInput.val() || '').toString().trim();
+                let enteredPrincipal = parseFloat($(this).find('input.entered-quantity-principal').val()) || 0;
+                let enteredUnits = parseFloat($(this).find('input.entered-quantity-units').val()) || 0;
+                let returnedPrincipal = parseFloat($(this).find('input.returned-quantity-principal').val()) || 0;
+                let returnedUnits = parseFloat($(this).find('input.returned-quantity-units').val()) || 0;
+                let soldPrincipal = parseFloat($(this).find('input.sold-quantity-principal').val()) || 0;
+                let soldUnits = parseFloat($(this).find('input.sold-quantity-units').val()) || 0;
+                let hasQuantity = (enteredPrincipal + enteredUnits + returnedPrincipal + returnedUnits + soldPrincipal + soldUnits) > 0;
+                let key = batchNumber + '|' + productId;
+                if (hasQuantity && batchNumber && !seenInProduct[key]) {
+                    seenInProduct[key] = true;
+                    batchChecks.push({batchNumber: batchNumber, productId: productId});
+                }
+            });
+        });
+        for (let i = 0; i < batchChecks.length; i++) {
+            let existsInDb = await checkNumberBatch(batchChecks[i].batchNumber, store.val(), batchChecks[i].productId);
+            if (existsInDb) {
+                toastr.warning('El número de lote "' + batchChecks[i].batchNumber + '" ya existe en el almacén para este producto. No pueden haber dos lotes con el mismo número.', 'Error de Datos');
+                return false;
+            }
+        }
         // COMENTADO: Validación de código de venta ya no es necesaria, se genera automáticamente
         /*
         // Validar: si hay cantidad vendida, debe tener código de venta generado
@@ -463,32 +496,65 @@
         });
     })
 
-    async function checkNumberBatch(number_batch, subsidiary_store) {
+    /**
+     * Verifica si el número de lote ya existe en la BD para ese producto en ese almacén.
+     * Consulta la view check_batch_number que valida contra la base de datos.
+     * @param {string} number_batch - Número del lote
+     * @param {string|number} subsidiary_store - ID del almacén
+     * @param {string|number} product_id - ID del producto
+     * @returns {Promise<boolean>} true = el lote ya existe (duplicado), false = no existe (válido)
+     */
+    async function checkNumberBatch(number_batch, subsidiary_store, product_id) {
+        try {
+            const response = await $.ajax({
+                url: '/sales/check_batch_number/',
+                dataType: 'json',
+                type: 'GET',
+                data: {
+                    'number_batch': String(number_batch || '').trim(),
+                    'subsidiary_store': subsidiary_store,
+                    'product_id': product_id,
+                },
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            });
+            return response.flag === true;
+        } catch (e) {
+            toastr.error('Error al verificar el número de lote.', '¡ERROR!');
+            return true; // En caso de error, bloquear para evitar guardar datos inválidos
+        }
+    }
 
-        let _flag_stock = false
+    /**
+     * Verifica que no haya números de lote duplicados dentro del mismo producto en el formulario.
+     * @returns {boolean} true = hay duplicados (error), false = no hay duplicados (OK)
+     */
+    function checkDuplicateBatchInForm() {
+        let hasDuplicate = false;
+        $('tbody[id^="details-batch-"]').each(function () {
+            let productId = $(this).attr('id').replace('details-batch-', '');
+            let batchNumbersSeen = {};
+            $(this).find('tr').each(function () {
+                let batchInput = $(this).find('input.item-number-batch');
+                let batchNumber = (batchInput.val() || '').toString().trim();
+                let enteredPrincipal = parseFloat($(this).find('input.entered-quantity-principal').val()) || 0;
+                let enteredUnits = parseFloat($(this).find('input.entered-quantity-units').val()) || 0;
+                let returnedPrincipal = parseFloat($(this).find('input.returned-quantity-principal').val()) || 0;
+                let returnedUnits = parseFloat($(this).find('input.returned-quantity-units').val()) || 0;
+                let soldPrincipal = parseFloat($(this).find('input.sold-quantity-principal').val()) || 0;
+                let soldUnits = parseFloat($(this).find('input.sold-quantity-units').val()) || 0;
+                let hasQuantity = (enteredPrincipal + enteredUnits + returnedPrincipal + returnedUnits + soldPrincipal + soldUnits) > 0;
 
-        await $.ajax({
-            url: '/sales/check_batch_number/',
-            async: true,
-            dataType: 'json', // for response
-            type: 'GET',
-            data: {
-                'number_batch': number_batch,
-                'subsidiary_store': subsidiary_store,
-            },
-            contentType: 'application/json;charset=UTF-8',
-            headers: {"X-CSRFToken": '{{ csrf_token }}'},
-            success: function (response, textStatus, xhr) {
-                if (xhr.status === 200) {
-                    _flag_stock = response.flag;
+                if (hasQuantity && batchNumber) {
+                    if (batchNumbersSeen[batchNumber]) {
+                        hasDuplicate = true;
+                        return false;
+                    }
+                    batchNumbersSeen[batchNumber] = true;
                 }
-            },
-            error: function (jqXhr, textStatus, xhr) {
-                toastr.error('¡ERROR!');
-            }
+            });
+            if (hasDuplicate) return false;
         });
-        return _flag_stock
-
+        return hasDuplicate;
     }
 
 
@@ -637,7 +703,12 @@
         // COMENTADO: Ya no se necesita validar, el código se genera automáticamente al guardar
         let allowClose = checkSaleCodAndCloseModal();
         if (allowClose) {
-            $('#assignment').modal('hide');
+            // Si el ingreso fue guardado y se muestra el resumen, recargar la página principal al cerrar
+            if ($('#assignment-changes').prop('disabled')) {
+                location.reload();
+            } else {
+                $('#assignment').modal('hide');
+            }
         } else {
             // COMENTADO: Este mensaje ya no es necesario
             // toastr.error('No puedes cerrar la ventana si ya se genero la venta, completa el guardado o Anula la venta');
