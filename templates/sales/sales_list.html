@@ -14,82 +14,160 @@
             <hr>
         </div>
     {% else %}
-        <div class="card-group" style="display: flex;">
-
-            <div class="card p-0 pl-2 pt-2" style="flex: 0 0 46%;" id="tab-two">
-                {% include "sales/sales_grid_tab1.html" %}
-            </div>
-
-            <div class="card p-0 mt-2 roboto-condensed-regular p-2" style="flex: 0 0 54%;">
-                <div class="form-row mt-0 mb-2 ml-0 mr-0">
-                    <div class="form-group col-md-12 text-uppercase small mt-2 mb-0">
-                        <div class="col-sm-12 col-sm-12 col-lg-12 p-3" style="background-color: #d8e0e7">
-                            <div class="row">
-                                <div class="col-sm-2 col-md-2 col-lg-2 pr-0 pt-2">
-                                    <div class="text-dark">Buscar producto:</div>
+        <div class="container-fluid py-4 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+            <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+                <div class="card-body border-bottom py-2 py-md-3" style="background-color: #f0f8fc;">
+                    <div class="row align-items-center no-gutters">
+                        <div class="col-12 col-lg-8 mb-2 mb-lg-0 pr-lg-2">
+                            <div id="autocomplete-product" class="autocomplete autocomplete-product-sales d-flex align-items-center flex-wrap">
+                                <label for="product-names" class="mb-0 mr-2 text-nowrap small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Ingrese para buscar producto</label>
+                                <div class="input-group input-group-sm shadow-sm border rounded-pill overflow-hidden flex-grow-1" style="min-width: 200px; border-color: #bbdefb !important;">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-white border-0 py-2"><i class="fas fa-search text-primary" style="font-size: 0.9rem;"></i></span>
+                                    </div>
+                                    <input class="form-control form-control-sm autocomplete-input autocomplete-input-product border-0 py-2"
+                                           type="text" aria-label="Buscar producto"
+                                           id="product-names"
+                                           name="product-names"
+                                           maxlength="200"
+                                           autocomplete="off"
+                                           placeholder="Mín. 3 letras..."
+                                           style="font-size: 0.875rem;">
                                 </div>
-                                <div class="col-sm-9 col-md-9 col-lg-9 pl-0">
-                                    {#                                <input type="text" id="custom-search-product" aria-label="..."#}
-                                    {#                                       class="form-control ml-2 text-uppercase" autocomplete="off"#}
-                                    {#                                        {% if guide_obj %} disabled {% endif %}#}
-                                    {#                                       placeholder="Ingrese un producto...">#}
-                                    <div id="autocomplete-product" class="autocomplete">
-                                        <input class="form-control form-control-sm autocomplete-input"
-                                               type="text" aria-label="..."
-                                               id="product-names"
-                                               name="product-names"
-                                               maxlength="200"
-                                               autocomplete="off"
-                                               placeholder="Ingrese un producto..."/>
-                                        <ul class="autocomplete-result-list"></ul>
+                                <ul class="autocomplete-result-list autocomplete-product-dropdown"></ul>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-3 col-xl-2 pl-lg-0">
+                            <button type="button" id="clean_product"
+                                    class="btn btn-outline-danger btn-sm border-2 btn-sales-rounded w-100 py-2">
+                                <i class="fas fa-sync-alt"></i> Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-0 p-md-3" style="background-color: #e3f2fd;">
+                    <div class="row no-gutters">
+                        <div class="col-12 col-xl-6 pr-xl-2 mb-3 mb-xl-0" id="tab-two">
+                            {% include "sales/sales_grid_tab1.html" %}
+                        </div>
+                        <div class="col-12 col-xl-6 pl-xl-0">
+                            <div id="product_list_sales">
+                                <div class="card text-center roboto-condensed-regular p-4 border-0 shadow-sm" style="background-color: #fff; border-radius: 12px;">
+                                    <div class="card-header font-weight-bold border-0 py-2" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); border-radius: 12px 12px 0 0;">
+                                        <span style="color: #0d47a1;">Atención</span>
+                                    </div>
+                                    <div class="card-body py-4">
+                                        <h5 class="card-title roboto-condensed-regular font-weight-bold mb-0" style="color: #1565c0;">
+                                            Ingrese un producto para comenzar la búsqueda...
+                                        </h5>
                                     </div>
                                 </div>
-                                <div class="col-sm-1 col-md-1 col-lg-1 pt-0 pl-0">
-                                    <button type="button" id="clean_product"
-                                            class="btn btn-outline-danger btn-sm btn-block text-center">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>
-                                </div>
+                            </div>
+                            <div class="loader-container col-auto mt-2" id="loader-product" style="display: none;">
+                                <div class="loader"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div id="product_list_sales">
-                    <div class="card text-center roboto-condensed-regular p-3 border-info m-3">
-                        <div class="card-header font-weight-bold text-black-50" style="background-color: #88a3b9 ">
-                            Atencion!
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title text-info roboto-condensed-regular font-weight-bold">Ingrese un
-                                producto
-                                para comenzar la búsqueda...</h5>
-                        </div>
-                    </div>
-                </div>
-                <div class="loader-container col-auto" id="loader-product" style="display: none;">
-                    <div class="loader"></div>
-                </div>
             </div>
-
-        </div><!-- card-group -->
+        </div>
     {% endif %}
 
     <div class="modal fade" id="modal-batch" tabindex="-1" role="dialog"
          aria-labelledby="ModalHelpTitle" data-backdrop="static" data-keyboard="false"
          aria-hidden="true"></div>
 
+    <div class="modal fade" id="modal-client-create" tabindex="-1" role="dialog"
+         aria-labelledby="ModalNewClientTitle" data-backdrop="static" data-keyboard="false"
+         aria-hidden="true"></div>
+
 
     <style>
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+            border-color: #1e3a5f;
+        }
+        /* Botones con contorno bordeados y más redondeados */
+        .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger, .btn-outline-secondary {
+            border-width: 2px;
+        }
+        .btn-sales-rounded,
+        #order-form .btn-outline-primary,
+        #order-form .btn-outline-success,
+        #order-form .btn-outline-warning {
+            border-radius: 12px !important;
+        }
         /* Chrome, Safari, Edge, Opera */
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
-
         /* Firefox */
         input[type="number"] {
             -moz-appearance: textfield;
+        }
+        #id-table-detail-order td,
+        #id-table-detail-order th {
+            border-color: #bbdefb !important;
+        }
+        #product_list_sales #product-data-grid td,
+        #product_list_sales #product-data-grid th {
+            border-color: #bbdefb !important;
+        }
+        /* Autocomplete producto: una sola lupa (anular icono de autocomplete.css) y dropdown opaco */
+        .autocomplete-product-sales { position: relative; }
+        .autocomplete-product-sales .autocomplete-input-product {
+            background-image: none !important;
+            padding-left: 0.75rem !important;
+        }
+        .autocomplete-product-dropdown {
+            list-style: none;
+            margin: 4px 0 0 0;
+            padding: 0;
+            max-height: 280px;
+            overflow-y: auto;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            border: 1px solid #bbdefb;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.2);
+            font-size: 0.8125rem;
+            min-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            z-index: 1060 !important;
+            position: absolute !important;
+            isolation: isolate;
+        }
+        .autocomplete-product-dropdown li {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e3f2fd;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+        }
+        .autocomplete-product-dropdown li:last-child { border-bottom: none; }
+        .autocomplete-product-dropdown li[aria-selected="true"],
+        .autocomplete-product-dropdown li:hover {
+            background: linear-gradient(90deg, #e3f2fd 0%, #f0f8fc 100%) !important;
+            background-color: #e3f2fd !important;
+        }
+        .autocomplete-product-dropdown li .h6 {
+            font-size: 0.875rem;
+            margin-bottom: 2px;
+            color: #0d47a1;
+        }
+        .autocomplete-product-dropdown .wiki-snippet {
+            font-size: 0.75rem;
+            color: #5c6bc0;
+        }
+        .autocomplete-product-dropdown li.group { display: none; }
+        @media (max-width: 575.98px) {
+            .container-fluid.py-4 { padding-left: 0.5rem; padding-right: 0.5rem; }
+            .autocomplete-product-dropdown { min-width: 100%; }
         }
     </style>
 
@@ -427,8 +505,8 @@
                 '<td class="align-middle item-batch" batch="' + batch_id + '">' + batch_number + '</td>' +
                 '<td class="align-middle item-price">' + '<input type="text" class="form-control form-control-sm text-right input-price" value="' + _price.toFixed(2) + '">' + '</td>' +
                 '<td class="align-middle item-total">' + '<input type="text" class="form-control form-control-sm text-right input-total-detail" value="' + _total.toFixed(2) + '">' + '</td>' +
-                '<td>' + '<button type="button" onclick="deleteItem(' + _product_id + ',' + _unit_id + ')" class="btn btn-danger btn-sm">' +
-                '<i class="fa fa-trash"></i></button>' + '</td>' +
+'<td>' + '<button type="button" onclick="deleteItem(' + _product_id + ',' + _unit_id + ')" class="btn btn-outline-danger btn-sm border-2">' +
+                                                '<i class="fa fa-trash"></i></button>' + '</td>' +
                 '</tr>'
             );
             calculateTotal();
@@ -1022,8 +1100,8 @@
                     '<td class="align-middle">' + '</td>' +
                     '<td class="align-middle item-date-credit">' + '<input type="date" class="form-control form-control-sm input-date" value="' + formattedDate + '">' + '</td>' +
                     '<td class="align-middle item-amount-credit">' + '<input type="text" step="0.01" class="form-control form-control-sm text-right input-amount" value="' + _amount + '">' + '</td>' +
-                    '<td class="align-middle item-delete">' + '<button type="button"  class="btn btn-secondary btn-sm">' +
-                    '<i class="fa fa-trash"></i></button>' + '</td>' +
+'<td class="align-middle item-delete">' + '<button type="button" class="btn btn-outline-secondary btn-sm border-2">' +
+                                                    '<i class="fa fa-trash"></i></button>' + '</td>' +
                     '</tr>'
                 );
                 calculateTotalPayment();
@@ -1102,38 +1180,26 @@
 
 
         new Autocomplete('#autocomplete-product', {
+            autoSelect: true,
             search: input => {
                 const url = `/sales/get_product_autocomplete/?search=${encodeURI(input.toUpperCase())}`
 
                 return new Promise(resolve => {
                     if (input.length < 3) {
-                        //$('#person-number').val('')
-                        //$('#order-number').val('')
                         return resolve([])
                     }
                     fetch(url)
                         .then(response => response.json())
                         .then(data => {
-                            resolve(data.product)
+                            resolve(data.product || [])
                         })
                 })
             },
             renderResult: (result, props) => {
-                let group = ''
-                if (result.index % 3 === 0) {
-                    group = '<li class="group">Group</li>'
-                }
-                return `
-                ${group}
-                <li ${props}>
-                 <div class="h6 font-weight-bold" style="font-family: roboto_condensed_regular">
-                    ${result.names}
-                 </div>
-                 <div class="wiki-snippet text-black">
-                    Marca: ${result.brand}
-                  </div>
-                </li>
-                `
+                return `<li ${props}>
+                 <div class="h6 font-weight-bold mb-0" style="font-family: roboto_condensed_regular">${result.names}</div>
+                 <div class="wiki-snippet">Marca: ${result.brand || '-'}</div>
+                </li>`
             },
             getResultValue: result => result.names,
             onSubmit: result => {
@@ -1213,6 +1279,156 @@
             });
         });
 
+        // ----- Modal Agregar nuevo cliente (desde ventas) -----
+        $(document).on('click', '#btn-new-client-sales', function () {
+            $.ajax({
+                url: '/sales/modal_client_create/',
+                dataType: 'json',
+                type: 'GET',
+                success: function (response) {
+                    $('#modal-client-create').html(response.form);
+                    $('#modal-client-create').modal('show');
+                },
+                error: function () {
+                    toastr.error('No se pudo cargar el formulario de cliente', 'Error');
+                }
+            });
+        });
+
+        $(document).on('click', '#modal-client-create #btn-save-client', function (e) {
+            e.preventDefault();
+            let _document_number = $('#modal-client-create #document_number').val();
+            let _names = $('#modal-client-create #names').val();
+            let _type_client = $('#modal-client-create #id_type_client').val();
+            let _doc_type = $('#modal-client-create #document_type').val();
+
+            if (_doc_type === '01') {
+                if (_document_number.length !== 8) {
+                    toastr.warning('8 caracteres para DNI', 'Error de Datos');
+                    return false;
+                }
+                if (_names.length === 0) {
+                    toastr.warning('Complete los Nombres', 'Error de Datos');
+                    return false;
+                }
+            } else if (_doc_type === '06') {
+                if (_document_number.length !== 11) {
+                    toastr.warning('11 caracteres para RUC', 'Error de Datos');
+                    return false;
+                }
+                if (_names.length === 0) {
+                    toastr.warning('Complete la Razón Social', 'Error de Datos');
+                    return false;
+                }
+            } else if (_doc_type === '00' || !_doc_type) {
+                if (_document_number.length === 0 || _names.length === 0) {
+                    toastr.warning('Complete tipo de documento, número y nombre', 'Error de Datos');
+                    return false;
+                }
+            }
+            if (_type_client === '0' || !_type_client) {
+                toastr.warning('Seleccione el tipo de cliente', 'Error de Datos');
+                return false;
+            }
+
+            let client = {
+                "client_id": $('#modal-client-create #client_id').val(),
+                "document_type": _doc_type,
+                "document_number": _document_number,
+                "names": _names,
+                "phone": $('#modal-client-create #phone').val(),
+                "email": $('#modal-client-create #email').val(),
+                "type_client": _type_client,
+                "publicAddress": "",
+                "publicDistrict": "",
+                "siaf": $('#modal-client-create #cod_siaf').val(),
+                "price_type": $('#modal-client-create #price_type').val(),
+                "Addresses": []
+            };
+
+            if (_type_client === 'PU') {
+                $('#modal-client-create .address-block-public').each(function () {
+                    client.Addresses.push({
+                        "new_address": $(this).find("input.public-address").val(),
+                        "district": $(this).find("select.select2-district").val(),
+                        "province": $(this).find("select.select2-province").val(),
+                        "department": $(this).find("select.select2-department").val(),
+                        "type_address": $(this).find("select[name='type_address'], select[name='type_address_new']").val()
+                    });
+                });
+                if (client.Addresses.length === 0) {
+                    client.publicAddress = $('#modal-client-create #address').val();
+                    client.publicDistrict = $('#modal-client-create #id_district').val();
+                    client.publicProvince = $('#modal-client-create #id_province').val();
+                    client.publicDepartment = $('#modal-client-create #id_department').val();
+                    client.type_address = $('#modal-client-create #type_address').val();
+                }
+            } else if (_type_client === 'PR') {
+                $('#modal-client-create .address-block-private').each(function () {
+                    client.Addresses.push({
+                        "new_address": $(this).find("input.new-address").val(),
+                        "district": $(this).find("select.district").val(),
+                        "province": $(this).find("select.province").val(),
+                        "department": $(this).find("select.department").val(),
+                        "type_address": $(this).find("select.type-address").val()
+                    });
+                });
+            }
+
+            $(this).prop("disabled", true);
+            $('#modal-client-create #container-loading').css('display', 'block');
+
+            $.ajax({
+                url: '/sales/client_save/',
+                dataType: 'json',
+                type: 'GET',
+                cache: false,
+                data: { 'client': JSON.stringify(client) },
+                headers: { "X-CSRFToken": '{{ csrf_token }}' },
+                success: function (response) {
+                    $('#modal-client-create #container-loading').css('display', 'none');
+                    $('#modal-client-create #btn-save-client').prop('disabled', false);
+                    if (response.success) {
+                        toastr.success(response.message, '¡Bien hecho!');
+                        if (response.client_id) {
+                            let $footer = $('#modal-client-create .modal-footer');
+                            if ($footer.find('#btn-select-client-sales').length === 0) {
+                                $footer.append(
+                                    '<button type="button" id="btn-select-client-sales" class="btn btn-success border-2 btn-sales-rounded ml-2">' +
+                                    '<i class="fas fa-check mr-1"></i> Seleccionar</button>'
+                                );
+                            }
+                            $('#btn-select-client-sales').off('click').on('click', function () {
+                                $('#client-id').val(response.client_id);
+                                $('#person-names').val(response.names);
+                                let $sel = $('#client_address');
+                                $sel.empty();
+                                if (response.addresses && response.addresses.length > 0) {
+                                    response.addresses.forEach(function (addr) {
+                                        $sel.append($('<option>').val(addr).text(addr.toUpperCase()));
+                                    });
+                                } else {
+                                    $sel.append('<option value="">Sin direcciones</option>');
+                                }
+                                $('#cod_unit_exe').val(response.cod_siaf || '-');
+                                $('#modal-client-create').modal('hide');
+                                toastr.info('Cliente cargado en el formulario', 'Listo');
+                            });
+                        }
+                    }
+                },
+                error: function (jqXhr) {
+                    $('#modal-client-create #container-loading').css('display', 'none');
+                    $('#modal-client-create #btn-save-client').prop('disabled', false);
+                    toastr.error(jqXhr.responseJSON && jqXhr.responseJSON.message ? jqXhr.responseJSON.message : 'Error al guardar', 'Error');
+                }
+            });
+        });
+
+        // Limpiar botón Seleccionar al cerrar el modal de nuevo cliente
+        $('#modal-client-create').on('hidden.bs.modal', function () {
+            $(this).find('#btn-select-client-sales').remove();
+        });
 
     </script>
 

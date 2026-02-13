@@ -1,71 +1,70 @@
 {% load app_filters %}
 <form id="order-form" action="{% url 'sales:save_order' %}" method="POST">
     {% csrf_token %}
-    <div class="card col-sm-12 p-1 roboto-condensed-regular" style="border-color: #3e6787">
-        <div class="card-header text-center pb-1" style="background: #3e6787">
-            <div class="row align-self-center">
-                <div class="col-sm-12 pt-1 pb-1">
-                    <div class="card header mb-2 border-bottom-2 text-center font-weight-bold sale"
-                         style="background-color: #aaccf3">
-                        <h4 class="roboto-condensed-regular text-dark font-weight-bold mt-1 mb-1">
-                            MODULO DE VENTAS
-                        </h4>
+    <div class="card border-0 shadow-sm roboto-condensed-regular overflow-hidden" style="border-radius: 15px;">
+        <div class="card-header py-3 text-center position-relative" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+            <div class="row align-items-center">
+                <div class="col-12">
+                    <div class="sale">
+                        <h5 class="roboto-condensed-regular text-white font-weight-bold mb-0" style="font-size: 1.1rem;">
+                            <i class="fas fa-file-invoice-dollar mr-2"></i> MÓDULO DE VENTAS
+                        </h5>
                     </div>
-                    <div class="card header mb-2 border-bottom-2 text-center font-weight-bold sale-store d-none"
-                         style="background-color: #cff3aa">
-                        <h4 class="roboto-condensed-regular text-dark font-weight-bold mt-1 mb-1">
-                            VENTA DE ALMACEN
-                        </h4>
+                    <div class="sale-store d-none">
+                        <h5 class="roboto-condensed-regular text-white font-weight-bold mb-0" style="font-size: 1.1rem;">
+                            <i class="fas fa-warehouse mr-2"></i> VENTA DE ALMACÉN
+                        </h5>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card-body pl-2 pr-2 pt-0 pb-0">
-            <div class="row mt-2 mb-1 ml-0 mr-0 bg-light">
-                <div class="col-sm-6 col-md-6 col-lg-6 pb-2 border border-box p-1">
+        <div class="card-body pl-2 pr-2 pt-2 pb-2" style="background-color: #f0f8fc;">
+            <div class="row mt-0 mb-2 mx-0 bg-white rounded p-2 border" style="border-color: #bbdefb !important;">
+                <div class="col-12 col-md-4 col-lg-4 pb-2 pb-md-0">
                     {% if guide_obj %}
-                        <h4 class="roboto-condensed-regular text-warning font-weight-bold mt-1 mb-1 text-center">
+                        <h5 class="roboto-condensed-regular text-warning font-weight-bold mt-1 mb-1 text-center">
                             Nº GUÍA : {{ guide_obj }}
-                        </h4>
+                        </h5>
                         <input type="hidden" value="{{ guide_obj.id }}" id="guide_id" name="guide_id">
                     {% else %}
-                        <div class="row pt-1 pb-0 pr-4 pl-2">
-                            <div class="col-sm-4 text-right">
-                                <label for="inputPassword6" class="mt-2">Ingrese Venta:</label>
-                            </div>
-                            <div class="col-sm-8">
-                                <div class="input-group mx-sm-3">
-                                    <input id="search_sale" type="text" autocomplete="off"
-                                           class="form-control text-right" aria-label="..."
-                                           style="border-color: #96a494">
-                                    <input id="order_id" name="order" type="hidden" aria-label="...">
-                                    <span class="input-g roup-btn">
-                                        <button id="btn-search-quotation"
-                                                class="btn btn-success"
-                                                type="button"
-                                                onclick="searchSale()">
-                                            Buscar <span class="fa fa-search"></span>
-                                        </button>
-                                    </span>
-                                </div>
+                        <div class="input-group input-group-sm shadow-sm rounded overflow-hidden" style="border-radius: 12px !important;">
+                            <input id="search_sale" type="text" autocomplete="off"
+                                   class="form-control form-control-sm rounded-left" aria-label="Nº orden"
+                                   placeholder="Nº orden" style="border-radius: 12px 0 0 12px;">
+                            <input id="order_id" name="order" type="hidden" aria-label="...">
+                            <div class="input-group-append">
+                                <button id="btn-search-quotation"
+                                        class="btn btn-outline-success border-2 btn-sales-rounded btn-sm rounded-right"
+                                        type="button"
+                                        onclick="searchSale()"
+                                        style="border-radius: 0 12px 12px 0;">
+                                    <i class="fa fa-search"></i> Buscar Venta Almacén
+                                </button>
                             </div>
                         </div>
                     {% endif %}
                 </div>
-                <div class="col-sm-6 col-md-6 col-lg-6 pb-2 border border-box p-1">
-                    <div class="row pt-1 pb-0">
-                        <div class="col-sm-6 col-md-6 col-lg-6 pl-4 pb-0">
+                <div class="col-12 col-md-8 col-lg-8 mt-2 mt-md-0">
+                    <div class="row no-gutters">
+                        <div class="col-4 pr-1">
                             <button type="submit" id="save-order"
-                                    class="btn btn-primary btn-sm btn-block mt-1 text-uppercase text-center">
+                                    class="btn btn-outline-primary border-2 btn-block text-uppercase btn-sales-rounded mt-1 btn-sm">
                                 <i class="fas fa-save"></i> Guardar
                             </button>
                         </div>
-                        <div class="col-sm-6 col-md-6 col-lg-6">
+                        <div class="col-4 px-1">
                             <button type="button"
-                                    class="btn btn-warning btn-sm text-uppercase btn-block text-center mt-1"
-                                    id="btn-new-form"><i class="far fa-check-circle"></i>
-                                Nuevo
+                                    class="btn btn-outline-warning border-2 btn-block text-uppercase btn-sales-rounded mt-1 btn-sm"
+                                    id="btn-new-form">
+                                <i class="far fa-check-circle"></i> Nuevo
+                            </button>
+                        </div>
+                        <div class="col-4 pl-1">
+                            <button type="button" id="btn-new-client-sales"
+                                    class="btn btn-outline-success border-2 btn-block text-uppercase btn-sales-rounded mt-1 btn-sm"
+                                    title="Registrar nuevo cliente y cargarlo en esta venta">
+                                <i class="fas fa-user-plus"></i> Nuevo cliente
                             </button>
                         </div>
                     </div>
@@ -73,14 +72,13 @@
             </div>
         </div>
 
-        <div class="card-body p-0 pr-1">
+        <div class="card-body p-2 p-md-2" style="background-color: #e3f2fd;">
 
-            <fieldset class="border bg-light p-2">
-                <legend class="w-auto mb-0 text-black-50 text-uppercase" style="font-size: 12px">Información CLiente
-                </legend>
+            <fieldset class="border rounded p-2 p-md-2 mb-3" style="background-color: #fff; border-color: #bbdefb !important;">
+                <legend class="w-auto mb-0 px-2 text-uppercase small font-weight-bold" style="font-size: 11px; color: #1565c0;">Información cliente</legend>
                 <div class="card-body p-0 m-0">
                     <div class="form-row m-0">
-                        <div class="form-group col-md-4 mb-2 text-uppercase small">
+                        <div class="form-group col-12 col-md-4 mb-2 text-uppercase small">
                             <label class="mb-2 text-center"
                                    for="client_name">Cliente - Nombres/Razón social:</label>
                             <div id="autocomplete-client" class="autocomplete">
@@ -98,7 +96,7 @@
                             <input type="hidden" value="{{ guide_obj.client.id }}"
                                    id="client-id" name="client-id">
                         </div>
-                        <div class="form-group col-md-6 mb-2 text-uppercase small">
+                        <div class="form-group col-12 col-md-6 mb-2 text-uppercase small">
                             <label class="mb-2 text-center"
                                    for="client_address"> Dirección:</label>
                             <select class="form-control form-control-sm text-uppercase"
@@ -111,7 +109,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="form-group col-md-2 mb-2 text-uppercase small">
+                        <div class="form-group col-12 col-md-2 mb-2 text-uppercase small">
                             <label class="mb-2 text-center"
                                    for="cod_unit_exe">Cod. Unid. Ejecutora:</label>
                             <input type="text" class="form-control form-control-sm text-center"
@@ -201,12 +199,10 @@
                 </div>-->
             </fieldset>
 
-            <fieldset class="border p-2 bg-light">
-                <legend class="w-auto mb-0 text-black-50 text-uppercase" style="font-size: 12px">Información
-                    principal
-                </legend>
-                <div class="form-row mt-1 ml-0 mr-2">
-                    <div class="col-md-3 text-uppercase small pl-1 pr-1">
+            <fieldset class="border rounded p-2 p-md-2 mb-2" style="background-color: #fff; border-color: #bbdefb !important;">
+                <legend class="w-auto mb-0 px-2 text-uppercase small font-weight-bold" style="font-size: 11px; color: #1565c0;">Información principal</legend>
+                <div class="form-row mt-1 mx-0">
+                    <div class="col-12 col-sm-6 col-md-3 text-uppercase small px-1 mb-2">
                         <label for="type_document" class="mb-0">Tipo de Documento</label>
                         <select id="type_document" name="type_document"
                                 class="form-control form-control-sm"
@@ -217,7 +213,7 @@
                             <option value="T">TICKET</option>
                         </select>
                     </div>
-                    <div class="col-md-2 text-uppercase small pl-1 pr-1">
+                    <div class="col-12 col-sm-6 col-md-2 text-uppercase small px-1 mb-2">
                         <label for="id_serial" class="mb-0">Serie</label>
                         <select id="id_serial" name="serial"
                                 class="form-control form-control-sm"
@@ -225,20 +221,20 @@
                             <option selected value="0">Seleccione</option>
                         </select>
                     </div>
-                    <div class="col-md-3 text-uppercase small pl-1 pr-1">
+                    <div class="col-12 col-sm-6 col-md-3 text-uppercase small px-1 mb-2">
                         <label for="correlative" class="mb-0">Correlativo</label>
                         <input type="text" class="form-control form-control-sm text-right" id="correlative"
                                name="correlative" autocomplete="off">
                     </div>
 
-                    <div class="col-md-4 text-uppercase small pl-0 pr-0">
+                    <div class="col-12 col-sm-6 col-md-4 text-uppercase small px-1 mb-2">
                         <label for="date" class="mb-0">Fecha de emisión</label>
                         <input type="date" class="form-control form-control-sm" id="date" name="date"
                                value="{{ date }}">
                     </div>
                 </div>
-                <div class="form-row mt-2 mb-2 ml-0 mr-2">
-                    <div class="col-md-3 text-uppercase small pl-1 pr-1">
+                <div class="form-row mt-2 mb-2 mx-0">
+                    <div class="col-12 col-md-3 text-uppercase small px-1 mb-2">
                         <label for="transaction_payment_type" class="mb-0">Tipo de Pago</label>
                         <select id="transaction_payment_type" name="transaction_payment_type"
                                 class="form-control form-control-sm">
@@ -248,8 +244,8 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-9 small pl-0 pr-0">
-                        <div class="row col-sm-12 m-0 p-0" id="cash" style="display: none">
+                    <div class="col-12 col-md-9 small px-1">
+                        <div class="row m-0 p-0" id="cash" style="display: none">
                             <div class="col-sm-5 pl-1 pr-0">
                                 <label for="cash_id" class="mb-0 text-uppercase">Caja destino</label>
                                 <select id="cash_id" name="cash_id"
@@ -308,10 +304,9 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-sm-2 pl-1 pr-0 text-center">
-                                <label for="btn-add-detail" class="mb-0 text-center text-white">
-                                    Pagos </label>
-                                <button id="btn-add-detail" class="btn btn-sm btn-secondary"
+                            <div class="col-sm-12 col-md-2 pl-1 pr-0 text-center mb-2">
+                                <label for="btn-add-detail" class="mb-0 d-block small">Pagos</label>
+                                <button id="btn-add-detail" class="btn btn-sm btn-outline-secondary border-2"
                                         type="button"
                                         onclick="AddDetailsCredit()">
                                     Agregar Cuota
@@ -331,27 +326,25 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-row mt-1 ml-0 mr-2">
-                    <div class="col-md-12 text-uppercase small pl-1 pr-1">
+                <div class="form-row mt-1 mx-0">
+                    <div class="col-12 text-uppercase small px-1 mb-2">
                         <label for="observation" class="mb-0">Observaciones</label>
                         <input type="text" class="form-control form-control-sm text-left" id="observation"
                                name="observation" autocomplete="off">
                     </div>
                 </div>
             </fieldset>
-            <fieldset class="border p-2 bg-light">
-                <legend class="w-auto mb-0 text-black-50 text-uppercase" style="font-size: 12px">Información
-                    Relacionada
-                </legend>
-                <div class="form-row mt-1 ml-0 mr-2">
-                    <div class="col-md-6 text-uppercase small pl-1 pr-1">
+            <fieldset class="border rounded p-2 p-md-2 mb-1" style="background-color: #fff; border-color: #bbdefb !important;">
+                <legend class="w-auto mb-0 px-2 text-uppercase small font-weight-bold" style="font-size: 11px; color: #1565c0;">Información relacionada</legend>
+                <div class="form-row mt-1 mx-0">
+                    <div class="col-12 col-md-6 text-uppercase small px-1 mb-2">
                         <label for="order_buy" class="mb-0">Orden de Compra</label>
                         <input type="text" class="form-control form-control-sm text-left"
                                id="order_buy" placeholder="-" autocomplete="off"
                                value="{{ guide_obj.order_buy }}"
                                name="order_buy">
                     </div>
-                    <div class="col-md-6 text-uppercase small pl-1 pr-1">
+                    <div class="col-12 col-md-6 text-uppercase small px-1 mb-2">
                         <label for="n_contract" class="mb-0">SIAF</label>
                         <input type="text" class="form-control form-control-sm text-left"
                                id="n_contract" placeholder="-"
@@ -362,9 +355,9 @@
             </fieldset>
 
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-0 p-md-1 pt-0" style="background-color: #e3f2fd;">
             {% include "sales/sales_detail.html" %}
         </div>
 
-    </div><!-- card-->
+    </div>
 </form>

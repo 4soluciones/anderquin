@@ -611,10 +611,18 @@ def client_save(request):
             for addr_obj, _ in addresses_to_save:
                 addr_obj.save()
 
+        addresses_list = list(
+            client_obj.clientaddress_set.values_list('address', flat=True)
+        )
         return JsonResponse({
             'success': True,
             'message': 'Cliente Registrado',
+            'client_id': client_obj.id,
+            'names': client_obj.names,
+            'addresses': addresses_list,
+            'cod_siaf': client_obj.cod_siaf or '-',
         }, status=HTTPStatus.OK)
+
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
 
 
