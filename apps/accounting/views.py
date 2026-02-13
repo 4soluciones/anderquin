@@ -2323,6 +2323,15 @@ def modal_bill_create(request):
         first_address = ''
         
         suppliers_set = Supplier.objects.all().order_by('name')
+        # Lista de proveedores con dirección para el select en modo OC
+        suppliers_with_address = []
+        for s in suppliers_set:
+            addr = SupplierAddress.objects.filter(supplier=s, type_address='P').first()
+            suppliers_with_address.append({
+                'id': s.id,
+                'name': s.name,
+                'address': addr.address if addr else ''
+            })
 
         if purchases_ids:
             is_manual = False
@@ -2410,6 +2419,7 @@ def modal_bill_create(request):
             'supplier_id': supplier_id,
             'supplier_name': supplier_name,
             'suppliers_set': suppliers_set,
+            'suppliers_with_address': suppliers_with_address,
             'supplier_address': supplier_address,
             'detail_purchase': purchase_dict,
             'oc_ids': json.dumps(all_purchases_ids),

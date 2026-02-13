@@ -4640,36 +4640,57 @@ def save_detail_to_warehouse(request):
                 sum_quantity_sold_total_in_units = (sum_quantity_sold_principal * unit_min_product) + sum_quantity_sold_units
                 sum_quantity_sold_in_purchase_unit = sum_quantity_sold_principal + (sum_quantity_sold_units / unit_min_product)
 
+                # Cantidad comprada para el resumen
+                quantity_purchased_und = decimal.Decimal(d.get('QuantityPurchased', 0) or 0)
+                if unit_obj.name == 'UND':
+                    quantity_purchased_display = f"{quantity_purchased_und:.0f} {unit_obj.description}"
+                else:
+                    qty_in_purchase_unit = quantity_purchased_und / unit_min_product
+                    quantity_purchased_display = f"{qty_in_purchase_unit:.2f} {unit_obj.description}"
+
                 # Datos del producto para el resumen
                 product_summary = {
                     'product_name': product_obj.name,
                     'product_id': product_id,
+                    'quantity_purchased': quantity_purchased_display,
                     'batches': []
                 }
 
+                # Total que llega al almacén = ingresada + vendida (la vendida también llega, solo que se vende de inmediato)
+                sum_quantity_total_arrival_in_units = sum_quantity_entered_total_in_units + sum_quantity_sold_total_in_units
+
                 # ----------------------------------- SIEMPRE REGISTRAR ENTRADA EN KARDEX --------------------------------------------------
-                if sum_quantity_entered_total_in_units > 0:
-                    # Guardar quantity y unit como el usuario ingresó: si usó cajas → cajas, si usó UND → UND
+                # El kardex debe registrar el TOTAL que llega (ingresada + vendida), no solo la ingresada
+                if sum_quantity_total_arrival_in_units > 0:
+                    # Crear BillDetail para ingresada: uno por cada tipo de unidad usada (cj y/o und)
+                    detail_entered_obj = None  # Primer BillDetail para vincular kardex y batches
                     if sum_quantity_entered_principal > 0:
-                        qty_entered_billdetail = sum_quantity_entered_principal
-                        unit_entered_billdetail = unit_obj
-                    else:
-                        qty_entered_billdetail = sum_quantity_entered_units
-                        unit_entered_billdetail = unit_und_obj
+                        detail_principal = BillDetail.objects.create(
+                            quantity=sum_quantity_entered_principal,
+                            unit=unit_obj,
+                            price_unit=price_purchase,
+                            product=product_obj,
+                            status_quantity='I',
+                            bill=bill_obj
+                        )
+                        if detail_entered_obj is None:
+                            detail_entered_obj = detail_principal
+                    if sum_quantity_entered_units > 0:
+                        detail_units = BillDetail.objects.create(
+                            quantity=sum_quantity_entered_units,
+                            unit=unit_und_obj,
+                            price_unit=price_purchase,
+                            product=product_obj,
+                            status_quantity='I',
+                            bill=bill_obj
+                        )
+                        if detail_entered_obj is None:
+                            detail_entered_obj = detail_units
 
-                    detail_entered_obj = BillDetail.objects.create(
-                        quantity=qty_entered_billdetail,
-                        unit=unit_entered_billdetail,
-                        price_unit=price_purchase,
-                        product=product_obj,
-                        status_quantity='I',
-                        bill=bill_obj
-                    )
-
-                    # Registrar en kardex (entrada)
+                    # Registrar en kardex (entrada) - total que llega incluyendo vendida
                     has_kardex = Kardex.objects.filter(product_store_id=product_store_obj.id).exists()
                     if not has_kardex:
-                        new_total_stock = product_store_obj.stock + sum_quantity_entered_total_in_units
+                        new_total_stock = product_store_obj.stock + sum_quantity_total_arrival_in_units
                         product_store_obj.stock = new_total_stock
                         product_store_obj.save()
                         kardex_obj = kardex_initial(
@@ -4679,10 +4700,10 @@ def save_detail_to_warehouse(request):
                             bill_detail_obj=detail_entered_obj
                         )
                     else:
-                        total_cost = sum_quantity_entered_total_in_units * price_purchase_unit
+                        total_cost = sum_quantity_total_arrival_in_units * price_purchase_unit
                         kardex_obj = kardex_input(
                             product_store_obj.id,
-                            sum_quantity_entered_total_in_units,
+                            sum_quantity_total_arrival_in_units,
                             total_cost,
                             type_document='01',
                             type_operation='02',
@@ -4744,23 +4765,28 @@ def save_detail_to_warehouse(request):
                                         'error': f'No hay suficiente cantidad en el lote {batch_number} para devolver {returned_quantity_total_in_units} unidades del producto {product_obj.name}. Cantidad disponible: {batch_obj.remaining_quantity}',
                                     }, status=HTTPStatus.BAD_REQUEST)
 
-                                # Crear BillDetail para devolución: quantity y unit como el usuario ingresó
-                                sum_quantity_returned_in_purchase_unit = returned_quantity_principal + (returned_quantity_units / unit_min_product)
+                                # Crear BillDetail para devolución: uno por cada tipo de unidad (cj y/o und)
+                                detail_returned_obj = None
                                 if returned_quantity_principal > 0:
-                                    qty_returned_billdetail = returned_quantity_principal
-                                    unit_returned_billdetail = unit_obj
-                                else:
-                                    qty_returned_billdetail = returned_quantity_units
-                                    unit_returned_billdetail = unit_und_obj
-
-                                detail_returned_obj = BillDetail.objects.create(
-                                    quantity=qty_returned_billdetail,
-                                    unit=unit_returned_billdetail,
-                                    price_unit=price_purchase,
-                                    product=product_obj,
-                                    status_quantity='D',
-                                    bill=bill_obj
-                                )
+                                    detail_returned_obj = BillDetail.objects.create(
+                                        quantity=returned_quantity_principal,
+                                        unit=unit_obj,
+                                        price_unit=price_purchase,
+                                        product=product_obj,
+                                        status_quantity='D',
+                                        bill=bill_obj
+                                    )
+                                if returned_quantity_units > 0:
+                                    detail_units = BillDetail.objects.create(
+                                        quantity=returned_quantity_units,
+                                        unit=unit_und_obj,
+                                        price_unit=price_purchase,
+                                        product=product_obj,
+                                        status_quantity='D',
+                                        bill=bill_obj
+                                    )
+                                    if detail_returned_obj is None:
+                                        detail_returned_obj = detail_units
 
                                 # Crear CreditNote y CreditNoteDetail PRIMERO
                                 credit_note_obj = CreditNote.objects.create(
@@ -4773,25 +4799,34 @@ def save_detail_to_warehouse(request):
                                     motive=f'Devolución de mercadería - Lote: {batch_number}'
                                 )
 
-                                # Calcular total para CreditNoteDetail (valor monetario)
-                                returned_total = returned_quantity_total_in_units * price_purchase_unit
-
-                                # price_unit para CreditNoteDetail: según la unidad usada por el usuario
-                                if unit_returned_billdetail == unit_und_obj:
-                                    price_returned_display = price_purchase / unit_min_product
-                                else:
-                                    price_returned_display = price_purchase
-
-                                credit_note_detail_obj = CreditNoteDetail.objects.create(
-                                    credit_note=credit_note_obj,
-                                    product=product_obj,
-                                    quantity=qty_returned_billdetail,
-                                    unit=unit_returned_billdetail,
-                                    price_unit=price_returned_display,
-                                    total=returned_total,
-                                    code=product_obj.code or '',
-                                    description=product_obj.name
-                                )
+                                # Crear CreditNoteDetail: uno por cada tipo de unidad (cj y/o und)
+                                credit_note_detail_obj = None
+                                if returned_quantity_principal > 0:
+                                    returned_total_principal = returned_quantity_principal * unit_min_product * price_purchase_unit
+                                    credit_note_detail_obj = CreditNoteDetail.objects.create(
+                                        credit_note=credit_note_obj,
+                                        product=product_obj,
+                                        quantity=returned_quantity_principal,
+                                        unit=unit_obj,
+                                        price_unit=price_purchase,
+                                        total=returned_total_principal,
+                                        code=product_obj.code or '',
+                                        description=product_obj.name
+                                    )
+                                if returned_quantity_units > 0:
+                                    returned_total_units = returned_quantity_units * price_purchase_unit
+                                    cnd_units = CreditNoteDetail.objects.create(
+                                        credit_note=credit_note_obj,
+                                        product=product_obj,
+                                        quantity=returned_quantity_units,
+                                        unit=unit_und_obj,
+                                        price_unit=price_purchase / unit_min_product,
+                                        total=returned_total_units,
+                                        code=product_obj.code or '',
+                                        description=product_obj.name
+                                    )
+                                    if credit_note_detail_obj is None:
+                                        credit_note_detail_obj = cnd_units
 
                                 # Registrar salida en kardex DESPUÉS de crear CreditNoteDetail
                                 kardex_ouput(
@@ -4853,25 +4888,30 @@ def save_detail_to_warehouse(request):
                                         'error': f'No hay suficiente cantidad en el lote {batch_number} para vender {sold_quantity_total_in_units} unidades del producto {product_obj.name}. Cantidad disponible: {current_batch.remaining_quantity}',
                                     }, status=HTTPStatus.BAD_REQUEST)
 
-                                # Crear BillDetail para venta: quantity y unit como el usuario ingresó
-                                sum_quantity_sold_in_purchase_unit = sold_quantity_principal + (sold_quantity_units / unit_min_product)
+                                # Crear BillDetail para venta: uno por cada tipo de unidad (cj y/o und)
+                                detail_sold_obj = None
                                 if sold_quantity_principal > 0:
-                                    qty_sold_billdetail = sold_quantity_principal
-                                    unit_sold_billdetail = unit_obj
-                                else:
-                                    qty_sold_billdetail = sold_quantity_units
-                                    unit_sold_billdetail = unit_und_obj
+                                    detail_sold_obj = BillDetail.objects.create(
+                                        quantity=sold_quantity_principal,
+                                        unit=unit_obj,
+                                        price_unit=price_purchase,
+                                        product=product_obj,
+                                        status_quantity='V',
+                                        bill=bill_obj
+                                    )
+                                if sold_quantity_units > 0:
+                                    detail_units = BillDetail.objects.create(
+                                        quantity=sold_quantity_units,
+                                        unit=unit_und_obj,
+                                        price_unit=price_purchase,
+                                        product=product_obj,
+                                        status_quantity='V',
+                                        bill=bill_obj
+                                    )
+                                    if detail_sold_obj is None:
+                                        detail_sold_obj = detail_units
 
-                                detail_sold_obj = BillDetail.objects.create(
-                                    quantity=qty_sold_billdetail,
-                                    unit=unit_sold_billdetail,
-                                    price_unit=price_purchase,
-                                    product=product_obj,
-                                    status_quantity='V',
-                                    bill=bill_obj
-                                )
-
-                                # Crear Order y OrderDetail PRIMERO
+                                # Crear Order y OrderDetail PRIMERO (uno por cada tipo de unidad para la venta)
                                 create_date = utc_to_local(datetime.now())
                                 order_obj = Order.objects.create(
                                     order_type='V',
@@ -4884,31 +4924,45 @@ def save_detail_to_warehouse(request):
                                     serial='PENDIENTE_CE'
                                 )
 
-                                # Obtener precio de venta según la unidad que ingresó el usuario
-                                if unit_sold_billdetail == unit_und_obj:
+                                order_detail_obj = None
+                                order_total = decimal.Decimal('0')
+                                if sold_quantity_principal > 0:
+                                    product_detail_sale = ProductDetail.objects.filter(product=product_obj, unit=unit_obj).first()
+                                    price_sale = product_detail_sale.price_sale if product_detail_sale else price_purchase
+                                    od_principal = OrderDetail.objects.create(
+                                        order=order_obj,
+                                        product=product_obj,
+                                        quantity_sold=sold_quantity_principal,
+                                        unit=unit_obj,
+                                        price_unit=price_sale,
+                                        status='P',
+                                        product_store=product_store_obj,
+                                        commentary=f'Venta desde almacén - Lote: {batch_number}'
+                                    )
+                                    order_detail_obj = od_principal
+                                    order_total += od_principal.multiply()
+                                if sold_quantity_units > 0:
                                     product_detail_sale = ProductDetail.objects.filter(product=product_obj, unit=unit_und_obj).first()
                                     if product_detail_sale:
                                         price_sale = product_detail_sale.price_sale
                                     else:
-                                        product_detail_sale = ProductDetail.objects.filter(product=product_obj, unit=unit_obj).first()
-                                        price_sale = (product_detail_sale.price_sale / unit_min_product) if product_detail_sale else price_purchase / unit_min_product
-                                else:
-                                    product_detail_sale = ProductDetail.objects.filter(product=product_obj, unit=unit_obj).first()
-                                    price_sale = product_detail_sale.price_sale if product_detail_sale else price_purchase
+                                        pd_principal = ProductDetail.objects.filter(product=product_obj, unit=unit_obj).first()
+                                        price_sale = (pd_principal.price_sale / unit_min_product) if pd_principal else price_purchase / unit_min_product
+                                    od_units = OrderDetail.objects.create(
+                                        order=order_obj,
+                                        product=product_obj,
+                                        quantity_sold=sold_quantity_units,
+                                        unit=unit_und_obj,
+                                        price_unit=price_sale,
+                                        status='P',
+                                        product_store=product_store_obj,
+                                        commentary=f'Venta desde almacén - Lote: {batch_number}'
+                                    )
+                                    if order_detail_obj is None:
+                                        order_detail_obj = od_units
+                                    order_total += od_units.multiply()
 
-                                order_detail_obj = OrderDetail.objects.create(
-                                    order=order_obj,
-                                    product=product_obj,
-                                    quantity_sold=qty_sold_billdetail,
-                                    unit=unit_sold_billdetail,
-                                    price_unit=price_sale,
-                                    status='P',
-                                    product_store=product_store_obj,
-                                    commentary=f'Venta desde almacén - Lote: {batch_number}'
-                                )
-
-                                # Actualizar total del order
-                                order_obj.total = order_detail_obj.multiply()
+                                order_obj.total = order_total
                                 order_obj.save()
 
                                 # Registrar salida en kardex DESPUÉS de crear OrderDetail
@@ -4921,7 +4975,7 @@ def save_detail_to_warehouse(request):
                                     batch_obj=current_batch
                                 )
 
-                                # Crear BillDetailBatch para venta
+                                # Crear BillDetailBatch para venta (vinculado al primer BillDetail de venta)
                                 BillDetailBatch.objects.create(
                                     batch_number=batch_number,
                                     batch_expiration_date=batch_expiration,
@@ -5010,8 +5064,7 @@ def get_details_by_bill(request):
         bill_obj = Bill.objects.get(pk=int(bill_id))
         details_bill = BillDetail.objects.filter(bill=bill_obj)
 
-        # Pre-calcular cantidades por producto y unidad para optimizar
-        quantities_cache = {}
+        # Pre-calcular unidad de referencia por producto
         unit_reference_cache = {}
         
         # Primero, determinar la unidad de referencia para cada producto
@@ -5031,73 +5084,26 @@ def get_details_by_bill(request):
                 
                 unit_reference_cache[cache_key_product] = unit_reference
         
-        # Calcular cantidades para cada producto único
-        products_processed = set()
-        for d in details_bill:
-            unit_reference = unit_reference_cache.get(f"{d.product.id}", d.unit)
-            cache_key = f"{d.product.id}_{unit_reference.id}"
-            
-            if cache_key not in products_processed:
-                products_processed.add(cache_key)
-                
-                # Obtener quantity_minimum para la conversión a UND
-                quantity_minimum = decimal.Decimal('1')
-                try:
-                    product_detail = ProductDetail.objects.get(
-                        product=d.product, 
-                        unit=unit_reference
-                    )
-                    quantity_minimum = product_detail.quantity_minimum
-                except ProductDetail.DoesNotExist:
-                    quantity_minimum = decimal.Decimal('1')
-                
-                # Calcular cantidades totales por estado para este producto y unidad
-                quantity_entered = BillDetail.objects.filter(
-                    bill=bill_obj,
-                    product=d.product,
-                    unit=unit_reference,
-                    status_quantity='I'
-                ).aggregate(total=Sum('quantity'))['total'] or decimal.Decimal('0')
-                
-                quantity_returned = BillDetail.objects.filter(
-                    bill=bill_obj,
-                    product=d.product,
-                    unit=unit_reference,
-                    status_quantity='D'
-                ).aggregate(total=Sum('quantity'))['total'] or decimal.Decimal('0')
-                
-                quantity_sold = BillDetail.objects.filter(
-                    bill=bill_obj,
-                    product=d.product,
-                    unit=unit_reference,
-                    status_quantity='V'
-                ).aggregate(total=Sum('quantity'))['total'] or decimal.Decimal('0')
-                
-                # Calcular equivalencias en UND
-                quantity_entered_und = quantity_entered * quantity_minimum
-                quantity_returned_und = quantity_returned * quantity_minimum
-                quantity_sold_und = quantity_sold * quantity_minimum
-                
-                quantities_cache[cache_key] = {
-                    'quantity_entered': quantity_entered,
-                    'quantity_returned': quantity_returned,
-                    'quantity_sold': quantity_sold,
-                    'quantity_entered_und': quantity_entered_und,
-                    'quantity_returned_und': quantity_returned_und,
-                    'quantity_sold_und': quantity_sold_und,
-                    'unit_reference': unit_reference.description,
-                }
+        # Agrupar BillDetails por (producto, status_quantity) para mostrar una fila por grupo
+        from itertools import groupby
+        from operator import attrgetter
+
+        def get_group_key(bd):
+            return (bd.product_id, bd.status_quantity)
+
+        details_bill_sorted = sorted(details_bill, key=get_group_key)
+        grouped_details = {}
+        for key, group in groupby(details_bill_sorted, key=get_group_key):
+            grouped_details[key] = list(group)
 
         details_dict = []
-        for d in details_bill:
+        for (product_id, status_quantity), group_details in grouped_details.items():
+            d = group_details[0]  # Primer detalle del grupo para datos base
 
             store = ''
             credit_number = ''
             bill_applied = 'Sin Aplicar'
 
-            # if d.order:
-            #     order_number = d.order.id
-            #     order_number_bill = d.order.serial + '-' + d.order.correlative
             if d.kardex_set.all():
                 store = d.kardex_set.last().product_store.subsidiary_store.name
 
@@ -5108,27 +5114,70 @@ def get_details_by_bill(request):
                 if credit_note_obj.bill is not None:
                     bill_applied = credit_note_obj.bill
 
-            # Usar quantity y unit tal como se guardó en BillDetail (lo que ingresó el usuario)
-            quantity_minimum = decimal.Decimal('1')
-            try:
-                product_detail = ProductDetail.objects.get(
-                    product=d.product,
-                    unit=d.unit
-                )
-                quantity_minimum = product_detail.quantity_minimum
-            except ProductDetail.DoesNotExist:
-                quantity_minimum = decimal.Decimal('1')
+            # Construir quantity_display combinado: "37 CJ + 45 UND" cuando hay múltiples unidades
+            quantity_parts = []
+            quantity_und_display = decimal.Decimal('0')
+            unit_reference = unit_reference_cache.get(f"{d.product.id}", d.unit)
+            for bd in group_details:
+                qty_min = decimal.Decimal('1')
+                try:
+                    pd = ProductDetail.objects.get(product=bd.product, unit=bd.unit)
+                    qty_min = pd.quantity_minimum
+                except ProductDetail.DoesNotExist:
+                    pass
+                qty_und = bd.quantity * qty_min
+                quantity_und_display += qty_und
+                quantity_parts.append(f"{round(bd.quantity, 2)} {bd.unit.description}")
+            quantity_display = " + ".join(quantity_parts) if len(quantity_parts) > 1 else quantity_parts[0] if quantity_parts else "0"
+            show_conversion_und = (unit_reference.name != 'UND') and quantity_und_display > 0
 
-            quantity_display = d.quantity
-            quantity_und_display = d.quantity * quantity_minimum
-            # Mostrar conversión a UND solo cuando la unidad no es UND (ej. cajas)
-            show_conversion_und = (d.unit.name != 'UND')
+            # Recolectar details_batch de todos los detalles del grupo (evitar duplicados por batch_number)
+            details_batch_seen = set()
+            all_details_batch = []
+            for bd in group_details:
+                for b in bd.billdetailbatch_set.all():
+                    if b.batch_number not in details_batch_seen:
+                        details_batch_seen.add(b.batch_number)
+                        order_number = ''
+                        order_number_bill = ''
+                        if b.order:
+                            order_number = b.order.id
+                            if b.order.serial is not None:
+                                order_number_bill = b.order.serial + '-' + b.order.correlative
+                        batch_qty_min = decimal.Decimal('1')
+                        try:
+                            bpd = ProductDetail.objects.get(product=b.product, unit=b.unit)
+                            batch_qty_min = bpd.quantity_minimum
+                        except ProductDetail.DoesNotExist:
+                            pass
+                        batch_quantity_und = b.quantity * batch_qty_min
+                        all_details_batch.append({
+                            'id': b.id,
+                            'batch_number': b.batch_number,
+                            'batch_expiration': b.batch_expiration_date,
+                            'batch_quantity': b.quantity,
+                            'batch_unit': b.unit.description,
+                            'batch_quantity_und': batch_quantity_und,
+                            'order_number': order_number,
+                            'order_number_bill': order_number_bill,
+                        })
+
+            rowspan = max(1, len(all_details_batch))
+
+            # Para status C y display: quantity en unidad de referencia
+            unit_min_ref = decimal.Decimal('1')
+            try:
+                pd_ref = ProductDetail.objects.get(product=d.product, unit=unit_reference)
+                unit_min_ref = pd_ref.quantity_minimum
+            except ProductDetail.DoesNotExist:
+                pass
+            quantity_in_ref_unit = quantity_und_display / unit_min_ref if unit_reference.name != 'UND' else quantity_und_display
 
             item = {
                 'id': d.id,
                 'product': d.product.name,
-                'quantity': d.quantity,
-                'unit': d.unit.description,
+                'quantity': quantity_in_ref_unit,
+                'unit': unit_reference.description,
                 'price_unit': d.price_unit,
                 'status_quantity': d.status_quantity,
                 'status_display': d.get_status_quantity_display(),
@@ -5137,51 +5186,33 @@ def get_details_by_bill(request):
                 'batch_expiration': '',
                 'credit_note': credit_number,
                 'bill_applied': bill_applied,
-                'rowspan': d.billdetailbatch_set.count(),
-                'details_batch': [],
-                'quantity_display': str(round(quantity_display, 2)),
+                'rowspan': rowspan,
+                'details_batch': all_details_batch,
+                'quantity_display': quantity_display,
                 'quantity_und_display': quantity_und_display,
-                'unit_reference': d.unit.description,
+                'unit_reference': unit_reference.description,
                 'show_conversion_und': show_conversion_und,
             }
-            for b in d.billdetailbatch_set.all():
-                order_number = ''
-                order_number_bill = ''
-                if b.order:
-                    order_number = b.order.id
-                    if b.order.serial is not None:
-                        order_number_bill = b.order.serial + '-' + b.order.correlative
-                
-                # Calcular equivalencia en UND para el batch
-                batch_quantity_minimum = decimal.Decimal('1')
-                try:
-                    batch_product_detail = ProductDetail.objects.get(
-                        product=b.product, 
-                        unit=b.unit
-                    )
-                    batch_quantity_minimum = batch_product_detail.quantity_minimum
-                except ProductDetail.DoesNotExist:
-                    batch_quantity_minimum = decimal.Decimal('1')
-                
-                batch_quantity_und = b.quantity * batch_quantity_minimum
-                
-                item_batch = {
-                    'id': b.id,
-                    'batch_number': b.batch_number,
-                    'batch_expiration': b.batch_expiration_date,
-                    'batch_quantity': b.quantity,
-                    'batch_unit': b.unit.description,
-                    'batch_quantity_und': batch_quantity_und,
-                    'order_number': order_number,
-                    'order_number_bill': order_number_bill,
-                }
-                item.get('details_batch').append(item_batch)
             details_dict.append(item)
-        # print(details_dict)
+
+        # Primer lote y vencimiento para el header (dato compartido)
+        first_batch_lote = ''
+        first_batch_venc = None
+        for item in details_dict:
+            for b in item.get('details_batch', []):
+                if b.get('batch_number'):
+                    first_batch_lote = b['batch_number']
+                    first_batch_venc = b.get('batch_expiration')
+                    break
+            if first_batch_lote:
+                break
+
         t = loader.get_template('sales/details_bill.html')
         c = ({
             'details_dict': details_dict,
             'bill_obj': bill_obj,
+            'first_batch_lote': first_batch_lote,
+            'first_batch_venc': first_batch_venc,
         })
         return JsonResponse({
             'grid': t.render(c, request),
@@ -6984,9 +7015,12 @@ def get_prices_by_price_type(request):
 
             price_type_obj = PriceType.objects.get(id=int(price_type_id))
 
-            # Obtener todos los productos habilitados
-            product_details = ProductDetail.objects.filter(is_enabled=True).select_related('product', 'unit').order_by(
-                'product__name', 'unit__name')
+            # Obtener todos los productos habilitados (distinct para evitar duplicados)
+            product_details = ProductDetail.objects.filter(
+                is_enabled=True
+            ).select_related('product', 'unit').order_by(
+                'product__name', 'unit__name'
+            ).distinct()
 
             # Obtener precios existentes para este tipo de precio
             existing_prices = ProductPrice.objects.filter(
@@ -6994,27 +7028,40 @@ def get_prices_by_price_type(request):
             ).select_related('product_detail__product', 'product_detail__unit')
 
             # Crear un diccionario de precios existentes por product_detail_id
-            prices_dict = {pp.product_detail.id: {
-                'id': pp.id,
-                'price': float(pp.price),
-                'is_enabled': pp.is_enabled
-            } for pp in existing_prices}
+            # Si hay múltiples precios para el mismo product_detail, se toma el primero
+            prices_dict = {}
+            for pp in existing_prices:
+                if pp.product_detail_id not in prices_dict:
+                    prices_dict[pp.product_detail_id] = {
+                        'id': pp.id,
+                        'price': float(pp.price),
+                        'is_enabled': pp.is_enabled
+                    }
 
-            # Construir la lista con todos los productos
-            products_list = []
+            # Agrupar por producto (product_id) con sus unidades
+            products_dict = {}
             for pd in product_details:
+                product_id = pd.product.id
                 price_info = prices_dict.get(pd.id, None)
-                products_list.append({
+                unit_data = {
                     'product_detail_id': pd.id,
-                    'product_id': pd.product.id,
-                    'product_name': pd.product.name,
                     'unit_id': pd.unit.id,
                     'unit_name': pd.unit.name,
+                    'unit_name_full': (pd.unit.description or pd.unit.name).strip() or pd.unit.name,
                     'price_id': price_info['id'] if price_info else None,
                     'price': price_info['price'] if price_info else 0.0,
                     'is_enabled': price_info['is_enabled'] if price_info else True,
                     'has_price': price_info is not None
-                })
+                }
+                if product_id not in products_dict:
+                    products_dict[product_id] = {
+                        'product_id': product_id,
+                        'product_name': pd.product.name,
+                        'units': []
+                    }
+                products_dict[product_id]['units'].append(unit_data)
+
+            products_list = list(products_dict.values())
 
             return JsonResponse({
                 'success': True,

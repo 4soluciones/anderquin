@@ -421,7 +421,11 @@
                 }
                 // En modo manual no se valida el número de pedido
             } else {
-                // Modo con órdenes de compra - validar número de pedido
+                // Modo con órdenes de compra - validar proveedor y número de pedido
+                if (!supplier_id.val() || supplier_id.val() === '') {
+                    toastr.warning('Debe seleccionar un proveedor', 'Error de Datos');
+                    return false;
+                }
                 if (bill_order_number.val() === '') {
                     toastr.warning('¡Ingresar el numero de pedido!', 'Error de Datos');
                     return false;
@@ -438,13 +442,13 @@
 
             // Obtener datos del proveedor
             let supplier_id_val = supplier_id.val();
-            let supplier_name_selected = $('#supplier_name option:selected');
+            let supplier_name_new = $('#supplier_name').is('select') ? $('#supplier_name option:selected').text() : $('#supplier_name').val();
             let isTemporarySupplier = supplier_id_val === '' || (supplier_id_val && supplier_id_val.startsWith('TEMP_'));
             
             let Bill = {
                 "supplier_id": isTemporarySupplier ? '' : supplier_id_val,
                 "supplier_ruc": $('#supplier_ruc_value').val() || '',
-                "supplier_name_new": supplier_name_selected.text() || '',
+                "supplier_name_new": supplier_name_new || '',
                 "supplier_address_new": $('#address').val() || '',
 
                 "purchase_id": purchases.val(),

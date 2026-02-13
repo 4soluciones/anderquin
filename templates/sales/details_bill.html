@@ -3,18 +3,27 @@
     <table class="table table-sm table-bordered mb-0 table-details roboto-condensed-regular" pk="{{ bill_obj.id }}" style="background: #fff; font-size: 0.8rem;">
         <thead>
         <tr class="text-center text-uppercase" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
-            <th class="py-2" style="width: 14%;">Estado</th>
-            <th class="py-2" style="width: 24%;">Producto</th>
-            <th class="py-2" style="width: 10%;">Lote</th>
-            <th class="py-2" style="width: 10%;">Venc. Lote</th>
-            <th class="py-2" style="width: 8%;">Cantidad</th>
-            <th class="py-2" style="width: 10%;">Unidad</th>
+            <th class="py-2" style="width: 18%;">Estado</th>
+            <th class="py-2" style="width: 32%;">Producto</th>
+            <th class="py-2" style="width: 20%;">Cantidad</th>
         </tr>
         </thead>
         <tbody>
         <tr class="almacen-header" style="background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);">
-            <td colspan="6" class="py-2 text-left font-weight-bold">
-                <i class="fas fa-warehouse mr-1 text-primary"></i>Almacén: {% if bill_obj.store_destiny %}{{ bill_obj.store_destiny.name }}{% else %}-{% endif %}
+            <td colspan="3" class="py-3 px-4">
+                <div class="d-flex flex-wrap align-items-center" style="font-size: 0.95rem; gap: 2rem;">
+                    <span class="font-weight-bold text-primary">
+                        <i class="fas fa-warehouse mr-1"></i>Almacén: {% if bill_obj.store_destiny %}{{ bill_obj.store_destiny.name }}{% else %}-{% endif %}
+                    </span>
+                    {% if first_batch_lote %}
+                    <span class="text-muted" style="opacity: 0.5;">|</span>
+                    <span class="pl-2"><i class="fas fa-barcode mr-1 text-secondary"></i><strong>Lote:</strong> {{ first_batch_lote|upper }}</span>
+                    {% endif %}
+                    {% if first_batch_venc %}
+                    <span class="text-muted" style="opacity: 0.5;">|</span>
+                    <span class="pl-2"><i class="far fa-calendar-alt mr-1 text-secondary"></i><strong>Venc.:</strong> {{ first_batch_venc|date:'d/m/Y' }}</span>
+                    {% endif %}
+                </div>
             </td>
         </tr>
         {% for dt in details_dict %}
@@ -29,10 +38,7 @@
                             <br><small class="text-muted">Nro Orden: {{ dt.order_number }}</small>
                         {% endif %}
                     </td>
-                    <td class="align-middle">{% if dt.status_quantity == 'I' and dt.batch_number %}{{ dt.batch_number|upper }}{% else %}-{% endif %}</td>
-                    <td class="align-middle">{% if dt.status_quantity == 'I' and dt.batch_number %}{{ dt.batch_expiration|date:'d/m/Y'}}{% else %}-{% endif %}</td>
-                    <td class="align-middle font-weight-bold">{{ dt.quantity|replace_round }}</td>
-                    <td class="align-middle">{{ dt.unit }}</td>
+                    <td class="align-middle font-weight-bold">{{ dt.quantity_display }}</td>
                 </tr>
             {% else %}
                 {% for b in dt.details_batch %}
@@ -66,8 +72,6 @@
                                 </div>
                             {% endif %}
                         </td>
-                        <td class="align-middle font-weight-bold">{{ b.batch_number|upper }}</td>
-                        <td class="align-middle">{% if b.batch_expiration %}{{ b.batch_expiration|date:'d/m/Y'}}{% else %}-{% endif %}</td>
                         <td class="align-middle font-weight-bold">
                             {% if dt.status_quantity == 'I' or dt.status_quantity == 'D' or dt.status_quantity == 'V' %}
                                 {% if forloop.first %}
@@ -76,18 +80,7 @@
                                     -
                                 {% endif %}
                             {% else %}
-                                {{ b.batch_quantity|replace_round }}
-                            {% endif %}
-                        </td>
-                        <td class="align-middle">
-                            {% if dt.status_quantity == 'I' or dt.status_quantity == 'D' or dt.status_quantity == 'V' %}
-                                {% if forloop.first %}
-                                    {{ dt.unit_reference }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            {% else %}
-                                {{ b.batch_unit }}
+                                {{ b.batch_quantity|replace_round }} {{ b.batch_unit }}
                             {% endif %}
                         </td>
                     </tr>
@@ -116,10 +109,7 @@
                                 </div>
                             {% endif %}
                         </td>
-                        <td class="align-middle">-</td>
-                        <td class="align-middle">-</td>
                         <td class="align-middle font-weight-bold">{{ dt.quantity_display }}</td>
-                        <td class="align-middle">{{ dt.unit_reference }}</td>
                     </tr>
                 {% endfor %}
             {% endif %}

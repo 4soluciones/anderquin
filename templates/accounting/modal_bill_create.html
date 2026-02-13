@@ -128,10 +128,14 @@
                                                 <div class="col-md-4">
                                                     <label class="small font-weight-bold text-muted text-uppercase mb-1">Proveedor</label>
                                                     <select class="form-control select2-modal" id="supplier_search_oc">
-                                                        <option value="{{ supplier_id }}" selected>{{ supplier_name }}</option>
-                                                        {% for supplier in suppliers_set %}
-                                                            {% if supplier.id != supplier_id %}
-                                                                <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                                                        {% if supplier_id %}
+                                                        <option value="{{ supplier_id }}" selected data-address="{{ supplier_address }}">{{ supplier_name }}</option>
+                                                        {% else %}
+                                                        <option value="" selected data-address="">Seleccionar Proveedor...</option>
+                                                        {% endif %}
+                                                        {% for s in suppliers_with_address %}
+                                                            {% if s.id != supplier_id %}
+                                                            <option value="{{ s.id }}" data-address="{{ s.address|default:'' }}">{{ s.name }}</option>
                                                             {% endif %}
                                                         {% endfor %}
                                                     </select>
@@ -223,7 +227,7 @@
                                                 <i class="fas fa-map-marker-alt"></i>
                                             </span>
                                         </div>
-                                        <input type="text" class="form-control"
+                                        <input type="text" class="form-control" autocomplete="off"
                                                id="bill_delivery_address" name="bill_delivery_address"
                                                value="{{ first_address }}">
                                     </div>
@@ -670,6 +674,26 @@
                 });
             }
         });
+
+        // Asegurar navegación con flechas y selección con Enter
+        $input.off('keydown.autocomplete-nav').on('keydown.autocomplete-nav', function(e) {
+            var keyCode = e.keyCode || e.which;
+            var widget = $(this).autocomplete('widget');
+            if (widget.length && widget.is(':visible')) {
+                if (keyCode === 13) { // Enter - seleccionar item activo
+                    var active = widget.find('.ui-state-active, .ui-menu-item-wrapper.ui-state-active');
+                    if (active.length) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        active.trigger('click');
+                        return false;
+                    }
+                }
+                if (keyCode === 38 || keyCode === 40) { // Flechas arriba/abajo - dejar que jQuery UI maneje
+                    return; // No prevenir, jQuery UI autocomplete las procesa
+                }
+            }
+        });
         
         // Agregar estilos personalizados al input de autocomplete
         $input.css({
@@ -880,6 +904,18 @@
     $('.select2-modal').select2({
         theme: 'bootstrap4',
         dropdownParent: $('#modal-bill-create')
+    });
+
+    // Actualizar razón social y dirección al seleccionar/cambiar proveedor
+    $(document).off('change', '#supplier_search_oc').on('change', '#supplier_search_oc', function() {
+        let selectedOption = $(this).find('option:selected');
+        let supplierId = selectedOption.val();
+        let supplierName = selectedOption.text();
+        let supplierAddress = selectedOption.data('address') || '';
+
+        $('#supplier_id').val(supplierId || '');
+        $('#supplier_name').val(supplierName || '');
+        $('#address').val(supplierAddress || '');
     });
 
     // Búsqueda de OC en el modal

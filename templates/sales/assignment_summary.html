@@ -7,45 +7,46 @@
     <div class="card-body">
         <!-- Información General -->
         <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="info-box">
+            <div class="col-md-2">
+                <div class="info-box info-box-compact">
                     <label class="small font-weight-bold text-uppercase text-muted mb-1">Factura</label>
-                    <p class="mb-0 font-weight-bold">{{ bill_obj }}</p>
+                    <p class="mb-0 font-weight-bold" style="font-size: 0.9rem;">{{ bill_obj }}</p>
                 </div>
             </div>
-                    <div class="col-md-3">
-                        <div class="info-box">
-                            <label class="small font-weight-bold text-uppercase text-muted mb-1">Fecha de Ingreso</label>
-                            <p class="mb-0 font-weight-bold">{{ assign_date }}</p>
-                        </div>
-                    </div>
-            <div class="col-md-3">
-                <div class="info-box">
+            <div class="col-md-2">
+                <div class="info-box info-box-compact">
+                    <label class="small font-weight-bold text-uppercase text-muted mb-1">Fecha Ingreso</label>
+                    <p class="mb-0 font-weight-bold" style="font-size: 0.9rem;">{{ assign_date }}</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-box info-box-large">
                     <label class="small font-weight-bold text-uppercase text-muted mb-1">Almacén</label>
-                    <p class="mb-0 font-weight-bold">{{ subsidiary_name }} - {{ store_name }}</p>
+                    <p class="mb-0 font-weight-bold" style="font-size: 1.05rem;">{{ subsidiary_name }} - {{ store_name }}</p>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="info-box">
-                    <label class="small font-weight-bold text-uppercase text-muted mb-1">Nº de Guía</label>
-                    <p class="mb-0 font-weight-bold">{{ guide_number|default:"-" }}</p>
+            <div class="col-md-2">
+                <div class="info-box info-box-compact">
+                    <label class="small font-weight-bold text-uppercase text-muted mb-1">Nº Guía</label>
+                    <p class="mb-0 font-weight-bold" style="font-size: 0.9rem;">{{ guide_number|default:"-" }}</p>
                 </div>
             </div>
         </div>
 
         <!-- Tabla de Productos y Lotes -->
         <div class="table-responsive">
-            <table class="table table-bordered table-hover mb-0">
+            <table class="table table-bordered table-hover mb-0 table-summary-lg">
                 <thead class="thead-light">
                     <tr>
-                        <th class="text-center" style="width: 5%;">#</th>
-                        <th style="width: 25%;">Producto</th>
-                        <th class="text-center" style="width: 12%;">Nº Lote</th>
-                        <th class="text-center" style="width: 12%;">Vencimiento</th>
-                        <th class="text-center" style="width: 12%; background: #d4edda;">Ingresada</th>
-                        <th class="text-center" style="width: 12%; background: #fff3cd;">Devuelta</th>
-                        <th class="text-center" style="width: 12%; background: #cce5ff;">Vendida</th>
-                        <th class="text-center" style="width: 10%;">ID Orden</th>
+                        <th class="text-center py-2" style="width: 4%;">#</th>
+                        <th class="py-2" style="width: 22%;">Producto</th>
+                        <th class="text-center py-2" style="width: 12%;">Cant. Comprada</th>
+                        <th class="text-center py-2" style="width: 10%;">Nº Lote</th>
+                        <th class="text-center py-2" style="width: 10%;">Vencimiento</th>
+                        <th class="text-center py-2" style="width: 11%; background: #d4edda;">Ingresada</th>
+                        <th class="text-center py-2" style="width: 11%; background: #fff3cd;">Devuelta</th>
+                        <th class="text-center py-2" style="width: 11%; background: #cce5ff;">Vendida</th>
+                        <th class="text-center py-2" style="width: 9%;">ID Orden</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -58,6 +59,9 @@
                             </td>
                             <td class="align-middle font-weight-bold" rowspan="{{ product.batches|length }}">
                                 {{ product.product_name }}
+                            </td>
+                            <td class="text-center align-middle font-weight-bold" rowspan="{{ product.batches|length }}" style="font-size: 1rem;">
+                                {{ product.quantity_purchased|default:"-" }}
                             </td>
                             {% endif %}
                             <td class="text-center align-middle">
@@ -98,7 +102,7 @@
                         {% endfor %}
                     {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center text-muted">No hay productos registrados</td>
+                            <td colspan="9" class="text-center text-muted py-3">No hay productos registrados</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -179,11 +183,30 @@
         border-radius: 5px;
         border-left: 3px solid #1e3a5f;
     }
+    .info-box-compact {
+        padding: 8px 10px;
+    }
+    .info-box-compact label {
+        font-size: 0.7rem;
+    }
+    .info-box-large {
+        padding: 12px 14px;
+    }
+    .info-box-large p {
+        font-size: 1.05rem;
+    }
     .info-box label {
         font-size: 0.75rem;
     }
     .info-box p {
         font-size: 0.95rem;
+    }
+    .table-summary-lg {
+        font-size: 0.95rem;
+    }
+    .table-summary-lg td, .table-summary-lg th {
+        padding: 0.6rem 0.5rem;
+        vertical-align: middle !important;
     }
 </style>
 

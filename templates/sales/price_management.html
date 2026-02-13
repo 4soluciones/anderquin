@@ -119,26 +119,21 @@
                         </div>
 
                         <div id="products-price-container" style="display: none;">
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle mr-2"></i>
-                                <strong id="selected-price-type-name"></strong> - Configure los precios para cada producto. 
-                                Los productos sin precio (0) no se guardarán.
+                            <div class="alert alert-light border mb-3 shadow-sm">
+                                <i class="fas fa-info-circle text-primary mr-2"></i>
+                                <strong id="selected-price-type-name"></strong> — Haga clic en un producto para expandir y configurar los precios por unidad.
                             </div>
-                            <div class="table-responsive">
-                                <table class="table table-hover table-bordered" id="products-price-table">
-                                    <thead class="thead-light">
-                                        <tr>
-                                            <th width="5%">#</th>
-                                            <th width="40%">Producto</th>
-                                            <th width="15%">Unidad</th>
-                                            <th width="20%">Precio (S/)</th>
-                                            <th width="20%">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="products-price-tbody">
-                                        <!-- Se llenará dinámicamente -->
-                                    </tbody>
-                                </table>
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control" id="product-search-input" 
+                                           placeholder="Buscar producto..." autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="products-price-list" id="products-price-list">
+                                <!-- Se llenará dinámicamente -->
                             </div>
                         </div>
 
@@ -239,6 +234,141 @@
             padding: 0.25rem 0.5rem;
             font-size: 0.875rem;
         }
+
+        /* Estilos para lista de productos expandible */
+        .product-price-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            background: #fff;
+        }
+        .product-price-card:hover {
+            border-color: #cbd5e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .product-price-card.expanded {
+            border-color: #007bff;
+            box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+        }
+        .product-price-header {
+            padding: 0.9rem 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+            user-select: none;
+        }
+        .product-price-header:hover {
+            background: #f8fafc;
+        }
+        .product-price-header .product-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95rem;
+        }
+        .product-price-header .product-name {
+            flex: 1;
+        }
+        .product-price-header .expand-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            margin-left: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        .product-price-card.expanded .expand-icon {
+            background: #007bff;
+            color: white;
+            transform: rotate(180deg);
+        }
+        .product-price-header .units-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            background: #e2e8f0;
+            color: #475569;
+            margin-right: 0.75rem;
+        }
+        .product-price-body {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 1.2rem;
+            border-top: 1px solid transparent;
+            background: #fafbfc;
+            transition: max-height 0.35s ease, padding 0.3s ease, border-color 0.2s;
+        }
+        .product-price-card.expanded .product-price-body {
+            max-height: 800px;
+            padding: 0 1.2rem 1rem;
+            border-top-color: #f1f5f9;
+        }
+        .units-table-wrapper {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+        .units-table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .units-table thead th {
+            background: #f8fafc;
+            padding: 0.65rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+        .units-table tbody td {
+            padding: 0.6rem 1rem;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .units-table tbody td:first-child {
+            text-align: center;
+        }
+        .units-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.15s;
+        }
+        .units-table tbody tr:last-child {
+            border-bottom: none;
+        }
+        .units-table tbody tr:hover {
+            background: #f8fafc;
+        }
+        .unit-badge {
+            display: inline-block;
+            padding: 0.4rem 0.85rem;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #475569;
+        }
+        .price-input-group {
+            max-width: 150px;
+            margin: 0 auto;
+        }
+        .price-input-group .input-group-text {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            color: #64748b;
+            font-weight: 500;
+        }
     </style>
 
     <script type="text/javascript">
@@ -324,6 +454,9 @@
             });
         }
 
+        // Variable para cancelar peticiones AJAX pendientes y evitar duplicados
+        let loadProductsAjaxRequest = null;
+
         function loadProductsByPriceType() {
             let priceTypeId = $('#select-price-type').val();
             
@@ -333,78 +466,105 @@
                 return;
             }
 
+            // Cancelar petición anterior si existe (evita duplicados por múltiples onchange)
+            if (loadProductsAjaxRequest) {
+                loadProductsAjaxRequest.abort();
+            }
+
             // Mostrar loading
-            $('#products-price-tbody').html('<tr><td colspan="5" class="text-center"><i class="fas fa-spinner fa-spin"></i> Cargando productos...</td></tr>');
+            $('#products-price-list').html('<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-2x text-primary"></i><p class="mt-2 text-muted">Cargando productos...</p></div>');
             $('#products-price-container').show();
             $('#no-price-type-selected').hide();
 
-            $.ajax({
+            loadProductsAjaxRequest = $.ajax({
                 url: '{% url "sales:get_prices_by_price_type" %}',
                 type: 'GET',
                 data: { 'price_type_id': priceTypeId },
                 success: function(response) {
                     if (response.success) {
                         $('#selected-price-type-name').text(response.price_type);
-                        let tbody = $('#products-price-tbody');
-                        tbody.empty();
+                        $('#product-search-input').val('');
+                        let container = $('#products-price-list');
+                        container.empty();
                         
                         if (response.products.length === 0) {
-                            tbody.html('<tr><td colspan="5" class="text-center py-4"><i class="fas fa-inbox fa-2x text-muted mb-2"></i><p class="text-muted">No hay productos disponibles</p></td></tr>');
+                            container.html('<div class="text-center py-5"><i class="fas fa-inbox fa-3x text-muted mb-3"></i><p class="text-muted">No hay productos disponibles</p></div>');
                         } else {
                             response.products.forEach(function(product, index) {
-                                let priceValue = product.price > 0 ? product.price : '';
-                                let priceId = product.price_id || '';
-                                let row = `
-                                    <tr data-product-detail-id="${product.product_detail_id}" data-price-id="${priceId || ''}">
-                                        <td>${index + 1}</td>
-                                        <td><strong>${product.product_name}</strong></td>
-                                        <td><span class="badge badge-secondary">${product.unit_name}</span></td>
-                                        <td>
-                                            <div class="input-group input-group-sm">
-                                                <div class="input-group-prepend">
-                                                    <span class="input-group-text">S/</span>
+                                let unitsRows = (product.units || []).length === 0 ? 
+                                    '<tr><td colspan="3" class="text-center text-muted py-3">Sin unidades configuradas</td></tr>' :
+                                    product.units.map(function(unit) {
+                                    let priceValue = unit.price > 0 ? unit.price : '';
+                                    let priceId = unit.price_id || '';
+                                    return `
+                                        <tr data-product-detail-id="${unit.product_detail_id}" data-price-id="${priceId || ''}">
+                                            <td><span class="unit-badge">${unit.unit_name_full || unit.unit_name}</span></td>
+                                            <td>
+                                                <div class="input-group input-group-sm price-input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">S/</span>
+                                                    </div>
+                                                    <input type="number" class="form-control price-input" step="0.01" min="0" 
+                                                           value="${priceValue}" data-product-detail-id="${unit.product_detail_id}" 
+                                                           data-price-id="${priceId}" placeholder="0.00">
                                                 </div>
-                                                <input type="number" 
-                                                       class="form-control price-input" 
-                                                       step="0.01" 
-                                                       min="0" 
-                                                       value="${priceValue}"
-                                                       data-product-detail-id="${product.product_detail_id}"
-                                                       data-price-id="${priceId}"
-                                                       placeholder="0.00">
+                                            </td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-success save-price-btn" 
+                                                        onclick="saveProductPrice(${priceTypeId}, ${unit.product_detail_id}, this)" title="Guardar">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                ${priceId ? `<button type="button" class="btn btn-sm btn-outline-danger delete-price-btn ml-1" 
+                                                        onclick="deleteProductPrice(${priceId})" title="Eliminar"><i class="fas fa-times"></i></button>` : ''}
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('');
+                                let card = $(`
+                                    <div class="product-price-card" data-index="${index}">
+                                        <div class="product-price-header">
+                                            <span class="product-name">${product.product_name}</span>
+                                            <span class="units-badge">${(product.units || []).length} unidad${(product.units || []).length !== 1 ? 'es' : ''}</span>
+                                            <span class="expand-icon"><i class="fas fa-chevron-down"></i></span>
+                                        </div>
+                                        <div class="product-price-body">
+                                            <div class="units-table-wrapper">
+                                                <table class="units-table table table-sm mb-0">
+                                                    <thead><tr><th>Unidad</th><th>Precio (S/)</th><th>Acciones</th></tr></thead>
+                                                    <tbody>${unitsRows}</tbody>
+                                                </table>
                                             </div>
-                                        </td>
-                                        <td>
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-success save-price-btn" 
-                                                    onclick="saveProductPrice(${priceTypeId}, ${product.product_detail_id}, this)"
-                                                    title="Guardar">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            ${priceId ? `
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-danger delete-price-btn" 
-                                                    onclick="deleteProductPrice(${priceId})"
-                                                    title="Eliminar">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                            ` : ''}
-                                        </td>
-                                    </tr>
-                                `;
-                                tbody.append(row);
+                                        </div>
+                                    </div>
+                                `);
+                                card.find('.product-price-header').on('click', function() {
+                                    card.toggleClass('expanded');
+                                });
+                                container.append(card);
+                            });
+                            $('#product-search-input').off('input').on('input', function() {
+                                let q = $(this).val().toLowerCase().trim();
+                                $('.product-price-card').each(function() {
+                                    let name = $(this).find('.product-name').text().toLowerCase();
+                                    $(this).toggle(q === '' || name.indexOf(q) >= 0);
+                                });
                             });
                         }
                     } else {
                         toastr.error(response.message, '¡Error!');
                     }
                 },
-                error: function(xhr) {
-                    let errorMsg = 'Error al cargar productos';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMsg = xhr.responseJSON.message;
+                error: function(xhr, status) {
+                    if (status !== 'abort') {
+                        let errorMsg = 'Error al cargar productos';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        toastr.error(errorMsg, '¡Error!');
                     }
-                    toastr.error(errorMsg, '¡Error!');
+                },
+                complete: function() {
+                    loadProductsAjaxRequest = null;
                 }
             });
         }
@@ -447,18 +607,11 @@
                         if (response.product_price_id) {
                             input.data('price-id', response.product_price_id);
                             row.attr('data-price-id', response.product_price_id);
-                            
-                            // Agregar botón de eliminar si no existe
                             if (!row.find('.delete-price-btn').length) {
-                                let deleteBtn = $(`<button type="button" 
-                                                        class="btn btn-sm btn-danger delete-price-btn ml-1" 
-                                                        onclick="deleteProductPrice(${response.product_price_id})"
-                                                        title="Eliminar">
-                                                    <i class="fas fa-times"></i>
-                                                </button>`);
+                                let deleteBtn = $(`<button type="button" class="btn btn-sm btn-outline-danger delete-price-btn ml-1" 
+                                    onclick="deleteProductPrice(${response.product_price_id})" title="Eliminar"><i class="fas fa-times"></i></button>`);
                                 $(btnElement).after(deleteBtn);
                             } else {
-                                // Actualizar el onclick del botón de eliminar existente
                                 row.find('.delete-price-btn').attr('onclick', `deleteProductPrice(${response.product_price_id})`);
                             }
                         }
