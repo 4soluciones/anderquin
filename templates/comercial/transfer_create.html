@@ -1,0 +1,435 @@
+{% extends 'home.html' %}
+{% load static %}
+{% block title %}Registrar salida - Transferencia{% endblock title %}
+
+{% block body %}
+<div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+    <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+        <div class="card-header py-3" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h3 class="text-white mb-0 font-weight-bold">
+                        <i class="fas fa-truck-loading mr-2"></i> REGISTRAR SALIDA DE ALMACÉN
+                    </h3>
+                </div>
+                <div class="col-md-3 text-center d-flex align-items-center justify-content-center">
+                    <div class="d-flex align-items-baseline flex-nowrap">
+                        <span class="text-white-50 small text-uppercase mr-2">Serie</span>
+                        <span class="text-white font-weight-bold mr-3" style="font-size: 1.05rem;">{{ next_serial|default:"TRA" }}</span>
+                        <span class="text-white-50 small text-uppercase mr-2">Correlativo</span>
+                        <span class="text-white font-weight-bold" style="font-size: 1.05rem;">{{ next_correlative|default:"00001" }}</span>
+                    </div>
+                </div>
+                <div class="col-md-3 text-right">
+                    <a href="{% url 'comercial:transfer_list' %}" class="btn btn-outline-light btn-sm border-2 rounded-pill">
+                        <i class="fas fa-list"></i> Volver al listado
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body border-bottom py-3" style="background-color: #f0f8fc;">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="small font-weight-bold text-uppercase text-muted">Almacén origen</label>
+                    <select id="id_origin_store" class="form-control form-control-sm border rounded" style="border-color: #bbdefb !important;">
+                        <option value="">Seleccione...</option>
+                        {% for s in stores %}
+                        <option value="{{ s.id }}" {% if default_origin_store_id and s.id == default_origin_store_id %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Almacén donde está registrado el usuario</small>
+                </div>
+                <div class="col-md-3">
+                    <label class="small font-weight-bold text-uppercase text-muted">Almacén destino</label>
+                    <select id="id_destination_store" class="form-control form-control-sm border rounded" style="border-color: #bbdefb !important;">
+                        <option value="">Seleccione...</option>
+                        {% for s in stores_destination %}
+                        <option value="{{ s.id }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Resto de almacenes (sin el actual)</small>
+                </div>
+                <div class="col-md-3">
+                    <label class="small font-weight-bold text-uppercase text-muted">Motivo</label>
+                    <select id="id_guide_motive" class="form-control form-control-sm border rounded" style="border-color: #bbdefb !important;">
+                        <option value="">Seleccione...</option>
+                        {% for m in motives %}
+                        <option value="{{ m.id }}">{{ m.description }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="small font-weight-bold text-uppercase text-muted">Observaciones</label>
+                    <input type="text" id="id_observation" class="form-control form-control-sm border rounded" placeholder="Opcional" style="border-color: #bbdefb !important;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock en almacén destino -->
+        <div class="card-body border-bottom py-3" style="background-color: #e3f2fd;" id="panel-destination-stock-wrap">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="mb-0 font-weight-bold" style="color: #0d47a1;"><i class="fas fa-warehouse mr-1"></i> Stock en almacén destino</h6>
+                <span class="badge badge-light border px-2 py-1 small" id="destination-store-label" style="color: #1565c0; border-color: #90caf9 !important;">Seleccione almacén destino</span>
+            </div>
+            <div id="destination-stock-content" class="border rounded overflow-hidden" style="min-height: 80px; max-height: 220px; overflow-y: auto; background-color: #fff; border-color: #bbdefb !important;">
+                <p class="mb-0 text-muted small p-3" id="destination-stock-placeholder">Seleccione el almacén de destino para ver el stock actual.</p>
+                <div id="destination-stock-grid" class="d-none">
+                    <table class="table table-sm table-hover mb-0" id="destination-stock-table">
+                        <thead>
+                            <tr class="small font-weight-bold text-uppercase" style="background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%); color: #0d47a1;">
+                                <th class="border-0 py-2 pl-3">Producto</th>
+                                <th class="border-0 py-2 text-right pr-3">Código</th>
+                                <th class="border-0 py-2 text-center">Stock actual</th>
+                            </tr>
+                        </thead>
+                        <tbody id="destination-stock-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body border-bottom py-3" style="background-color: #f0f8fc;">
+            <h6 class="font-weight-bold text-primary mb-2"><i class="fas fa-plus-circle mr-1"></i> Agregar producto a la transferencia</h6>
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <label class="small font-weight-bold text-uppercase text-muted">Producto</label>
+                    <select id="id_product" class="form-control form-control-sm border rounded" style="border-color: #bbdefb !important;">
+                        <option value="">Seleccione almacén origen primero</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="small font-weight-bold text-uppercase text-muted">Lote</label>
+                    <select id="id_batch" class="form-control form-control-sm border rounded" style="border-color: #bbdefb !important;">
+                        <option value="">— Sin lote</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="small font-weight-bold text-uppercase text-muted">Unidad</label>
+                    <select id="id_unit" class="form-control form-control-sm border rounded" style="border-color: #bbdefb !important;">
+                        <option value="">—</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <label class="small font-weight-bold text-uppercase text-muted">Cantidad</label>
+                    <input type="number" id="id_quantity" class="form-control form-control-sm border rounded" min="0.01" step="0.01" placeholder="0" style="border-color: #bbdefb !important;">
+                </div>
+                <div class="col-md-1 text-center">
+                    <label class="small font-weight-bold text-uppercase text-muted d-block">&nbsp;</label>
+                    <span class="small text-muted" id="id_equiv_label">—</span>
+                </div>
+                <div class="col-md-1">
+                    <label class="small font-weight-bold text-uppercase text-muted">P. unit.</label>
+                    <input type="text" id="id_unit_price" class="form-control form-control-sm border rounded" readonly placeholder="0.00" style="border-color: #bbdefb !important;">
+                </div>
+                <div class="col-md-1">
+                    <label class="small font-weight-bold text-uppercase text-muted">Total</label>
+                    <input type="text" id="id_line_total" class="form-control form-control-sm border rounded font-weight-bold" readonly placeholder="0.00" style="border-color: #bbdefb !important;">
+                </div>
+                <div class="col-md-1">
+                    <button type="button" id="btn-add-line" class="btn btn-primary btn-sm w-100 rounded" style="background: #1565c0;">
+                        <i class="fas fa-plus"></i> Agregar
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0" style="background-color: #e3f2fd;">
+            <table class="table table-sm table-bordered mb-0" id="detail-table">
+                <thead>
+                    <tr class="text-center font-weight-bold small text-uppercase" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+                        <th class="border-0 py-2">#</th>
+                        <th class="border-0 py-2">Producto</th>
+                        <th class="border-0 py-2">Lote</th>
+                        <th class="border-0 py-2">Cantidad</th>
+                        <th class="border-0 py-2">P. unit.</th>
+                        <th class="border-0 py-2">Total</th>
+                        <th class="border-0 py-2"></th>
+                    </tr>
+                </thead>
+                <tbody id="detail-tbody"></tbody>
+                <tfoot>
+                    <tr style="background-color: #e3f2fd;">
+                        <td colspan="5" class="text-right font-weight-bold align-middle">TOTAL S/</td>
+                        <td class="text-right font-weight-bold align-middle" id="grand-total">0.00</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div class="p-3 text-right">
+                <button type="button" id="btn-save-transfer" class="btn btn-primary rounded-pill px-4" style="background: #1565c0;">
+                    <i class="fas fa-paper-plane"></i> Enviar transferencia
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .form-control:focus { box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25); border-color: #1e3a5f; }
+    #detail-table td, #detail-table th { border-color: #bbdefb !important; }
+    #destination-stock-table td, #destination-stock-table th { border-color: #e3f2fd !important; }
+    #destination-stock-table tbody tr:hover { background-color: #f0f8fc !important; }
+</style>
+{% endblock body %}
+
+{% block extrajs %}
+<script>
+(function() {
+    var csrf = '{{ csrf_token }}';
+    var productsData = [];
+    var destinationStockData = [];
+    var detailRows = [];
+    var baseUnitName = 'UND';
+
+    $('#id_origin_store').on('change', function() {
+        var storeId = $(this).val();
+        $('#id_product').html('<option value="">Cargando...</option>');
+        $('#id_batch').html('<option value="">— Sin lote</option>');
+        $('#id_unit').html('<option value="">—</option>');
+        if (!storeId) {
+            $('#id_product').html('<option value="">Seleccione almacén origen</option>');
+            return;
+        }
+        $.get('/comercial/get_products_batches_by_store/', { store_id: storeId }, function(res) {
+            productsData = res.products || [];
+            var opts = '<option value="">Seleccione producto...</option>';
+            productsData.forEach(function(p) {
+                opts += '<option value="' + p.product_id + '" data-product-store-id="' + p.product_store_id + '" data-price="' + p.price_unit + '">' + (p.product_code ? p.product_code + ' - ' : '') + p.product_name + ' (Stock orig: ' + p.stock + ')</option>';
+            });
+            $('#id_product').html(opts);
+        }).fail(function() {
+            $('#id_product').html('<option value="">Error al cargar</option>');
+        });
+    });
+
+    $('#id_destination_store').on('change', function() {
+        var storeId = $(this).val();
+        var storeName = $(this).find('option:selected').text();
+        $('#destination-store-label').text(storeName || 'Seleccione almacén destino');
+        $('#destination-stock-placeholder').removeClass('d-none');
+        $('#destination-stock-grid').addClass('d-none');
+        $('#destination-stock-tbody').empty();
+        if (!storeId) {
+            $('#destination-stock-placeholder').text('Seleccione el almacén de destino para ver el stock actual.');
+            return;
+        }
+        $('#destination-stock-placeholder').text('Cargando stock...');
+        $.get('/comercial/get_products_batches_by_store/', { store_id: storeId, include_zero_stock: '1' }, function(res) {
+            destinationStockData = res.products || [];
+            $('#destination-stock-placeholder').addClass('d-none');
+            if (destinationStockData.length === 0) {
+                $('#destination-stock-placeholder').removeClass('d-none').text('Este almacén no tiene productos registrados.');
+                return;
+            }
+            $('#destination-stock-grid').removeClass('d-none');
+            var tbody = $('#destination-stock-tbody');
+            destinationStockData.forEach(function(p) {
+                var stock = parseFloat(p.stock) || 0;
+                var stockClass = stock > 0 ? 'text-success font-weight-bold' : 'text-muted';
+                var code = (p.product_code || '—').toString();
+                tbody.append(
+                    '<tr class="small" style="border-color: #e3f2fd !important;">' +
+                    '<td class="align-middle pl-3">' + (p.product_name || '—') + '</td>' +
+                    '<td class="align-middle text-right">' + code + '</td>' +
+                    '<td class="align-middle text-center ' + stockClass + '">' + stock + '</td>' +
+                    '</tr>'
+                );
+            });
+        }).fail(function() {
+            $('#destination-stock-placeholder').removeClass('d-none').text('Error al cargar stock.');
+        });
+    });
+
+    // Cargar productos de origen si ya hay almacén seleccionado por defecto
+    if ($('#id_origin_store').val()) {
+        $('#id_origin_store').trigger('change');
+    }
+
+    $('#id_product').on('change', function() {
+        var pid = $(this).val();
+        var opt = $(this).find('option:selected');
+        var productStoreId = opt.data('product-store-id');
+        var price = opt.data('price') || '0';
+        $('#id_unit_price').val(parseFloat(price).toFixed(2));
+        var batches = [];
+        var units = [];
+        productsData.forEach(function(p) {
+            if (p.product_id == pid) {
+                batches = p.batches || [];
+                units = p.units || [];
+            }
+        });
+        var batchOpts = '<option value="">— Sin lote</option>';
+        batches.forEach(function(b) {
+            batchOpts += '<option value="' + b.id + '">' + (b.batch_number || b.id) + ' (Disp: ' + b.remaining_quantity + ')</option>';
+        });
+        $('#id_batch').html(batchOpts);
+        var unitOpts = '<option value="">Seleccione unidad...</option>';
+        units.forEach(function(u) {
+            var qm = u.quantity_minimum || '1';
+            unitOpts += '<option value="' + u.id + '" data-quantity-minimum="' + qm + '" data-unit-name="' + (u.name || '') + '">' + (u.name || '') + ' (1 = ' + qm + ' und)</option>';
+        });
+        $('#id_unit').html(unitOpts);
+        $('#id_quantity').val('');
+        updateEquivAndTotal();
+    });
+
+    $('#id_unit').on('change', function() { updateEquivAndTotal(); });
+    $('#id_quantity').on('input', function() { updateEquivAndTotal(); });
+
+    function getSelectedUnit() {
+        var opt = $('#id_unit option:selected');
+        if (!opt.length || !opt.val()) return null;
+        return {
+            id: opt.val(),
+            name: opt.data('unit-name') || opt.text().split(' ')[0] || 'UND',
+            quantity_minimum: parseFloat(opt.data('quantity-minimum')) || 1
+        };
+    }
+
+    function updateEquivAndTotal() {
+        var q = parseFloat($('#id_quantity').val()) || 0;
+        var u = getSelectedUnit();
+        var p = parseFloat($('#id_unit_price').val()) || 0;
+        if (!u) {
+            $('#id_equiv_label').text('—');
+            $('#id_line_total').val('0.00');
+            return;
+        }
+        var qBase = q * u.quantity_minimum;
+        if (u.quantity_minimum === 1) {
+            $('#id_equiv_label').text('');
+        } else {
+            $('#id_equiv_label').text('= ' + qBase + ' und');
+        }
+        $('#id_line_total').val((qBase * p).toFixed(2));
+    }
+
+    $('#btn-add-line').on('click', function() {
+        var originId = $('#id_origin_store').val();
+        var productId = $('#id_product').val();
+        var productName = $('#id_product option:selected').text().replace(/\s*\(Stock orig:.*\)$/, '');
+        var productStoreId = $('#id_product option:selected').data('product-store-id');
+        var batchId = $('#id_batch').val();
+        var batchText = $('#id_batch option:selected').text();
+        var u = getSelectedUnit();
+        var qtyEntered = parseFloat($('#id_quantity').val());
+        if (!u || !qtyEntered || qtyEntered <= 0) {
+            if (typeof toastr !== 'undefined') toastr.warning('Seleccione unidad y cantidad válida.');
+            return;
+        }
+        var qtyBase = qtyEntered * u.quantity_minimum;
+        var unitPrice = parseFloat($('#id_unit_price').val()) || 0;
+        var total = qtyBase * unitPrice;
+        var quantityDisplay = u.quantity_minimum === 1 ? (qtyBase + ' ' + u.name) : (qtyEntered + ' ' + u.name + ' (' + qtyBase + ' und)');
+        if (!originId || !productId || !productStoreId) {
+            if (typeof toastr !== 'undefined') toastr.warning('Complete almacén origen y producto.');
+            return;
+        }
+        detailRows.push({
+            product_id: productId,
+            product_store_id: productStoreId,
+            unit_id: u.id,
+            unit_name: u.name,
+            batch_id: batchId || '',
+            quantity: qtyBase,
+            quantity_display: quantityDisplay,
+            unit_price: unitPrice,
+            total: total,
+            product_name: productName,
+            batch_text: batchText
+        });
+        renderDetailRows();
+        $('#id_quantity').val('');
+        updateEquivAndTotal();
+    });
+
+    function renderDetailRows() {
+        var tbody = $('#detail-tbody');
+        tbody.empty();
+        var grand = 0;
+        detailRows.forEach(function(r, i) {
+            grand += r.total;
+            tbody.append(
+                '<tr data-index="' + i + '">' +
+                '<td class="align-middle">' + (i + 1) + '</td>' +
+                '<td class="align-middle">' + r.product_name + '</td>' +
+                '<td class="align-middle small">' + (r.batch_text || '—').split(' (')[0] + '</td>' +
+                '<td class="align-middle small">' + r.quantity_display + '</td>' +
+                '<td class="align-middle text-right">' + r.unit_price.toFixed(2) + '</td>' +
+                '<td class="align-middle text-right font-weight-bold">' + r.total.toFixed(2) + '</td>' +
+                '<td class="align-middle text-center"><button type="button" class="btn btn-outline-danger btn-sm remove-line"><i class="fas fa-trash"></i></button></td>' +
+                '</tr>'
+            );
+        });
+        $('#grand-total').text(grand.toFixed(2));
+    }
+
+    $(document).on('click', '.remove-line', function() {
+        var idx = $(this).closest('tr').data('index');
+        detailRows.splice(idx, 1);
+        renderDetailRows();
+    });
+
+    $('#btn-save-transfer').on('click', function() {
+        var originId = $('#id_origin_store').val();
+        var destId = $('#id_destination_store').val();
+        var motiveId = $('#id_guide_motive').val();
+        var observation = $('#id_observation').val();
+        if (!originId || !destId) {
+            if (typeof toastr !== 'undefined') toastr.warning('Seleccione almacén origen y destino.');
+            return;
+        }
+        if (parseInt(originId) === parseInt(destId)) {
+            if (typeof toastr !== 'undefined') toastr.warning('Origen y destino deben ser distintos.');
+            return;
+        }
+        if (!motiveId) {
+            if (typeof toastr !== 'undefined') toastr.warning('Seleccione motivo.');
+            return;
+        }
+        if (detailRows.length === 0) {
+            if (typeof toastr !== 'undefined') toastr.warning('Agregue al menos un producto.');
+            return;
+        }
+        var details = detailRows.map(function(r) {
+            return {
+                product_id: r.product_id,
+                product_store_id: r.product_store_id,
+                unit_id: r.unit_id || null,
+                batch_id: r.batch_id || null,
+                quantity: r.quantity,
+                unit_price: r.unit_price,
+                total: r.total
+            };
+        });
+        var payload = {
+            origin_store_id: originId,
+            destination_store_id: destId,
+            guide_motive_id: motiveId,
+            observation: observation,
+            details: details,
+            csrfmiddlewaretoken: csrf
+        };
+        $(this).prop('disabled', true);
+        $.ajax({
+            url: '/comercial/transfer_save/',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            headers: { 'X-CSRFToken': csrf },
+            success: function(res) {
+                if (typeof toastr !== 'undefined') toastr.success('Transferencia ' + res.code + ' registrada.');
+                if (res.id) {
+                    window.open('/comercial/transfer_print/' + res.id + '/', '_blank', 'noopener');
+                }
+                window.location.href = '/comercial/transfer_list/';
+            },
+            error: function(xhr) {
+                var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Error al guardar';
+                if (typeof toastr !== 'undefined') toastr.error(msg);
+                $('#btn-save-transfer').prop('disabled', false);
+            }
+        });
+    });
+})();
+</script>
+{% endblock extrajs %}

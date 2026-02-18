@@ -10,6 +10,7 @@ from django.db.models import Q
 
 # Create your models here.
 
+# VEHICLES
 
 class Owner(models.Model):
     id = models.AutoField(primary_key=True)
@@ -169,99 +170,9 @@ class Towing(models.Model):
         verbose_name_plural = 'Furgones'
 
 
-class Programming(models.Model):
-    STATUS_CHOICES = (('P', 'Programado'), ('R', 'En Ruta'),
-                      ('F', 'Finalizado'), ('C', 'Cancelado'))
-    TYPE_CHOICES = (('G', 'Flota Grande'), ('P', 'Flota Pequeña'), ('R', 'Reparto'))
-    id = models.AutoField(primary_key=True)
-    departure_date = models.DateField('Fecha Salida', null=True, blank=True)
-    arrival_date = models.DateField('Fecha Llegada', null=True, blank=True)
-    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P', )
-    type = models.CharField('Tipo', max_length=1, choices=TYPE_CHOICES, null=True, )
-    weight = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    truck = models.ForeignKey('Truck', verbose_name='Tracto',
-                              on_delete=models.SET_NULL, null=True, blank=True)
-    towing = models.ForeignKey('Towing', verbose_name='Furgon',
-                               on_delete=models.SET_NULL, null=True, blank=True)
-    subsidiary = models.ForeignKey(Subsidiary, verbose_name='Sede',
-                                   on_delete=models.SET_NULL, null=True, blank=True)
-    observation = models.CharField(max_length=200, null=True, blank=True)
-    order = models.IntegerField('Turno', default=0)
-    km_initial = models.CharField('km inicial', max_length=6, null=True, blank=True)
-    km_ending = models.CharField('km inicial', max_length=6, null=True, blank=True)
+# VEHICLES
 
-    def __str__(self):
-        # return str(self.subsidiary.name) + "/" + str(self.departure_date)
-        return str(self.id)
-
-    def get_pilot(self):
-        set_employee_set = SetEmployee.objects.filter(programming=self.id, function='P')
-        pilot = None
-        if set_employee_set.count() > 0:
-            pilot = set_employee_set.first().employee
-        return pilot
-
-    def get_route(self):
-        origin_set = Route.objects.filter(programming=self.id, type='O')
-        origin = None
-        if origin_set.count() > 0:
-            origin = origin_set.first().subsidiary.name
-        destiny_set = Route.objects.filter(programming=self.id, type='D')
-        destiny = None
-        if destiny_set.count() > 0:
-            destiny = destiny_set.first().subsidiary.name
-        route_ = origin + " - " + destiny
-        return route_
-
-    def get_origin(self):
-        origin = None
-        origin_set = Route.objects.filter(programming=self.id, type='O')
-        if origin_set.count() > 0:
-            origin = origin_set.first().subsidiary
-        return origin
-
-    def get_destiny(self):
-        destiny = None
-        destiny_set = Route.objects.filter(programming=self.id, type='D')
-        if destiny_set.count() > 0:
-            destiny = destiny_set.first().subsidiary
-        return destiny
-
-    class Meta:
-        verbose_name = 'Programación'
-        verbose_name_plural = 'Programaciones'
-
-
-class SetEmployee(models.Model):
-    FUNCTION_CHOICES = (('R', 'Responsable'), ('P', 'Piloto'),
-                        ('C', 'COPILOTO'), ('E', 'Estibador'),)
-    id = models.AutoField(primary_key=True)
-    programming = models.ForeignKey('Programming', on_delete=models.CASCADE)
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    function = models.CharField('Función', max_length=1, choices=FUNCTION_CHOICES, default='P', )
-
-    def __str__(self):
-        return str(self.id)
-
-    class Meta:
-        verbose_name = 'Cuadrilla'
-        verbose_name_plural = 'Cuadrillas'
-
-
-class GuideMotive(models.Model):
-    TYPE_CHOICES = (('E', 'ENTRADA'), ('S', 'SALIDA'))
-    id = models.AutoField(primary_key=True)
-    description = models.CharField(max_length=200, null=True, blank=True)
-    type = models.CharField('Tipo', max_length=1, choices=TYPE_CHOICES, default='E', )
-    code = models.CharField(max_length=5, null=True, blank=True)
-
-    def __str__(self):
-        return str(self.id)
-
-    class Meta:
-        verbose_name = 'Motivo'
-        verbose_name_plural = 'Motivos'
-
+# GUIDES
 
 MODALITY_TRANSPORT_CHOICES = (('1', 'PUBLICO'), ('2', 'PRIVADO'))
 
@@ -347,256 +258,24 @@ class GuideDetailBatch(models.Model):
         unique_together = ('guide_detail', 'batch')
 
 
-class Route(models.Model):
-    TYPE_CHOICES = (('O', 'Origen'), ('D', 'Destino'),)
+class GuideMotive(models.Model):
+    TYPE_CHOICES = (('E', 'ENTRADA'), ('S', 'SALIDA'))
     id = models.AutoField(primary_key=True)
-    programming = models.ForeignKey('Programming', on_delete=models.CASCADE, null=True, blank=True)
-    guide = models.ForeignKey('Guide', on_delete=models.CASCADE, null=True, blank=True)
-    subsidiary = models.ForeignKey(Subsidiary, verbose_name='Sede', on_delete=models.SET_NULL, null=True, blank=True)
-    subsidiary_store = models.ForeignKey(SubsidiaryStore, verbose_name='Almacen', on_delete=models.SET_NULL, null=True,
-                                         blank=True)
-    type = models.CharField('Tipo de Ruta', max_length=1, choices=TYPE_CHOICES, default='O', )
+    description = models.CharField(max_length=200, null=True, blank=True)
+    type = models.CharField('Tipo', max_length=1, choices=TYPE_CHOICES, default='E', )
+    code = models.CharField(max_length=5, null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
 
     class Meta:
-        verbose_name = 'Ruta'
-        verbose_name_plural = 'Rutas'
+        verbose_name = 'Motivo'
+        verbose_name_plural = 'Motivos'
 
 
-class GuideEmployee(models.Model):
-    FUNCTION_CHOICES = (('S', 'Solicita'), ('A', 'Aprueba'),
-                        ('R', 'Recibe'), ('C', 'Cancela'), ('E', 'Ejecuta'),)
-    id = models.AutoField(primary_key=True)
-    guide = models.ForeignKey('Guide', on_delete=models.CASCADE, null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    function = models.CharField('Función', max_length=1, choices=FUNCTION_CHOICES, default='S', )
-    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+# GUIDES
 
-    def __str__(self):
-        return str(self.id)
-
-    class Meta:
-        verbose_name = 'Actor'
-        verbose_name_plural = 'Actores'
-
-
-class DistributionMobil(models.Model):
-    STATUS_CHOICES = (('P', 'PROGRAMADO'), ('F', 'FINALIZADO'), ('A', 'ANULADO'),)
-    id = models.AutoField(primary_key=True)
-    truck = models.ForeignKey('Truck', verbose_name='Tracto',
-                              on_delete=models.SET_NULL, null=True, blank=True)
-    date_distribution = models.DateField('Fecha de Distribucion', null=True, blank=True)
-    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P', )
-    subsidiary = models.ForeignKey(Subsidiary, on_delete=models.SET_NULL, null=True, blank=True)
-    pilot = models.ForeignKey(Employee, on_delete=models.CASCADE, null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    guide_number = models.CharField('Numero guia', max_length=20, null=True, blank=True)
-
-    def new_detail_distribution(self):
-        response = DistributionDetail.objects.filter(
-            distribution_mobil_id=self.id).exclude(status='D')
-
-        product_dict = {}
-        for d in response:
-            _search_value = d.product.id
-            if _search_value in product_dict.keys():
-                _product = product_dict[d.product.id]
-                _expenses = _product.get('i_expenses')
-                _returned = _product.get('i_returned')
-                _advanced = _product.get('i_advanced')
-                _recovered = _product.get('i_recovered')
-                _sold = _product.get('i_sold')
-                _ball = _product.get('i_ball')
-                _sold_bg = _product.get('i_sold_bg')
-
-                if d.status == 'E':
-                    if d.type == 'L':
-                        product_dict[d.product.id]['i_expenses'] = d.quantity
-                        _sold = d.calculate_total_quantity_sold_by_product_glp()
-                        _returned = d.quantity - _sold
-                        _ball = _ball + d.calculate_total_quantity_sold_by_product() - d.calculate_total_quantity_container_sold_by_product()
-                        _sold_bg = d.calculate_total_quantity_container_sold_by_product()
-                        product_dict[d.product.id]['i_sold'] = _sold
-                        product_dict[d.product.id]['i_returned'] = _returned
-                        product_dict[d.product.id]['i_ball'] = _ball
-                        product_dict[d.product.id]['i_sold_bg'] = _sold_bg
-
-                    elif d.type == 'V':
-                        product_dict[d.product.id]['i_ball'] = _ball + d.quantity
-
-                if d.status == 'R':
-                    product_dict[d.product.id]['i_recovered'] = d.quantity
-                    _ball = _ball + d.quantity
-                    product_dict[d.product.id]['i_ball'] = _ball
-
-                if d.status == 'A':
-                    product_dict[d.product.id]['i_advanced'] = d.quantity
-                    _ball = _ball + d.quantity
-                    product_dict[d.product.id]['i_ball'] = _ball
-
-            else:
-                if d.status == 'E':
-                    if d.type == 'L':
-                        _sold = d.calculate_total_quantity_sold_by_product_glp()
-                        _returned = d.quantity - _sold
-                        product_dict[d.product.id] = {
-                            'i_expenses': d.quantity,
-                            'i_returned': _returned,
-                            'i_advanced': 0,
-                            'i_sold': _sold,
-                            'i_recovered': 0,
-                            'i_ball': d.calculate_total_quantity_sold_by_product() - d.calculate_total_quantity_container_sold_by_product(),
-                            'i_sold_bg': d.calculate_total_quantity_container_sold_by_product(),
-                            'pk': d.product.id,
-                            'name': d.product.name
-                        }
-                    elif d.type == 'V':
-                        product_dict[d.product.id] = {
-                            'i_expenses': 0,
-                            'i_returned': 0,
-                            'i_advanced': 0,
-                            'i_sold': 0,
-                            'i_recovered': 0,
-                            'i_ball': d.quantity,
-                            'i_sold_bg': 0,
-                            'pk': d.product.id,
-                            'name': d.product.name
-                        }
-                if d.status == 'R':
-                    _sold = d.calculate_total_quantity_sold_by_product_glp()
-                    product_dict[d.product.id] = {
-                        'i_expenses': 0,
-                        'i_returned': 0,
-                        'i_advanced': 0,
-                        'i_sold': _sold,
-                        'i_recovered': d.quantity,
-                        'i_ball': d.quantity,
-                        'i_sold_bg': 0,
-                        'pk': d.product.id,
-                        'name': d.product.name}
-                if d.status == 'A':
-                    _sold = d.calculate_total_quantity_sold_by_product_glp()
-                    product_dict[d.product.id] = {
-                        'i_expenses': 0,
-                        'i_returned': 0,
-                        'i_sold': _sold,
-                        'i_advanced': d.quantity,
-                        'i_recovered': 0,
-                        'i_ball': d.quantity,
-                        'i_sold_bg': 0,
-                        'pk': d.product.id,
-                        'name': d.product.name}
-
-        return product_dict
-
-    def __str__(self):
-        return str(self.id)
-
-
-class DistributionDetail(models.Model):
-    STATUS_CHOICES = (('E', 'EGRESO'), ('D', 'DEVOLUCION'), ('C', 'EN CARRO'), ('R', 'RECUPERADO'), ('A', 'ADELANTO'))
-    TYPE_CHOICES = (('V', 'VACIOS'), ('L', 'LLENOS'), ('M', 'MALOGRADOS'), ('VM', 'VACIO(S) MALOGRADO(S)'),)
-    distribution_mobil = models.ForeignKey(DistributionMobil, on_delete=models.SET_NULL, null=True,
-                                           blank=True)
-    status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='E', )
-    type = models.CharField('Tipo', max_length=2, choices=TYPE_CHOICES, default='L', )
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
-    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return str(self.id)
-
-    def calculate_total_b_quantity(self):
-        response = DistributionDetail.objects.filter(
-            distribution_mobil_id=self.distribution_mobil.id, status='E').values(
-            'distribution_mobil').annotate(totals=Sum('quantity'))
-        # return response.count
-        return response[0].get('totals')
-
-    def calculate_total_quantity_sold_by_product(self):
-        sales_set = Order.objects.filter(distribution_mobil=self.distribution_mobil)
-        quantity_total = 0
-        for s in sales_set.all():
-            for d in s.orderdetail_set.all():
-                if d.unit.name == 'G' and d.product == self.product:
-                    quantity_total = quantity_total + d.quantity_sold
-        return quantity_total
-
-    def calculate_total_quantity_sold_by_product_glp(self):
-        sales_set = Order.objects.filter(distribution_mobil=self.distribution_mobil)
-        quantity_total = 0
-        for s in sales_set.all():
-            for d in s.orderdetail_set.all():
-                if (d.unit.name == 'G' or d.unit.name == 'GBC') and d.product == self.product:
-                    quantity_total = quantity_total + d.quantity_sold
-        return quantity_total
-
-    def calculate_total_quantity_container_sold_by_product(self):
-        sales_container_set = Order.objects.filter(distribution_mobil=self.distribution_mobil)
-        quantity_container = 0
-        for s in sales_container_set.all():
-            for d in s.orderdetail_set.all():
-                if d.unit.name == 'B' and d.product == self.product:
-                    quantity_container = quantity_container + d.quantity_sold
-        return quantity_container
-
-    def return_quantity_r(self):
-        response = 0
-        distribution_detail = DistributionDetail.objects.filter(distribution_mobil=self.distribution_mobil,
-                                                                product=self.product,
-                                                                status='R')
-        if distribution_detail.count() > 0:
-            response = distribution_detail.first().quantity
-        return response
-
-    def return_quantity_a(self):
-        response = 0
-        distribution_detail = DistributionDetail.objects.filter(distribution_mobil=self.distribution_mobil,
-                                                                product=self.product,
-                                                                status='A')
-        if distribution_detail.count() > 0:
-            response = distribution_detail.first().quantity
-        return response
-
-    def has_detail_e_by_r(self):
-        response = False
-        if self.status == 'R':
-            distribution_detail_e = DistributionDetail.objects.filter(distribution_mobil=self.distribution_mobil,
-                                                                      product=self.product, status='E')
-            if distribution_detail_e.count() > 0:
-                response = True
-        return response
-
-    def has_detail_a_by_r(self):
-        response = False
-        if self.status == 'R':
-            distribution_detail_e = DistributionDetail.objects.filter(distribution_mobil=self.distribution_mobil,
-                                                                      product=self.product, status='A')
-            if distribution_detail_e.count() > 0:
-                response = True
-        return response
-
-    def has_detail_r_by_a(self):
-        response = False
-        if self.status == 'A':
-            distribution_detail_r = DistributionDetail.objects.filter(distribution_mobil=self.distribution_mobil,
-                                                                      product=self.product, status='R')
-            if distribution_detail_r.count() > 0:
-                response = True
-        return response
-
-    def has_detail_e_by_a(self):
-        response = False
-        if self.status == 'A':
-            distribution_detail_e = DistributionDetail.objects.filter(distribution_mobil=self.distribution_mobil,
-                                                                      product=self.product, status='E')
-            if distribution_detail_e.count() > 0:
-                response = True
-        return response
-
+# PICKING
 
 class Picking(models.Model):
     STATUS_CHOICES = (('P', 'PROGRAMADO'), ('R', 'RUTA'),
@@ -646,3 +325,387 @@ class PickingGuide(models.Model):
     guide_detail = models.ForeignKey('GuideDetail', on_delete=models.CASCADE, null=True, blank=True)
     guide = models.ForeignKey('Guide', on_delete=models.SET_NULL, null=True, blank=True)
     picking = models.ForeignKey(Picking, on_delete=models.CASCADE, null=True, blank=True)
+
+
+# PICKING
+
+
+class Transfer(models.Model):
+    STATUS = (
+        ('C', 'Creado'),
+        ('E', 'Enviado'),
+        ('R', 'Recibido'),
+        ('A', 'Anulado'),
+    )
+    code = models.CharField('Código', max_length=20, unique=True)
+    serial = models.CharField('Serie', max_length=10, default='TRA', blank=True)
+    correlative = models.CharField('Correlativo', max_length=20, blank=True)
+    origin_store = models.ForeignKey(SubsidiaryStore, verbose_name='Almacén de Origen', on_delete=models.SET_NULL,
+                                     null=True, blank=True, related_name='transfers_origin')
+    destination_store = models.ForeignKey(SubsidiaryStore, verbose_name='Almacén de Destino', on_delete=models.SET_NULL,
+                                          null=True, blank=True, related_name='transfers_destination')
+    guide_motive = models.ForeignKey(GuideMotive, verbose_name='Motivo de transferencia', on_delete=models.SET_NULL,
+                                     null=True, blank=True, limit_choices_to={'type': 'S'})
+    status = models.CharField('Estado', max_length=1, choices=STATUS, default='C')
+    observation = models.CharField('Observaciones', max_length=500, null=True, blank=True)
+    user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField('Fecha creación', auto_now_add=True)
+    sent_at = models.DateTimeField('Fecha envío', null=True, blank=True)
+    received_at = models.DateTimeField('Fecha recepción', null=True, blank=True)
+    received_by = models.ForeignKey(User, verbose_name='Recibido por', on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='transfers_received')
+
+    def __str__(self):
+        return self.code or str(self.id)
+
+    class Meta:
+        verbose_name = 'Transferencia'
+        verbose_name_plural = 'Transferencias'
+
+
+class TransferDetail(models.Model):
+    transfer = models.ForeignKey(Transfer, on_delete=models.CASCADE, related_name='details')
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
+    quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2)
+    batch = models.ForeignKey('sales.Batch', on_delete=models.SET_NULL, null=True, blank=True,
+                              verbose_name='Lote')
+    unit_price = models.DecimalField('Precio unitario', max_digits=30, decimal_places=15, default=0)
+    total = models.DecimalField('Total', max_digits=30, decimal_places=15, default=0)
+    observation = models.CharField('Observación', max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.transfer.code} - {self.product.name}'
+
+    class Meta:
+        verbose_name = 'Detalle de transferencia'
+        verbose_name_plural = 'Detalles de transferencia'
+
+# class Programming(models.Model):
+#     STATUS_CHOICES = (('P', 'Programado'), ('R', 'En Ruta'),
+#                       ('F', 'Finalizado'), ('C', 'Cancelado'))
+#     TYPE_CHOICES = (('G', 'Flota Grande'), ('P', 'Flota Pequeña'), ('R', 'Reparto'))
+#     id = models.AutoField(primary_key=True)
+#     departure_date = models.DateField('Fecha Salida', null=True, blank=True)
+#     arrival_date = models.DateField('Fecha Llegada', null=True, blank=True)
+#     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P', )
+#     type = models.CharField('Tipo', max_length=1, choices=TYPE_CHOICES, null=True, )
+#     weight = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+#     truck = models.ForeignKey('Truck', verbose_name='Tracto',
+#                               on_delete=models.SET_NULL, null=True, blank=True)
+#     towing = models.ForeignKey('Towing', verbose_name='Furgon',
+#                                on_delete=models.SET_NULL, null=True, blank=True)
+#     subsidiary = models.ForeignKey(Subsidiary, verbose_name='Sede',
+#                                    on_delete=models.SET_NULL, null=True, blank=True)
+#     observation = models.CharField(max_length=200, null=True, blank=True)
+#     order = models.IntegerField('Turno', default=0)
+#     km_initial = models.CharField('km inicial', max_length=6, null=True, blank=True)
+#     km_ending = models.CharField('km inicial', max_length=6, null=True, blank=True)
+#
+#     def __str__(self):
+#         # return str(self.subsidiary.name) + "/" + str(self.departure_date)
+#         return str(self.id)
+#
+#     def get_pilot(self):
+#         set_employee_set = SetEmployee.objects.filter(programming=self.id, function='P')
+#         pilot = None
+#         if set_employee_set.count() > 0:
+#             pilot = set_employee_set.first().employee
+#         return pilot
+#
+#     def get_route(self):
+#         origin_set = Route.objects.filter(programming=self.id, type='O')
+#         origin = None
+#         if origin_set.count() > 0:
+#             origin = origin_set.first().subsidiary.name
+#         destiny_set = Route.objects.filter(programming=self.id, type='D')
+#         destiny = None
+#         if destiny_set.count() > 0:
+#             destiny = destiny_set.first().subsidiary.name
+#         route_ = origin + " - " + destiny
+#         return route_
+#
+#     def get_origin(self):
+#         origin = None
+#         origin_set = Route.objects.filter(programming=self.id, type='O')
+#         if origin_set.count() > 0:
+#             origin = origin_set.first().subsidiary
+#         return origin
+#
+#     def get_destiny(self):
+#         destiny = None
+#         destiny_set = Route.objects.filter(programming=self.id, type='D')
+#         if destiny_set.count() > 0:
+#             destiny = destiny_set.first().subsidiary
+#         return destiny
+#
+#     class Meta:
+#         verbose_name = 'Programación'
+#         verbose_name_plural = 'Programaciones'
+#
+#
+# class SetEmployee(models.Model):
+#     FUNCTION_CHOICES = (('R', 'Responsable'), ('P', 'Piloto'),
+#                         ('C', 'COPILOTO'), ('E', 'Estibador'),)
+#     id = models.AutoField(primary_key=True)
+#     programming = models.ForeignKey('Programming', on_delete=models.CASCADE)
+#     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+#     function = models.CharField('Función', max_length=1, choices=FUNCTION_CHOICES, default='P', )
+#
+#     def __str__(self):
+#         return str(self.id)
+#
+#     class Meta:
+#         verbose_name = 'Cuadrilla'
+#         verbose_name_plural = 'Cuadrillas'
+#
+#
+# class Route(models.Model):
+#     TYPE_CHOICES = (('O', 'Origen'), ('D', 'Destino'),)
+#     id = models.AutoField(primary_key=True)
+#     programming = models.ForeignKey('Programming', on_delete=models.CASCADE, null=True, blank=True)
+#     guide = models.ForeignKey('Guide', on_delete=models.CASCADE, null=True, blank=True)
+#     subsidiary = models.ForeignKey(Subsidiary, verbose_name='Sede', on_delete=models.SET_NULL, null=True, blank=True)
+#     subsidiary_store = models.ForeignKey(SubsidiaryStore, verbose_name='Almacen', on_delete=models.SET_NULL, null=True,
+#                                          blank=True)
+#     type = models.CharField('Tipo de Ruta', max_length=1, choices=TYPE_CHOICES, default='O', )
+#
+#     def __str__(self):
+#         return str(self.id)
+#
+#     class Meta:
+#         verbose_name = 'Ruta'
+#         verbose_name_plural = 'Rutas'
+#
+#
+# class GuideEmployee(models.Model):
+#     FUNCTION_CHOICES = (('S', 'Solicita'), ('A', 'Aprueba'),
+#                         ('R', 'Recibe'), ('C', 'Cancela'), ('E', 'Ejecuta'),)
+#     id = models.AutoField(primary_key=True)
+#     guide = models.ForeignKey('Guide', on_delete=models.CASCADE, null=True, blank=True)
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     function = models.CharField('Función', max_length=1, choices=FUNCTION_CHOICES, default='S', )
+#     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+#
+#     def __str__(self):
+#         return str(self.id)
+#
+#     class Meta:
+#         verbose_name = 'Actor'
+#         verbose_name_plural = 'Actores'
+#
+#
+# class DistributionMobil(models.Model):
+#     STATUS_CHOICES = (('P', 'PROGRAMADO'), ('F', 'FINALIZADO'), ('A', 'ANULADO'),)
+#     id = models.AutoField(primary_key=True)
+#     truck = models.ForeignKey('Truck', verbose_name='Tracto',
+#                               on_delete=models.SET_NULL, null=True, blank=True)
+#     date_distribution = models.DateField('Fecha de Distribucion', null=True, blank=True)
+#     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='P', )
+#     subsidiary = models.ForeignKey(Subsidiary, on_delete=models.SET_NULL, null=True, blank=True)
+#     pilot = models.ForeignKey(Employee, on_delete=models.CASCADE, null=True, blank=True)
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+#     guide_number = models.CharField('Numero guia', max_length=20, null=True, blank=True)
+#
+#     def new_detail_distribution(self):
+#         response = DistributionDetail.objects.filter(
+#             distribution_mobil_id=self.id).exclude(status='D')
+#
+#         product_dict = {}
+#         for d in response:
+#             _search_value = d.product.id
+#             if _search_value in product_dict.keys():
+#                 _product = product_dict[d.product.id]
+#                 _expenses = _product.get('i_expenses')
+#                 _returned = _product.get('i_returned')
+#                 _advanced = _product.get('i_advanced')
+#                 _recovered = _product.get('i_recovered')
+#                 _sold = _product.get('i_sold')
+#                 _ball = _product.get('i_ball')
+#                 _sold_bg = _product.get('i_sold_bg')
+#
+#                 if d.status == 'E':
+#                     if d.type == 'L':
+#                         product_dict[d.product.id]['i_expenses'] = d.quantity
+#                         _sold = d.calculate_total_quantity_sold_by_product_glp()
+#                         _returned = d.quantity - _sold
+#                         _ball = _ball + d.calculate_total_quantity_sold_by_product() - d.calculate_total_quantity_container_sold_by_product()
+#                         _sold_bg = d.calculate_total_quantity_container_sold_by_product()
+#                         product_dict[d.product.id]['i_sold'] = _sold
+#                         product_dict[d.product.id]['i_returned'] = _returned
+#                         product_dict[d.product.id]['i_ball'] = _ball
+#                         product_dict[d.product.id]['i_sold_bg'] = _sold_bg
+#
+#                     elif d.type == 'V':
+#                         product_dict[d.product.id]['i_ball'] = _ball + d.quantity
+#
+#                 if d.status == 'R':
+#                     product_dict[d.product.id]['i_recovered'] = d.quantity
+#                     _ball = _ball + d.quantity
+#                     product_dict[d.product.id]['i_ball'] = _ball
+#
+#                 if d.status == 'A':
+#                     product_dict[d.product.id]['i_advanced'] = d.quantity
+#                     _ball = _ball + d.quantity
+#                     product_dict[d.product.id]['i_ball'] = _ball
+#
+#             else:
+#                 if d.status == 'E':
+#                     if d.type == 'L':
+#                         _sold = d.calculate_total_quantity_sold_by_product_glp()
+#                         _returned = d.quantity - _sold
+#                         product_dict[d.product.id] = {
+#                             'i_expenses': d.quantity,
+#                             'i_returned': _returned,
+#                             'i_advanced': 0,
+#                             'i_sold': _sold,
+#                             'i_recovered': 0,
+#                             'i_ball': d.calculate_total_quantity_sold_by_product() - d.calculate_total_quantity_container_sold_by_product(),
+#                             'i_sold_bg': d.calculate_total_quantity_container_sold_by_product(),
+#                             'pk': d.product.id,
+#                             'name': d.product.name
+#                         }
+#                     elif d.type == 'V':
+#                         product_dict[d.product.id] = {
+#                             'i_expenses': 0,
+#                             'i_returned': 0,
+#                             'i_advanced': 0,
+#                             'i_sold': 0,
+#                             'i_recovered': 0,
+#                             'i_ball': d.quantity,
+#                             'i_sold_bg': 0,
+#                             'pk': d.product.id,
+#                             'name': d.product.name
+#                         }
+#                 if d.status == 'R':
+#                     _sold = d.calculate_total_quantity_sold_by_product_glp()
+#                     product_dict[d.product.id] = {
+#                         'i_expenses': 0,
+#                         'i_returned': 0,
+#                         'i_advanced': 0,
+#                         'i_sold': _sold,
+#                         'i_recovered': d.quantity,
+#                         'i_ball': d.quantity,
+#                         'i_sold_bg': 0,
+#                         'pk': d.product.id,
+#                         'name': d.product.name}
+#                 if d.status == 'A':
+#                     _sold = d.calculate_total_quantity_sold_by_product_glp()
+#                     product_dict[d.product.id] = {
+#                         'i_expenses': 0,
+#                         'i_returned': 0,
+#                         'i_sold': _sold,
+#                         'i_advanced': d.quantity,
+#                         'i_recovered': 0,
+#                         'i_ball': d.quantity,
+#                         'i_sold_bg': 0,
+#                         'pk': d.product.id,
+#                         'name': d.product.name}
+#
+#         return product_dict
+#
+#     def __str__(self):
+#         return str(self.id)
+#
+#
+# class DistributionDetail(models.Model):
+#     STATUS_CHOICES = (('E', 'EGRESO'), ('D', 'DEVOLUCION'), ('C', 'EN CARRO'), ('R', 'RECUPERADO'), ('A', 'ADELANTO'))
+#     TYPE_CHOICES = (('V', 'VACIOS'), ('L', 'LLENOS'), ('M', 'MALOGRADOS'), ('VM', 'VACIO(S) MALOGRADO(S)'),)
+#     distribution_mobil = models.ForeignKey(DistributionMobil, on_delete=models.SET_NULL, null=True,
+#                                            blank=True)
+#     status = models.CharField('Estado', max_length=1, choices=STATUS_CHOICES, default='E', )
+#     type = models.CharField('Tipo', max_length=2, choices=TYPE_CHOICES, default='L', )
+#     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+#     quantity = models.DecimalField('Cantidad', max_digits=10, decimal_places=2, default=0)
+#     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
+#
+#     def __str__(self):
+#         return str(self.id)
+#
+#     def calculate_total_b_quantity(self):
+#         response = DistributionDetail.objects.filter(
+#             distribution_mobil_id=self.distribution_mobil.id, status='E').values(
+#             'distribution_mobil').annotate(totals=Sum('quantity'))
+#         # return response.count
+#         return response[0].get('totals')
+#
+#     def calculate_total_quantity_sold_by_product(self):
+#         sales_set = Order.objects.filter(distribution_mobil=self.distribution_mobil)
+#         quantity_total = 0
+#         for s in sales_set.all():
+#             for d in s.orderdetail_set.all():
+#                 if d.unit.name == 'G' and d.product == self.product:
+#                     quantity_total = quantity_total + d.quantity_sold
+#         return quantity_total
+#
+#     def calculate_total_quantity_sold_by_product_glp(self):
+#         sales_set = Order.objects.filter(distribution_mobil=self.distribution_mobil)
+#         quantity_total = 0
+#         for s in sales_set.all():
+#             for d in s.orderdetail_set.all():
+#                 if (d.unit.name == 'G' or d.unit.name == 'GBC') and d.product == self.product:
+#                     quantity_total = quantity_total + d.quantity_sold
+#         return quantity_total
+#
+#     def calculate_total_quantity_container_sold_by_product(self):
+#         sales_container_set = Order.objects.filter(distribution_mobil=self.distribution_mobil)
+#         quantity_container = 0
+#         for s in sales_container_set.all():
+#             for d in s.orderdetail_set.all():
+#                 if d.unit.name == 'B' and d.product == self.product:
+#                     quantity_container = quantity_container + d.quantity_sold
+#         return quantity_container
+#
+#     def return_quantity_r(self):
+#         response = 0
+#         distribution_detail = DistributionDetail.objects.filter(distribution_mobil=self.distribution_mobil,
+#                                                                 product=self.product,
+#                                                                 status='R')
+#         if distribution_detail.count() > 0:
+#             response = distribution_detail.first().quantity
+#         return response
+#
+#     def return_quantity_a(self):
+#         response = 0
+#         distribution_detail = DistributionDetail.objects.filter(distribution_mobil=self.distribution_mobil,
+#                                                                 product=self.product,
+#                                                                 status='A')
+#         if distribution_detail.count() > 0:
+#             response = distribution_detail.first().quantity
+#         return response
+#
+#     def has_detail_e_by_r(self):
+#         response = False
+#         if self.status == 'R':
+#             distribution_detail_e = DistributionDetail.objects.filter(distribution_mobil=self.distribution_mobil,
+#                                                                       product=self.product, status='E')
+#             if distribution_detail_e.count() > 0:
+#                 response = True
+#         return response
+#
+#     def has_detail_a_by_r(self):
+#         response = False
+#         if self.status == 'R':
+#             distribution_detail_e = DistributionDetail.objects.filter(distribution_mobil=self.distribution_mobil,
+#                                                                       product=self.product, status='A')
+#             if distribution_detail_e.count() > 0:
+#                 response = True
+#         return response
+#
+#     def has_detail_r_by_a(self):
+#         response = False
+#         if self.status == 'A':
+#             distribution_detail_r = DistributionDetail.objects.filter(distribution_mobil=self.distribution_mobil,
+#                                                                       product=self.product, status='R')
+#             if distribution_detail_r.count() > 0:
+#                 response = True
+#         return response
+#
+#     def has_detail_e_by_a(self):
+#         response = False
+#         if self.status == 'A':
+#             distribution_detail_e = DistributionDetail.objects.filter(distribution_mobil=self.distribution_mobil,
+#                                                                       product=self.product, status='E')
+#             if distribution_detail_e.count() > 0:
+#                 response = True
+#         return response

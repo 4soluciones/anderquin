@@ -13,7 +13,7 @@ from django.db import DatabaseError, IntegrityError
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from .number_to_letters import numero_a_moneda
-from apps.comercial.models import DistributionMobil, Truck
+from apps.comercial.models import Truck
 # from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 import time

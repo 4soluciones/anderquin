@@ -1,56 +1,44 @@
 {% extends 'home.html' %}
-
-{% block title %}
-    coronasoft.dev | Lista de entradas
-{% endblock title %}
+{% load static %}
+{% block title %}Lista de entradas{% endblock title %}
 
 {% block body %}
-
-    <div class="container-fluid">
-
-    <form method="POST" action="{% url 'comercial:input_workflow' %}">
-        {% csrf_token %}
-        <table class="table m-0">
-            <tr>
-                <td class="align-middle font-weight-bolder pl-0">Fecha inicial</td>
-                <td class="align-middle">
-                    <input type="date"
-                           class="form-control"
-                           name="date_initial"
-                           id="id_date_initial"
-                           value="{{ date_now }}" required>
-                </td>
-                <td class="align-middle font-weight-bolder">Fecha final</td>
-                <td class="align-middle">
-                    <input type="date"
-                           class="form-control"
-                           name="date_final"
-                           id="id_date_final"
-                           value="{{ date_now }}" required>
-                </td>
-                <td class="align-middle text-left">
-                    <button type="submit" id="id_btn_show" class="btn btn-info">
-                        <i class="fas fa-search"></i> &nbsp; CONSULTAR
-                    </button>
-                </td>
-                <td class="align-middle text-right pr-0">
-                    <a href="{% url 'comercial:input_guide' %}" class="btn btn-info">
-                        <i class="fas fa-folder-plus"></i> &nbsp; NUEVA NOTA DE ENTRADA
-                    </a>
-                </td>
-
-            </tr>
-        </table>
-    </form>
-        <div class="card">
-            <div class="card-header text-center align-middle">
-                <h5 class="card-title mb-0 text-success">LISTA DE ENTRADAS</h5>
+<div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+    <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+        <div class="card-header py-3" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+            <h3 class="text-white mb-0 font-weight-bold"><i class="fas fa-sign-in-alt mr-2"></i> LISTA DE ENTRADAS</h3>
+        </div>
+        <div class="card-body border-bottom" style="background-color: #f0f8fc;">
+            <form method="POST" action="{% url 'comercial:input_workflow' %}">
+                {% csrf_token %}
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <label class="small font-weight-bold text-muted">Fecha inicial</label>
+                        <input type="date" class="form-control form-control-sm" name="date_initial" id="id_date_initial" value="{{ date_now }}" required style="border-color: #bbdefb;">
+                    </div>
+                    <div class="col-auto">
+                        <label class="small font-weight-bold text-muted">Fecha final</label>
+                        <input type="date" class="form-control form-control-sm" name="date_final" id="id_date_final" value="{{ date_now }}" required style="border-color: #bbdefb;">
+                    </div>
+                    <div class="col-auto pt-4">
+                        <button type="submit" id="id_btn_show" class="btn btn-primary btn-sm rounded" style="background: #1565c0;"><i class="fas fa-search"></i> Consultar</button>
+                    </div>
+                    <div class="col-auto pt-4">
+                        <a href="{% url 'comercial:input_guide' %}" class="btn btn-outline-primary btn-sm rounded"><i class="fas fa-folder-plus"></i> Nueva nota de entrada</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="card-body p-0" style="background-color: #e3f2fd;">
+            <div class="card border-0 shadow-none bg-transparent">
+            <div class="card-header text-center font-weight-bold py-2" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+                DETALLE DE ENTRADAS
             </div>
             <div class="card-group">
                 <div class="col-sm-12 pt-3">
-                    <table id="manufacture-data-grid" class="table table-bordered table-sm border-1">
+                    <table id="manufacture-data-grid" class="table table-bordered table-sm">
                         <thead>
-                        <tr class="bg-light text-dark text-center" style="height: 50px;">
+                        <tr class="text-center font-weight-bold text-uppercase small" style="height: 50px; background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
                             <th class="align-middle border-top-0 border-left-0 border-bottom border-right">
                                 ID
                             </th>
@@ -195,10 +183,11 @@
                     </table>
                 </div>
             </div>
+            </div>
         </div>
     </div>
-
-
+</div>
+<style>.form-control:focus { box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25); border-color: #1e3a5f; }</style>
 {% endblock body %}
 
 

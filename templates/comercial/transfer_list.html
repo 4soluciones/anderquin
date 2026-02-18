@@ -1,0 +1,81 @@
+{% extends 'home.html' %}
+{% load static %}
+{% block title %}Transferencias entre almacenes{% endblock title %}
+
+{% block body %}
+<div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+    <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+        <div class="card-header py-3" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 class="text-white mb-0 font-weight-bold">
+                        <i class="fas fa-exchange-alt mr-2"></i> LISTADO DE TRANSFERENCIAS
+                    </h3>
+                </div>
+                <div class="col-md-4 text-right">
+                    <a href="{% url 'comercial:transfer_create' %}" class="btn btn-light btn-sm border-2 rounded-pill">
+                        <i class="fas fa-truck-loading"></i> Registrar salida
+                    </a>
+                    <a href="{% url 'comercial:transfer_receive_list' %}" class="btn btn-outline-light btn-sm border-2 rounded-pill ml-1">
+                        <i class="fas fa-clipboard-check"></i> Recepcionar
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0" style="background-color: #e3f2fd;">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0" id="transfer-list-table">
+                    <thead>
+                        <tr class="text-center font-weight-bold text-uppercase small" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+                            <th class="align-middle border-0 py-3">Nº Documento</th>
+                            <th class="align-middle border-0 py-3">Código</th>
+                            <th class="align-middle border-0 py-3">Origen</th>
+                            <th class="align-middle border-0 py-3">Destino</th>
+                            <th class="align-middle border-0 py-3">Motivo</th>
+                            <th class="align-middle border-0 py-3">Estado</th>
+                            <th class="align-middle border-0 py-3">Fecha</th>
+                            <th class="align-middle border-0 py-3">Usuario</th>
+                            <th class="align-middle border-0 py-3">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in transfers %}
+                        <tr class="border-bottom" style="{% if subsidiary and t.destination_store and t.destination_store.subsidiary_id == subsidiary.id %}background-color: #c8e6c9 !important;{% endif %} border-color: #bbdefb !important;">
+                            <td class="align-middle font-weight-bold">{% if t.serial and t.correlative %}{{ t.serial }}-{{ t.correlative }}{% else %}{{ t.code|default:"—" }}{% endif %}</td>
+                            <td class="align-middle small text-primary">{{ t.code }}</td>
+                            <td class="align-middle">{{ t.origin_store.name|default:"—" }}</td>
+                            <td class="align-middle">{{ t.destination_store.name|default:"—" }}</td>
+                            <td class="align-middle small">{{ t.guide_motive.description|default:"—" }}</td>
+                            <td class="align-middle">
+                                {% if t.status == 'C' %}
+                                    <span class="badge badge-secondary">Creado</span>
+                                {% elif t.status == 'E' %}
+                                    <span class="badge badge-info">Enviado</span>
+                                {% elif t.status == 'R' %}
+                                    <span class="badge badge-success">Recibido</span>
+                                {% elif t.status == 'A' %}
+                                    <span class="badge badge-danger">Anulado</span>
+                                {% endif %}
+                            </td>
+                            <td class="align-middle small">{{ t.created_at|date:"d/m/Y H:i" }}</td>
+                            <td class="align-middle small">{{ t.user.get_full_name|default:t.user.username|default:"—" }}</td>
+                            <td class="align-middle text-center">
+                                <a href="{% url 'comercial:transfer_print' t.pk %}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill" title="Imprimir PDF"><i class="fas fa-print"></i></a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">No hay transferencias registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .form-control:focus { box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25); border-color: #1e3a5f; }
+    #transfer-list-table td, #transfer-list-table th { border-color: #bbdefb !important; }
+</style>
+{% endblock body %}

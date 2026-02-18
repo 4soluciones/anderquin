@@ -1,49 +1,24 @@
 {% extends 'home.html' %}
-{% block title %}
-    coronasoft.dev | Guia de entrada
-{% endblock title %}
+{% load static %}
+{% block title %}Guía de entrada{% endblock title %}
 
 {% block body %}
-
+<div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
     <form id="input-guide-form" action="" method="GET">
         {% csrf_token %}
-
-        <div class="row">
-            <div class="col-sm-12">
-
-                <div class="card">
-                    <div class="card-body text-center font-weight-bolder">
-                        <h2 class="text-uppercase">Guia de entrada</h2>
+        <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+            <div class="card-header py-3" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+                <h3 class="text-white mb-0 font-weight-bold"><i class="fas fa-sign-in-alt mr-2"></i> GUÍA DE ENTRADA</h3>
+            </div>
+            <div class="card-group">
+                <div class="card border-0 border-left border-top-0 border-right-0 border-bottom shadow-sm" style="border-color: #bbdefb !important;">
+                    <div id="io-guide-form" class="card-body" style="background-color: #f0f8fc;">
+                        {% include "comercial/input_guide_form.html" %}
                     </div>
                 </div>
-
-            </div>
-        </div>
-
-        <div class="card-group">
-
-
-            <div class="card border-left border-top-0 border-right-0 border-bottom">
-
-
-                <div id="io-guide-form" class="card-body">
-                    {% include "comercial/input_guide_form.html" %}
-
-
-
-
-
-                </div>
-
-            </div>
-
-            <div class="card border-left border-top-0 border-right border-bottom">
-
-
-                <div class="card-body " id="input-guide-list">
-
-
-                    <table class="table table-sm text-uppercase small mt-3">
+                <div class="card border-0 border-left border-top-0 border-right border-bottom shadow-sm" style="border-color: #bbdefb !important;">
+                    <div class="card-body" id="input-guide-list" style="background-color: #e3f2fd;">
+                        <table class="table table-sm text-uppercase small mt-3">
                         <tr>
                             <td class="border-top-0 mt-2 align-middle" colspan="2" style="width: 50%">
                                 Producto:
@@ -65,8 +40,10 @@
                                     {% for p in product_set %}
                                         <option value="{{ p.id }}" sp="0"
                                                 stock="0"
-                                                price="{{ p.calculate_minimum_unit }}"
-                                                unit="{{ p.calculate_minimum_unit_id }}">{{ p.name }}</option>
+{#                                                price="{{ p.calculate_minimum_unit }}"#}
+{#                                                unit="{{ p.calculate_minimum_unit_id }}"#}
+                                        >
+                                            {{ p.name }}</option>
                                     {% endfor %}
 
                                 </select>
@@ -120,16 +97,17 @@
                 </div>
             </div>
 
-            <div class="card border-left-0 border-top-0 border-right border-bottom">
-                <div class="card-header text-center font-weight-lighter bg-white" id="destiny-store-name">
-                    DESTINO
+                <div class="card border-0 border-left-0 border-top-0 border-right border-bottom shadow-sm" style="border-color: #bbdefb !important;">
+                    <div class="card-header text-center font-weight-bold" id="destiny-store-name" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+                        DESTINO
+                    </div>
+                    <div class="card-body" id="destiny-store-list" style="height: 35rem; background-color: #e3f2fd;"></div>
                 </div>
-                <div class="card-body " id="destiny-store-list" style="height: 35rem;"></div>
             </div>
-
         </div>
-
     </form>
+</div>
+<style>.form-control:focus { box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25); border-color: #1e3a5f; }</style>
 
 {% endblock body %}
 

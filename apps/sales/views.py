@@ -11,8 +11,7 @@ from django.db.models import Q, Case, When
 from .models import *
 from .forms import *
 from apps.hrm.models import Subsidiary, District, DocumentType, Employee, Worker, SubsidiarySerial, Province, Department
-from apps.comercial.models import DistributionMobil, Truck, DistributionDetail, \
-    Programming, Route, Guide, GuideDetail
+from apps.comercial.models import Truck, Guide, GuideDetail
 from django.contrib.auth.models import User
 from apps.hrm.views import get_subsidiary_by_user, get_sales_vs_expenses, get_subsidiary_by_user_id
 from apps.accounting.views import TransactionAccount, LedgerEntry, get_account_cash, Cash, CashFlow, AccountingAccount
@@ -1438,7 +1437,10 @@ def kardex_input(
         type_document='00',
         type_operation='99',
         credit_note_detail_obj=None,
-        credit_note_order_detail_obj=None
+        credit_note_order_detail_obj=None,
+        transfer_detail_obj=None,
+        batch_number=None,
+        batch_expiration_date=None
         # distribution_detail_obj=None,
 ):
     product_store = ProductStore.objects.get(pk=int(product_store_id))
@@ -1476,8 +1478,19 @@ def kardex_input(
         type_document=type_document,
         type_operation=type_operation,
         credit_note_detail=credit_note_detail_obj,
-        credit_note_order_detail=credit_note_order_detail_obj
+        credit_note_order_detail=credit_note_order_detail_obj,
+        transfer_detail=transfer_detail_obj
     )
+
+    if batch_number is not None and batch_expiration_date is not None:
+        Batch.objects.create(
+            batch_number=str(batch_number),
+            expiration_date=batch_expiration_date,
+            quantity=quantity,
+            remaining_quantity=quantity,
+            kardex=kardex_obj,
+            product_store=product_store
+        )
 
     product_store.stock = new_stock
     product_store.save()
@@ -1496,7 +1509,8 @@ def kardex_ouput(
         type_operation='99',
         credit_note_detail_obj=None,
         batch_obj=None,
-        picking_detail=None
+        picking_detail=None,
+        transfer_detail_obj=None
         # distribution_detail_obj=None,
 ):
     product_store = ProductStore.objects.get(pk=int(product_store_id))
@@ -1530,17 +1544,19 @@ def kardex_ouput(
         type_document=type_document,
         type_operation=type_operation,
         credit_note_detail=credit_note_detail_obj,
-        picking_detail=picking_detail
+        picking_detail=picking_detail,
+        transfer_detail=transfer_detail_obj
     )
 
-    Batch.objects.create(
-        batch_number=batch_obj.batch_number,
-        expiration_date=batch_obj.expiration_date,
-        quantity=decimal.Decimal(quantity),
-        remaining_quantity=batch_obj.remaining_quantity - decimal.Decimal(quantity),
-        kardex=kardex_obj,
-        product_store=product_store
-    )
+    if batch_obj:
+        Batch.objects.create(
+            batch_number=batch_obj.batch_number,
+            expiration_date=batch_obj.expiration_date,
+            quantity=decimal.Decimal(quantity),
+            remaining_quantity=batch_obj.remaining_quantity - decimal.Decimal(quantity),
+            kardex=kardex_obj,
+            product_store=product_store
+        )
 
     product_store.stock = new_stock
     product_store.save()
@@ -5638,7 +5654,8 @@ def kardex_list(request):
         'order_detail__order',
         'guide_detail',
         'bill_detail__bill',
-        'credit_note_detail__credit_note'
+        'credit_note_detail__credit_note',
+        'transfer_detail__transfer',
     )
                  .order_by('create_at', 'id')
                  )
@@ -5787,6 +5804,10 @@ def kardex_list(request):
         elif k.credit_note_detail and k.credit_note_detail.credit_note:
             serial = k.credit_note_detail.credit_note.credit_note_serial
             number = k.credit_note_detail.credit_note.credit_note_number
+        elif k.transfer_detail and k.transfer_detail.transfer:
+            t = k.transfer_detail.transfer
+            serial = t.serial or ''
+            number = t.correlative or ''
 
         item = {
             'id': k.id,

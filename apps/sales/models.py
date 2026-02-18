@@ -558,6 +558,8 @@ class Kardex(models.Model):
     credit_note_detail = models.ForeignKey('buys.CreditNoteDetail', on_delete=models.SET_NULL, null=True, blank=True)
     picking_detail = models.ForeignKey('comercial.PickingDetail', on_delete=models.SET_NULL, null=True, blank=True)
     credit_note_order_detail = models.ForeignKey('CreditNoteOrderDetail', on_delete=models.SET_NULL, null=True, blank=True)
+    transfer_detail = models.ForeignKey('comercial.TransferDetail', on_delete=models.SET_NULL, null=True, blank=True,
+                                        related_name='kardex_records')
 
     class Meta:
         verbose_name = 'Registro de Kardex'

@@ -1,0 +1,217 @@
+{% extends 'home.html' %}
+{% load static %}
+{% block title %}Recepcionar mercadería{% endblock title %}
+
+{% block body %}
+<div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+    <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+        <div class="card-header py-3" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3 class="text-white mb-0 font-weight-bold">
+                        <i class="fas fa-clipboard-check mr-2"></i> RECEPCIONAR MERCADERÍA - TRANSFERENCIAS PENDIENTES
+                    </h3>
+                </div>
+                <div class="col-md-4 text-right">
+                    <a href="{% url 'comercial:transfer_list' %}" class="btn btn-outline-light btn-sm border-2 rounded-pill">
+                        <i class="fas fa-list"></i> Ver todas
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0" style="background-color: #e3f2fd;">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                    <thead>
+                        <tr class="text-center font-weight-bold text-uppercase small" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+                            <th class="align-middle border-0 py-3">Código</th>
+                            <th class="align-middle border-0 py-3">Origen</th>
+                            <th class="align-middle border-0 py-3">Motivo</th>
+                            <th class="align-middle border-0 py-3">Fecha envío</th>
+                            <th class="align-middle border-0 py-3">Detalle</th>
+                            <th class="align-middle border-0 py-3">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in transfers %}
+                        <tr class="border-bottom" style="border-color: #bbdefb !important;">
+                            <td class="align-middle font-weight-bold text-primary">{{ t.code }}</td>
+                            <td class="align-middle">{{ t.origin_store.name|default:"—" }}</td>
+                            <td class="align-middle small">{{ t.guide_motive.description|default:"—" }}</td>
+                            <td class="align-middle small">{{ t.sent_at|date:"d/m/Y H:i"|default:"—" }}</td>
+                            <td class="align-middle small">
+                                <ul class="list-unstyled mb-0">
+                                    {% for d in t.details.all %}
+                                    <li>{{ d.product.name }}: {{ d.quantity }}{% if d.unit %} {{ d.unit.name }}{% endif %}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td class="align-middle">
+                                <button type="button" class="btn btn-success btn-sm rounded-pill btn-open-receive-modal" data-pk="{{ t.pk }}">
+                                    <i class="fas fa-check"></i> Aceptar recepción
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">No hay transferencias pendientes de recepción.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Modal: detalle de lo que llega y botón confirmar recepción #}
+<div class="modal fade" id="receiveTransferModal" tabindex="-1" role="dialog" aria-labelledby="receiveTransferModalTitle" aria-hidden="true" data-backdrop="static" data-keyboard="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content border-0 shadow" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header py-3 text-white border-0" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+                <h5 class="modal-title font-weight-bold text-white" id="receiveTransferModalTitle">
+                    <i class="fas fa-clipboard-list mr-2"></i> Detalle de recepción
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0" id="receiveTransferModalBody">
+                {# Contenido inyectado por JS desde #transfer-detail-{{ t.pk }} #}
+            </div>
+            <div class="modal-footer border-0 py-3 px-4" style="background-color: #e3f2fd;">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success rounded-pill px-4 font-weight-bold" id="btn-confirm-receive">
+                    <i class="fas fa-check-double mr-1"></i> Confirmar recepción
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Bloques de detalle por transferencia (ocultos, se clonan al modal) #}
+{% for t in transfers %}
+<div id="transfer-detail-{{ t.pk }}" class="transfer-detail-block d-none" data-pk="{{ t.pk }}">
+    <div class="p-4">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="small text-muted text-uppercase mb-1">Nº Documento</div>
+                <div class="font-weight-bold text-primary" style="font-size: 1.1rem;">
+                    {% if t.serial and t.correlative %}{{ t.serial }}-{{ t.correlative }}{% else %}{{ t.code|default:"—" }}{% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="small text-muted text-uppercase mb-1">Fecha de envío</div>
+                <div>{{ t.sent_at|date:"d/m/Y H:i"|default:"—" }}</div>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="small text-muted text-uppercase mb-1">Origen</div>
+                <div class="font-weight-bold">{{ t.origin_store.name|default:"—" }}</div>
+            </div>
+            <div class="col-md-6">
+                <div class="small text-muted text-uppercase mb-1">Destino</div>
+                <div class="font-weight-bold">{{ t.destination_store.name|default:"—" }}</div>
+            </div>
+        </div>
+        {% if t.guide_motive %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="small text-muted text-uppercase mb-1">Motivo</div>
+                <div>{{ t.guide_motive.description }}</div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="small text-muted text-uppercase mb-2">Mercadería que está llegando</div>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0" style="border-color: #bbdefb;">
+                <thead>
+                    <tr class="text-center font-weight-bold small" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+                        <th class="align-middle py-2 border-0">Item</th>
+                        <th class="align-middle py-2 border-0 text-left">Producto</th>
+                        <th class="align-middle py-2 border-0">Cant.</th>
+                        <th class="align-middle py-2 border-0">Und.</th>
+                        <th class="align-middle py-2 border-0">P. unit.</th>
+                        <th class="align-middle py-2 border-0">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in t.details.all %}
+                    <tr style="border-color: #bbdefb;">
+                        <td class="align-middle text-center">{{ forloop.counter }}</td>
+                        <td class="align-middle">{{ d.product.name|default:"—" }}</td>
+                        <td class="align-middle text-center">{{ d.quantity }}</td>
+                        <td class="align-middle text-center">{{ d.unit.name|default:"UND" }}</td>
+                        <td class="align-middle text-right">{{ d.unit_price|floatformat:2 }}</td>
+                        <td class="align-middle text-right font-weight-bold">{{ d.total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background-color: #e3f2fd; border-color: #bbdefb;">
+                        <td colspan="5" class="align-middle text-right font-weight-bold py-2">Total S/</td>
+                        <td class="align-middle text-right font-weight-bold py-2">{{ t.total_transfer|floatformat:2 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<style>
+    .form-control:focus { box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25); border-color: #1e3a5f; }
+    .table td, .table th { border-color: #bbdefb !important; }
+    #receiveTransferModal .modal-content { border: none; }
+</style>
+{% endblock body %}
+
+{% block extrajs %}
+<script>
+(function() {
+    var currentPk = null;
+    var $modal = $('#receiveTransferModal');
+    var $body = $('#receiveTransferModalBody');
+    var $btnConfirm = $('#btn-confirm-receive');
+
+    $(document).on('click', '.btn-open-receive-modal', function() {
+        var pk = $(this).data('pk');
+        currentPk = pk;
+        var $block = $('#transfer-detail-' + pk);
+        if ($block.length) {
+            $body.empty().append($block.contents().clone());
+            $modal.modal('show');
+        }
+    });
+
+    $modal.on('hidden.bs.modal', function() {
+        currentPk = null;
+        $body.empty();
+        $btnConfirm.prop('disabled', false);
+    });
+
+    $btnConfirm.on('click', function() {
+        if (!currentPk) return;
+        var btn = $btnConfirm;
+        btn.prop('disabled', true);
+        $.ajax({
+            url: "{% url 'comercial:transfer_accept' 0 %}".replace('/0/', '/' + currentPk + '/'),
+            type: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+            success: function() {
+                $modal.modal('hide');
+                if (typeof toastr !== 'undefined') toastr.success('Transferencia recepcionada correctamente.');
+                var $row = $('button[data-pk="' + currentPk + '"]').closest('tr');
+                $row.fadeOut(400, function() { $(this).remove(); });
+            },
+            error: function(xhr) {
+                var msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Error al recepcionar';
+                if (typeof toastr !== 'undefined') toastr.error(msg);
+                btn.prop('disabled', false);
+            }
+        });
+    });
+})();
+</script>
+{% endblock extrajs %}

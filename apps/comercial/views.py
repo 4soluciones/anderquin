@@ -1,6 +1,6 @@
 import decimal
 from http import HTTPStatus
-from django.db.models import Q, Max, F, Prefetch, OuterRef, Subquery, Value, IntegerField
+from django.db.models import Q, Max, F, Prefetch, OuterRef, Subquery, Value, IntegerField, Sum
 from django.db.models.functions import Coalesce, Cast
 from django.shortcuts import render
 from django.views.generic import View, TemplateView, UpdateView, CreateView
@@ -10,7 +10,7 @@ from apps.hrm.models import Subsidiary, Employee, District, Department, Province
 from django.http import JsonResponse
 from .forms import *
 from django.urls import reverse_lazy
-from apps.sales.models import Product, SubsidiaryStore, ProductStore, ProductDetail, ProductSubcategory, \
+from apps.sales.models import Product, SubsidiaryStore, ProductStore, ProductDetail, ProductSubcategory, Unit, \
     ProductSupplier, TransactionPayment, Order, LoanPayment, ClientAddress, Batch
 from apps.sales.views import kardex_ouput, kardex_input, kardex_initial, calculate_minimum_unit, Supplier
 from apps.hrm.models import Subsidiary
@@ -333,42 +333,6 @@ def modal_guide_carrier(request):
         }, status=HTTPStatus.OK)
 
 
-def get_programming_guide(request):
-    if request.method == 'GET':
-        id_programming = request.GET.get('programming', '')
-        programming_obj = Programming.objects.get(id=int(id_programming))
-        pilot = programming_obj.setemployee_set.filter(function='P').first().employee
-        name = pilot.names + ' ' + pilot.paternal_last_name
-
-        # print(programming_obj.route_set.filter(type='O').first().subsidiary.name)
-
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='V').first()
-        products = Product.objects.filter(productstore__subsidiary_store=subsidiary_store_obj)
-
-        tpl = loader.get_template('comercial/detail_guide.html')
-        context = ({
-            'products': products,
-            'type': GuideDetail._meta.get_field('type').choices,
-        })
-        return JsonResponse({
-            'origin': programming_obj.route_set.filter(type='O').first().subsidiary.name,
-            'destiny': programming_obj.route_set.filter(type='D').first().subsidiary.name,
-            'pilot': name,
-            'departure_date': programming_obj.departure_date,
-            'products_grids': tpl.render(context),
-            'license_plate': programming_obj.truck.license_plate,
-            'truck_brand': programming_obj.truck.truck_model.truck_brand.name,
-            'truck_serial': programming_obj.truck.serial,
-            'license': programming_obj.setemployee_set.filter(function='P').first().employee.n_license,
-            'license_type': programming_obj.setemployee_set.filter(
-                function='P').first().employee.get_license_type_display(),
-
-        }, status=HTTPStatus.OK)
-
-
 def get_quantity_product(request):
     if request.method == 'GET':
         id_product = request.GET.get('pk', '')
@@ -393,62 +357,6 @@ def get_quantity_product(request):
         }, status=HTTPStatus.OK)
 
 
-# def create_guide(request):
-#     if request.method == 'GET':
-#         guides_request = request.GET.get('guides', '')
-#         data_guides = json.loads(guides_request)
-#         print(data_guides)
-#         user_id = request.user.id
-#         user_obj = User.objects.get(pk=int(user_id))
-#         serial = str(data_guides["Serial"])
-#         code = str(data_guides["Code"])
-#         minimal_cost = float(data_guides["Minimal_cost"])
-#         programming = int(data_guides["Programming"])
-#         programming_obj = Programming.objects.get(pk=programming)
-#
-#         new_guide = {
-#             'serial': serial,
-#             'code': code,
-#             # 'minimal_cost': minimal_cost,
-#             'user': user_obj,
-#             'programming': programming_obj,
-#         }
-#         guide_obj = Guide.objects.create(**new_guide)
-#         guide_obj.save()
-#
-#         for detail in data_guides['Details']:
-#             quantity = int(detail['Quantity'])
-#
-#             # recuperamos del producto
-#             product_id = int(detail['Product'])
-#             product_obj = Product.objects.get(id=product_id)
-#
-#             # recuperamos la unidad
-#             unit_id = int(detail['Unit'])
-#             unit_obj = Unit.objects.get(id=unit_id)
-#             _type = detail["type"]
-#             new_detail_guide = {
-#                 'guide': guide_obj,
-#                 'product': product_obj,
-#                 'quantity': quantity,
-#                 'unit_measure': unit_obj,
-#                 'type': _type,
-#
-#             }
-#             new_detail_guide_obj = GuideDetail.objects.create(**new_detail_guide)
-#             new_detail_guide_obj.save()
-#
-#             # recuperamos del almacen
-#             store_id = int(detail['Store'])
-#
-#             kardex_ouput(store_id, quantity, guide_detail_obj=new_detail_guide_obj)
-#         return JsonResponse({
-#             'message': 'Se guardo la guia correctamente.',
-#             'programming': programming_obj.id,
-#             'guide': guide_obj.id
-#         }, status=HTTPStatus.OK)
-
-
 def guide_detail_list(request):
     # programmings = Programming.objects.filter(status__in=['P'], guide__isnull=False).order_by('id')
     date_now = datetime.now().strftime("%Y-%m-%d")
@@ -469,20 +377,6 @@ def report_guide_by_plate(request):
             'trucks': truck_set,
         })
     return JsonResponse({'error': True, 'message': 'Error de peticion.'})
-
-
-def report_guides_by_plate_grid(request):
-    if request.method == 'POST':
-        start_date = request.POST.get('start-date', '')
-        end_date = request.POST.get('end-date', '')
-        truck_plate = request.POST.get('plate', '')
-
-        programmings_set = Programming.objects.filter(status__in=['F'], departure_date__range=(start_date, end_date),
-                                                      guide__isnull=False, truck=truck_plate).order_by('departure_date')
-
-        return JsonResponse({
-            'grid': get_dict_programming_guides_queries(programmings_set),
-        }, status=HTTPStatus.OK)
 
 
 def get_dict_programming_guides_queries(programmings_set):
@@ -537,79 +431,6 @@ def get_dict_programming_guides_queries(programmings_set):
     })
 
     return tpl.render(context)
-
-
-def guide_by_programming(request):
-    if request.method == 'GET':
-        id_programming = request.GET.get('programming', '')
-        programming_obj = Programming.objects.get(id=int(id_programming))
-        guide_obj = Guide.objects.filter(programming=programming_obj).first()
-        details = GuideDetail.objects.filter(guide=guide_obj)
-
-        tpl = loader.get_template('comercial/guide_detail_list.html')
-        context = ({'guide': guide_obj, 'details': details})
-        return JsonResponse({
-            # 'message': 'guias recuperadas',
-            'grid': tpl.render(context),
-        }, status=HTTPStatus.OK)
-
-
-def programmings_by_date(request):
-    if request.method == 'GET':
-        start_date = request.GET.get('start_date', '')
-        end_date = request.GET.get('end_date', '')
-        programmings = Programming.objects.filter(status__in=['F'], departure_date__range=(start_date, end_date),
-                                                  guide__isnull=False).order_by('id')
-
-        tpl = loader.get_template('comercial/guide_detail_programming_list.html')
-        context = ({'programmings': programmings})
-        return JsonResponse({
-            'grid': tpl.render(context),
-        }, status=HTTPStatus.OK)
-
-
-def programming_receive_by_sucursal(request):
-    if request.method == 'GET':
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        routes = Route.objects.filter(type='D', subsidiary=subsidiary_obj)
-        # programmings = Programming.objects.filter(status__in=['P'], guide__isnull=False, route__in=routes).order_by('id')
-        programmings = Programming.objects.filter(status__in=['P'], route__in=routes).order_by('id')
-
-        status_obj = Programming._meta.get_field('status').choices
-        return render(request, 'comercial/programming_receive.html', {
-            'programmings': programmings,
-            'choices_status': status_obj,
-
-        })
-
-
-def programming_receive_by_sucursal_detail_guide(request):
-    if request.method == 'GET':
-        id_programming = request.GET.get('programming', '')
-        programming_obj = Programming.objects.get(id=int(id_programming))
-        guide_obj = Guide.objects.filter(programming=programming_obj).first()
-        details = GuideDetail.objects.filter(guide=guide_obj)
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        subsidiaries_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj)
-        # product_store_obj = ProductStore.objects.get(subsidiary_store=subsidiaries_store_obj)
-
-        tpl = loader.get_template('comercial/programming_receive_detail.html')
-        context = ({
-            'guide': guide_obj,
-            'details': details,
-            'subsidiaries_store': subsidiaries_store_obj,
-
-        })
-
-        return JsonResponse({
-            'message': 'guias recuperadas',
-            'grid': tpl.render(context),
-        }, status=HTTPStatus.OK)
-
 
 def get_stock_by_store(request):
     if request.method == 'GET':
@@ -710,146 +531,6 @@ def get_products_by_subsidiary_store(request):
         }, status=HTTPStatus.OK)
 
 
-def create_output_transfer(request):
-    if request.method == 'GET':
-        output_request = request.GET.get('transfer')
-        data_transfer = json.loads(output_request)
-
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        document_number = str(data_transfer["Document"])
-        total = decimal.Decimal((data_transfer["Total"]).replace(',', '.'))
-        document_type_attached = str(data_transfer["DocumentTypeAttached"])
-        motive = int(data_transfer["Motive"])
-        observation = str(data_transfer["Observation"])
-        # Outputs: 1, 3, 6, 7
-        # Transfers: 4
-        a = [1, 3, 4, 6, 7]
-        if motive not in a:
-            data = {'error': "solo se permite traspase entre almacenes de la misma sede y/o salidas permitidas."}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
-
-        motive_obj = GuideMotive.objects.get(id=motive)
-        origin = int(data_transfer["Origin"])
-        origin_obj = SubsidiaryStore.objects.get(id=origin)
-
-        destiny = int(data_transfer["Destiny"])
-        destiny_obj = None
-        if destiny != 0:
-            destiny_obj = SubsidiaryStore.objects.get(id=destiny)
-        if motive == 4 and destiny_obj is None:
-            data = {'error': "no selecciono almacen destino."}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
-
-        function = 'S'
-        status = '1'  # En transito
-        if motive != 4:  # if is not transfer
-            function = 'A'
-            status = '5'  # Extraido
-
-        new_guide_obj = Guide(
-            serial=subsidiary_obj.serial,
-            document_number=document_number,
-            document_type_attached=document_type_attached,
-            # minimal_cost=total,
-            observation=observation.strip(),
-            user=user_obj,
-            guide_motive=motive_obj,
-            status=status,
-            subsidiary=subsidiary_obj,
-        )
-        new_guide_obj.save()
-
-        new_origin_route_obj = Route(
-            guide=new_guide_obj,
-            subsidiary_store=origin_obj,
-            type='O',
-        )
-        new_origin_route_obj.save()
-
-        if destiny_obj is not None:
-            new_destiny_route_obj = Route(
-                guide=new_guide_obj,
-                subsidiary_store=destiny_obj,
-                type='D',
-            )
-            new_destiny_route_obj.save()
-
-        new_guide_employee_obj = GuideEmployee(
-            guide=new_guide_obj,
-            user=user_obj,
-            function=function,
-        )
-        new_guide_employee_obj.save()
-
-        for details in data_transfer['Details']:
-            product_id = int(details["Product"])
-            product_store_id = int(details["ProductStore"])
-            unit_id = int(details["Unit"])
-            quantity_request = decimal.Decimal(details["Quantity"])
-            price = decimal.Decimal(details["Price"])
-
-            product_obj = Product.objects.get(id=product_id)
-            unit_obj = Unit.objects.get(id=unit_id)
-
-            new_guide_detail_obj = GuideDetail(
-                guide=new_guide_obj,
-                product=product_obj,
-                quantity_request=quantity_request,
-                quantity_sent=quantity_request,
-                quantity=quantity_request,
-                unit_measure=unit_obj,
-            )
-            new_guide_detail_obj.save()
-
-            if motive != 4:
-                product_store_obj = ProductStore.objects.get(id=product_store_id)
-                # kardex_ouput(product_store_obj.id, quantity_request, guide_detail_obj=new_guide_detail_obj)
-
-        return JsonResponse({
-            'message': 'La operación se Realizo correctamente.',
-            'guide_id': new_guide_obj.id,
-        }, status=HTTPStatus.OK)
-
-
-def output_change_status(request):
-    if request.method == 'GET':
-        guide_id = request.GET.get('pk', '')
-        status_id = request.GET.get('status', '')
-        guide_obj = Guide.objects.get(id=int(guide_id))
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-
-        if status_id == '2':  # Approve
-            guide_obj.status = status_id
-            guide_obj.save()
-            new_guide_employee_obj = GuideEmployee(
-                guide=guide_obj,
-                user=user_obj,
-                function='A',
-            )
-            new_guide_employee_obj.save()
-
-        elif status_id == '4':  # Cancel
-            guide_obj.status = status_id
-            guide_obj.save()
-            new_guide_employee_obj = GuideEmployee(
-                guide=guide_obj,
-                user=user_obj,
-                function='C',
-            )
-            new_guide_employee_obj.save()
-
-        return JsonResponse({
-            'message': 'Se cambio el estado correctamente.',
-        }, status=HTTPStatus.OK)
-
-
 def output_workflow(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
@@ -915,88 +596,6 @@ def input_workflow_from_output(request):
     })
 
 
-def create_input_transfer(request):
-    if request.method == 'GET':
-        production_request = request.GET.get('transfer')
-        data_transfer = json.loads(production_request)
-
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        document_number = str(data_transfer["Document"])
-        total = decimal.Decimal((data_transfer["Total"]).replace(',', '.'))
-        document_type_attached = str(data_transfer["DocumentTypeAttached"])
-        motive = int(data_transfer["Motive"])
-        # if motive != 4:
-        #     data = {'error': "solo se permite traspase entre almacenes de la misma sede."}
-        #     response = JsonResponse(data)
-        #     response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        #     return response
-        motive_obj = GuideMotive.objects.get(id=motive)
-        destiny = int(data_transfer["Destiny"])
-        destiny_obj = SubsidiaryStore.objects.get(id=destiny)
-        observation = str(data_transfer["Observation"])
-
-        new_guide_obj = Guide(
-            serial=subsidiary_obj.serial,
-            document_number=document_number,
-            document_type_attached=document_type_attached,
-            # minimal_cost=total,
-            observation=observation.strip(),
-            user=user_obj,
-            guide_motive=motive_obj,
-            status='2',
-            subsidiary=subsidiary_obj,
-        )
-        new_guide_obj.save()
-
-        new_destiny_route_obj = Route(
-            guide=new_guide_obj,
-            subsidiary_store=destiny_obj,
-            type='D',
-        )
-        new_destiny_route_obj.save()
-
-        new_guide_employee_obj = GuideEmployee(
-            guide=new_guide_obj,
-            user=user_obj,
-            function='A',
-        )
-        new_guide_employee_obj.save()
-
-        for details in data_transfer['Details']:
-            product_id = int(details["Product"])
-            unit_id = int(details["Unit"])
-            quantity = decimal.Decimal(details["Quantity"])
-            price = decimal.Decimal(details["Price"])
-
-            product_obj = Product.objects.get(id=product_id)
-            unit_obj = Unit.objects.get(id=unit_id)
-
-            new_guide_detail_obj = GuideDetail(
-                guide=new_guide_obj,
-                product=product_obj,
-                quantity=quantity,
-                unit_measure=unit_obj,
-            )
-            new_guide_detail_obj.save()
-
-            product_store_obj = ProductStore.objects.filter(product=product_obj, subsidiary_store=destiny_obj).last()
-            if product_store_obj:
-                kardex_input(product_store_obj.id, quantity, price, guide_detail_obj=new_guide_detail_obj)
-            else:
-                product_store_obj = ProductStore(product=product_obj, subsidiary_store=destiny_obj, stock=quantity)
-                product_store_obj.save()
-                kardex_initial(product_store_obj, stock=quantity, price_unit=price,
-                               guide_detail_obj=new_guide_detail_obj)
-
-        return JsonResponse({
-            'message': 'La operación se Realizo correctamente.',
-            'guide_id': new_guide_obj.id,
-
-        }, status=HTTPStatus.OK)
-
-
 def get_merchandise_of_output(request):
     if request.method == 'GET':
         pk = request.GET.get('pk', '')
@@ -1020,112 +619,388 @@ def get_merchandise_of_output(request):
         })
 
 
-def new_input_from_output(request):
-    if request.method == 'GET':
-        transfer_request = request.GET.get('transfer', '')
-        data = json.loads(transfer_request)
+# --------------- Transferencias entre almacenes ---------------
 
-        output_guide_id = int(data['Guide'])
-        output_guide_obj = Guide.objects.get(pk=output_guide_id)
+def _next_transfer_code():
+    from django.db.models import Max
+    today = date.today().strftime('%Y%m%d')
+    prefix = f'TRF-{today}-'
+    last = Transfer.objects.filter(code__startswith=prefix).aggregate(Max('code'))['code__max']
+    if last:
+        try:
+            n = int(last.split('-')[-1]) + 1
+        except (ValueError, IndexError):
+            n = 1
+    else:
+        n = 1
+    return f'{prefix}{n:04d}'
 
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
 
-        observation = str(data["Observation"])
+def _next_transfer_serial_correlative():
+    """Devuelve (serial, correlativo) para el siguiente documento de transferencia."""
+    from django.db.models import Max
+    serial = 'TRA'
+    last = Transfer.objects.filter(serial=serial).aggregate(Max('correlative'))['correlative__max']
+    if last:
+        try:
+            n = int(last) + 1
+        except (ValueError, TypeError):
+            n = 1
+    else:
+        n = 1
+    correlative = str(n).zfill(5)
+    return serial, correlative
 
-        subsidiary_store_destiny_obj = output_guide_obj.get_destiny()
-        subsidiary_store_origin_obj = output_guide_obj.get_origin()
-        motive_obj = GuideMotive.objects.get(id=15)  # transfer
 
-        # register new guide
-        input_guide_obj = Guide(
-            serial=subsidiary_store_destiny_obj.subsidiary.serial,
-            document_number=output_guide_obj.get_serial(),
-            document_type_attached=output_guide_obj.document_type_attached,
-            # minimal_cost=total,
-            observation=observation.strip(),
-            user=user_obj,
-            guide_motive=motive_obj,
-            status='2',
-            subsidiary=subsidiary_store_destiny_obj.subsidiary,
+def transfer_list(request):
+    user_obj = request.user
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+    transfers = Transfer.objects.filter(
+        Q(origin_store__subsidiary=subsidiary_obj) | Q(destination_store__subsidiary=subsidiary_obj)
+    ).select_related('origin_store', 'destination_store', 'guide_motive', 'user').prefetch_related('details').order_by('-created_at')
+    return render(request, 'comercial/transfer_list.html', {
+        'transfers': transfers,
+        'status_choices': Transfer.STATUS,
+        'subsidiary': subsidiary_obj,
+    })
+
+
+def transfer_create(request):
+    user_obj = request.user
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+    motives = GuideMotive.objects.filter(type='S', code__isnull=True)
+    store_origin = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj).order_by('name')
+    stores = SubsidiaryStore.objects.all().order_by('name')
+    # Almacén por defecto (origen): primer almacén de la sede del usuario
+    default_origin_store = store_origin.first()
+    default_origin_store_id = default_origin_store.id if default_origin_store else None
+    # Destino: todos los almacenes de la empresa (misma sede) excepto el del usuario
+    stores_destination = stores.exclude(id=default_origin_store_id) if default_origin_store_id else stores
+    next_serial, next_correlative = _next_transfer_serial_correlative()
+    next_document_number = f'{next_serial}-{next_correlative}'
+    return render(request, 'comercial/transfer_create.html', {
+        'motives': motives,
+        'stores': stores,
+        'stores_destination': stores_destination,
+        'default_origin_store_id': default_origin_store_id,
+        'subsidiary': subsidiary_obj,
+        'next_serial': next_serial,
+        'next_correlative': next_correlative,
+        'next_document_number': next_document_number,
+    })
+
+
+def get_products_batches_by_store(request):
+    """Devuelve productos con stock y lotes disponibles en un almacén (para transferencia salida/destino)."""
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Método no permitido'}, status=HTTPStatus.BAD_REQUEST)
+    store_id = request.GET.get('store_id')
+    include_zero_stock = request.GET.get('include_zero_stock', '') == '1'
+    if not store_id:
+        return JsonResponse({'error': 'Falta store_id'}, status=HTTPStatus.BAD_REQUEST)
+    try:
+        store = SubsidiaryStore.objects.get(id=int(store_id))
+    except (SubsidiaryStore.DoesNotExist, ValueError):
+        return JsonResponse({'error': 'Almacén no encontrado'}, status=HTTPStatus.NOT_FOUND)
+    from apps.sales.models import Kardex
+    qs = ProductStore.objects.filter(subsidiary_store=store).order_by('product__name')
+    if not include_zero_stock:
+        qs = qs.filter(stock__gt=0)
+    product_stores = qs
+    result = []
+    for ps in product_stores:
+        # Unidades con factor de conversión (quantity_minimum = equiv. en unidad base)
+        units_qs = ProductDetail.objects.filter(product=ps.product, is_enabled=True).select_related('unit').order_by('quantity_minimum')
+        units = [
+            {'id': pd.unit.id, 'name': pd.unit.name, 'quantity_minimum': str(pd.quantity_minimum)}
+            for pd in units_qs
+        ]
+        batches = list(Batch.objects.filter(product_store=ps).filter(remaining_quantity__gt=0).order_by('expiration_date').values('id', 'batch_number', 'expiration_date', 'remaining_quantity'))
+        last_k = Kardex.objects.filter(product_store=ps).order_by('-id').first()
+        price_unit = str(last_k.remaining_price) if last_k else '0'
+        result.append({
+            'product_id': ps.product.id,
+            'product_name': ps.product.name,
+            'product_code': getattr(ps.product, 'code', ''),
+            'product_store_id': ps.id,
+            'stock': str(ps.stock),
+            'units': units,
+            'batches': batches,
+            'price_unit': price_unit,
+        })
+    return JsonResponse({'products': result}, status=HTTPStatus.OK)
+
+
+def get_product_store_price(request):
+    """Precio unitario (costo) del producto en el almacén."""
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Método no permitido'}, status=HTTPStatus.BAD_REQUEST)
+    product_store_id = request.GET.get('product_store_id')
+    if not product_store_id:
+        return JsonResponse({'price': '0'}, status=HTTPStatus.OK)
+    try:
+        from apps.sales.models import Kardex
+        last = Kardex.objects.filter(product_store_id=int(product_store_id)).order_by('-id').first()
+        price = str(last.remaining_price) if last else '0'
+    except Exception:
+        price = '0'
+    return JsonResponse({'price': price}, status=HTTPStatus.OK)
+
+
+def transfer_save(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=HTTPStatus.BAD_REQUEST)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'JSON inválido'}, status=HTTPStatus.BAD_REQUEST)
+    origin_id = data.get('origin_store_id')
+    destination_id = data.get('destination_store_id')
+    motive_id = data.get('guide_motive_id')
+    observation = (data.get('observation') or '').strip()
+    details = data.get('details', [])
+    if not origin_id or not destination_id or int(origin_id) == int(destination_id):
+        return JsonResponse({'success': False, 'error': 'Seleccione almacén origen y destino distintos'}, status=HTTPStatus.BAD_REQUEST)
+    if not motive_id:
+        return JsonResponse({'success': False, 'error': 'Seleccione motivo de transferencia'}, status=HTTPStatus.BAD_REQUEST)
+    if not details:
+        return JsonResponse({'success': False, 'error': 'Agregue al menos un producto'}, status=HTTPStatus.BAD_REQUEST)
+    try:
+        origin_store = SubsidiaryStore.objects.get(id=int(origin_id))
+        destination_store = SubsidiaryStore.objects.get(id=int(destination_id))
+        guide_motive = GuideMotive.objects.get(id=int(motive_id))
+    except (SubsidiaryStore.DoesNotExist, GuideMotive.DoesNotExist, ValueError) as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=HTTPStatus.BAD_REQUEST)
+    code = _next_transfer_code()
+    serial, correlative = _next_transfer_serial_correlative()
+    transfer = Transfer.objects.create(
+        code=code,
+        serial=serial,
+        correlative=correlative,
+        origin_store=origin_store,
+        destination_store=destination_store,
+        guide_motive=guide_motive,
+        status='C',
+        observation=observation or None,
+        user=request.user,
+    )
+    now = datetime.now()
+    for d in details:
+        product_id = d.get('product_id')
+        product_store_id = d.get('product_store_id')
+        quantity = decimal.Decimal(str(d.get('quantity', 0)))
+        unit_id = d.get('unit_id')
+        batch_id = d.get('batch_id')
+        unit_price = decimal.Decimal(str(d.get('unit_price', 0)))
+        if quantity <= 0 or not product_id or not product_store_id:
+            continue
+        try:
+            product = Product.objects.get(id=int(product_id))
+            product_store_origin = ProductStore.objects.get(id=int(product_store_id))
+        except (Product.DoesNotExist, ProductStore.DoesNotExist, ValueError):
+            continue
+        unit_obj = None
+        if unit_id:
+            try:
+                unit_obj = Unit.objects.get(id=int(unit_id))
+            except Unit.DoesNotExist:
+                pass
+        batch_obj = None
+        if batch_id:
+            try:
+                batch_obj = Batch.objects.get(id=int(batch_id), product_store=product_store_origin)
+            except Batch.DoesNotExist:
+                pass
+        if product_store_origin.stock < quantity:
+            transfer.delete()
+            return JsonResponse({'success': False, 'error': f'Stock insuficiente para {product.name}'}, status=HTTPStatus.BAD_REQUEST)
+        total_line = quantity * unit_price
+        detail = TransferDetail.objects.create(
+            transfer=transfer,
+            product=product,
+            unit=unit_obj,
+            quantity=quantity,
+            batch=batch_obj,
+            unit_price=unit_price,
+            total=total_line,
         )
-        input_guide_obj.save()
-
-        new_destiny_route_obj = Route(
-            guide=input_guide_obj,
-            subsidiary_store=subsidiary_store_destiny_obj,
-            type='D',
+        kardex_ouput(
+            product_store_id=product_store_origin.id,
+            quantity=quantity,
+            type_document='00',
+            type_operation='11',
+            batch_obj=batch_obj,
+            transfer_detail_obj=detail,
         )
-        new_destiny_route_obj.save()
+    transfer.status = 'E'
+    transfer.sent_at = now
+    transfer.save(update_fields=['status', 'sent_at'])
+    return JsonResponse({'success': True, 'code': transfer.code, 'id': transfer.id}, status=HTTPStatus.OK)
 
-        new_guide_employee_obj = GuideEmployee(
-            guide=input_guide_obj,
-            user=user_obj,
-            function='A',
+
+def transfer_receive_list(request):
+    user_obj = request.user
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+    transfers = Transfer.objects.filter(
+        destination_store__subsidiary=subsidiary_obj,
+        status='E',
+    ).select_related('origin_store', 'destination_store', 'guide_motive', 'user').prefetch_related('details', 'details__product', 'details__batch', 'details__unit').annotate(total_transfer=Coalesce(Sum('details__total'), 0)).order_by('-sent_at')
+    return render(request, 'comercial/transfer_receive_list.html', {
+        'transfers': transfers,
+    })
+
+
+def transfer_accept(request, pk):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=HTTPStatus.METHOD_NOT_ALLOWED)
+    try:
+        transfer = Transfer.objects.get(pk=pk, status='E')
+    except Transfer.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Transferencia no encontrada o ya recibida'}, status=HTTPStatus.NOT_FOUND)
+    subsidiary_obj = get_subsidiary_by_user(request.user)
+    if transfer.destination_store.subsidiary_id != subsidiary_obj.id:
+        return JsonResponse({'success': False, 'error': 'No puede recepcionar en esta sede'}, status=HTTPStatus.FORBIDDEN)
+    dest_store = transfer.destination_store
+    for detail in transfer.details.all():
+        try:
+            product_store_dest, _ = ProductStore.objects.get_or_create(
+                product=detail.product,
+                subsidiary_store=dest_store,
+                defaults={'stock': 0},
+            )
+        except Exception:
+            return JsonResponse({'success': False, 'error': f'Error al obtener almacén destino para {detail.product.name}'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        total_cost = detail.total
+        batch_number = None
+        batch_expiration = None
+        if detail.batch_id:
+            batch_number = detail.batch.batch_number
+            batch_expiration = detail.batch.expiration_date
+        has_kardex = False
+        try:
+            from apps.sales.models import Kardex
+            has_kardex = Kardex.objects.filter(product_store=product_store_dest).exists()
+        except Exception:
+            pass
+        if not has_kardex:
+            kardex_initial(product_store_dest, detail.quantity, detail.unit_price)
+            product_store_dest.stock = product_store_dest.stock + detail.quantity
+            product_store_dest.save(update_fields=['stock'])
+            if batch_number is not None and batch_expiration is not None:
+                from apps.sales.models import Kardex, Batch as BatchModel
+                last_k = Kardex.objects.filter(product_store=product_store_dest).order_by('-id').first()
+                if last_k:
+                    BatchModel.objects.create(
+                        batch_number=str(batch_number),
+                        expiration_date=batch_expiration,
+                        quantity=detail.quantity,
+                        remaining_quantity=detail.quantity,
+                        kardex=last_k,
+                        product_store=product_store_dest,
+                    )
+        else:
+            kardex_input(
+                product_store_id=product_store_dest.id,
+                quantity=detail.quantity,
+                total_cost=total_cost,
+                type_document='00',
+                type_operation='11',
+                transfer_detail_obj=detail,
+                batch_number=batch_number,
+                batch_expiration_date=batch_expiration,
+            )
+    transfer.status = 'R'
+    transfer.received_at = datetime.now()
+    transfer.received_by = request.user
+    transfer.save(update_fields=['status', 'received_at', 'received_by'])
+    return JsonResponse({'success': True, 'message': 'Transferencia recepcionada correctamente'}, status=HTTPStatus.OK)
+
+
+def direct_input_warehouse(request):
+    user_obj = request.user
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+    stores = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj).order_by('name')
+    products = Product.objects.filter(productstore__subsidiary_store__subsidiary=subsidiary_obj).distinct().order_by('name')
+    if request.method == 'POST':
+        store_id = request.POST.get('store_id')
+        product_id = request.POST.get('product_id')
+        quantity = request.POST.get('quantity')
+        unit_id = request.POST.get('unit_id')
+        batch_number = request.POST.get('batch_number', '').strip()
+        batch_expiration = request.POST.get('batch_expiration', '').strip()
+        unit_price = request.POST.get('unit_price', '0')
+        if not store_id or not product_id or not quantity:
+            return render(request, 'comercial/direct_input_warehouse.html', {
+                'stores': stores,
+                'products': products,
+                'error': 'Complete almacén, producto y cantidad.',
+            })
+        try:
+            qty = decimal.Decimal(quantity)
+            price = decimal.Decimal(unit_price or '0')
+        except Exception:
+            return render(request, 'comercial/direct_input_warehouse.html', {
+                'stores': stores,
+                'products': products,
+                'error': 'Cantidad y precio deben ser numéricos.',
+            })
+        if qty <= 0:
+            return render(request, 'comercial/direct_input_warehouse.html', {
+                'stores': stores,
+                'products': products,
+                'error': 'La cantidad debe ser mayor a cero.',
+            })
+        try:
+            store = SubsidiaryStore.objects.get(id=int(store_id), subsidiary=subsidiary_obj)
+            product = Product.objects.get(id=int(product_id))
+        except (SubsidiaryStore.DoesNotExist, Product.DoesNotExist):
+            return render(request, 'comercial/direct_input_warehouse.html', {
+                'stores': stores,
+                'products': products,
+                'error': 'Almacén o producto no válido.',
+            })
+        product_store, _ = ProductStore.objects.get_or_create(
+            product=product,
+            subsidiary_store=store,
+            defaults={'stock': 0},
         )
-        new_guide_employee_obj.save()
-        # register new guide
-
-        for detail in data['Details']:
-            detail_id = int(detail["Detail"])
-            quantity = decimal.Decimal(str(detail["Quantity"]).replace(',', '.'))
-
-            if quantity > 0:
-
-                # update output guide detail
-                output_guide_detail_obj = GuideDetail.objects.get(id=detail_id)
-                output_guide_detail_obj.quantity = quantity
-                output_guide_detail_obj.save()
-                # update output guide detail
-
-                # output kardex
-                output_product_store_obj = ProductStore.objects.get(
-                    product=output_guide_detail_obj.product, subsidiary_store=subsidiary_store_origin_obj)
-                # kardex_ouput(output_product_store_obj.id, quantity, guide_detail_obj=output_guide_detail_obj)
-                # output kardex
-
-                # register input guide detail
-                input_guide_detail_obj = GuideDetail(
-                    guide=input_guide_obj,
-                    product=output_guide_detail_obj.product,
-                    quantity=quantity,
-                    unit_measure=output_guide_detail_obj.unit_measure,
-                )
-                input_guide_detail_obj.save()
-                # register input guide detail
-
-                # input kardex
-                input_product_store_obj = ProductStore.objects.filter(
-                    product=output_guide_detail_obj.product, subsidiary_store=subsidiary_store_destiny_obj).last()
-                if input_product_store_obj:
-                    kardex_input(input_product_store_obj.id,
-                                 quantity,
-                                 output_guide_detail_obj.product.calculate_minimum_price_sale(),
-                                 guide_detail_obj=input_guide_detail_obj)
-                else:
-                    input_product_store_obj = ProductStore(product=output_guide_detail_obj.product,
-                                                           subsidiary_store=subsidiary_store_destiny_obj,
-                                                           stock=quantity)
-                    input_product_store_obj.save()
-                    kardex_initial(input_product_store_obj,
-                                   stock=quantity,
-                                   price_unit=output_guide_detail_obj.product.calculate_minimum_price_sale(),
-                                   guide_detail_obj=input_guide_detail_obj)
-                # input kardex
-        output_guide_obj.status = '3'
-        output_guide_obj.observation = observation
-        output_guide_obj.save()
-
-        new_guide_employee_obj = GuideEmployee(
-            guide=output_guide_obj,
-            user=user_obj,
-            function='A',
-        )
-        new_guide_employee_obj.save()
-        return JsonResponse({
-            'message': 'La operación se Realizo correctamente.',
-            'guide_id': input_guide_obj.id,
-        }, status=HTTPStatus.OK)
+        from apps.sales.models import Kardex
+        has_kardex = Kardex.objects.filter(product_store=product_store).exists()
+        total_cost = qty * price
+        batch_expiration_date = date.fromisoformat(batch_expiration) if batch_expiration else None
+        if not has_kardex:
+            kardex_initial(product_store, qty, price)
+            if batch_number and batch_expiration_date:
+                from apps.sales.models import Batch as BatchModel
+                last_k = Kardex.objects.filter(product_store=product_store).order_by('-id').first()
+                if last_k:
+                    BatchModel.objects.create(
+                        batch_number=batch_number,
+                        expiration_date=batch_expiration_date,
+                        quantity=qty,
+                        remaining_quantity=qty,
+                        kardex=last_k,
+                        product_store=product_store,
+                    )
+        else:
+            kardex_input(
+                product_store_id=product_store.id,
+                quantity=qty,
+                total_cost=total_cost,
+                type_document='00',
+                type_operation='99',
+                batch_number=batch_number or None,
+                batch_expiration_date=batch_expiration_date,
+            )
+        return render(request, 'comercial/direct_input_warehouse.html', {
+            'stores': stores,
+            'products': products,
+            'success': 'Ingreso registrado correctamente.',
+        })
+    return render(request, 'comercial/direct_input_warehouse.html', {
+        'stores': stores,
+        'products': products,
+    })
 
 
 def distribution_movil_list(request):
@@ -1141,121 +1016,6 @@ def distribution_movil_list(request):
         'product_obj': products,
 
     })
-
-
-def distribution_mobil_save(request):
-    if request.method == 'GET':
-        distribution_request = request.GET.get('distribution', '')
-        data_distribution = json.loads(distribution_request)
-        user_id = request.user.id
-        user_obj = User.objects.get(pk=int(user_id))
-        date_distribution = (data_distribution["date_distribution"])
-        id_truck = int(data_distribution["id_truck"])
-        truck_obj = Truck.objects.get(id=id_truck)
-        id_pilot = int(data_distribution["id_pilot"])
-        guide = str(data_distribution["number_guide"])
-        employee_obj = Employee.objects.get(id=id_pilot)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category='V').first()
-        new_distribution = {
-            'truck': truck_obj,
-            'pilot': employee_obj,
-            'date_distribution': date_distribution,
-            'subsidiary': subsidiary_obj,
-            'user': user_obj,
-            'guide_number': guide,
-        }
-        distribution_obj = DistributionMobil.objects.create(**new_distribution)
-        distribution_obj.save()
-        status = ''
-        for detail in data_distribution['Details']:
-            quantity = decimal.Decimal(detail['Quantity'])
-            quantity_total = decimal.Decimal(detail['Quantity_total'])
-            product_id = int(detail['Product'])
-            type = str(detail['Type'])
-            status = str(detail['Status'])
-            product_obj = Product.objects.get(id=product_id)
-            unit_id = int(detail['Unit'])
-            unit_obj = Unit.objects.get(id=unit_id)
-
-            new_detail_distribution = {
-                'product': product_obj,
-                'distribution_mobil': distribution_obj,
-                'quantity': quantity_total,
-                'unit': unit_obj,
-                'type': type,
-                'status': status,
-            }
-            new_detail_distribution = DistributionDetail.objects.create(**new_detail_distribution)
-            new_detail_distribution.save()
-
-            if quantity > 0 and type != 'V':
-                product_store_obj = ProductStore.objects.get(product=product_obj,
-                                                             subsidiary_store=subsidiary_store_obj)
-                quantity_minimum_unit = calculate_minimum_unit(quantity, unit_obj, product_obj)
-                # kardex_ouput(product_store_obj.id, quantity_minimum_unit,
-                #              distribution_detail_obj=new_detail_distribution)
-
-        return JsonResponse({
-            'message': 'DISTRIBUCION REALIZADA.',
-        }, status=HTTPStatus.OK)
-
-
-def output_distribution_list(request):
-    user_id = request.user.id
-    user_obj = User.objects.get(id=user_id)
-    subsidiary_obj = get_subsidiary_by_user(user_obj)
-    distribution_mobil = DistributionMobil.objects.filter(subsidiary=subsidiary_obj, status='P')
-    return render(request, 'comercial/output_distribution_list.html', {
-        'distribution_mobil': distribution_mobil
-    })
-
-
-def get_details_by_distributions_mobil(request):
-    if request.method == 'GET':
-        distribution_mobil_id = request.GET.get('ip', '')
-        distribution_mobil_obj = DistributionMobil.objects.get(pk=int(distribution_mobil_id))
-        details_distribution_mobil = DistributionDetail.objects.filter(
-            distribution_mobil=distribution_mobil_obj
-        ).select_related('product', 'unit')
-        t = loader.get_template('comercial/table_details_output_distribution.html')
-        c = ({
-            'details': details_distribution_mobil,
-        })
-        return JsonResponse({
-            'grid': t.render(c, request),
-        }, status=HTTPStatus.OK)
-
-
-def get_distribution_mobil_return(request):
-    if request.method == 'GET':
-        pk = int(request.GET.get('pk', ''))
-
-        distribution_mobil_obj = DistributionMobil.objects.get(id=pk)
-        if distribution_mobil_obj.status == 'F':
-            return JsonResponse({
-                'error': 'LA PROGRAMACION YA ESTA FINALIZADA, POR FAVOR SELECCIONE OTRA',
-            })
-        # distribution_mobil_detail = DistributionDetail.objects.filter(distribution_mobil=distribution_mobil_obj)
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        product_obj = Product.objects.filter(productstore__subsidiary_store__subsidiary=subsidiary_obj,
-                                             productstore__subsidiary_store__category='V')
-
-        # product_serialized_obj = serializers.serialize('json', product)
-
-        t = loader.get_template('comercial/distribution_mobil_return.html')
-        c = ({
-            'distribution_mobil': distribution_mobil_obj,
-            'product': product_obj,
-            'type': DistributionDetail._meta.get_field('type').choices,
-        })
-        return JsonResponse({
-            'success': True,
-            'form': t.render(c, request),
-        })
-
 
 def get_units_by_products_distribution_mobil(request):
     if request.method == 'GET':
@@ -1289,78 +1049,6 @@ def get_units_and_sotck_by_product(request):
         }, status=HTTPStatus.OK)
 
 
-@csrf_exempt
-def c_return_distribution_mobil_detail(request):
-    if request.method == 'GET':
-        _c_distribution_mobil = request.GET.get('c_distribution_mobil', '')
-        _c_detail = json.loads(_c_distribution_mobil)
-        _c_distribution_mobil_id = int(_c_detail["c_distribution_id"])
-        _c_distribution_mobil_obj = DistributionMobil.objects.get(id=_c_distribution_mobil_id)
-
-        if _c_distribution_mobil_obj.status == 'F':
-            data = {'error': 'Reparto retornado.'}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
-
-        for detail in _c_detail['c_detail']:
-            _c_quantity = decimal.Decimal(detail['c_quantity'])
-            _c_product_id = int(detail['c_product_id'])
-            _c_product_obj = Product.objects.get(id=_c_product_id)
-            _c_type_id = detail['c_type_id']
-            _c_unit = detail['c_unit']
-            _c_unit_obj = Unit.objects.get(name=str(_c_unit))
-            _c_status = 'C'
-
-            _c_new_detail_distribution = {
-                'product': _c_product_obj,
-                'distribution_mobil': _c_distribution_mobil_obj,
-                'quantity': _c_quantity,
-                'unit': _c_unit_obj,
-                'status': _c_status,
-                'type': _c_type_id,
-            }
-            _c_new_detail_distribution = DistributionDetail.objects.create(**_c_new_detail_distribution)
-            _c_new_detail_distribution.save()
-        _c_distribution_mobil_obj.status = 'F'
-        _c_distribution_mobil_obj.save()
-        return JsonResponse({
-            'message': 'Productos retornados correctamente',
-
-        }, status=HTTPStatus.OK)
-
-
-def get_distribution_list(request):
-    if request.method == 'GET':
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        date_distribution = request.GET.get('_date', '')
-        if date_distribution != '':
-
-            distribution_mobil = DistributionMobil.objects.filter(
-                subsidiary=subsidiary_obj, date_distribution=date_distribution).prefetch_related(
-                Prefetch('distributiondetail_set')
-            ).select_related('truck')
-            tpl = loader.get_template('comercial/distribution_grid_list.html')
-            context = ({
-                'distribution_mobil': distribution_mobil,
-            })
-            return JsonResponse({
-                'success': True,
-                'grid': tpl.render(context),
-            }, status=HTTPStatus.OK)
-        else:
-            my_date = datetime.now()
-            date_now = my_date.strftime("%Y-%m-%d")
-            # distribution_mobil_set = DistributionMobil.objects.annotate(id=Max('date_distribution')).filter(subsidiary=subsidiary_obj, date_distribution=F('max_date'))
-            # if distribution_mobil_set.exists():
-            #     date_now = distribution_mobil_set.first().date_distribution.strftime("%Y-%m-%d")
-            return render(request, 'comercial/distribution_list.html', {
-                'date_now': date_now,
-            })
-
-
 def output_distribution(request):
     if request.method == 'GET':
         trucks_set = Truck.objects.all()
@@ -1379,47 +1067,6 @@ def output_distribution(request):
         return JsonResponse({
             'form': t.render(c, request),
         })
-
-
-def get_quantity_last_distribution(request):
-    if request.method == 'GET':
-        id_pilot = request.GET.get('ip', '')
-        employee_obj = Employee.objects.get(id=int(id_pilot))
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        distribution_mobil = DistributionMobil.objects.filter(pilot=employee_obj, status='F',
-                                                              subsidiary=subsidiary_obj).aggregate(Max('id'))
-        if distribution_mobil['id__max'] is not None:
-            truck = DistributionMobil.objects.get(id=distribution_mobil['id__max']).truck
-            truck_obj = Truck.objects.get(license_plate=truck)
-
-            list_distribution_last = DistributionDetail.objects.filter(status='C',
-                                                                       distribution_mobil=distribution_mobil['id__max'])
-            list_serialized_obj = serializers.serialize('json', list_distribution_last)
-            if list_distribution_last.exists():
-                t = loader.get_template('comercial/table_distribution_last.html')
-                c = ({
-                    'details': list_distribution_last,
-
-                })
-                return JsonResponse({
-                    'message': True,
-                    'truck': truck_obj.id,
-                    'grid': t.render(c, request),
-                    'list': list_serialized_obj,
-                }, status=HTTPStatus.OK)
-            else:
-                return JsonResponse({
-                    'truck': truck_obj.id,
-                    'message': False,
-                }, status=HTTPStatus.OK)
-        else:
-            return JsonResponse({
-                'message': False,
-            }, status=HTTPStatus.OK)
-        # try:
-        # except DistributionMobil.DoesNotExist:
 
 
 def get_distribution_mobil_sales(request):
@@ -1462,290 +1109,6 @@ def get_products_by_supplier(request):
         }, status=HTTPStatus.OK)
 
 
-def get_programming_by_license_plate(request):
-    id_programming = request.GET.get('ip', '')
-    programming_obj = Programming.objects.get(pk=int(id_programming))
-    print(programming_obj)
-    name = ''
-    document = ''
-    employee_obj = programming_obj.get_pilot()
-    if employee_obj is not None:
-        # name = employee_obj.full_name
-        name = '{} {} {}'.format(employee_obj.names, employee_obj.paternal_last_name, employee_obj.maternal_last_name)
-        document = employee_obj.document_number
-
-    return JsonResponse({
-        'employee_name': name,
-        'employee_document': document,
-    }, status=HTTPStatus.OK)
-
-
-def get_distribution_query(request):
-    if request.method == 'GET':
-        my_date = datetime.now()
-        formatdate = my_date.strftime("%Y-%m-%d")
-        truck_set = Truck.objects.filter(distributionmobil__isnull=False).distinct('license_plate').order_by(
-            'license_plate')
-        user_id = request.user.id
-        user_obj = User.objects.get(pk=int(user_id))
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-
-        return render(request, 'comercial/distribution_queries.html', {
-            'formatdate': formatdate,
-            'subsidiary_obj': subsidiary_obj,
-            'truck_set': truck_set,
-        })
-    elif request.method == 'POST':
-        id_truck = int(request.POST.get('truck'))
-        start_date = str(request.POST.get('start-date'))
-        end_date = str(request.POST.get('end-date'))
-
-        if start_date == end_date:
-            distribution_mobil_set = DistributionMobil.objects.filter(date_distribution=start_date,
-                                                                      truck__id=id_truck).order_by('date_distribution')
-        else:
-            distribution_mobil_set = DistributionMobil.objects.filter(date_distribution__range=[start_date, end_date],
-                                                                      truck__id=id_truck).order_by('date_distribution')
-        if distribution_mobil_set:
-            return JsonResponse({
-                'grid': get_dict_distribution_queries(distribution_mobil_set, is_pdf=False),
-            }, status=HTTPStatus.OK)
-        else:
-            data = {'error': "No hay operaciones registradas"}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
-
-
-def get_dict_distribution_queries(distribution_mobil_set, is_pdf=False):
-    dictionary = []
-    _sum_expenses = 0
-    _sum_payments = 0
-    for distribution in distribution_mobil_set:
-        details = distribution.distributiondetail_set
-        number_details = details.count()
-
-        distribution_detail_set_count = distribution.distributiondetail_set.count()
-        if number_details > 0:
-            inputs = details.filter(status='D')
-            outputs = details.filter(status='E')
-            number_inputs = inputs.count()
-            number_outputs = outputs.count()
-            product_dict = {}
-            for _input in inputs:
-                _search_value = _input.product.id
-                if _search_value in product_dict.keys():
-                    _product = product_dict[_input.product.id]
-                    _void = _product.get('i_void')
-                    _filled = _product.get('i_filled')
-                    _ruined = _product.get('i_ruined')
-                    if _input.type == 'V':
-                        product_dict[_input.product.id]['i_void'] = _void + _input.quantity
-                    elif _input.type == 'L':
-                        product_dict[_input.product.id]['i_filled'] = _filled + _input.quantity
-                    elif _input.type == 'M':
-                        product_dict[_input.product.id]['i_ruined'] = _ruined + _input.quantity
-                else:
-                    if _input.type == 'V':
-                        product_dict[_input.product.id] = {'sold': 0, 'borrowed': 0,
-                                                           'i_void': _input.quantity, 'i_filled': 0, 'i_ruined': 0,
-                                                           'o_filled': 0, 'pk': _input.product.id,
-                                                           'name': _input.product.name}
-                    elif _input.type == 'L':
-                        product_dict[_input.product.id] = {'sold': 0, 'borrowed': 0,
-                                                           'i_void': 0, 'i_filled': _input.quantity, 'i_ruined': 0,
-                                                           'o_filled': 0, 'pk': _input.product.id,
-                                                           'name': _input.product.name}
-                    elif _input.type == 'M':
-                        product_dict[_input.product.id] = {'sold': 0, 'borrowed': 0,
-                                                           'i_void': 0, 'i_filled': 0, 'i_ruined': _input.quantity,
-                                                           'o_filled': 0, 'pk': _input.product.id,
-                                                           'name': _input.product.name}
-            for _output in outputs:
-                _search_value = _output.product.id
-                if _search_value in product_dict.keys():
-                    _product = product_dict[_output.product.id]
-                    _filled = _product.get('o_filled')
-                    if _output.type == 'L':
-                        product_dict[_output.product.id]['o_filled'] = _filled + _output.quantity
-                else:
-                    if _output.type == 'L':
-                        product_dict[_output.product.id] = {'sold': 0, 'borrowed': 0,
-                                                            'i_void': 0, 'i_filled': 0, 'i_ruined': 0,
-                                                            'o_filled': _output.quantity, 'pk': _output.product.id,
-                                                            'name': _output.product.name}
-
-            new = {
-                'id': distribution.id,
-                'truck': distribution.truck.license_plate,
-                'date': distribution.date_distribution,
-                'input_distribution_detail': [],
-                'output_distribution_detail': [],
-                'sales': [],
-                'products': [],
-                'status': distribution.get_status_display(),
-                'subsidiary': distribution.subsidiary.name,
-                'pilot': distribution.pilot,
-                'details_count': distribution_detail_set_count,
-                'number_inputs': number_inputs,
-                'number_outputs': number_outputs,
-                'number_products': 0,
-                'height': 0,
-                'rows': 0,
-                'number_sales': 0,
-                'number_order_details': 0,
-                'number_expenses': 0,
-                'number_payments': 0,
-                'is_multi_detail': False,
-                'is_multi_expenses': False,
-                'is_multi_payments': False,
-            }
-
-            for d in DistributionDetail.objects.filter(distribution_mobil=distribution):
-                distribution_detail = {
-                    'id': d.id,
-                    'status': d.get_status_display(),
-                    'product': d.product.name,
-                    'quantity': d.quantity,
-                    'unit': d.unit.name,
-                    'distribution_mobil': d.distribution_mobil.id,
-                    'type': d.get_type_display(),
-                }
-                if d.status == 'D':
-                    new.get('input_distribution_detail').append(distribution_detail)
-                elif d.status == 'E':
-                    new.get('output_distribution_detail').append(distribution_detail)
-
-            dictionary.append(new)
-            _sales = Order.objects.filter(distribution_mobil=distribution).exclude(type='E')
-            number_sales = _sales.count()
-            new['number_sales'] = number_sales
-
-            for o in _sales:
-                _order_detail = o.orderdetail_set.all()
-
-                for _detail in _order_detail:
-                    _search_value = _detail.product.id
-                    if _search_value in product_dict.keys():
-                        _product = product_dict[_detail.product.id]
-                        _sold = _product.get('sold')
-                        _borrowed = _product.get('borrowed')
-                        if _detail.unit.name == 'B':
-                            product_dict[_detail.product.id]['borrowed'] = _borrowed + _detail.quantity_sold
-                        elif _detail.unit.name == 'G':
-                            product_dict[_detail.product.id]['sold'] = _sold + _detail.quantity_sold
-
-                    else:
-                        if _detail.unit.name == 'B':
-                            product_dict[_detail.product.id] = {'sold': 0, 'borrowed': _detail.quantity_sold,
-                                                                'i_void': 0, 'i_filled': 0, 'i_ruined': 0,
-                                                                'o_filled': 0, 'pk': _detail.product.id,
-                                                                'name': _detail.product.name}
-                        elif _detail.unit.name == 'G':
-                            product_dict[_detail.product.id] = {'sold': _detail.quantity_sold, 'borrowed': 0,
-                                                                'i_void': 0, 'i_filled': 0, 'i_ruined': 0,
-                                                                'o_filled': 0, 'pk': _detail.product.id,
-                                                                'name': _detail.product.name}
-
-                _expenses = o.cashflow_set.filter(type='S')
-                _payments = o.cashflow_set.filter(Q(type='E') | Q(type='D'))
-
-                number_order_details = _order_detail.count()
-                if number_order_details == 0:
-                    number_order_details = 1
-                else:
-                    if number_order_details > 1 and new['is_multi_detail'] is False:
-                        new['is_multi_detail'] = True
-                number_expenses = _expenses.count()
-                if number_expenses == 0:
-                    number_expenses = 1
-                else:
-                    _expenses_set = _expenses.values('order').annotate(totals=Sum('total'))
-                    _sum_expenses = _sum_expenses + _expenses_set[0].get('totals')
-                    if number_expenses > 1 and new['is_multi_expenses'] is False:
-                        new['is_multi_expenses'] = True
-                number_payments = _payments.count()
-                if number_payments == 0:
-                    number_payments = 1
-                else:
-                    _payments_set = _payments.values('order').annotate(totals=Sum('total'))
-                    _sum_payments = _sum_payments + _payments_set[0].get('totals')
-                    if number_payments > 1 and new['is_multi_payments'] is False:
-                        new['is_multi_payments'] = True
-
-                if (number_order_details >= number_expenses) and (number_order_details >= number_payments):
-                    tbl2_height = number_order_details
-                elif (number_expenses >= number_order_details) and (number_expenses >= number_payments):
-                    tbl2_height = number_expenses
-                else:
-                    tbl2_height = number_payments
-
-                new['number_order_details'] = new['number_order_details'] + number_order_details
-                new['number_expenses'] = new['number_expenses'] + number_expenses
-                new['number_payments'] = new['number_payments'] + number_payments
-
-                new['rows'] = new['rows'] + tbl2_height
-
-                largest = largest_among(new['number_order_details'], new['number_expenses'], new['number_payments'])
-
-                order = {
-                    'id': o.id,
-                    'status': o.get_status_display(),
-                    'client': o.client,
-                    'total': o.total,
-                    'create_at': o.create_at,
-                    'order_detail': _order_detail,
-                    'expenses': _expenses,
-                    'payments': _payments,
-                    'largest': largest,
-                    'height': tbl2_height,
-                    'number_order_details': number_order_details,
-                    'number_expenses': number_expenses,
-                    'number_payments': number_payments,
-                    'distribution_mobil': distribution.id,
-                    'type': o.type,
-                }
-                new.get('sales').append(order)
-            _count_products = 0
-            for key in product_dict:
-                _vp = product_dict[key]['sold'] - product_dict[key]['borrowed']
-                _recovered = product_dict[key]['i_void'] - _vp
-                _owe = product_dict[key]['o_filled'] - (
-                        product_dict[key]['sold'] + product_dict[key]['i_filled'] + product_dict[key]['i_ruined'])
-                product = {
-                    'pk': key,
-                    'name': product_dict[key]['name'],
-                    'sold': product_dict[key]['sold'],
-                    'borrowed': product_dict[key]['borrowed'],
-                    'recovered': _recovered,
-                    'owe': _owe,
-                }
-                new.get('products').append(product)
-                _count_products = _count_products + 1
-            new['number_products'] = _count_products
-
-            if (number_outputs >= number_inputs) and (number_outputs >= _count_products):
-                tbl1_height = number_outputs
-            elif (number_inputs >= number_outputs) and (number_inputs >= _count_products):
-                tbl1_height = number_inputs
-            else:
-                tbl1_height = _count_products
-            new['height'] = tbl1_height
-
-            if new['rows'] < new['height']:
-                new['rows'] = new['height']
-
-    tpl = loader.get_template('comercial/distribution_queries_grid_list.html')
-    context = ({
-        'dictionary': dictionary,
-        'sum_expenses': _sum_expenses,
-        'sum_payments': _sum_payments,
-        'dif_pe': _sum_payments - _sum_expenses,
-        'is_pdf': is_pdf,
-    })
-    return tpl.render(context)
-
-
 def largest_among(num1, num2, num3):
     largest = 0
     if (num1 >= num2) and (num1 >= num3):
@@ -1755,35 +1118,6 @@ def largest_among(num1, num2, num3):
     else:
         largest = num3
     return largest
-
-
-def get_distribution_mobil_recovered(request):
-    if request.method == 'GET':
-        pk = int(request.GET.get('pk', ''))
-
-        distribution_mobil_obj = DistributionMobil.objects.get(id=pk)
-        if distribution_mobil_obj.status == 'F':
-            return JsonResponse({
-                'error': 'LA PROGRAMACION YA ESTA FINALIZADA, POR FAVOR SELECCIONE OTRA',
-            })
-        # distribution_mobil_detail = DistributionDetail.objects.filter(distribution_mobil=distribution_mobil_obj)
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        # client_set = Client.objects.filter(order__distribution_mobil=distribution_mobil_obj.id,
-        #                                  order__subsidiary_store__subsidiary=subsidiary_obj).distinct('id')
-        # product_serialized_obj = serializers.serialize('json', product)
-        client_set = Client.objects.filter(clientassociate__subsidiary=subsidiary_obj)
-        t = loader.get_template('comercial/distribution_mobil_recovered.html')
-        c = ({
-            'distribution_mobil': distribution_mobil_obj,
-            'client_set': client_set,
-        })
-        return JsonResponse({
-            'success': True,
-            'form': t.render(c, request),
-        })
-
 
 def get_order_detail_by_client(request):
     if request.method == 'GET':
@@ -1806,89 +1140,6 @@ def get_dict_orders_details(order_set, client_obj):
     })
 
     return tpl.render(context)
-
-
-def save_recovered_b(request):
-    if request.method == 'GET':
-        distribution_mobil_id = int(request.GET.get('distribution_mobil', ''))
-        order_id = int(request.GET.get('order', ''))
-        detail_order_id = int(request.GET.get('detail_order_id', ''))
-        product = int(request.GET.get('product', ''))
-        unit = int(request.GET.get('unit', ''))
-        quantity_recover = request.GET.get('quantity_recover', '')
-        distribution_mobil_obj = DistributionMobil.objects.get(id=distribution_mobil_id)
-        order_obj = Order.objects.get(id=order_id)
-        order_detail_obj = OrderDetail.objects.get(id=detail_order_id)
-        product_obj = Product.objects.get(id=product)
-        unit_obj = Unit.objects.get(id=unit)
-        search_r_detail_distribution = DistributionDetail.objects.filter(distribution_mobil=distribution_mobil_obj,
-                                                                         product=product_obj,
-                                                                         status='R')
-
-        if search_r_detail_distribution.count() > 0:
-            item_with_qr = search_r_detail_distribution.last()
-            item_with_qr.quantity = item_with_qr.quantity + decimal.Decimal(quantity_recover)
-            item_with_qr.save()
-        else:
-            _r_new_detail_distribution = {
-                'product': product_obj,
-                'distribution_mobil': distribution_mobil_obj,
-                'quantity': decimal.Decimal(quantity_recover),
-                'unit': unit_obj,
-                'status': 'R',
-                'type': 'V',
-            }
-            _r_new_detail_distribution = DistributionDetail.objects.create(**_r_new_detail_distribution)
-            _r_new_detail_distribution.save()
-
-        loan_payment_obj = LoanPayment(
-            price=order_detail_obj.price_unit,
-            quantity=decimal.Decimal(quantity_recover),
-            product=product_obj,
-            order_detail=order_detail_obj,
-            operation_date=datetime.now().date(),
-            distribution_mobil=distribution_mobil_obj
-        )
-        loan_payment_obj.save()
-
-        client_obj = order_obj.client
-        order_set = Order.objects.filter(client=client_obj, type='R').order_by('id')
-        return JsonResponse({
-            'success': True,
-            'message': 'Devolución realizada',
-            'grid': get_dict_orders_details(order_set, client_obj),
-        }, status=HTTPStatus.OK)
-
-
-def get_advancement_client(request):
-    if request.method == 'GET':
-        pk = (request.GET.get('pk', ''))
-        user_id = request.user.id
-        user_obj = User.objects.get(id=user_id)
-        subsidiary_obj = get_subsidiary_by_user(user_obj)
-        client_obj = Client.objects.filter(clientassociate__subsidiary=subsidiary_obj)
-        my_date = datetime.now()
-        formatdate = my_date.strftime("%Y-%m-%d")
-        product_obj = Product.objects.filter(productstore__subsidiary_store__subsidiary=subsidiary_obj,
-                                             productstore__subsidiary_store__category='I')
-        if pk != '':
-            distribution_mobil_obj = DistributionMobil.objects.get(id=int(pk))
-            t = loader.get_template('comercial/client_advancement.html')
-            c = ({
-                'distribution_mobil': distribution_mobil_obj,
-                'client_set': client_obj,
-                'format': formatdate,
-                'product_set': product_obj,
-            })
-            return JsonResponse({
-                'form': t.render(c, request),
-            })
-        else:
-            return render(request, 'comercial/subsidiary_advancement_client.html', {
-                'client_set': client_obj,
-                'format': formatdate,
-                'product_set': product_obj,
-            })
 
 
 def get_output_distributions(request):

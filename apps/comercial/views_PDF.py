@@ -19,7 +19,7 @@ from reportlab.pdfgen.canvas import Canvas
 from reportlab.rl_settings import defaultPageSize
 from reportlab.lib.colors import PCMYKColor, PCMYKColorSep, Color, black, blue, red, pink
 from anderquin import settings
-from .models import Programming, Guide, GuideMotive, GuideDetail, GuideEmployee, Picking, PickingDetail
+from .models import Guide, GuideMotive, GuideDetail, Picking, PickingDetail, Transfer, TransferDetail
 from apps.sales.number_to_letters import numero_a_moneda
 import io
 import os
@@ -1350,6 +1350,240 @@ class OutputGetContext(Flowable):
         canvas.drawString(-12 + 347 + 65, 90 + 5, str(guide_obj.created_at.year))
 
         canvas.restoreState()
+
+
+def transfer_print(request, pk=None):
+    """Genera PDF A5 de la transferencia entre almacenes (serie y correlativo)."""
+    from django.shortcuts import get_object_or_404
+    from reportlab.lib.pagesizes import A5
+    reportlab.rl_config.TTFSearchPath.append(str(settings.BASE_DIR) + '/static/fonts')
+    pdfmetrics.registerFont(TTFont('Narrow', 'Arial Narrow.ttf'))
+    pdfmetrics.registerFont(TTFont('Narrow-b', 'ARIALNB.TTF'))
+
+    transfer = get_object_or_404(
+        Transfer.objects.select_related('origin_store', 'destination_store', 'guide_motive').prefetch_related('details__product', 'details__unit'),
+        pk=pk
+    )
+
+    buff = io.BytesIO()
+    w, h = A5
+    margin_lr = 12
+    margin_tb = 16
+    doc = SimpleDocTemplate(
+        buff,
+        pagesize=A5,
+        leftMargin=margin_lr,
+        rightMargin=margin_lr,
+        topMargin=margin_tb,
+        bottomMargin=margin_tb,
+    )
+    elements = []
+
+    num_doc = (transfer.serial or 'TRA') + '-' + (transfer.correlative or str(transfer.id).zfill(5))
+    dark_blue = colors.HexColor('#1e3a5f')
+    light_blue = colors.HexColor('#e3f2fd')
+
+    title_style = ParagraphStyle(
+        name='TransferTitle',
+        alignment=TA_CENTER,
+        fontName='Narrow-b',
+        fontSize=13,
+        spaceAfter=2,
+        textColor=dark_blue,
+    )
+    sub_style = ParagraphStyle(
+        name='TransferSub',
+        alignment=TA_CENTER,
+        fontName='Narrow',
+        fontSize=8,
+        spaceAfter=8,
+        textColor=colors.HexColor('#5c6bc0'),
+    )
+    num_style = ParagraphStyle(
+        name='TransferNum',
+        alignment=TA_CENTER,
+        fontName='Narrow-b',
+        fontSize=11,
+        spaceAfter=12,
+        textColor=dark_blue,
+    )
+    label_style = ParagraphStyle(
+        name='TransferLabel',
+        alignment=TA_LEFT,
+        fontName='Narrow-b',
+        fontSize=7,
+        spaceAfter=0,
+    )
+    value_style = ParagraphStyle(
+        name='TransferValue',
+        alignment=TA_LEFT,
+        fontName='Narrow',
+        fontSize=7,
+        spaceAfter=0,
+    )
+    product_cell_style = ParagraphStyle(
+        name='ProductCell',
+        alignment=TA_LEFT,
+        fontName='Narrow',
+        fontSize=7,
+        leading=8,
+        leftIndent=2,
+        rightIndent=2,
+    )
+
+    # Encabezado
+    elements.append(Paragraph('TRANSFERENCIA ENTRE ALMACENES', title_style))
+    elements.append(Paragraph('Documento de salida de mercadería', sub_style))
+    elements.append(Paragraph('Nº ' + num_doc, num_style))
+    elements.append(Spacer(1, 2))
+
+    # Datos
+    sent_date = transfer.sent_at or transfer.created_at
+    date_str = sent_date.strftime('%d/%m/%Y %H:%M') if sent_date else '—'
+    origin_name = (transfer.origin_store.name if transfer.origin_store else '—').upper()
+    dest_name = (transfer.destination_store.name if transfer.destination_store else '—').upper()
+    motive_name = (transfer.guide_motive.description if transfer.guide_motive else '—').upper()
+
+    data_rows = [
+        [Paragraph('Fecha de envío', label_style), Paragraph(date_str, value_style)],
+        [Paragraph('Almacén origen', label_style), Paragraph(origin_name, value_style)],
+        [Paragraph('Almacén destino', label_style), Paragraph(dest_name, value_style)],
+        [Paragraph('Motivo', label_style), Paragraph(motive_name, value_style)],
+    ]
+    usable_width_cm = (w - 2 * margin_lr) / 28.35
+    t_info = Table(data_rows, colWidths=[2.6 * cm, (usable_width_cm - 2.6) * cm])
+    t_info.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 7),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+    ]))
+    elements.append(t_info)
+    elements.append(Spacer(1, 10))
+
+    # Tabla de detalle: Producto como Paragraph para que haga wrap. Cabecera más pequeña; Cant/Und un poco más anchas; Cant resaltada y 0 decimales
+    col_item = 0.85 * cm
+    col_cant = 1.2 * cm
+    col_und = 1.1 * cm
+    col_punit = 1.5 * cm
+    col_total = 1.5 * cm
+    col_product = (usable_width_cm - (col_item / cm) - (col_cant / cm) - (col_und / cm) - (col_punit / cm) - (col_total / cm)) * cm
+    col_widths = [col_item, col_product, col_cant, col_und, col_punit, col_total]
+
+    head_font_size = 6
+    head_item_style = ParagraphStyle(
+        name='HeadItem',
+        alignment=TA_CENTER,
+        fontName='Narrow-b',
+        fontSize=head_font_size,
+        textColor=white,
+    )
+    head_product_style = ParagraphStyle(
+        name='HeadProduct',
+        alignment=TA_LEFT,
+        fontName='Narrow-b',
+        fontSize=head_font_size,
+        textColor=white,
+        leftIndent=3,
+    )
+    head_right_style = ParagraphStyle(
+        name='HeadRight',
+        alignment=TA_RIGHT,
+        fontName='Narrow-b',
+        fontSize=head_font_size,
+        textColor=white,
+        rightIndent=3,
+    )
+    rows_data = [[
+        Paragraph('Item', head_item_style),
+        Paragraph('Producto', head_product_style),
+        Paragraph('Cant.', head_right_style),
+        Paragraph('Und.', head_right_style),
+        Paragraph('P. unit.', head_right_style),
+        Paragraph('Total', head_right_style),
+    ]]
+    # Estilo para cantidad: alineado a la derecha y resaltado (se aplica fondo por TableStyle)
+    cell_cant_style = ParagraphStyle(
+        name='CellCant',
+        alignment=TA_RIGHT,
+        fontName='Narrow',
+        fontSize=7,
+        leading=8,
+        rightIndent=3,
+    )
+    cell_right_style = ParagraphStyle(
+        name='CellRight',
+        alignment=TA_RIGHT,
+        fontName='Narrow',
+        fontSize=7,
+        leading=8,
+        rightIndent=3,
+    )
+    for i, d in enumerate(transfer.details.all(), 1):
+        unit_name = d.unit.name if d.unit else 'UND'
+        product_name = (d.product.name or '—').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        qty_int = int(round(float(d.quantity), 0))
+        rows_data.append([
+            Paragraph(str(i), product_cell_style),
+            Paragraph(product_name, product_cell_style),
+            Paragraph(str(qty_int), cell_cant_style),
+            Paragraph(unit_name, cell_right_style),
+            Paragraph(str(round(float(d.unit_price), 2)), cell_right_style),
+            Paragraph(str(round(float(d.total), 2)), cell_right_style),
+        ])
+    total_gral = sum(d.total for d in transfer.details.all())
+    total_style = ParagraphStyle(name='TotalCell', alignment=TA_RIGHT, fontName='Narrow-b', fontSize=7)
+    rows_data.append([
+        '', '', '', '',
+        Paragraph('TOTAL S/', total_style),
+        Paragraph(str(round(float(total_gral), 2)), total_style),
+    ])
+
+    # Fondo resaltado para columna Cantidad (amarillo suave)
+    highlight_cant = colors.HexColor('#fff9c4')
+    t_detail = Table(rows_data, colWidths=col_widths)
+    t_detail.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), dark_blue),
+        ('TEXTCOLOR', (0, 0), (-1, 0), white),
+        ('FONTSIZE', (0, 0), (-1, 0), head_font_size),
+        ('TOPPADDING', (0, 0), (-1, 0), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+        ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+        ('ALIGN', (2, 0), (-1, -1), 'RIGHT'),  # Cant., Und., P. unit., Total
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#b0bec5')),
+        ('LINEBELOW', (0, 0), (-1, 0), 1, dark_blue),
+        ('FONTNAME', (0, 1), (-1, -2), 'Narrow'),
+        ('FONTSIZE', (0, 1), (-1, -2), 7),
+        ('TOPPADDING', (0, 1), (-1, -2), 5),
+        ('BOTTOMPADDING', (0, 1), (-1, -2), 5),
+        ('BACKGROUND', (2, 1), (2, -2), highlight_cant),  # Resaltar columna Cantidad
+        ('FONTNAME', (4, -1), (-1, -1), 'Narrow-b'),
+        ('BACKGROUND', (0, -1), (-1, -1), light_blue),
+        ('TOPPADDING', (0, -1), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, -1), (-1, -1), 6),
+    ]))
+    elements.append(t_detail)
+    elements.append(Spacer(1, 8))
+
+    if transfer.observation:
+        obs_label = ParagraphStyle(name='ObsLabel', alignment=TA_LEFT, fontName='Narrow-b', fontSize=7, spaceAfter=2)
+        obs_text = (transfer.observation[:250] or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        elements.append(Paragraph('Observaciones:', obs_label))
+        elements.append(Paragraph(obs_text, value_style))
+        elements.append(Spacer(1, 4))
+
+    elements.append(Spacer(1, 4))
+    footer_style = ParagraphStyle(name='Foot', alignment=TA_CENTER, fontName='Narrow', fontSize=6, textColor=colors.HexColor('#78909c'))
+    elements.append(Paragraph('— ' + num_doc + ' —', footer_style))
+
+    doc.build(elements)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="transferencia_{}.pdf"'.format(num_doc.replace('-', '_'))
+    response.write(buff.getvalue())
+    buff.close()
+    return response
 
 
 def NumTomonth(shortMonth):
