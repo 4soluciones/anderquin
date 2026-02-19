@@ -315,3 +315,87 @@ class CreditNoteDetail(models.Model):
 
     def multiply(self):
         return self.quantity * self.price_unit
+
+
+# ============== MÓDULO DE COMPRAS ADMINISTRATIVAS ==============
+# Materiales de oficina, limpieza, etc. Sin kardex ni productos del catálogo.
+
+
+class AdminSupplier(models.Model):
+    """Proveedores de materiales administrativos (independiente del modelo Supplier)."""
+    id = models.AutoField(primary_key=True)
+    name = models.CharField('Nombre o Razón Social', max_length=200)
+    ruc = models.CharField('RUC/DNI', max_length=20, null=True, blank=True)
+    address = models.CharField('Dirección', max_length=255, null=True, blank=True)
+    phone = models.CharField('Teléfono', max_length=50, null=True, blank=True)
+    email = models.EmailField('Email', null=True, blank=True)
+    is_enabled = models.BooleanField('Activo', default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Proveedor administrativo'
+        verbose_name_plural = 'Proveedores administrativos'
+
+
+class AdministrativePurchase(models.Model):
+    """Cabecera de compra de materiales administrativos."""
+    CURRENCY_CHOICES = (('S', 'SOL'), ('D', 'DÓLAR'),)
+    PAYMENT_CHOICES = (('CO', 'CONTADO'), ('CR', 'CRÉDITO'),)
+    id = models.AutoField(primary_key=True)
+    purchase_date = models.DateField('Fecha de compra')
+    document_number = models.CharField('Nº Documento', max_length=100, null=True, blank=True)
+    supplier = models.ForeignKey(AdminSupplier, on_delete=models.SET_NULL, null=True, blank=True,
+                                 verbose_name='Proveedor')
+    supplier_name_free = models.CharField('Proveedor (otro)', max_length=200, null=True, blank=True,
+                                         help_text='Si no está en la lista, escribir aquí')
+    currency = models.CharField('Moneda', max_length=1, choices=CURRENCY_CHOICES, default='S')
+    payment_method = models.CharField('Método de pago', max_length=2, choices=PAYMENT_CHOICES, default='CO')
+    observation = models.TextField('Observación', null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    subsidiary = models.ForeignKey(Subsidiary, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Compra #{self.id} - {self.purchase_date}"
+
+    def get_supplier_display(self):
+        if self.supplier:
+            return self.supplier.name
+        return self.supplier_name_free or '-'
+
+    def total(self):
+        total = sum(d.subtotal() for d in self.administrativepurchasedetail_set.all())
+        return round(total, 2)
+
+    class Meta:
+        verbose_name = 'Compra administrativa'
+        verbose_name_plural = 'Compras administrativas'
+
+
+class AdministrativePurchaseDetail(models.Model):
+    """Detalle de compra administrativa. Descripción libre, sin Product."""
+    id = models.AutoField(primary_key=True)
+    purchase = models.ForeignKey(AdministrativePurchase, on_delete=models.CASCADE)
+    description = models.CharField('Descripción', max_length=255)
+    quantity = models.DecimalField('Cantidad', max_digits=12, decimal_places=4, default=0)
+    unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True)
+    unit_name_free = models.CharField('Unidad (otra)', max_length=20, null=True, blank=True)
+    price_unit = models.DecimalField('Precio unitario', max_digits=14, decimal_places=4, default=0)
+
+    def __str__(self):
+        return f"{self.description} x {self.quantity}"
+
+    def subtotal(self):
+        return self.quantity * self.price_unit
+
+    def get_unit_display(self):
+        if self.unit:
+            return self.unit.name
+        return self.unit_name_free or '-'
+
+    class Meta:
+        verbose_name = 'Detalle compra administrativa'
+        verbose_name_plural = 'Detalles compras administrativas'

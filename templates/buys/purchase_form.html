@@ -1,450 +1,333 @@
 {% extends 'home.html' %}
 {% block title %}
-    Compras
+    Compras Administrativas
 {% endblock title %}
 
 {% block body %}
 
-    <div class="card roboto-condensed-regular">
-        <div class="card-header m-1" style="background: #3e6787">
-            <h4 class="roboto-condensed-regular text-white font-weight-bold mt-3 mb-1">
-                <label>REGISTRO DE COMPRAS</label>
-            </h4>
-        </div>
-    </div>
-    <div class="card-body pt-1">
-        <div class="row border">
-            <div class="card col-sm-12 p-0">
-                <div class="card-body" id="render-header">
-                    {% include "buys/purchase_header.html" %}
+<div class="container-fluid py-2 px-2 px-sm-3 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+    <!-- Encabezado -->
+    <div class="card border-0 shadow-lg mb-3 overflow-hidden" style="border-radius: 15px;">
+        <div class="card-body py-2 py-md-3" style="background-color: #f0f8fc;">
+                <div class="row align-items-center no-gutters">
+                <div class="col-12 col-lg-8 mb-2 mb-lg-0">
+                    <h4 class="mb-0 font-weight-bold roboto-condensed-regular" style="color: #0d47a1; font-size: clamp(1rem, 4vw, 1.25rem);">
+                        <i class="fas fa-clipboard-list mr-2"></i> REGISTRO DE COMPRAS ADMINISTRATIVAS
+                    </h4>
+                    <p class="text-muted mb-0 mt-1 small">Materiales de oficina, limpieza y suministros</p>
+                </div>
+                <div class="col-12 col-lg-4 mt-2 mt-lg-0 text-left text-lg-right">
+                    <a href="{% url 'buys:report_administrative_purchases' %}" class="btn btn-outline-primary btn-sm border-2 btn-sales-rounded w-100 d-lg-inline-block">
+                        <i class="fas fa-chart-bar mr-1"></i> Ver Reporte
+                    </a>
                 </div>
             </div>
         </div>
-        <div class="row border">
-            <div class="card col-sm-12 p-0">
-                <div class="card-body ">
-                    <div class="table-responsive" id="render-detail">
-                        {% include "buys/purchase_detail.html" %}
+    </div>
+
+    <form id="admin-purchase-form" method="POST">
+        {% csrf_token %}
+        <!-- Sección DATOS DE LA COMPRA -->
+        <div class="card border-0 shadow-sm mb-3 overflow-hidden" style="border-radius: 15px;">
+            <div class="card-header font-weight-bold border-0 py-2" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); border-radius: 15px 15px 0 0;">
+                <i class="fas fa-bars mr-2" style="color: #0d47a1;"></i>
+                <span style="color: #0d47a1;">DATOS DE LA COMPRA</span>
+            </div>
+            <div class="card-body p-2 p-sm-3" style="background-color: #fff;">
+                <div class="row">
+                    <div class="col-12 col-sm-6 col-lg-4 mb-2 mb-sm-3">
+                        <label class="small font-weight-bold text-uppercase text-muted mb-1">Proveedor</label>
+                        <div class="d-flex align-items-stretch">
+                            <select id="supplier-id" name="supplier-id" class="form-control form-control-sm flex-grow-1" style="border-color: #bbdefb; border-radius: 12px;" required>
+                                <option value="">- Seleccione -</option>
+                                {% for s in admin_suppliers %}
+                                    <option value="{{ s.id }}">{{ s.name|upper }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="button" id="btn-open-supplier-modal" class="btn btn-primary btn-sm ml-2 btn-sales-rounded flex-shrink-0" title="Nuevo proveedor">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4 mb-2 mb-sm-3">
+                        <label class="small font-weight-bold text-uppercase text-muted mb-1">Fecha</label>
+                        <input type="date" id="purchase-date" name="purchase-date" class="form-control form-control-sm" style="border-color: #bbdefb; border-radius: 12px;"
+                               value="{{ formatdate }}" required>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4 mb-2 mb-sm-3">
+                        <label class="small font-weight-bold text-uppercase text-muted mb-1">N° Documento</label>
+                        <input type="text" id="document-number" name="document-number" class="form-control form-control-sm" style="border-color: #bbdefb; border-radius: 12px;"
+                               placeholder="F001-001" autocomplete="off">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-sm-6 col-lg-4 mb-2 mb-sm-3">
+                        <label class="small font-weight-bold text-uppercase text-muted mb-1">Moneda</label>
+                        <select id="currency" name="currency" class="form-control form-control-sm" style="border-color: #bbdefb; border-radius: 12px;">
+                            {% for c in currency_options %}
+                                <option value="{{ c.0 }}" {% if c.0 == 'S' %}selected{% endif %}>{{ c.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4 mb-2 mb-sm-3">
+                        <label class="small font-weight-bold text-uppercase text-muted mb-1">Tipo de Pago</label>
+                        <select id="payment-method" name="payment-method" class="form-control form-control-sm" style="border-color: #bbdefb; border-radius: 12px;">
+                            {% for p in payment_options %}
+                                <option value="{{ p.0 }}">{{ p.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4 mb-2 mb-sm-3">
+                        <label class="small font-weight-bold text-uppercase text-muted mb-1 d-block">&nbsp;</label>
+                        <div class="d-flex">
+                            <button type="submit" id="btn-save" class="btn btn-success btn-sm border-2 btn-sales-rounded flex-fill mr-1">
+                                <i class="fas fa-save mr-1"></i> Guardar
+                            </button>
+                            <button type="button" id="btn-new" class="btn btn-outline-secondary btn-sm border-2 btn-sales-rounded flex-fill">
+                                <i class="fas fa-plus mr-1"></i> Nuevo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-0">
+                        <label class="small font-weight-bold text-uppercase text-muted mb-1">Observaciones</label>
+                        <textarea id="observation" name="observation" class="form-control form-control-sm" rows="2" style="border-color: #bbdefb; border-radius: 12px;"
+                                  placeholder="Opcional"></textarea>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <style>
-        .input-icon {
-            position: relative;
-        }
+        <!-- Sección DETALLE DE ARTÍCULOS -->
+        <div class="card border-0 shadow-sm mb-3 overflow-hidden" style="border-radius: 15px;">
+            <div class="card-header font-weight-bold border-0 py-2 d-flex align-items-center flex-wrap" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); border-radius: 15px 15px 0 0;">
+                <span style="color: #0d47a1;" class="mr-2 mb-1 mb-sm-0">
+                    <i class="fas fa-list-alt mr-2"></i>DETALLE DE ARTÍCULOS
+                </span>
+                <button type="button" id="btn-add-detail" class="btn btn-primary btn-sm border-2 btn-sales-rounded">
+                    <i class="fas fa-plus mr-1"></i> Agregar artículo
+                </button>
+            </div>
+            <div class="card-body p-2 p-sm-3" style="background-color: #fff;">
+                <div id="render-detail">
+                    {% include "buys/purchase_detail.html" %}
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
 
-        .input-icon > i {
-        {#content: "$";#} position: absolute;
-            display: block;
-            transform: translate(0, -50%);
-            top: 50%;
-            pointer-events: none;
-            width: 25px;
-            text-align: center;
-            font-style: normal;
-        }
+<div class="modal fade" id="modal-admin-supplier" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false" aria-hidden="true"></div>
 
-        .input-icon > input {
-            padding-left: 25px;
-            padding-right: 8px;
-        }
-
-        .input-icon-right > i {
-            right: 0;
-        }
-
-        .input-icon-right > input {
-            padding-left: 0;
-            padding-right: 25px;
-            text-align: right;
-        }
-    </style>
+<style>
+    .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+        border-color: #1e3a5f;
+    }
+    .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger, .btn-outline-secondary {
+        border-width: 2px;
+    }
+    .btn-sales-rounded, #admin-purchase-form .btn {
+        border-radius: 12px !important;
+    }
+    .input-icon { position: relative; }
+    .input-icon > i {
+        position: absolute; display: block; transform: translate(0, -50%);
+        top: 50%; pointer-events: none; width: 28px; text-align: center;
+        font-style: normal; color: #6c757d;
+    }
+    .input-icon > input { padding-left: 28px; padding-right: 8px; }
+    .input-icon-right > i { right: 0; }
+    .input-icon-right > input { padding-left: 8px; padding-right: 28px; text-align: right; }
+    .table-admin thead th { background: #3e6787 !important; color: #fff; border: none; }
+    .table-admin thead th:nth-child(5) { background: #518d86 !important; }
+    #admin-purchase-form .form-control { border-radius: 12px; }
+    @media (max-width: 575.98px) {
+        .container-fluid.py-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+        .card-body { padding: 0.75rem !important; }
+        .table-admin { font-size: 0.8rem; }
+        .table-admin .form-control { font-size: 0.75rem; }
+    }
+</style>
 
 {% endblock body %}
 
-
 {% block extrajs %}
+<script type="text/javascript">
+    $("#btn-new").click(function () {
+        setTimeout(() => location.reload(), 500);
+    });
 
-    <script type="text/javascript">
+    $(document).on('change', '#currency', function () {
+        let c = $(this).val();
+        $(".change-money").text(c === 'D' ? '$' : 'S/');
+    });
 
-        $("#btn-new").click(function () {
-            setTimeout(() => {
-                location.reload()
-            }, 1000);
-        });
-
-        $(document).on('change', '#money_type', function (e) {
-            let type_money = $(this).val();
-            if (type_money === 'D') {
-                $(".change-money").text('$')
-            } else {
-                $(".change-money").text('S/')
+    $(document).on('click', '#btn-open-supplier-modal', function () {
+        $.ajax({
+            url: '{% url "buys:modal_admin_supplier" %}',
+            dataType: 'json',
+            type: 'GET',
+            success: function (r) {
+                $('#modal-admin-supplier').html(r.form);
+                $('#modal-admin-supplier').modal('show');
+            },
+            error: function () {
+                toastr.error('Error al cargar el modal', 'Error');
             }
         });
+    });
 
-        $(document).on('click', '#btn-add-new-detail', function () {
-            let type_money = $("#money_type").val();
-            let _val_money = 'S/'
-
-            if (type_money === 'D') {
-                _val_money = '$'
-            }
-
-            $('#detail_purchase > tbody').append(
-                '<tr>' +
-                '<td class="item-number align-middle text-center">' + '</td>' +
-                '<td class="align-middle text-left product-item-table">' +
-                '<input type="text" aria-label="" class="form-control text-uppercase product-table dropdown-toggle"' +
-                'data-toggle="dropdown" aria-expanded="false"' +
-                'placeholder="Ingrese un producto...">' +
-                '<div class="dropdown-menu"></div>' +
-                '</td>' +
-                '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">' +
-                '</td>' +
-                '<td class="align-middle unit text-center">' +
-                '<select class="form-control unit-product text-center" id="id_unit_product" name="unit_product" required>' +
-                '<option value="0">Seleccione</option>' +
-                '</td>' +
-                '<td class="align-middle quantity-minimum text-center">' +
-                '<input type="text" class="form-control text-center quantity-minimum-val">' +
-                '</td>' +
-                '<td class="item-price text-right align-middle">' + '<div class="input-icon">' +
-                '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' +
-                '</td>' +
-                '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
-                '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' +
-                '</td>' +
-                '<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
-                '</tr>');
-            counter()
-        });
-
-        function deleteItem(btn) {
-            btn.parentNode.parentNode.remove();
-            counter();
+    $(document).on('click', '#btn-select-admin-supplier', function () {
+        let val = $('#admin-supplier-select').val();
+        if (val) {
+            $('#supplier-id').val(val);
+            $('#modal-admin-supplier').modal('hide');
+            toastr.info('Proveedor seleccionado', 'Listo');
+        } else {
+            toastr.warning('Seleccione un proveedor', 'Atención');
         }
+    });
 
-        function counter() {
-            let l = 1;
-            $('#details-table tr').each(function () {
-                $(this).attr('i', l);
-                $(this).children('td:nth-child(1)').text(l);
-                l++;
-            });
+    $(document).on('click', '#btn-save-admin-supplier', function () {
+        let name = $('#admin-supplier-name').val().trim();
+        if (!name) {
+            toastr.warning('Ingrese el nombre del proveedor', 'Error');
+            return;
         }
-
-        $(document).on('focusin', '.product-table', function (e) {
-            let _menu = $(this).parent('td').find('div.dropdown-menu');
-            _menu.empty();
-            _menu.removeClass('show')
-            _menu.prop('aria-expanded', false);
-            _menu.css({
-                'background-color': 'transparent',
-                'border': 'transparent',
-            })
-            //$(this).val(' ');
-            /*let _tr = $(this).parent('td').parent('tr')
-            let _select = _tr.find('td.unit select.unit-product');
-            let option = $('<option>').val(0).text('Seleccione');
-            console.log("input", $(this).val())
-            if ($(this).val() !== '') {
-                _select.empty();
-                _select.append(option);
-                $(this).parent('td').find('div.dropdown-menu').css({
-                    'background-color': 'transparent',
-                    'border': 'transparent',
-                })
-            }*/
-            //$(this).parent('td').find('div.dropdown-menu').empty();
-
-        });
-
-        $(document).on('keypress', '.product-table', function (e) {
-
-            $(this).parent('td').find('div.dropdown-menu').empty();
-            let _select_unit = $(this).parent('td').parent('tr').find('td.unit select.unit-product');
-            let _select_quantity_unit = $(this).parent('td').parent('tr').find('td.item-quantity-x-unit select.quantity-unit');
-            let _input = $(this)
-            let _td = $(this).parent('td')
-            let _menu = _td.find('.dropdown-menu')
-            _menu.addClass('show');
-            if (e.keyCode === 13) {
-                e.preventDefault()
-                $(this).trigger("enterKey");
-                let _product_name = $(this).val();
-                if (_product_name.length > 3) {
-                    $.ajax({
-                        url: '/buys/get_product_by_criteria_table/',
-                        async: true,
-                        dataType: 'json',
-                        type: 'GET',
-                        data: {
-                            'value': _product_name,
-                        },
-                        contentType: 'application/json;charset=UTF-8',
-                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                        success: function (response, textStatus, xhr) {
-                            if (xhr.status === 200) {
-                                _select_unit.empty()
-                                _select_quantity_unit.empty()
-                                //console.log(response.productList[0].unit_dict)
-                                let _unit_dict = response.productList[0].unit_dict
-                                let list = response.productList;
-                                _input.prop('aria-expanded', true);
-                                _menu.css({
-                                    'background-color': '#fff',
-                                    'border': '1px solid rgba(0,0,0,.15)',
-                                    'position': 'absolute',
-                                    'transform': 'translate3d(117px, 92px, 0px)',
-                                    'top': '0x',
-                                    'left': '0px',
-                                    'will_change': 'transform'
-                                });
-
-                                for (let i = 0; i < list.length; i++) {
-                                    let unit_dict = JSON.stringify(list[i].unit_dict)
-                                    //console.log(JSON.stringify(list[i].unit_dict, null, 2))
-                                    _menu.append(`<a class="dropdown-item product-item" unit='${unit_dict}'  brand="${list[i].brand}" href="#" data-id="${list[i].id}">${list[i].name} - ${list[i].brand}</a>`)
-                                }
-                            }
-                        },
-                        error: function (jqXhr, textStatus, xhr) {
-                            if (jqXhr.status === 500) {
-                                toastr.error(jqXhr.responseJSON.error, 'Mensaje');
-                            } else {
-                                if (textStatus === 'timeout') {
-                                    toastr.error('Failed from timeout', 'Mensaje');
-                                } else {
-                                    console.log(" STATUS: " + xhr + " " + textStatus);
-                                }
-                            }
-                        }
-                    });
+        let $btn = $(this);
+        $btn.prop('disabled', true);
+        $.ajax({
+            url: '{% url "buys:save_admin_supplier" %}',
+            type: 'POST',
+            data: {
+                name: name,
+                ruc: $('#admin-supplier-ruc').val(),
+                address: $('#admin-supplier-address').val(),
+                phone: $('#admin-supplier-phone').val(),
+                email: $('#admin-supplier-email').val(),
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function (r) {
+                if (r.success) {
+                    toastr.success(r.message);
+                    $('#supplier-id').append($('<option>').val(r.supplier_id).text(r.supplier_name).prop('selected', true));
+                    $('#modal-admin-supplier').modal('hide');
                 } else {
-                    toastr.warning('Para la busqueda ingrese minimo 3 caracteres', 'Error de llenado');
-                    return false;
+                    toastr.error(r.message || 'Error');
                 }
+            },
+            error: function (xhr) {
+                toastr.error(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error');
+            },
+            complete: function () {
+                $btn.prop('disabled', false);
             }
         });
+    });
 
-        $(document).on('click', '.product-item', function (e) {
+    $(document).on('click', '#btn-add-detail', function () {
+        let c = $("#currency").val();
+        let sym = c === 'D' ? '$' : 'S/';
+        $('#details-table tbody').append(
+            '<tr>' +
+            '<td class="item-num align-middle text-center">1</td>' +
+            '<td class="align-middle"><input type="text" class="form-control form-control-sm desc-input" placeholder="Ej: Resmas de papel A4"></td>' +
+            '<td class="align-middle"><input type="number" step="0.01" class="form-control form-control-sm qty-input text-center" placeholder="0" value="0"></td>' +
+            '<td class="align-middle"><select class="form-control form-control-sm unit-select"><option value="0">Otro</option>{% for u in units %}<option value="{{ u.id }}">{{ u.name }}</option>{% endfor %}</select><input type="text" class="form-control form-control-sm unit-free-input mt-1 d-none" placeholder="Especificar unidad"></td>' +
+            '<td class="align-middle"><div class="input-icon"><input type="number" step="0.01" class="form-control form-control-sm price-input" placeholder="0.00" value="0"><i class="change-money">' + sym + '</i></div></td>' +
+            '<td class="align-middle"><div class="input-icon input-icon-right"><input type="text" class="form-control form-control-sm total-input" placeholder="0.00" readonly><i class="change-money">' + sym + '</i></div></td>' +
+            '<td class="align-middle text-center"><button type="button" class="btn btn-outline-danger btn-sm border-2 delete-row btn-sales-rounded"><i class="fa fa-trash"></i></button></td>' +
+            '</tr>');
+        renumber();
+    });
 
-            let _product_id = $(this).attr('data-id');
-            let _unit_dict = $(this).attr('unit');
-            let _product_name = $(this).text();
-            let _menu = $(this).parent('div.dropdown-menu');
-            let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
-            let _td = $(this).parent('div.dropdown-menu').parent('td')
-            let _select_unit = _tr.find('td.unit select.unit-product');
-            //let _select_unit_quantity = _tr.find('td.item-quantity-x-unit select.quantity-unit');
-            _tr.attr('product', _product_id);
-            _td.find('input.product-table').val(_product_name);
-            _select_unit.append($('<option>').val(0).text('Seleccione'));
-            let units = JSON.parse(_unit_dict);
-            //console.log(units)
-            for (let i = 0; i < units.length; i++) {
-                let _quantity_minimum = Number(units[i].quantity_minimum).toFixed(0);
-                let option = $('<option>')
-                    .val(units[i].unit_id)
-                    .text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')')
-                    .attr('qm', _quantity_minimum);
-                _select_unit.append(option);
-            }
-            _menu.empty()
+    $(document).on('click', '.delete-row', function () {
+        $(this).closest('tr').remove();
+        renumber();
+        sumTotal();
+    });
+
+    function renumber() {
+        $('#details-table tbody tr').each(function (i) {
+            $(this).find('.item-num').text(i + 1);
         });
+    }
 
-        $(document).on('change', '.unit-product', async function (e) {
-            let unit_id = $(this).val();
-            let product_id = $(this).parent('td').parent('tr').attr('product')
-            let _quantity = Number($(this).parent('td').parent('tr').find('td.item-quantity input.quantity-product').val())
-            let _tr = $(this).parent('td').parent('tr')
-            let _select_quantity_unit = _tr.find('td.item-quantity-x-unit select.quantity-unit');
-            if (unit_id !== '0') {
-                await getQuantityMinimumByProduct(product_id, unit_id, _tr, _quantity)
-                if (unit_id === '1') { /*optimizar*/
-                    _select_quantity_unit.val('1').change();
-                }
-            } else {
-                toastr.warning('Seleccione una unidad valida', 'Error de llenado');
-                $(this).val(1).change();
-                return false;
-            }
-
-        });
-
-        async function getQuantityMinimumByProduct(product_id, _unit, _tr, _quantity) {
-            let _input_quantity_minimum = _tr.find('td.quantity-minimum input.quantity-minimum-val');
-            let _price_unit_product = _tr.find('td.item-price input.price-unit-product');
-            _input_quantity_minimum.val('')
-            if (product_id !== '0') {
-                $.ajax({
-                    url: '/buys/get_quantity_minimum/',
-                    async: true,
-                    dataType: 'json',
-                    type: 'GET',
-                    data: {
-                        'product_id': product_id,
-                        'unit_id': _unit
-                    },
-                    success: function (response) {
-                        let _quantity_minimum = Number(response.quantity_minimum).toFixed(2)
-                        if (_quantity_minimum && _quantity) {
-                            let _q_x_u = _quantity / _quantity_minimum
-                            _input_quantity_minimum.val(_q_x_u.toFixed(2))
-                        }
-                        _price_unit_product.val(response.price_purchase);
-                        $('.price-unit-product').trigger('keyup');
-                    },
-                });
-            }
+    $(document).on('change', '.unit-select', function () {
+        let $cell = $(this).closest('td');
+        let v = $(this).val();
+        if (v === '0') {
+            $cell.find('.unit-free-input').removeClass('d-none');
+        } else {
+            $cell.find('.unit-free-input').addClass('d-none').val('');
         }
+    });
 
-        $(document).on('keyup', '.quantity-minimum-val', async function (e) {
-            let _tr = $(this).parent('td').parent('tr');
-            let _quantity_minimum = _tr.find('td.unit select.unit-product option:selected').attr('qm');
-            let _val = $(this).val();
-            let _quantity = _tr.find('td.item-quantity input.quantity-product');
-            let _new_quantity = _val * _quantity_minimum
-            _quantity.val(_new_quantity);
-            $('.quantity-product').trigger('keyup');
+    $(document).on('input', '.qty-input, .price-input', function () {
+        let $tr = $(this).closest('tr');
+        let q = parseFloat($tr.find('.qty-input').val()) || 0;
+        let p = parseFloat($tr.find('.price-input').val()) || 0;
+        $tr.find('.total-input').val((q * p).toFixed(2));
+        sumTotal();
+    });
+
+    function sumTotal() {
+        let t = 0;
+        $('#details-table tbody tr').each(function () {
+            t += parseFloat($(this).find('.total-input').val()) || 0;
         });
+        let val = t.toFixed(2);
+        $('#subtotal-foot').val(val);
+        $('#total-foot').val(val);
+    }
 
-        $(document).on('keyup', '.quantity-product', function () {
-
-            let _tr = $(this).parent('td').parent('tr')
-            let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
-            let _quantity_minimum = Number((_tr.find('td.unit select.unit-product option:selected').attr("qm")))
-
-            if (!isNaN(_quantity_minimum)) {
-                quantityDivideUnit(_quantity, _quantity_minimum, _tr)
-            }
-            calculateTotal(_tr)
-            sum_table()
-        });
-
-        function quantityDivideUnit(quantity, quantity_minimum, tr) {
-            let _quantity_quantity_minimum = quantity / quantity_minimum
-            tr.find('td.quantity-minimum input.quantity-minimum-val').val(_quantity_quantity_minimum.toFixed(2));
+    $('#admin-purchase-form').submit(function (e) {
+        e.preventDefault();
+        if (!$('#supplier-id').val()) {
+            toastr.warning('Seleccione un proveedor', 'Error');
+            return;
         }
-
-        $(document).on('keyup', '.price-unit-product', function () {
-
-            let _tr = $(this).parent('div').parent('td').parent('tr')
-            let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
-            let _quantity_x_und = Number(_tr.find('td.item-quantity-x-unit input.quantity-x-unit').val())
-            let _quantity_minimum = Number(_tr.find('td.quantity-minimum input.quantity-minimum-val').val())
-            let _price_unit = Number(_tr.find('td.item-price div.input-icon input.price-unit-product').val())
-            let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
-
-            if (_quantity !== 0 && _price_unit !== 0) {
-                _total = _quantity_minimum * _price_unit
-                _tr.find('td.item-total div.input-icon input.total-detail').val(Number(_total).toFixed(4));
-            }
-            calculateTotal(_tr)
-            sum_table()
-        });
-
-        $(document).on('keyup', '.total-detail', function () {
-            let _tr = $(this).parent('div').parent('td').parent('tr')
-            let _total = Number(_tr.find('td.total-row div.input-icon input.total-detail').val());
-            let _quantity = Number(_tr.find('td.item-quantity input.quantity-product').val())
-            console.log('_total',_total)
-            console.log('_quantity',_quantity)
-            let price_unit = _total / _quantity
-            console.log(price_unit)
-
-            _tr.find('td.item-price div.input-icon input.price-unit-product').val(Number(price_unit).toFixed(2));
-            calculateTotal(_tr)
-            sum_table()
-        });
-
-        function sum_table() {
-            let igv = 0;
-            let base = 0;
-            let sum_total = 0;
-            let total_document = 0;
-            let _total;
-
-            $("tbody#details-table tr").each(function () {
-                let td_total = Number($(this).find("td.total-row input.total-detail").val());
-                sum_total = sum_total + td_total
-            });
-
-            let _check_igv = $("#details-table-foot tr input.check-igv")
-
-            if (_check_igv.is(':checked')) {
-                base = sum_total / 1.18
-                igv = sum_total - base
-                _total = base + igv
-                total_document = _total
-
-            } else {
-                base = sum_total
-                igv = sum_total * 0.18
-                _total = base + igv
-                total_document = _total
-            }
-
-            $("#detail_purchase tfoot tr input.total-foot-base").val(base.toFixed(4));
-            $("#detail_purchase tfoot tr input.total-foot-igv").val(igv.toFixed(4));
-            $("#detail_purchase tfoot tr input.total-foot-total").val(_total.toFixed(4));
-            $("#detail_purchase tfoot tr input.total-foot-document").val(total_document.toFixed(4));
-        }
-
-        $(document).on('change', '#details-table-foot tr input.check-igv', function (e) {
-            sum_table()
-        });
-
-        function calculateTotal(_tr) {
-
-            let $quantity_minimum = Number(_tr.find('td.quantity-minimum input.quantity-minimum-val').val())
-            let $price_unit = Number(_tr.find('td.item-price input.price-unit-product').val());
-            let amount
-            amount = $quantity_minimum * $price_unit
-            _tr.find('td.total-row input.total-detail').val(amount.toFixed(4))
-
-        }
-
-        $('#purchase-form').submit(function (event) {
-            event.preventDefault();
-            let detailPurchase = []
-            $("#details-table tr").each(function () {
-                let detailObj = {
-                    product: $(this).attr('product'),
-                    quantity: $(this).find("td.item-quantity input.quantity-product").val(),
-                    unit: $(this).find("td.unit select.unit-product").val(),
-                    price: $(this).find("td.item-price input.price-unit-product").val(),
-                };
-                detailPurchase.push(detailObj);
-            });
-            let data = new FormData($('#purchase-form').get(0));
-            data.append('detail', JSON.stringify(detailPurchase));
-            $.ajax({
-                url: '/buys/create_purchase/',
-                type: 'POST',
-                async: true,
-                data: data,
-                cache: false,
-                processData: false,
-                contentType: false,
-                headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                success: function (response) {
-                    if (response.success) {
-                        toastr.success(response.message);
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1000);
-                    }
-                },
-                error: function (response) {
-                    toastr.error(response.message, "Guardado Fallido");
-                }
+        let details = [];
+        $('#details-table tbody tr').each(function () {
+            let desc = $(this).find('.desc-input').val();
+            if (!desc) return;
+            let unitId = $(this).find('.unit-select').val();
+            let unitFree = $(this).find('.unit-free-input').val();
+            details.push({
+                description: desc,
+                quantity: $(this).find('.qty-input').val(),
+                unit: unitId,
+                unit_free: unitFree,
+                price: $(this).find('.price-input').val(),
             });
         });
 
-    </script>
+        let data = new FormData(this);
+        data.append('detail', JSON.stringify(details));
 
+        $.ajax({
+            url: '{% url "buys:create_administrative_purchase" %}',
+            type: 'POST',
+            data: data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            headers: {"X-CSRFToken": '{{ csrf_token }}'},
+            success: function (r) {
+                if (r.success) {
+                    toastr.success(r.message);
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    toastr.error(r.message || 'Error al guardar');
+                }
+            },
+            error: function (xhr) {
+                let msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error al guardar';
+                toastr.error(msg);
+            }
+        });
+    });
+</script>
 {% endblock extrajs %}

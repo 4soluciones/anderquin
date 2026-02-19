@@ -2296,17 +2296,158 @@ def delete_item_buys(request):
             }, status=HTTPStatus.OK)
 
 
-def get_purchase_form(request):
+def modal_admin_supplier(request):
+    """Modal para listar, crear y seleccionar proveedores administrativos."""
     if request.method == 'GET':
-        supplier_set = Supplier.objects.all().order_by('id')
+        admin_suppliers = AdminSupplier.objects.filter(is_enabled=True).order_by('name')
+        t = loader.get_template('buys/modal_admin_supplier.html')
+        c = {'admin_suppliers': admin_suppliers}
+        return JsonResponse({'form': t.render(c, request)})
+
+
+def save_admin_supplier(request):
+    """Guardar nuevo proveedor administrativo."""
+    if request.method == 'POST':
+        try:
+            name = (request.POST.get('name') or '').strip()
+            if not name:
+                return JsonResponse({'success': False, 'message': 'El nombre es requerido'}, status=HTTPStatus.BAD_REQUEST)
+            ruc = (request.POST.get('ruc') or '').strip() or None
+            address = (request.POST.get('address') or '').strip() or None
+            phone = (request.POST.get('phone') or '').strip() or None
+            email = (request.POST.get('email') or '').strip() or None
+            supplier = AdminSupplier.objects.create(
+                name=name.upper(),
+                ruc=ruc,
+                address=address,
+                phone=phone,
+                email=email or None,
+            )
+            return JsonResponse({
+                'success': True,
+                'message': 'Proveedor registrado',
+                'supplier_id': supplier.id,
+                'supplier_name': supplier.name,
+            }, status=HTTPStatus.OK)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=HTTPStatus.BAD_REQUEST)
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=HTTPStatus.METHOD_NOT_ALLOWED)
+
+
+def get_purchase_form(request):
+    """Formulario de compras administrativas (oficina, limpieza, etc.). Sin productos ni kardex."""
+    if request.method == 'GET':
+        admin_suppliers = AdminSupplier.objects.filter(is_enabled=True).order_by('name')
+        units = Unit.objects.filter(is_enabled=True).order_by('name')
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
 
         return render(request, 'buys/purchase_form.html', {
             'formatdate': formatdate,
-            'supplier_set': supplier_set,
-            'type_options': Purchase._meta.get_field('payment_method').choices,
-            'stores': SubsidiaryStore.objects.all()
+            'admin_suppliers': admin_suppliers,
+            'units': units,
+            'payment_options': AdministrativePurchase.PAYMENT_CHOICES,
+            'currency_options': AdministrativePurchase.CURRENCY_CHOICES,
+        })
+
+
+def create_administrative_purchase(request):
+    """Guardar compra administrativa (materiales de oficina, limpieza, etc.)."""
+    if request.method == 'POST':
+        try:
+            supplier_id = request.POST.get('supplier-id', '')
+            purchase_date = request.POST.get('purchase-date', '')
+            document_number = request.POST.get('document-number', '').strip()
+            currency = request.POST.get('currency', 'S')
+            payment_method = request.POST.get('payment-method', 'CO')
+            observation = request.POST.get('observation', '').strip()
+            detail_json = request.POST.get('detail', '[]')
+
+            if not purchase_date:
+                return JsonResponse({'success': False, 'message': 'Fecha de compra es requerida'}, status=HTTPStatus.BAD_REQUEST)
+            if not supplier_id or supplier_id == '0':
+                return JsonResponse({'success': False, 'message': 'Seleccione un proveedor'}, status=HTTPStatus.BAD_REQUEST)
+
+            supplier_obj = AdminSupplier.objects.get(id=int(supplier_id))
+
+            user_obj = User.objects.get(id=request.user.id) if request.user.id else None
+            subsidiary_obj = get_subsidiary_by_user(user_obj) if user_obj else None
+
+            purchase = AdministrativePurchase(
+                purchase_date=purchase_date,
+                document_number=document_number or None,
+                supplier=supplier_obj,
+                supplier_name_free=None,
+                currency=currency,
+                payment_method=payment_method,
+                observation=observation or None,
+                user=user_obj,
+                subsidiary=subsidiary_obj,
+            )
+            purchase.save()
+
+            details = json.loads(detail_json)
+            if not details:
+                return JsonResponse({'success': False, 'message': 'Agregue al menos un detalle'}, status=HTTPStatus.BAD_REQUEST)
+
+            for d in details:
+                desc = (d.get('description') or '').strip()
+                if not desc:
+                    continue
+                qty = decimal.Decimal(str(d.get('quantity', 0)))
+                price = decimal.Decimal(str(d.get('price', 0)))
+                unit_id = d.get('unit')
+                unit_name_free = (d.get('unit_free') or '').strip()
+
+                unit_obj = None
+                if unit_id and str(unit_id) != '0':
+                    unit_obj = Unit.objects.get(id=int(unit_id))
+
+                AdministrativePurchaseDetail.objects.create(
+                    purchase=purchase,
+                    description=desc,
+                    quantity=qty,
+                    unit=unit_obj,
+                    unit_name_free=unit_name_free or None,
+                    price_unit=price,
+                )
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Compra administrativa registrada correctamente',
+                'purchase_id': purchase.id,
+            }, status=HTTPStatus.OK)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=HTTPStatus.BAD_REQUEST)
+    return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=HTTPStatus.METHOD_NOT_ALLOWED)
+
+
+def report_administrative_purchases(request):
+    """Reporte de compras administrativas por rango de fechas."""
+    if request.method == 'GET':
+        start_date = request.GET.get('start_date', '')
+        end_date = request.GET.get('end_date', '')
+        my_date = datetime.now()
+        formatdate = my_date.strftime("%Y-%m-%d")
+
+        if not start_date:
+            start_date = (my_date.replace(day=1)).strftime("%Y-%m-%d")
+        if not end_date:
+            end_date = formatdate
+
+        purchases = AdministrativePurchase.objects.filter(
+            purchase_date__gte=start_date,
+            purchase_date__lte=end_date,
+        ).prefetch_related('administrativepurchasedetail_set').order_by('-purchase_date', '-id')
+
+        total_general = sum(p.total() for p in purchases)
+
+        return render(request, 'buys/report_administrative_purchases.html', {
+            'purchases': purchases,
+            'start_date': start_date,
+            'end_date': end_date,
+            'total_general': total_general,
+            'formatdate': formatdate,
         })
 
 

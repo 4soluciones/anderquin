@@ -1,0 +1,167 @@
+{% extends 'home.html' %}
+{% block title %}
+    Reporte de Compras Administrativas
+{% endblock title %}
+
+{% block body %}
+
+<div class="container-fluid py-2 px-2 px-sm-3 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+    <!-- Encabezado -->
+    <div class="card border-0 shadow-lg mb-3 overflow-hidden" style="border-radius: 15px;">
+        <div class="card-body py-2 py-md-3" style="background-color: #f0f8fc;">
+            <div class="row align-items-center no-gutters">
+                <div class="col-12 col-lg-8 mb-2 mb-lg-0">
+                    <h4 class="mb-0 font-weight-bold roboto-condensed-regular" style="color: #0d47a1; font-size: clamp(1rem, 4vw, 1.25rem);">
+                        <i class="fas fa-chart-bar mr-2"></i> REPORTE DE COMPRAS ADMINISTRATIVAS
+                    </h4>
+                    <p class="text-muted mb-0 mt-1 small">Materiales de oficina, limpieza y suministros</p>
+                </div>
+                <div class="col-12 col-lg-4 mt-2 mt-lg-0 text-left text-lg-right">
+                    <a href="{% url 'buys:purchases' %}" class="btn btn-outline-primary btn-sm border-2 btn-sales-rounded w-100 d-lg-inline-block">
+                        <i class="fas fa-plus mr-1"></i> Nueva Compra
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="card-header font-weight-bold border-0 py-2" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); border-radius: 0;">
+            <i class="fas fa-filter mr-2" style="color: #0d47a1;"></i>
+            <span style="color: #0d47a1;">FILTROS</span>
+        </div>
+        <div class="card-body bg-white border-bottom p-2 p-sm-3">
+            <form method="get" id="report-form" class="row align-items-end">
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-2 mb-md-0">
+                    <label class="small font-weight-bold text-uppercase text-muted mb-1">Fecha inicio</label>
+                    <input type="date" name="start_date" class="form-control form-control-sm" style="border-color: #bbdefb; border-radius: 12px;" value="{{ start_date }}">
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-2 mb-md-0">
+                    <label class="small font-weight-bold text-uppercase text-muted mb-1">Fecha fin</label>
+                    <input type="date" name="end_date" class="form-control form-control-sm" style="border-color: #bbdefb; border-radius: 12px;" value="{{ end_date }}">
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-2 mb-md-0">
+                    <label class="small font-weight-bold text-uppercase text-muted mb-1 d-block">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary btn-sm border-2 btn-sales-rounded w-100">
+                        <i class="fas fa-search mr-1"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contenido del reporte -->
+    <div class="card border-0 shadow-sm mb-3 overflow-hidden" style="border-radius: 15px;">
+        <div class="card-header font-weight-bold border-0 py-2" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); border-radius: 15px 15px 0 0;">
+            <i class="fas fa-list-alt mr-2" style="color: #0d47a1;"></i>
+            <span style="color: #0d47a1;">RESUMEN DE COMPRAS</span>
+        </div>
+        <div class="card-body p-0" style="background-color: #fff;">
+            {% if purchases %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0 roboto-condensed-regular report-table">
+                        <thead class="text-white">
+                            <tr>
+                                <th class="align-middle py-2">Fecha</th>
+                                <th class="align-middle py-2">Nº Doc</th>
+                                <th class="align-middle py-2">Proveedor</th>
+                                <th class="align-middle text-center py-2">Moneda</th>
+                                <th class="align-middle text-right py-2">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in purchases %}
+                                <tr data-toggle="collapse" data-target="#detail-{{ p.id }}" class="report-row" style="cursor: pointer;">
+                                    <td class="align-middle">{{ p.purchase_date|date:"d/m/Y" }}</td>
+                                    <td class="align-middle">{{ p.document_number|default:"-" }}</td>
+                                    <td class="align-middle">{{ p.get_supplier_display }}</td>
+                                    <td class="align-middle text-center">{{ p.get_currency_display }}</td>
+                                    <td class="align-middle text-right font-weight-bold">
+                                        {% if p.currency == 'S' %}S/{% else %}${% endif %} {{ p.total|floatformat:2 }}
+                                    </td>
+                                </tr>
+                                <tr class="collapse" id="detail-{{ p.id }}">
+                                    <td colspan="5" class="p-2" style="background-color: #e3f2fd;">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered mb-0" style="font-size: 0.85rem; background: #fff;">
+                                                <thead>
+                                                    <tr class="text-white">
+                                                        <th class="align-middle py-2">Descripción</th>
+                                                        <th class="align-middle text-center py-2">Cant.</th>
+                                                        <th class="align-middle text-center py-2">Unidad</th>
+                                                        <th class="align-middle text-right py-2">P. Unit.</th>
+                                                        <th class="align-middle text-right py-2">Importe</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for d in p.administrativepurchasedetail_set.all %}
+                                                        <tr>
+                                                            <td class="align-middle">{{ d.description }}</td>
+                                                            <td class="align-middle text-center">{{ d.quantity }}</td>
+                                                            <td class="align-middle text-center">{{ d.get_unit_display }}</td>
+                                                            <td class="align-middle text-right">{{ d.price_unit|floatformat:2 }}</td>
+                                                            <td class="align-middle text-right font-weight-bold">{{ d.subtotal|floatformat:2 }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-light font-weight-bold">
+                            <tr>
+                                <td colspan="4" class="text-right align-middle py-3">TOTAL GENERAL:</td>
+                                <td class="text-right align-middle py-3" style="color: #0d47a1; font-size: 1.1rem;">
+                                    S/ {{ total_general|floatformat:2 }}
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 px-3">
+                    <div class="mb-3">
+                        <i class="fas fa-inbox" style="font-size: 4rem; color: #90caf9;"></i>
+                    </div>
+                    <h5 class="font-weight-bold mb-2" style="color: #0d47a1;">No hay compras registradas</h5>
+                    <p class="text-muted mb-3">No se encontraron compras en el rango de fechas seleccionado.</p>
+                    <a href="{% url 'buys:purchases' %}" class="btn btn-primary btn-sm border-2 btn-sales-rounded">
+                        <i class="fas fa-plus mr-1"></i> Registrar compra
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .report-table thead tr {
+        background: #3e6787 !important;
+    }
+    .report-table thead th:nth-child(5) {
+        background: #518d86 !important;
+    }
+    .report-table tbody tr.report-row:hover {
+        background-color: #e3f2fd !important;
+    }
+    .report-table tbody tr[data-toggle="collapse"] td {
+        border-color: #bbdefb !important;
+    }
+    #report-form .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+        border-color: #1e3a5f;
+    }
+    .btn-sales-rounded { border-radius: 12px !important; }
+    .btn-outline-primary, .btn-outline-secondary { border-width: 2px; }
+    .collapse tr td table thead tr {
+        background: #518d86 !important;
+        color: #fff;
+    }
+    @media (max-width: 575.98px) {
+        .container-fluid.py-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+        .report-table { font-size: 0.8rem; }
+    }
+</style>
+
+{% endblock body %}

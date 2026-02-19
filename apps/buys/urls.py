@@ -17,7 +17,11 @@ urlpatterns = [
     path('get_details_by_buy/', get_details_by_buy, name='get_details_by_buy'),
     path('buys_credit_note/', buys_credit_note, name='buys_credit_note'),
 
-    path('purchases/', get_purchase_form, name='purchases'),
+    path('purchases/', login_required(get_purchase_form), name='purchases'),
+    path('modal_admin_supplier/', login_required(modal_admin_supplier), name='modal_admin_supplier'),
+    path('save_admin_supplier/', login_required(save_admin_supplier), name='save_admin_supplier'),
+    path('create_administrative_purchase/', login_required(create_administrative_purchase), name='create_administrative_purchase'),
+    path('report_administrative_purchases/', login_required(report_administrative_purchases), name='report_administrative_purchases'),
 
     path('get_units_product/', get_units_product, name='get_units_product'),
 

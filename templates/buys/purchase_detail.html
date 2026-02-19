@@ -1,108 +1,72 @@
-<div class="table-responsive roboto-condensed-regular">
-    <table id="detail_purchase"
-           class="table table-hover table-sm align-content-center table-bordered mb-0">
+<div class="table-responsive">
+    <table class="table table-hover table-sm table-bordered table-admin mb-0" id="details-table" style="min-width: 600px;">
         <thead>
-        <tr class="text-center text-white" style="background: #3e6787">
-            <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Nº</th>
-            <th scope="col" class="align-middle font-weight-normal" style="width: 40%;">Descripción de
-                Artículo{{ selected_data }}</th>
-            <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Cantidad</th>
-            <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Unidad Medida</th>
-            <th scope="col" class="align-middle font-weight-normal" style="width: 10%; background-color: #518d86">Cant.
-                / U. M.
-            </th>
-            <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Valor Unitario</th>
-            <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Importe</th>
-            <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Eliminar</th>
-        </tr>
+            <tr class="text-center">
+                <th style="width: 4%;">Nº</th>
+                <th style="width: 35%;">Descripción del artículo</th>
+                <th style="width: 10%;">Cantidad</th>
+                <th style="width: 12%;">Unidad</th>
+                <th style="width: 12%; background-color: #518d86 !important;">Valor unitario</th>
+                <th style="width: 12%;">Importe</th>
+                <th style="width: 5%;"></th>
+            </tr>
         </thead>
-        <tbody id="details-table">
-        <tr product="" unit="">
-            <td class="item-number align-middle text-center">1</td>
-            <td class="align-middle text-left product-item-table">
-                <input type="text" aria-label=""
-                       class="form-control text-uppercase product-table dropdown-toggle"
-                       data-toggle="dropdown" aria-expanded="false"
-                       placeholder="Ingrese un producto...">
-                <div class="dropdown-menu"></div>
-            </td>
-            <td class="align-middle item-quantity">
-                <input type="text" aria-label=""
-                       class="form-control text-center quantity-product text-uppercase"
-                       placeholder="0">
-            </td>
-            <td class="align-middle unit">
-                <select class="form-control unit-product text-center" aria-label=""
-                        id="id_unit_product" name="unit_product">
-                    <option value="0">Seleccione</option>
-                </select>
-            </td>
-            <td class="align-middle quantity-minimum">
-                <input type="text" class="form-control text-center quantity-minimum-val" aria-label="...">
-            </td>
-            <td class="item-price text-right align-middle">
-                <div class="input-icon">
-                    <input type="text" aria-label=""
-                           class="form-control text-right text-uppercase price-unit-product"
-                           placeholder="0.00">
-                    <i class="change-money">S/</i>
-                </div>
-            </td>
-            <td class="item-total text-right align-middle total-row">
-                <div class="input-icon">
-                    <input type="text" aria-label=""
-                           class="form-control text-right text-uppercase total-detail"
-                           placeholder="0.00">
-                    <i class="change-money">S/</i>
-                </div>
-            </td>
-        </tr>
+        <tbody>
+            <tr>
+                <td class="item-num align-middle text-center">1</td>
+                <td class="align-middle">
+                    <input type="text" class="form-control form-control-sm desc-input" placeholder="Ej: Resmas de papel A4">
+                </td>
+                <td class="align-middle">
+                    <input type="number" step="0.01" class="form-control form-control-sm qty-input text-center" placeholder="0" value="0">
+                </td>
+                <td class="align-middle">
+                    <select class="form-control form-control-sm unit-select">
+                        <option value="0">Otro</option>
+                        {% for u in units %}
+                            <option value="{{ u.id }}">{{ u.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" class="form-control form-control-sm unit-free-input mt-1 d-none" placeholder="Especificar unidad">
+                </td>
+                <td class="align-middle">
+                    <div class="input-icon">
+                        <input type="number" step="0.01" class="form-control form-control-sm price-input" placeholder="0.00" value="0">
+                        <i class="change-money">S/</i>
+                    </div>
+                </td>
+                <td class="align-middle">
+                    <div class="input-icon input-icon-right">
+                        <input type="text" class="form-control form-control-sm total-input" placeholder="0.00" readonly>
+                        <i class="change-money">S/</i>
+                    </div>
+                </td>
+                <td class="align-middle text-center">
+                    <button type="button" class="btn btn-outline-danger btn-sm border-2 delete-row btn-sales-rounded"><i class="fa fa-trash"></i></button>
+                </td>
+            </tr>
         </tbody>
-        <tfoot id="details-table-foot">
-        <tr>
-            <td class="border-0" colspan="2"></td>
-            <td class="border td-table-foot" colspan="11">
-                <div class="form-check mt-5">
-                    <input class="form-check-input check-igv" type="checkbox" checked id="check_igv">
-                    <label class="form-check-label" for="check_igv">
-                        INCLUYE IGV
-                    </label>
-                </div>
-                <table class="table table-hover table-sm align-content-center table-bordered mt-3 table-foot"
-                       id="id_detail_data_foot">
-                    <thead>
-                    <tr class="text-center text-white" style="background: #3e6787">
-                        <th scope="col" class="align-middle font-weight-normal" style="width: 35%;">Base Imponible</th>
-                        <th scope="col" class="align-middle font-weight-normal" style="width: 30%;">IGV (18%)</th>
-                        <th scope="col" class="align-middle font-weight-normal" style="width: 35%;">Importe Total</th>
-                    <tbody id="table-detail-foot">
-                    <tr class="text-center">
-                        <td class="foot-base">
-                            <div class="input-icon">
-                                <input type="text" aria-label="" name="base-total"
-                                       class="form-control text-right text-uppercase total-foot-base"
-                                       placeholder="0.00"><i class="change-money">S/</i>
-                            </div>
-                        </td>
-                        <td class="foot-igv">
-                            <div class="input-icon">
-                                <input type="text" aria-label="" name="igv-total"
-                                       class="form-control text-right text-uppercase total-foot-igv"
-                                       placeholder="0.00"><i class="change-money">S/</i>
-                            </div>
-                        </td>
-                        <td class="foot-total">
-                            <div class="input-icon">
-                                <input type="text" aria-label="" name="total"
-                                       class="form-control text-right text-uppercase total-foot-total"
-                                       placeholder="0.00"><i class="change-money">S/</i>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </td>
-        </tr>
+        <tfoot>
+            <tr class="bg-light">
+                <td colspan="5" class="text-right font-weight-bold align-middle">SUBTOTAL:</td>
+                <td class="align-middle">
+                    <div class="input-icon input-icon-right">
+                        <input type="text" id="subtotal-foot" class="form-control form-control-sm font-weight-bold" placeholder="0.00" readonly>
+                        <i class="change-money">S/</i>
+                    </div>
+                </td>
+                <td></td>
+            </tr>
+            <tr class="bg-light">
+                <td colspan="5" class="text-right font-weight-bold align-middle">TOTAL:</td>
+                <td class="align-middle">
+                    <div class="input-icon input-icon-right">
+                        <input type="text" id="total-foot" class="form-control form-control-sm font-weight-bold" placeholder="0.00" readonly>
+                        <i class="change-money">S/</i>
+                    </div>
+                </td>
+                <td></td>
+            </tr>
         </tfoot>
     </table>
 </div>

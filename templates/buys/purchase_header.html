@@ -1,105 +1,69 @@
 {% load static %}
-<form id="purchase-form" action="{% url 'buys:save_purchase' %}" method="POST">
+<form id="admin-purchase-form" method="POST">
     {% csrf_token %}
-    <div class="card roboto-condensed-regular">
-        <div class="row">
-            <div class="col-sm-12 col-md-12 col-lg-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row p-1">
-                            <div class="col-sm-2 col-md-2 col-lg-2">
-                                <label for="document_type">Tipo de Documento:</label>
-                                <select id="document_type" name="document-type" class="form-control" required>
-                                    <option selected disabled value="0">Seleccione</option>
-                                    <option value="T">TICKET</option>
-                                    <option value="B">BOLETA</option>
-                                    <option value="F">FACTURA</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-2 col-md-2 col-lg-2">
-                                <label for="document_number">Numero de Documento:</label>
-                                <input type="text" class="form-control" id="document_number"
-                                       name="document-number" autocomplete="off"
-                                       placeholder="Ejem: F001-001">
-                            </div>
-                            <div class="col-sm-2 col-md-2 col-lg-2">
-                                <label for="store_id">Asignar Almacén:</label>
-                                <select id="store_id" name="store-id" class="form-control" required>
-                                    <option selected value="0">SIN ALMACÉN</option>
-                                    {% for s in stores %}
-                                        <option value="{{ s.id }}">{{ s.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-sm-3 col-md-3 col-lg-3">
-                                <label for="way_to_pay">Metodo de Pago:</label>
-                                <select id="way_to_pay" name="way-to-pay" class="form-control" required>
-                                    {% for t in type_options %}
-                                        <option value="{{ t.0 }}">{{ t.1 }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-sm-3 col-md-3 col-lg-3">
-                                <label for="money_type">Moneda:</label>
-                                <select id="money_type" name="money-type" class="form-control" required>
-                                    <option value="S">SOLES</option>
-                                    <option value="D">DOLARES</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row p-1">
-                            <div class="col-sm-6 col-md-6 col-lg-6">
-                                <label for="supplier_id">Seleccione Proveedor:</label>
-                                <select id="supplier_id" name="supplier" class="form-control" required>
-                                    <option value="0">Seleccione</option>
-                                    {% for s in supplier_set %}
-                                        <option value="{{ s.id }}">{{ s.name|upper }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-sm-3 col-md-3 col-lg-3 purchase-date">
-                                <label for="purchase_date">Fecha de Compra:</label>
-                                <input type="date" class="form-control" id="purchase_date"
-                                       name="purchase-date"
-                                       value="{{ formatdate }}" required>
-                            </div>
-                            <div class="col-sm-3 col-md-3 col-lg-3 purchase-date">
-                                <label for="issue_date">Fecha de Emisión:</label>
-                                <input type="date" class="form-control" id="issue_date"
-                                       name="issue-date"
-                                       value="{{ formatdate }}" required>
-                            </div>
-                        </div>
-                        <div class="row p-1">
-                            <div class="col-sm-2 col-md-2 col-lg-2">
-                                <label for="btn-save">&nbsp;</label>
-                                <button type="submit" id="btn-save"
-                                        class="btn btn-success btn-block">GUARDAR COMPRA
-                                </button>
-                            </div>
-                            <div class="col-sm-2 col-md-2 col-lg-2">
-                                <label for="btn-new">&nbsp;</label>
-                                <button type="button" id="btn-new"
-                                        class="btn btn-secondary btn-block">NUEVO
-                                </button>
-                            </div>
-                            <div class="col-sm-2 col-md-2 col-lg-2">
-                                <label for="btn-add-new-detail">&nbsp;</label>
-                                <button type="button" id="btn-add-new-detail"
-                                        class="btn btn-block text-white" style="background: #3e6787">AGREGAR DETALLE
-                                </button>
-                            </div>
-
-                            <div class="col-sm-6 col-md-6 col-lg-6">
-                                <label for="observation">Observaciones:</label>
-                                <input type="text" class="form-control" id="observation"
-                                       name="observation" autocomplete="off"
-                                       placeholder=""
-                                       value="">
-                            </div>
-                        </div>
+    <div class="card-body border-bottom py-2 py-md-3" style="background-color: #f0f8fc;">
+        <div class="row align-items-end no-gutters">
+            <div class="col-12 col-md-6 col-lg-3 mb-2 mb-md-0 pr-md-2">
+                <label class="mb-0 mr-2 text-nowrap small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Proveedor</label>
+                <div class="input-group input-group-sm shadow-sm border overflow-hidden" style="border-color: #bbdefb !important; border-radius: 12px;">
+                    <select id="supplier-id" name="supplier-id" class="form-control border-0" required>
+                        <option value="">-- Seleccione --</option>
+                        {% for s in admin_suppliers %}
+                            <option value="{{ s.id }}">{{ s.name|upper }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="input-group-append">
+                        <button type="button" id="btn-open-supplier-modal" class="btn btn-outline-primary border-0 py-2" style="border-radius: 0 12px 12px 0; border-left: 1px solid #bbdefb;">
+                            <i class="fas fa-plus text-primary"></i>
+                        </button>
                     </div>
                 </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2 mb-2 mb-md-0 pr-md-2">
+                <label class="mb-0 small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Fecha</label>
+                <input type="date" id="purchase-date" name="purchase-date" class="form-control form-control-sm shadow-sm border rounded" style="border-color: #bbdefb !important;"
+                       value="{{ formatdate }}" required>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2 mb-2 mb-md-0 pr-md-2">
+                <label class="mb-0 small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Nº Doc.</label>
+                <input type="text" id="document-number" name="document-number" class="form-control form-control-sm shadow-sm border rounded" style="border-color: #bbdefb !important;"
+                       placeholder="F001-001" autocomplete="off">
+            </div>
+            <div class="col-12 col-md-6 col-lg-2 mb-2 mb-md-0 pr-md-2">
+                <label class="mb-0 small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Moneda</label>
+                <select id="currency" name="currency" class="form-control form-control-sm shadow-sm border rounded" style="border-color: #bbdefb !important;">
+                    {% for c in currency_options %}
+                        <option value="{{ c.0 }}" {% if c.0 == 'S' %}selected{% endif %}>{{ c.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2 mb-2 mb-md-0 pr-md-2">
+                <label class="mb-0 small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Pago</label>
+                <select id="payment-method" name="payment-method" class="form-control form-control-sm shadow-sm border rounded" style="border-color: #bbdefb !important;">
+                    {% for p in payment_options %}
+                        <option value="{{ p.0 }}">{{ p.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-1 mb-2 mb-md-0">
+                <button type="button" id="btn-add-detail" class="btn btn-outline-primary btn-sm border-2 btn-sales-rounded w-100 py-2">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="row align-items-end no-gutters mt-2">
+            <div class="col-12 col-md-8 mb-2 mb-md-0 pr-md-2">
+                <label class="mb-0 small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Observaciones</label>
+                <input type="text" id="observation" name="observation" class="form-control form-control-sm shadow-sm border rounded" style="border-color: #bbdefb !important;"
+                       placeholder="Opcional" autocomplete="off">
+            </div>
+            <div class="col-12 col-md-4">
+                <button type="submit" id="btn-save" class="btn btn-success btn-sm border-2 btn-sales-rounded mr-1">
+                    <i class="fas fa-save mr-1"></i> GUARDAR
+                </button>
+                <button type="button" id="btn-new" class="btn btn-outline-secondary btn-sm border-2 btn-sales-rounded">
+                    <i class="fas fa-plus mr-1"></i> NUEVO
+                </button>
             </div>
         </div>
     </div>
