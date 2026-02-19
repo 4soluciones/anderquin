@@ -1,294 +1,188 @@
 {% load static %}
-<nav class="navbar navbar-expand-lg" style="background: #3e6787">
+<!-- ERP Sidebar - Moderno y Profesional -->
+<aside class="erp-sidebar" id="erp-sidebar">
+    <div class="erp-sidebar-header">
+        <a href="{% url 'dashboard' %}" class="erp-sidebar-brand">
+            <img src="{% static 'assets/avatar/logo_anderquin_new.png' %}" alt="Anderquin" class="erp-sidebar-logo"/>
+            <span class="erp-sidebar-brand-text">ERP</span>
+        </a>
+    </div>
 
-    {#    <a href="{% url 'dashboard' %}">#}
-    {#        <img src="{% static 'assets/avatar/logo_anderquin_new.png' %}" class="mr-2 mb-3 mt-2" alt="" width="70"/>#}
-    {#    </a>#}
+    <nav class="erp-sidebar-nav">
+        <ul class="erp-nav-list">
+            <!-- Acceso directo Dashboard -->
+            <li class="erp-nav-item">
+                <a href="{% url 'dashboard' %}" class="erp-nav-link">
+                    <i class="fas fa-home erp-nav-icon"></i>
+                    <span class="erp-nav-text">Inicio</span>
+                </a>
+            </li>
 
-    {#    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#main_nav">#}
-    {#        <span class="navbar-toggler-icon"></span>#}
-    {#    </button>#}
-
-    <div class="collapse navbar-collapse roboto-condensed-regular" id="main_nav">
-
-        <nav class="navbar navbar-expand-lg navbar-light" style="background: #3e6787">
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03"
-                    aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <a href="{% url 'dashboard' %}">
-                <img src="{% static 'assets/avatar/logo_anderquin_new.png' %}" class="mr-2 mb-3 mt-2" alt=""
-                     width="70"/>
-            </a>
-            <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
-                <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" data-toggle="dropdown"> RR.HH. </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'hrm:employee_list' %}"><i
-                                    class="fas fa-users"></i> Empleados </a></li>
-                            <li><a class="dropdown-item"
-                                   href="{% url 'hrm:get_subsidiary' %}">
-                                <i class="fas fa-store"></i> Sucursales </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" data-toggle="dropdown"> Logística </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item dropdown-toggle" href="#"><i class="fas fa-list-alt"></i>
-                                Productos </a>
-                                <ul class="submenu dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'sales:product_list' %}">Listado de
-                                        Productos</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'sales:kardex' %}">kardex de Productos</a>
-                                    </li>
-                                    <li><a class="dropdown-item" href="{% url 'sales:price_management' %}"><i
-                                            class="fas fa-dollar-sign"></i> Gestión de Precios</a></li>
-                                </ul>
-                            </li>
-
-                            <li><a class="dropdown-item dropdown-toggle" href="#"><i class="fas fa-dolly"></i> Guías de
-                                Remisión
-                            </a>
-                                <ul class="submenu dropdown-menu show">
-                                    <li><a class="dropdown-item" href="{% url 'comercial:new_guide' %}"><i
-                                            class="fas fa-dolly"></i> Emisión de Guías </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'comercial:guide_list' %}">
-                                        <i class="fas fa-list"></i> Listado de Guías </a></li>
-                                </ul>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{% url 'comercial:truck_list' %}"><i
-                                        class="fas fa-truck"></i> Listado de Vehiculos </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{% url 'comercial:get_store' %}"><i
-                                        class="fas fa-warehouse"></i>
-                                    Almacenes </a>
-                            </li>
-                            <li><a class="dropdown-item dropdown-toggle" href="#"><i class="fas fa-exchange-alt"></i>
-                                Transferencias entre almacenes </a>
-                                <ul class="submenu dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'comercial:transfer_list' %}"><i
-                                            class="fas fa-list"></i> Listado de transferencias</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'comercial:transfer_create' %}"><i
-                                            class="fas fa-truck-loading"></i> Registrar salida</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'comercial:transfer_receive_list' %}"><i
-                                            class="fas fa-clipboard-check"></i> Recepcionar mercadería</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'comercial:direct_input_warehouse' %}"><i
-                                            class="fas fa-box-open"></i> Ingreso directo a almacén</a></li>
-                                </ul>
-                            </li>
-                            <li><a class="dropdown-item dropdown-toggle" href="#"><i class="fas fa-sign-in-alt"></i>
-                                Ingreso de Facturas a Almacen </a>
-                                <ul class="submenu dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'sales:bills_pending' %}">Facturas sin
-                                        Almacen</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'sales:bills_in_warehouse' %}">Facturas
-                                        con Almacen</a></li>
-                                </ul>
-                            </li>
-                            <div class="dropdown-divider"></div>
-                            {#                            <li><a class="dropdown-item dropdown-toggle" href="#"> Control de traspaso de productos </a>#}
-                            {#                                <ul class="submenu dropdown-menu">#}
-                            {#                                    <li><a class="dropdown-item" href="{% url 'comercial:input_workflow' %}">Notas de#}
-                            {#                                        entrada</a></li>#}
-                            {#                                    <li><a class="dropdown-item" href="{% url 'comercial:input_guide' %}">Registrar de#}
-                            {#                                        nota de#}
-                            {#                                        entrada</a></li>#}
-                            {#                                    <li><a class="dropdown-item" href="{% url 'comercial:output_workflow' %}">Notas de#}
-                            {#                                        salida</a></li>#}
-                            {#                                    <li><a class="dropdown-item" href="{% url 'comercial:output_guide' %}">Registrar de#}
-                            {#                                        nota de#}
-                            {#                                        salida</a></li>#}
-                            {#                                </ul>#}
-                            {#                            </li>#}
-                            {#                            <li><a class="dropdown-item dropdown-toggle" href="#"> Confirmación de guías por#}
-                            {#                                traslado </a>#}
-                            {#                                <ul class="submenu dropdown-menu">#}
-                            {#                                    <li><a class="dropdown-item"#}
-                            {#                                           href="{% url 'comercial:input_workflow_from_output' %}">Notas#}
-                            {#                                        de salida para ingresar a almacén</a></li>#}
-                            {#                                </ul>#}
-                            {#                            </li>#}
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" data-toggle="dropdown"> Contratos </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'buys:contract_list' %}"><i
-                                    class="fas fa-file-contract"></i> Ver Contratos </a></li>
-                            <li><a class="dropdown-item" href="{% url 'buys:contracts_detail' %}"><i
-                                    class="fas fa-file-contract"></i> Reporte de Fechas de Entrega </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" data-toggle="dropdown"> Compras </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item dropdown-toggle" href="#"><i class="fas fa-file"></i>
-                                Ordenes de Compra
-                            </a>
-                                <ul class="submenu dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'buys:buy_list' %}"><i
-                                            class="fas fa-file"></i> Nueva Orden de Compra</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'buys:buy_order_list' %}"><i
-                                            class="fas fa-tasks"></i> Lista de Ordenes de Compra </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'buys:buy_order_store_list' %}"><i
-                                            class="fas fa-clipboard-list"></i> Lista de Ordenes de Compra en Almacen</a>
-                                    </li>
-                                    <li><a class="dropdown-item" href="{% url 'buys:get_purchase_annular_list' %}"><i
-                                            class="fas fa-stream"></i> Lista de Ordenes de Compra Anuladas</a></li>
-                                </ul>
-                            </li>
-                            <li><a class="dropdown-item dropdown-toggle" href="#"><i class="fas fa-clipboard-list"></i>
-                                Compras Administrativas
-                            </a>
-                                <ul class="submenu dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'buys:purchases' %}"><i
-                                            class="fas fa-plus-circle"></i> Registrar Compra </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'buys:report_administrative_purchases' %}"><i
-                                            class="fas fa-chart-bar"></i> Reporte de Compras Administrativas</a></li>
-                                </ul>
-                            </li>
-                            <li><a class="dropdown-item dropdown-toggle" href="#"><i class="fas fa-hand-holding-usd"></i> Compras al Proveedor
-                            </a>
-                                <ul class="submenu dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'accounting:get_purchase_list_finances' %}"><i
-                                            class="fas fa-file-invoice-dollar"></i> Gestión de Compras (Listado O/C)</a></li>
-                                    <li><a class="dropdown-item" href="{% url 'accounting:credit_note_list' %}"><i
-                                            class="fas fa-file-contract"></i> Notas de Crédito de Compras</a></li>
-                                </ul>
-                            </li>
-                            <div class="dropdown-divider"></div>
-                            <li><a class="dropdown-item" href="{% url 'buys:supplier_list' %}"><i
-                                    class="fas fa-user-check"></i> Listado de Proveedores </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" data-toggle="dropdown"> Ventas </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'sales:sales_list' %}"><i
-                                    class="fas fa-hand-holding-usd"></i> Nueva Venta </a></li>
-                            <li><a class="dropdown-item" href="{% url 'sales:sales_report_professional' %}"><i
-                                    class="fas fa-chart-line"></i> Reporte de Ventas </a></li>
-                            <li><a class="dropdown-item" href="{% url 'sales:credit_note_order_list' %}"><i
-                                    class="fas fa-file-invoice-dollar"></i> Notas de Crédito de Ventas </a></li>
-                            <div class="dropdown-divider"></div>
-                            <li><a class="dropdown-item" href="{% url 'sales:client_list' %}"><i
-                                    class="fas fa-user-friends"></i> Listado de Clientes </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" data-toggle="dropdown"> Cotizaciones </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'sales:quotation_list' %}"><i
-                                    class="fas fa-dolly"></i> Cotizaciones </a></li>
-                            <li><a class="dropdown-item" href="{% url 'sales:get_sales_quotation_by_subsidiary' %}"><i
-                                    class="fas fa-align-left"></i> Reporte de Cotizaciones </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" data-toggle="dropdown"> Finanzas </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'accounting:get_cash_control_list' %}"><i
-                                    class="fas fa-cash-register"></i> Control de caja</a></li>
-                            <li><a class="dropdown-item" href="{% url 'accounting:get_bank_control_list' %}"><i
-                                    class="fas fa-wallet"></i> Control de cuentas bancarias</a></li>
-                            <li><a class="dropdown-item" href="{% url 'accounting:get_account_list' %}"><i
-                                    class="fas fa-file-invoice-dollar"></i> Cuadro de cuentas</a></li>
-                            <div class="dropdown-divider"></div>
-                            <li><a class="dropdown-item dropdown-toggle" href="#"><i
-                                    class="fas fa-hand-holding-usd"></i> Contabilidad
-                            </a>
-                                <ul class="submenu dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'accounting:get_purchases_list' %}">
-                                        <i class="fas fa-file-invoice"></i> Reporte de Cuentas por Pagar</a>
-                                    </li>
-                                    <li><a class="dropdown-item" href="{% url 'sales:accounts_receivable_report' %}">
-                                        <i class="fas fa-chart-line"></i> Reporte de Cuentas por Cobrar</a>
-                                    </li>
-                                </ul>
-                                {#                    <li><a class="dropdown-item" href="{% url 'comercial:get_distribution_query' %}"> Reporte de Reparto</a></li>#}
-                                {#                            <li><a class="dropdown-item" href="{% url 'accounting:get_cash_report' %}"><i#}
-                                {#                                    class="fas fa-list-alt"></i> Reporte de Cajas</a></li>#}
-                        </ul>
-                    </li>
-
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" data-toggle="dropdown"> Reportes </a>
-                        <ul class="dropdown-menu">
-                            {#                    <li><a class="dropdown-item" href="{% url 'buys:get_report_kardex_glp' %}"> Reporte GLP</a></li>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'buys:get_programming_by_truck_and_dates' %}"> Relacion de programaciones</a></li>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'buys:get_requirement_balance' %}"> Saldos requerimientos</a></li>#}
-                            {#                    <div class="dropdown-divider"></div>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'buys:get_purchase_store_list' %}"> Reporte de compras en Almacen</a></li>#}
-                            <li><a class="dropdown-item" href="{% url 'buys:report_purchases_all' %}"> Reporte de
-                                compras
-                                Totales</a></li>
-                            <li><a class="dropdown-item" href="{% url 'buys:report_purchases_by_supplier' %}"> Reporte
-                                de
-                                Compras por Proveedor</a></li>
-                            {#                    <li><a class="dropdown-item" href="{% url 'sales:purchase_report_by_category' %}"> Reporte de Compras por Categoria de Proveedor</a></li>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'buys:get_purchases_by_provider_category' %}"> Reporte de Compras por Categoria de Proveedor</a></li>#}
-                            {#                     <div class="dropdown-divider"></div>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'sales:get_sales_all_subsidiaries' %}"> Reporte de ventas</a></li>#}
-                            {#                            <li><a class="dropdown-item" href="{% url 'sales:order_list' %}"> Cuentas por cobrar</a>#}
-                            {#                            </li>#}
-
-                            {#                    <li><a class="dropdown-item" target="print" href="{% url 'sales:pdf_get_orders_for_status_account' %}"> Reporte estado de cuentas</a></li>#}
-
-                            {#                    <div class="dropdown-divider"></div>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'comercial:get_distribution_query' %}"> Reporte de Reparto</a></li>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'comercial:list_output_distribution' %}">Salidas de reparto</a></li>#}
-                            {#                    <div class="dropdown-divider"></div>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'accounting:get_bank_control_list' %}"> Reporte de cuentas bancarias</a></li>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'accounting:get_cash_report' %}"> Reporte de cajas</a></li>#}
-                            {#                    <div class="dropdown-divider"></div>#}
-                            {#                     <li><a class="dropdown-item" href="{% url 'sales:stock_product' %}"> Stock de balones de la sucursal</a></li>#}
-                            {#                     <li><a class="dropdown-item" href="{% url 'sales:get_products_by_subsidiary' %}"> Stock de productos de la sucursal</a></li>#}
-                            {#                     <li><a class="dropdown-item" href="{% u/rl 'sales:get_supplies_view' %}"> Stock de insumos</a></li>#}
-                            {#                     <div class="dropdown-divider"></div>#}
-                            {#                     <li><a class="dropdown-item" href="{% url 'sales:stock_product_all' %}"> Stock de productos</a></li>#}
-                            {#                     <div class="dropdown-divider"></div>#}
-                            {#                     <li><a class="dropdown-item" href="{% url 'comercial:report_guide_by_plate' %}"> Reporte de Guías - Unidades</a></li>#}
-                            {#                     <li><a class="dropdown-item" href="{% url 'sales:get_summary_debtors' %}"> Reporte - Deudas de clientes</a></li>#}
-                            {#                     <li><a class="dropdown-item" href="{% url 'buys:get_programmings_by_dates' %}"> Reporte Salidad de unidades</a></li>#}
-
-                            {#                    <div class="dropdown-divider"></div>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'sales:sold_ball' %}"> Reporte de fierros vendidos</a></li>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'sales:report_payments_by_client' %}"> Reporte de depositos confrontar con estractos</a></li>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'sales:report_ball_all_mass' %}"> Reporte de Balones con saldos totales</a></li>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'sales:status_account' %}"> Nuevo Reporte estado de cuentas</a></li>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'sales:comparative_sales_and_purchases_report' %}"> Reporte de cuadro de compras y ventas comparativo</a></li>#}
-                            {#                    <li><a class="dropdown-item" href="{% url 'accounting:report_tributary' %}"> Reporte tributario</a></li>#}
-                        </ul>
-                    </li>
-
+            <!-- RR.HH. -->
+            <li class="erp-nav-item erp-nav-has-submenu">
+                <a href="#" class="erp-nav-link" data-submenu="rrhh">
+                    <i class="fas fa-users-cog erp-nav-icon"></i>
+                    <span class="erp-nav-text">RR.HH.</span>
+                    <i class="fas fa-chevron-down erp-nav-arrow"></i>
+                </a>
+                <ul class="erp-nav-submenu" id="submenu-rrhh">
+                    <li><a href="{% url 'hrm:employee_list' %}"><i class="fas fa-users"></i> Empleados</a></li>
+                    <li><a href="{% url 'hrm:get_subsidiary' %}"><i class="fas fa-store"></i> Sucursales</a></li>
                 </ul>
-            </div>
-        </nav>
+            </li>
 
-    </div> <!-- navbar-collapse.// -->
+            <!-- Logística -->
+            <li class="erp-nav-item erp-nav-has-submenu">
+                <a href="#" class="erp-nav-link" data-submenu="logistica">
+                    <i class="fas fa-truck-loading erp-nav-icon"></i>
+                    <span class="erp-nav-text">Logística</span>
+                    <i class="fas fa-chevron-down erp-nav-arrow"></i>
+                </a>
+                <ul class="erp-nav-submenu" id="submenu-logistica">
+                    <li class="erp-submenu-header">Productos</li>
+                    <li><a href="{% url 'sales:product_list' %}"><i class="fas fa-list"></i> Listado de Productos</a></li>
+                    <li><a href="{% url 'sales:kardex' %}"><i class="fas fa-boxes"></i> Kardex de Productos</a></li>
+                    <li><a href="{% url 'sales:price_management' %}"><i class="fas fa-dollar-sign"></i> Gestión de Precios</a></li>
+                    <li class="erp-submenu-header">Guías de Remisión</li>
+                    <li><a href="{% url 'comercial:new_guide' %}"><i class="fas fa-dolly"></i> Emisión de Guías</a></li>
+                    <li><a href="{% url 'comercial:guide_list' %}"><i class="fas fa-list"></i> Listado de Guías</a></li>
+                    <li><a href="{% url 'comercial:truck_list' %}"><i class="fas fa-truck"></i> Listado de Vehículos</a></li>
+                    <li><a href="{% url 'comercial:get_store' %}"><i class="fas fa-warehouse"></i> Almacenes</a></li>
+                    <li class="erp-submenu-header">Transferencias entre almacenes</li>
+                    <li><a href="{% url 'comercial:transfer_list' %}"><i class="fas fa-list"></i> Listado de transferencias</a></li>
+                    <li><a href="{% url 'comercial:transfer_create' %}"><i class="fas fa-truck-loading"></i> Registrar salida</a></li>
+                    <li><a href="{% url 'comercial:transfer_receive_list' %}"><i class="fas fa-clipboard-check"></i> Recepcionar mercadería</a></li>
+                    <li><a href="{% url 'comercial:direct_input_warehouse' %}"><i class="fas fa-box-open"></i> Ingreso directo a almacén</a></li>
+                    <li class="erp-submenu-header">Ingreso de Facturas a Almacén</li>
+                    <li><a href="{% url 'sales:bills_pending' %}"><i class="fas fa-file-invoice"></i> Facturas sin Almacén</a></li>
+                    <li><a href="{% url 'sales:bills_in_warehouse' %}"><i class="fas fa-check-circle"></i> Facturas con Almacén</a></li>
+                </ul>
+            </li>
 
-    <nav class="full-box navbar-info border-0 text-white mt-2 roboto-condensed-regular">
-        <label class="text-white">Usuario: </label>
-        <form class="form-inline d-none d-sm-inline-block mr-3">
-            {{ user.worker_set.last.employee.names|upper }}
-        </form>
-        {#        <label class="text-white ml-3">Sucursal: </label>#}
-        <form class="form-inline d-none d-sm-inline-block">
-            <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-white" href="#"
-                       data-toggle="dropdown"> {{ user.worker_set.last.establishment_set.last.subsidiary.name }} </a>
-                    <ul class="dropdown-menu">
-                        {% for s in subsidiary_set %}
-                            <a class="dropdown-item text-dark text-left" href="" id="{{ s.id }}"> {{ s.name }} </a>
-                        {% endfor %}
-                    </ul>
-                </li>
-            </ul>
-        </form>
-        <a href="{% url 'logout' %}"><i class="fas fa-power-off fa-lg"></i></a>
+            <!-- Contratos -->
+            <li class="erp-nav-item erp-nav-has-submenu">
+                <a href="#" class="erp-nav-link" data-submenu="contratos">
+                    <i class="fas fa-file-contract erp-nav-icon"></i>
+                    <span class="erp-nav-text">Contratos</span>
+                    <i class="fas fa-chevron-down erp-nav-arrow"></i>
+                </a>
+                <ul class="erp-nav-submenu" id="submenu-contratos">
+                    <li><a href="{% url 'buys:contract_list' %}"><i class="fas fa-file-contract"></i> Ver Contratos</a></li>
+                    <li><a href="{% url 'buys:contracts_detail' %}"><i class="fas fa-file-contract"></i> Reporte de Fechas de Entrega</a></li>
+                </ul>
+            </li>
+
+            <!-- Compras -->
+            <li class="erp-nav-item erp-nav-has-submenu">
+                <a href="#" class="erp-nav-link" data-submenu="compras">
+                    <i class="fas fa-shopping-cart erp-nav-icon"></i>
+                    <span class="erp-nav-text">Compras</span>
+                    <i class="fas fa-chevron-down erp-nav-arrow"></i>
+                </a>
+                <ul class="erp-nav-submenu" id="submenu-compras">
+                    <li class="erp-submenu-header">Órdenes de Compra</li>
+                    <li><a href="{% url 'buys:buy_list' %}"><i class="fas fa-file"></i> Nueva Orden de Compra</a></li>
+                    <li><a href="{% url 'buys:buy_order_list' %}"><i class="fas fa-tasks"></i> Lista de Órdenes de Compra</a></li>
+                    <li><a href="{% url 'buys:buy_order_store_list' %}"><i class="fas fa-clipboard-list"></i> Lista de Órdenes de Compra en Almacén</a></li>
+                    <li><a href="{% url 'buys:get_purchase_annular_list' %}"><i class="fas fa-stream"></i> Lista de Órdenes de Compra Anuladas</a></li>
+                    <li class="erp-submenu-header">Compras Administrativas</li>
+                    <li><a href="{% url 'buys:purchases' %}"><i class="fas fa-plus-circle"></i> Registrar Compra</a></li>
+                    <li><a href="{% url 'buys:report_administrative_purchases' %}"><i class="fas fa-chart-bar"></i> Reporte de Compras Administrativas</a></li>
+                    <li class="erp-submenu-header">Compras al Proveedor</li>
+                    <li><a href="{% url 'accounting:get_purchase_list_finances' %}"><i class="fas fa-file-invoice-dollar"></i> Gestión de Compras (Listado O/C)</a></li>
+                    <li><a href="{% url 'accounting:credit_note_list' %}"><i class="fas fa-file-contract"></i> Notas de Crédito de Compras</a></li>
+                    <li class="erp-submenu-divider"></li>
+                    <li><a href="{% url 'buys:supplier_list' %}"><i class="fas fa-user-check"></i> Listado de Proveedores</a></li>
+                </ul>
+            </li>
+
+            <!-- Ventas -->
+            <li class="erp-nav-item erp-nav-has-submenu">
+                <a href="#" class="erp-nav-link" data-submenu="ventas">
+                    <i class="fas fa-cash-register erp-nav-icon"></i>
+                    <span class="erp-nav-text">Ventas</span>
+                    <i class="fas fa-chevron-down erp-nav-arrow"></i>
+                </a>
+                <ul class="erp-nav-submenu" id="submenu-ventas">
+                    <li><a href="{% url 'sales:sales_list' %}"><i class="fas fa-hand-holding-usd"></i> Nueva Venta</a></li>
+                    <li><a href="{% url 'sales:sales_report_professional' %}"><i class="fas fa-chart-line"></i> Reporte de Ventas</a></li>
+                    <li><a href="{% url 'sales:credit_note_order_list' %}"><i class="fas fa-file-invoice-dollar"></i> Notas de Crédito de Ventas</a></li>
+                    <li class="erp-submenu-divider"></li>
+                    <li><a href="{% url 'sales:client_list' %}"><i class="fas fa-user-friends"></i> Listado de Clientes</a></li>
+                </ul>
+            </li>
+
+            <!-- Cotizaciones -->
+            <li class="erp-nav-item erp-nav-has-submenu">
+                <a href="#" class="erp-nav-link" data-submenu="cotizaciones">
+                    <i class="fas fa-file-invoice erp-nav-icon"></i>
+                    <span class="erp-nav-text">Cotizaciones</span>
+                    <i class="fas fa-chevron-down erp-nav-arrow"></i>
+                </a>
+                <ul class="erp-nav-submenu" id="submenu-cotizaciones">
+                    <li><a href="{% url 'sales:quotation_list' %}"><i class="fas fa-dolly"></i> Cotizaciones</a></li>
+                    <li><a href="{% url 'sales:get_sales_quotation_by_subsidiary' %}"><i class="fas fa-align-left"></i> Reporte de Cotizaciones</a></li>
+                </ul>
+            </li>
+
+            <!-- Finanzas -->
+            <li class="erp-nav-item erp-nav-has-submenu">
+                <a href="#" class="erp-nav-link" data-submenu="finanzas">
+                    <i class="fas fa-wallet erp-nav-icon"></i>
+                    <span class="erp-nav-text">Finanzas</span>
+                    <i class="fas fa-chevron-down erp-nav-arrow"></i>
+                </a>
+                <ul class="erp-nav-submenu" id="submenu-finanzas">
+                    <li><a href="{% url 'accounting:get_cash_control_list' %}"><i class="fas fa-cash-register"></i> Control de caja</a></li>
+                    <li><a href="{% url 'accounting:get_bank_control_list' %}"><i class="fas fa-wallet"></i> Control de cuentas bancarias</a></li>
+                    <li><a href="{% url 'accounting:get_account_list' %}"><i class="fas fa-file-invoice-dollar"></i> Cuadro de cuentas</a></li>
+                    <li class="erp-submenu-header">Contabilidad</li>
+                    <li><a href="{% url 'accounting:get_purchases_list' %}"><i class="fas fa-file-invoice"></i> Reporte de Cuentas por Pagar</a></li>
+                    <li><a href="{% url 'sales:accounts_receivable_report' %}"><i class="fas fa-chart-line"></i> Reporte de Cuentas por Cobrar</a></li>
+                </ul>
+            </li>
+
+            <!-- Reportes -->
+            <li class="erp-nav-item erp-nav-has-submenu">
+                <a href="#" class="erp-nav-link" data-submenu="reportes">
+                    <i class="fas fa-chart-bar erp-nav-icon"></i>
+                    <span class="erp-nav-text">Reportes</span>
+                    <i class="fas fa-chevron-down erp-nav-arrow"></i>
+                </a>
+                <ul class="erp-nav-submenu" id="submenu-reportes">
+                    <li><a href="{% url 'buys:report_purchases_all' %}"><i class="fas fa-chart-pie"></i> Reporte de compras Totales</a></li>
+                    <li><a href="{% url 'buys:report_purchases_by_supplier' %}"><i class="fas fa-users"></i> Reporte de Compras por Proveedor</a></li>
+                </ul>
+            </li>
+        </ul>
     </nav>
-</nav>
+
+    <div class="erp-sidebar-footer">
+        <div class="erp-sidebar-user">
+            <div class="erp-sidebar-user-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="erp-sidebar-user-info">
+                <span class="erp-sidebar-user-name">{{ user.worker_set.last.employee.names|upper|truncatewords:2 }}</span>
+                <div class="erp-sidebar-subsidiary dropdown dropup">
+                    <a class="erp-sidebar-subsidiary-link dropdown-toggle" href="#" data-toggle="dropdown" id="subsidiaryDropdown">
+                        <i class="fas fa-building"></i>
+                        <span>{{ user.worker_set.last.establishment_set.last.subsidiary.name|truncatechars:18 }}</span>
+                    </a>
+                    <div class="dropdown-menu erp-subsidiary-dropdown" aria-labelledby="subsidiaryDropdown">
+                        {% for s in subsidiary_set %}
+                            <a class="dropdown-item" href="#" data-subsidiary="{{ s.id }}"><i class="fas fa-store"></i> {{ s.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a href="{% url 'logout' %}" class="erp-sidebar-logout" title="Cerrar sesión">
+            <i class="fas fa-power-off"></i>
+            <span class="erp-nav-text">Salir</span>
+        </a>
+    </div>
+</aside>
+
+<!-- Overlay para móvil -->
+<div class="erp-sidebar-overlay" id="sidebar-overlay"></div>

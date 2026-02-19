@@ -7,7 +7,7 @@
     <!-- <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"> -->
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>{% block title %}BIENVENIDO A V&J GAS {% endblock title %}</title>
+    <title>{% block title %}ANDEQUIN {% endblock title %}</title>
 
     <link rel="icon" href="{% static 'assets/icons/images_mYC_1.ico' %}" type="image/ico"/>
 
@@ -46,8 +46,8 @@
     <!-- General Styles -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-    <!-- Mega Menu Styles -->
-    <link rel="stylesheet" href="{% static 'css/megamenu2.css' %}">
+    <!-- ERP Sidebar Styles -->
+    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/loader.css' %}">
 
     <!-- Select2 - customizable select box -->
@@ -69,50 +69,62 @@
 </head>
 <body>
 
-<!-- Main container -->
-<main class="full-box main-container">
+<!-- ERP Layout con Sidebar -->
+<div class="erp-layout">
+    {% include "megamenu.html" %}
 
-    <!-- Nav lateral -->
-    <!-- Page content -->
-    {#    <section class="full-box page-content active" style="height: 100%; overflow-y: scroll;">#}
-    {##}
-    {#        {% include "megamenu.html" %}#}
-    {##}
-    {#        <!-- Content here-->#}
-    {##}
-    {#        {% block body %}#}
-    {#            <section class="statistic statistic2">#}
-    {#                <div class="container">#}
-    {#                    <div class="row">#}
-    {#                        <div class="col d-flex justify-content-center">#}
-    {#                            <img src="{% static 'assets/avatar/roologo.png' %}" class="img-fluid" alt="Avatar">#}
-    {#                        </div>#}
-    {##}
-    {#                    </div>#}
-    {#                </div>#}
-    {#            </section>#}
-    {##}
-    {#        {% endblock body %}#}
-    {##}
-    {#    </section>#}
-    <section class="" style="height: 100%; overflow-y: scroll;">
-
-        {% include "megamenu.html" %}
-
-        <!-- Content here-->
-
-        {% block body %}
-            <div class="row">
-                <div class="col d-flex justify-content-center">
-                    <img src="{% static 'assets/avatar/logo_anderquin_new.png' %}" class="img-fluid" alt="Logo"
-                         width="750"/>
-                </div>
+    <div class="erp-main-wrapper">
+        <!-- Top Bar -->
+        <header class="erp-topbar">
+            <div class="erp-topbar-left">
+                <button class="erp-topbar-sidebar-toggle" id="sidebar-toggle" aria-label="Mostrar/ocultar menú">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <button class="erp-topbar-icon-btn" id="sidebar-search" aria-label="Buscar" title="Buscar">
+                    <i class="fas fa-search"></i>
+                </button>
             </div>
-        {% endblock body %}
+            <div class="erp-topbar-actions">
+                <div class="erp-topbar-user-dropdown dropdown">
+                    <a class="erp-topbar-icon-btn dropdown-toggle" href="#" data-toggle="dropdown" id="userMenuDropdown" aria-haspopup="true" aria-expanded="false" title="Cuenta de usuario">
+                        <i class="fas fa-user-circle"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right erp-user-dropdown" aria-labelledby="userMenuDropdown">
+                        <div class="erp-user-dropdown-header">
+                            <span class="erp-user-dropdown-name">{{ user.worker_set.last.employee.names|upper|truncatewords:2 }}</span>
+                            <span class="erp-user-dropdown-subsidiary">{{ user.worker_set.last.establishment_set.last.subsidiary.name|truncatechars:25 }}</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Inicio</a>
+                        <a class="dropdown-item" href="#"><i class="fas fa-user"></i> Perfil</a>
+                        <a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Configuración</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#"><i class="fas fa-life-ring"></i> Support Center</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="fas fa-power-off"></i> Cerrar sesión</a>
+                    </div>
+                </div>
+                <a href="{% url 'logout' %}" class="erp-topbar-icon-btn" title="Cerrar sesión">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </header>
 
-    </section>
-
-</main>
+        <!-- Contenido principal -->
+        <main class="erp-main-content">
+            {% block body %}
+                <div class="container-fluid">
+                    <div class="row justify-content-center align-items-center" style="min-height: 60vh;">
+                        <div class="col text-center">
+                            <img src="{% static 'assets/avatar/logo_anderquin_new.png' %}" class="img-fluid" alt="Logo Anderquin" style="max-width: 450px; opacity: 0.95;"/>
+                            <p class="mt-4 text-muted" style="font-size: 1.1rem;">Bienvenido al Sistema ERP</p>
+                        </div>
+                    </div>
+                </div>
+            {% endblock body %}
+        </main>
+    </div>
+</div>
 
 
 <!--=============================================
@@ -151,6 +163,7 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 
 <script src="{% static 'js/main.js' %}"></script>
+<script src="{% static 'js/sidebar.js' %}"></script>
 
 <!-- DataTables JS -->
 <script src="{% static 'assets/datatables/datatables.min.js' %}"></script>
@@ -193,13 +206,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf.min.js"></script>
 
 {% block extrajs %}
-
-
-    <script>
-
-
-    </script>
-
 {% endblock extrajs %}
 
 </body>
