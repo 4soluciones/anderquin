@@ -1,566 +1,342 @@
 {% load operations %}
 {% load static %}
-<div class="modal-content">
-    <div class="modal-header text-center">
-        <div class="row col-12">
-            <div class="col-3">
-                <h5 class="modal-title roboto-condensed-regular font-weight-bold text-left">PAGO A PROVEEDOR: </h5>
-            </div>
-            <div class="col-4 pl-0">
-                <h5 class="roboto-condensed-regular font-weight-bold text-success text-left">{{ bill.supplier.name }}</h5>
-            </div>
-            <div class="col-3">
-                <h5 class="roboto-condensed-regular font-weight-bold text-success text-left">{{ bill }}</h5>
+<div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+    <div class="modal-header border-0 py-3 px-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);">
+        <div class="container-fluid px-0">
+            <div class="row align-items-center">
+                <div class="col pr-4">
+                    <h5 class="modal-title text-white roboto-condensed-regular font-weight-bold mb-2">
+                        <i class="fas fa-credit-card mr-2"></i>Registrar Pago a Proveedor
+                    </h5>
+                    <p class="mb-0 text-white-50 small mb-1">{{ bill.supplier.name }}</p>
+                    <p class="mb-0 text-white font-weight-bold" style="font-size: 1.35rem; letter-spacing: 0.5px;">
+                        Factura {{ bill.serial }}-{{ bill.correlative }}
+                    </p>
+                </div>
+                <div class="col-auto pl-3">
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 1; font-size: 1.5rem; padding: 0.5rem; margin: 0;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
             </div>
         </div>
-        <button type="button" class="close ml-0" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
     </div>
-    <div class="modal-body bg-light roboto-condensed-regular">
+    <div class="modal-body roboto-condensed-regular" style="background-color: #f8fbff;">
         <form id="purchase-payment-form" action="" method="POST">
             {% csrf_token %}
             <input type="hidden" id="bill_id" name="bill" value="{{ bill.id }}">
             <input type="hidden" id="date-ini" name="date-ini" value="{{ start_date }}">
             <input type="hidden" id="date-fin" name="date-fin" value="{{ end_date }}">
 
-            <div class="card text-center pt-3">
-                <div class="card-header pt-1 pb-1 font-weight-bold">
-                    <div class="row">
-                        <div class="col-6">
-                            <label>Deuda Total:</label>
+            <!-- Resumen de deuda -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; border-left: 4px solid #1565c0;">
+                        <div class="card-body py-3">
+                            <label class="small text-uppercase text-muted font-weight-bold mb-1">Deuda Total</label>
                             <div class="input-icon">
-                                <input type="text" readonly
-                                       style="background-color: #e57070; font-size: 18px" aria-label="..."
-                                       class="form-control form-control-sm font-weight-bold text-center text-dark"
-                                       id="total_debt" name="total-debt"
-                                       value="{{ total_debt }}"><i
-                                    class="change-money font-weight-bold">S/</i>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <label>Saldo Restante:</label>
-                            <div class="input-icon">
-                                <input type="text" readonly
-                                       style="background-color: #eed0d0; font-size: 18px" aria-label="..."
-                                       class="form-control form-control-sm font-weight-bold text-center text-dark"
-                                       id="repay_loan_text" name="repay-loan-text"
-                                       value="{{ bill.remaining_balance|replace_round_separator }}"><i
-                                    class="change-money font-weight-bold">S/</i>
-                                <input type="hidden" id="repay_loan" name="repay_loan"
-                                       value="{{ bill.remaining_balance }}">
+                                <input type="text" readonly class="form-control form-control-lg font-weight-bold border-0 bg-transparent" style="color: #1565c0; font-size: 1.25rem;"
+                                       id="total_debt" name="total-debt" value="{{ total_debt }}">
+                                <i class="change-money font-weight-bold text-primary">S/</i>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="card text-center pt-3 bg-light">
-                <div class="card-body pt-0 pb-0 font-weight-bold">
-                    <div class="row">
-                        <div class="col-4"></div>
-                        <div class="col-4">
-                            <div class="form-group row">
-                                <label for="payment_method_id" class="col-sm-4 col-form-label">MODO DE PAGO: </label>
-                                <div class="col-sm-8">
-                                    <select id="payment_method_id" name="payment_method"
-                                            class="form-control form-control-sm text-uppercase text-center">
-                                        <option value="M" selected>EFECTIVO / DEPOSITO</option>
-                                        <option value="C">Nota de Credito</option>
-                                    </select>
-                                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; border-left: 4px solid #ff9800;">
+                        <div class="card-body py-3">
+                            <label class="small text-uppercase text-muted font-weight-bold mb-1">Saldo Pendiente</label>
+                            <div class="input-icon">
+                                <input type="text" readonly class="form-control form-control-lg font-weight-bold border-0 bg-transparent" style="color: #e65100; font-size: 1.25rem;"
+                                       id="repay_loan_text" name="repay-loan-text" value="{{ bill.remaining_balance|replace_round_separator }}">
+                                <i class="change-money font-weight-bold text-warning">S/</i>
+                                <input type="hidden" id="repay_loan" name="repay_loan" value="{{ bill.remaining_balance }}">
                             </div>
                         </div>
-                        <div class="col-4"></div>
                     </div>
                 </div>
             </div>
 
+            <!-- Modo de pago -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+                <div class="card-header bg-white border-0 py-2" style="border-radius: 12px 12px 0 0;">
+                    <label class="mb-0 font-weight-bold text-uppercase small" style="color: #0d47a1;">
+                        <i class="fas fa-wallet mr-1"></i> Modo de Pago
+                    </label>
+                </div>
+                <div class="card-body pt-2">
+                    <div class="form-group mb-0">
+                        <select id="payment_method_id" name="payment_method" class="form-control form-control-lg" style="border-radius: 10px; border-color: #bbdefb;">
+                            <option value="M" selected>Efectivo / Depósito</option>
+                            <option value="C">Nota de Crédito</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Efectivo/Depósito -->
             <div class="money">
-                <table class="table table-sm pay-options bg-light table-bordered mb-2">
-                    <thead>
-                    <tr class="text-uppercase font-weight-lighter">
-                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CUENTA ANDERQUIN:</th>
-                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">Monto a pagar:</th>
-                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">Tipo de Pago:</th>
-                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">Fecha de pago:</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td class="border-top-0 border-bottom border-right align-middle">
-                            <select id="cash" name="cash" aria-label="..."
-                                    class="form-control form-control-sm text-uppercase"
-                                    aria-selected="Text input with radio button">
-                                {% for c in all_cashes %}
-                                    <option value="{{ c.id }}"
-                                    >{{ c.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td class="border-top-0 border-bottom border-right align-middle">
-                            <div class="input-icon">
-                                <input type="text"
-                                       id="bill_pay" name="bill-pay"
-                                       autocomplete="off"
-                                       style="background-color: #d0eedc" aria-label="..."
-                                       class="form-control form-control-sm font-weight-bold text-right text-dark"><i
-                                    class="change-money font-weight-bold">S/</i>
-                            </div>
-                        </td>
-                        <td class="border-top-0 border-bottom border-right align-middle">
-                            <select id="way_to_pay"
-                                    aria-label="..."
-                                    name="way_to_pay"
-                                    class="form-control form-control-sm">
-                                <option disabled selected value="0">Seleccione</option>
-                                <option value="E">CONTADO</option>
-                                <option value="D">DEPÓSITO</option>
-                            </select>
-                        </td>
-                        <td class="border-top-0 border-bottom border-right align-middle text-left text-danger">
-                            <input type="date" aria-label="..."
-                                   id="pay_date"
-                                   name="pay_date"
-                                   value="{{ date }}"
-                                   class="form-control form-control-sm">
-                        </td>
-
-                    </tr>
-                    </tbody>
-                </table>
-                <table class="table table-sm bg-light table-bordered mb-0">
-                    <thead>
-                    <tr class="text-uppercase font-weight-lighter">
-                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CUENTA DEL
-                            PROVEEDOR:
-                        </th>
-                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">DESCRIPCIÓN DEL
-                            PAGO:
-                        </th>
-                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">CÓDIGO DE OPERACIÓN:
-                        </th>
-                        <th class="border-bottom-0 border-right align-middle" style="width: 25%;">ESCANEO DEPOSITO:</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td class="border-top-0 border-bottom border-right align-middle">
-                            <select id="account_supplier" name="account_supplier" aria-label="..."
-                                    class="form-control form-control-sm"
-                                    aria-selected="Text input with radio button">
-                                <option disabled selected value="0">Seleccione..</option>
-                                {% for c in accounts_supplier %}
-                                    <option value="{{ c.id }}">{{ c.bank|default_if_none:'-' }}
-                                        : {{ c.account }} </option>
-                                {% endfor %}
-                            </select>
-                            {#                        <input type="text"#}
-                            {#                               aria-label="..."#}
-                            {#                               class="form-control form-control-sm"#}
-                            {#                               id="account_supplier"#}
-                            {#                               name="account_supplier">#}
-                        </td>
-                        <td class="border-top-0 border-bottom border-right align-middle">
-                            <input type="text"
-                                   aria-label="..."
-                                   class="form-control form-control-sm"
-                                   id="pay_description"
-                                   name="pay_description"
-                                   value="PAGO A LA FACTURA: {{ bill.serial }}-{{ bill.correlative }}">
-                        </td>
-                        <td class="border-top-0 border-bottom border-right align-middle">
-                            <input type="text" aria-label="..."
-                                   class="form-control form-control-sm"
-                                   id="id_code_operation"
-                                   name="code_operation">
-                        </td>
-                        <td class="border-top-0 border-bottom border-right align-middle">
-                            <div class="form-group m-0 w-100">
-                                <div class="input-group w-100">
-                                    <div class="custom-file w-100">
-                                        <input type="file" name="file" id="file" style="font-size: 12px"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-                <div class="card text-left">
-                    <div class="card-header font-weight-bold">
+                <div class="card border-0 shadow-sm mb-3" style="border-radius: 12px;">
+                    <div class="card-header bg-white border-0 py-2">
+                        <span class="font-weight-bold small text-uppercase" style="color: #0d47a1;">Datos del Pago</span>
+                    </div>
+                    <div class="card-body">
                         <div class="row">
-                            <div class="col-12 p-0">
-                                <label class="text-dark pl-1">OBSERVACIÓN: </label>
-                                <input type="text"
-                                       aria-label="..."
-                                       class="form-control form-control-sm font-weight-bold text-left"
-                                       id="observation" name="observation"
-                                       value="">
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <label class="small font-weight-bold text-muted">Cuenta Anderquin</label>
+                                <select id="cash" name="cash" class="form-control form-control-sm" style="border-radius: 8px;">
+                                    {% for c in all_cashes %}
+                                        <option value="{{ c.id }}">{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <label class="small font-weight-bold text-muted">Monto a Pagar</label>
+                                <div class="input-icon">
+                                    <input type="text" id="bill_pay" name="bill-pay" autocomplete="off"
+                                           class="form-control form-control-sm font-weight-bold text-right" style="border-radius: 8px; background-color: #e8f5e9;">
+                                    <i class="change-money font-weight-bold">S/</i>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <label class="small font-weight-bold text-muted">Tipo de Pago</label>
+                                <select id="way_to_pay" name="way_to_pay" class="form-control form-control-sm" style="border-radius: 8px;">
+                                    <option disabled selected value="0">Seleccione</option>
+                                    <option value="E">Contado</option>
+                                    <option value="D">Depósito</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <label class="small font-weight-bold text-muted">Fecha de Pago</label>
+                                <input type="date" id="pay_date" name="pay_date" value="{{ date }}"
+                                       class="form-control form-control-sm" style="border-radius: 8px;">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <label class="small font-weight-bold text-muted">Cuenta Proveedor</label>
+                                <select id="account_supplier" name="account_supplier" class="form-control form-control-sm" style="border-radius: 8px;">
+                                    <option disabled selected value="0">Seleccione</option>
+                                    {% for c in accounts_supplier %}
+                                        <option value="{{ c.id }}">{{ c.bank|default_if_none:'-' }}: {{ c.account }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <label class="small font-weight-bold text-muted">Descripción</label>
+                                <input type="text" id="pay_description" name="pay_description"
+                                       value="PAGO A LA FACTURA: {{ bill.serial }}-{{ bill.correlative }}"
+                                       class="form-control form-control-sm" style="border-radius: 8px;">
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <label class="small font-weight-bold text-muted">Código de Operación</label>
+                                <input type="text" id="id_code_operation" name="code_operation" class="form-control form-control-sm" style="border-radius: 8px;">
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <label class="small font-weight-bold text-muted">Escaneo Depósito</label>
+                                <input type="file" name="file" id="file" class="form-control form-control-sm" style="font-size: 12px; border-radius: 8px;">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <label class="small font-weight-bold text-muted">Observación</label>
+                                <input type="text" id="observation" name="observation" class="form-control form-control-sm" style="border-radius: 8px;">
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Sección: Nota de Crédito -->
             <div class="credit-note d-none">
-                <div class="card p-2 bg-light">
-                    <div class="row m-1 mt-2 text-uppercase">
-                        <div class="col-md-3 p-1 border">
-                            <div class="row">
-                                <label class="font-weight-bold col-12">Doc. NC (Serie y Número):</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control text-uppercase" id="credit-serial" name="credit-serial" placeholder="F001" style="max-width: 60px;">
-                                    <div class="input-group-append">
-                                        <span class="input-group-text">-</span>
-                                    </div>
-                                    <input type="text" class="form-control text-uppercase" id="credit-number" name="credit-number" placeholder="00000001">
-                                </div>
-                            <select id="credit_search" name="credit-search" aria-label="..."
-                                    class="form-control d-none">
-                                <option disabled selected value="0">Seleccione N/C</option>
-                                {% for c in credit_note_pending_set %}
-                                    <option value="{{ c.id }}">{{ c.nro_document }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-3 p-1 border">
-                            <label for="credit-note-date" class="font-weight-bold">Fecha de emisión:</label>
-                            <input type="date"
-                                   class="form-control" name="credit-note-date" id="credit-note-date"
-                                   placeholder=""
-                                   value="{{ date }}">
-                        </div>
-                        <div class="col-md-3 p-1 border">
-                            <label for="bill_serial" class="font-weight-bold">Documento de Referencia:</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend col-6 pr-0 pl-0">
-                                    <input type="text"
-                                           class="form-control text-uppercase text-center font-weight-bold"
-                                           aria-label="" name="bill-serial" readonly
-                                           id="bill_serial" autocomplete="off" value="{{ bill.serial }}">
-                                    <span class="input-group-text bg-light border-0">-</span>
-                                </div>
-                                <input type="text" class="form-control col-6 font-weight-bold text-center"
-                                       aria-label="" name="bill-correlative" readonly
-                                       id="bill-correlative" autocomplete="off" value="{{ bill.correlative }}">
-                            </div>
-                        </div>
-                        <div class="col-md-3 p-1 border">
-                            <label for="credit_note_motive" class="font-weight-bold">Motivo:</label>
-                            <input type="text"
-                                   class="form-control" name="credit-note-motive" id="credit_note_motive"
-                                   placeholder="">
-                        </div>
+                <div class="card border-0 shadow-sm" style="border-radius: 12px; border-left: 4px solid #7b1fa2;">
+                    <div class="card-header bg-white border-0 py-2">
+                        <span class="font-weight-bold small text-uppercase" style="color: #7b1fa2;">
+                            <i class="fas fa-file-invoice mr-1"></i> Aplicar Nota de Crédito
+                        </span>
                     </div>
-                    <div class="row m-1 mt-2">
-                        <div class="col-sm-12 p-1">
-                            <div class="card col-sm-12 p-0">
-                                <table class="table-hover table-sm table-bordered" id="id-table-detail-note"
-                                       style="width: 100%;">
-                                    <thead class="text-uppercase small text-center">
-                                    <tr class="text-white" style="background: #0783d6">
-                                        <th scope="col" class="font-weight-normal" style="width: 10%;">Código</th>
-                                        <th scope="col" class="font-weight-normal" style="width: 10%;">Cantidad</th>
-                                        <th scope="col" class="font-weight-normal" style="width: 10%;">Unidad</th>
-                                        <th scope="col" class="font-weight-normal" style="width: 50%;">Descripción</th>
-                                        <th scope="col" class="font-weight-normal" style="width: 10%;">P. Unitario</th>
-                                        <th scope="col" class="font-weight-normal" style="width: 10%;">V. Venta Total
-                                        </th>
-                                    </tr>
-                                    </thead>
-                                    <tbody id="new-note-credit">
-                                    <tr>
-                                        <td class="text-center align-middle">
-                                            <input type="text" autocomplete="off" aria-label="..."
-                                                   class="form-control text-uppercase text-center" name="credit-code"
-                                                   id="credit-code" maxlength="200">
-                                        </td>
-                                        <td class="text-center align-middle">
-                                            <input type="text" autocomplete="off" aria-label="..."
-                                                   class="form-control text-uppercase text-center"
-                                                   name="credit-quantity"
-                                                   id="credit-quantity" maxlength="200">
-                                        </td>
-                                        <td class="text-center align-middle">
-                                            <input type="text" autocomplete="off" aria-label="..."
-                                                   class="form-control text-uppercase text-center" name="credit-unit"
-                                                   value="NIU-UND"
-                                                   id="credit-unit" maxlength="200">
-                                        </td>
-                                        <td class="text-center align-middle">
-                                            <input type="text" autocomplete="off" aria-label="..."
-                                                   class="form-control text-uppercase" name="credit-description"
-                                                   id="credit-description" maxlength="200">
-                                        </td>
-                                        <td class="text-center align-middle">
-                                            <input type="text" autocomplete="off" aria-label="..."
-                                                   class="form-control text-uppercase text-right"
-                                                   name="credit-price-unit"
-                                                   id="credit-price-unit" maxlength="200">
-                                        </td>
-                                        <td class="text-center align-middle">
-                                            <input type="text" autocomplete="off" aria-label="..."
-                                                   class="form-control text-uppercase text-right" name="credit-total"
-                                                   id="credit-total" maxlength="200">
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
+                    <div class="card-body">
+                        <p class="small text-muted mb-3">
+                            Seleccione una nota de crédito pendiente del proveedor para aplicar su monto a esta factura.
+                        </p>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="small font-weight-bold text-muted">Nota de Crédito</label>
+                                <select id="credit_search" name="credit-search" class="form-control form-control-lg" style="border-radius: 10px; border-color: #ce93d8;">
+                                    <option value="" disabled selected>Seleccione una nota de crédito</option>
+                                    {% for c in credit_note_pending_set %}
+                                        <option value="{{ c.id }}" data-total="{{ c.get_total }}" data-date="{{ c.issue_date|date:'Y-m-d' }}" data-motive="{{ c.motive|default:'' }}">
+                                            {{ c.credit_note_serial|default:'' }}-{{ c.credit_note_number|default:'' }} — S/ {{ c.get_total|floatformat:2 }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% if not credit_note_pending_set %}
+                                    <small class="text-muted">No hay notas de crédito pendientes para este proveedor.</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="small font-weight-bold text-muted">Monto a Aplicar</label>
+                                <div class="input-icon">
+                                    <input type="text" id="credit_total_display" name="credit-total-display" readonly
+                                           class="form-control form-control-lg font-weight-bold text-right" style="border-radius: 10px; background-color: #f3e5f5; border: 1px solid #ce93d8;"
+                                           placeholder="Seleccione una N/C">
+                                    <i class="change-money font-weight-bold">S/</i>
+                                    <input type="hidden" id="credit-total" name="credit-total" value="">
+                                </div>
                             </div>
                         </div>
+                        <div class="row" id="credit-note-info" style="display: none;">
+                            <div class="col-12">
+                                <div class="alert alert-light border py-2 mb-0" style="border-radius: 8px;">
+                                    <small class="text-muted">
+                                        <strong>Fecha:</strong> <span id="credit-info-date"></span> —
+                                        <strong>Motivo:</strong> <span id="credit-info-motive"></span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="credit-serial" name="credit-serial" value="">
+                        <input type="hidden" id="credit-number" name="credit-number" value="">
+                        <input type="hidden" id="credit-note-date" name="credit-note-date" value="{{ date }}">
+                        <input type="hidden" id="credit_note_motive" name="credit-note-motive" value="">
+                        <input type="hidden" id="credit-code" name="credit-code" value="NC">
+                        <input type="hidden" id="credit-quantity" name="credit-quantity" value="1">
+                        <input type="hidden" id="credit-unit" name="credit-unit" value="NIU">
+                        <input type="hidden" id="credit-description" name="credit-description" value="Aplicación de nota de crédito">
+                        <input type="hidden" id="credit-price-unit" name="credit-price-unit" value="0">
                     </div>
                 </div>
             </div>
 
-            {#            <div class="row">#}
-            {#                <div class="col-lg-12 d-flex justify-content-center align-self-center">#}
-            {#                    <label class="open-edit-file border rounded-lg m-0 p-0 mt-2"#}
-            {#                           style="cursor: pointer">#}
-            {#                        <img id="blah" class="img-thumbnail" width="160px" height="160px"#}
-            {#                             src="{% static 'images/img/image_placeholder.jpg' %}">#}
-            {#                    </label>#}
-            {#                </div>#}
-            {#            </div>#}
-
-            <div class="modal-footer">
-                <button type="submit" id="btn-save" class="btn btn-primary">Guardar pago</button>
-                <button type="button" class="btn btn-secondary" id="close-modal" data-dismiss="modal">Cerrar
+            <div class="modal-footer border-0 bg-white pt-3">
+                <button type="button" class="btn btn-outline-secondary" id="close-modal" data-dismiss="modal" style="border-radius: 10px;">Cerrar</button>
+                <button type="submit" id="btn-save" class="btn btn-primary shadow-sm" style="border-radius: 10px;">
+                    <i class="fas fa-save mr-1"></i> Guardar Pago
                 </button>
             </div>
-
         </form>
     </div>
 </div>
 
+<style>
+    .input-icon { position: relative; }
+    .input-icon > i {
+        position: absolute; top: 50%; transform: translate(0, -50%);
+        pointer-events: none; width: 25px; text-align: center; font-style: normal;
+    }
+    .input-icon > input { padding-left: 25px; padding-right: 8px; }
+    .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+        border-color: #1e3a5f;
+    }
+</style>
 
 <script type="text/javascript">
+$(document).ready(function () {
+    setTimeout(function () { $('#bill_pay').focus(); }, 500);
+});
 
+$('#payment_method_id').change(function () {
+    let payment_method = $(this).val();
+    if (payment_method === 'M') {
+        $('.money').removeClass('d-none');
+        $('.credit-note').addClass('d-none');
+    } else {
+        $('.money').addClass('d-none');
+        $('.credit-note').removeClass('d-none');
+        $('#credit_search').focus();
+    }
+});
 
-    var credit_note_dict = [
-        {% for c in credit_note_pending_set %}
-            {
-                'id': '{{ c.id }}',
-                'nro_document': '{{ c.credit_note_serial }}-{{ c.credit_note_number }}',
-                'issue_date': '{{ c.issue_date|date:'Y-m-d' }}',
-                'motive': '{{ c.motive }}',
-                'details': [
-                    {% for d in c.creditnotedetail_set.all %}
-                        {
-                            'code': '{{ d.code }}',
-                            'quantity': '{{ d.quantity }}',
-                            'description': '{{ d.description }}',
-                            'unit': '{{ d.unit.name }}',
-                            'price_unit': '{{ d.price_unit }}',
-                            'total': '{{ d.total }}'
-                        },
-                    {% endfor %}
-                ]
-            },
-        {% endfor %}
-    ];
+$('#credit_search').change(function () {
+    let $opt = $(this).find('option:selected');
+    let total = $opt.data('total');
+    let date = $opt.data('date') || '';
+    let motive = $opt.data('motive') || '';
+    
+    if (total !== undefined && total !== '' && $(this).val()) {
+        let totalStr = parseFloat(total).toFixed(2);
+        $('#credit_total_display').val(totalStr);
+        $('#credit-total').val(totalStr);
+        $('#credit-note-date').val(date);
+        $('#credit_note_motive').val(motive);
+        $('#credit-info-date').text(date || '-');
+        $('#credit-info-motive').text(motive || '-');
+        $('#credit-note-info').show();
+        // Vacíos para que el backend use credit-search (aplicar N/C existente)
+        $('#credit-serial').val('');
+        $('#credit-number').val('');
+    } else {
+        $('#credit_total_display').val('');
+        $('#credit-total').val('');
+        $('#credit-note-info').hide();
+    }
+});
 
-    $(document).ready(function () {
-        setTimeout(function () {
-            $('#bill_pay').focus();
-        }, 500);
-    });
-    $('#exampleInputEditFile').change(function () {
-        var i = $(this).prev('label').clone();
-        var file = $('#exampleInputEditFile')[0].files[0].name;
-        $(this).prev('label').text(file);
-    });
+$('#purchase-payment-form').submit(function (event) {
+    event.preventDefault();
+    let data = new FormData($('#purchase-payment-form').get(0));
+    let _total_debt = $('#total_debt').val().replace(/,/g, '');
+    let _bill_pay = $('#bill_pay').val().replace(/,/g, '');
+    let _repay_loan = $('#repay_loan').val().replace(/,/g, '.');
+    let payment_method = $('#payment_method_id').val();
+    let credit_total = $('#credit-total').val();
 
-    $('#purchase-payment-form').submit(function (event) {
-
-        event.preventDefault();
-        let data = new FormData($('#purchase-payment-form').get(0));
-        let bill_id = $('#bill_id').val();
-        let _total_debt = $('#total_debt').val().replace(/,/g, '');
-        let _bill_pay = $('#bill_pay').val().replace(/,/g, '');
-        let _repay_loan = $('#repay_loan').val().replace(/,/g, '.');
-        let payment_method = $('#payment_method_id').val();
-        let credit_total = $('#credit-total').val();
-
-        if (payment_method === 'M') {
-            if (_bill_pay === '') {
-                toastr.warning('Ingrese un monto antes de Guardar el Pago', 'Mensaje');
-                return false
-            }
-            if ($('#way_to_pay').val() === null) {
-                toastr.warning('Seleccione un metodo de Pago', 'Mensaje');
-                return false
-            }
-            if (Number(_bill_pay) > Number(_total_debt)) {
-                toastr.warning('El monto a pagar no puede ser mayor a la Deuda Total', 'Mensaje');
-                return false
-            }
-            if (Number(_bill_pay) > Number(_repay_loan)) {
-                toastr.warning('El monto a pagar no puede ser mayor al saldo restante', 'Mensaje');
-                return false
-            }
-        } else if (payment_method === 'C') {
-            // Validar campos requeridos para nota de crédito
-            let credit_serial = $('#credit-serial').val();
-            let credit_number = $('#credit-number').val();
-            let credit_note_date = $('#credit-note-date').val();
-            let credit_note_motive = $('#credit_note_motive').val();
-            let credit_code = $('#credit-code').val();
-            let credit_description = $('#credit-description').val();
-            
-            if (credit_total === '') {
-                toastr.warning('Ingrese un monto antes de Guardar el Pago', 'Mensaje');
-                return false
-            }
-            if (Number(credit_total) > Number(_total_debt)) {
-                toastr.warning('El monto a pagar no puede ser mayor a la Deuda Total', 'Mensaje');
-                return false
-            }
-            if (Number(credit_total) > Number(_repay_loan)) {
-                toastr.warning('El monto a pagar no puede ser mayor al saldo restante', 'Mensaje');
-                return false
-            }
-            if (credit_serial === '' || credit_number === '') {
-                toastr.warning('Ingrese la serie y el número de nota de crédito', 'Mensaje');
-                return false
-            }
-            if (credit_note_date === '') {
-                toastr.warning('Ingrese la fecha de emisión de la nota de crédito', 'Mensaje');
-                return false
-            }
-            if (credit_note_motive === '') {
-                toastr.warning('Ingrese el motivo de la nota de crédito', 'Mensaje');
-                return false
-            }
-            if (credit_code === '') {
-                toastr.warning('Ingrese el código del producto', 'Mensaje');
-                return false
-            }
-            if (credit_description === '') {
-                toastr.warning('Ingrese la descripción del producto', 'Mensaje');
-                return false
-            }
+    if (payment_method === 'M') {
+        if (_bill_pay === '') {
+            toastr.warning('Ingrese un monto antes de guardar el pago', 'Mensaje');
+            return false;
         }
+        if ($('#way_to_pay').val() === null || $('#way_to_pay').val() === '0') {
+            toastr.warning('Seleccione un método de pago', 'Mensaje');
+            return false;
+        }
+        if (Number(_bill_pay) > Number(_total_debt)) {
+            toastr.warning('El monto no puede ser mayor a la deuda total', 'Mensaje');
+            return false;
+        }
+        if (Number(_bill_pay) > Number(_repay_loan)) {
+            toastr.warning('El monto no puede ser mayor al saldo restante', 'Mensaje');
+            return false;
+        }
+    } else if (payment_method === 'C') {
+        let credit_search = $('#credit_search').val();
+        if (!credit_search || credit_search === '') {
+            toastr.warning('Seleccione una nota de crédito para aplicar', 'Mensaje');
+            return false;
+        }
+        if (!credit_total || credit_total === '') {
+            toastr.warning('El monto de la nota de crédito no está definido', 'Mensaje');
+            return false;
+        }
+        let creditTotalNum = parseFloat(credit_total.replace(/,/g, ''));
+        if (creditTotalNum > parseFloat(_repay_loan)) {
+            toastr.warning('El monto de la nota de crédito no puede ser mayor al saldo restante', 'Mensaje');
+            return false;
+        }
+    }
 
-        $('#btn-save').attr("disabled", true);
+    $('#btn-save').prop('disabled', true);
 
-        $.ajax({
-            url: '/accounting/new_payment_purchase/',
-            type: "POST",
-            data: data,
-            cache: false,
-            processData: false,
-            contentType: false,
-            success: function (response, textStatus, xhr) {
-                if (xhr.status === 200) {
-                    $('#modal-payment-purchase').modal('hide');
-                    toastr.success(response['message'], '¡Bien hecho!');
-                    $("#id_btn_show").trigger('click');
-                    /*let _row = $('tr.bill[pk="' + bill_id + '"]')
-                    _row.find('td.pay-row').text(response.pay).css({'background-color': 'rgb(170,235,185)',});
-                    _row.find('td.pay-row-date').text(response.pay_date);
-                    _row.find('td.button-pay').hide();*/
-                    $('#btn-save').removeAttr("disabled", false);
-                }
-            },
-            error: function (jqXhr, textStatus, xhr) {
-                if (jqXhr.status === 500) {
-                    toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
-                    $('#btn-save').removeAttr("disabled", false);
-                }
+    $.ajax({
+        url: '/accounting/new_payment_purchase/',
+        type: 'POST',
+        data: data,
+        cache: false,
+        processData: false,
+        contentType: false,
+        success: function (response, textStatus, xhr) {
+            if (xhr.status === 200) {
+                $('#modal-payment-purchase').modal('hide');
+                toastr.success(response['message'], '¡Bien hecho!');
+                $("#id_btn_show").trigger('click');
             }
-        });
-
-
-    });
-
-
-    $("#id_cash").change(function () {
-
-        $("#id_date").val('');
-
-        if ($("#id_cash").val() !== '') {
-
-            $.ajax({
-                url: '/accounting/get_cash_date/',
-                async: true,
-                dataType: 'json', // for response
-                type: 'GET',
-                data: {'cash_id': $("#id_cash").val()},
-                contentType: 'application/json;charset=UTF-8',
-                headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                success: function (response, textStatus, xhr) {
-                    if (xhr.status === 200) {
-                        toastr.success(response.message, '¡Bien hecho!');
-                        $("#id_date").val(response.cash_date);
-
-                    }
-                },
-                fail: function (response) {
-                    toastr.error("Error. ", '¡Inconcebible!');
-                }
-            });
+            $('#btn-save').prop('disabled', false);
+        },
+        error: function (jqXhr) {
+            toastr.error(jqXhr.responseJSON?.error || 'Error al registrar el pago', 'Error');
+            $('#btn-save').prop('disabled', false);
         }
     });
-
-    $('#payment_method_id').change(function () {
-
-        let payment_method = $(this).val();
-        let div_money = $('.money');
-        let div_credit = $('.credit-note');
-
-        if (payment_method === 'M') {
-            div_money.removeClass('d-none');
-            div_credit.addClass('d-none');
-        } else {
-            div_credit.removeClass('d-none');
-            div_money.addClass('d-none');
-        }
-    });
-
-    $('#check_search_credit').change(function () {
-        if ($(this).prop('checked')) {
-            $('#credit_search').removeClass('d-none');
-            $('#credit-note-number').addClass('d-none');
-        } else {
-            $('#credit_search').addClass('d-none');
-            $('#credit-serial').removeClass('d-none');
-            $('#credit-number').removeClass('d-none');
-            $('.input-group-text').closest('.input-group').removeClass('d-none');
-            $('#credit_search').val('0');
-            let today = new Date();
-            let year = today.getFullYear();
-            let month = ('0' + (today.getMonth() + 1)).slice(-2);
-            let day = ('0' + today.getDate()).slice(-2);
-            document.getElementById('credit-note-date').value = `${year}-${month}-${day}`;
-            document.getElementById('credit_note_motive').value = '';
-            document.getElementById('credit-code').value = '';
-            document.getElementById('credit-quantity').value = '';
-            document.getElementById('credit-description').value = '';
-            document.getElementById('credit-price-unit').value = '';
-            document.getElementById('credit-total').value = '';
-        }
-    });
-
-    document.getElementById('credit_search').addEventListener('change', function () {
-        let _credit_id = this.value;
-        let selectedCreditNote = credit_note_dict.find(function (note) {
-            return note.id === _credit_id;
-        });
-        if (selectedCreditNote) {
-            document.getElementById('credit-note-date').value = selectedCreditNote.issue_date;
-            document.getElementById('credit_note_motive').value = selectedCreditNote.motive.toUpperCase();
-            if (selectedCreditNote.details.length > 0) {
-                let firstDetail = selectedCreditNote.details[0];
-                document.getElementById('credit-code').value = firstDetail.code;
-                document.getElementById('credit-quantity').value = parseFloat(firstDetail.quantity).toFixed(2);
-                document.getElementById('credit-description').value = firstDetail.description;
-                document.getElementById('credit-price-unit').value = parseFloat(firstDetail.price_unit).toFixed(2);
-                document.getElementById('credit-total').value = parseFloat(firstDetail.total).toFixed(2);            }
-        } else {
-            document.getElementById('credit-note-date').value = '';
-            console.error('No se encontró una nota de crédito con el ID: ' + _credit_id);
-        }
-    })
-
-
+});
 </script>
-

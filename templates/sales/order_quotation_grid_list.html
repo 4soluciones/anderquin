@@ -1,94 +1,72 @@
 {% load app_filters %}
 {% if dictionary %}
-    <table class="table table-sm table-bordered" id="table-dictionary">
-        <thead>
-
-        <tr class="text-dark text-uppercase">
-            <td class="bg-light text-center">#</td>
-            {#            <td class="bg-light text-center">Sede</td>#}
-            <td class="bg-light text-center">Documento</td>
-            <td class="bg-light text-center">Serie</td>
-            <td class="bg-light text-center">Número</td>
-            <td class="bg-light text-center">Fecha</td>
-            <td class="bg-light text-center">Cliente</td>
-            <td class="bg-light text-center">DNI/RUC</td>
-            <td class="bg-light text-center">Total</td>
-            <td class="bg-light text-center">Usuario</td>
-            <td class="bg-light text-center">Estado de aprobacion</td>
-            <td class="bg-light text-center">Acción</td>
-            {#            <td class="bg-light text-center" colspan="6">Detalles</td>#}
-            {#        </tr>#}
-            {##}
-            {#        <tr class="text-dark text-uppercase">#}
-            {#            <td class="bg-light text-center" colspan="10">#</td>#}
-            {#            <td class="bg-light text-center">id</td>#}
-            {#            <td class="bg-light text-center">producto</td>#}
-            {#            <td class="bg-light text-center">unidad</td>#}
-            {#            <td class="bg-light text-center">cantidad</td>#}
-            {#            <td class="bg-light text-center">precio</td>#}
-            {#            <td class="bg-light text-center">subtotal</td>#}
-        </tr>
-
-        </thead>
-        <tbody>
-        <tr>
-            {% for p in dictionary %}
-                <tr pk="{{ p.id }}" pk2="{{ p.order_sale_quotation }}"
-                    class="text-center {% if p.order_sale_quotation %}text-primary font-weight-bold {% endif %}">
-                {#                    {% for d in p.order %}#}
-                {#                        {% if forloop.first %}#}
-                <td class="align-middle text-center">{{ p.id }}</td>
-                <td class="align-middle text-center">{{ p.type }}</td>
-                <td class="align-middle text-center">{{ p.serial }}</td>
-                <td class="align-middle text-center">{{ p.correlative_sale|zfill:8 }}</td>
-                <td class="align-middle text-center">{{ p.create_at|date:"d-m-y" }}</td>
-                <td class="align-middle text-center">{{ p.client|upper }}</td>
-                <td class="align-middle text-center">{{ p.client_nro }}</td>
-                <td class="align-middle text-center">{{ p.total|safe }}</td>
-                <td class="align-middle text-center">{{ p.user.worker_set.last.employee.names|upper }}</td>
-                <td class="align-middle text-center">
-                {% if p.has_quotation_order == 'C' %}
-                    APROBADA
-                {% else %}
-                    NO APROBADA
-                {% endif %}
-                </td>
-                <td class="align-middle text-center text-success">
-                    <a class="btn btn-green ml-1 my-1 montserrat"
-                       href="{% url 'sales:print_quotation' p.id 't'%}"
-                       target="print">
-                        <span class="fa fa-print"></span></a>
-                </td>
-
-                {#                            <td class="align-middle text-center"#}
-                {#                                rowspan="{{ p.details }}">{{ p.create_at|date:"d-m-y" }}</td>#}
-                {##}
-                {#                            <td class="align-middle text-center">{{ d.id }}</td>#}
-                {#                            <td class="align-middle text-center">{{ d.product }}</td>#}
-                {#                            <td class="align-middle text-center">{{ d.unit }}</td>#}
-                {#                            <td class="align-middle text-right text-primary">{{ d.quantity_sold|floatformat }}</td>#}
-                {#                            <td class="align-middle text-right text-success">{{ d.price_unit|floatformat:2 }}</td>#}
-                {#                            <td class="align-middle text-right text-success">{{ d.multiply|floatformat:2 }}</td>#}
-                {#                            </tr>#}
-                {##}
-                {#                        {% else %}#}
-                {#                            <tr class="text-center purchase">#}
-                {#                                <td class="align-middle text-center">{{ d.id }}</td>#}
-                {#                                <td class="align-middle text-center">{{ d.product }}</td>#}
-                {#                                <td class="align-middle text-center">{{ d.unit }}</td>#}
-                {#                                <td class="align-middle text-right text-primary">{{ d.quantity_sold|floatformat }}</td>#}
-                {#                                <td class="align-middle text-right text-success">{{ d.price_unit|floatformat:2 }}</td>#}
-                {#                                <td class="align-middle text-right text-success">{{ d.multiply|floatformat:2 }}</td>#}
-                {#                            </tr>#}
-                {#                        {% endif %}#}
-                {#                    {% endfor %}#}
-
-            {% endfor %}
-        <tr>
-            {#            <td colspan="5" class="text-right">SUMA TOTAL</td>#}
-            {#            <td colspan="1" class="text-danger text-right font-weight-bold">{{ sum|floatformat:2 }}</td>#}
-            {#            <td colspan="7"></td>#}
-        </tr>
-        </tbody>
-    </table>
+<div class="card border-0 shadow-sm overflow-hidden roboto-condensed-regular" style="border-radius: 12px;">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0" id="table-dictionary" style="border-color: #bbdefb !important;">
+                <thead>
+                    <tr class="text-white text-uppercase small font-weight-bold" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+                        <th class="border-0 py-2 text-center" style="width: 4%;">#</th>
+                        <th class="border-0 py-2 text-center" style="width: 8%;">Documento</th>
+                        <th class="border-0 py-2 text-center" style="width: 6%;">Serie</th>
+                        <th class="border-0 py-2 text-center" style="width: 10%;">Número</th>
+                        <th class="border-0 py-2 text-center" style="width: 9%;">Fecha</th>
+                        <th class="border-0 py-2 text-center" style="width: 18%;">Cliente</th>
+                        <th class="border-0 py-2 text-center" style="width: 10%;">DNI/RUC</th>
+                        <th class="border-0 py-2 text-center" style="width: 10%;">Total</th>
+                        <th class="border-0 py-2 text-center" style="width: 12%;">Usuario</th>
+                        <th class="border-0 py-2 text-center" style="width: 10%;">Estado</th>
+                        <th class="border-0 py-2 text-center" style="width: 5%;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in dictionary %}
+                    <tr pk="{{ p.id }}" pk2="{{ p.order_sale_quotation }}"
+                        class="text-center align-middle {% if p.order_sale_quotation %}table-primary font-weight-bold{% endif %}"
+                        style="font-size: 0.875rem;">
+                        <td class="align-middle border-top" style="border-color: #bbdefb !important;">{{ p.id }}</td>
+                        <td class="align-middle border-top" style="border-color: #bbdefb !important;">{{ p.type }}</td>
+                        <td class="align-middle border-top" style="border-color: #bbdefb !important;">{{ p.serial }}</td>
+                        <td class="align-middle border-top font-weight-bold" style="border-color: #bbdefb !important; color: #0d47a1;">{{ p.correlative_sale|zfill:8 }}</td>
+                        <td class="align-middle border-top" style="border-color: #bbdefb !important;">{{ p.create_at|date:"d-m-y" }}</td>
+                        <td class="align-middle border-top text-left" style="border-color: #bbdefb !important;">{{ p.client|upper }}</td>
+                        <td class="align-middle border-top" style="border-color: #bbdefb !important;">{{ p.client_nro }}</td>
+                        <td class="align-middle border-top font-weight-bold text-success" style="border-color: #bbdefb !important;">{{ p.total|safe }}</td>
+                        <td class="align-middle border-top" style="border-color: #bbdefb !important;">{{ p.user.worker_set.last.employee.names|upper }}</td>
+                        <td class="align-middle border-top" style="border-color: #bbdefb !important;">
+                            {% if p.has_quotation_order == 'C' %}
+                                <span class="badge badge-success px-2 py-1">Aprobada</span>
+                            {% else %}
+                                <span class="badge badge-secondary px-2 py-1">No aprobada</span>
+                            {% endif %}
+                        </td>
+                        <td class="align-middle border-top" style="border-color: #bbdefb !important;">
+                            <a class="btn btn-outline-success btn-sm border-2 btn-sales-rounded"
+                               href="{% url 'sales:print_quotation' p.id 't'%}"
+                               target="print"
+                               title="Imprimir cotización">
+                                <i class="fas fa-print"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<style>
+    #table-dictionary tbody tr:hover { background-color: #e3f2fd !important; }
+    .btn-sales-rounded { border-radius: 12px !important; }
+</style>
+{% else %}
+<div class="alert alert-info border-0 shadow-sm" role="alert" style="border-radius: 12px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-info-circle fa-2x mr-3" style="color: #1565c0;"></i>
+        <div>
+            <strong>No hay cotizaciones</strong>
+            <p class="mb-0 small">No se encontraron cotizaciones para el rango de fechas seleccionado.</p>
+        </div>
+    </div>
+</div>
 {% endif %}

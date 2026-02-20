@@ -1,114 +1,78 @@
 {% if product_dic %}
-<div class="card roboto-condensed-regular">
+<div class="card roboto-condensed-regular border-0 shadow-sm overflow-hidden" style="border-radius: 12px;">
     <div class="card-body m-0 p-1">
         <div class="table-responsive dataTables_wrapper m-0 p-0"
              style="overflow-y: scroll; height: 700px; width: auto; overflow-x: hidden;">
-            <table id="product-data-grid" class="table table-bordered table-hover" cellspacing="0" style="width: 100%;">
+            <table id="product-data-grid" class="table table-bordered table-hover mb-0" cellspacing="0" style="width: 100%;">
                 <thead>
-                <tr class="text-center text-white text-uppercase" style="background: #33a922">
-                    <th class="th-sm font-weight-normal" style="width: 55%;">Producto</th>
-                    <th class="th-sm font-weight-normal" style="width: 5%;">Marca</th>
-{#                    <th class="th-sm font-weight-normal" style="width: 10%;">Stock en sedes</th>#}
-                    <th class="th-sm font-weight-normal" style="width: 40%;">Unidades</th>
+                <tr class="text-center text-white text-uppercase small font-weight-bold" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+                    <th class="th-sm font-weight-normal py-2" style="width: 38%;">Producto</th>
+                    <th class="th-sm font-weight-normal py-2" style="width: 62%;">Unidades</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for product in product_dic %}
                     <tr class="text-center m-0 p-0" product="{{ product.id }}">
-                        <td class="align-middle">
-                            <address class="text-left">
-                                {{ product.name|upper }}<br>
-                            </address>
+                        <td class="align-middle text-left pl-3">
+                            <div class="d-flex flex-column">
+                                <span class="font-weight-bold text-uppercase" style="font-size: 0.9rem; color: #0d47a1; line-height: 1.3;">
+                                    {{ product.name }}
+                                </span>
+                                <span class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                    <i class="fas fa-tag mr-1"></i>{{ product.product_brand.name }}
+                                </span>
+                            </div>
                         </td>
-                        <td class="align-middle">
-                            <address class="text-left">
-                                {{ product.product_brand.name }}<br>
-                            </address>
-                        </td>
-{#                        <td class="p-0 td-table-stock" style="width: 10%;">#}
-{#                            <table class="table table-sm text-uppercase small table-stock-headquarters">#}
-{#                                <thead>#}
-{#                                <th class="small font-weight-normal">Sede</th>#}
-{#                                <th class="small font-weight-normal">Stock</th>#}
-{#                                </thead>#}
-{#                                <tbody>#}
-{#                                {% for product_store in product.productstore_set.all %}#}
-{#                                    <tr#}
-{#                                            store_="{{ product_store.subsidiary_store.category }}"#}
-{#                                            store_id="{{ product_store.id }}"#}
-{#                                            class="{% if product_store.subsidiary_store.subsidiary.id == subsidiary.id %}text-danger my-subsidiary{% endif %}">#}
-{#                                        <td class="align-middle">{{ product_store.subsidiary_store.subsidiary.name }}</td>#}
-{#                                        <td class="item-stock align-middle {% if product_store.subsidiary_store.category == 'V' and product_store.subsidiary_store.subsidiary.id == subsidiary.id %}bg-success text-white montserrat {% endif %}">{{ product_store.stock|safe }}</td>#}
-{#                                    </tr>#}
-{#                                {% endfor %}#}
-{#                                </tbody>#}
-{#                            </table>#}
-{#                        </td>#}
-                        <td class="p-0">
-                            <table class="table table-sm text-uppercase small table-prices" style="width: 100%;">
+                        <td class="p-0 align-top">
+                            <table class="table table-sm text-uppercase small table-prices mb-0" style="width: 100%;">
                                 <thead>
-                                <th style="width: 25%;" class="small font-weight-normal">Precio Compra</th>
-                                <th style="width: 25%;" class="small font-weight-normal">Cantidad x Und. Med.</th>
-                                <th style="width: 25%;" class="small font-weight-normal">Cantidad</th>
-                                <th style="width: 25%;" class="small font-weight-normal">Precios Venta</th>
+                                <tr style="background-color: #e3f2fd;">
+                                    <th style="width: 22%;" class="small font-weight-bold py-2 border-0">Precio Compra</th>
+                                    <th style="width: 15%;" class="small font-weight-bold py-2 border-0">Cant. x Und.</th>
+                                    <th style="width: 23%;" class="small font-weight-bold py-2 border-0">Cantidad</th>
+                                    <th style="width: 40%;" class="small font-weight-bold py-2 border-0">Precios Venta</th>
+                                </tr>
                                 </thead>
                                 <tbody>
                                 {% for obj in product.productdetail_set.all %}
                                     <tr product="{{ product.id }}" productname="{{ product.name }}"
                                         unit="{{ obj.unit.id }}" unitname="{{ obj.unit.name }}"
                                         quantity_minum="{{ obj.quantity_minimum|safe }}" product_brand="{{ product.product_brand.name }}">
-                                        <td class="align-middle text-center font-weight-bold quantity-sales-price">
-                                            S/ {{ obj.price_purchase|safe }} <span class="font-weight-lighter">{{ obj.update_at|date:"d/m/y" }}</span>
+                                        <td class="align-middle text-center font-weight-bold quantity-sales-price py-2">
+                                            S/ {{ obj.price_purchase|safe }} <span class="font-weight-lighter text-muted small d-block">{{ obj.update_at|date:"d/m/y" }}</span>
                                         </td>
-                                        <td class="align-middle text-center quantity-minimum">
+                                        <td class="align-middle text-center quantity-minimum py-2">
                                             {{ obj.quantity_minimum|floatformat:0 }}
                                         </td>
-                                        <td class="align-middle text-center quantity-sales-price">
-                                            <input type="number" class="form-control quantity-select text-center" min="0"
+                                        <td class="align-middle text-center quantity-sales-price py-2">
+                                            <input type="number" class="form-control form-control-sm quantity-select text-center" min="0"
                                                    onkeyup="if(this.value<0){this.value= this.value * -1}"
-                                                   placeholder="{{ obj.unit.name }}" value="">
+                                                   placeholder="{{ obj.unit.name }}" value=""
+                                                   style="border-color: #bbdefb;">
                                         </td>
-
-                                        <td class="align-middle p-1 prices-list">
+                                        <td class="align-middle p-2 prices-list">
                                             <div class="row m-0 p-0">
                                                 <div class="col text-center p-0">
                                                     <button type="button" pk="{{ obj.id }}"
                                                             ip="{{ obj.price_sale|safe }}"
-                                                            class="btn btn-outline-success btn-one p-1">
+                                                            class="btn btn-outline-success btn-one btn-sm border-2 btn-sales-rounded px-2 py-2">
                                                         S/ {{ obj.price_sale|floatformat:2 }}
                                                     </button>
                                                 </div>
-{#                                                <div class="col text-center p-0">#}
-{#                                                    <button type="button" pk="{{ obj.id }}"#}
-{#                                                            ip="{{ obj.price_sale|safe }}"#}
-{#                                                            class="btn btn-outline-success btn-two p-1">#}
-{#                                                        S/ {{ obj.price_sale|floatformat:2 }}#}
-{#                                                    </button>#}
-{#                                                </div>#}
-{#                                                <div class="col text-center p-0">#}
-{#                                                    <button type="button" pk="{{ obj.id }}"#}
-{#                                                            ip="{{ obj.get_calculate_price3|safe }}"#}
-{#                                                            class="btn btn-outline-success btn-three">#}
-{#                                                        {{ obj.get_calculate_price3|safe }}#}
-{#                                                    </button>#}
-{#                                                </div>#}
                                             </div>
                                         </td>
                                     </tr>
                                 {% endfor %}
                                 </tbody>
                             </table>
-                            {#                            {% endif %}#}
                         </td>
                     </tr>
                 {% endfor %}
                 </tbody>
                 <tfoot>
-                <tr class="text-center text-white text-uppercase" style="background: #33a922">
-                    <th class="th-sm font-weight-normal" style="width: 40%;">Producto</th>
-                    <th class="th-sm font-weight-normal" style="width: 5%;">Marca</th>
-{#                    <th class="th-sm font-weight-normal" style="width: 22%;">Stock en sedes</th>#}
-                    <th class="th-sm font-weight-normal" style="width: 55%;">Unidades</th>
+                <tr class="text-center text-white text-uppercase small font-weight-bold" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+                    <th class="th-sm font-weight-normal py-2" style="width: 38%;">Producto</th>
+                    <th class="th-sm font-weight-normal py-2" style="width: 62%;">Unidades</th>
                 </tr>
                 </tfoot>
             </table>
@@ -116,23 +80,10 @@
     </div>
 </div>
 {% else %}
-    <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
-        <strong>Atencion!</strong> No existen Productos registrados con ese nombre.
+    <div class="alert alert-info alert-dismissible fade show mt-3 border-0 shadow-sm" role="alert" style="border-radius: 12px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+        <strong><i class="fas fa-info-circle mr-2"></i>Atención!</strong> No existen productos registrados con ese nombre.
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
 {% endif %}
-<script>
-     {#$('#product-data-grid').DataTable({#}
-            {#"dom": '<"top"i>rt<"bottom"flp><"clear">',#}
-            {#"sDom": '<"row view-filter"<"col-sm-12"<"pull-left"l><"pull-right"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',#}
-            {#"dom": '<lf<t>ip>',#}
-            {#"dom": '<"top"i>rt<"bottom"flp><"clear">',#}
-     {#       "language": {#}
-     {#           "url": "//cdn.datatables.net/plug-ins/1.10.15/i18n/Spanish.json"#}
-     {#       },#}
-     {#       lengthChange: false,#}
-     {#       dom: 'Qfrtip'#}
-     {#   });#}
-</script>

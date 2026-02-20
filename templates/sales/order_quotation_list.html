@@ -1,93 +1,121 @@
 {% extends 'home.html' %}
 
+{% load static %}
+
 {% block title %}
-    lista de Cotizaciones
+    Lista de Cotizaciones
 {% endblock title %}
 
 {% block body %}
 
-    <div class="row mr-3 ml-0 mt-2">
-        <div class="col-sm-12 p-0">
-            <div class="card">
-                <div class="card-body text-center font-weight-bolder pb-1">
-                    <h2>LISTADO DE COTIZACIONES</h2>
+    <div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+        <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+            <div class="card-header py-3 text-center" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+                <h5 class="roboto-condensed-regular font-weight-bold mb-0 text-white" style="color: #fff !important;">
+                    <i class="fas fa-file-invoice mr-2"></i> LISTADO DE COTIZACIONES
+                </h5>
+            </div>
+
+            <div class="card-body p-3 p-md-4" style="background-color: #f0f8fc;">
+                <form id="search-form" method="POST">
+                    {% csrf_token %}
+                    <fieldset class="border rounded p-3 p-md-3 mb-0" style="background-color: #fff; border-color: #bbdefb !important;">
+                        <legend class="w-auto mb-0 px-2 text-uppercase small font-weight-bold" style="font-size: 11px; color: #1565c0;">
+                            <i class="fas fa-filter mr-1"></i> Filtrar por rango de fechas
+                        </legend>
+                        <div class="form-row align-items-end">
+                            <div class="form-group col-12 col-md-4 mb-2 mb-md-0">
+                                <label class="mb-1 font-weight-bold small text-uppercase" for="id-start-date">Fecha inicial</label>
+                                <input type="date" class="form-control form-control-sm" id="id-start-date"
+                                       name="start-date" value="{{ formatdate }}" style="border-color: #bbdefb;">
+                            </div>
+                            <div class="form-group col-12 col-md-4 mb-2 mb-md-0">
+                                <label class="mb-1 font-weight-bold small text-uppercase" for="id-end-date">Fecha final</label>
+                                <input type="date" class="form-control form-control-sm" id="id-end-date"
+                                       name="end-date" value="{{ formatdate }}" style="border-color: #bbdefb;">
+                            </div>
+                            <div class="form-group col-12 col-md-4 mb-0">
+                                <button type="submit" class="btn btn-outline-success border-2 btn-sales-rounded btn-block py-2" id="btn-search">
+                                    <i class="fas fa-search"></i> Buscar cotizaciones
+                                </button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+
+            <div class="card-body p-0 p-md-3 pt-0" style="background-color: #e3f2fd;">
+                <div id="table-order-quotation" class="order-quotation-table-wrapper">
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-search fa-3x mb-3" style="color: #90caf9;"></i>
+                        <p class="mb-0">Seleccione un rango de fechas y haga clic en <strong>Buscar</strong> para cargar las cotizaciones.</p>
+                    </div>
+                </div>
+                <div id="loader-order-quotation" class="text-center py-5" style="display: none;">
+                    <div class="loader-quotation-order">
+                        <div class="loader-quotation-dot"></div>
+                        <div class="loader-quotation-dot"></div>
+                        <div class="loader-quotation-dot"></div>
+                    </div>
+                    <p class="text-muted small mt-2 mb-0">Cargando cotizaciones...</p>
                 </div>
             </div>
         </div>
     </div>
-    <div class="container-fluid">
 
-        <div class="card-header text-left mt-2 mb-1 p-1">
-            <form id="search-form" method="POST">
-                {% csrf_token %}
-                <div class="form-inline mt-0 mb-0 p-0">
-
-
-                    <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>
-                    <input type="date" class="form-control my-1 mr-sm-2"
-                           id="id-start-date"
-                           name="start-date"
-                           value="{{ formatdate }}">
-
-                    <label class="my-1 mr-2" for="id-end-date">Fecha final</label>
-                    <input type="date" class="form-control my-1 mr-sm-2"
-                           id="id-end-date"
-                           name="end-date"
-                           value="{{ formatdate }}">
-
-                    <button type="submit" class="btn btn-success my-1 ml-2" id="btn-search">
-                        <i class="fas fa-search-dollar"></i> Buscar
-                    </button>
-
-
-                </div>
-            </form>
-
-        </div>
-        <div class="table-responsive" id="table-order-quotation"></div>
-    </div>
+    <style>
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+            border-color: #1e3a5f;
+        }
+        .btn-sales-rounded { border-radius: 12px !important; }
+        .btn-outline-success { border-width: 2px; }
+        .order-quotation-table-wrapper .table { border-color: #bbdefb !important; }
+        .order-quotation-table-wrapper .table td,
+        .order-quotation-table-wrapper .table th { border-color: #bbdefb !important; }
+        .loader-quotation-order {
+            display: flex; justify-content: center; align-items: flex-end; gap: 6px; height: 40px; margin: 0 auto;
+        }
+        .loader-quotation-order .loader-quotation-dot {
+            width: 10px; height: 10px; border-radius: 50%; background: #1565c0;
+            animation: loader-quotation-bounce 1.4s ease-in-out infinite both;
+        }
+        .loader-quotation-order .loader-quotation-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loader-quotation-order .loader-quotation-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes loader-quotation-bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
 
 {% endblock body %}
 
 {% block extrajs %}
-    <script type="text/javascript">
-        loader = '<div class="container">' +
-            '<div class="row">' +
-            '<div class="col-md-12">' +
-            '<div class="loader">' +
-            '<p>Cargando...</p>' +
-            '<div class="loader-inner"></div>' +
-            '<div class="loader-inner"></div>' +
-            '<div class="loader-inner"></div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
-
-        $('#search-form').submit(function (event) {
-            event.preventDefault();
-            let _data = new FormData($('#search-form').get(0));
-            $.ajax({
-                url: '/sales/get_sales_quotation_by_subsidiary/',
-                type: "POST",
-                data: _data,
-                cache: false,
-                processData: false,
-                contentType: false,
-                success: function (response, textStatus, xhr) {
-                    if (xhr.status === 200) {
-                        $('#table-order-quotation').html(response.grid);
-                        toastr.info(response['message'], '¡Bien hecho!');
-                    }
-                },
-                error: function (jqXhr, textStatus, xhr) {
-                    if (jqXhr.status === 500) {
-                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
-                    }
+<script type="text/javascript">
+    $('#search-form').submit(function (event) {
+        event.preventDefault();
+        $('#table-order-quotation').empty();
+        $('#loader-order-quotation').show();
+        let _data = new FormData($('#search-form').get(0));
+        $.ajax({
+            url: '/sales/get_sales_quotation_by_subsidiary/',
+            type: "POST",
+            data: _data,
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (response, textStatus, xhr) {
+                if (xhr.status === 200) {
+                    $('#table-order-quotation').html(response.grid);
+                    toastr.success(response.message || 'Cotizaciones cargadas', '¡Bien hecho!');
                 }
-            });
+                $('#loader-order-quotation').hide();
+            },
+            error: function (jqXhr) {
+                toastr.error(jqXhr.responseJSON?.error || 'Error al cargar cotizaciones', '¡Error!');
+                $('#loader-order-quotation').hide();
+            }
         });
-
-
-    </script>
+    });
+</script>
 {% endblock extrajs %}

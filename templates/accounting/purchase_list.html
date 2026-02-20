@@ -1,4 +1,5 @@
 {% extends 'home.html' %}
+{% load static %}
 
 {% block title %}
     Cuentas por Pagar
@@ -6,59 +7,60 @@
 
 {% block body %}
 
-    <div class="container-fluid roboto-condensed-regular">
-        <div class="card-header text-left mt-2 mb-1 p-1 bg-light">
-            <div class="form-inline mt-1 mb-1 p-0">
-                <table>
-                    <tr>
-                        <td class="pl-2 pr-2 text-dark">Seleccione Proveedor:</td>
-                        <td class="pl-2 pr-2 text-dark">Fecha inicial:</td>
-                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_initial"
-                                                     value="{{ date }}" required>
-                        </td>
-                        <td class="pl-2 pr-2 text-dark">Fecha final:</td>
-                        <td class="pl-2 pr-2"><input type="date" class="form-control" id="id_date_final"
-                                                     value="{{ date }}" required>
-                        </td>
-                        <td class="pl-2 pr-2">
-                            <select class="form-control" id="id-supplier" name="supplier">
-                                <option disabled selected value=""> Seleccione</option>
-                                {% for t in supplies_set %}
-                                    <option value="{{ t.id }}">{{ t.business_name }}</option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td class="pl-2 pr-2">
-                            <select class="form-control" id="id-payment-status" name="payment_status">
-                                <option value="all">Todas las facturas</option>
-                                <option value="pending">Facturas pendientes</option>
-                                <option value="paid">Facturas pagadas</option>
-                            </select>
-                        </td>
-                        <td class="pl-2 pr-2">
-                            <button type="button" id="id_btn_show"
-                                    class="btn btn-primary btn-block"><i class="fas fa-search-dollar"></i> MOSTRAR
+    <div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+        <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+            <div class="card-body border-bottom py-3" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%);">
+                <div class="row align-items-center no-gutters">
+                    <div class="col-12 col-lg-10">
+                        <div class="d-flex flex-wrap align-items-center">
+                            <div class="d-flex align-items-center mr-3 mb-2 mb-lg-0">
+                                <label class="mb-0 mr-2 text-nowrap small font-weight-bold text-uppercase" style="color: #0d47a1; font-size: 0.8rem;">Proveedor:</label>
+                                <select class="form-control form-control-sm shadow-sm" id="id-supplier" name="supplier" style="min-width: 200px; border-color: #bbdefb;">
+                                    <option disabled selected value="">Seleccione proveedor</option>
+                                    {% for t in supplies_set %}
+                                        <option value="{{ t.id }}">{{ t.business_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="d-flex align-items-center mr-3 mb-2 mb-lg-0">
+                                <label class="mb-0 mr-2 text-nowrap small font-weight-bold text-uppercase" style="color: #0d47a1; font-size: 0.8rem;">Desde:</label>
+                                <input type="date" class="form-control form-control-sm shadow-sm" id="id_date_initial" value="{{ date }}" style="min-width: 140px; border-color: #bbdefb;">
+                            </div>
+                            <div class="d-flex align-items-center mr-3 mb-2 mb-lg-0">
+                                <label class="mb-0 mr-2 text-nowrap small font-weight-bold text-uppercase" style="color: #0d47a1; font-size: 0.8rem;">Hasta:</label>
+                                <input type="date" class="form-control form-control-sm shadow-sm" id="id_date_final" value="{{ date }}" style="min-width: 140px; border-color: #bbdefb;">
+                            </div>
+                            <div class="d-flex align-items-center mb-2 mb-lg-0">
+                                <select class="form-control form-control-sm shadow-sm" id="id-payment-status" name="payment_status" style="min-width: 170px; border-color: #bbdefb;">
+                                    <option value="all">Todas las facturas</option>
+                                    <option value="pending">Facturas pendientes</option>
+                                    <option value="paid">Facturas pagadas</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-2 mt-2 mt-lg-0 pl-lg-2">
+                        <div class="d-flex flex-row w-100" style="gap: 0.35rem;">
+                            <button type="button" id="id_btn_show" class="btn btn-primary btn-sm shadow-sm flex-grow-1" style="border-radius: 10px;">
+                                <i class="fas fa-search-dollar"></i> Mostrar
                             </button>
-                        </td>
-                        <td class="pl-2 pr-2">
-                            <button type="button" id="id_btn_export_pdf"
-                                    class="btn btn-danger btn-block" disabled><i class="fas fa-file-pdf"></i> PDF
+                            <button type="button" id="id_btn_export_pdf" class="btn btn-danger btn-sm shadow-sm flex-grow-1" disabled style="border-radius: 10px;">
+                                <i class="fas fa-file-pdf"></i> PDF
                             </button>
-                        </td>
-                        <td class="pl-2 pr-2">
-                            <button type="button" id="id_btn_export_excel"
-                                    class="btn btn-success btn-block" disabled><i class="fas fa-file-excel"></i> EXCEL
+                            <button type="button" id="id_btn_export_excel" class="btn btn-success btn-sm shadow-sm flex-grow-1" disabled style="border-radius: 10px;">
+                                <i class="fas fa-file-excel"></i> Excel
                             </button>
-                        </td>
-                    </tr>
-                </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0 p-md-3" style="background-color: #e3f2fd;">
+                <div class="loader-container col-auto" id="loader-bill" style="display: none; width: 100%; padding-top: 3em;">
+                    <div class="loader"></div>
+                </div>
+                <div class="table-responsive" id="table-list-purchase"></div>
             </div>
         </div>
-        <div class="loader-container col-auto" id="loader-bill"
-             style="display: none; opacity: 1.5; width: 100%; padding-top: 3em;">
-            <div class="loader"></div>
-        </div>
-        <div class="table-responsive" id="table-list-purchase"></div>
     </div>
 
 
@@ -66,6 +68,16 @@
          aria-hidden="true">
         <div class="modal-dialog modal-xl" id="pay-purchase"></div>
     </div>
+
+    <style>
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+            border-color: #1e3a5f;
+        }
+        .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger {
+            border-width: 2px;
+        }
+    </style>
 
     <div class="modal fade" id="fileModal" tabindex="-1" role="dialog" aria-labelledby="fileModalLabel"
          aria-hidden="true">

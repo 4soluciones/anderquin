@@ -6694,9 +6694,16 @@ def get_order_by_correlative(request):
                 }
                 detail.append(new_row)
 
+            client_address = ''
+            if order_obj.client.clientaddress_set.exists():
+                addr = order_obj.client.clientaddress_set.filter(type_address='P').first()
+                client_address = addr.address if addr else order_obj.client.clientaddress_set.first().address
+
             return JsonResponse({
                 'success': True,
                 'order_id': order_obj.id,
+                'client_id': order_obj.client.id,
+                'address': client_address,
                 'document_type': type_document,
                 'document_number': document_number,
                 'client_name': client_name,

@@ -51,6 +51,7 @@ styles.add(
 styles.add(
     ParagraphStyle(name='Center_Newgot_title', alignment=TA_CENTER, leading=15, fontName='Newgot', fontSize=15))
 styles.add(ParagraphStyle(name='Left_Square', alignment=TA_LEFT, leading=10, fontName='Square', fontSize=10))
+styles.add(ParagraphStyle(name='Left_Square_Wrap', alignment=TA_LEFT, leading=10, fontName='Square', fontSize=10, wordWrap='CJK'))
 styles.add(ParagraphStyle(name='Justify_Square', alignment=TA_JUSTIFY, leading=10, fontName='Square', fontSize=10))
 styles.add(ParagraphStyle(name='Center_Newgot_1', alignment=TA_CENTER, leading=11, fontName='Newgot', fontSize=9))
 styles.add(ParagraphStyle(name='Center-text', alignment=TA_CENTER, leading=8, fontName='Square', fontSize=8))
@@ -317,16 +318,16 @@ def print_quotation(request, pk=None, t=None):
 
     info_address = client_obj.clientaddress_set.first().address.upper()
 
+    place_delivery_text = (order_obj.place_delivery or '').upper()
     tbl2_col1 = [
         ['Señor(es) :', Paragraph(str(client_obj.names), styles['Left_Square'])],
         ['RUC/DNI :', Paragraph(str(info_document), styles['Left_Square'])],
-        ['Dirección :', Paragraph(str(info_address), styles['Left_Square'])],
+        ['Dirección :', Paragraph(str(info_address), styles['Left_Square_Wrap'])],
         ['Teléfono :', Paragraph(str(telephone), styles['Left_Square'])],
         ['Correo :', Paragraph(str(email), styles['Left_Square'])],
-        # ['Forma Pago:', Paragraph(str(description), styles['Left_Square'])],
-        ['Lugar de Entrega  : ', Paragraph(str(order_obj.place_delivery.upper()), styles['Left_Square'])],
+        ['Lugar de Entrega  : ', Paragraph(place_delivery_text, styles['Left_Square_Wrap'])],
     ]
-    tbl2_col_1 = Table(tbl2_col1, colWidths=[_bts * 20 / 100, _bts * 50 / 100])
+    tbl2_col_1 = Table(tbl2_col1, colWidths=[_bts * 66 / 100 * 0.28, _bts * 66 / 100 * 0.72])
     style_table2_col1 = [
         # ('GRID', (0, 0), (-1, -1), 0.9, colors.blue),  # all columns
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # all columns
@@ -352,14 +353,17 @@ def print_quotation(request, pk=None, t=None):
     _tbl_header2 = [
         [tbl2_col_1, tbl2_col_2],
     ]
-    header2_page = Table(_tbl_header2, colWidths=[_bts * 66 / 100, _bts * 34 / 100])
-    style_table_header = [
-        # ('GRID', (0, 0), (-1, -1), 0.9, colors.blue),  # all columns
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # all columns
-        ('ALIGNMENT', (0, 0), (0, -1), 'CENTER'),  # first column
-        ('SPAN', (0, 0), (0, 0)),  # first row
+    header2_page = Table(_tbl_header2, colWidths=[_bts * 66 / 100, _bts * 34 / 100], cornerRadii=[10, 10, 10, 10])
+    style_table_header2 = [
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),
+        ('BOX', (0, 0), (-1, -1), 2, colors.black),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
     ]
-    header2_page.setStyle(TableStyle(style_table_header))
+    header2_page.setStyle(TableStyle(style_table_header2))
     # ------------ENCABEZADO DEL DETALLE-------------------#
     style_table_header_detail = [
         ('FONTNAME', (0, 0), (-1, -1), 'Newgot'),  # all columns
@@ -1233,18 +1237,8 @@ class OutputPrintQuotation(Flowable):
         canvas.saveState()
         canvas.setLineWidth(2)
         canvas.setFillColor(red)
-        row_d = 0
-        row_d = self.count_row
-        # canvas.setFont('Newgot', 30)
-        # canvas.setFillColorRGB(0.5, 0.5, 0.5)
-        if row_d == 1:
-            d = 50 + row_d * 25
-        else:
-            d = 30 + row_d * 25
-
-        # canvas.roundRect(395, 8, 155, 80, 10, stroke=1, fill=0)
-        # canvas.roundRect(0, -105, 550, 105, 10, stroke=1, fill=0)
+        # Solo dibuja el recuadro del RUC/Cotización. El recuadro de datos de cliente
+        # se dibuja mediante el estilo BOX de la tabla header2_page para que se adapte
+        # al contenido (ej. Lugar de Entrega largo).
         canvas.roundRect(386, 8, 169, 80, 10, stroke=1, fill=0)
-        canvas.roundRect(-7, -120, 563, 120, 10, stroke=1, fill=0)
-        # canvas.roundRect(0, -(d + 110), 550, d, 10, stroke=1, fill=0)
         canvas.restoreState()

@@ -2224,6 +2224,7 @@ def get_client(request):
                 # Crear texto de búsqueda mejorado
                 search_text = f"{c.names} - {document_number}"
                 
+                document_type = last_document.document_type.id if last_document and last_document.document_type else ''
                 client.append({
                     'id': c.id,
                     'text': search_text,  # Para Select2
@@ -2231,6 +2232,7 @@ def get_client(request):
                     'type_client_display': c.get_type_client_display(),
                     'type_client': c.type_client,
                     'number_document': document_number,
+                    'document_type': document_type,
                     'address': client_addresses,
                     'last_address': principal_address or '',  # Dirección principal
                     'cod_siaf': c.cod_siaf
