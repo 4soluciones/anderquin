@@ -1,10 +1,10 @@
-<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-            <h5 class="modal-title">Actualizar usuario del trabajador [{{ worker.employee.document_number }}]</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 480px;">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+        <div class="modal-header border-0 py-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);">
+            <h5 class="modal-title text-white font-weight-bold">
+                <i class="fas fa-user-cog mr-2"></i>Actualizar usuario del trabajador
+            </h5>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
@@ -13,103 +13,93 @@
             {% csrf_token %}
             <input type="hidden" id="id_worker" name="worker" value="{{ worker.id }}">
 
-            <div class="modal-body">
+            <div class="modal-body py-4 px-4">
+                <p class="text-muted small mb-4">
+                    Documento: <strong>{{ worker.employee.document_number|default:"-" }}</strong>
+                </p>
 
+                <div class="form-group">
+                    <label class="font-weight-bold text-dark" for="id_username">Usuario</label>
+                    <div class="input-group input-group-lg border rounded" style="border-radius: 10px !important;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-light border-0"><i class="fas fa-user text-primary"></i></span>
+                        </div>
+                        <input type="text" class="form-control border-0" id="id_username" name="username"
+                               value="{% if worker.user %}{{ worker.user.username }}{% endif %}"
+                               placeholder="Nombre de usuario" required>
+                    </div>
+                </div>
 
-                <table class="table">
+                <div class="form-group">
+                    <label class="font-weight-bold text-dark" for="id_key">Nueva contraseña <span class="text-muted small">(mín. 6 caracteres, deje en blanco para no cambiar)</span></label>
+                    <div class="input-group input-group-lg border rounded" style="border-radius: 10px !important;">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-light border-0"><i class="fas fa-lock text-primary"></i></span>
+                        </div>
+                        <input type="password" class="form-control border-0" id="id_key" name="key"
+                               minlength="6" placeholder="••••••••" autocomplete="new-password">
+                    </div>
+                </div>
 
-                    <tr>
-                        <td>Usuario:{{ worker.user.username }}</td>
-                        <td>
-                            <input type="text" class="form-control" id="id_username"
-                                   name="username" value="{{ worker.user.username }}">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Clave:</td>
-                        <td>
-                            <input type="text" class="form-control" minlength="6"
-                                   id="id_key" name="key">
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Acceso al panel:</td>
-                        <td>
-                            <input type="checkbox" class="form-check-input" id="id_is_staff" name="is_staff"
-                                   {% if worker.user.is_staff %}checked{% endif %} value="True">
-                        </td>
-                    </tr>
-                </table>
-
-
-            </div><!-- modal-body -->
-
-
-            <div class="modal-footer">&nbsp;
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                &nbsp;
-                <button id="btn-worker-user-submit" type="submit" class="btn btn-primary">Guardar</button>
-
-
+                <div class="form-group mb-0">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="id_is_staff" name="is_staff" value="True"
+                               {% if worker.user and worker.user.is_staff %}checked{% endif %}>
+                        <label class="custom-control-label font-weight-bold text-dark" for="id_is_staff">Acceso al panel de administración</label>
+                    </div>
+                </div>
             </div>
 
+            <div class="modal-footer border-0 bg-light py-3 px-4">
+                <button type="button" class="btn btn-outline-secondary px-4" data-dismiss="modal" style="border-radius: 10px;">Cerrar</button>
+                <button id="btn-worker-user-submit" type="submit" class="btn btn-primary px-4" style="border-radius: 10px; background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);">
+                    <i class="fas fa-save mr-1"></i> Guardar
+                </button>
+            </div>
         </form>
-
     </div>
 </div>
 
 <script type="text/javascript">
-
     $('#worker-user-form').submit(function (event) {
         event.preventDefault();
-
         var data = new FormData($('#worker-user-form').get(0));
-
-        $("#btn-worker-user-submit").attr("disabled");
+        $("#btn-worker-user-submit").prop("disabled", true);
 
         $.ajax({
             url: "/hrm/update_worker_user/",
             type: "POST",
             data: data,
-            cache: false, //If set to false, it will force requested pages not to be cached by the browser.
-            processData: false, // Important!, it prevent jQuery form transforming the data into a query string
-            contentType: false, //Es imperativo que establezca la opción contentType en false, forzando a jQuery a no agregar un encabezado Content-Type
+            cache: false,
+            processData: false,
+            contentType: false,
             success: function (response, textStatus, xhr) {
-                //Recibe un json serializado
-                console.log(response);
-
                 if (xhr.status == 200) {
-                    toastr.success('Guardado con exito.', '¡Bien hecho!');
-
+                    toastr.success('Guardado con éxito.', '¡Bien hecho!');
                     $.ajax({
                         url: '{% url 'hrm:json_employee_list' %}',
                         async: true,
                         dataType: 'json',
                         type: 'GET',
-                        // data: {'search': search},
                         success: function (response) {
                             $("#employee-grid-list").html(response.result);
                             refreshTable();
                         },
                         fail: function (response) {
-                            toastr.error("Error. ", '¡Inconcebible!');
+                            toastr.error("Error.", '¡Error!');
                         }
                     });
-
+                    $('#get-worker-user').modal('hide');
                 }
-
             },
-            error: function (jqXhr, textStatus, xhr) { // provide a bit more info about the error to the console
-                console.log(jqXhr);
+            error: function (jqXhr, textStatus, xhr) {
                 if (jqXhr.status == 500) {
-                    toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
-                } else {
-                    console.log(" STATUS: " + xhr + " " + textStatus);
+                    toastr.error(jqXhr.responseJSON.error || 'Error al guardar', '¡Error!');
                 }
-
+            },
+            complete: function () {
+                $("#btn-worker-user-submit").prop("disabled", false);
             }
-        });//end ajax
-        $("#btn-worker-user-submit").removeAttr("disabled");
-        $('#get-worker-user').modal('hide');
+        });
     });
 </script>

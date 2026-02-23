@@ -1,25 +1,37 @@
-
 {% extends 'home.html' %}
+{% load static %}
 
 {% block title %}
-coronasoft.dev | Datos personales del trabajador
+ Recursos Humanos
 {% endblock title %}
 
 {% block body %}
 
+<div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+    <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+        <div class="card-body border-bottom py-3 py-md-4" style="background: linear-gradient(180deg, #f0f8fc 0%, #e3f2fd 100%);">
+            <div class="row align-items-center no-gutters">
+                <div class="col-12 col-md-8 mb-3 mb-md-0">
+                    <h5 class="mb-0 font-weight-bold roboto-condensed-regular" style="color: #0d47a1;">
+                        <i class="fas fa-users-cog mr-2"></i>Lista de trabajadores
+                    </h5>
+                    <p class="text-muted small mb-0 mt-1">Gestión de empleados y datos laborales</p>
+                </div>
+                <div class="col-12 col-md-4 text-md-right">
+                    <button type="button" onclick="showModalCreation('{% url 'hrm:json_employee_create' %}')"
+                            class="btn btn-primary border-2 shadow-sm py-2 px-4"
+                            style="border-radius: 12px; background: linear-gradient(180deg, #1976d2 0%, #1565c0 100%);">
+                        <i class="fas fa-user-plus mr-1"></i> Nuevo trabajador
+                    </button>
+                </div>
+            </div>
+        </div>
 
-<!-- Content -->
-<div class="container-fluid pt-3">
-
-    <!-- Provides extra visual weight and identifies the primary action in a set of buttons -->
-    <button type="button" onclick="showModalCreation('{% url 'hrm:json_employee_create' %}')" class="btn btn-outline-info mb-5">
-        <i class="fas fa-user-plus"></i> &nbsp; NUEVO TRABAJADOR
-    </button>
-
-    <div id="employee-grid-list" >{% include "hrm/employee_grid_list.html" %}</div>
-
+        <div class="card-body p-0 p-md-3" style="background-color: #e3f2fd;">
+            <div id="employee-grid-list" class="employee-datatable-wrapper">{% include "hrm/employee_grid_list.html" %}</div>
+        </div>
+    </div>
 </div>
-
 
 <div class="modal fade bd-example-modal-lg" id="creation" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true"></div>
 <div class="modal fade" id="edition" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
@@ -27,27 +39,75 @@ coronasoft.dev | Datos personales del trabajador
 <div class="modal fade" id="get-worker-establishment" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
 <div class="modal fade" id="get-worker-user" tabindex="-1" role="dialog" aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
 
-
+<style>
+    .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+        border-color: #1e3a5f;
+    }
+    .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger, .btn-outline-secondary {
+        border-width: 2px;
+    }
+    #employee-data-grid_wrapper .table thead th {
+        border-color: #bbdefb !important;
+        background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%);
+        color: #0d47a1;
+        font-weight: 600;
+    }
+    #employee-data-grid tbody td {
+        border-color: #bbdefb !important;
+    }
+    #employee-data-grid tbody tr:hover {
+        background-color: rgba(227, 242, 253, 0.6);
+    }
+    /* Tabla en mayúsculas excepto columna Usuario */
+    .employee-table-uppercase tbody td {
+        text-transform: uppercase;
+    }
+    .employee-table-uppercase tbody td.td-usuario {
+        text-transform: none;
+    }
+    /* Margin para controles del DataTable (mostrar registros y buscar) */
+    .employee-datatable-wrapper .dataTables_wrapper .row:first-child {
+        margin: 1rem 1rem 0.75rem 1rem;
+    }
+    .employee-datatable-wrapper .dataTables_wrapper .row:last-child {
+        margin: 0.75rem 1rem 1rem 1rem;
+    }
+    /* Evitar scroll vertical extra al abrir el dropdown: solo scroll horizontal en la tabla */
+    .employee-datatable-wrapper .table-responsive,
+    .employee-datatable-wrapper .dataTables_wrapper,
+    .employee-datatable-wrapper .dataTables_wrapper .dataTables_scroll,
+    .employee-datatable-wrapper .dataTables_scrollBody {
+        overflow-y: visible !important;
+    }
+    .employee-datatable-wrapper .table-responsive {
+        overflow-x: auto;
+    }
+    /* Evitar que la celda del dropdown recorte el menú y genere scroll propio */
+    .employee-datatable-wrapper tbody td:last-child {
+        overflow: visible !important;
+    }
+    .employee-datatable-wrapper tbody tr {
+        overflow: visible !important;
+    }
+</style>
 
 {% endblock body %}
 
-
 {% block extrajs %}
 <script type="text/javascript">
-
     var $ = jQuery.noConflict();
 
-    $('#employee-data-grid').dataTable({
-        columnDefs: [{
-            orderable: false,
-            className: 'select-checkbox',
-            targets: 0
-        }],
-        select: {
-            style: 'os',
-            selector: 'td:first-child'
-        }
+    $('#employee-data-grid').DataTable({
+        columnDefs: [{ orderable: false, targets: 0 }, { orderable: false, targets: -1 }],
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json'
+        },
+        order: [[1, 'asc']],
+        pageLength: 25,
+        responsive: true
     });
+
     $(document).on('click', '.worker-designation', function () {
         var search = $(this).attr('pk');
         $.ajax({
@@ -56,17 +116,14 @@ coronasoft.dev | Datos personales del trabajador
             type: 'GET',
             data: {'pk': search},
             success: function (response) {
-                console.log(response);
-                if(response.success){
+                if (response.success) {
                     $('#get-worker-designation').html(response.form);
                     $('#get-worker-designation').modal('show');
                 }
-            },
-            fail: function (response) {
-                console.log(response);
             }
         });
     });
+
     $(document).on('click', '.worker-change-designation', function () {
         var search = $(this).attr('pk');
         $.ajax({
@@ -75,118 +132,62 @@ coronasoft.dev | Datos personales del trabajador
             type: 'GET',
             data: {'pk': search},
             success: function (response) {
-                console.log(response);
-                if(response.success){
+                if (response.success) {
                     $('#get-worker-designation').html(response.form);
                     $('#get-worker-designation').modal('show');
                 }
-            },
-            fail: function (response) {
-                console.log(response);
             }
         });
     });
+
     $(document).on('click', '.worker-change-establishment', function () {
-        let search = $(this).attr('pk');
+        var search = $(this).attr('pk');
         $.ajax({
             url: '/hrm/get_worker_establishment/',
             dataType: 'json',
             type: 'GET',
             data: {'pk': search},
             success: function (response) {
-                console.log(response);
-                if(response.success){
+                if (response.success) {
                     $('#get-worker-establishment').html(response.form);
                     $('#get-worker-establishment').modal('show');
                 }
-            },
-            fail: function (response) {
-                console.log(response);
             }
         });
     });
+
     $(document).on('click', '.worker-change-user', function () {
-        let search = $(this).attr('pk');
+        var search = $(this).attr('pk');
         $.ajax({
             url: '/hrm/get_worker_user/',
             dataType: 'json',
             type: 'GET',
             data: {'pk': search},
             success: function (response) {
-                console.log(response);
-                if(response.success){
+                if (response.success) {
                     $('#get-worker-user').html(response.form);
                     $('#get-worker-user').modal('show');
                 }
-            },
-            fail: function (response) {
-                console.log(response);
-            }
-        });
-    });
-
-    $('.staff-in-training-designation').on('click', function () {
-        var search = $(this).attr('pk');
-        $.ajax({
-            url: '/sales/get_kardex_by_product/',
-            dataType: 'json',
-            type: 'GET',
-            data: {'pk': search},
-            success: function (response) {
-                console.log(response);
-                if(response.success){
-                    $('#show-kardex').html(response.form);
-                    $('#show-kardex').modal('show');
-                }
-            },
-            fail: function (response) {
-                console.log(response);
-            }
-        });
-    });
-
-    $('.third-party-personnel-designation').on('click', function () {
-        var search = $(this).attr('pk');
-        $.ajax({
-            url: '/sales/set_product_detail/',
-            dataType: 'json',
-            type: 'GET',
-            data: {'pk': search},
-            success: function (response) {
-                if(response.success){
-                    console.log(response.serialized_data);
-                    $('#get-worker-designation').html(response.form);
-                    $('#get-worker-designation').modal('show');
-                }
-            },
-            fail: function (response) {
-                console.log(response);
             }
         });
     });
 
     function refreshTable() {
-        $('#employee-data-grid').DataTable().draw();
+        if ($.fn.DataTable.isDataTable('#employee-data-grid')) {
+            $('#employee-data-grid').DataTable().draw();
+        }
     }
 
     function showModalDelete(url) {
-        $('#delete').load(url, function () {
-            $(this).modal('show');
-        });
-    };
+        $('#delete').load(url, function () { $(this).modal('show'); });
+    }
 
     function showModalEdition(url) {
-        $('#edition').load(url, function () {
-            $(this).modal('show');
-        });
-    };
+        $('#edition').load(url, function () { $(this).modal('show'); });
+    }
 
     function showModalCreation(url) {
-        $('#creation').load(url, function () {
-            $(this).modal('show');
-        });
-    };
-
-
+        $('#creation').load(url, function () { $(this).modal('show'); });
+    }
 </script>
 {% endblock extrajs %}

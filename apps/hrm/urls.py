@@ -4,6 +4,9 @@ from apps.hrm.views import *
 
 urlpatterns = [
     path('', login_required(Home.as_view()), name='home'),
+    path('profile/', login_required(ProfileView.as_view()), name='profile'),
+    path('settings/password/', login_required(PasswordChangeView.as_view()), name='settings_password'),
+    path('settings/password/done/', login_required(PasswordChangeDoneView.as_view()), name='password_change_done'),
     path('employee_list/', login_required(EmployeeList.as_view()), name='employee_list'),
     path('json_employee_create/', login_required(JsonEmployeeCreate.as_view()), name='json_employee_create'),
     path('json_employee_list/', login_required(JsonEmployeeList.as_view()), name='json_employee_list'),

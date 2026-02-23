@@ -91,15 +91,28 @@
                     </a>
                     <div class="dropdown-menu dropdown-menu-right erp-user-dropdown" aria-labelledby="userMenuDropdown">
                         <div class="erp-user-dropdown-header">
-                            <span class="erp-user-dropdown-name">{{ user.worker_set.last.employee.names|upper|truncatewords:2 }}</span>
-                            <span class="erp-user-dropdown-subsidiary">{{ user.worker_set.last.establishment_set.last.subsidiary.name|truncatechars:25 }}</span>
+                            {% if user.worker_set.all %}
+                                {% with w=user.worker_set.last %}
+                                    <span class="erp-user-dropdown-name">{{ w.employee.names|default:user.username|upper|truncatewords:2 }}</span>
+                                    {% for e in w.establishment_set.all %}
+                                        {% if forloop.last %}
+                                            <span class="erp-user-dropdown-subsidiary">{{ e.subsidiary.name|default:"-"|truncatechars:25 }}</span>
+                                        {% endif %}
+                                    {% empty %}
+                                        <span class="erp-user-dropdown-subsidiary">-</span>
+                                    {% endfor %}
+                                {% endwith %}
+                            {% else %}
+                                <span class="erp-user-dropdown-name">{{ user.get_full_name|default:user.username|upper|truncatewords:2 }}</span>
+                                <span class="erp-user-dropdown-subsidiary">Usuario</span>
+                            {% endif %}
                         </div>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="{% url 'dashboard' %}"><i class="fas fa-home"></i> Inicio</a>
-                        <a class="dropdown-item" href="#"><i class="fas fa-user"></i> Perfil</a>
-                        <a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Configuración</a>
+                        <a class="dropdown-item" href="{% url 'hrm:profile' %}"><i class="fas fa-user"></i> Perfil</a>
+                        <a class="dropdown-item" href="{% url 'hrm:settings_password' %}"><i class="fas fa-cog"></i> Configuración</a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#"><i class="fas fa-life-ring"></i> Support Center</a>
+                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modalSupportCenter"><i class="fas fa-life-ring"></i> Support Center</a>
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="fas fa-power-off"></i> Cerrar sesión</a>
                     </div>
@@ -126,6 +139,26 @@
     </div>
 </div>
 
+<!-- Modal Support Center -->
+<div class="modal fade" id="modalSupportCenter" tabindex="-1" role="dialog" aria-labelledby="modalSupportCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-0 py-3" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%); border-radius: 16px 16px 0 0;">
+                <h6 class="modal-title text-white font-weight-bold" id="modalSupportCenterTitle">
+                    <i class="fas fa-life-ring mr-2"></i>Support Center
+                </h6>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body py-4 px-4">
+                <p class="mb-2"><strong>Ing. Jhon Olanda Salas</strong></p>
+                <p class="mb-2 text-muted small">Sistema de Tecnología 4 Soluciones SAC</p>
+                <p class="mb-0"><i class="fas fa-phone-alt text-primary mr-2"></i><a href="tel:958097875">958 097 875</a></p>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!--=============================================
 =            Include JavaScript files           =

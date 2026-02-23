@@ -1,9 +1,12 @@
 from django.db import DatabaseError
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import TemplateView, View, CreateView, UpdateView
+from django.views.generic import TemplateView, View, CreateView, UpdateView, FormView
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 from http import HTTPStatus
 from .models import *
 from apps.sales.models import *
@@ -201,6 +204,25 @@ def get_subsidiary_by_user(user_obj):
     return subsidiary
 
 
+def get_employee_queryset():
+    """Queryset optimizado para lista de empleados (prefetch/select_related)."""
+    return Employee.objects.all().select_related(
+        'document_type', 'document_issuing_country'
+    ).prefetch_related(
+        Prefetch(
+            'worker_set',
+            queryset=Worker.objects.select_related(
+                'occupation_private_sector', 'occupation_public_sector', 'user'
+            ).prefetch_related(
+                Prefetch(
+                    'establishment_set',
+                    queryset=Establishment.objects.select_related('subsidiary').order_by('-id')
+                )
+            ).order_by('-id')
+        )
+    ).order_by('-created_at')
+
+
 # Create your views here.
 class EmployeeList(View):
     model = Employee
@@ -208,19 +230,11 @@ class EmployeeList(View):
     template_name = 'hrm/employee_list.html'
 
     def get_queryset(self):
-        return self.model.objects.all().prefetch_related(
-            Prefetch(
-                'worker_set', queryset=Worker.objects.prefetch_related(
-                    Prefetch(
-                        'establishment_set', queryset=Establishment.objects.select_related('subsidiary')
-                    )
-                ).select_related('occupation_private_sector', 'user')
-            ),
-        ).select_related('document_type', 'document_issuing_country').order_by("created_at")
+        return get_employee_queryset()
 
     def get_context_data(self, **kwargs):
         contexto = {}
-        contexto['employees'] = self.get_queryset()  # agregamos la consulta al contexto
+        contexto['employees'] = self.get_queryset()
         contexto['form'] = self.form_class
         return contexto
 
@@ -230,10 +244,57 @@ class EmployeeList(View):
 
 class JsonEmployeeList(View):
     def get(self, request):
-        employees = Employee.objects.all().order_by("created_at")
+        employees = get_employee_queryset()
         t = loader.get_template('hrm/employee_grid_list.html')
-        c = ({'employees': employees})
-        return JsonResponse({'result': t.render(c)})
+        c = {'employees': employees}
+        return JsonResponse({'result': t.render(c, request)})
+
+
+class ProfileView(View):
+    """Perfil del empleado con enlaces a modelos relacionados."""
+    template_name = 'hrm/profile.html'
+
+    def get(self, request, *args, **kwargs):
+        worker = None
+        employee = None
+        try:
+            worker = Worker.objects.select_related(
+                'employee', 'occupation_private_sector', 'occupation_public_sector', 'user'
+            ).prefetch_related(
+                Prefetch('establishment_set', queryset=Establishment.objects.select_related('subsidiary').order_by('-id'))
+            ).filter(user=request.user).order_by('-id').first()
+            if worker:
+                employee = worker.employee
+        except Exception:
+            pass
+        return render(request, self.template_name, {
+            'employee': employee,
+            'worker': worker,
+            'user': request.user,
+        })
+
+
+class PasswordChangeView(FormView):
+    """Vista para cambio de contraseña del usuario."""
+    template_name = 'hrm/settings_password.html'
+    form_class = PasswordChangeForm
+
+    def get_success_url(self):
+        return reverse('hrm:password_change_done')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        form.save()
+        update_session_auth_hash(self.request, form.user)
+        return redirect('hrm:password_change_done')
+
+
+class PasswordChangeDoneView(TemplateView):
+    template_name = 'hrm/settings_password_done.html'
 
 
 class JsonEmployeeCreate(CreateView):
@@ -589,7 +650,9 @@ def get_establishment_code(request):
 def get_worker_establishment(request):
     if request.method == 'GET':
         pk = request.GET.get('pk', '')
-        worker_obj = Worker.objects.get(id=pk)
+        worker_obj = Worker.objects.prefetch_related(
+            Prefetch('establishment_set', queryset=Establishment.objects.select_related('subsidiary').order_by('-id'))
+        ).get(id=pk)
         form_establishment_obj = FormEstablishment()
         t = loader.get_template('hrm/worker_establishment.html')
         c = ({

@@ -1,422 +1,161 @@
 <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-            <h5 class="modal-title">Editar trabajador: {{ object }}</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+        <div class="modal-header border-0 py-4" style="background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);">
+            <h5 class="modal-title text-white roboto-condensed-regular">
+                <i class="fas fa-user-edit mr-2"></i>EDITAR TRABAJADOR
+            </h5>
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
 
         <form class="was-validated" id="employee-update-form" action="{% url 'hrm:json_employee_edit' object.id %}" method="POST">
             {% csrf_token %}
-
-            <div class="modal-body">
-
-
-                <div class="accordion" id="accordionExample">
-                    <div class="card">
-                        <div class="card-header p-0" id="headingOne">
-                            <h2 class="mb-0">
-                                <button class="btn btn-block btn-info border-0" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                    Datos personales del trabajador
-                                </button>
-                            </h2>
-                        </div>
-
-                        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
-                            <div class="card-body">
-
-
-                                <div class="form-row">
-                                    <div class="col-md-8 mb-3">
-                                        <label for="">{{ form.document_type.label }}</label>
-                                        {{ form.document_type }}
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.document_number.label }}</label>
-                                        {{ form.document_number }}
-
-                                        {% for error in form.document_number.errors %}
-                                        <div class="invalid-feedback">
-                                            {{error}}
-                                        </div>
-                                        {% endfor %}
-
-                                    </div>
-
-                                    <div class="col-md-8 mb-3">
-                                        <label for="">{{ form.document_issuing_country.label }}</label>
-                                        {{ form.document_issuing_country }}
-                                    </div>
-
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.birthdate.label }}</label>
-                                        {{ form.birthdate }}
-                                    </div>
-
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.paternal_last_name.label }}</label>
-                                        {{ form.paternal_last_name }}
-                                    </div>
-
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.maternal_last_name.label }}</label>
-                                        {{ form.maternal_last_name }}
-                                    </div>
-
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.names.label }}</label>
-                                        {{ form.names }}
-                                    </div>
-
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.gender.label }}</label>
-                                        {{ form.gender }}
-                                    </div>
-
-                                    <div class="col-md-8 mb-3">
-                                        <label for="">{{ form.nationality.label }}</label>
-                                        {{ form.nationality }}
-                                    </div>
-
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.telephone_national_long_distance_code.label }}</label>
-                                        {{ form.telephone_national_long_distance_code }}
-                                    </div>
-
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.telephone_number.label }}</label>
-                                        {{ form.telephone_number }}
-                                    </div>
-
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.email.label }}</label>
-                                        {{ form.email }}
-                                    </div>
-
-                                </div><!-- form-row -->
-
-                            </div>
+            <div class="modal-body p-0">
+                <ul class="nav nav-tabs px-4 pt-3 border-0" id="tabEmployeeUpdate" role="tablist" style="background: #f0f8fc; border-bottom: 2px solid #bbdefb;">
+                    <li class="nav-item">
+                        <a class="nav-link active rounded-top border-0 py-2 px-3" id="tab-one-update" data-toggle="tab" href="#content-one-update" role="tab" style="color: #0d47a1;">
+                            <i class="fas fa-id-card mr-1"></i>Datos personales
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded-top border-0 py-2 px-3" id="tab-two-update" data-toggle="tab" href="#content-two-update" role="tab" style="color: #0d47a1;">
+                            <i class="fas fa-map-marker-alt mr-1"></i>Dirección 1
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded-top border-0 py-2 px-3" id="tab-three-update" data-toggle="tab" href="#content-three-update" role="tab" style="color: #0d47a1;">
+                            <i class="fas fa-map-marker-alt mr-1"></i>Dirección 2
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link rounded-top border-0 py-2 px-3" id="tab-four-update" data-toggle="tab" href="#content-four-update" role="tab" style="color: #0d47a1;">
+                            <i class="fas fa-plus-circle mr-1"></i>Datos adicionales
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content p-4" id="tabContentEmployeeUpdate" style="background: #fff;">
+                    <div class="tab-pane fade show active" id="content-one-update" role="tabpanel">
+                        <div class="form-row">
+                            <div class="col-md-8 mb-3"><label class="text-dark">{{ form.document_type.label }}</label>{{ form.document_type }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.document_number.label }}</label>{{ form.document_number }}{% for error in form.document_number.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}</div>
+                            <div class="col-md-8 mb-3"><label class="text-dark">{{ form.document_issuing_country.label }}</label>{{ form.document_issuing_country }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.birthdate.label }}</label>{{ form.birthdate }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.paternal_last_name.label }}</label>{{ form.paternal_last_name }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.maternal_last_name.label }}</label>{{ form.maternal_last_name }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.names.label }}</label>{{ form.names }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.gender.label }}</label>{{ form.gender }}</div>
+                            <div class="col-md-8 mb-3"><label class="text-dark">{{ form.nationality.label }}</label>{{ form.nationality }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.telephone_national_long_distance_code.label }}</label>{{ form.telephone_national_long_distance_code }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.telephone_number.label }}</label>{{ form.telephone_number }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.email.label }}</label>{{ form.email }}</div>
                         </div>
                     </div>
-                    <div class="card">
-                        <div class="card-header p-0" id="headingTwo">
-                            <h2 class="mb-0">
-                                <button class="btn btn-block btn-info border-0 collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                    Datos de contacto - Dirección 1
-                                </button>
-                            </h2>
-                        </div>
-                        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
-                            <div class="card-body">
-
-
-                                <div class="form-row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="">{{ form.address_1_road_type.label }}</label>
-                                        {{ form.address_1_road_type }}
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.address_1_road_name.label }}</label>
-                                        {{ form.address_1_road_name }}
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_1_road_number.label }}</label>
-                                        {{ form.address_1_road_number }}
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_1_department.label }}</label>
-                                        {{ form.address_1_department }}
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_1_interior.label }}</label>
-                                        {{ form.address_1_interior }}
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_1_apple.label }}</label>
-                                        {{ form.address_1_apple }}
-                                    </div>
-
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_1_lot.label }}</label>
-                                        {{ form.address_1_lot }}
-                                    </div>
-
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_1_kilometer.label }}</label>
-                                        {{ form.address_1_kilometer }}
-                                    </div>
-
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_1_block.label }}</label>
-                                        {{ form.address_1_block }}
-                                    </div>
-
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_1_stage.label }}</label>
-                                        {{ form.address_1_stage }}
-                                    </div>
-
-
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.address_1_zone_type.label }}</label>
-                                        {{ form.address_1_zone_type }}
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label for="">{{ form.address_1_zone_name.label }}</label>
-                                        {{ form.address_1_zone_name }}
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label for="">{{ form.address_1_reference.label }}</label>
-                                        {{ form.address_1_reference }}
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label for="">{{ form.address_1_district.label }}</label>
-                                        {{ form.address_1_district }}
-                                    </div>
-
-                                </div>
-
-
-
-
-                            </div>
+                    <div class="tab-pane fade" id="content-two-update" role="tabpanel">
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3"><label class="text-dark">{{ form.address_1_road_type.label }}</label>{{ form.address_1_road_type }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.address_1_road_name.label }}</label>{{ form.address_1_road_name }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_1_road_number.label }}</label>{{ form.address_1_road_number }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_1_department.label }}</label>{{ form.address_1_department }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_1_interior.label }}</label>{{ form.address_1_interior }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_1_apple.label }}</label>{{ form.address_1_apple }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_1_lot.label }}</label>{{ form.address_1_lot }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_1_kilometer.label }}</label>{{ form.address_1_kilometer }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_1_block.label }}</label>{{ form.address_1_block }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_1_stage.label }}</label>{{ form.address_1_stage }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.address_1_zone_type.label }}</label>{{ form.address_1_zone_type }}</div>
+                            <div class="col-md-6 mb-3"><label class="text-dark">{{ form.address_1_zone_name.label }}</label>{{ form.address_1_zone_name }}</div>
+                            <div class="col-md-6 mb-3"><label class="text-dark">{{ form.address_1_reference.label }}</label>{{ form.address_1_reference }}</div>
+                            <div class="col-md-6 mb-3"><label class="text-dark">{{ form.address_1_district.label }}</label>{{ form.address_1_district }}</div>
                         </div>
                     </div>
-
-                    <div class="card">
-                        <div class="card-header p-0" id="headingThree">
-                            <h2 class="mb-0">
-                                <button class="btn btn-block btn-info border-0 collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                    Datos de contacto - Dirección 2
-                                </button>
-                            </h2>
+                    <div class="tab-pane fade" id="content-three-update" role="tabpanel">
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3"><label class="text-dark">{{ form.address_2_road_type.label }}</label>{{ form.address_2_road_type }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.address_2_road_name.label }}</label>{{ form.address_2_road_name }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_2_road_number.label }}</label>{{ form.address_2_road_number }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_2_department.label }}</label>{{ form.address_2_department }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_2_interior.label }}</label>{{ form.address_2_interior }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_2_apple.label }}</label>{{ form.address_2_apple }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_2_lot.label }}</label>{{ form.address_2_lot }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_2_kilometer.label }}</label>{{ form.address_2_kilometer }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_2_block.label }}</label>{{ form.address_2_block }}</div>
+                            <div class="col-md-2 mb-3"><label class="text-dark">{{ form.address_2_stage.label }}</label>{{ form.address_2_stage }}</div>
+                            <div class="col-md-4 mb-3"><label class="text-dark">{{ form.address_2_zone_type.label }}</label>{{ form.address_2_zone_type }}</div>
+                            <div class="col-md-6 mb-3"><label class="text-dark">{{ form.address_2_zone_name.label }}</label>{{ form.address_2_zone_name }}</div>
+                            <div class="col-md-6 mb-3"><label class="text-dark">{{ form.address_2_reference.label }}</label>{{ form.address_2_reference }}</div>
+                            <div class="col-md-6 mb-3"><label class="text-dark">{{ form.address_2_district.label }}</label>{{ form.address_2_district }}</div>
                         </div>
-                        <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
-                            <div class="card-body">
-
-
-                                <div class="form-row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="">{{ form.address_2_road_type.label }}</label>
-                                        {{ form.address_2_road_type }}
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.address_2_road_name.label }}</label>
-                                        {{ form.address_2_road_name }}
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_2_road_number.label }}</label>
-                                        {{ form.address_2_road_number }}
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_2_department.label }}</label>
-                                        {{ form.address_2_department }}
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_2_interior.label }}</label>
-                                        {{ form.address_2_interior }}
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_2_apple.label }}</label>
-                                        {{ form.address_2_apple }}
-                                    </div>
-
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_2_lot.label }}</label>
-                                        {{ form.address_2_lot }}
-                                    </div>
-
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_2_kilometer.label }}</label>
-                                        {{ form.address_2_kilometer }}
-                                    </div>
-
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_2_block.label }}</label>
-                                        {{ form.address_2_block }}
-                                    </div>
-
-                                    <div class="col-md-2 mb-3">
-                                        <label for="">{{ form.address_2_stage.label }}</label>
-                                        {{ form.address_2_stage }}
-                                    </div>
-
-
-                                    <div class="col-md-4 mb-3">
-                                        <label for="">{{ form.address_2_zone_type.label }}</label>
-                                        {{ form.address_2_zone_type }}
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label for="">{{ form.address_2_zone_name.label }}</label>
-                                        {{ form.address_2_zone_name }}
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label for="">{{ form.address_2_reference.label }}</label>
-                                        {{ form.address_2_reference }}
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label for="">{{ form.address_2_district.label }}</label>
-                                        {{ form.address_2_district }}
-                                    </div>
-
-                                </div>
-
-
-
-                            </div>
-                        </div>
-                    </div><!-- card -->
-
-                    <div class="card">
-                        <div class="card-header p-0" id="headingfour">
-                            <h2 class="mb-0">
-                                <button class="btn btn-block btn-info border-0 collapsed" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                                    Datos adicionales
-                                </button>
-                            </h2>
-                        </div>
-                        <div id="collapseFour" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
-                            <div class="card-body">
-
-                                <div class="form-group">
-                                    <label for="">{{ form.essalud_assistance.label }}</label>
-                                    {{ form.essalud_assistance }}
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="">{{ form.n_license.label }}</label>
-                                    {{ form.n_license }}
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="">{{ form.license_type.label }}</label>
-                                    {{ form.license_type }}
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="">{{ form.license_expiration_date.label }}</label>
-                                    {{ form.license_expiration_date }}
-                                </div>
-
-                            </div>
-                        </div>
-                    </div><!-- card -->
-
-                </div><!-- accordion -->
-
-                <!-- modal-body -->
+                    </div>
+                    <div class="tab-pane fade" id="content-four-update" role="tabpanel">
+                        <div class="form-group"><label class="text-dark">{{ form.essalud_assistance.label }}</label>{{ form.essalud_assistance }}</div>
+                        <div class="form-group"><label class="text-dark">{{ form.n_license.label }}</label>{{ form.n_license }}</div>
+                        <div class="form-group"><label class="text-dark">{{ form.license_type.label }}</label>{{ form.license_type }}</div>
+                        <div class="form-group mb-0"><label class="text-dark">{{ form.license_expiration_date.label }}</label>{{ form.license_expiration_date }}</div>
+                    </div>
+                </div>
             </div>
-
-
-            <div class="modal-footer">
-
-                <button type="button" class="btn btn-info" data-dismiss="modal">Cerrar</button>
-                &nbsp;
-                <button id="btn-employee-update-submit" type="submit" class="btn btn-warning">Guardar</button>
-
+            <div class="modal-footer border-0 bg-light py-3 px-4">
+                <button type="button" class="btn btn-outline-secondary px-4" data-dismiss="modal" style="border-radius: 10px;">Cerrar</button>
+                <button id="btn-employee-update-submit" type="submit" class="btn btn-primary px-4" style="border-radius: 10px; background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);">
+                    <i class="fas fa-save mr-1"></i> Guardar
+                </button>
             </div>
-
         </form>
-
     </div>
 </div>
+
+<style>
+    #employee-update-form .form-control, #employee-update-form .custom-select { border-radius: 10px; border-color: #bbdefb; }
+    #employee-update-form .form-control:focus { border-color: #1565c0; box-shadow: 0 0 0 0.2rem rgba(21, 101, 192, 0.25); }
+    #tabEmployeeUpdate .nav-link { font-weight: 500; }
+    #tabEmployeeUpdate .nav-link:hover { background: #e3f2fd; color: #0d47a1 !important; }
+    #tabEmployeeUpdate .nav-link.active { background: #fff !important; color: #1565c0 !important; border-bottom: 2px solid #fff !important; margin-bottom: -2px; }
+</style>
+
 <script type="text/javascript">
+$('#id_document_type').select2({ theme: 'bootstrap4' });
+$('#id_document_issuing_country').select2({ theme: 'bootstrap4' });
+$('#id_nationality').select2({ theme: 'bootstrap4' });
+$('#id_address_1_district').select2({ theme: 'bootstrap4' });
+$('#id_address_2_district').select2({ theme: 'bootstrap4' });
 
-    $('#id_document_type').select2({
-        theme: 'bootstrap4',
-    });
-
-    $('#id_document_issuing_country').select2({
-        theme: 'bootstrap4',
-    });
-
-    $('#id_nationality').select2({
-        theme: 'bootstrap4',
-    });
-
-    $('#id_address_1_district').select2({
-        theme: 'bootstrap4',
-    });
-
-    $('#id_address_2_district').select2({
-        theme: 'bootstrap4',
-    });
-
-    $("#employee-update-form").submit(function (event) {
-        //stop submit the form, we will post it manually.
-        event.preventDefault();
-        // Create an FormData object
-        var data = new FormData($('#employee-update-form').get(0));
-        // disabled the submit button
-        $("#btn-employee-update-submit").attr("disabled");
-        //alert("SUBMIT");
-        $.ajax({
-            //Cómo podemos ver, mediante el uso de JQuery, estamos haciendo una solicitud POST a la url
-            url: $(this).attr('action'),
-            type: $(this).attr('method'),
-            data: data,
-            cache: false, //If set to false, it will force requested pages not to be cached by the browser.
-            processData: false, // Important!, it prevent jQuery form transforming the data into a query string
-            contentType: false, //Es imperativo que establezca la opción contentType en false, forzando a jQuery a no agregar un encabezado Content-Type
-            success: function (response, textStatus, xhr) {
-                //Recibe un json serializado
-                console.log(textStatus);
-
-                if(xhr.status==200){
-
-                    var parse = JSON.parse(response);
-                    employee_name = parse['employee'].names;
-                    console.log("employee_name: " + employee_name);
-                    toastr.success('Actualizado con exito.','¡Bien hecho!');
-
-                    $.ajax({
-                        url: '{% url 'hrm:json_employee_list' %}',
-                        async: true,
-                        dataType: 'json',
-                        type: 'GET',
-                        // data: {'search': search},
-                        success: function (response) {
-                            $("#employee-grid-list").html(response.result);
-                            refreshTable();
-                        },
-                        fail: function (response) {
-                            toastr.error ("Error. ", '¡Inconcebible!');
-                        }
-                    });
-
-
-                }
-
-                $("#btn-employee-update-submit").removeAttr("disabled");
-                $('#edition').modal('hide');
-            },
-            error : function(jqXhr, textStatus, xhr) { // provide a bit more info about the error to the console
-
-                if(jqXhr.status==500){
-
-                    error = jqXhr.responseJSON.error;
-
-                    if (typeof jqXhr.responseJSON.form_invalid.name !== undefined || jqXhr.responseJSON.form_invalid.name !== null) {
-                        toastr.error (jqXhr.responseJSON.form_invalid.name, '¡Inconcebible!');
-                    }
-                }
-                else{
-                    console.log(" STATUS: " + xhr + " " + textStatus);
-                }
-
-                $("#btn-employee-update-submit").removeAttr("disabled");
+$("#employee-update-form").submit(function (event) {
+    event.preventDefault();
+    var data = new FormData($('#employee-update-form').get(0));
+    $("#btn-employee-update-submit").prop("disabled", true);
+    $.ajax({
+        url: $(this).attr('action'),
+        type: $(this).attr('method'),
+        data: data,
+        cache: false,
+        processData: false,
+        contentType: false,
+        success: function (response, textStatus, xhr) {
+            if(xhr.status==200){
+                toastr.success('Actualizado con éxito.','¡Bien hecho!');
+                $.ajax({
+                    url: '{% url 'hrm:json_employee_list' %}',
+                    async: true,
+                    dataType: 'json',
+                    type: 'GET',
+                    success: function (response) {
+                        $("#employee-grid-list").html(response.result);
+                        refreshTable();
+                    },
+                    fail: function () { toastr.error("Error.", '¡Error!'); }
+                });
                 $('#edition').modal('hide');
             }
-        });//end ajax
-    }); //end submit
-
+            $("#btn-employee-update-submit").prop("disabled", false);
+        },
+        error: function(jqXhr) {
+            if(jqXhr.status==500 && jqXhr.responseJSON && jqXhr.responseJSON.form_invalid){
+                toastr.error(jqXhr.responseJSON.form_invalid.name || jqXhr.responseJSON.error, '¡Error!');
+            }
+            $("#btn-employee-update-submit").prop("disabled", false);
+            $('#edition').modal('hide');
+        }
+    });
+});
 </script>
