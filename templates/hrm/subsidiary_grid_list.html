@@ -1,75 +1,54 @@
 {% if subsidiary_set %}
-    <div class="card">
-        <div class="card-header text-center border-dark" style="background-color: #3e6787">
-            <h5 class="card-title font-weight-bold roboto-condensed-regular text-white mt-2">LISTA DE SEDES</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive dataTables_wrapper bg-light">
-                <table id="ss-data-grid" class="table table-bordered roboto-condensed-regular table-hover mb-0">
-                    <thead>
-                    <tr class="text-center text-uppercase">
-                        <th style="width: 5%">#</th>
-                        <th style="width: 5%">Tipo</th>
-                        <th style="width: 5%" scope="col">Serie</th>
-                        <th style="width: 10%" scope="col">sede</th>
-                        <th style="width: 20%" scope="col">Empresa</th>
-{#                        <th style="width: 40%" scope="col">Dirección</th>#}
-                        <th style="width: 10%" scope="col">Distrito</th>
-                        <th style="width: 5%" scope="col">Ubigeo</th>
-                        <th style="width: 10%" scope="col">Sede principal</th>
-                        <th style="width: 5%" scope="col">Editar</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for s in subsidiary_set %}
-                        <tr class="{% if s.is_address %}bg-info{% endif %}">
-                            <th class="text-center align-middle">{{ forloop.counter }}</th>
-                            <th class="text-center align-middle">
-                                {% if s.is_address %}DIRECCIÓN{% else %}SEDE{% endif %}
-                            </th>
-                            <td class="align-middle text-center">{{ s.serial|default_if_none:'-'|default:'-' }}</td>
-                            <td class="align-middle">{{ s.name }}</td>
-{#                            <td class="align-middle">{{ s.business_name|default_if_none:'-' }}</td>#}
-                            <td class="align-middle">{{ s.address }}</td>
-                            <td class="align-middle text-center">{{ s.district.description }}</td>
-                            <td class="align-middle text-center">{{ s.district.ubigeo }}</td>
-                            <td class="align-middle text-center">
-                                {% if s.is_main %}
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="customCheck1" checked
-                                               disabled>
-                                        <label class="custom-control-label" for="customCheck1"></label>
-                                    </div>
-                                {% endif %}
-                            </td>
-                            <td class="align-middle text-center">
-                                <button class="btn btn-sm btn-edit-subsidiary mb-1" pk="{{ s.id }}">
-                                    <i class="fas fa-edit" style="color: #ffc107;"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                    <tfoot>
-                    <tr class="text-center text-uppercase">
-                        <th style="width: 5%">#</th>
-                        <th style="width: 5%">Tipo</th>
-                        <th style="width: 5%" scope="col">Serie</th>
-                        <th style="width: 10%" scope="col">sede</th>
-{#                        <th style="width: 20%" scope="col">Empresa</th>#}
-                        <th style="width: 40%" scope="col">Dirección</th>
-                        <th style="width: 10%" scope="col">Distrito</th>
-                        <th style="width: 5%" scope="col">Ubigeo</th>
-                        <th style="width: 10%" scope="col">Sede principal</th>
-                        <th style="width: 5%" scope="col">Editar</th>
-                    </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-    </div>
+<div class="table-responsive rounded" style="background: #fff; border-radius: 12px; border: 1px solid #bbdefb; overflow: hidden;">
+    <table id="ss-data-grid" class="table table-hover table-bordered mb-0 roboto-condensed-regular" cellspacing="0" width="100%" style="border-color: #bbdefb;">
+        <thead>
+            <tr class="text-center text-uppercase" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+                <th class="border-0 py-3 font-weight-bold" style="width: 3rem;">#</th>
+                <th class="border-0 py-3 font-weight-bold" style="width: 5rem;">Tipo</th>
+                <th class="border-0 py-3 font-weight-bold" style="width: 5rem;">Serie</th>
+                <th class="border-0 py-3 font-weight-bold text-left" style="min-width: 10rem;">Sede</th>
+                <th class="border-0 py-3 font-weight-bold text-left" style="min-width: 15rem;">Dirección</th>
+                <th class="border-0 py-3 font-weight-bold" style="width: 10rem;">Distrito</th>
+                <th class="border-0 py-3 font-weight-bold" style="width: 5rem;">Ubigeo</th>
+                <th class="border-0 py-3 font-weight-bold" style="width: 6rem;">Principal</th>
+                <th class="border-0 py-3 font-weight-bold" style="width: 5rem;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in subsidiary_set %}
+            <tr class="{% if s.is_address %}table-info{% endif %}">
+                <td class="text-center align-middle">{{ forloop.counter }}</td>
+                <td class="text-center align-middle">
+                    <span class="badge {% if s.is_address %}badge-info{% else %}badge-primary{% endif %} py-2 px-2" style="font-size: 0.7rem;">
+                        {% if s.is_address %}DIRECCIÓN{% else %}SEDE{% endif %}
+                    </span>
+                </td>
+                <td class="align-middle text-center">{{ s.serial|default_if_none:'-' }}</td>
+                <td class="align-middle font-weight-bold" style="color: #1565c0;">{{ s.name }}</td>
+                <td class="align-middle small text-muted">{{ s.address }}</td>
+                <td class="align-middle text-center">{{ s.district.description }}</td>
+                <td class="align-middle text-center">{{ s.district.ubigeo }}</td>
+                <td class="align-middle text-center">
+                    {% if s.is_main %}
+                    <span class="badge badge-success py-2 px-2"><i class="fas fa-check"></i> Principal</span>
+                    {% else %}
+                    <span class="text-muted small">—</span>
+                    {% endif %}
+                </td>
+                <td class="align-middle text-center">
+                    <button class="btn btn-sm btn-edit-subsidiary btn-outline-primary py-1 px-2" pk="{{ s.id }}" style="border-radius: 8px;" title="Editar sede">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% else %}
-    <h1>Lo sentimos, No existen almacenes</h1>
+<div class="card border-0 shadow-sm text-center py-5" style="background: #fff; border-radius: 12px; border: 1px solid #bbdefb;">
+    <i class="fas fa-building fa-3x mb-3" style="color: #90caf9;"></i>
+    <h5 class="font-weight-bold mb-2" style="color: #0d47a1;">No hay sedes registradas</h5>
+    <p class="text-muted small mb-0">Use el botón "Nueva Sede" para registrar la primera sede.</p>
+</div>
 {% endif %}
-
-

@@ -85,6 +85,32 @@
                 </button>
             </div>
             <div class="erp-topbar-actions">
+                <div class="erp-topbar-subsidiary-dropdown dropdown">
+                    <a class="erp-topbar-icon-btn dropdown-toggle" href="#" data-toggle="dropdown" id="subsidiaryMenuDropdown" aria-haspopup="true" aria-expanded="false" title="Sucursal actual">
+                        <span class="erp-topbar-subsidiary-label">
+                            {% if current_subsidiary %}{{ current_subsidiary.name }}{% else %}Sin sucursal{% endif %}
+                        </span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right erp-subsidiary-dropdown" aria-labelledby="subsidiaryMenuDropdown">
+                        <div class="erp-subsidiary-dropdown-header px-3 py-2">
+                            <small class="text-muted text-uppercase">Sucursal actual</small>
+                            <div class="font-weight-bold">{% if current_subsidiary %}{{ current_subsidiary.name }}{% else %}-{% endif %}</div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        {% if current_worker and subsidiary_set %}
+                            <div class="px-3 py-2">
+                                <small class="text-muted text-uppercase">Cambiar sucursal</small>
+                            </div>
+                            {% for sub in subsidiary_set %}
+                                <a class="dropdown-item {% if current_subsidiary and sub.id == current_subsidiary.id %}active{% endif %} js-switch-subsidiary" href="#" data-worker-id="{{ current_worker.id }}" data-subsidiary-id="{{ sub.id }}" data-subsidiary-name="{{ sub.name }}">
+                                    <i class="fas fa-map-marker-alt mr-2 text-muted"></i>{{ sub.name }}
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="dropdown-item text-muted disabled">No hay sucursales disponibles</div>
+                        {% endif %}
+                    </div>
+                </div>
                 <div class="erp-topbar-user-dropdown dropdown">
                     <a class="erp-topbar-icon-btn dropdown-toggle" href="#" data-toggle="dropdown" id="userMenuDropdown" aria-haspopup="true" aria-expanded="false" title="Cuenta de usuario">
                         <i class="fas fa-user-circle"></i>
@@ -237,6 +263,38 @@
 <script src="https://cdnjs.com/libraries/Chart.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('.js-switch-subsidiary').on('click', function(e) {
+        e.preventDefault();
+        var $btn = $(this);
+        var workerId = $btn.data('worker-id');
+        var subsidiaryId = $btn.data('subsidiary-id');
+        var subsidiaryName = $btn.data('subsidiary-name');
+        if (!workerId || !subsidiaryId) return;
+        if ($btn.hasClass('active')) return;
+        var $form = $('<form>').attr({ method: 'POST', action: '{% url "hrm:update_worker_establishment" %}' });
+        $form.append($('<input>').attr({ type: 'hidden', name: 'csrfmiddlewaretoken', value: '{{ csrf_token }}' }));
+        $form.append($('<input>').attr({ type: 'hidden', name: 'worker', value: workerId }));
+        $form.append($('<input>').attr({ type: 'hidden', name: 'subsidiary', value: subsidiaryId }));
+        $('body').append($form);
+        $.ajax({
+            url: '{% url "hrm:update_worker_establishment" %}',
+            type: 'POST',
+            data: { csrfmiddlewaretoken: '{{ csrf_token }}', worker: workerId, subsidiary: subsidiaryId },
+            success: function() {
+                toastr.success('Sucursal cambiada a: ' + subsidiaryName, '¡Listo!');
+                setTimeout(function() { location.reload(); }, 500);
+            },
+            error: function(xhr) {
+                toastr.error(xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error al cambiar sucursal', '¡Error!');
+            }
+        });
+        $form.remove();
+    });
+});
+</script>
 
 {% block extrajs %}
 {% endblock extrajs %}

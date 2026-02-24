@@ -4,102 +4,82 @@
 {% endblock title %}
 
 {% block body %}
-    <div class="container-fluid">
-
-        <a class="btn btn-warning mb-3 mt-3 roboto-condensed-regular border-dark" href="" data-toggle="modal"
-           data-target="#modal-subsidiary-store">
-            <i class="fas fa-warehouse"></i> &nbsp;NUEVA SUCURSAL
-        </a>
-        <div id="ss-grid-list">{% include "hrm/subsidiary_grid_list.html" %}</div>
+    <div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+        <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+            <div class="card-body border-bottom py-3" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%);">
+                <div class="row align-items-center no-gutters">
+                    <div class="col-12 col-lg-10">
+                        <h5 class="mb-0 font-weight-bold text-uppercase" style="color: #0d47a1; font-size: 1rem;">
+                            <i class="fas fa-building mr-2"></i>Gestión de Sedes
+                        </h5>
+                    </div>
+                    <div class="col-12 col-lg-2 mt-2 mt-lg-0 pl-lg-2">
+                        <button type="button" class="btn btn-primary btn-sm shadow-sm w-100" style="border-radius: 10px;"
+                                data-toggle="modal" data-target="#modal-subsidiary-store">
+                            <i class="fas fa-plus"></i> Nueva Sede
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0 p-md-3" style="background-color: #e3f2fd;">
+                <div id="ss-grid-list">{% include "hrm/subsidiary_grid_list.html" %}</div>
+            </div>
+        </div>
     </div>
 
     <div class="modal" id="modal-subsidiary-store" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color: #3e6787">
-                    <h6 class="modal-title text-white roboto-condensed-regular">REGISTRAR NUEVO ALMACEN</h6>
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+                <div class="modal-header border-0 py-3" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%);">
+                    <h6 class="modal-title font-weight-bold text-uppercase roboto-condensed-regular" style="color: #0d47a1;">
+                        <i class="fas fa-warehouse mr-2"></i>Registrar Nueva Sede
+                    </h6>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <form id="subsidiary-form" action="" method="POST">
                     {% csrf_token %}
-                    <div class="modal-body p-2 roboto-condensed-regular">
-                        <div class="card">
-                            <div class="card-body bg-light">
-                                <div class="row">
-                                    <div class="col-lg-12">
-                                        <div class="row p-1">
-                                            <table class="table table-borderless">
-                                                <tbody>
-                                                <tr>
-                                                    <td class="align-middle">Serie:</td>
-                                                    <td>
-                                                        <input type="text" name="serial" aria-label=""
-                                                               class="form-control form-control-sm text-uppercase"
-                                                               placeholder="Ingrese serie"
-                                                               required autocomplete="off"
-                                                               value=""
-                                                               id="serial">
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="align-middle">Nombre de la Sede:</td>
-                                                    <td>
-                                                        <input type="text" name="name" aria-label=""
-                                                               class="form-control form-control-sm text-uppercase"
-                                                               placeholder="Ingrese nombre de la nueva sede"
-                                                               required autocomplete="off"
-                                                               id="name">
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="align-middle">Direccion:</td>
-                                                    <td>
-                                                        <input type="text" name="address" aria-label=""
-                                                               class="form-control form-control-sm text-uppercase"
-                                                               placeholder="Ingrese direccion completa"
-                                                               required autocomplete="off"
-                                                               value=""
-                                                               id="address">
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="align-middle">Distrito:</td>
-                                                    <td>
-                                                        <select id="district_id" name="district_id" aria-label=""
-                                                                class="form-control form-control-sm" required>
-                                                            <option value="0">Seleccione..</option>
-                                                            {% for d in districts %}
-                                                                <option value="{{ d.id }}">{{ d.description }}</option>
-                                                            {% endfor %}
-                                                        </select>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="align-middle">Sede Principal:</td>
-                                                    <td>
-                                                        <div class="custom-control custom-checkbox">
-                                                            <input type="checkbox" name="is_principal"
-                                                                   class="custom-control-input"
-                                                                   id="is_principal" >
-                                                            <label class="custom-control-label" for="is_principal"></label>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
+                    <div class="modal-body p-4 roboto-condensed-regular" style="background-color: #f0f8fc;">
+                        <div class="card border-0 shadow-sm" style="border-radius: 12px; background-color: #fff;">
+                            <div class="card-body p-4">
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Serie</label>
+                                    <input type="text" name="serial" class="form-control form-control-sm shadow-sm" placeholder="Ingrese serie"
+                                           required autocomplete="off" id="serial" style="border-color: #bbdefb;">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Nombre de la Sede</label>
+                                    <input type="text" name="name" class="form-control form-control-sm shadow-sm" placeholder="Ingrese nombre de la nueva sede"
+                                           required autocomplete="off" id="name" style="border-color: #bbdefb;">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Dirección</label>
+                                    <input type="text" name="address" class="form-control form-control-sm shadow-sm" placeholder="Ingrese dirección completa"
+                                           required autocomplete="off" id="address" style="border-color: #bbdefb;">
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Distrito</label>
+                                    <select id="district_id" name="district_id" class="form-control form-control-sm shadow-sm" required style="border-color: #bbdefb;">
+                                        <option value="0">Seleccione distrito...</option>
+                                        {% for d in districts %}
+                                            <option value="{{ d.id }}">{{ d.description }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" name="is_principal" class="custom-control-input" id="is_principal">
+                                        <label class="custom-control-label small font-weight-bold" for="is_principal" style="color: #0d47a1;">Sede Principal</label>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer bg-light p-2">
-                        <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar
-                        </button>
-                        <button id="btn-save" type="submit" class="btn btn-primary font-weight-light">Registrar
-                            Almacen
+                    <div class="modal-footer border-0 py-3" style="background-color: #f0f8fc;">
+                        <button type="button" class="btn btn-outline-secondary btn-sm font-weight-bold" data-dismiss="modal" style="border-radius: 10px;">Cerrar</button>
+                        <button id="btn-save" type="submit" class="btn btn-primary btn-sm font-weight-bold shadow-sm" style="border-radius: 10px;">
+                            <i class="fas fa-save mr-1"></i> Registrar Sede
                         </button>
                     </div>
                 </form>
@@ -112,23 +92,21 @@
          aria-labelledby="ModalHelpTitle"
          aria-hidden="true"></div>
 
+    <style>
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+            border-color: #1e3a5f;
+        }
+        .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger, .btn-outline-secondary {
+            border-width: 2px;
+        }
+    </style>
 {% endblock body %}
 
 {% block extrajs %}
 
     <script type="text/javascript">
         $('#district_id').select2()
-        /*let stores =
-            [{% for ss in subsidiary_stores %}
-                {
-                    id: "{{ ss.subsidiary.id }}",
-                    subsidiaryName: "{{ ss.subsidiary.name }}",
-                    subsidiaryId: "{{ ss.subsidiary.id }}",
-                    storeName: "{{ ss.name }}",
-                    category: "{{ ss.category }}",
-                },
-
-            {% endfor %}];*/
 
         $('#subsidiary-form').submit(function (event) {
             event.preventDefault();
@@ -161,15 +139,7 @@
                     }
                 }
             });
-            {#$('#btn-save').removeAttr("disabled", "false");#}
         });
-
-        /*function checkStore(category, subsidiary) {
-            return stores.some(function (store) {
-                return store.category === category && store.subsidiaryId === subsidiary;
-            });
-        }*/
-
 
         $(document).on('click', '.btn-edit-subsidiary', async function () {
             let _pk = $(this).attr('pk');
@@ -183,11 +153,10 @@
                     $('#modal-edit').modal('show');
                 },
                 fail: function (response) {
-                    toastr.error('Error en la peticion', '¡Mensaje!');
+                    toastr.error('Error en la petición', '¡Mensaje!');
                 }
             });
         });
-
     </script>
 
 {% endblock extrajs %}

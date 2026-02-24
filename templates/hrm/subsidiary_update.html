@@ -1,126 +1,76 @@
 {% load static %}
 {% load operations %}
 <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-
-    <div class="modal-content">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
         <div id="modal-loader" class="overlay" style="display: none">
             <i class="fas fa-3x fa-sync fa-spin"></i>
         </div>
-        <div class="modal-header" style="background-color: #3e6787">
-            <h6 class="modal-title font-weight-bold text-white">EDITAR</h6>
+        <div class="modal-header border-0 py-3" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%);">
+            <h6 class="modal-title font-weight-bold text-uppercase roboto-condensed-regular" style="color: #0d47a1;">
+                <i class="fas fa-edit mr-2"></i>Editar Sede
+            </h6>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
         <form id="update_form" action="{% url 'hrm:update_subsidiary' %}" method="POST">
             {% csrf_token %}
-            <div class="modal-body p-2">
+            <div class="modal-body p-4" style="background-color: #f0f8fc;">
                 <input type="hidden" name="subsidiary" value="{{ subsidiary_obj.id }}" id="subsidiary">
-                <div class="card">
-                    <div class="card-body bg-light">
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="row p-1">
-                                    <table class="table table-borderless">
-                                        <tbody>
-                                        <tr>
-                                            <td class="align-middle">Serie:</td>
-                                            <td>
-                                                <input type="text" name="subsidiary_serial" aria-label=""
-                                                       class="form-control form-control-sm text-uppercase"
-                                                       placeholder="Ingrese serie"
-                                                       required autocomplete="off"
-                                                       value="{{ subsidiary_obj.serial|default_if_none:'-' }}"
-                                                       id="subsidiary_serial">
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="align-middle">Nombre de la Sede:</td>
-                                            <td>
-                                                <input type="text" name="subsidiary_name" aria-label=""
-                                                       class="form-control form-control-sm text-uppercase"
-                                                       placeholder="Ingrese nombre del nuevo almacen"
-                                                       required autocomplete="off"
-                                                       value="{{ subsidiary_obj.name }}"
-                                                       id="subsidiary_name">
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="align-middle">Direccion:</td>
-                                            <td>
-                                                <input type="text" name="subsidiary_address" aria-label=""
-                                                       class="form-control form-control-sm text-uppercase"
-                                                       placeholder="Ingrese direccion"
-                                                       required autocomplete="off"
-                                                       value="{{ subsidiary_obj.address }}"
-                                                       id="subsidiary_address">
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="align-middle">Distrito:</td>
-                                            <td>
-                                                <select id="district" name="district" aria-label=""
-                                                        class="form-control form-control-sm">
-                                                    {% for d in districts %}
-                                                        {% if d.id == subsidiary_obj.district.id %}
-                                                            <option selected
-                                                                    value="{{ d.id }}">{{ d.description }}</option>
-                                                        {% else %}
-                                                            <option value="{{ d.id }}">{{ d.description }}</option>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                </select>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="align-middle">Sede principal:</td>
-                                            <td>
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" name="is_main" class="custom-control-input"
-                                                           id="is_main" {% if subsidiary_obj.is_main %}
-                                                           checked {% endif %} >
-                                                    <label class="custom-control-label" for="is_main"></label>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                <div class="card border-0 shadow-sm" style="border-radius: 12px; background-color: #fff;">
+                    <div class="card-body p-4">
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Serie</label>
+                            <input type="text" name="subsidiary_serial" class="form-control form-control-sm shadow-sm"
+                                   placeholder="Ingrese serie" required autocomplete="off"
+                                   value="{{ subsidiary_obj.serial|default_if_none:'' }}" id="subsidiary_serial"
+                                   style="border-color: #bbdefb;">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Nombre de la Sede</label>
+                            <input type="text" name="subsidiary_name" class="form-control form-control-sm shadow-sm"
+                                   placeholder="Ingrese nombre de la sede" required autocomplete="off"
+                                   value="{{ subsidiary_obj.name }}" id="subsidiary_name"
+                                   style="border-color: #bbdefb;">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Dirección</label>
+                            <input type="text" name="subsidiary_address" class="form-control form-control-sm shadow-sm"
+                                   placeholder="Ingrese dirección" required autocomplete="off"
+                                   value="{{ subsidiary_obj.address }}" id="subsidiary_address"
+                                   style="border-color: #bbdefb;">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.8rem;">Distrito</label>
+                            <select id="district" name="district" class="form-control form-control-sm shadow-sm" style="border-color: #bbdefb;">
+                                {% for d in districts %}
+                                    <option value="{{ d.id }}" {% if d.id == subsidiary_obj.district.id %}selected{% endif %}>{{ d.description }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mb-0">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" name="is_main" class="custom-control-input" id="is_main" {% if subsidiary_obj.is_main %}checked{% endif %}>
+                                <label class="custom-control-label small font-weight-bold" for="is_main" style="color: #0d47a1;">Sede Principal</label>
                             </div>
                         </div>
                     </div>
-                    <!-- /.card -->
                 </div>
-            </div><!-- modal-body -->
-            <div class="modal-footer bg-light p-2">
-                <button type="button" class="btn btn-secondary font-weight-light" data-dismiss="modal">Cerrar</button>
-                &nbsp;
-                <button id="btn-update" type="submit" class="btn btn-warning font-weight-light">Actualizar
+            </div>
+            <div class="modal-footer border-0 py-3" style="background-color: #f0f8fc;">
+                <button type="button" class="btn btn-outline-secondary btn-sm font-weight-bold" data-dismiss="modal" style="border-radius: 10px;">Cerrar</button>
+                <button id="btn-update" type="submit" class="btn btn-primary btn-sm font-weight-bold shadow-sm" style="border-radius: 10px;">
+                    <i class="fas fa-save mr-1"></i> Actualizar
                 </button>
             </div>
         </form>
-        <div class="mr-3 ml-0" style="
-                display: none;
-                position: fixed;
-                top: 8px;
-                left: 5px;
-                background: #bdd9f5;
-                opacity: 0.5;
-                width: 100%;
-                {#height: 46em;#}
-                !important;bottom: 6px;
-                padding-right: 65em;
-                padding-left: 55em;
-                padding-top: 22em;" id="loading">
-
-        </div>
     </div>
 </div>
 
-
 <script>
-
-    $('#district').select2()
+    $('#district').select2({
+        width: '100%'
+    });
 
     $('#update_form').submit(function (event) {
         event.preventDefault();
@@ -145,9 +95,9 @@
                 }
             },
             error: function (response) {
-                toastr.error(response.message, "Guardado Fallido");
+                toastr.error(response.message || "Error al actualizar", "Guardado Fallido");
+                $('#btn-update').attr('disabled', false);
             }
         });
     });
-
 </script>

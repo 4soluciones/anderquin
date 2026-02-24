@@ -668,25 +668,30 @@ def get_worker_establishment(request):
 def update_worker_establishment(request):
     if request.method == 'POST':
         worker = request.POST.get('worker')
-        worker_obj = Worker.objects.get(id=int(worker))
-
         subsidiary = request.POST.get('subsidiary')
-        subsidiary_obj = Subsidiary.objects.get(id=subsidiary)
+        if not worker or not subsidiary:
+            return JsonResponse({'error': 'Datos incompletos'}, status=HTTPStatus.BAD_REQUEST)
+        try:
+            worker_obj = Worker.objects.get(id=int(worker), user=request.user)
+            subsidiary_obj = Subsidiary.objects.get(id=int(subsidiary))
+        except (Worker.DoesNotExist, Subsidiary.DoesNotExist, ValueError):
+            return JsonResponse({'error': 'Trabajador o sucursal no válidos'}, status=HTTPStatus.BAD_REQUEST)
 
         establishment_obj = Establishment.objects.filter(worker=worker_obj).last()
+        if not establishment_obj:
+            establishment_obj = Establishment(
+                worker=worker_obj,
+                subsidiary=subsidiary_obj,
+                ruc_own=subsidiary_obj.ruc,
+            )
+            establishment_obj.save()
+        else:
+            establishment_obj.subsidiary = subsidiary_obj
+            establishment_obj.ruc_own = subsidiary_obj.ruc
+            establishment_obj.save()
 
-        establishment_obj.subsidiary = subsidiary_obj
-        establishment_obj.ruc_own = subsidiary_obj.ruc
-        establishment_obj.save()
-
-        return JsonResponse({
-            'success': True,
-            # 'form': t.render(c),
-        }, status=HTTPStatus.OK)
-    data = {'error': 'Peticion incorrecta'}
-    response = JsonResponse(data)
-    response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-    return response
+        return JsonResponse({'success': True}, status=HTTPStatus.OK)
+    return JsonResponse({'error': 'Petición incorrecta'}, status=HTTPStatus.BAD_REQUEST)
 
 
 def get_worker_user(request):
