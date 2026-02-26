@@ -5,79 +5,76 @@
 {% endblock title %}
 
 {% block body %}
-    <div class="container-fluid roboto-condensed-regular m-2">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-primary text-white">
+    <div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+        <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+            <div class="card-body border-bottom py-3 px-4" style="background: linear-gradient(135deg, #bbe0f5 0%, #90caf9 100%);">
                 <div class="row align-items-center">
                     <div class="col-md-8">
-                        <h4 class="mb-0 roboto-condensed-regular text-white"><i class="fas fa-dollar-sign mr-2"></i>MÓDULO DE GESTIÓN DE PRECIOS</h4>
-                    </div>
-                    <div class="col-md-4 text-right">
-                        <small>Administración de tipos de precio y precios de productos</small>
+                        <h4 class="mb-0 roboto-condensed-regular font-weight-bold" style="color: #0d47a1;">
+                            <i class="fas fa-dollar-sign mr-2"></i>Gestión de precios
+                        </h4>
+                        <small class="d-block mt-1" style="color: #1565c0;">Tipos de precio y precios por producto</small>
                     </div>
                 </div>
             </div>
 
-            <div class="card-body p-0">
-                <!-- Nav tabs -->
-                <ul class="nav nav-tabs nav-justified" id="priceTabs" role="tablist">
+            <div class="card-body p-0" style="background-color: #e3f2fd;">
+                <ul class="nav nav-tabs px-3 pt-2" id="priceTabs" role="tablist" style="border-bottom-color: #bbdefb;">
                     <li class="nav-item">
                         <a class="nav-link active" id="price-types-tab" data-toggle="tab" href="#price-types" role="tab"
-                           aria-controls="price-types" aria-selected="true">
-                            <i class="fas fa-tags mr-2"></i>Tipos de Precio
+                           aria-controls="price-types" aria-selected="true" style="color: #0d47a1; font-weight: 600;">
+                            <i class="fas fa-tags mr-2"></i>Tipos de precio
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="product-prices-tab" data-toggle="tab" href="#product-prices" role="tab"
-                           aria-controls="product-prices" aria-selected="false">
-                            <i class="fas fa-shopping-cart mr-2"></i>Precios de Productos
+                           aria-controls="product-prices" aria-selected="false" style="color: #0d47a1; font-weight: 600;">
+                            <i class="fas fa-shopping-cart mr-2"></i>Precios de productos
                         </a>
                     </li>
                 </ul>
 
-                <!-- Tab panes -->
                 <div class="tab-content p-4" id="priceTabsContent">
-                    <!-- Tab Tipos de Precio -->
                     <div class="tab-pane fade show active" id="price-types" role="tabpanel" aria-labelledby="price-types-tab">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="mb-0 roboto-condensed-regular font-weight-bold">Tipos de Precio</h5>
+                            <h5 class="mb-0 roboto-condensed-regular font-weight-bold" style="color: #0d47a1;">Tipos de precio</h5>
                             <button type="button" onclick="showModalPriceType()" 
-                                    class="btn btn-success btn-sm">
-                                <i class="fas fa-plus mr-1"></i>Nuevo Tipo de Precio
+                                    class="btn btn-success btn-sm border-2 btn-sales-rounded">
+                                <i class="fas fa-plus mr-1"></i>Nuevo tipo de precio
                             </button>
                         </div>
 
-                        <div class="table-responsive">
-                            <table class="table table-hover table-bordered">
-                                <thead class="thead-light">
+                        <div class="table-responsive rounded overflow-hidden" style="border: 1px solid #bbdefb;">
+                            <table class="table table-hover table-bordered mb-0 price-management-table">
+                                <thead class="text-white text-center" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
                                     <tr>
-                                        <th width="5%">ID</th>
-                                        <th width="25%">Nombre</th>
-                                        <th width="40%">Descripción</th>
-                                        <th width="10%">Estado</th>
-                                        <th width="20%">Acciones</th>
+                                        <th class="font-weight-bold py-2 border-0" style="width: 5%;">ID</th>
+                                        <th class="font-weight-bold py-2 border-0" style="width: 25%;">Nombre</th>
+                                        <th class="font-weight-bold py-2 border-0" style="width: 40%;">Descripción</th>
+                                        <th class="font-weight-bold py-2 border-0" style="width: 10%;">Estado</th>
+                                        <th class="font-weight-bold py-2 border-0" style="width: 20%;">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody style="background: #fff;">
                                     {% for price_type in price_types %}
                                     <tr>
-                                        <td>{{ price_type.id }}</td>
-                                        <td><strong>{{ price_type.name }}</strong></td>
-                                        <td>{{ price_type.description|default:"<em class='text-muted'>Sin descripción</em>"|safe }}</td>
-                                        <td>
+                                        <td class="align-middle">{{ price_type.id }}</td>
+                                        <td class="align-middle"><strong style="color: #1565c0;">{{ price_type.name }}</strong></td>
+                                        <td class="align-middle">{{ price_type.description|default:"<em class='text-muted'>Sin descripción</em>"|safe }}</td>
+                                        <td class="align-middle text-center">
                                             {% if price_type.is_enabled %}
-                                                <span class="badge badge-success badge-pill">Habilitado</span>
+                                                <span class="badge badge-pill px-2 py-1" style="background-color: #2e7d32;">Habilitado</span>
                                             {% else %}
-                                                <span class="badge badge-danger badge-pill">Deshabilitado</span>
+                                                <span class="badge badge-danger badge-pill px-2 py-1">Deshabilitado</span>
                                             {% endif %}
                                         </td>
-                                        <td>
-                                            <button type="button" class="btn btn-sm btn-primary" 
+                                        <td class="align-middle">
+                                            <button type="button" class="btn btn-sm btn-outline-primary border-2 btn-sales-rounded mr-1" 
                                                     onclick="editPriceType({{ price_type.id }}, '{{ price_type.name|escapejs }}', '{{ price_type.description|default:""|escapejs }}', {{ price_type.is_enabled|lower }})"
                                                     title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-danger" 
+                                            <button type="button" class="btn btn-sm btn-outline-danger border-2 btn-sales-rounded" 
                                                     onclick="deletePriceType({{ price_type.id }})"
                                                     title="Eliminar">
                                                 <i class="fas fa-trash"></i>
@@ -86,9 +83,9 @@
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="5" class="text-center py-4">
-                                            <i class="fas fa-inbox fa-3x text-muted mb-2"></i>
-                                            <p class="text-muted">No hay tipos de precio registrados</p>
+                                        <td colspan="5" class="text-center py-5" style="background: #fff;">
+                                            <i class="fas fa-inbox fa-3x mb-2" style="color: #90caf9;"></i>
+                                            <p class="mb-0 font-weight-bold" style="color: #1565c0;">No hay tipos de precio registrados</p>
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -97,18 +94,17 @@
                         </div>
                     </div>
 
-                    <!-- Tab Precios de Productos -->
                     <div class="tab-pane fade" id="product-prices" role="tabpanel" aria-labelledby="product-prices-tab">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <h5 class="mb-0 roboto-condensed-regular font-weight-bold">Precios de Productos</h5>
+                        <div class="row mb-3 align-items-center">
+                            <div class="col-md-6 mb-2 mb-md-0">
+                                <h5 class="mb-0 roboto-condensed-regular font-weight-bold" style="color: #0d47a1;">Precios de productos</h5>
                             </div>
                             <div class="col-md-6">
-                                <div class="input-group">
+                                <div class="input-group input-group-sm shadow-sm rounded" style="border: 1px solid #bbdefb;">
                                     <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-tags"></i> Tipo de Precio:</span>
+                                        <span class="input-group-text bg-white border-0" style="color: #1565c0;"><i class="fas fa-tags mr-1"></i>Tipo:</span>
                                     </div>
-                                    <select class="form-control" id="select-price-type" onchange="loadProductsByPriceType()">
+                                    <select class="form-control border-0" id="select-price-type" onchange="loadProductsByPriceType()" style="border-radius: 0 8px 8px 0;">
                                         <option value="">Seleccione un tipo de precio...</option>
                                         {% for price_type in price_types_enabled %}
                                         <option value="{{ price_type.id }}">{{ price_type.name }}</option>
@@ -119,27 +115,24 @@
                         </div>
 
                         <div id="products-price-container" style="display: none;">
-                            <div class="alert alert-light border mb-3 shadow-sm">
-                                <i class="fas fa-info-circle text-primary mr-2"></i>
-                                <strong id="selected-price-type-name"></strong> — Haga clic en un producto para expandir y configurar los precios por unidad.
+                            <div class="rounded px-3 py-2 mb-3 d-flex align-items-center" style="background: linear-gradient(90deg, #e3f2fd 0%, #f0f8fc 100%); border: 1px solid #bbdefb;">
+                                <i class="fas fa-info-circle mr-2" style="color: #1976d2;"></i>
+                                <span><strong id="selected-price-type-name"></strong> — Clic en un producto para expandir y configurar precios por unidad.</span>
                             </div>
                             <div class="mb-3">
-                                <div class="input-group">
+                                <div class="input-group input-group-sm shadow-sm rounded" style="max-width: 320px; border: 1px solid #bbdefb;">
                                     <div class="input-group-prepend">
-                                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                                        <span class="input-group-text bg-white border-0"><i class="fas fa-search text-primary"></i></span>
                                     </div>
-                                    <input type="text" class="form-control" id="product-search-input" 
-                                           placeholder="Buscar producto..." autocomplete="off">
+                                    <input type="text" class="form-control border-0" id="product-search-input" placeholder="Buscar producto..." autocomplete="off">
                                 </div>
                             </div>
-                            <div class="products-price-list" id="products-price-list">
-                                <!-- Se llenará dinámicamente -->
-                            </div>
+                            <div class="products-price-list" id="products-price-list"></div>
                         </div>
 
-                        <div id="no-price-type-selected" class="text-center py-5">
-                            <i class="fas fa-hand-pointer fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">Seleccione un tipo de precio para comenzar a configurar los precios de los productos</p>
+                        <div id="no-price-type-selected" class="text-center py-5 rounded" style="background: #fff; border: 1px solid #e3f2fd;">
+                            <i class="fas fa-hand-pointer fa-3x mb-3" style="color: #90caf9;"></i>
+                            <p class="mb-0 font-weight-bold" style="color: #1565c0;">Seleccione un tipo de precio para configurar precios</p>
                         </div>
                     </div>
                 </div>
@@ -147,46 +140,42 @@
         </div>
     </div>
 
-    <!-- Modal para crear/editar tipo de precio -->
+    <!-- Modal crear/editar tipo de precio -->
     <div class="modal fade" id="modal-price-type" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content shadow-lg">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modal-price-type-title">
-                        <i class="fas fa-tags mr-2"></i>NUEVO TIPO DE PRECIO
+            <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 16px;">
+                <div class="modal-header border-0 py-3" style="background: linear-gradient(135deg, #bbe0f5 0%, #90caf9 100%);">
+                    <h5 class="modal-title font-weight-bold" id="modal-price-type-title" style="color: #0d47a1;">
+                        <i class="fas fa-tags mr-2"></i>Nuevo tipo de precio
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar" style="color: #0d47a1; opacity: 0.9;">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <form id="form-price-type">
                     {% csrf_token %}
-                    <div class="modal-body">
-                        <input type="hidden" id="price_type_id" name="price_type_id">
+                    <input type="hidden" id="price_type_id" name="price_type_id">
+                    <div class="modal-body py-4" style="background-color: #f0f8fc;">
                         <div class="form-group">
-                            <label for="name"><strong>Nombre</strong> <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name" name="name" required 
-                                   placeholder="Ej: Precio Distribuidor">
+                            <label for="name" class="font-weight-bold small" style="color: #1565c0;">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" required placeholder="Ej: Precio distribuidor" style="border-color: #bbdefb; border-radius: 8px;">
                         </div>
                         <div class="form-group">
-                            <label for="description"><strong>Descripción</strong></label>
-                            <textarea class="form-control" id="description" name="description" rows="3" 
-                                      placeholder="Descripción opcional del tipo de precio"></textarea>
+                            <label for="description" class="font-weight-bold small" style="color: #1565c0;">Descripción</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Opcional" style="border-color: #bbdefb; border-radius: 8px;"></textarea>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group mb-0">
                             <div class="form-check">
                                 <input type="checkbox" class="form-check-input" id="is_enabled" name="is_enabled" checked>
-                                <label class="form-check-label" for="is_enabled">
-                                    <strong>Habilitado</strong>
-                                </label>
+                                <label class="form-check-label font-weight-bold small" for="is_enabled" style="color: #1565c0;">Habilitado</label>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <div class="modal-footer border-0 py-3" style="background-color: #e3f2fd;">
+                        <button type="button" class="btn btn-outline-secondary border-2 btn-sales-rounded" data-dismiss="modal">
                             <i class="fas fa-times mr-1"></i>Cancelar
                         </button>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary border-2 btn-sales-rounded">
                             <i class="fas fa-save mr-1"></i>Guardar
                         </button>
                     </div>
@@ -194,64 +183,26 @@
             </div>
         </div>
     </div>
-
-
 {% endblock body %}
 
 {% block extrajs %}
     <style>
-        .nav-tabs .nav-link {
-            color: #495057;
-            font-weight: 500;
-            border: none;
-            border-bottom: 3px solid transparent;
-        }
-        .nav-tabs .nav-link:hover {
-            border-color: #dee2e6;
-            color: #007bff;
-        }
-        .nav-tabs .nav-link.active {
-            color: #007bff;
-            background-color: transparent;
-            border-color: #007bff;
-            border-bottom: 3px solid #007bff;
-        }
-        .table thead th {
-            border-top: none;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-        }
-        .card {
-            border-radius: 8px;
-        }
-        .modal-content {
-            border-radius: 8px;
-            border: none;
-        }
-        .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
-        }
-
-        /* Estilos para lista de productos expandible */
+        .form-control:focus { border-color: #1e3a5f; box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25); }
+        .btn-sales-rounded { border-radius: 12px !important; }
+        .nav-tabs .nav-link { border: none; border-bottom: 3px solid transparent; font-weight: 500; }
+        .nav-tabs .nav-link:hover { border-color: #90caf9; color: #1565c0; }
+        .nav-tabs .nav-link.active { color: #0d47a1 !important; background: transparent; border-color: #0d47a1; border-bottom: 3px solid #0d47a1; }
+        .price-management-table td, .price-management-table th { border-color: #bbdefb !important; }
         .product-price-card {
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
+            border: 1px solid #bbdefb;
+            border-radius: 12px;
             margin-bottom: 0.5rem;
             overflow: hidden;
             transition: all 0.2s ease;
             background: #fff;
         }
-        .product-price-card:hover {
-            border-color: #cbd5e0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        }
-        .product-price-card.expanded {
-            border-color: #007bff;
-            box-shadow: 0 4px 12px rgba(0,123,255,0.15);
-        }
+        .product-price-card:hover { border-color: #90caf9; box-shadow: 0 2px 8px rgba(30, 58, 95, 0.08); }
+        .product-price-card.expanded { border-color: #1976d2; box-shadow: 0 4px 12px rgba(25, 118, 210, 0.2); }
         .product-price-header {
             padding: 0.9rem 1.2rem;
             cursor: pointer;
@@ -261,114 +212,41 @@
             transition: background 0.2s;
             user-select: none;
         }
-        .product-price-header:hover {
-            background: #f8fafc;
-        }
-        .product-price-header .product-name {
-            font-weight: 600;
-            color: #2d3748;
-            font-size: 0.95rem;
-        }
-        .product-price-header .product-name {
-            flex: 1;
-        }
+        .product-price-header:hover { background: #f0f8fc; }
+        .product-price-header .product-name { font-weight: 600; color: #0d47a1; font-size: 0.95rem; flex: 1; }
         .product-price-header .expand-icon {
-            width: 28px;
-            height: 28px;
-            border-radius: 8px;
-            margin-left: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f1f5f9;
-            color: #64748b;
-            transition: all 0.2s;
+            width: 28px; height: 28px; border-radius: 8px; margin-left: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            background: #e3f2fd; color: #1565c0; transition: all 0.2s;
         }
-        .product-price-card.expanded .expand-icon {
-            background: #007bff;
-            color: white;
-            transform: rotate(180deg);
-        }
+        .product-price-card.expanded .expand-icon { background: #1976d2; color: white; transform: rotate(180deg); }
         .product-price-header .units-badge {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.6rem;
-            border-radius: 20px;
-            background: #e2e8f0;
-            color: #475569;
-            margin-right: 0.75rem;
+            font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 20px;
+            background: #e3f2fd; color: #1565c0; margin-right: 0.75rem;
         }
         .product-price-body {
-            max-height: 0;
-            overflow: hidden;
-            padding: 0 1.2rem;
-            border-top: 1px solid transparent;
-            background: #fafbfc;
-            transition: max-height 0.35s ease, padding 0.3s ease, border-color 0.2s;
+            max-height: 0; overflow: hidden; padding: 0 1.2rem; border-top: 1px solid transparent;
+            background: #f0f8fc; transition: max-height 0.35s ease, padding 0.3s ease, border-color 0.2s;
         }
         .product-price-card.expanded .product-price-body {
-            max-height: 800px;
-            padding: 0 1.2rem 1rem;
-            border-top-color: #f1f5f9;
+            max-height: 800px; padding: 0 1.2rem 1rem; border-top-color: #e3f2fd;
         }
-        .units-table-wrapper {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 1rem;
-        }
-        .units-table {
-            width: 100%;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-        }
+        .units-table-wrapper { margin-top: 1rem; }
+        .units-table { width: 100%; background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #bbdefb; }
         .units-table thead th {
-            background: #f8fafc;
-            padding: 0.65rem 1rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            text-align: center;
+            background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 0.65rem 1rem; font-size: 0.8rem; font-weight: 600; color: #0d47a1;
+            text-align: center; border-color: #bbdefb !important;
         }
-        .units-table tbody td {
-            padding: 0.6rem 1rem;
-            vertical-align: middle;
-            text-align: center;
-        }
-        .units-table tbody td:first-child {
-            text-align: center;
-        }
-        .units-table tbody tr {
-            border-bottom: 1px solid #f1f5f9;
-            transition: background 0.15s;
-        }
-        .units-table tbody tr:last-child {
-            border-bottom: none;
-        }
-        .units-table tbody tr:hover {
-            background: #f8fafc;
-        }
+        .units-table tbody td { padding: 0.6rem 1rem; vertical-align: middle; text-align: center; border-color: #e3f2fd !important; }
+        .units-table tbody tr:hover { background: #f8fbfd; }
         .unit-badge {
-            display: inline-block;
-            padding: 0.4rem 0.85rem;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 0.875rem;
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-            color: #475569;
+            display: inline-block; padding: 0.4rem 0.85rem; border-radius: 8px; font-weight: 500; font-size: 0.875rem;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); color: #0d47a1;
         }
-        .price-input-group {
-            max-width: 150px;
-            margin: 0 auto;
-        }
-        .price-input-group .input-group-text {
-            background: #f8fafc;
-            border-color: #e2e8f0;
-            color: #64748b;
-            font-weight: 500;
-        }
+        .price-input-group { max-width: 150px; margin: 0 auto; }
+        .price-input-group .input-group-text { background: #f0f8fc; border-color: #bbdefb; color: #1565c0; font-weight: 500; }
+        .price-input-group .form-control { border-color: #bbdefb; border-radius: 8px; }
     </style>
 
     <script type="text/javascript">

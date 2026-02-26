@@ -5,89 +5,101 @@
 {% endblock title %}
 
 {% block body %}
-    <div class="container-fluid">
-        <div class="card p-2">
-            <div class="row">
-                <div class="col-lg-2 pt-3 ml-3">
-                    <button type="button" onclick="showModalPriceType()"
-                            class="btn btn-outline-success btn-sm"><i class="nav-icon fas fa-plus"></i>
-                        NUEVO TIPO DE PRECIO
-                    </button>
-                </div>
-                <div class="col-lg-8 text-center pt-2">
-                    <h2 class="font-weight-bold"> MÓDULO DE PRECIOS - TIPOS DE PRECIO</h2>
+    <div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+        <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+            <div class="card-body border-bottom py-3 px-4" style="background: linear-gradient(135deg, #bbe0f5 0%, #90caf9 100%);">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h4 class="mb-0 font-weight-bold" style="color: #0d47a1;">
+                            <i class="fas fa-tags mr-2"></i>Tipos de precio
+                        </h4>
+                        <small class="d-block mt-1" style="color: #1565c0;">Módulo de precios</small>
+                    </div>
+                    <div class="col-lg-4 text-lg-right mt-2 mt-lg-0">
+                        <button type="button" onclick="showModalPriceType()"
+                                class="btn btn-success btn-sm border-2 btn-sales-rounded">
+                            <i class="fas fa-plus mr-1"></i>Nuevo tipo de precio
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="card-body p-2">
-                <table id="price-type-data-grid" class="table table-bordered table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Tipo</th>
-                            <th>Descripción</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for price_type in price_types %}
-                        <tr>
-                            <td>{{ price_type.id }}</td>
-                            <td>{{ price_type.name }}</td>
-                            <td>{{ price_type.get_type_display }}</td>
-                            <td>{{ price_type.description|default:"-" }}</td>
-                            <td>
-                                {% if price_type.is_enabled %}
-                                    <span class="badge badge-success">Habilitado</span>
-                                {% else %}
-                                    <span class="badge badge-danger">Deshabilitado</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-sm btn-primary" 
-                                        onclick="editPriceType({{ price_type.id }}, '{{ price_type.name }}', '{{ price_type.type }}', '{{ price_type.description|default:"" }}', {{ price_type.is_enabled|lower }})">
-                                    <i class="fas fa-edit"></i> Editar
-                                </button>
-                                <button type="button" class="btn btn-sm btn-danger" 
-                                        onclick="deletePriceType({{ price_type.id }})">
-                                    <i class="fas fa-trash"></i> Eliminar
-                                </button>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center">No hay tipos de precio registrados</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="card-body p-4" style="background-color: #e3f2fd;">
+                <div class="table-responsive rounded overflow-hidden" style="border: 1px solid #bbdefb; background: #fff;">
+                    <table id="price-type-data-grid" class="table table-hover table-bordered mb-0">
+                        <thead class="text-white text-center" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);">
+                            <tr>
+                                <th class="font-weight-bold py-3 border-0">ID</th>
+                                <th class="font-weight-bold py-3 border-0">Nombre</th>
+                                <th class="font-weight-bold py-3 border-0">Tipo</th>
+                                <th class="font-weight-bold py-3 border-0">Descripción</th>
+                                <th class="font-weight-bold py-3 border-0">Estado</th>
+                                <th class="font-weight-bold py-3 border-0">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for price_type in price_types %}
+                            <tr>
+                                <td class="align-middle">{{ price_type.id }}</td>
+                                <td class="align-middle"><strong style="color: #1565c0;">{{ price_type.name }}</strong></td>
+                                <td class="align-middle">{{ price_type.get_type_display }}</td>
+                                <td class="align-middle">{{ price_type.description|default:"-" }}</td>
+                                <td class="align-middle text-center">
+                                    {% if price_type.is_enabled %}
+                                        <span class="badge badge-pill px-2 py-1" style="background-color: #2e7d32;">Habilitado</span>
+                                    {% else %}
+                                        <span class="badge badge-danger badge-pill px-2 py-1">Deshabilitado</span>
+                                    {% endif %}
+                                </td>
+                                <td class="align-middle">
+                                    <button type="button" class="btn btn-sm btn-outline-primary border-2 btn-sales-rounded mr-1"
+                                            onclick="editPriceType({{ price_type.id }}, '{{ price_type.name|escapejs }}', '{{ price_type.type|escapejs }}', '{{ price_type.description|default:""|escapejs }}', {{ price_type.is_enabled|lower }})">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger border-2 btn-sales-rounded"
+                                            onclick="deletePriceType({{ price_type.id }})">
+                                        <i class="fas fa-trash"></i> Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5" style="background: #fff;">
+                                    <i class="fas fa-inbox fa-3x mb-2" style="color: #90caf9;"></i>
+                                    <p class="mb-0 font-weight-bold" style="color: #1565c0;">No hay tipos de precio registrados</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal para crear/editar tipo de precio -->
+    <!-- Modal crear/editar tipo de precio -->
     <div class="modal fade" id="modal-price-type" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modal-price-type-title">NUEVO TIPO DE PRECIO</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 16px;">
+                <div class="modal-header border-0 py-3" style="background: linear-gradient(135deg, #bbe0f5 0%, #90caf9 100%);">
+                    <h5 class="modal-title font-weight-bold" id="modal-price-type-title" style="color: #0d47a1;">
+                        <i class="fas fa-tags mr-2"></i>Nuevo tipo de precio
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar" style="color: #0d47a1; opacity: 0.9;">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <form id="form-price-type">
                     {% csrf_token %}
-                    <div class="modal-body">
-                        <input type="hidden" id="price_type_id" name="price_type_id">
+                    <input type="hidden" id="price_type_id" name="price_type_id">
+                    <div class="modal-body py-4" style="background-color: #f0f8fc;">
                         <div class="form-group">
-                            <label for="name">Nombre <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name" name="name" required>
+                            <label for="name" class="font-weight-bold small" style="color: #1565c0;">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" required placeholder="Ej: Precio distribuidor" style="border-color: #bbdefb; border-radius: 8px;">
                         </div>
                         <div class="form-group">
-                            <label for="type">Tipo <span class="text-danger">*</span></label>
-                            <select class="form-control" id="type" name="type" required>
+                            <label for="type" class="font-weight-bold small" style="color: #1565c0;">Tipo <span class="text-danger">*</span></label>
+                            <select class="form-control" id="type" name="type" required style="border-color: #bbdefb; border-radius: 8px;">
                                 <option value="">Seleccione...</option>
                                 {% for choice in type_choices %}
                                 <option value="{{ choice.0 }}">{{ choice.1 }}</option>
@@ -95,33 +107,41 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="description">Descripción</label>
-                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            <label for="description" class="font-weight-bold small" style="color: #1565c0;">Descripción</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Opcional" style="border-color: #bbdefb; border-radius: 8px;"></textarea>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group mb-0">
                             <div class="form-check">
                                 <input type="checkbox" class="form-check-input" id="is_enabled" name="is_enabled" checked>
-                                <label class="form-check-label" for="is_enabled">Habilitado</label>
+                                <label class="form-check-label font-weight-bold small" for="is_enabled" style="color: #1565c0;">Habilitado</label>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    <div class="modal-footer border-0 py-3" style="background-color: #e3f2fd;">
+                        <button type="button" class="btn btn-outline-secondary border-2 btn-sales-rounded" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary border-2 btn-sales-rounded">
+                            <i class="fas fa-save mr-1"></i>Guardar
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-
 {% endblock body %}
 
 {% block extrajs %}
+    <style>
+        .form-control:focus { border-color: #1e3a5f; box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25); }
+        .btn-sales-rounded { border-radius: 12px !important; }
+        #price-type-data-grid td, #price-type-data-grid th { border-color: #bbdefb !important; }
+    </style>
     <script type="text/javascript">
         function showModalPriceType() {
             $('#form-price-type')[0].reset();
             $('#price_type_id').val('');
-            $('#modal-price-type-title').text('NUEVO TIPO DE PRECIO');
+            $('#modal-price-type-title').html('<i class="fas fa-tags mr-2"></i>Nuevo tipo de precio');
             $('#modal-price-type').modal('show');
         }
 
@@ -131,14 +151,13 @@
             $('#type').val(type);
             $('#description').val(description);
             $('#is_enabled').prop('checked', is_enabled);
-            $('#modal-price-type-title').text('EDITAR TIPO DE PRECIO');
+            $('#modal-price-type-title').html('<i class="fas fa-edit mr-2"></i>Editar tipo de precio');
             $('#modal-price-type').modal('show');
         }
 
         $('#form-price-type').on('submit', function(e) {
             e.preventDefault();
             let formData = new FormData(this);
-            
             $.ajax({
                 url: '{% url "sales:price_type_save" %}',
                 type: 'POST',
@@ -149,32 +168,23 @@
                     if (response.success) {
                         toastr.success(response.message, '¡Éxito!');
                         $('#modal-price-type').modal('hide');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
+                        setTimeout(function() { location.reload(); }, 1000);
                     } else {
                         toastr.error(response.message, '¡Error!');
                     }
                 },
                 error: function(xhr) {
-                    let errorMsg = 'Error al guardar';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMsg = xhr.responseJSON.message;
-                    }
+                    let errorMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error al guardar';
                     toastr.error(errorMsg, '¡Error!');
                 }
             });
         });
 
         function deletePriceType(id) {
-            if (!confirm('¿Está seguro de eliminar este tipo de precio?')) {
-                return;
-            }
-
+            if (!confirm('¿Está seguro de eliminar este tipo de precio?')) return;
             let formData = new FormData();
             formData.append('price_type_id', id);
             formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-
             $.ajax({
                 url: '{% url "sales:price_type_delete" %}',
                 type: 'POST',
@@ -184,22 +194,16 @@
                 success: function(response) {
                     if (response.success) {
                         toastr.success(response.message, '¡Éxito!');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
+                        setTimeout(function() { location.reload(); }, 1000);
                     } else {
                         toastr.error(response.message, '¡Error!');
                     }
                 },
                 error: function(xhr) {
-                    let errorMsg = 'Error al eliminar';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMsg = xhr.responseJSON.message;
-                    }
+                    let errorMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error al eliminar';
                     toastr.error(errorMsg, '¡Error!');
                 }
             });
         }
     </script>
 {% endblock extrajs %}
-

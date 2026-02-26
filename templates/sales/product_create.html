@@ -1,95 +1,78 @@
-<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-            <h5 class="modal-title">Registro de producto </h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+<div class="modal-dialog modal-dialog-centered modal-xl modal-product roboto-condensed-regular" role="document">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+        <div class="modal-header border-0 py-3" style="background: linear-gradient(135deg, #bbe0f5 0%, #90caf9 50%, #64b5f6 100%);">
+            <h5 class="modal-title font-weight-bold d-flex align-items-center" style="color: #0d47a1;">
+                <i class="fas fa-plus-circle mr-2"></i>Registro de producto
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar" style="color: #0d47a1; opacity: 0.9;">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
 
-        <form class="needs-validation" id="product-create-form" action="{% url 'sales:json_product_create' %}" method="POST">
+        <form class="needs-validation" id="product-create-form" action="{% url 'sales:json_product_create' %}" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-
-            <div class="modal-body">
+            <div class="modal-body py-4" style="background-color: #f0f8fc;">
                 {% include "sales/product_form.html" %}
-            </div><!-- modal-body -->
-
-            <div class="modal-footer">
-
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                &nbsp;
-                <button id="btn-product-create-submit" type="submit" class="btn btn-success">Guardar</button>
-
             </div>
-
+            <div class="modal-footer border-0 py-3" style="background-color: #e3f2fd;">
+                <button type="button" class="btn btn-outline-secondary border-2 btn-sales-rounded" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Cerrar
+                </button>
+                <button id="btn-product-create-submit" type="submit" class="btn btn-success border-2 btn-sales-rounded">
+                    <i class="fas fa-save mr-1"></i>Guardar
+                </button>
+            </div>
         </form>
-
     </div>
 </div>
 
-
 <script type="text/javascript">
-
-    $('.newbtn').bind("click" , function () {
-        // $('#id_photo').attr("onchange","readURL(this);");
-        $('#id_photo').trigger('click');
+    $('#id_photo').on('change', function () {
+        if (this.files && this.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#blah').attr('src', e.target.result);
+            };
+            reader.readAsDataURL(this.files[0]);
+            $('.custom-file-label').text(this.files[0].name);
+        }
+    });
+    $('.product-photo-upload').on('click', function (e) {
+        if (!$(e.target).is('input')) {
+            $('#id_photo').trigger('click');
+        }
     });
 
     $("#product-create-form").submit(function (event) {
-        //stop submit the form, we will post it manually.
         event.preventDefault();
-        // Create an FormData object
         var data = new FormData($('#product-create-form').get(0));
-        // disabled the submit button
-        $("#btn-product-create-submit").attr("disabled");
+        $("#btn-product-create-submit").prop("disabled", true);
         $.ajax({
             url: "/sales/json_product_create/",
             type: "POST",
             data: data,
-            cache: false, //If set to false, it will force requested pages not to be cached by the browser.
-            processData: false, // Important!, it prevent jQuery form transforming the data into a query string
-            contentType: false, //Es imperativo que establezca la opción contentType en false, forzando a jQuery a no agregar un encabezado Content-Type
+            cache: false,
+            processData: false,
+            contentType: false,
             success: function (response, textStatus, xhr) {
-                //Recibe un json serializado
-                console.log(textStatus);
-
-                if(xhr.status==200){
-
+                if (xhr.status == 200) {
                     var parse = JSON.parse(response);
-                    product_name = parse['product'].name;
-                    console.log("product_name: " + product_name);
-                    // $('#alert-status').removeAttr("class").addClass("alert alert-success").text("Guardado con exito.").show(1000).delay(3200).hide(300);
-                    toastr.success('Guardado con exito.','¡Bien hecho!');
-
-
-                    // Recargar ambos tabs
+                    toastr.success('Guardado con éxito.', '¡Bien hecho!');
                     location.reload();
-
                 }
-
-                $("#btn-product-create-submit").removeAttr("disabled");
+                $("#btn-product-create-submit").prop("disabled", false);
                 $('#creation').modal('hide');
             },
-            error : function(jqXhr, textStatus, xhr) { // provide a bit more info about the error to the console
-
-                if(jqXhr.status==500){
-
-                    error = jqXhr.responseJSON.error;
-
-                    if (typeof jqXhr.responseJSON.form_invalid.name !== undefined || jqXhr.responseJSON.form_invalid.name !== null) {
-                        toastr.error (jqXhr.responseJSON.form_invalid.name, '¡Inconcebible!');
+            error: function (jqXhr, textStatus, xhr) {
+                if (jqXhr.status == 500 && jqXhr.responseJSON) {
+                    if (jqXhr.responseJSON.form_invalid && jqXhr.responseJSON.form_invalid.name) {
+                        toastr.error(jqXhr.responseJSON.form_invalid.name, '¡Error!');
+                    } else if (jqXhr.responseJSON.error) {
+                        toastr.error(jqXhr.responseJSON.error, '¡Error!');
                     }
                 }
-                else{
-                    console.log(" STATUS: " + xhr + " " + textStatus);
-                }
-
-                $("#btn-product-create-submit").removeAttr("disabled");
-                $('#creation').modal('hide');
+                $("#btn-product-create-submit").prop("disabled", false);
             }
-        });//end ajax
-    }); //end submit
-
+        });
+    });
 </script>

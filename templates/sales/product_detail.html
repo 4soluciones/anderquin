@@ -1,88 +1,112 @@
-<div class="modal-dialog modal-dialog-centered modal-xl" role="document">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-            <h5 class="modal-title">Tipos de Presentaciones</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+<div class="modal-dialog modal-dialog-centered modal-xl roboto-condensed-regular" role="document">
+    <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 16px;">
+        <!-- Header -->
+        <div class="modal-header border-0 py-3 px-4" style="background: linear-gradient(135deg, #bbe0f5 0%, #90caf9 50%, #64b5f6 100%);">
+            <h5 class="modal-title font-weight-bold d-flex align-items-center mb-0" style="color: #0d47a1;">
+                <i class="fas fa-layer-group mr-2"></i>Tipos de presentaciones
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar" style="color: #0d47a1; opacity: 0.9;">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
 
         <form id="product-detail-form" action="" method="POST">
             {% csrf_token %}
-            <div class="modal-body">
+            <div class="modal-body p-4" style="background-color: #f0f8fc;">
                 {% if product %}
-                    <ul class="list-group" id="product-list" pk="{{ product.id }}">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ product.name }}
-                            <span class="badge badge-primary badge-pill">{{ product.code }}</span>
-                        </li>
-                    </ul>
-                {% endif %}
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3 border-right">
-                                <h4 class="mt-3">{{ product.name }}</h4>
+                <!-- Resumen del producto -->
+                <div class="product-detail-summary mb-4 rounded px-3 py-2 d-flex align-items-center justify-content-between flex-wrap" style="background: linear-gradient(90deg, #e3f2fd 0%, #f0f8fc 100%); border: 1px solid #bbdefb;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-cube mr-2" style="color: #1976d2;"></i>
+                        <span class="font-weight-bold" style="color: #0d47a1;">{{ product.name }}</span>
+                    </div>
+                    <span class="badge px-3 py-2" style="background-color: #1976d2; border-radius: 10px; font-size: 0.8rem;">{{ product.code }}</span>
+                </div>
+
+                <!-- Bloque: Nueva presentación -->
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; border: 1px solid #e3f2fd;">
+                    <div class="card-header border-0 py-2 px-3" style="background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 12px 12px 0 0;">
+                        <span class="font-weight-bold small" style="color: #0d47a1;"><i class="fas fa-plus-circle mr-1"></i>Añadir presentación</span>
+                    </div>
+                    <div class="card-body py-3 px-3">
+                        <input type="hidden" id="id_product" name="product" value="{{ product.id }}">
+                        <input type="hidden" id="id_product_detail" name="product_detail" value="{{ product.id }}">
+                        <div class="form-row align-items-end">
+                            <div class="form-group col-6 col-md-2 mb-0">
+                                <label for="id_unit" class="small font-weight-bold mb-1" style="color: #1565c0;">Unidad</label>
+                                <select id="id_unit" name="unit" class="form-control form-control-sm product-detail-input">
+                                    {% for unit in units %}
+                                        <option value="{{ unit.id }}">{{ unit.description }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                            <div class="col-md-2 mt-3">
-                                <button type="submit" id="btn-product-detail-save" class="btn btn-sm btn-primary">
-                                    Registrar
-                                </button>
-                                <button type="button" id="btn-product-detail-update" class="btn btn-sm btn-warning">
-                                    Actualizar
-                                </button>
+                            <div class="form-group col-6 col-md-2 mb-0">
+                                <label for="id_price_purchase" class="small font-weight-bold mb-1" style="color: #1565c0;">P. Compra</label>
+                                <input type="text" id="id_price_purchase" name="price_purchase" class="form-control form-control-sm decimal product-detail-input" required placeholder="0.00">
                             </div>
-                            <div class="col-md-7 pl-0">
-                                <input type="hidden" id="id_product" name="product" value="{{ product.id }}">
-                                <input type="hidden" id="id_product_detail" name="product_detail"
-                                       value="{{ product.id }}">
-                                <div class="form-row">
-                                    <div class="form-group col-4">
-                                        <label for="id_unit">Unidades</label>
-                                        <select id="id_unit" name="unit" class="form-control form-control-sm">
-                                            {% for unit in units %}
-                                                <option value="{{ unit.id }}">{{ unit.description }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col">
-                                        <label for="id_price_purchase">P.Compra</label>
-                                        <input type="text" id="id_price_purchase" name="price_purchase"
-                                               class="form-control form-control-sm decimal" required>
-                                    </div>
-                                    <div class="col">
-                                        <label for="id_price_sale">P.Venta</label>
-                                        <input type="text" id="id_price_sale" name="price_sale"
-                                               class="form-control form-control-sm decimal" required>
-                                    </div>
-                                    <div class="col">
-                                        <label for="id_quantity_minimum">Cantidad</label>
-                                        <input type="text" id="id_quantity_minimum" name="quantity_minimum"
-                                               class="form-control form-control-sm decimal" required>
-                                    </div>
-                                </div>
+                            <div class="form-group col-6 col-md-2 mb-0">
+                                <label for="id_price_sale" class="small font-weight-bold mb-1" style="color: #1565c0;">P. Venta</label>
+                                <input type="text" id="id_price_sale" name="price_sale" class="form-control form-control-sm decimal product-detail-input" required placeholder="0.00">
+                            </div>
+                            <div class="form-group col-6 col-md-2 mb-0">
+                                <label for="id_quantity_minimum" class="small font-weight-bold mb-1" style="color: #1565c0;">Cant. mín.</label>
+                                <input type="text" id="id_quantity_minimum" name="quantity_minimum" class="form-control form-control-sm decimal product-detail-input" required placeholder="1">
+                            </div>
+                            <div class="form-group col-12 col-md-4 mb-0 mt-2 mt-md-0">
+                                <button type="submit" id="btn-product-detail-save" class="btn btn-primary btn-sm border-2 btn-sales-rounded mr-1">
+                                    <i class="fas fa-plus mr-1"></i>Registrar
+                                </button>
+                                <button type="button" id="btn-product-detail-update" class="btn btn-warning btn-sm border-2 btn-sales-rounded text-dark">
+                                    <i class="fas fa-sync-alt mr-1"></i>Actualizar
+                                </button>
                             </div>
                         </div>
-                        <div class="row" id="product-detail-grid"></div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-            </div>
 
+                <!-- Listado de presentaciones -->
+                <div class="presentations-list-section">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-list mr-2" style="color: #1976d2;"></i>
+                        <span class="font-weight-bold small" style="color: #0d47a1;">Presentaciones registradas</span>
+                    </div>
+                    <div id="product-detail-grid" class="rounded p-2 min-height-grid" style="min-height: 80px; background: #fff; border: 1px solid #e3f2fd;"></div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer border-0 py-3 px-4" style="background-color: #e3f2fd;">
+                <button type="button" class="btn btn-outline-secondary border-2 btn-sales-rounded" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i>Cerrar
+                </button>
+            </div>
         </form>
-
     </div>
 </div>
 
+<style>
+    #product-detail-form .product-detail-input {
+        border-color: #bbdefb;
+        border-radius: 8px;
+        font-size: 0.875rem;
+    }
+    #product-detail-form .product-detail-input:focus {
+        border-color: #1e3a5f;
+        box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.2);
+    }
+    .btn-sales-rounded { border-radius: 12px !important; }
+    #product-detail-grid:empty::before {
+        content: 'No hay presentaciones. Use el formulario superior para registrar una.';
+        display: block;
+        text-align: center;
+        padding: 1.5rem;
+        color: #90caf9;
+        font-size: 0.9rem;
+    }
+</style>
+
 <script type="text/javascript">
-
     $(document).on('keyup', '.decimal', function () {
-
-        let val = $(this).val();
+        var val = $(this).val();
         if (isNaN(val)) {
             val = val.replace(/[^0-9\.]/g, '');
             if (val.split('.').length > 2)
@@ -91,19 +115,12 @@
         $(this).val(val);
     });
 
-
     $('#btn-product-detail-update').fadeOut();
 
     $('#product-detail-form').submit(function (event) {
-
         event.preventDefault();
-
         var datos = new FormData($('#product-detail-form').get(0));
-
-        $("#btn-product-detail-save").attr("disabled", "true");
-
-        var inputValue = datos.get("product");
-
+        $("#btn-product-detail-save").prop("disabled", true);
         $.ajax({
             url: '/sales/set_product_detail/',
             type: "POST",
@@ -116,21 +133,20 @@
                     $('#product-detail-grid').html(response.grid);
                     toastr.success(response['message'], '¡Bien hecho!');
                 }
+                $("#btn-product-detail-save").prop("disabled", false);
             },
             error: function (jqXhr, textStatus, xhr) {
                 if (jqXhr.status == 500) {
-                    toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    toastr.error(jqXhr.responseJSON.error, '¡Error!');
                 }
+                $("#btn-product-detail-save").prop("disabled", false);
             }
         });
-
-        $("#btn-product-detail-save").removeAttr("disabled", "false");
-
     });
 
     $('#btn-product-detail-update').on('click', function () {
         var datos = new FormData($('#product-detail-form').get(0));
-        $("#btn-product-detail-update").attr("disabled", "true");
+        $("#btn-product-detail-update").prop("disabled", true);
         $.ajax({
             url: '/sales/update_product_detail/',
             type: "POST",
@@ -143,18 +159,16 @@
                     $('#product-detail-grid').html(response.grid);
                     toastr.success(response['message'], '¡Bien hecho!');
                 }
+                $("#btn-product-detail-update").prop("disabled", false);
+                $('#btn-product-detail-save').fadeIn();
+                $('#btn-product-detail-update').fadeOut();
             },
             error: function (jqXhr, textStatus, xhr) {
                 if (jqXhr.status == 500) {
-                    toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
+                    toastr.error(jqXhr.responseJSON.error, '¡Error!');
                 }
+                $("#btn-product-detail-update").prop("disabled", false);
             }
         });
-        $("#btn-product-detail-update").removeAttr("disabled", "false");
-        $('#btn-product-detail-save').fadeIn();
-        $('#btn-product-detail-update').fadeOut();
-
     });
-
-
 </script>

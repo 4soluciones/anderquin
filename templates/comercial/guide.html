@@ -1,61 +1,53 @@
 {% extends 'home.html' %}
+{% load static %}
 {% block title %}
-    Guia de Remision
+    Guía de Remisión
 {% endblock title %}
 
 {% block body %}
 
-    <div class="card m-1 roboto-condensed-regular">
-        <div class="card-header pt-0">
-            <div class="row row-head" style="background: #3e6787">
-                <div class="col-sm-4 col-md-4 col-lg-4 mb-0" >
+    <div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+        <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+            <!-- Cabecera: título y botones al costado -->
+            <div class="card-body row-head border-bottom py-3 py-md-4" style="background: linear-gradient(180deg, #f0f8fc 0%, #e3f2fd 100%);">
+                <div class="d-flex flex-wrap align-items-center">
                     <input type="hidden" id="contract_detail_id" name="contract-detail"
                            value="{{ contract_detail_obj.id }}">
                     {% if contract_detail_obj %}
-                        <h6 class="roboto-condensed-regular text-white font-weight-bold mt-4 mb-0">
-                            <label>{{ contract_detail_obj.contract.contract_number }} -
-                                FECHA: {{ contract_detail_obj.date|date:'d-m-Y' }}</label>
-                        </h6>
+                        <h5 class="roboto-condensed-regular font-weight-bold mb-0 mr-3" style="color: #0d47a1;">
+                            <i class="fas fa-file-invoice mr-2"></i>{{ contract_detail_obj.contract.contract_number }}
+                            <span class="text-muted font-weight-normal ml-1" style="font-size: 0.9rem;">— Fecha: {{ contract_detail_obj.date|date:'d-m-Y' }}</span>
+                        </h5>
                     {% else %}
-                        <h6 class="text-white font-weight-bold mt-4 mb-0 roboto-condensed-regular title-contract">
-                            <label>GUÍA DE REMISIÓN REMITENTE:</label>
-                        </h6>
+                        <h5 class="font-weight-bold mb-0 roboto-condensed-regular title-contract mr-3" style="color: #0d47a1;">
+                            <i class="fas fa-truck-loading mr-2"></i><label>Guía de Remisión — Remitente</label>
+                        </h5>
                     {% endif %}
-                </div>
-                <div class="col-sm-4 col-md-4 col-lg-4 text-black-50">
-                    <table class="table table-bordered mt-1 mb-1" style="background: #ffffff">
-                        <tbody>
-                        <tr class="text-center">
-                            <td class="font-weight-bold align-middle" style="border-width: 3px; border-color: black">
-                                Guia de Remisión Electrónica - Remitente<br>RUC: 20604193053
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="col-sm-4 col-md-4 col-lg-4 p-3">
-                    <div class="btn-group btn-block" role="group" aria-label="Basic example">
-                        <button type="button" class="btn btn-info m-1" onclick="saveGuide()">EMITIR GUÍA</button>
-                        <button type="button" class="btn btn-secondary m-1">NUEVO</button>
+                    <div class="d-flex flex-shrink-0">
+                        <button type="button" class="btn btn-primary border-2 btn-sales-rounded py-2 px-3 mr-2" onclick="saveGuide()">
+                            <i class="fas fa-paper-plane mr-1"></i> Emitir guía
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary border-2 btn-sales-rounded py-2 px-3">
+                            <i class="fas fa-plus mr-1"></i> Nuevo
+                        </button>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="card-body bg-light p-0">
-            <div class="row col-md-12 mb-1 mt-1 pr-0">
+            <div class="card-body guide-form p-0 p-md-3" style="background-color: #e3f2fd;">
+            <div class="row col-md-12 mb-2 mt-3 pr-0">
                 <div class="col-md-2">
-                    <label for="issue" class="text-primary">Fecha Emisión:</label>
-                    <input class="form-control form-control-sm" type="date" value="{{ date_now }}" id="issue"
+                    <label for="issue" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Fecha Emisión</label>
+                    <input class="form-control" type="date" value="{{ date_now }}" id="issue"
                            name="issue" required>
                 </div>
                 <div class="col-md-2">
-                    <label for="transfer" class="text-primary">Fecha Traslado:</label>
-                    <input class="form-control form-control-sm" type="date" value="{{ date_now }}" id="transfer"
+                    <label for="transfer" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Fecha Traslado</label>
+                    <input class="form-control" type="date" value="{{ date_now }}" id="transfer"
                            name="transfer" required>
                 </div>
                 <div class="col-md-2">
-                    <label for="store_id" class="text-primary">Almacen:</label>
-                    <select class="form-control form-control-sm font-weight-bold" style="background-color: #dbeaee"
+                    <label for="store_id" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Almacén</label>
+                    <select class="form-control font-weight-bold shadow-sm border" style="background-color: #fff; border-color: #bbdefb !important;"
                             id="store_id"
                             name="store">
                         <option selected disabled value="0">Seleccione</option>
@@ -65,45 +57,40 @@
                     </select>
                 </div>
                 <div class="col-md-1 pl-0 pr-1">
-                    <label for="serial" class="text-primary">Serie:</label>
+                    <label for="serial" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Serie</label>
                     <input type="text"
-                           class="form-control form-control-sm text-center" name="serial" id="serial"
+                           class="form-control text-center" name="serial" id="serial"
                            placeholder="" disabled
                            value="EG07">
                 </div>
                 <div class="col-md-1 pr-0 ">
-                    <label for="correlative" class="text-primary">Correlativo:</label>
+                    <label for="correlative" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Correlativo</label>
                     <input type="text" autocomplete="off"
-                           class="form-control form-control-sm text-right" name="correlative" id="correlative"
+                           class="form-control text-right" name="correlative" id="correlative"
                            value="">
                 </div>
                 <div class="col-md-1">
-                    <label for="oc" class="text-primary">Nº O/C:</label>
-                    <input class="form-control form-control-sm" type="text" value="" id="oc"
+                    <label for="oc" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Nº O/C</label>
+                    <input class="form-control" type="text" value="" id="oc"
                            placeholder="Orden de Compra"
                            name="oc" required>
                 </div>
                 <div class="col-md-1">
-                    <label for="siaf" class="text-primary">Siaf:</label>
-                    <input class="form-control form-control-sm" type="text" value="" id="siaf"
+                    <label for="siaf" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Siaf</label>
+                    <input class="form-control" type="text" value="" id="siaf"
                            placeholder="Codigo Siaf" autocomplete="off"
                            name="oc" required>
                 </div>
                 <div class="col-md-2">
-                    <label for="bill" class="text-primary">Doc. Referencia:</label>
-                    <input class="form-control form-control-sm" type="text" value="" id="bill" placeholder="Factura"
+                    <label for="bill" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Doc. Referencia</label>
+                    <input class="form-control" type="text" value="" id="bill" placeholder="Factura"
                            name="bill" required>
                 </div>
             </div>
-            {#            <div class="d-flex">#}
-            {#                <hr class="my-auto flex-grow-1 bg-lightblue">#}
-            {#                <div class="px-2 font-weight-bold" style="font-size: .8375rem;">DATOS DEL DESTINATARIO</div>#}
-            {#                <hr class="my-auto flex-grow-1 bg-lightblue">#}
-            {#            </div>#}
             <div class="row col-md-12 mb-1 mt-2 pr-0">
                 <div class="col-md-2">
-                    <label for="id_motive" class="text-primary">Motivo de Traslado:</label>
-                    <select class="form-control form-control-sm" id="id_motive"
+                    <label for="id_motive" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Motivo de Traslado</label>
+                    <select class="form-control" id="id_motive"
                             name="id-motive">
                         <option selected disabled value="0">Seleccione</option>
                         {% for m in motive_set %}
@@ -113,9 +100,9 @@
                 </div>
                 <div class="col-md-2">
                     <input type="hidden" id="client_id" value="{{ contract_detail_obj.contract.client.id }}">
-                    <label for="person-names" class="text-primary">RUC (Destinatario):</label>
+                    <label for="person-names" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">RUC (Destinatario)</label>
                     <div id="autocomplete-client" class="autocomplete">
-                        <input class="form-control form-control-sm autocomplete-input"
+                        <input class="form-control autocomplete-input"
                                type="text"
                                id="person-names"
                                name="person-names"
@@ -126,87 +113,67 @@
                                placeholder="Buscar Cliente..."/>
                         <ul class="autocomplete-result-list"></ul>
                     </div>
-                    {#                    {% if contract_detail_obj %}#}
-                    {#                        <label for="document-client" class="text-primary">RUC (Destinatario)</label>#}
-                    {#                        <input type="text"#}
-                    {#                               class="form-control form-control-sm" name="document-client" id="document-client" disabled#}
-                    {#                               required#}
-                    {#                               value="{{ contract_detail_obj.contract.client.clienttype_set.last.document_number }}"#}
-                    {#                               maxlength="200">#}
-                    {#                    {% else %}#}
-                    {#                        <label for="person-names">RUC (Destinatario)</label>#}
-                    {#                        <div id="autocomplete-client" class="autocomplete">#}
-                    {#                            <input class="form-control form-control-sm autocomplete-input"#}
-                    {#                                   type="text"#}
-                    {#                                   id="person-names"#}
-                    {#                                   name="person-names"#}
-                    {#                                   maxlength="200"#}
-                    {#                                   autocomplete="off"#}
-                    {#                                   value=""#}
-                    {#                                   placeholder="Buscar Cliente..."/>#}
-                    {#                            <ul class="autocomplete-result-list"></ul>#}
-                    {#                        </div>#}
-                    {#                    {% endif %}#}
+
                 </div>
                 <div class="col-md-6">
-                    <label for="name-client" class="text-primary">Razón Social (Destinatario):</label>
+                    <label for="name-client" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Razón Social (Destinatario)</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="name-client" id="name-client" disabled
+                           class="form-control" name="name-client" id="name-client" disabled
                            value="{{ contract_detail_obj.contract.client.names }}" maxlength="500">
                 </div>
                 <div class="col-md-2">
-                    <label for="cod-client" class="text-primary">Cod. Und. Ejecutora:</label>
+                    <label for="cod-client" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Cod. Und. Ejecutora</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="cod-client" id="cod-client" disabled
+                           class="form-control" name="cod-client" id="cod-client" disabled
                            value="{{ contract_detail_obj.contract.client.cod_siaf }}">
                 </div>
             </div>
             <div class="row col-md-12 mb-1 mt-2 pr-0">
                 <div class="col-md-2">
-                    <label for="btn-add-origin" class="text-primary">Punto de partida:</label>
-                    <button id="btn-add-origin" class="btn btn-sm btn-block btn-primary" type="button"
+                    <label for="btn-add-origin" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Punto de partida</label>
+                    <button id="btn-add-origin" class="btn btn-sm btn-outline-primary border-2 btn-sales-rounded btn-block" type="button"
                             onclick="AddOrigin('modal_guide_origin')">
                         <i class="fas fa-plus"></i> Agregar
                     </button>
                 </div>
                 <div class="col-md-2">
-                    <label for="location-origin" class="text-primary">Ubigeo Origen:</label>
+                    <label for="location-origin" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Ubigeo Origen</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="location-origin" id="location-origin"
+                           class="form-control" name="location-origin" id="location-origin"
                            placeholder="" disabled value="">
                 </div>
                 <div class="col-md-8">
-                    <label for="origin-address" class="text-primary">Direccion de partida:</label>
+                    <label for="origin-address" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Dirección de partida</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="origin-address" id="origin-address"
+                           class="form-control" name="origin-address" id="origin-address"
                            placeholder="" disabled value="">
                 </div>
             </div>
             <div class="row col-md-12 mb-1 mt-1 pr-0">
                 <div class="col-md-2">
-                    <label for="btn-add-origin" class="text-primary">Punto de llegada:</label>
-                    <button id="btn-add-origin" class="btn btn-sm btn-block btn-primary" type="button"
+                    <label for="btn-add-destiny" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Punto de llegada</label>
+                    <button id="btn-add-destiny" class="btn btn-sm btn-outline-primary border-2 btn-sales-rounded btn-block" type="button"
                             onclick="AddDestiny('modal_guide_destiny')">
                         <i class="fas fa-plus"></i> Agregar
                     </button>
                 </div>
                 <div class="col-md-2">
-                    <label for="location-destiny" class="text-primary">Ubigeo Destino:</label>
+                    <label for="location-destiny" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Ubigeo Destino</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="location-destiny" id="location-destiny"
+                           class="form-control" name="location-destiny" id="location-destiny"
                            placeholder="" disabled value="">
                 </div>
                 <div class="col-md-8">
-                    <label for="destiny-address" class="text-primary">Direccion de Destino:</label>
+                    <label for="destiny-address" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Dirección de destino</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="destiny-address" id="destiny-address"
+                           class="form-control" name="destiny-address" id="destiny-address"
                            placeholder="" disabled value="">
                 </div>
             </div>
             <div class="row col-md-12 mb-1 mt-1 pr-0">
                 <div class="col-md-2">
-                    <label for="transport-modality" class="text-primary">Modalidad de Transporte:</label>
-                    <select class="form-control form-control-sm" id="transport-modality"
+                    <label for="transport-modality" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Modalidad de Transporte</label>
+                    <select class="form-control" id="transport-modality"
                             name="transport-modality">
                         <option selected disabled value="0">Seleccione</option>
                         <option value="1">PUBLICO</option>
@@ -214,63 +181,63 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label for="transport-modality" class="text-primary">Agregar Transportista:</label>
-                    <button id="btn-add-origin" class="btn btn-sm btn-block btn-success" type="button"
+                    <label for="btn-add-carrier" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Agregar Transportista</label>
+                    <button id="btn-add-carrier" class="btn btn-sm btn-outline-success border-2 btn-sales-rounded btn-block" type="button"
                             onclick="AddCarrier('modal_guide_carrier')">
                         <i class="fas fa-plus"></i> Agregar
                     </button>
                 </div>
 
                 <div class="col-md-2">
-                    <label for="document-transport" class="text-primary">Nº de Documento (Transportista):</label>
+                    <label for="document-transport" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Nº Doc. (Transportista)</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="document-transport" id="document-transport"
+                           class="form-control" name="document-transport" id="document-transport"
                            placeholder=""
                            value="" maxlength="200">
                     <input type="hidden" id="guide_carrier_id">
                 </div>
                 <div class="col-md-4">
-                    <label for="name-transport" class="text-primary">Razón Social (Transportista):</label>
+                    <label for="name-transport" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Razón Social (Transportista)</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="name-transport" id="name-transport"
+                           class="form-control" name="name-transport" id="name-transport"
                            placeholder=""
                            value="" maxlength="500">
                 </div>
                 <div class="col-md-2">
-                    <label for="register_mtc" class="text-primary">Nº Registro MTC:</label>
+                    <label for="register_mtc" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Nº Registro MTC</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="register_mtc" id="register_mtc"
+                           class="form-control" name="register_mtc" id="register_mtc"
                            value="" maxlength="500">
                 </div>
             </div>
             <div class="row col-md-12 mb-1 mt-1 pr-0">
                 <div class="col-md-2">
-                    <label for="plate" class="text-primary">Vehiculo (Placa):</label>
+                    <label for="plate" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Vehículo (Placa)</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="plate" id="plate"
+                           class="form-control" name="plate" id="plate"
                            placeholder=""
                            value="" maxlength="20">
                     <input type="hidden" id="guide_vehicle_id">
                 </div>
                 <div class="col-md-2">
-                    <label for="document-driver" class="text-primary">DNI (Conductor):</label>
+                    <label for="document-driver" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">DNI (Conductor)</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="document-driver" id="document-driver"
+                           class="form-control" name="document-driver" id="document-driver"
                            placeholder=""
                            value="" maxlength="20">
                     <input type="hidden" id="driver_id">
                 </div>
                 <div class="col-md-2">
-                    <label for="license-driver" class="text-primary">Nº Licencia (Conductor):</label>
+                    <label for="license-driver" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Nº Licencia (Conductor)</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="license-driver" id="license-driver"
+                           class="form-control" name="license-driver" id="license-driver"
                            placeholder=""
                            value="" maxlength="20">
                 </div>
                 <div class="col-md-6">
-                    <label for="names-driver" class="text-primary">Nombres y Apellidos (Conductor):</label>
+                    <label for="names-driver" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Nombres y Apellidos (Conductor)</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="names-driver" id="names-driver"
+                           class="form-control" name="names-driver" id="names-driver"
                            placeholder=""
                            value="" maxlength="20">
                 </div>
@@ -278,57 +245,48 @@
 
             <div class="row col-md-12 mb-1 mt-1 pr-0">
                 <div class="col-md-2">
-                    <label for="weight" class="text-primary">Peso bruto total (KGM):</label>
-                    {#                    <input type="text"#}
-                    {#                           class="form-control form-control-sm" name="weight" id="weight"#}
-                    {#                           placeholder="" required#}
-                    {#                           value="{{ weight_total }}" maxlength="20">#}
+                    <label for="weight" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Peso bruto total (Kg)</label>
                     <div class="input-icon">
                         <input type="text"
                                name="weight" id="weight"
-                               class="form-control form-control-sm text-right text-uppercase total-detail"
+                               class="form-control text-right text-uppercase total-detail"
                                style="padding-right: 33px"
                                value="{% if weight_total > '0' %}{{ weight_total }}{% endif %}">
                         <i class="change-money">Kg</i>
                     </div>
                 </div>
                 <div class="col-md-2">
-                    <label for="id-package" class="text-primary">Numero Bultos:</label>
+                    <label for="id-package" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Nº Bultos</label>
                     <input type="text"
-                           class="form-control form-control-sm" name="id-package" id="id-package"
+                           class="form-control" name="id-package" id="id-package"
                            autocomplete="off" required
                            value="" maxlength="20">
                 </div>
                 <div class="col-md-8 align-self-center">
-                    <label for="id_observation" class="text-primary">Observaciones:</label>
-                    <textarea class="form-control form-control-sm" name="id-observation" id="id_observation"
+                    <label for="id_observation" class="small font-weight-bold text-uppercase text-muted" style="font-size: 0.75rem;">Observaciones</label>
+                    <textarea class="form-control" name="id-observation" id="id_observation"
                               rows="3" autocomplete="off" maxlength="500"
                               placeholder="Ingrese observaciones..."></textarea>
                 </div>
             </div>
 
-            <div class="d-flex mt-3">
-                <hr class="my-auto flex-grow-1 bg-lightblue">
-                <div class="px-2 font-weight-bold" style="font-size: .8375rem;">DETALLE DE LA GUIA</div>
-                <hr class="my-auto flex-grow-1 bg-lightblue">
+            <div class="d-flex align-items-center mt-4 mb-2">
+                <hr class="flex-grow-1" style="border-color: #bbdefb;">
+                <span class="px-3 font-weight-bold small text-uppercase" style="color: #1565c0; font-size: 0.8rem;">Detalle de la guía</span>
+                <hr class="flex-grow-1" style="border-color: #bbdefb;">
             </div>
-            <div class="row m-1 mt-2">
-                <div class="col-sm-12 p-1">
-                    <div class="card col-sm-12 p-0">
-                        <table class="table-hover table-sm table-bordered" id="id-table-detail-guide"
-                               style="width: 100%;">
+            <div class="row m-0 mt-2">
+                <div class="col-12 p-0">
+                    <div class="card border-0 shadow-sm col-12 p-0 overflow-hidden" style="border-radius: 12px;">
+                        <table class="table table-hover table-sm table-bordered mb-0" id="id-table-detail-guide" style="width: 100%;">
                             <thead class="text-uppercase small text-center">
-                            <tr class="text-white" style="background: #3e6787">
-                                <th scope="col" class="font-weight-normal" style="width: 5%;">Nº</th>
-                                <th scope="col" class="font-weight-normal" style="width: 55%;">Descripcion</th>
-                                <th scope="col" class="font-weight-normal" style="width: 10%;">Cantidad</th>
-                                <th scope="col" class="font-weight-normal" style="width: 10%;">Unidad</th>
-                                <th scope="col" class="font-weight-normal"
-                                    style="width: 10%; background-color: #518d86">Cant. / U. M.
-                                </th>
-{#                                <th scope="col" class="font-weight-normal" style="width: 15%;">Sucursal</th>#}
-                                <th scope="col" class="font-weight-normal" style="width: 10%;">Lote</th>
-                                {#                                <th scope="col" class="font-weight-normal" style="width: 10%;">Eliminar</th>#}
+                            <tr class="text-white" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%);">
+                                <th scope="col" class="font-weight-normal border-0" style="width: 5%; color: #0d47a1;">Nº</th>
+                                <th scope="col" class="font-weight-normal border-0" style="width: 55%; color: #0d47a1;">Descripción</th>
+                                <th scope="col" class="font-weight-normal border-0" style="width: 10%; color: #0d47a1;">Cantidad</th>
+                                <th scope="col" class="font-weight-normal border-0" style="width: 10%; color: #0d47a1;">Unidad</th>
+                                <th scope="col" class="font-weight-normal border-0" style="width: 10%; color: #0d47a1;">Cant. / U. M.</th>
+                                <th scope="col" class="font-weight-normal border-0" style="width: 10%; color: #0d47a1;">Lote</th>
                             </tr>
                             </thead>
                             <tbody id="guide-details">
@@ -366,10 +324,11 @@
                                         </td>
                                         <td class="align-middle quantity-minimum">
                                             <input type="text"
-                                                   style="background-color: #bde7e2"
+                                                   style="background-color: #e0f2f1; border-color: #bbdefb;"
                                                    class="form-control text-center quantity-minimum-val text-uppercase"
                                                    placeholder="0">
                                         </td>
+                                        <td class="align-middle batch text-center">—</td>
                                     </tr>
                                 {% endfor %}
                             {% endif %}
@@ -378,6 +337,7 @@
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     </div>
 
@@ -389,37 +349,38 @@
          aria-labelledby="ModalHelpTitle" aria-hidden="true"></div>
 
     <style>
-
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+            border-color: #1e3a5f;
+        }
+        .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger, .btn-outline-secondary {
+            border-width: 2px;
+        }
+        .btn-sales-rounded,
+        .guide-form .btn-outline-primary,
+        .guide-form .btn-outline-success {
+            border-radius: 12px !important;
+        }
+        #id-table-detail-guide td,
+        #id-table-detail-guide th {
+            border-color: #bbdefb !important;
+        }
         .input-icon {
             position: relative;
         }
-
         .input-icon > i {
             position: absolute;
             display: block;
             transform: translate(0, -50%);
             top: 50%;
+            right: 8px;
             pointer-events: none;
-            width: 520px;
-            text-align: center;
             font-style: normal;
+            font-size: 0.75rem;
+            color: #1565c0;
         }
-
-        /*.input-icon > input {
-            padding-left: 25px;
-            padding-right: 8px;
-        }*/
-
-        .input-icon-right > i {
-            right: 0;
-        }
-
-        .input-icon-right > input {
-            /*padding-left: 0;
-            padding-right: 33px;*/
-            text-align: center;
-        }
-
+        .input-icon-right > i { right: 0; }
+        .input-icon-right > input { text-align: right; }
     </style>
 
     <div class="modal fade" id="modal-batch" tabindex="-1" role="dialog"

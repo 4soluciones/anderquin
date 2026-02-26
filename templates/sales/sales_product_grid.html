@@ -1,143 +1,154 @@
 {% load operations %}
 {% if product_dic %}
-<div class="card border-0 shadow-sm roboto-condensed-regular overflow-hidden" style="border-radius: 15px;">
-    <div class="table-responsive dataTables_wrapper m-0 p-0">
-        <table id="product-data-grid" class="table table-bordered table-hover mb-0" style="border-color: #bbdefb !important;">
-            <thead>
-            <tr class="text-center text-uppercase" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); font-size: 0.75rem;">
-                <th class="th-sm font-weight-bold text-white py-2 border-0" style="width: 30%;">Producto</th>
-                <th class="th-sm font-weight-bold text-white py-2 border-0" style="width: 35%;">Stock en sedes</th>
-                <th class="th-sm font-weight-bold text-white py-2 border-0" style="width: 35%;">Unidades</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for product in product_dic %}
-                <tr class="text-center m-0 p-0" product="{{ product.id }}">
-                    <td class="align-middle text-left">
-                        <span class="text-left">{{ product.name|upper }}</span><br>
-                        <span class="font-weight-bold">Marca:</span> {{ product.product_brand.name }}
-                    </td>
-                    <td class="p-0 td-table-stock" style="border-color: #bbdefb !important;">
-                        <table class="table table-sm text-uppercase small table-stock-headquarters m-0" style="border-color: #bbdefb !important;">
-                            <thead>
-                            <tr style="background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);">
-                                <th class="small font-weight-bold py-1" style="width: 40%; color: #0d47a1;">Sede</th>
-                                <th class="small font-weight-bold py-1" style="width: 40%; color: #0d47a1;">Stock</th>
-                                <th class="small font-weight-bold py-1" style="width: 20%; color: #0d47a1;">Lotes</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for product_store in product.productstore_set.all %}
-                                <tr store_="{{ product_store.subsidiary_store.category }}" store_id="{{ product_store.id }}" sub_store="{{ product_store.subsidiary_store.id }}"
-                                        class="{% if product_store.subsidiary_store.subsidiary.id == subsidiary.id %}bg-success text-white my-subsidiary{% endif %}">
-                                    <td class="align-middle text-left">
-                                        <div class="custom-control custom-radio custom-control-inline">
-                                            <input type="radio" id="radio-{{ product_store.subsidiary_store.id }}"
-                                                   name="group-radio"
-                                                   class="custom-control-input pt-0 check-store" store="{{ product_store.subsidiary_store.id }}"
-                                                   {% if product_store.subsidiary_store.subsidiary.id == subsidiary.id %}checked{% endif %}>
-                                            <label class="custom-control-label" for="radio-{{ product_store.subsidiary_store.id }}">
-                                                {{ product_store.subsidiary_store.subsidiary.name }}
-                                            </label>
-                                        </div>
-                                    </td>
-                                    <td class="item-stock align-middle p-0">
-                                        {% for pd in product.productdetail_set.all %}
-                                            <div class="row flex-fill m-0" unit="{{ pd.unit }}" qm="{{ pd.quantity_minimum|safe }}">
-                                                <div class="col-12 d-flex justify-content-center align-items-center border-top">
-                                                    <span class="current-stock">{{ product_store.stock|safe|divide_stock:pd.quantity_minimum|safe }}</span>
-                                                    <span class="type-unit">({{ pd.unit }})</span>
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    </td>
-                                    <td class="item-batch align-middle {% if product_store.subsidiary_store.subsidiary.id != subsidiary.id %}d-none{% endif %}">
-                                        <button type="button" ps="{{ product_store.id }}"
-                                                class="btn btn-warning btn-sm border-2 btn-batch btn-sales-rounded" style="font-size: 0.85rem;">Ver</button>
-                                        <input type="hidden" class="number-batch" value="0">
-                                        <input type="hidden" class="batch-id" value="0" id="batch_id">
-                                        <input type="hidden" class="stock-batch" value="" id="stock_batch">
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </td>
-                    <td class="p-0 prices-table" style="border-color: #bbdefb !important;">
-                        <table class="table table-sm text-uppercase small table-prices m-0" style="width: 100%; border-color: #bbdefb !important;">
-                            <thead>
-                            <tr style="background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);">
-                                <th class="small font-weight-bold py-1" style="width: 25%; color: #0d47a1;">Precio Compra</th>
-                                <th class="small font-weight-bold py-1" style="width: 15%; color: #0d47a1;">Cant. Min.</th>
-                                <th class="small font-weight-bold py-1" style="width: 30%; color: #0d47a1;">Cantidad</th>
-                                <th class="small font-weight-bold py-1" style="width: 30%; color: #0d47a1;">Precios Venta</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for obj in product.productdetail_set.all %}
-                                <tr product="{{ product.id }}" productname="{{ product.name }}"
-                                    unit="{{ obj.unit.id }}" unitname="{{ obj.unit.name }}"
-                                    quantity_minum="{{ obj.quantity_minimum|safe }}" product_brand="{{ product.product_brand.name }}">
-                                    <td class="align-middle text-left font-weight-bold quantity-sales-price">
-                                        S/ {{ obj.price_purchase|round_fourth }} <span class="font-weight-lighter">{{ obj.update_at|date:"d/m/y" }}</span>
-                                    </td>
-                                    <td class="align-middle text-center quantity-minimum">
-                                        {{ obj.quantity_minimum|floatformat:0 }}
-                                    </td>
-                                    <td class="align-middle text-center quantity-sales-price">
-                                        <input type="number" class="form-control quantity-select text-center" min="0"
-                                               onkeyup="if(this.value<0){this.value= this.value * -1}"
-                                               placeholder="{{ obj.unit.name }}" value="">
-                                    </td>
-                                    <td class="align-middle p-1 prices-list">
-                                        {% if product.productstore_set.all %}
-                                            <div class="row m-0 p-0 price-select {% if product.productstore_set.all.first.subsidiary_store.subsidiary.id != subsidiary.id %}d-none{% endif %}">
-                                                <div class="col text-center p-0">
-                                                    <button type="button" pk="{{ obj.id }}"
-                                                            ip="{{ obj.price_sale|safe }}"
-                                                            class="btn btn-outline-success btn-one p-1 border-2 btn-sales-rounded" style="font-size: 0.8rem;">
-                                                        S/ {{ obj.price_sale|replace_round }}
+<div class="sales-product-grid-wrapper roboto-condensed-regular">
+    <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 16px; background: #fff;">
+        <div class="card-header border-0 py-2 px-3" style="background: linear-gradient(135deg, #bbe0f5 0%, #90caf9 100%);">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-box-open mr-2" style="color: #0d47a1; font-size: 1.1rem;"></i>
+                <span class="font-weight-bold" style="color: #0d47a1; font-size: 0.95rem;">Producto(s) encontrado(s)</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive m-0">
+                <table id="product-data-grid" class="table table-hover mb-0 sales-grid-table">
+                    <thead>
+                        <tr class="text-uppercase text-white text-center" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); font-size: 0.75rem;">
+                            <th class="font-weight-bold py-3 border-0" style="width: 28%;">Producto</th>
+                            <th class="font-weight-bold py-3 border-0" style="width: 36%;">Stock en sedes</th>
+                            <th class="font-weight-bold py-3 border-0" style="width: 36%;">Unidades y precios</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in product_dic %}
+                        <tr class="product-grid-row align-top" product="{{ product.id }}">
+                            <td class="align-middle py-3 px-3" style="border-color: #e3f2fd !important; background: #fafcfe;">
+                                <div class="d-flex flex-column">
+                                    <span class="font-weight-bold mb-1" style="color: #0d47a1; font-size: 0.9rem;">{{ product.name|upper }}</span>
+                                    <span class="small text-muted"><i class="fas fa-tag mr-1" style="color: #90caf9;"></i>Marca: {{ product.product_brand.name }}</span>
+                                </div>
+                            </td>
+                            <td class="p-2 td-table-stock align-top" style="border-color: #e3f2fd !important;">
+                                <div class="stock-block rounded" style="overflow: hidden; border: 1px solid #bbdefb;">
+                                    <table class="table table-sm table-stock-headquarters mb-0" style="border-color: #bbdefb !important;">
+                                        <thead>
+                                            <tr style="background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);">
+                                                <th class="small font-weight-bold py-2 px-2 border-0" style="color: #0d47a1; width: 38%;">Sede</th>
+                                                <th class="small font-weight-bold py-2 px-2 border-0" style="color: #0d47a1; width: 38%;">Stock</th>
+                                                <th class="small font-weight-bold py-2 px-2 border-0 text-center" style="color: #0d47a1; width: 24%;">Lotes</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for product_store in product.productstore_set.all %}
+                                            <tr store_="{{ product_store.subsidiary_store.category }}" store_id="{{ product_store.id }}" sub_store="{{ product_store.subsidiary_store.id }}"
+                                                class="stock-row {% if product_store.subsidiary_store.subsidiary.id == subsidiary.id %}my-subsidiary bg-success text-white{% endif %}">
+                                                <td class="align-middle py-2 px-2" style="border-color: #e3f2fd !important;">
+                                                    <div class="custom-control custom-radio custom-control-inline mb-0">
+                                                        <input type="radio" id="radio-{{ product_store.subsidiary_store.id }}"
+                                                               name="group-radio"
+                                                               class="custom-control-input check-store" store="{{ product_store.subsidiary_store.id }}"
+                                                               {% if product_store.subsidiary_store.subsidiary.id == subsidiary.id %}checked{% endif %}>
+                                                        <label class="custom-control-label small" for="radio-{{ product_store.subsidiary_store.id }}">
+                                                            {{ product_store.subsidiary_store.subsidiary.name }}
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                                <td class="item-stock align-middle py-2 px-2 p-0" style="border-color: #e3f2fd !important;">
+                                                    {% for pd in product.productdetail_set.all %}
+                                                    <div class="row m-0 px-2 py-1" unit="{{ pd.unit }}" qm="{{ pd.quantity_minimum|safe }}">
+                                                        <div class="col-12 d-flex justify-content-center align-items-center border-top pt-1" style="border-color: #e3f2fd !important;">
+                                                            <span class="current-stock font-weight-bold">{{ product_store.stock|safe|divide_stock:pd.quantity_minimum|safe }}</span>
+                                                            <span class="type-unit small ml-1">({{ pd.unit }})</span>
+                                                        </div>
+                                                    </div>
+                                                    {% endfor %}
+                                                </td>
+                                                <td class="item-batch align-middle text-center py-2 px-2 {% if product_store.subsidiary_store.subsidiary.id != subsidiary.id %}d-none{% endif %}" style="border-color: #e3f2fd !important;">
+                                                    <button type="button" ps="{{ product_store.id }}"
+                                                            class="btn btn-warning btn-sm border-2 btn-batch btn-sales-rounded">
+                                                        <i class="fas fa-list-ul mr-1"></i>Ver
                                                     </button>
-                                                </div>
-                                            </div>
-                                            <span class="text-danger out-stock {% if product.productstore_set.all.first.subsidiary_store.subsidiary.id == subsidiary.id %}d-none{% endif %}">Sin Stock en Sede</span>
-{#                                            {% if product.productstore_set.all.first.subsidiary_store.subsidiary.id == subsidiary.id %}#}
-{#                                                <div class="row m-0 p-0">#}
-{#                                                    <div class="col text-center p-0">#}
-{#                                                        <button type="button" pk="{{ obj.id }}"#}
-{#                                                                ip="{{ obj.price_sale|safe }}"#}
-{#                                                                class="btn btn-outline-success btn-one p-1">#}
-{#                                                            S/ {{ obj.price_sale|replace_round }}#}
-{#                                                        </button>#}
-{#                                                    </div>#}
-{#                                                </div>#}
-{#                                            {% else %}#}
-{#                                                <span class="text-danger">Sin Stock en Sede</span>#}
-{#                                            {% endif %}#}
-                                        {% else %}
-                                            <span class="text-danger">Sin Stock</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-            <tfoot>
-            <tr class="text-center text-uppercase" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); font-size: 0.75rem;">
-                <th class="th-sm font-weight-bold text-white py-2 border-0" style="width: 30%;">Producto</th>
-                <th class="th-sm font-weight-bold text-white py-2 border-0" style="width: 35%;">Stock en sedes</th>
-                <th class="th-sm font-weight-bold text-white py-2 border-0" style="width: 35%;">Unidades</th>
-            </tr>
-            </tfoot>
-        </table>
+                                                    <input type="hidden" class="number-batch" value="0">
+                                                    <input type="hidden" class="batch-id" value="0" id="batch_id">
+                                                    <input type="hidden" class="stock-batch" value="" id="stock_batch">
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                            <td class="p-2 prices-table align-top" style="border-color: #e3f2fd !important;">
+                                <div class="prices-block rounded" style="overflow: hidden; border: 1px solid #bbdefb;">
+                                    <table class="table table-sm table-prices mb-0" style="border-color: #bbdefb !important;">
+                                        <thead>
+                                            <tr style="background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);">
+                                                <th class="small font-weight-bold py-2 px-2 border-0" style="color: #0d47a1;">P. Compra</th>
+                                                <th class="small font-weight-bold py-2 px-2 border-0 text-center" style="color: #0d47a1;">Cant. min.</th>
+                                                <th class="small font-weight-bold py-2 px-2 border-0 text-center" style="color: #0d47a1;">Cantidad</th>
+                                                <th class="small font-weight-bold py-2 px-2 border-0 text-center" style="color: #0d47a1;">Precios venta</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for obj in product.productdetail_set.all %}
+                                            <tr product="{{ product.id }}" productname="{{ product.name }}"
+                                                unit="{{ obj.unit.id }}" unitname="{{ obj.unit.name }}"
+                                                quantity_minum="{{ obj.quantity_minimum|safe }}" product_brand="{{ product.product_brand.name }}">
+                                                <td class="align-middle py-2 px-2 font-weight-bold quantity-sales-price" style="border-color: #e3f2fd !important;">
+                                                    <span style="color: #1565c0;">S/ {{ obj.price_purchase|round_fourth }}</span>
+                                                    <span class="d-block small font-weight-normal text-muted">{{ obj.update_at|date:"d/m/y" }}</span>
+                                                </td>
+                                                <td class="align-middle text-center py-2 px-2 quantity-minimum" style="border-color: #e3f2fd !important;">{{ obj.quantity_minimum|floatformat:0 }}</td>
+                                                <td class="align-middle py-2 px-2 quantity-sales-price" style="border-color: #e3f2fd !important;">
+                                                    <input type="number" class="form-control form-control-sm quantity-select text-center" min="0"
+                                                           onkeyup="if(this.value<0){this.value= this.value * -1}"
+                                                           placeholder="{{ obj.unit.name }}" value=""
+                                                           style="border-radius: 8px; border-color: #bbdefb;">
+                                                </td>
+                                                <td class="align-middle py-2 px-2 prices-list" style="border-color: #e3f2fd !important;">
+                                                    {% if product.productstore_set.all %}
+                                                    <div class="row m-0 price-select {% if product.productstore_set.all.first.subsidiary_store.subsidiary.id != subsidiary.id %}d-none{% endif %}">
+                                                        <div class="col text-center p-0">
+                                                            <button type="button" pk="{{ obj.id }}"
+                                                                    ip="{{ obj.price_sale|safe }}"
+                                                                    class="btn btn-outline-success btn-sm border-2 btn-sales-rounded">
+                                                                <i class="fas fa-cart-plus mr-1"></i>S/ {{ obj.price_sale|replace_round }}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <span class="small text-danger out-stock {% if product.productstore_set.all.first.subsidiary_store.subsidiary.id == subsidiary.id %}d-none{% endif %}">
+                                                        <i class="fas fa-exclamation-circle mr-1"></i>Sin stock en sede
+                                                    </span>
+                                                    {% else %}
+                                                    <span class="small text-danger"><i class="fas fa-times-circle mr-1"></i>Sin stock</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
+<style>
+    .sales-product-grid-wrapper #product-data-grid td,
+    .sales-product-grid-wrapper #product-data-grid th { border-color: #bbdefb !important; }
+    .sales-grid-table tbody .product-grid-row:hover { background-color: #f8fbfd !important; }
+    .stock-block .stock-row:hover:not(.my-subsidiary) { background-color: #f0f8fc !important; }
+    .btn-sales-rounded { border-radius: 12px !important; }
+</style>
 {% else %}
-    <div class="card border-0 shadow-sm p-4 text-center" style="border-radius: 15px; background-color: #f0f8fc;">
-        <p class="mb-0 roboto-condensed-regular" style="color: #1565c0;"><i class="fas fa-info-circle mr-2"></i>No hay productos registrados con ese nombre.</p>
+<div class="card border-0 shadow-sm roboto-condensed-regular" style="border-radius: 16px; overflow: hidden;">
+    <div class="card-body text-center py-5 px-4" style="background: linear-gradient(180deg, #f0f8fc 0%, #e3f2fd 100%);">
+        <i class="fas fa-search fa-3x mb-3" style="color: #90caf9;"></i>
+        <h6 class="font-weight-bold mb-1" style="color: #1565c0;">No hay productos con ese criterio</h6>
+        <p class="small text-muted mb-0">Pruebe con otro nombre o código</p>
     </div>
+</div>
 {% endif %}

@@ -6,56 +6,64 @@
 
 {% block body %}
 
-    <div class="container-fluid mt-2 roboto-condensed-regular">
-        <div class="row mb-3">
-            <div class="col-md-3 col-sm-12 mb-2">
-                <button type="button" onclick="showModalCreation('{% url 'sales:json_product_create' %}')"
-                        class="btn btn-success btn-block"><i class="fas fa-plus-square"></i> &nbsp; Nuevo producto
-                </button>
-            </div>
-            <div class="col-md-5 col-sm-12 d-flex align-items-end flex-column mb-2">
-                <!-- Espacio para futuras funcionalidades -->
-            </div>
-            <div class="col-md-2 col-sm-6 text-right font-weight-bold pt-2">
-                <label class="mb-0">BUSCAR PRODUCTO:</label>
-            </div>
-            <div class="col-md-2 col-sm-6">
-                <input type="text" id="myInput" class="form-control" placeholder="Introduzca un texto"/>
-            </div>
-        </div>
-
-        <!-- Navegación por tabs -->
-        <ul class="nav nav-tabs" id="productTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <a class="nav-link active" id="active-tab" data-toggle="tab" href="#active-products" role="tab" 
-                   aria-controls="active-products" aria-selected="true">
-                    <i class="fas fa-check-circle text-success"></i> Productos Activos
-                    <span class="badge badge-success ml-1">{{ products_active|length }}</span>
-                </a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" id="inactive-tab" data-toggle="tab" href="#inactive-products" role="tab" 
-                   aria-controls="inactive-products" aria-selected="false">
-                    <i class="fas fa-times-circle text-danger"></i> Productos Inactivos
-                    <span class="badge badge-danger ml-1">{{ products_inactive|length }}</span>
-                </a>
-            </li>
-        </ul>
-
-        <!-- Contenido de los tabs -->
-        <div class="tab-content" id="productTabsContent">
-            <div class="tab-pane fade show active" id="active-products" role="tabpanel" aria-labelledby="active-tab">
-                <div id="product-grid-list-active">
-                    {% include "sales/product_grid_list.html" with products=products_active %}
+    <div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
+        <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="border-radius: 15px;">
+            <div class="card-body border-bottom py-2 py-md-3" style="background-color: #f0f8fc;">
+                <div class="row align-items-center no-gutters">
+                    <div class="col-12 col-md-4 col-lg-3 mb-2 mb-md-0 pr-md-2">
+                        <button type="button" onclick="showModalCreation('{% url 'sales:json_product_create' %}')"
+                                class="btn btn-success btn-sm border-2 btn-sales-rounded w-100 py-2">
+                            <i class="fas fa-plus-square"></i> Nuevo producto
+                        </button>
+                    </div>
+                    <div class="col-12 col-md-4 col-lg-5 mb-2 mb-md-0">
+                        <!-- Espacio para futuras funcionalidades -->
+                    </div>
+                    <div class="col-12 col-md-4 col-lg-4 pl-md-0">
+                        <div class="input-group input-group-sm shadow-sm border rounded-pill overflow-hidden" style="border-color: #bbdefb !important;">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-white border-0 py-2"><i class="fas fa-search text-primary" style="font-size: 0.9rem;"></i></span>
+                            </div>
+                            <input type="text" id="myInput" class="form-control form-control-sm border-0 py-2" placeholder="Buscar producto..." style="font-size: 0.875rem;"/>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="tab-pane fade" id="inactive-products" role="tabpanel" aria-labelledby="inactive-tab">
-                <div id="product-grid-list-inactive">
-                    {% include "sales/product_grid_list.html" with products=products_inactive %}
+
+            <div class="card-body p-0 p-md-3" style="background-color: #e3f2fd;">
+                <!-- Navegación por tabs -->
+                <ul class="nav nav-tabs px-2 px-md-3 pt-2" id="productTabs" role="tablist" style="border-bottom-color: #bbdefb;">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active" id="active-tab" data-toggle="tab" href="#active-products" role="tab"
+                           aria-controls="active-products" aria-selected="true" style="color: #0d47a1; font-weight: 600;">
+                            <i class="fas fa-check-circle text-success"></i> Productos Activos
+                            <span class="badge badge-success ml-1">{{ products_active|length }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link" id="inactive-tab" data-toggle="tab" href="#inactive-products" role="tab"
+                           aria-controls="inactive-products" aria-selected="false" style="color: #0d47a1; font-weight: 600;">
+                            <i class="fas fa-times-circle text-danger"></i> Productos Inactivos
+                            <span class="badge badge-danger ml-1">{{ products_inactive|length }}</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Contenido de los tabs -->
+                <div class="tab-content pt-3" id="productTabsContent">
+                    <div class="tab-pane fade show active" id="active-products" role="tabpanel" aria-labelledby="active-tab">
+                        <div id="product-grid-list-active">
+                            {% include "sales/product_grid_list.html" with products=products_active %}
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="inactive-products" role="tabpanel" aria-labelledby="inactive-tab">
+                        <div id="product-grid-list-inactive">
+                            {% include "sales/product_grid_list.html" with products=products_inactive %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>
 
 
@@ -73,109 +81,111 @@
          aria-hidden="true"></div>
 
     <style>
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+            border-color: #1e3a5f;
+        }
+        .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger, .btn-outline-secondary {
+            border-width: 2px;
+        }
+        .btn-sales-rounded {
+            border-radius: 12px !important;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
         .nav-tabs .nav-link {
             border: 1px solid transparent;
             border-top-left-radius: 0.25rem;
             border-top-right-radius: 0.25rem;
             font-weight: 500;
         }
-
         .nav-tabs .nav-link.active {
-            color: #495057;
+            color: #0d47a1 !important;
             background-color: #fff;
-            border-color: #dee2e6 #dee2e6 #fff;
+            border-color: #bbdefb #bbdefb #fff;
         }
-
         .nav-tabs .nav-link:hover {
-            border-color: #e9ecef #e9ecef #dee2e6;
+            border-color: #90caf9 #90caf9 #bbdefb;
+            color: #1565c0;
         }
-
         .product-card {
             transition: all 0.3s ease;
         }
-
         .product-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(30, 58, 95, 0.15);
         }
-
         .product-code {
             font-family: 'Courier New', monospace;
             font-size: 0.85rem;
-            color: #6c757d;
+            color: #0d47a1;
         }
-
         .product-internal-code {
             font-family: 'Courier New', monospace;
             font-size: 0.8rem;
-            color: #495057;
+            color: #1565c0;
             font-weight: 500;
         }
-
         .stock-info {
             font-size: 0.9rem;
         }
-
         .price-info {
             font-weight: 600;
-            color: #28a745;
+            color: #1565c0;
         }
-
         .unit-info {
             font-size: 0.85rem;
-            color: #6c757d;
+            color: #5c6bc0;
         }
-
         .stock, .units {
-            border: 1px solid #dee2e6 !important;
+            border: 1px solid #bbdefb !important;
         }
-
         .stock .border-top, .units .border-top {
-            border-top: 1px solid #dee2e6 !important;
+            border-top: 1px solid #bbdefb !important;
         }
-
         .stock .border-bottom, .units .border-bottom {
-            border-bottom: 1px solid #dee2e6 !important;
+            border-bottom: 1px solid #bbdefb !important;
         }
-
         .stock .border-right, .units .border-right {
-            border-right: 1px solid #dee2e6 !important;
+            border-right: 1px solid #bbdefb !important;
         }
-
         .stock .border-left, .units .border-left {
-            border-left: 1px solid #dee2e6 !important;
+            border-left: 1px solid #bbdefb !important;
         }
-
         .stock-info, .price-info {
-            border-bottom: 1px solid #e9ecef !important;
+            border-bottom: 1px solid #e3f2fd !important;
         }
-
         .dropdown-item:hover {
             color: #fff !important;
-            background-color: #007bff;
+            background: linear-gradient(90deg, #90caf9 0%, #64b5f6 100%);
         }
-
         .dropdown-item:hover i {
             color: #fff !important;
         }
-
+        #productTabsContent table.product-data-table td,
+        #productTabsContent table.product-data-table th {
+            border-color: #bbdefb !important;
+        }
         @media (max-width: 768px) {
             .table-responsive {
                 font-size: 0.85rem;
             }
-            
             .btn-group .btn {
                 padding: 0.25rem 0.5rem;
                 font-size: 0.8rem;
             }
         }
-
         @media (max-width: 576px) {
             .nav-tabs .nav-link {
                 font-size: 0.9rem;
                 padding: 0.5rem 0.75rem;
             }
-            
             .badge {
                 font-size: 0.7rem;
             }
