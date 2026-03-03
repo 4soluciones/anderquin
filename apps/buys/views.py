@@ -618,13 +618,16 @@ def get_units_product(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
-
-    product_store_obj = ProductStore.objects.filter(product_id=id_product,
+    stock = 0
+    product_store_set = ProductStore.objects.filter(product_id=id_product,
                                                     subsidiary_store__subsidiary=subsidiary_obj,
-                                                    subsidiary_store__category='V').first()
+                                                    subsidiary_store__category='V')
+    if product_store_set.exists():
+        product_store_obj = product_store_set.last()
+        stock = product_store_obj.stock
     return JsonResponse({
         'units': units_serialized_obj,
-        'stock': product_store_obj.stock,
+        'stock': stock,
     }, status=HTTPStatus.OK)
 
 
