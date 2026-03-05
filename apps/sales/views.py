@@ -4014,9 +4014,21 @@ def get_product_grid(request):
 def check_stock(request):
     if request.method == 'GET':
         flag = True
-        quantity = decimal.Decimal(request.GET.get('quantity', ''))
-        product_id = int(request.GET.get('product', ''))
-        store_id = int(request.GET.get('store_id', ''))
+        store_id_raw = request.GET.get('store_id', '').strip()
+        if not store_id_raw:
+            return JsonResponse({
+                'error': 'Falta store_id. Seleccione una sede/almacén para el producto.',
+                'flag': False
+            }, status=HTTPStatus.BAD_REQUEST)
+        try:
+            quantity = decimal.Decimal(request.GET.get('quantity', ''))
+            product_id = int(request.GET.get('product', ''))
+            store_id = int(store_id_raw)
+        except (ValueError, TypeError) as e:
+            return JsonResponse({
+                'error': 'Parámetros inválidos (quantity, product o store_id).',
+                'flag': False
+            }, status=HTTPStatus.BAD_REQUEST)
 
         user_id = request.user.id
         user_obj = User.objects.get(pk=int(user_id))

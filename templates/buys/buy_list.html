@@ -5,8 +5,9 @@
 
 {% block body %}
 
+    <div class="container-fluid py-2 px-2 px-md-3 roboto-condensed-regular bg-light buys-responsive" style="min-height: 100vh;">
     <!-- Card principal del título -->
-    <div class="card m-2 shadow-sm roboto-condensed-regular"{% if contract_detail_obj %} style="background: #62a239" {% else %} style="background: #3e6787"{% endif %}>
+    <div class="card card-buy-title m-1 m-md-2 border-0 shadow-lg roboto-condensed-regular overflow-hidden" style="border-radius: 15px; {% if contract_detail_obj %} background: #62a239 {% else %} background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%) {% endif %}">
         <div class="card-body py-3 pr-2">
             <div class="row align-items-center">
                 <div class="col-12 col-md-6 col-lg-8">
@@ -55,7 +56,7 @@
                         <div class="col-12 col-md-4 mb-2 mb-md-0">
                             <button type="button" 
                                     onclick="showModalViewSupplier('modal_supplier_create')"
-                                    class="btn btn-outline-primary btn-block btn-sm">
+                                    class="btn btn-outline-primary btn-block btn-sm btn-sales-rounded border-2">
                                 <i class="fa fa-plus mr-1"></i>
                                 Nuevo Proveedor
                             </button>
@@ -91,14 +92,14 @@
     </div>
 
     <!-- Card principal del contenido -->
-    <div class="card m-2 roboto-condensed-regular">
-        <div class="card-body p-0">
+    <div class="card m-1 m-md-2 border-0 shadow-lg roboto-condensed-regular overflow-hidden" style="border-radius: 15px;">
+        <div class="card-body p-0 bg-light">
             <!-- Sección de datos de la orden y referencia -->
             <div class="row g-0">
                 <!-- Datos de la orden -->
                 <div class="col-12 col-lg-5 pr-0">
                     <div class="h-100 border-end">
-                        <div class="card-header bg-light py-0 px-0">
+                        <div class="card-header py-0 px-0" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%);">
                             <div class="row align-items-center">
                                 <div class="col-8">
                                     <h6 class="mb-0 font-weight-bold text-dark roboto-condensed-regular">
@@ -125,7 +126,7 @@
                 <!-- Referencia de venta -->
                 <div class="col-12 col-lg-7 pl-0">
                     <div class="h-100">
-                        <div class="card-header bg-light py-2 px-3">
+                        <div class="card-header py-2 px-3" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%);">
                             <h6 class="mb-0 font-weight-bold text-dark roboto-condensed-regular">
                                 <i class="fa fa-shopping-cart mr-2"></i>
                                 DATOS CLIENTE
@@ -139,8 +140,8 @@
             </div>
             
             <!-- Sección de detalles de la tabla -->
-            <div class="border-top">
-                <div class="card-header bg-light py-2 px-3">
+            <div class="border-top" style="border-color: #bbdefb !important;">
+                <div class="card-header py-2 px-3" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%);">
                     <h6 class="mb-0 font-weight-bold text-dark roboto-condensed-regular">
                         <i class="fa fa-list-alt mr-2"></i>
                         DETALLES DE LA ORDEN
@@ -185,7 +186,133 @@
         </div>
     </div>
 
+    <div class="modal fade" id="add-modal" tabindex="-1" role="dialog"
+         aria-labelledby="ModalHelpTitle" data-backdrop="static" data-keyboard="false"
+         aria-hidden="true"></div>
+
+    </div><!-- fin container-fluid -->
+
     <style>
+        /* Estilos compartidos con sales_list */
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+            border-color: #1e3a5f;
+        }
+        .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger, .btn-outline-secondary {
+            border-width: 2px;
+        }
+        .btn-sales-rounded,
+        .btn-outline-primary,
+        .btn-outline-success,
+        .btn-outline-warning {
+            border-radius: 12px !important;
+        }
+        /* Chrome, Safari, Edge, Opera - ocultar flechas input number */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        /* Tablas - bordes estilo sales */
+        #id_detail_data_grid td,
+        #id_detail_data_grid th,
+        #id_debs_grid td,
+        #id_debs_grid th {
+            border-color: #bbdefb !important;
+        }
+        /* Autocomplete cliente - dropdown opaco estilo sales */
+        #autocomplete-client { position: relative; }
+        .autocomplete-result-list {
+            list-style: none;
+            margin: 4px 0 0 0;
+            padding: 0;
+            max-height: 280px;
+            overflow-y: auto;
+            background: #ffffff !important;
+            border: 1px solid #bbdefb;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(30, 58, 95, 0.2);
+            font-size: 0.8125rem;
+            min-width: 100%;
+            box-sizing: border-box;
+            z-index: 1060 !important;
+            position: absolute !important;
+        }
+        .autocomplete-result-list li {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e3f2fd;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            background: #ffffff !important;
+        }
+        .autocomplete-result-list li:last-child { border-bottom: none; }
+        .autocomplete-result-list li[aria-selected="true"],
+        .autocomplete-result-list li:hover {
+            background: linear-gradient(90deg, #e3f2fd 0%, #f0f8fc 100%) !important;
+        }
+        .autocomplete-result-list li .h6 {
+            font-size: 0.875rem;
+            margin-bottom: 2px;
+            color: #0d47a1;
+        }
+
+        /* Autocomplete producto - estilo profesional */
+        .autocomplete-product-buy { position: relative; }
+        .autocomplete-product-buy .autocomplete-input {
+            background-image: none !important;
+            text-align: left !important;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 0.4rem 0.75rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .autocomplete-product-buy .autocomplete-input:focus {
+            border-color: #90caf9;
+            box-shadow: 0 0 0 3px rgba(144, 202, 249, 0.25);
+            outline: none;
+        }
+        .autocomplete-product-dropdown {
+            list-style: none;
+            margin: 6px 0 0 0;
+            padding: 0;
+            max-height: 320px;
+            overflow-y: auto;
+            background: #ffffff !important;
+            border: 1px solid #e3e8ef;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+            font-size: 0.875rem;
+            min-width: 100%;
+            box-sizing: border-box;
+            z-index: 1060 !important;
+            position: absolute !important;
+        }
+        .autocomplete-product-dropdown li {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f0f4f8;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: #ffffff !important;
+        }
+        .autocomplete-product-dropdown li:last-child { border-bottom: none; }
+        .autocomplete-product-dropdown li[aria-selected="true"],
+        .autocomplete-product-dropdown li:hover {
+            background: linear-gradient(90deg, #f8fbfd 0%, #eef5fc 100%) !important;
+        }
+        .autocomplete-product-dropdown li .product-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1a237e;
+            margin-bottom: 2px;
+        }
+        .autocomplete-product-dropdown li .product-brand {
+            font-size: 0.75rem;
+            color: #5c6bc0;
+        }
+
         .input-icon {
             position: relative;
         }
@@ -217,47 +344,42 @@
         }
 
         /* Estilos para el card del título */
-        .card.shadow-sm {
+        .card-buy-title {
             border: none;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
         }
         
-        .card.shadow-sm .card-body {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        .card-buy-title .card-body {
+            background: transparent;
         }
         
         /* Estilos para cuando hay contrato (fondo verde) */
-        .card.shadow-sm[style*="background: #62a239"] .card-body {
+        .card-buy-title[style*="background: #62a239"] .card-body {
             background: linear-gradient(135deg, #62a239 0%, #4a7c2a 100%);
         }
         
-        .card.shadow-sm[style*="background: #62a239"] .text-primary {
+        .card-buy-title[style*="background: #62a239"] .text-primary {
             color: #ffffff !important;
         }
         
-        .card.shadow-sm[style*="background: #62a239"] .text-muted {
+        .card-buy-title[style*="background: #62a239"] .text-muted {
             color: #e8f5e8 !important;
         }
         
-        .card.shadow-sm[style*="background: #62a239"] .fa {
+        .card-buy-title[style*="background: #62a239"] .fa {
             color: #ffffff !important;
         }
         
-        /* Estilos para cuando no hay contrato (fondo azul) */
-        .card.shadow-sm[style*="background: #3e6787"] .card-body {
-            background: linear-gradient(135deg, #3e6787 0%, #2d4d63 100%);
+        /* Estilos para cuando no hay contrato (fondo azul gradient) */
+        .card-buy-title[style*="linear-gradient"] .text-primary {
+            color: #0d47a1 !important;
         }
         
-        .card.shadow-sm[style*="background: #3e6787"] .text-primary {
-            color: #ffffff !important;
+        .card-buy-title[style*="linear-gradient"] .text-muted {
+            color: #1565c0 !important;
         }
         
-        .card.shadow-sm[style*="background: #3e6787"] .text-muted {
-            color: #b8d4e6 !important;
-        }
-        
-        .card.shadow-sm[style*="background: #3e6787"] .fa {
-            color: #ffffff !important;
+        .card-buy-title[style*="linear-gradient"] .fa {
+            color: #0d47a1 !important;
         }
         
         .text-primary {
@@ -276,26 +398,26 @@
         }
         
         /* Estilos para botones en cards con fondo de color */
-        .card.shadow-sm[style*="background: #62a239"] .btn-outline-primary {
+        .card-buy-title[style*="background: #62a239"] .btn-outline-primary {
             border-color: #ffffff;
             color: #ffffff;
         }
         
-        .card.shadow-sm[style*="background: #62a239"] .btn-outline-primary:hover {
+        .card-buy-title[style*="background: #62a239"] .btn-outline-primary:hover {
             background-color: #ffffff;
             border-color: #ffffff;
             color: #62a239;
         }
         
-        .card.shadow-sm[style*="background: #3e6787"] .btn-outline-primary {
-            border-color: #ffffff;
-            color: #ffffff;
+        .card-buy-title[style*="linear-gradient"] .btn-outline-primary {
+            border-color: #0d47a1;
+            color: #0d47a1;
         }
         
-        .card.shadow-sm[style*="background: #3e6787"] .btn-outline-primary:hover {
-            background-color: #ffffff;
-            border-color: #ffffff;
-            color: #3e6787;
+        .card-buy-title[style*="linear-gradient"] .btn-outline-primary:hover {
+            background-color: #0d47a1;
+            border-color: #0d47a1;
+            color: #ffffff;
         }
         
         .input-group-text {
@@ -304,36 +426,36 @@
         }
         
         /* Estilos para controles en cards con fondo de color */
-        .card.shadow-sm[style*="background: #62a239"] .input-group-text {
+        .card-buy-title[style*="background: #62a239"] .input-group-text {
             background-color: #ffffff;
             border-color: #ffffff;
             color: #62a239;
         }
         
-        .card.shadow-sm[style*="background: #3e6787"] .input-group-text {
+        .card-buy-title[style*="linear-gradient"] .input-group-text {
             background-color: #ffffff;
-            border-color: #ffffff;
-            color: #3e6787;
+            border-color: #bbdefb;
+            color: #0d47a1;
         }
         
-        .card.shadow-sm[style*="background: #62a239"] .form-control {
-            background-color: #ffffff;
-            border-color: #ffffff;
-            color: #333333;
-        }
-        
-        .card.shadow-sm[style*="background: #3e6787"] .form-control {
+        .card-buy-title[style*="background: #62a239"] .form-control {
             background-color: #ffffff;
             border-color: #ffffff;
             color: #333333;
         }
         
-        .card.shadow-sm[style*="background: #62a239"] .form-text {
+        .card-buy-title[style*="linear-gradient"] .form-control {
+            background-color: #ffffff;
+            border-color: #bbdefb;
+            color: #333333;
+        }
+        
+        .card-buy-title[style*="background: #62a239"] .form-text {
             color: #e8f5e8 !important;
         }
         
-        .card.shadow-sm[style*="background: #3e6787"] .form-text {
-            color: #b8d4e6 !important;
+        .card-buy-title[style*="linear-gradient"] .form-text {
+            color: #1565c0 !important;
         }
         
         /* Estilos para el checkbox de O/C sin referencia */
@@ -348,12 +470,12 @@
         }
         
         /* Estilos para cards con fondo de color */
-        .card.shadow-sm[style*="background: #62a239"] .form-check-label {
+        .card-buy-title[style*="background: #62a239"] .form-check-label {
             color: #ffffff !important;
         }
         
-        .card.shadow-sm[style*="background: #3e6787"] .form-check-label {
-            color: #ffffff !important;
+        .card-buy-title[style*="linear-gradient"] .form-check-label {
+            color: #0d47a1 !important;
         }
         
         /* Estilos responsive para el formulario principal */
@@ -399,15 +521,15 @@
             }
             
             /* Ajustes para el card del título en móviles */
-            .card.shadow-sm .card-body {
+            .card-buy-title .card-body {
                 padding: 1rem;
             }
             
-            .card.shadow-sm h4 {
+            .card-buy-title h4 {
                 font-size: 1.25rem;
             }
             
-            .card.shadow-sm .fa {
+            .card-buy-title .fa {
                 font-size: 1.5rem !important;
             }
             
@@ -446,15 +568,15 @@
             }
             
             /* Ajustes específicos para móviles pequeños */
-            .card.shadow-sm .card-body {
+            .card-buy-title .card-body {
                 padding: 0.75rem;
             }
             
-            .card.shadow-sm h4 {
+            .card-buy-title h4 {
                 font-size: 1.1rem;
             }
             
-            .card.shadow-sm p {
+            .card-buy-title p {
                 font-size: 0.875rem;
             }
             
@@ -569,32 +691,31 @@
         }
 
         /* Estilos para el card principal del contenido */
-        .card.m-2.roboto-condensed-regular {
-            border: 1px solid #dee2e6;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        .card.roboto-condensed-regular:not(.card-buy-title) {
+            border: none;
         }
 
-        .card.m-2.roboto-condensed-regular .card-body {
+        .card.roboto-condensed-regular:not(.card-buy-title) .card-body {
             padding: 0;
         }
 
-        .card.m-2.roboto-condensed-regular .card-header {
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
+        .card.roboto-condensed-regular:not(.card-buy-title) .card-header {
+            border-bottom: 1px solid #bbdefb;
             font-size: 0.875rem;
         }
 
-        .card.m-2.roboto-condensed-regular .card-header h6 {
+        .card.roboto-condensed-regular:not(.card-buy-title) .card-header h6 {
             font-size: 0.875rem;
             font-weight: 600;
+            color: #0d47a1;
         }
 
-        .card.m-2.roboto-condensed-regular .card-header i {
-            color: #6c757d;
+        .card.roboto-condensed-regular:not(.card-buy-title) .card-header i {
+            color: #0d47a1;
         }
 
         .border-end {
-            border-right: 1px solid #dee2e6 !important;
+            border-right: 1px solid #bbdefb !important;
         }
 
         /* Responsive para el layout principal */
@@ -611,15 +732,15 @@
         }
 
         @media (max-width: 768px) {
-            .card.m-2.roboto-condensed-regular .card-header {
+            .card.roboto-condensed-regular:not(.card-buy-title) .card-header {
                 padding: 0.5rem 0.75rem;
             }
             
-            .card.m-2.roboto-condensed-regular .card-body {
+            .card.roboto-condensed-regular:not(.card-buy-title) .card-body {
                 padding: 0.75rem;
             }
             
-            .card.m-2.roboto-condensed-regular .card-header h6 {
+            .card.roboto-condensed-regular:not(.card-buy-title) .card-header h6 {
                 font-size: 0.8rem;
             }
             
@@ -629,21 +750,77 @@
         }
 
         @media (max-width: 576px) {
-            .card.m-2.roboto-condensed-regular .card-header {
+            .card.roboto-condensed-regular:not(.card-buy-title) .card-header {
                 padding: 0.375rem 0.5rem;
             }
             
-            .card.m-2.roboto-condensed-regular .card-body {
+            .card.roboto-condensed-regular:not(.card-buy-title) .card-body {
                 padding: 0.5rem;
             }
             
-            .card.m-2.roboto-condensed-regular .card-header h6 {
+            .card.roboto-condensed-regular:not(.card-buy-title) .card-header h6 {
                 font-size: 0.75rem;
             }
             
             .form-check-label {
                 font-size: 0.75rem;
             }
+        }
+
+        /* ========== RESPONSIVE COMPLETO - Móviles, tablets, pantallas pequeñas ========== */
+        @media (max-width: 576px) {
+            .buys-responsive { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+            .card-buy-title .card-body { padding: 0.75rem !important; }
+            .card-buy-title h4 { font-size: 1rem !important; }
+            .card-buy-title .fa { font-size: 1.25rem !important; }
+            .card-buy-title .form-check-label { font-size: 0.75rem !important; }
+            .card-buy-title .btn { padding: 0.4rem 0.5rem; font-size: 0.75rem; }
+            .card-buy-title .input-group-sm .form-control { font-size: 0.8rem; }
+            #render-table { padding: 0.5rem !important; margin: 0 -0.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .autocomplete-product-dropdown { max-height: 220px; font-size: 0.8rem; left: 0 !important; right: 0 !important; width: 100% !important; }
+        }
+        @media (max-width: 768px) {
+            .buys-responsive { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+            .card-buy-title .row > .col-12 { margin-bottom: 0.5rem; }
+            .card-buy-title .col-12.col-md-4 { margin-bottom: 0.5rem; }
+            #render-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .autocomplete-product-dropdown { max-height: 260px; }
+        }
+        @media (max-width: 991.98px) {
+            .buys-responsive .col-lg-5 .card-body,
+            .buys-responsive .col-lg-7 .card-body { padding: 1rem !important; }
+        }
+        /* Tabla detalles - scroll horizontal en pantallas pequeñas */
+        #render-table { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        #id_detail_data_grid { min-width: 700px; }
+        @media (max-width: 768px) {
+            #id_detail_data_grid { min-width: 650px; font-size: 0.8rem; }
+            #id_detail_data_grid th, #id_detail_data_grid td { padding: 0.35rem !important; }
+            #id_detail_data_grid .form-control { font-size: 0.75rem; padding: 0.25rem 0.35rem; }
+            #id_detail_data_grid .btn { padding: 0.25rem 0.4rem; font-size: 0.75rem; }
+            .autocomplete-product-buy .autocomplete-input { font-size: 0.8rem; padding: 0.35rem 0.5rem; }
+        }
+        @media (max-width: 576px) {
+            #id_detail_data_grid { min-width: 580px; font-size: 0.75rem; }
+            #id_detail_data_grid th, #id_detail_data_grid td { padding: 0.25rem !important; }
+            #id_detail_data_grid .form-control { font-size: 0.7rem; padding: 0.2rem 0.3rem; }
+        }
+        /* buy_register - botones y formulario apilados en móvil */
+        @media (max-width: 576px) {
+            .buys-responsive .row.pt-4 .col-sm-4 { margin-bottom: 0.5rem; }
+            .buys-responsive .row.pt-4 .col-sm-4:last-child { margin-bottom: 0; }
+            .buys-responsive .row.p-1 .col-sm-4,
+            .buys-responsive .row.p-1 .col-sm-8 { margin-bottom: 0.5rem; }
+        }
+        /* Autocomplete cliente - ancho completo en móvil */
+        @media (max-width: 576px) {
+            #autocomplete-client { width: 100%; }
+            .autocomplete-result-list { max-height: 200px; }
+        }
+        /* Modal fullscreen en móviles muy pequeños */
+        @media (max-width: 576px) {
+            #add-modal .modal-dialog { margin: 0.5rem; max-width: calc(100% - 1rem); }
+            #add-modal .modal-xl { max-width: 100%; }
         }
     </style>
 
@@ -716,11 +893,13 @@
                         options += '<option value="' + item.units[i].unit_id + '" qm="' + item.units[i].quantity_minimum + '">' + item.units[i].unit_name + ' (' + item.units[i].quantity_minimum + item.units[i].unit_name + ')' + '</option>';
                     }
 
+                    let rowNum = $('#details-table tr').length + 1;
                     let newRow = '<tr class="text-center" product="' + item.product_id + '">' +
                         '<td class="item-numero align-middle">' + '</td>' +
                         '<td class="align-middle text-left product-item-table">' +
-                        '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
-                        '               data-toggle="dropdown" aria-expanded="false" placeholder="Ingrese producto..." value="' + item.product_name + '" ' + 'iv class="dropdown-menu"></div>' + '</td>' +
+                        '<div id="autocomplete-product-row-' + rowNum + '" class="autocomplete autocomplete-product-buy">' +
+                        '<input type="text" class="form-control text-uppercase product-table autocomplete-input" placeholder="Buscar producto..." value="' + item.product_name + '" disabled>' +
+                        '<ul class="autocomplete-result-list autocomplete-product-dropdown"></ul></div>' +
                         clientColumn +
                         '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0" value="' + item.quantity + '">' + '</td>' +
                         '<td class="align-middle unit text-center">' +
@@ -735,7 +914,7 @@
                         '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
                         '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
                         '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
-                        '<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                        '<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-outline-danger btn-sm delete-detail btn-sales-rounded border-2"><i class="fa fa-trash"></i></button>' + '</td>' +
                         '</tr>';
 
                     $('#id_detail_data_grid > tbody').append(newRow);
@@ -745,6 +924,7 @@
             setTimeout(function () {
                 $(".unit-product").trigger('change');
             }, 500);
+            productAutocompleteCounter = $('#details-table tr').length;
         }
 
         loader = '<div class="container">' +
@@ -908,120 +1088,72 @@
 
         }
 
-        $(document).on('focusin', '.product-table', function (e) {
-            let _tr = $(this).parent('td').parent('tr')
-            $(this).val(' ');
-            let _select = _tr.find('td.unit select.unit-product');
-            _select.empty();
-            let option = $('<option>').val(0).text('Seleccione');
-            _select.append(option);
-            $(this).parent('td').find('div.dropdown-menu').css({
-                'background-color': 'transparent',
-                'border': 'transparent'
-                // 'margin-top': '10px'
-            })
-            //$('#id_unit_product').val('0')
-        });
-
-        $(document).on('keypress', '.product-table', function (e) {
-
-            $(this).parent('td').find('div.dropdown-menu').empty();
-            let _select_unit = $(this).parent('td').parent('tr').find('td.unit select.unit-product');
-            let _select_quantity_unit = $(this).parent('td').parent('tr').find('td.item-quantity-x-unit select.quantity-unit');
-
-            if (e.keyCode === 13) {
-
-                e.preventDefault()
-
-                $(this).trigger("enterKey");
-                let _product_name = $(this).val();
-                // let _td = $(this).parent('div.btn-group').parent('td')
-                let _td = $(this).parent('td')
-                let _menu = _td.find('.dropdown-menu')
-
-                if (_product_name.length > 3) {
-
-                    $.ajax({
-                        url: '/buys/get_product_by_criteria_table/',
-                        async: true,
-                        dataType: 'json', // for response
-                        type: 'GET',
-                        data: {
-                            'value': _product_name,
-                        },
-                        contentType: 'application/json;charset=UTF-8',
-                        headers: {"X-CSRFToken": '{{ csrf_token }}'},
-                        success: function (response, textStatus, xhr) {
-                            if (xhr.status === 200) {
-                                _select_unit.empty()
-                                _select_quantity_unit.empty()
-                                //console.log(response.productList[0].unit_dict)
-                                let _unit_dict = response.productList[0].unit_dict
-                                let list = response.productList;
-                                _menu.css({'background-color': '#fff', 'border': '1px solid rgba(0,0,0,.15)'})
-                                for (let i = 0; i < list.length; i++) {
-                                    let unit_dict = JSON.stringify(list[i].unit_dict)
-                                    //console.log(JSON.stringify(list[i].unit_dict, null, 2))
-                                    _menu.append(`<a class="dropdown-item product-item" unit='${unit_dict}'  brand="${list[i].brand}" href="#" data-id="${list[i].id}">${list[i].name} - ${list[i].brand}</a>`)
-                                }
-                                /*_select_unit.append($('<option>').text('Seleccione'));
-                                for (let i = 0; i < _unit_dict.length; i++) {
-                                    let option = $('<option>').val(_unit_dict[i].unit_id).text(_unit_dict[i].unit_name);
-                                    _select_unit.append(option);
-                                }*/
-
-                            }
-                        },
-                        error: function (jqXhr, textStatus, xhr) {
-                            if (jqXhr.status === 500) {
-                                toastr.error(jqXhr.responseJSON.error, 'Mensaje');
-                            } else {
-                                if (textStatus === 'timeout') {
-                                    toastr.error('Failed from timeout', 'Mensaje');
-                                } else {
-                                    console.log(" STATUS: " + xhr + " " + textStatus);
-                                }
-                            }
-                        }
+        let productAutocompleteCounter = 1;
+        function initProductAutocomplete(rowId) {
+            const selector = '#autocomplete-product-row-' + rowId;
+            const root = document.querySelector(selector);
+            if (!root || root.dataset.autocompleteInit === 'true') return;
+            root.dataset.autocompleteInit = 'true';
+            new Autocomplete(selector, {
+                autoSelect: true,
+                debounceTime: 250,
+                search: input => {
+                    const url = `/buys/get_product_autocomplete_buys/?search=${encodeURIComponent(input)}`;
+                    return new Promise(resolve => {
+                        if (input.length < 2) return resolve([]);
+                        fetch(url)
+                            .then(res => res.json())
+                            .then(data => resolve(data.product || []));
                     });
-                } else {
-                    toastr.warning('Para la busqueda ingrese minimo 3 caracteres', 'Error de llenado');
-                    return false;
+                },
+                renderResult: (result, props) => {
+                    return `<li ${props}>
+                        <div class="product-name">${result.names}</div>
+                        <div class="product-brand">Marca: ${result.brand || '-'}</div>
+                    </li>`;
+                },
+                getResultValue: result => result.names,
+                onSubmit: function(result) {
+                    if (!result) return;
+                    const $root = $(selector);
+                    const $tr = $root.closest('tr');
+                    const $selectUnit = $tr.find('td.unit select.unit-product');
+                    $tr.attr('product', result.id);
+                    $root.find('input.product-table').val(result.names);
+                    $selectUnit.empty().append($('<option>').val(0).text('Seleccione'));
+                    const units = result.unit_dict || [];
+                    units.forEach(u => {
+                        const qm = Number(u.quantity_minimum || 1).toFixed(0);
+                        const unitLabel = (u.unit_name || u.unit_code || 'UND') + ' (' + qm + 'UND)';
+                        $selectUnit.append($('<option>').val(u.unit_id).text(unitLabel).attr('qm', qm));
+                    });
+                    if (units.length > 0) {
+                        $selectUnit.val(units[0].unit_id).trigger('change');
+                    }
                 }
+            });
+        }
+
+        function applyProductToRow($tr, result) {
+            const $selectUnit = $tr.find('td.unit select.unit-product');
+            $tr.attr('product', result.id);
+            $tr.find('input.product-table').val(result.names);
+            $selectUnit.empty().append($('<option>').val(0).text('Seleccione'));
+            const units = result.unit_dict || [];
+            units.forEach(u => {
+                const qm = Number(u.quantity_minimum || 1).toFixed(0);
+                const unitLabel = (u.unit_name || u.unit_code || 'UND') + ' (' + qm + 'UND)';
+                $selectUnit.append($('<option>').val(u.unit_id).text(unitLabel).attr('qm', qm));
+            });
+            if (units.length > 0) {
+                $selectUnit.val(units[0].unit_id).trigger('change');
             }
-        });
+        }
 
-
-        $(document).on('click', '.product-item', function (e) {
-
-            let _product_id = $(this).attr('data-id');
-            let _unit_dict = $(this).attr('unit');
-            let _product_name = $(this).text();
-            let _tr = $(this).parent('div.dropdown-menu').parent('td').parent('tr')
-            let _td = $(this).parent('div.dropdown-menu').parent('td')
-            let _select_unit = _tr.find('td.unit select.unit-product');
-            //let _select_unit_quantity = _tr.find('td.item-quantity-x-unit select.quantity-unit');
-            _tr.attr('product', _product_id);
-            _td.find('input.product-table').val(_product_name);
-            _select_unit.append($('<option>').val(0).text('Seleccione'));
-            //_select_unit_quantity.append($('<option>').val(0).text('Seleccione'));
-            let units = JSON.parse(_unit_dict);
-            //console.log(units)
-            for (let i = 0; i < units.length; i++) {
-                let _quantity_minimum = Number(units[i].quantity_minimum).toFixed(0);
-                // let option = $('<option>').val(units[i].unit_id).text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')');
-                let option = $('<option>')
-                    .val(units[i].unit_id)
-                    .text(units[i].unit_name + ' ' + '(' + _quantity_minimum + 'UND' + ')')
-                    .attr('qm', _quantity_minimum);
-                //let option2 = $('<option>').val(units[i].unit_id).text(units[i].unit_name);
-
-                _select_unit.append(option);
-                //_select_unit_quantity.append(option2);
+        $(document).ready(function() {
+            if (document.querySelector('#autocomplete-product-row-1')) {
+                initProductAutocomplete(1);
             }
-
-            $(this).parent('div.dropdown-menu').empty()
-            $(this).parent('div.dropdown-menu').addClass('hide')
         });
 
         function get_units_by_product($product_id, _tr) {
@@ -1734,12 +1866,15 @@
                     '</td>';
             }
 
+            productAutocompleteCounter++;
+            let newRowNum = productAutocompleteCounter;
             $('#id_detail_data_grid > tbody').append(
                 '<tr class="text-center">' +
                 '<td class="item-numero align-middle">' + '</td>' +
                 '<td class="align-middle text-left product-item-table">' +
-                '<input type="text" class="form-control text-uppercase product-table dropdown-toggle" ' +
-                '               data-toggle="dropdown" aria-expanded="false" placeholder="Ingrese producto...">' + '<div class="dropdown-menu"></div>' + '</td>' +
+                '<div id="autocomplete-product-row-' + newRowNum + '" class="autocomplete autocomplete-product-buy">' +
+                '<input type="text" class="form-control text-uppercase product-table autocomplete-input" placeholder="Buscar producto... (mín. 2 caracteres)" autocomplete="off">' +
+                '<ul class="autocomplete-result-list autocomplete-product-dropdown"></ul></div>' +
                 clientColumn +
                 '<td class="align-middle item-quantity">' + '<input type="text" class="form-control text-center quantity-product text-uppercase" placeholder="0">' + '</td>' +
                 '<td class="align-middle unit text-center">' +
@@ -1753,8 +1888,10 @@
                 '<input type="text" class="form-control text-right text-uppercase price-unit-product" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
                 '<td class="item-total text-right align-middle total-row">' + '<div class="input-icon">' +
                 '<input type="text" class="form-control text-right text-uppercase total-detail" placeholder="0.00">' + '<i class="change-money">' + _val_money + '</i>' + '</div>' + '</td>' +
-                '<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-danger delete-detail"><i class="fa fa-trash"></i></button>' + '</td>' +
+                '<td class="align-middle text-center"> ' + '<button type="button" onclick="deleteItem(this)" class="btn btn-outline-danger btn-sm delete-detail btn-sales-rounded border-2"><i class="fa fa-trash"></i></button>' + '</td>' +
                 '</tr>');
+            
+            initProductAutocomplete(newRowNum);
             
             // Inicializar Select2 en la nueva fila si es necesario
             if (_show_client_column) {

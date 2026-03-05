@@ -1155,6 +1155,43 @@ def get_product_by_criteria_table(request):
         }, status=HTTPStatus.OK)
 
 
+def get_product_autocomplete_buys(request):
+    """API para autocomplete de productos en órdenes de compra. Retorna formato compatible con Autocomplete.js"""
+    if request.method == 'GET':
+        search = request.GET.get('search', '').strip()
+        product = []
+        if search and len(search) >= 2:
+            array_value = search.upper().split()
+            full_query = None
+            for i in range(0, len(array_value)):
+                q = Q(name__icontains=array_value[i]) | Q(product_brand__name__icontains=array_value[i])
+                full_query = q if full_query is None else full_query & q
+            product_set = Product.objects.filter(full_query, is_enabled=True).select_related(
+                'product_brand').prefetch_related(
+                Prefetch('productdetail_set', queryset=ProductDetail.objects.filter(is_enabled=True).select_related('unit'))
+            ).order_by('name')[:20]
+            for e in product_set:
+                unit_dict = []
+                for pd in e.productdetail_set.all():
+                    unit_display = (pd.unit.description or pd.unit.name) if pd.unit else 'UND'
+                    unit_dict.append({
+                        'unit_id': pd.unit.id,
+                        'unit_name': unit_display,
+                        'unit_code': pd.unit.name,
+                        'price_sale': float(pd.price_sale or 0),
+                        'price_purchase': float(pd.price_purchase or 0),
+                        'quantity_minimum': float(pd.quantity_minimum or 1)
+                    })
+                product.append({
+                    'id': e.id,
+                    'names': e.name,
+                    'brand': e.product_brand.name if e.product_brand else '-',
+                    'unit_dict': unit_dict
+                })
+        return JsonResponse({'product': product}, status=HTTPStatus.OK)
+    return JsonResponse({'product': []}, status=HTTPStatus.BAD_REQUEST)
+
+
 def get_type_change(request):
     if request.method == 'GET':
         mydate = datetime.now()

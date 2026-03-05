@@ -13,15 +13,15 @@
                 <table id="product-data-grid" class="table table-hover mb-0 sales-grid-table">
                     <thead>
                         <tr class="text-uppercase text-white text-center" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); font-size: 0.75rem;">
-                            <th class="font-weight-bold py-3 border-0" style="width: 28%;">Producto</th>
-                            <th class="font-weight-bold py-3 border-0" style="width: 36%;">Stock en sedes</th>
-                            <th class="font-weight-bold py-3 border-0" style="width: 36%;">Unidades y precios</th>
+                            <th class="font-weight-bold py-3 border-0" style="width: 26%;">Producto</th>
+                            <th class="font-weight-bold py-3 border-0" style="width: 34%;">Stock en sedes</th>
+                            <th class="font-weight-bold py-3 border-0" style="width: 38%;">Unidades y precios</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for product in product_dic %}
                         <tr class="product-grid-row align-top" product="{{ product.id }}">
-                            <td class="align-middle py-3 px-3" style="border-color: #e3f2fd !important; background: #fafcfe;">
+                            <td class="align-top py-3 px-3" style="border-color: #e3f2fd !important; background: #fafcfe;">
                                 <div class="d-flex flex-column">
                                     <span class="font-weight-bold mb-1" style="color: #0d47a1; font-size: 0.9rem;">{{ product.name|upper }}</span>
                                     <span class="small text-muted"><i class="fas fa-tag mr-1" style="color: #90caf9;"></i>Marca: {{ product.product_brand.name }}</span>
@@ -29,7 +29,7 @@
                             </td>
                             <td class="p-2 td-table-stock align-top" style="border-color: #e3f2fd !important;">
                                 <div class="stock-block rounded" style="overflow: hidden; border: 1px solid #bbdefb;">
-                                    <table class="table table-sm table-stock-headquarters mb-0" style="border-color: #bbdefb !important;">
+                                    <table class="table table-sm table-stock-headquarters table-bordered mb-0" style="border-color: #bbdefb !important;">
                                         <thead>
                                             <tr style="background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);">
                                                 <th class="small font-weight-bold py-2 px-2 border-0" style="color: #0d47a1; width: 38%;">Sede</th>
@@ -82,10 +82,10 @@
                                     <table class="table table-sm table-prices mb-0" style="border-color: #bbdefb !important;">
                                         <thead>
                                             <tr style="background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);">
-                                                <th class="small font-weight-bold py-2 px-2 border-0" style="color: #0d47a1;">P. Compra</th>
-                                                <th class="small font-weight-bold py-2 px-2 border-0 text-center" style="color: #0d47a1;">Cant. min.</th>
-                                                <th class="small font-weight-bold py-2 px-2 border-0 text-center" style="color: #0d47a1;">Cantidad</th>
-                                                <th class="small font-weight-bold py-2 px-2 border-0 text-center" style="color: #0d47a1;">Precios venta</th>
+                                                <th class="small font-weight-bold py-1 px-1 border-0 text-center" style="color: #0d47a1; width: 23%;">P. Compra</th>
+                                                <th class="small font-weight-bold py-1 px-1 border-0 text-center" style="color: #0d47a1; width: 21%;">Cant. min.</th>
+                                                <th class="small font-weight-bold py-1 px-1 border-0 text-center" style="color: #0d47a1; width: 25%;">Cantidad</th>
+                                                <th class="small font-weight-bold py-1 px-1 border-0 text-center" style="color: #0d47a1; width: 32%;">Precios venta</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -93,9 +93,12 @@
                                             <tr product="{{ product.id }}" productname="{{ product.name }}"
                                                 unit="{{ obj.unit.id }}" unitname="{{ obj.unit.name }}"
                                                 quantity_minum="{{ obj.quantity_minimum|safe }}" product_brand="{{ product.product_brand.name }}">
-                                                <td class="align-middle py-2 px-2 font-weight-bold quantity-sales-price" style="border-color: #e3f2fd !important;">
-                                                    <span style="color: #1565c0;">S/ {{ obj.price_purchase|round_fourth }}</span>
-                                                    <span class="d-block small font-weight-normal text-muted">{{ obj.update_at|date:"d/m/y" }}</span>
+                                                <td class="align-middle py-2 px-2 font-weight-bold quantity-sales-price"
+                                                    style="border-color: #e3f2fd !important;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                        <span style="color: #1565c0;">S/</span>
+                                                        <span style="color: #1565c0;">{{ obj.price_purchase|replace_round_separator_us }}</span>
+                                                    </div>
                                                 </td>
                                                 <td class="align-middle text-center py-2 px-2 quantity-minimum" style="border-color: #e3f2fd !important;">{{ obj.quantity_minimum|floatformat:0 }}</td>
                                                 <td class="align-middle py-2 px-2 quantity-sales-price" style="border-color: #e3f2fd !important;">
@@ -107,7 +110,7 @@
                                                 <td class="align-middle py-2 px-2 prices-list" style="border-color: #e3f2fd !important;">
                                                     {% if product.productstore_set.all %}
                                                     <div class="row m-0 price-select {% if product.productstore_set.all.first.subsidiary_store.subsidiary.id != subsidiary.id %}d-none{% endif %}">
-                                                        <div class="col text-center p-0">
+                                                        <div class="col text-right p-0">
                                                             <button type="button" pk="{{ obj.id }}"
                                                                     ip="{{ obj.price_sale|safe }}"
                                                                     class="btn btn-outline-success btn-sm border-2 btn-sales-rounded">

@@ -430,10 +430,11 @@
             let name_product = tr.attr('productname');
             let quantity_minim = parseFloat(tr.attr('quantity_minum'));
             let quantity = parseFloat(tr.find('td.quantity-sales-price input.quantity-select').val());
-            let stock = parseFloat(tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text());
-            let store_id = tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary').attr('store_id');
-            let sub_store_id = tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary').attr('sub_store');
-            let tr_table_stock = tr.parent('tbody').parents('table.table-prices').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary');
+            let stock = parseFloat(tr.parent('tbody').parent('table.table-prices').parent('div').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary[store_="V"] td.item-stock').text());
+            let store_id = tr.parent('tbody').parent('table.table-prices').parent('div').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary').attr('store_id');
+            console.log("store_id", store_id)
+            let sub_store_id = tr.parent('tbody').parent('table.table-prices').parent('div').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary').attr('sub_store');
+            let tr_table_stock = tr.parent('tbody').parent('table.table-prices').parent('div').parent('td').parent('tr').find('td.td-table-stock table.table-stock-headquarters tbody tr.my-subsidiary');
             let batch_id = tr_table_stock.find('td.item-batch input.batch-id').val();
             let batch_number = tr_table_stock.find('td.item-batch input.number-batch').val();
 
@@ -455,6 +456,11 @@
             if ($("#sales-details tr[product=" + product_id + "][pu=" + unit_id + "]").length) {
                 let $msg = 'El producto con este tipo de unidad ya se encuentra en el registro.';
                 toastr.warning($msg, 'Mensaje');
+                tr.find('td.quantity-sales-price input.quantity-select').val('')
+                return false;
+            }
+            if (!store_id || store_id === '' || store_id === 'undefined') {
+                toastr.warning('Seleccione una sede/almacén para el producto antes de agregar.', 'Error');
                 tr.find('td.quantity-sales-price input.quantity-select').val('')
                 return false;
             }
@@ -728,7 +734,9 @@
                     }
                 },
                 error: function (jqXhr, textStatus, xhr) {
-                    toastr.error('¡ERROR!');
+                    _flag_stock = false;
+                    let msg = (jqXhr.responseJSON && jqXhr.responseJSON.error) || 'Seleccione una sede/almacén para el producto.';
+                    toastr.warning(msg, 'Error');
                 }
             });
             return _flag_stock

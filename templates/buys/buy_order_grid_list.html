@@ -1,221 +1,152 @@
 {% if purchases %}
-    <div class="card-body p-2">
-        <input id="myInput" type="text" placeholder="Ingrese un texto a buscar..." aria-label="..."
-               class="form-control form-control-lg text-uppercase">
-    </div>
-    <div class="table-responsive roboto-condensed-regular">
-        <table id="purchase-data-grid"
-               class="table table-striped table-bordered table-hover align-content-center table-sm m-0"
-               style="font-size: 13px; background-color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-            <thead>
-            <tr class="text-center text-white text-uppercase" style="background: linear-gradient(135deg, #3e6787, #2c4a63); font-size: 14px; font-weight: 600;">
-                <th class="th-sm py-3" style="width: 8%">Fecha</th>
-                <th class="th-sm py-3" style="width: 8%">O/C</th>
-                <th class="th-sm py-3" style="width: 15%">Proveedor</th>
-                <th class="th-sm py-3" style="width: 25%">Clientes</th>
-                <th class="th-sm py-3" style="width: 20%">Dirección de entrega</th>
-                <th class="th-sm py-3" style="width: 10%">Usuario</th>
-                <th class="th-sm py-3" style="width: 8%">Estado</th>
-                <th class="th-sm py-3" style="width: 6%">Acción</th>
-            </tr>
-            </thead>
-            <tbody style="font-size: 12px">
-            {% for p in purchases %}
-                <tr class="text-center hover-row" pk="{{ p.id }}" style="transition: all 0.3s ease;">
-                    <td class="align-middle font-weight-bold text-primary">
-                        <i class="fas fa-calendar-alt mr-1"></i>{{ p.purchase_date|date:'d-m-Y' }}
-                    </td>
-                    <td class="align-middle text-center">
-                        <span class="font-weight-bold text-dark">{{ p.buy_number }}</span>
-                    </td>
-                    <td class="align-middle text-left">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-truck mr-2 text-muted"></i>
-                            <span class="font-weight-bold">{{ p.supplier }}</span>
-                        </div>
-                    </td>
-                    <td class="align-middle text-left">
-                        <div class="client-info">
-                            <div class="mb-1">
-                                <i class="fas fa-user mr-1 text-muted"></i>
-                                <span class="font-weight-bold">{{ p.client_reference|upper }}</span>
-                            </div>
-                            {% if p.client_entity %}
-                                <div class="text-primary">
-                                    <i class="fas fa-building mr-1"></i>
-                                    <span class="font-weight-bold">CLIENTE REFERIDO:</span>
-                                    {% for client in p.client_entity %}
-                                        <div class="text-dark ml-3">
-                                            - {{ client|default:'-'|default_if_none:'-' }}
-                                        </div>
-                                    {% endfor %}
+    <div class="card border-0 shadow-sm overflow-hidden roboto-condensed-regular" style="border-radius: 12px; background: #fff;">
+        <div class="card-header border-0 py-2 px-3" style="background: linear-gradient(135deg, #f0f8fc 0%, #e3f2fd 100%);">
+            <div class="input-group input-group-sm shadow-sm border rounded-pill overflow-hidden" style="max-width: 380px; border-color: #dee2e6 !important;">
+                <div class="input-group-prepend">
+                    <span class="input-group-text bg-white border-0 py-2"><i class="fas fa-search text-muted" style="font-size: 0.9rem;"></i></span>
+                </div>
+                <input id="myInput" type="text" placeholder="Buscar en el listado..." aria-label="Buscar"
+                       class="form-control form-control-sm border-0 py-2 text-uppercase" style="font-size: 0.875rem;">
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive m-0">
+                <table id="purchase-data-grid" class="table table-hover table-bordered mb-0 purchase-grid-table">
+                    <thead>
+                        <tr class="text-uppercase text-white text-center" style="background: linear-gradient(135deg, #3e6787 0%, #2c4a63 100%); font-size: 0.75rem;">
+                            <th class="font-weight-bold py-3 border-0" style="width: 12%;">Fecha / O/C</th>
+                            <th class="font-weight-bold py-3 border-0" style="width: 15%;">Proveedor</th>
+                            <th class="font-weight-bold py-3 border-0" style="width: 25%;">Clientes</th>
+                            <th class="font-weight-bold py-3 border-0" style="width: 20%;">Dirección de entrega</th>
+                            <th class="font-weight-bold py-3 border-0" style="width: 10%;">Usuario</th>
+                            <th class="font-weight-bold py-3 border-0" style="width: 10%;">Estado</th>
+                            <th class="font-weight-bold py-3 border-0" style="width: 8%;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 0.8125rem;">
+                    {% for p in purchases %}
+                        <tr class="purchase-grid-row text-center" pk="{{ p.id }}">
+                            <td class="align-middle" style="border-color: #e9ecef !important; background: #fafcfd;">
+                                <div class="d-flex flex-column align-items-center">
+                                    <span class="text-muted small"><i class="fas fa-calendar-alt mr-1" style="font-size: 0.7rem;"></i>{{ p.purchase_date|date:'d-m-Y' }}</span>
+                                    <span class="font-weight-bold text-primary mt-1">{{ p.buy_number }}</span>
                                 </div>
-                            {% endif %}
-                        </div>
-                    </td>
-                    <td class="align-middle text-left">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt mr-2 text-muted"></i>
-                            <span>{{ p.delivery_address|default:'-'|default_if_none:'-'|upper }}</span>
-                        </div>
-                    </td>
-                    <td class="align-middle text-center">
-                        <span class="badge badge-secondary">{{ p.user|upper }}</span>
-                    </td>
-                    <td class="align-middle text-center">
-                        <span class="badge font-weight-bold {% if p.status_store == 'S' %}badge-warning
-                        {% elif p.status_store == 'A' %}badge-success
-                        {% else %}badge-danger{% endif %}">
-                            {% if p.refund %}
-                                {{ p.status_store_text }} <i class="fas fa-exclamation-triangle ml-1"></i>
-                            {% else %}
-                                {{ p.status_store_text }}
-                            {% endif %}
-                        </span>
-                    </td>
-                    <td class="p-2 text-center">
-                        <div class="action-buttons">
-                            <button type="button" class="btn btn-sm btn-primary dropdown-toggle action-btn"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-right">
-                                {% if p.status_store == 'S' and p.status_bill != 'C' %}
-                                    <a class="dropdown-item btn-update" pk="{{ p.id }}">
-                                        <i class="fas fa-edit mr-2"></i>Editar
-                                    </a>
-                                {% endif %}
-                                <a class="dropdown-item btn-download"
-                                   href="{% url 'buys:print_pdf_purchase_order' p.id %}">
-                                    <i class="fas fa-download mr-2"></i>Descargar PDF
-                                </a>
-                                {% if p.status_store == 'S' and p.status_bill != 'C' %}
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item btn-annular" pk="{{ p.id }}">
-                                        <i class="fas fa-ban mr-2"></i>Anular
-                                    </a>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-{#                <tr pk_parent="{{ p.purchase_parent }}" style="display: none">#}
-{#                    <td colspan="2"></td>#}
-{#                    <td colspan="7" class="table-details-purchase bg-white p-0"></td>#}
-{#                </tr>#}
-            {% endfor %}
-            </tbody>
-        </table>
+                            </td>
+                            <td class="align-middle text-left py-2 px-3" style="border-color: #e9ecef !important;">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-truck mr-2 text-muted" style="font-size: 0.8rem;"></i>
+                                    <span class="font-weight-bold text-dark">{{ p.supplier }}</span>
+                                </div>
+                            </td>
+                            <td class="align-middle text-left py-2 px-3" style="border-color: #e9ecef !important;">
+                                <div class="client-info small">
+                                    <div class="mb-1">
+                                        <i class="fas fa-user mr-1 text-muted"></i>
+                                        <span class="font-weight-bold">{{ p.client_reference|upper }}</span>
+                                    </div>
+                                    {% if p.client_entity %}
+                                        <div class="text-primary">
+                                            <i class="fas fa-building mr-1"></i>
+                                            <span class="font-weight-bold">Cliente referido:</span>
+                                            {% for client in p.client_entity %}
+                                                <div class="text-dark ml-3">- {{ client|default:'-'|default_if_none:'-' }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="align-middle text-left py-2 px-3" style="border-color: #e9ecef !important;">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-map-marker-alt mr-2 text-muted" style="font-size: 0.8rem;"></i>
+                                    <span class="text-dark">{{ p.delivery_address|default:'-'|default_if_none:'-'|upper }}</span>
+                                </div>
+                            </td>
+                            <td class="align-middle text-center py-2 px-3" style="border-color: #e9ecef !important;">
+                                <span class="badge badge-light text-dark border font-weight-normal">{{ p.user|upper }}</span>
+                            </td>
+                            <td class="align-middle text-center py-2 px-3" style="border-color: #e9ecef !important;">
+                                <span class="badge font-weight-bold px-2 py-1 {% if p.status_store == 'S' %}badge-warning
+                                {% elif p.status_store == 'A' %}badge-success
+                                {% else %}badge-danger{% endif %}">
+                                    {% if p.refund %}
+                                        {{ p.status_store_text }} <i class="fas fa-exclamation-triangle ml-1"></i>
+                                    {% else %}
+                                        {{ p.status_store_text }}
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td class="p-2 text-center" style="border-color: #e9ecef !important;">
+                                <div class="action-buttons">
+                                    <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle action-btn border-2 rounded-pill px-2"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right shadow-sm border-0" style="border-radius: 8px;">
+                                        {% if p.status_store == 'S' and p.status_bill != 'C' %}
+                                            <a class="dropdown-item btn-update py-2" pk="{{ p.id }}">
+                                                <i class="fas fa-edit mr-2 text-primary"></i>Editar
+                                            </a>
+                                        {% endif %}
+                                        <a class="dropdown-item btn-download py-2" href="{% url 'buys:print_pdf_purchase_order' p.id %}">
+                                            <i class="fas fa-download mr-2 text-success"></i>Descargar PDF
+                                        </a>
+                                        {% if p.status_store == 'S' and p.status_bill != 'C' %}
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item btn-annular py-2 text-danger" pk="{{ p.id }}">
+                                                <i class="fas fa-ban mr-2"></i>Anular
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
 {% else %}
-    <div class="text-center py-5">
-        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-        <h3 class="text-muted">No existen compras registradas</h3>
-        <p class="text-muted">No se encontraron órdenes de compra para los criterios seleccionados.</p>
+    <div class="card border-0 shadow-sm roboto-condensed-regular" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-body text-center py-5 px-4 bg-light">
+            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+            <h6 class="font-weight-bold mb-1 text-muted">No existen compras registradas</h6>
+            <p class="small text-muted mb-0">No se encontraron órdenes de compra para los criterios seleccionados.</p>
+        </div>
     </div>
 {% endif %}
 
 <style>
-    .hover-row:hover {
-        background-color: #f8f9fa !important;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    .purchase-grid-table tbody .purchase-grid-row:hover {
+        background-color: #f8fbfd !important;
     }
-    
-    .client-info {
-        line-height: 1.4;
+    .purchase-grid-table td, .purchase-grid-table th {
+        border-color: #e9ecef !important;
     }
-    
-    .badge {
-        font-size: 0.75em;
-        padding: 0.5em 0.75em;
-    }
-    
-    .table th {
+    .purchase-grid-table th {
         border-top: none;
-        border-bottom: 2px solid #dee2e6;
+        letter-spacing: 0.5px;
     }
-    
-    .table td {
-        border-top: 1px solid #e9ecef;
-        vertical-align: middle;
-    }
-    
-    .action-buttons {
-        position: relative;
-        display: inline-block;
-    }
-    
-    .action-btn {
+    .client-info { line-height: 1.4; }
+    .action-buttons { position: relative; display: inline-block; }
+    .action-btn:hover {
         background-color: #3e6787 !important;
         border-color: #3e6787 !important;
         color: white !important;
-        padding: 0.375rem 0.75rem;
-        font-size: 0.875rem;
-        border-radius: 4px;
-        transition: none;
-        box-shadow: none;
     }
-    
-    .action-btn:hover {
-        background-color: #2c4a63 !important;
-        border-color: #2c4a63 !important;
-        color: white !important;
-        transform: none;
-    }
-
     .action-btn:focus {
         box-shadow: 0 0 0 0.2rem rgba(62, 103, 135, 0.25);
     }
-    
-    .action-btn:active {
-        background-color: #2c4a63 !important;
-        border-color: #2c4a63 !important;
-    }
-    
     .dropdown-menu {
-        border: 1px solid #dee2e6;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        border-radius: 4px;
-        min-width: 150px;
-        padding: 0.25rem 0;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        min-width: 160px;
     }
-    
-    .dropdown-item {
-        padding: 0.5rem 1rem;
-        font-size: 0.875rem;
-        color: #495057;
-        transition: none;
-        border: none;
-        background: none;
-    }
-    
-    .dropdown-item:hover {
-        background-color: #f8f9fa;
-        color: #495057;
-        transform: none;
-    }
-    
-    .dropdown-item:focus {
-        background-color: #f8f9fa;
-        color: #495057;
-        outline: none;
-    }
-    
-    .dropdown-divider {
-        margin: 0.25rem 0;
-        border-top: 1px solid #dee2e6;
-    }
-    
+    .dropdown-item:hover { background-color: #f8f9fa; }
     .form-control:focus {
         border-color: #3e6787;
-        box-shadow: 0 0 0 0.2rem rgba(62, 103, 135, 0.25);
-    }
-    
-    .card {
-        border: none;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 0 0 0.2rem rgba(62, 103, 135, 0.2);
     }
 </style>
 

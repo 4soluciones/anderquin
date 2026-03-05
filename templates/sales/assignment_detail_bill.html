@@ -329,35 +329,8 @@
             toastr.warning('No pueden haber dos lotes con el mismo número. Corrija los números de lote duplicados en el formulario.', 'Error de Datos');
             return false;
         }
-        // Verificar que los números de lote no existan ya en la BD (mismo producto + mismo almacén)
-        let batchChecks = []; // [{batchNumber, productId}, ...]
-        $('tbody[id^="details-batch-"]').each(function () {
-            let productId = $(this).attr('id').replace('details-batch-', '');
-            let seenInProduct = {};
-            $(this).find('tr').each(function () {
-                let batchInput = $(this).find('input.item-number-batch');
-                let batchNumber = (batchInput.val() || '').toString().trim();
-                let enteredPrincipal = parseFloat($(this).find('input.entered-quantity-principal').val()) || 0;
-                let enteredUnits = parseFloat($(this).find('input.entered-quantity-units').val()) || 0;
-                let returnedPrincipal = parseFloat($(this).find('input.returned-quantity-principal').val()) || 0;
-                let returnedUnits = parseFloat($(this).find('input.returned-quantity-units').val()) || 0;
-                let soldPrincipal = parseFloat($(this).find('input.sold-quantity-principal').val()) || 0;
-                let soldUnits = parseFloat($(this).find('input.sold-quantity-units').val()) || 0;
-                let hasQuantity = (enteredPrincipal + enteredUnits + returnedPrincipal + returnedUnits + soldPrincipal + soldUnits) > 0;
-                let key = batchNumber + '|' + productId;
-                if (hasQuantity && batchNumber && !seenInProduct[key]) {
-                    seenInProduct[key] = true;
-                    batchChecks.push({batchNumber: batchNumber, productId: productId});
-                }
-            });
-        });
-        for (let i = 0; i < batchChecks.length; i++) {
-            let existsInDb = await checkNumberBatch(batchChecks[i].batchNumber, store.val(), batchChecks[i].productId);
-            if (existsInDb) {
-                toastr.warning('El número de lote "' + batchChecks[i].batchNumber + '" ya existe en el almacén para este producto. No pueden haber dos lotes con el mismo número.', 'Error de Datos');
-                return false;
-            }
-        }
+        // Si el lote ya existe en BD: se permite guardar. El backend buscará el lote existente,
+        // agregará el ingreso si corresponde, y procesará devoluciones o ventas sobre ese lote.
         // COMENTADO: Validación de código de venta ya no es necesaria, se genera automáticamente
         /*
         // Validar: si hay cantidad vendida, debe tener código de venta generado

@@ -3,13 +3,13 @@
            class="table table-hover table-sm align-content-center table-bordered mb-0"
            cellspacing="0" style="width: 100%;">
         <thead>
-        <tr class="text-center text-white" style="background: #3e6787">
+        <tr class="text-center text-white" style="background: linear-gradient(180deg, #90caf9 0%, #42a5f5 100%); color: #0d47a1;">
             <th scope="col" class="align-middle font-weight-normal" style="width: 4%;">Nº</th>
             <th scope="col" class="align-middle font-weight-normal" style="width: 25%;">Descripción de Artículo</th>
-            <th scope="col" class="align-middle font-weight-normal client-detail-column d-none" style="width: 25%; background: #3e6787">Cliente</th>
+            <th scope="col" class="align-middle font-weight-normal client-detail-column d-none" style="width: 25%; background: linear-gradient(180deg, #90caf9 0%, #42a5f5 100%);">Cliente</th>
             <th scope="col" class="align-middle font-weight-normal" style="width: 8%;">Cantidad</th>
             <th scope="col" class="align-middle font-weight-normal" style="width: 8%;">Unidad Medida</th>
-            <th scope="col" class="align-middle font-weight-normal" style="width: 8%; background-color: #518d86">Cant. / U. M.</th>
+            <th scope="col" class="align-middle font-weight-normal" style="width: 8%; background: linear-gradient(180deg, #b3e5fc 0%, #81d4fa 100%); color: #0d47a1;">Cant. / U. M.</th>
             <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Valor Unitario</th>
             <th scope="col" class="align-middle font-weight-normal" style="width: 10%;">Importe</th>
             <th scope="col" class="align-middle font-weight-normal" style="width: 5%;">Eliminar</th>
@@ -20,15 +20,15 @@
             {% for c in contract_dict %}
                 <tr class="" product="{{ c.product_id }}" unit_id="">
                     <td class="item-numero align-middle text-center">{{ c.counter }}</td>
-                    <td class="align-middle text-left product-item-table">
-                        <input type="text"
-                               class="form-control text-uppercase product-table dropdown-toggle"
-                               data-toggle="dropdown" aria-expanded="false"
-                               placeholder="Ingrese producto..."
+                <td class="align-middle text-left product-item-table">
+                    <div id="autocomplete-product-row-{{ c.counter }}" class="autocomplete autocomplete-product-buy">
+                        <input type="text" class="form-control text-uppercase product-table autocomplete-input"
+                               placeholder="Buscar producto..."
                                value="{{ c.product_name }}"
-                               disabled>
-                        <div class="dropdown-menu"></div>
-                    </td>
+                               autocomplete="off" disabled>
+                        <ul class="autocomplete-result-list autocomplete-product-dropdown"></ul>
+                    </div>
+                </td>
                     <td class="align-middle client-detail-column d-none">
                         <select class="form-control select2-client-detail" 
                                 data-row="{{ c.counter }}"
@@ -51,8 +51,8 @@
                             {% endfor %}
                         </select>
                     </td>
-                    <td class="align-middle quantity-minimum" style="background-color: #bde7e2">
-                        <input type="text" class="form-control text-center quantity-minimum-val" aria-label="..." style="background-color: #bde7e2">
+                    <td class="align-middle quantity-minimum" style="background-color: #e3f2fd">
+                        <input type="text" class="form-control text-center quantity-minimum-val border" aria-label="..." style="background-color: #e3f2fd; border-color: #bbdefb !important;">
                     </td>
 
                     <td class="item-price text-right align-middle">
@@ -76,11 +76,12 @@
             <tr class="" product="" unit_id="">
                 <td class="item-numero align-middle text-center">1</td>
                 <td class="align-middle text-left product-item-table">
-                    <input type="text"
-                           class="form-control text-uppercase product-table dropdown-toggle"
-                           data-toggle="dropdown" aria-expanded="false"
-                           placeholder="Ingrese producto...">
-                    <div class="dropdown-menu"></div>
+                    <div id="autocomplete-product-row-1" class="autocomplete autocomplete-product-buy">
+                        <input type="text" class="form-control text-uppercase product-table autocomplete-input"
+                               placeholder="Buscar producto... (mín. 2 caracteres)"
+                               autocomplete="off">
+                        <ul class="autocomplete-result-list autocomplete-product-dropdown"></ul>
+                    </div>
                 </td>
                 <td class="align-middle client-detail-column d-none">
                     <select class="form-control select2-client-detail" 
@@ -102,7 +103,7 @@
                     </select>
                 </td>
                 <td class="align-middle quantity-minimum">
-                    <input type="text" class="form-control text-center quantity-minimum-val" aria-label="..." style="background-color: #bde7e2">
+                    <input type="text" class="form-control text-center quantity-minimum-val border" aria-label="..." style="background-color: #e3f2fd; border-color: #bbdefb !important;">
                 </td>
 
                 <td class="item-price text-right align-middle">
@@ -139,7 +140,7 @@
                        style="width: 100%;" id="id_detail_data_foot">
 
                     <thead>
-                    <tr class="text-center text-white" style="background: #3e6787">
+                    <tr class="text-center text-white" style="background: linear-gradient(180deg, #90caf9 0%, #42a5f5 100%); color: #0d47a1;">
                         <th scope="col" class="align-middle font-weight-normal" style="width: 35%;">Base Imponible</th>
                         <th scope="col" class="align-middle font-weight-normal" style="width: 30%;">IGV (18%)</th>
                         <th scope="col" class="align-middle font-weight-normal" style="width: 35%;">Importe Total</th>
@@ -177,69 +178,27 @@
 </div>
 
 <style>
-/* Estilos responsive para móviles y tablets */
-@media (max-width: 768px) {
-    .table-responsive {
-        font-size: 12px;
-    }
-    
-    .table th, .table td {
-        padding: 0.25rem;
-        vertical-align: middle;
-    }
-    
-    .form-control {
-        font-size: 12px;
-        padding: 0.25rem 0.5rem;
-    }
-    
-    .btn {
-        font-size: 12px;
-        padding: 0.25rem 0.5rem;
-    }
-    
-    /* Ocultar columnas menos importantes en móviles */
-    .table th:nth-child(5),
-    .table td:nth-child(5) {
-        display: none;
-    }
-    
-    /* Ajustar anchos de columnas */
-    .table th:nth-child(1), .table td:nth-child(1) { width: 8%; }
-    .table th:nth-child(2), .table td:nth-child(2) { width: 35%; }
-    .table th:nth-child(3), .table td:nth-child(3) { width: 20%; }
-    .table th:nth-child(4), .table td:nth-child(4) { width: 15%; }
-    .table th:nth-child(6), .table td:nth-child(6) { width: 10%; }
-    .table th:nth-child(7), .table td:nth-child(7) { width: 10%; }
+/* Tabla con scroll horizontal en móviles - se heredan estilos de buy_list */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
-
+#id_detail_data_grid {
+    min-width: 700px;
+}
+@media (max-width: 768px) {
+    .table-responsive { font-size: 0.8rem; }
+    #id_detail_data_grid { min-width: 650px; }
+    .table th, .table td { padding: 0.35rem !important; }
+    .form-control { font-size: 0.75rem; padding: 0.25rem 0.35rem; }
+    .btn { font-size: 0.75rem; padding: 0.25rem 0.4rem; min-height: 32px; }
+}
 @media (max-width: 576px) {
-    .table-responsive {
-        font-size: 11px;
-    }
-    
-    .form-control {
-        font-size: 11px;
-        padding: 0.2rem 0.4rem;
-    }
-    
-    .btn {
-        font-size: 11px;
-        padding: 0.2rem 0.4rem;
-    }
-    
-    /* Ocultar más columnas en pantallas muy pequeñas */
-    .table th:nth-child(4),
-    .table td:nth-child(4) {
-        display: none;
-    }
-    
-    /* Ajustar anchos */
-    .table th:nth-child(1), .table td:nth-child(1) { width: 10%; }
-    .table th:nth-child(2), .table td:nth-child(2) { width: 40%; }
-    .table th:nth-child(3), .table td:nth-child(3) { width: 25%; }
-    .table th:nth-child(5), .table td:nth-child(5) { width: 15%; }
-    .table th:nth-child(6), .table td:nth-child(6) { width: 10%; }
+    .table-responsive { font-size: 0.75rem; }
+    #id_detail_data_grid { min-width: 580px; }
+    .table th, .table td { padding: 0.25rem !important; }
+    .form-control { font-size: 0.7rem; padding: 0.2rem 0.3rem; }
+    .btn { min-height: 36px; }
 }
 
 /* Estilos para la columna de cliente en detalles */
@@ -253,7 +212,7 @@
 }
 
 .select2-container--default .select2-selection--single {
-    border: 1px solid #ced4da;
+    border: 1px solid #bbdefb;
     border-radius: 0.25rem;
     height: 31px;
     line-height: 1.5;
@@ -270,7 +229,7 @@
 }
 
 .select2-dropdown {
-    border: 1px solid #ced4da;
+    border: 1px solid #bbdefb;
     border-radius: 0.25rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -281,8 +240,8 @@
 }
 
 .select2-results__option--highlighted[aria-selected] {
-    background-color: #007bff;
-    color: white;
+    background: linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #0d47a1;
 }
 
 .select2-search__field {
