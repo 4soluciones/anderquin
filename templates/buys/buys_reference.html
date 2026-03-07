@@ -34,37 +34,52 @@
 </div>
 <div class="row p-1">
     <div class="col-12 col-sm-4 col-md-4 col-lg-4 mb-2 mb-sm-0">
-        <div class="custom-control custom-checkbox">
-            <input class="custom-control-input" type="checkbox" id="check-subsidiary" checked="">
-            <label for="check-subsidiary" class="custom-control-label font-weight-bold" style="color: #0d47a1;">En Anderquin:</label>
+        <div class="p-3 rounded" style="background: linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%); border: 1px solid #bbdefb;">
+            <div class="custom-control custom-checkbox mb-2">
+                <input class="custom-control-input" type="checkbox" id="check-subsidiary" checked="">
+                <label for="check-subsidiary" class="custom-control-label font-weight-bold" style="color: #0d47a1;">En Anderquin:</label>
+            </div>
+            <label for="address_subsidiary" class="small mb-1 d-block font-weight-medium" style="font-size: 0.75rem; color: #1565c0 !important;">Sucursal</label>
+            <select id="address_subsidiary" name="address_subsidiary" class="form-control border rounded shadow-sm" style="border-color: #bbdefb !important; transition: border-color 0.2s, box-shadow 0.2s;">
+                <option value="0">Seleccione</option>
+                {% for s in subsidiary_set %}
+                    <option value="{{ s.id }}">{{ s.name|upper }}</option>
+                {% endfor %}
+            </select>
         </div>
-        <select id="address_subsidiary" name="address_subsidiary" class="form-control border rounded" style="border-color: #bbdefb !important;">
-            <option value="0">Seleccione</option>
-            {% for s in subsidiary_set %}
-                <option value="{{ s.id }}">{{ s.name|upper }}</option>
-            {% endfor %}
-        </select>
     </div>
     <div class="col-12 col-sm-4 col-md-4 col-lg-4 mb-2 mb-sm-0">
-        <div class="custom-control custom-checkbox">
-            <input class="custom-control-input" type="checkbox" id="check-provider">
-            <label for="check-provider" class="custom-control-label font-weight-bold" style="color: #0d47a1;">En Proveedor:</label>
+        <div class="provider-section p-3 rounded" style="background: linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%); border: 1px solid #bbdefb;">
+            <div class="custom-control custom-checkbox mb-2">
+                <input class="custom-control-input" type="checkbox" id="check-provider">
+                <label for="check-provider" class="custom-control-label font-weight-bold" style="color: #0d47a1;">En Proveedor:</label>
+            </div>
+            <div class="provider-fields">
+                <label for="supplier_id" class="small mb-1 d-block font-weight-medium" style="font-size: 0.75rem; color: #1565c0 !important;">Proveedor</label>
+                <select id="supplier_id" name="supplier_id" class="form-control border rounded mb-2 shadow-sm" style="border-color: #bbdefb !important; transition: border-color 0.2s, box-shadow 0.2s;">
+                    <option value="0">Seleccione</option>
+                    {% for s in supplier_set %}
+                        <option value="{{ s.id }}">{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+                <label for="address_provider" class="small mb-1 d-block font-weight-medium" style="font-size: 0.75rem; color: #1565c0 !important;">Dirección</label>
+                <select id="address_provider" name="address_provider" class="form-control border rounded shadow-sm" style="border-color: #bbdefb !important; transition: border-color 0.2s, box-shadow 0.2s;">
+                    <option value="0">Seleccione</option>
+                </select>
+            </div>
         </div>
-        <select id="address_provider" name="address_provider" class="form-control border rounded" style="border-color: #bbdefb !important;">
-            <option value="0">Seleccione</option>
-            <!--{% for s in supplier_set %}
-                <option value="{{ s.id }}">{{ s.name }}</option>
-            {% endfor %}-->
-        </select>
     </div>
     <div class="col-12 col-sm-4 col-md-4 col-lg-4 delivery-client">
-        <div class="custom-control custom-checkbox">
-            <input class="custom-control-input" type="checkbox" id="check-client">
-            <label for="check-client" class="custom-control-label font-weight-bold" style="color: #0d47a1;">En Cliente: (Referencia)</label>
+        <div class="p-3 rounded" style="background: linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%); border: 1px solid #bbdefb;">
+            <div class="custom-control custom-checkbox mb-2">
+                <input class="custom-control-input" type="checkbox" id="check-client">
+                <label for="check-client" class="custom-control-label font-weight-bold" style="color: #0d47a1;">En Cliente: (Referencia)</label>
+            </div>
+            <label for="client_address_reference" class="small mb-1 d-block font-weight-medium" style="font-size: 0.75rem; color: #1565c0 !important;">Dirección</label>
+            <select id="client_address_reference" name="client_address_reference" class="form-control border rounded shadow-sm" style="border-color: #bbdefb !important; transition: border-color 0.2s, box-shadow 0.2s;">
+                <option value="0">Seleccione</option>
+            </select>
         </div>
-        <select id="client_address_reference" name="client_address_reference" class="form-control border rounded" style="border-color: #bbdefb !important;">
-            <option value="0">Seleccione</option>
-        </select>
     </div>
 {#    <div class="col-sm-3 col-md-3 col-lg-3 delivery-client-final d-none">#}
 {#        <div class="custom-control custom-checkbox">#}
