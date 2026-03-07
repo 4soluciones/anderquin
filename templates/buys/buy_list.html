@@ -830,11 +830,16 @@
 {% block extrajs %}
     <script type="text/javascript">
 
+        var productAutocompleteCounter = 1;
+
         const urlParams = new URLSearchParams(window.location.search);
         const data = urlParams.get('selected_data');
-        const dataObject = JSON.parse(data);
-
-        console.log(dataObject);
+        let dataObject = null;
+        try {
+            dataObject = (data && data !== '') ? JSON.parse(data) : null;
+        } catch (e) {
+            console.warn('selected_data inválido:', e);
+        }
 
         if (dataObject !== null && Object.keys(dataObject).length > 0) {
             $('#id_detail_data_grid > tbody').empty();
@@ -1088,7 +1093,6 @@
 
         }
 
-        let productAutocompleteCounter = 1;
         function initProductAutocomplete(rowId) {
             const selector = '#autocomplete-product-row-' + rowId;
             const root = document.querySelector(selector);
