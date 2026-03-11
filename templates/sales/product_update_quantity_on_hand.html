@@ -1,31 +1,34 @@
 <div class="modal-dialog modal-dialog-centered modal-xl roboto-condensed-regular" role="document">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title roboto-condensed-regular text-uppercase font-weight-bold">Actualizar la cantidad:</h5>
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+        <div class="modal-header py-3" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%);">
+            <h5 class="modal-title roboto-condensed-regular text-uppercase font-weight-bold" style="color: #0d47a1;">Actualizar cantidad en mano</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
         <form action="" method="POST">
             {% csrf_token %}
-            <div class="modal-body">
+            {% if product %}
+                <input type="hidden" id="product-id-quantity-on-hand" name="product_id" value="{{ product.id }}">
+            {% endif %}
+            <div class="modal-body p-3 p-md-4 bg-light">
                 {% if product %}
-                    <div class="card">
-                        <div class="card-body">
+                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; background-color: #fff;">
+                        <div class="card-body py-3">
                             <div class="row">
                                 <div class="col-md-6 border-right">
-                                    <h4 class="roboto-condensed-regular font-weight-bold">Producto:</h4>
-                                    <h4 class="mt-0 roboto-condensed-regular font-weight-bold" style="color: #3e6787">{{ product.name }}</h4>
+                                    <h4 class="roboto-condensed-regular font-weight-bold small text-uppercase text-muted mb-1">Producto:</h4>
+                                    <h4 class="roboto-condensed-regular font-weight-bold mb-0" style="color: #1565c0;">{{ product.name }}</h4>
                                 </div>
-                                <div class="col-md-6 mt-3">
-                                    <ul class="list-group" id="product-list" pk="{{ product.id }}">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            Stock Minimo
-                                            <span class="badge badge-primary badge-pill">{{ product.stock_min }}</span>
+                                <div class="col-md-6 mt-3 mt-md-0">
+                                    <ul class="list-group list-group-flush" id="product-list">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 bg-transparent border-0">
+                                            <span class="small text-muted">Stock Mínimo</span>
+                                            <span class="badge badge-primary badge-pill" style="background-color: #1976d2;">{{ product.stock_min }}</span>
                                         </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            Stock Maximo
-                                            <span class="badge badge-primary badge-pill">{{ product.stock_max }}</span>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 bg-transparent border-0">
+                                            <span class="small text-muted">Stock Máximo</span>
+                                            <span class="badge badge-primary badge-pill" style="background-color: #1976d2;">{{ product.stock_max }}</span>
                                         </li>
                                     </ul>
                                 </div>
@@ -34,215 +37,195 @@
                     </div>
                 {% endif %}
                 {% if subsidiaries %}
-                    <table class="table table-bordered table-sm">
-                        <thead class="thead-light">
-                        <tr class="text-uppercase">
-                            <th class="table-light text-center">Serie</th>
-                            <th class="table-light text-center">Sede</th>
-                            <th class="table-light text-center">Almacenes</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for subsidiary in subsidiaries %}
-                            <tr subsidiary="{% if own_subsidiary.id == subsidiary.id %}{{ own_subsidiary.id }}{% else %}no-subsidiary{% endif %}">
-                                <th class="align-middle text-center">{{ subsidiary.serial }}</th>
-                                <td class="align-middle">{{ subsidiary.name }}</td>
-                                <td class="p-0 text-center align-middle">
-                                    {% for subsidiary_store in subsidiary.subsidiarystore_set.all %}
-                                        <table class="table table-borderless mb-0 table-sm product-store">
-                                            <thead>
-                                            <tr class="border-0">
-                                                <th class="table-light text-center text-black-50 small border-0"
-                                                    style="text-transform: uppercase; width: 55%;">Almacen
-                                                </th>
-                                                <th class="table-light text-center text-black-50 small border-0"
-                                                    style="text-transform: uppercase; width: 15%;">Cantidad
-                                                </th>
-                                                <th class="table-light text-center text-black-50 small border-0"
-                                                    style="text-transform: uppercase; width: 15%;">Precio Venta
-                                                </th>
-                                                <th class="table-light text-center text-black-50 small border-0"
-                                                    style="text-transform: uppercase; width: 15%;">Unidad
-                                                </th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            <tr class="border-0 detail">
-                                                <td class="align-middle text-center border-top border-right">{{ subsidiary_store.name }}
-                                                </td>
-                                                {% if subsidiary_store.stores.all %}
-                                                    {% for product_store in subsidiary_store.stores.all %}
-                                                        {% if product_store.product.id == product.id %}
-                                                            <td class="align-middle border-top stock exist" op="update"
-                                                                pk="{{ product_store.id }}">
-                                                                <input class="form-control form-control-sm decimal text-right"
-                                                                       type="text"
-                                                                       value="{{ product_store.stock|floatformat:2 }}">
-                                                            </td>
-                                                            <td class="align-middle border-top price exist"
-                                                                condition="update"
-                                                                key="{{ product_store.kardex_set.first.id }}">
-                                                                <input class="form-control form-control-sm decimal text-right"
-                                                                       type="text"
-                                                                       value="{{ product_store.kardex_set.first.remaining_price|floatformat:4 }}">
-                                                            </td>
-                                                        {% else %}
-                                                            <td class="align-middle border-top stock notexist"
-                                                                op="create" pk="0">
-                                                                <input class="form-control form-control-sm decimal"
-                                                                       type="text"
-                                                                       value="">
-                                                            </td>
-                                                            <td class="align-middle border-top price notexist"
-                                                                condition="create" key="0">
-                                                                <input class="form-control form-control-sm decimal"
-                                                                       type="text"
-                                                                       value="">
-                                                            </td>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                {% else %}
-                                                    <td class="align-middle border-top stock" op="create" pk="0">
-                                                        <input class="form-control form-control-sm decimal" type="text"
-                                                               value="">
-                                                    </td>
-                                                    <td class="align-middle border-top price" condition="create"
-                                                        key="0">
-                                                        <input class="form-control form-control-sm decimal" type="text"
-                                                               value="">
-                                                    </td>
-
-                                                {% endif %}
-
-                                                <td class="align-middle border-top unit">
-                                                    <select id="id_unit" name="unit"
-                                                            class="form-control form-control-sm">
-                                                        <option selected value="0">Seleccione</option>
-                                                        {% for u in units %}
-                                                            <option {% if unit_min.id == u.id %}selected{% endif %}
-                                                                    value="{{ u.id }}">{{ u.name }}</option>
-                                                        {% endfor %}
-                                                    </select>
-                                                </td>
-
-                                            </tr>
-                                            </tbody>
-                                        </table>
-                                    {% empty %}
-                                        <span class="text-danger">Lo sentimos, no hay almacenes en esta sede.</span>
-                                    {% endfor %}
-                                </td>
+                    <div class="table-responsive">
+                        <table class="table table-bordered mb-0" id="id-table-quantity-on-hand" style="border-color: #bbdefb !important;">
+                            <thead class="thead-light">
+                            <tr class="text-uppercase small">
+                                <th class="text-center py-2 bg-light" style="border-color: #bbdefb !important;">Serie</th>
+                                <th class="text-center py-2 bg-light" style="border-color: #bbdefb !important;">Sede</th>
+                                <th class="text-center py-2 bg-light" style="border-color: #bbdefb !important;">Almacenes</th>
                             </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            {% for subsidiary in subsidiaries %}
+                                <tr>
+                                    <th class="align-middle text-center py-2" style="border-color: #bbdefb !important;">{{ subsidiary.serial }}</th>
+                                    <td class="align-middle py-2" style="border-color: #bbdefb !important;">{{ subsidiary.name }}</td>
+                                    <td class="p-0 align-middle" style="border-color: #bbdefb !important;">
+                                        {% for subsidiary_store in subsidiary.subsidiarystore_set.all %}
+                                            <table class="table table-borderless mb-0 table-sm product-store">
+                                                <thead>
+                                                <tr class="border-0">
+                                                    <th class="text-center text-black-50 small border-0 py-2 bg-light" style="text-transform: uppercase; width: 40%;">Almacén</th>
+                                                    <th class="text-center text-black-50 small border-0 py-2 bg-light" style="text-transform: uppercase; width: 20%;">Cantidad</th>
+                                                    <th class="text-center text-black-50 small border-0 py-2 bg-light" style="text-transform: uppercase; width: 20%;">Precio Venta</th>
+                                                    <th class="text-center text-black-50 small border-0 py-2 bg-light" style="text-transform: uppercase; width: 20%;">Unidad</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr class="border-0 detail"
+                                                    data-subsidiary-store="{{ subsidiary_store.id }}"
+                                                    {% if subsidiary_store.id in subsidiary_store_ids_with_kardex_c %}data-has-kardex-c="true"{% endif %}>
+                                                    <td class="align-middle text-center border-top py-2 subsidiary-store" style="border-color: #bbdefb !important;" pk="{{ subsidiary_store.id }}">
+                                                        {{ subsidiary_store.name }}
+                                                    </td>
+                                                    {% if subsidiary_store.stores.all %}
+                                                        {% for product_store in subsidiary_store.stores.all %}
+                                                            {% if product_store.product.id == product.id %}
+                                                                <td class="align-middle border-top py-2 stock exist" op="update" pk="{{ product_store.id }}"
+                                                                    style="border-color: #bbdefb !important;">
+                                                                    <input class="form-control form-control-sm decimal text-right {% if product_store.id in product_store_ids_with_kardex_c %}readonly-kardex-c{% endif %}"
+                                                                           type="text"
+                                                                           value="{{ product_store.stock|floatformat:2 }}"
+                                                                           placeholder="0.00"
+                                                                           {% if product_store.id in product_store_ids_with_kardex_c %}readonly{% endif %}>
+                                                                </td>
+                                                                <td class="align-middle border-top py-2 price exist" condition="update"
+                                                                    key="{% if product_store.kardex_set.first %}{{ product_store.kardex_set.first.id }}{% else %}0{% endif %}"
+                                                                    style="border-color: #bbdefb !important;">
+                                                                    <input class="form-control form-control-sm decimal text-right {% if product_store.id in product_store_ids_with_kardex_c %}readonly-kardex-c{% endif %}"
+                                                                           type="text"
+                                                                           value="{% if product_store.kardex_set.first %}{{ product_store.kardex_set.first.remaining_price|floatformat:2 }}{% else %}0.00{% endif %}"
+                                                                           placeholder="0.00"
+                                                                           {% if product_store.id in product_store_ids_with_kardex_c %}readonly{% endif %}>
+                                                                </td>
+                                                            {% else %}
+                                                                <td class="align-middle border-top py-2 stock notexist" op="create" pk="0"
+                                                                    style="border-color: #bbdefb !important;">
+                                                                    <input class="form-control form-control-sm decimal text-right"
+                                                                           type="text" value="0.00" placeholder="0.00">
+                                                                </td>
+                                                                <td class="align-middle border-top py-2 price notexist" condition="create" key="0"
+                                                                    style="border-color: #bbdefb !important;">
+                                                                    <input class="form-control form-control-sm decimal text-right"
+                                                                           type="text" value="0.00" placeholder="0.00">
+                                                                </td>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <td class="align-middle border-top py-2 stock" op="create" pk="0"
+                                                            style="border-color: #bbdefb !important;">
+                                                            <input class="form-control form-control-sm decimal text-right" type="text" value="0.00" placeholder="0.00">
+                                                        </td>
+                                                        <td class="align-middle border-top py-2 price" condition="create" key="0"
+                                                            style="border-color: #bbdefb !important;">
+                                                            <input class="form-control form-control-sm decimal text-right" type="text" value="0.00" placeholder="0.00">
+                                                        </td>
+                                                    {% endif %}
 
+                                                    <td class="align-middle border-top py-2 unit" style="border-color: #bbdefb !important;" data-unit-und-id="{% if unit_und %}{{ unit_und.id }}{% else %}0{% endif %}">
+                                                        <span class="form-control form-control-sm bg-light border text-center font-weight-bold" style="cursor: not-allowed;">UND</span>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        {% empty %}
+                                            <span class="text-danger small">No hay almacenes en esta sede.</span>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="small text-muted mt-2 mb-0">
+                        <i class="fas fa-info-circle"></i> Las filas con inventario inicial registrado (Kardex tipo C) no se pueden modificar.
+                    </p>
                 {% else %}
-                    <h1 class="text-danger">No existen sedes registradas</h1>
+                    <div class="alert alert-danger">No existen sedes registradas</div>
                 {% endif %}
             </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>                &nbsp;
-                <button id="save-changes" type="button" class="btn btn-primary">Guardar</button>
+            <div class="modal-footer py-3 bg-light" style="border-top: 1px solid #dee2e6;">
+                <button type="button" class="btn btn-secondary border-2 btn-sales-rounded" data-dismiss="modal">Cerrar</button>
+                <button id="save-changes" type="button" class="btn btn-primary border-2 btn-sales-rounded">Guardar</button>
             </div>
-
         </form>
-
     </div>
 </div>
 
+<style>
+    /* Estilos de sales_list aplicados al modal */
+    #set-quantity-on-hand .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+        border-color: #1e3a5f;
+    }
+    #set-quantity-on-hand .btn-sales-rounded {
+        border-radius: 12px !important;
+    }
+    #set-quantity-on-hand input.readonly-kardex-c {
+        background-color: #e9ecef !important;
+        cursor: not-allowed;
+    }
+</style>
+
 <script type="text/javascript">
-
-    $("table tbody tr[subsidiary='no-subsidiary']").find(':input').attr('readonly', 'readonly');
-    $("table tbody tr[subsidiary='no-subsidiary']").find('select').empty();
-
-
-    // $('#try').on('click', function () {
-    //     var size = $("table.product-store tbody tr.detail td.exist").length;
-    //     console.log('size: ' + size);
-    //     var exist = 0;
-    //     var notexist = 0;
-    //     var count = 0;
+(function() {
+    // Ya no aplicamos restricción por sucursal - todas las sucursales son editables
+    // Excepto las que tienen kardex C (se marcan readonly en el template)
 
     $("table.product-store tbody tr.detail").each(function () {
-
         if ($(this).children('td').hasClass('exist') && $(this).children('td').hasClass('notexist')) {
-            // count++;
             $(this).children('td.notexist').remove();
-        } else {
-
-            if ($(this).children('td').hasClass('notexist')) {
-                // count++;
-                // $(this).children('td.notexist:not(:nth-child(1),:nth-child(2))').remove();
-                $(this).children('td.notexist:not(:first,:last)').remove();
-                // $(this).children('td.notexist:not(:last)').remove();
-            }
+        } else if ($(this).children('td').hasClass('notexist')) {
+            $(this).children('td.notexist:not(:first,:last)').remove();
         }
-
     });
-    /*
-    $('table.product-store tbody tr td input').each(function () {
-        let _str = $(this).val();
-        _str = _str.replace(',', '.');
-        $(this).val(_str).attr('type', 'number');
-    });
-    */
-    //     console.log('count: ' + count);
-    // });
 
-
-    $('#save-changes').on('click', function () {
-
+    $('#save-changes').off('click').on('click', function () {
         var stores = {
             "Details": [],
-            "Product": $("#product-list").attr('pk')
+            "Product": $("#product-id-quantity-on-hand").val()
         };
 
         $("table.product-store tr.detail").each(function () {
+            // No enviar filas que tienen kardex C (inventario inicial) - no se pueden modificar
+            if ($(this).attr('data-has-kardex-c') === 'true') {
+                return;
+            }
 
+            var subsidiaryStoreId = $(this).attr('data-subsidiary-store') || $(this).find("td.subsidiary-store").attr('pk');
+            var unitUndId = $(this).find("td.unit").attr('data-unit-und-id') || '{{ unit_und.id|default:0 }}';
+            var quantityVal = $(this).find("td.stock input").val() || '0.00';
+            var priceVal = $(this).find("td.price input").val() || '0.00';
             var detailObj = {
-                "SubsidiaryStore": $(this).find("td.subsidiary-store").attr('pk'),
-                // Campos relacionados con el almacen del producto
+                "SubsidiaryStore": subsidiaryStoreId,
                 "Operation": $(this).find("td.stock").attr('op'),
                 "ProductStore": $(this).find("td.stock").attr('pk'),
-                "Quantity": $(this).find("td.stock input").val(),
-                // Campos relacionados con el kardex del almacen del producto
+                "Quantity": quantityVal,
                 "Condition": $(this).find("td.price").attr('condition'),
-                "Kardex": $(this).find("td.price input").attr('key'),
-                "Price": $(this).find("td.price input").val(),
-                "Unit": $(this).find("td.unit select").val()
+                "Kardex": $(this).find("td.price").attr('key'),
+                "Price": priceVal,
+                "Unit": unitUndId
             };
             stores.Details.push(detailObj);
         });
 
-        console.log(JSON.stringify(stores));
-
         $.ajax({
             url: '/sales/new_quantity_on_hand/',
             async: true,
-            dataType: 'json', // for response
+            dataType: 'json',
             type: 'GET',
             data: {'stores': JSON.stringify(stores)},
             contentType: 'application/json;charset=UTF-8',
             headers: {"X-CSRFToken": '{{ csrf_token }}'},
             success: function (response) {
                 if (response.success) {
-                    toastr.success('Inventario inicial registrado con exito.', '¡Bien hecho!');
+                    toastr.success('Cambios guardados correctamente.', '¡Bien hecho!');
+                    $('#set-quantity-on-hand').modal('hide');
+                    if (typeof window.onQuantitySaved === 'function') {
+                        window.onQuantitySaved();
+                    }
                 }
             },
-            error: function (jqXhr, textStatus, xhr) {
-                toastr.error(jqXhr.responseJSON.error, '¡MENSAJE!');
+            error: function (jqXhr) {
+                toastr.error(jqXhr.responseJSON && jqXhr.responseJSON.error ? jqXhr.responseJSON.error : 'Error al guardar', '¡Error!');
             }
         });
-
-        $('#set-quantity-on-hand').modal('hide');
     });
 
-
-    $(document).on('keyup', '.decimal', function () {
-
-        let val = $(this).val();
+    $(document).off('keyup', '.decimal').on('keyup', '.decimal', function () {
+        var val = $(this).val();
         if (isNaN(val)) {
             val = val.replace(/[^0-9\.]/g, '');
             if (val.split('.').length > 2)
@@ -250,5 +233,5 @@
         }
         $(this).val(val);
     });
-
+})();
 </script>

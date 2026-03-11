@@ -171,9 +171,21 @@ def get_product(request):
         subsidiaries = Subsidiary.objects.all().order_by('serial')
         inventories = Kardex.objects.filter(product_store__product_id=pk)
         units = Unit.objects.all()
+        unit_und = Unit.objects.filter(name='UND').first()
         user_id = request.user.id
         user_obj = User.objects.get(id=int(user_id))
         subsidiary_obj = get_subsidiary_by_user(user_obj)
+
+        # IDs de ProductStore que ya tienen kardex con operación C (Inventario inicial) - no se pueden modificar
+        product_store_ids_with_kardex_c = list(
+            Kardex.objects.filter(product_store__product_id=pk, operation='C')
+            .values_list('product_store_id', flat=True)
+        )
+        # IDs de SubsidiaryStore que tienen inventario inicial (para marcar filas readonly en el template)
+        subsidiary_store_ids_with_kardex_c = list(
+            ProductStore.objects.filter(id__in=product_store_ids_with_kardex_c)
+            .values_list('subsidiary_store_id', flat=True)
+        )
 
         unit_min_obj = None
         product_detail = ProductDetail.objects.filter(
@@ -189,6 +201,9 @@ def get_product(request):
               'units': units,
               'unit_min': unit_min_obj,
               'own_subsidiary': subsidiary_obj,
+              'product_store_ids_with_kardex_c': product_store_ids_with_kardex_c,
+              'subsidiary_store_ids_with_kardex_c': subsidiary_store_ids_with_kardex_c,
+              'unit_und': unit_und,
               })
 
         return JsonResponse({
@@ -197,66 +212,140 @@ def get_product(request):
         })
 
 
+def _parse_decimal(value):
+    """Convierte valor a Decimal, soportando coma como separador decimal."""
+    if value is None or value == '':
+        return decimal.Decimal('0')
+    return decimal.Decimal(str(value).replace(',', '.'))
+
+
+@transaction.atomic
 def new_quantity_on_hand(request):
     if request.method == 'GET':
-        store_request = request.GET.get('stores', '')
-        data = json.loads(store_request)
+        try:
+            store_request = request.GET.get('stores', '')
+            data = json.loads(store_request)
+        except (json.JSONDecodeError, TypeError) as e:
+            return JsonResponse(
+                {'error': 'Datos inválidos.'},
+                status=HTTPStatus.BAD_REQUEST
+            )
 
-        product_id = str(data['Product'])
-        product = Product.objects.get(pk=int(product_id))
+        product_id = str(data.get('Product', ''))
+        if not product_id:
+            return JsonResponse({'error': 'Producto no especificado.'}, status=HTTPStatus.BAD_REQUEST)
 
-        for detail in data['Details']:
-            if detail['Operation'] == 'create':
-                subsidiary_store_id = str(detail['SubsidiaryStore'])
-                subsidiary_store = SubsidiaryStore.objects.get(pk=int(subsidiary_store_id))
+        try:
+            product = Product.objects.get(pk=int(product_id))
+        except (Product.DoesNotExist, ValueError):
+            return JsonResponse({'error': 'Producto no existe.'}, status=HTTPStatus.BAD_REQUEST)
 
-                new_stock = 0
-                new_price_unit = 0
+        details = data.get('Details', [])
+        if not details:
+            return JsonResponse({'success': True})
 
-                if detail['Quantity']:
-                    new_stock = decimal.Decimal(detail['Quantity'])
+        for detail in details:
+            operation = detail.get('Operation', '')
+            if operation == 'create':
+                subsidiary_store_id = str(detail.get('SubsidiaryStore', ''))
+                if not subsidiary_store_id:
+                    continue
+                try:
+                    subsidiary_store = SubsidiaryStore.objects.get(pk=int(subsidiary_store_id))
+                except (SubsidiaryStore.DoesNotExist, ValueError):
+                    continue
 
-                    if detail['Price']:
-                        new_price_unit = decimal.Decimal(detail['Price'])
+                new_stock = _parse_decimal(detail.get('Quantity'))
+                new_price_unit = _parse_decimal(detail.get('Price'))
 
-                        if detail['Unit'] != '0':
-                            unit_obj = Unit.objects.get(id=int(detail['Unit']))
+                # Crear ProductStore y kardex inicial
+                unit_id = detail.get('Unit', '0')
+                if unit_id and str(unit_id) != '0':
+                    try:
+                        unit_obj = Unit.objects.get(id=int(unit_id))
+                        if not ProductDetail.objects.filter(unit=unit_obj, product=product).exists():
+                            ProductDetail.objects.create(
+                                product=product,
+                                price_sale=new_price_unit,
+                                unit=unit_obj,
+                                quantity_minimum=1
+                            )
+                    except (Unit.DoesNotExist, ValueError):
+                        pass
 
-                            search_product_detail_set = ProductDetail.objects.filter(
-                                unit=unit_obj, product=product)
-
-                            if search_product_detail_set.count == 0:
-                                product_detail_obj = ProductDetail(
-                                    product=product,
-                                    price_sale=new_price_unit,
-                                    unit=unit_obj,
-                                    quantity_minimum=1
-                                )
-                                product_detail_obj.save()
-                        # New product store
-                        new_product_store = {
-                            'product': product,
-                            'subsidiary_store': subsidiary_store,
-                            'stock': new_stock
-                        }
-                        product_store_obj = ProductStore.objects.create(**new_product_store)
+                product_store_obj, created = ProductStore.objects.get_or_create(
+                    product=product,
+                    subsidiary_store=subsidiary_store,
+                    defaults={'stock': new_stock}
+                )
+                if created:
+                    product_store_obj.stock = new_stock
+                    product_store_obj.save()
+                    kardex_initial(product_store_obj, new_stock, new_price_unit)
+                else:
+                    # Ya existía: solo actualizar si no tiene kardex C (caso de inconsistencia)
+                    if not Kardex.objects.filter(product_store=product_store_obj, operation='C').exists():
+                        product_store_obj.stock = new_stock
                         product_store_obj.save()
+                        last_kardex = Kardex.objects.filter(product_store=product_store_obj).order_by('-id').first()
+                        if last_kardex:
+                            last_kardex.remaining_price = new_price_unit
+                            last_kardex.remaining_price_total = new_stock * new_price_unit
+                            last_kardex.save()
 
-                        kardex_initial(product_store_obj, new_stock, new_price_unit)
+            elif operation == 'update':
+                product_store_id = detail.get('ProductStore', '0')
+                if not product_store_id or str(product_store_id) == '0':
+                    continue
+                try:
+                    product_store_id = int(product_store_id)
+                except (TypeError, ValueError):
+                    continue
 
-                    else:
-                        data = {'error': "Precio no existe!"}
-                        response = JsonResponse(data)
-                        response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-                        return response
-            # else:
-            #     data = {'error': "Producto con inventario inicial ya registrado!"}
-            #     response = JsonResponse(data)
-            #     response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            #     return response
-        return JsonResponse({
-            'success': True,
-        })
+                has_kardex_c = Kardex.objects.filter(
+                    product_store_id=product_store_id,
+                    operation='C'
+                ).exists()
+                if has_kardex_c:
+                    return JsonResponse({
+                        'error': "No se puede modificar: este almacén ya tiene inventario inicial registrado (Kardex tipo C)."
+                    }, status=HTTPStatus.BAD_REQUEST)
+
+                try:
+                    product_store_obj = ProductStore.objects.get(pk=product_store_id)
+                except ProductStore.DoesNotExist:
+                    continue
+
+                if product_store_obj.product_id != product.id:
+                    return JsonResponse({'error': 'El almacén no corresponde al producto.'}, status=HTTPStatus.BAD_REQUEST)
+
+                new_stock = _parse_decimal(detail.get('Quantity'))
+                new_price = _parse_decimal(detail.get('Price'))
+
+                product_store_obj.stock = new_stock
+                product_store_obj.save()
+
+                last_kardex = Kardex.objects.filter(product_store=product_store_obj).order_by('-id').first()
+                if last_kardex and new_price >= 0:
+                    last_kardex.remaining_price = new_price
+                    last_kardex.remaining_price_total = new_stock * new_price
+                    last_kardex.save()
+
+                unit_id = detail.get('Unit', '0')
+                if unit_id and str(unit_id) != '0':
+                    try:
+                        unit_obj = Unit.objects.get(id=int(unit_id))
+                        if not ProductDetail.objects.filter(product=product, unit=unit_obj).exists():
+                            ProductDetail.objects.create(
+                                product=product,
+                                price_sale=new_price,
+                                unit=unit_obj,
+                                quantity_minimum=1
+                            )
+                    except (Unit.DoesNotExist, ValueError):
+                        pass
+
+        return JsonResponse({'success': True})
 
 
 def get_recipe_by_product(request):
