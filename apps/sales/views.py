@@ -3438,7 +3438,7 @@ def save_quotation(request):
             client=client_obj,
             user=user_obj,
             total=sale_total,
-            subsidiary_store=subsidiary_store_sales_obj,
+            # subsidiary_store=subsidiary_store_sales_obj,
             create_at=_date,
             correlative=get_correlative_order(subsidiary_obj, 'T'),
             subsidiary=subsidiary_obj,

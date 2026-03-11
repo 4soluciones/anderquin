@@ -353,7 +353,7 @@ def print_quotation(request, pk=None, t=None):
     _tbl_header2 = [
         [tbl2_col_1, tbl2_col_2],
     ]
-    header2_page = Table(_tbl_header2, colWidths=[_bts * 66 / 100, _bts * 34 / 100], cornerRadii=[10, 10, 10, 10])
+    header2_page = Table(_tbl_header2, colWidths=[_bts * 66 / 100, _bts * 34 / 100])
     style_table_header2 = [
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ('ALIGNMENT', (0, 0), (-1, -1), 'LEFT'),
