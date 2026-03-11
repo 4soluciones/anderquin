@@ -187,6 +187,22 @@ def get_product(request):
             .values_list('subsidiary_store_id', flat=True)
         )
 
+        # Mapeo subsidiary_store_id -> product_store para el producto actual (para mostrar solo 1 fila por almacén)
+        # Mapeo product_store_id -> batch_number para filas con kardex C (inventario inicial ya creado)
+        warehouse_product_stores = {}
+        warehouse_batch_numbers = {}
+        for sub in subsidiaries:
+            for ss in sub.subsidiarystore_set.all():
+                ps = ProductStore.objects.filter(
+                    subsidiary_store=ss, product=product_obj
+                ).select_related('product').first()
+                warehouse_product_stores[ss.id] = ps
+                if ps and ps.id in product_store_ids_with_kardex_c:
+                    batch = Batch.objects.filter(
+                        product_store=ps, kardex__operation='C'
+                    ).first()
+                    warehouse_batch_numbers[ps.id] = batch.batch_number if batch else ''
+
         unit_min_obj = None
         product_detail = ProductDetail.objects.filter(
             product=product_obj).annotate(Min('quantity_minimum'))
@@ -204,6 +220,8 @@ def get_product(request):
               'product_store_ids_with_kardex_c': product_store_ids_with_kardex_c,
               'subsidiary_store_ids_with_kardex_c': subsidiary_store_ids_with_kardex_c,
               'unit_und': unit_und,
+              'warehouse_product_stores': warehouse_product_stores,
+              'warehouse_batch_numbers': warehouse_batch_numbers,
               })
 
         return JsonResponse({
@@ -245,105 +263,59 @@ def new_quantity_on_hand(request):
             return JsonResponse({'success': True})
 
         for detail in details:
-            operation = detail.get('Operation', '')
-            if operation == 'create':
-                subsidiary_store_id = str(detail.get('SubsidiaryStore', ''))
-                if not subsidiary_store_id:
-                    continue
-                try:
-                    subsidiary_store = SubsidiaryStore.objects.get(pk=int(subsidiary_store_id))
-                except (SubsidiaryStore.DoesNotExist, ValueError):
-                    continue
+            batch_number = (detail.get('BatchNumber') or '').strip()
+            new_stock = _parse_decimal(detail.get('Quantity'))
+            new_price_unit = _parse_decimal(detail.get('Price'))
 
-                new_stock = _parse_decimal(detail.get('Quantity'))
-                new_price_unit = _parse_decimal(detail.get('Price'))
-
-                # Crear ProductStore y kardex inicial
-                unit_id = detail.get('Unit', '0')
-                if unit_id and str(unit_id) != '0':
-                    try:
-                        unit_obj = Unit.objects.get(id=int(unit_id))
-                        if not ProductDetail.objects.filter(unit=unit_obj, product=product).exists():
-                            ProductDetail.objects.create(
-                                product=product,
-                                price_sale=new_price_unit,
-                                unit=unit_obj,
-                                quantity_minimum=1
-                            )
-                    except (Unit.DoesNotExist, ValueError):
-                        pass
-
-                product_store_obj, created = ProductStore.objects.get_or_create(
-                    product=product,
-                    subsidiary_store=subsidiary_store,
-                    defaults={'stock': new_stock}
+            if not batch_number:
+                return JsonResponse(
+                    {'error': 'El número de lote es obligatorio al crear inventario inicial.'},
+                    status=HTTPStatus.BAD_REQUEST
                 )
-                if created:
-                    product_store_obj.stock = new_stock
-                    product_store_obj.save()
-                    kardex_initial(product_store_obj, new_stock, new_price_unit)
-                else:
-                    # Ya existía: solo actualizar si no tiene kardex C (caso de inconsistencia)
-                    if not Kardex.objects.filter(product_store=product_store_obj, operation='C').exists():
-                        product_store_obj.stock = new_stock
-                        product_store_obj.save()
-                        last_kardex = Kardex.objects.filter(product_store=product_store_obj).order_by('-id').first()
-                        if last_kardex:
-                            last_kardex.remaining_price = new_price_unit
-                            last_kardex.remaining_price_total = new_stock * new_price_unit
-                            last_kardex.save()
 
-            elif operation == 'update':
-                product_store_id = detail.get('ProductStore', '0')
-                if not product_store_id or str(product_store_id) == '0':
-                    continue
+            subsidiary_store_id = str(detail.get('SubsidiaryStore', ''))
+            if not subsidiary_store_id:
+                continue
+            try:
+                subsidiary_store = SubsidiaryStore.objects.get(pk=int(subsidiary_store_id))
+            except (SubsidiaryStore.DoesNotExist, ValueError):
+                continue
+
+            product_store_obj, created = ProductStore.objects.get_or_create(
+                product=product,
+                subsidiary_store=subsidiary_store,
+                defaults={'stock': new_stock}
+            )
+
+            has_kardex_c = Kardex.objects.filter(product_store=product_store_obj, operation='C').exists()
+            if has_kardex_c:
+                return JsonResponse({
+                    'error': 'Este almacén ya tiene inventario inicial registrado. No se puede modificar.'
+                }, status=HTTPStatus.BAD_REQUEST)
+
+            product_store_obj.stock = new_stock
+            product_store_obj.save()
+
+            kardex_initial(
+                product_store_obj,
+                new_stock,
+                new_price_unit,
+                batch_number=batch_number
+            )
+
+            unit_id = detail.get('Unit', '0')
+            if unit_id and str(unit_id) != '0':
                 try:
-                    product_store_id = int(product_store_id)
-                except (TypeError, ValueError):
-                    continue
-
-                has_kardex_c = Kardex.objects.filter(
-                    product_store_id=product_store_id,
-                    operation='C'
-                ).exists()
-                if has_kardex_c:
-                    return JsonResponse({
-                        'error': "No se puede modificar: este almacén ya tiene inventario inicial registrado (Kardex tipo C)."
-                    }, status=HTTPStatus.BAD_REQUEST)
-
-                try:
-                    product_store_obj = ProductStore.objects.get(pk=product_store_id)
-                except ProductStore.DoesNotExist:
-                    continue
-
-                if product_store_obj.product_id != product.id:
-                    return JsonResponse({'error': 'El almacén no corresponde al producto.'}, status=HTTPStatus.BAD_REQUEST)
-
-                new_stock = _parse_decimal(detail.get('Quantity'))
-                new_price = _parse_decimal(detail.get('Price'))
-
-                product_store_obj.stock = new_stock
-                product_store_obj.save()
-
-                last_kardex = Kardex.objects.filter(product_store=product_store_obj).order_by('-id').first()
-                if last_kardex and new_price >= 0:
-                    last_kardex.remaining_price = new_price
-                    last_kardex.remaining_price_total = new_stock * new_price
-                    last_kardex.save()
-
-                unit_id = detail.get('Unit', '0')
-                if unit_id and str(unit_id) != '0':
-                    try:
-                        unit_obj = Unit.objects.get(id=int(unit_id))
-                        if not ProductDetail.objects.filter(product=product, unit=unit_obj).exists():
-                            ProductDetail.objects.create(
-                                product=product,
-                                price_sale=new_price,
-                                unit=unit_obj,
-                                quantity_minimum=1
-                            )
-                    except (Unit.DoesNotExist, ValueError):
-                        pass
+                    unit_obj = Unit.objects.get(id=int(unit_id))
+                    if not ProductDetail.objects.filter(unit=unit_obj, product=product).exists():
+                        ProductDetail.objects.create(
+                            product=product,
+                            price_sale=new_price_unit,
+                            unit=unit_obj,
+                            quantity_minimum=1
+                        )
+                except (Unit.DoesNotExist, ValueError):
+                    pass
 
         return JsonResponse({'success': True})
 
@@ -1496,15 +1468,20 @@ def kardex_initial(
         bill_detail_obj=None,
         order_detail_obj=None,
         guide_detail_obj=None,
+        batch_number=None,
 ):
+    stock_dec = decimal.Decimal(stock)
+    price_dec = decimal.Decimal(price_unit)
+    remaining_price_total = stock_dec * price_dec
+
     kardex_obj = Kardex.objects.create(
         operation='C',
         quantity=0,
         price_unit=0,
         price_total=0,
-        remaining_quantity=decimal.Decimal(stock),
-        remaining_price=decimal.Decimal(price_unit),
-        remaining_price_total=decimal.Decimal(stock) * decimal.Decimal(price_unit),
+        remaining_quantity=stock_dec,
+        remaining_price=price_dec,
+        remaining_price_total=remaining_price_total,
         order_detail=order_detail_obj,
         product_store=product_store_obj,
         guide_detail=guide_detail_obj,
@@ -1512,6 +1489,15 @@ def kardex_initial(
         type_document='00',
         type_operation='16'
     )
+
+    if batch_number and str(batch_number).strip():
+        Batch.objects.create(
+            batch_number=str(batch_number).strip(),
+            quantity=stock_dec,
+            remaining_quantity=stock_dec,
+            kardex=kardex_obj,
+            product_store=product_store_obj
+        )
 
     return kardex_obj
 
