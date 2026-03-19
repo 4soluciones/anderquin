@@ -1,162 +1,178 @@
-<form class="needs-validation" id="new-disbursement-transaction-form" method="POST" novalidate>
+<form class="needs-validation roboto-condensed-regular" id="new-disbursement-transaction-form" method="POST" novalidate>
     {% csrf_token %}
     
-    <!-- Caja y Saldo Actual (ocultos o en una fila separada) -->
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <label for="id-disbursement-cash" class="font-weight-bold">
-                <i class="fas fa-cash-register mr-1"></i>Caja:
-            </label>
-            <select class="form-control" id="id-disbursement-cash" name="disbursement-cash" required>
-                <option value="" disabled selected>Seleccione una caja...</option>
-                {% for c in only_cash_set %}
-                    <option value="{{ c.pk }}" current-balance="{{ c.current_balance|floatformat:2|default:'0' }}">
-                        {{ c.name }}
-                    </option>
-                {% endfor %}
-            </select>
-            <div class="invalid-feedback">
-                Por favor seleccione una caja.
-            </div>
+    <!-- Sección: Caja -->
+    <div class="disbursement-section mb-4">
+        <div class="section-header py-2 px-3 mb-3 rounded" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+            <span class="font-weight-bold small text-uppercase">
+                <i class="fas fa-cash-register mr-2"></i>Datos de Caja
+            </span>
         </div>
-        <div class="col-md-6">
-            <label for="id-disbursement-current-balance" class="font-weight-bold">
-                <i class="fas fa-wallet mr-1"></i>Saldo Actual:
-            </label>
-            <input type="text" class="form-control bg-light text-right font-weight-bold" id="id-disbursement-current-balance" 
-                   name="current-balance" readonly value="0.00" style="font-size: 1.1rem;">
-        </div>
-    </div>
-
-    <hr class="my-4">
-
-    <!-- Primera Fila: Fecha, Concepto, Personal -->
-    <div class="row mb-3">
-        <div class="col-md-3">
-            <label for="id-operation-date" class="font-weight-bold">
-                <i class="fas fa-calendar mr-1"></i>Fecha:
-            </label>
-            <input type="date" class="form-control" id="id-operation-date" name="operation-date"
-                   value="{{ formatdate }}" required>
-            <div class="invalid-feedback">
-                Por favor seleccione una fecha.
-            </div>
-        </div>
-        <div class="col-md-6">
-            <label for="id-disbursement-description" class="font-weight-bold">
-                <i class="fas fa-align-left mr-1"></i>Concepto:
-            </label>
-            <input type="text" class="form-control text-uppercase" id="id-disbursement-description"
-                   maxlength="200" name="disbursement-description" required placeholder="Ingrese el concepto">
-            <div class="invalid-feedback">
-                Por favor ingrese un concepto.
-            </div>
-        </div>
-        <div class="col-md-3">
-            <label for="client_id" class="font-weight-bold">
-                <i class="fas fa-user mr-1"></i>Cliente:
-            </label>
-            <select class="form-control" id="client_id" name="client-id">
-                <option value="0" selected>NINGUNO / RESPONSABLE</option>
-                {% for c in client_set %}
-                    <option value="{{ c.id }}">{{ c.names }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-
-    <!-- Segunda Fila: Comprobante, Serie, Número -->
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <label for="id-document-type" class="font-weight-bold">
-                <i class="fas fa-file-invoice mr-1"></i>Comprobante:
-            </label>
-            <select class="form-control" id="id-document-type" name="document-type">
-                <option value="O" selected>OTRO</option>
-                <option value="F">FACTURA</option>
-                <option value="B">BOLETA DE VENTA</option>
-                <option value="T">TICKET</option>
-                <option value="V">VALE</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label for="id-serial" class="font-weight-bold">Serie:</label>
-            <input type="text" class="form-control" id="id-serial" name="serial" 
-                   maxlength="5" placeholder="0000" value="0000">
-        </div>
-        <div class="col-md-2">
-            <label for="id-number" class="font-weight-bold">Número:</label>
-            <input type="text" class="form-control" id="id-number" name="number" 
-                   placeholder="0" value="0">
-        </div>
-        <div class="col-md-4">
-            <div class="custom-control custom-checkbox mt-4 pt-2">
-                <input type="checkbox" class="custom-control-input" id="invoice-input">
-                <label class="custom-control-label" for="invoice-input">
-                    <i class="fas fa-file-invoice mr-1"></i>Con Factura (incluye IGV)
+        <div class="row">
+            <div class="col-md-7">
+                <label for="id-disbursement-cash" class="font-weight-bold small text-muted">
+                    <i class="fas fa-cash-register mr-1"></i>Caja
                 </label>
+                <select class="form-control form-control-sm border" id="id-disbursement-cash" name="disbursement-cash" required style="border-color: #bbdefb !important;">
+                    <option value="" disabled selected>Seleccione una caja...</option>
+                    {% for c in only_cash_set %}
+                        <option value="{{ c.pk }}" current-balance="{{ c.current_balance|floatformat:2|default:'0' }}">
+                            {{ c.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback">Por favor seleccione una caja.</div>
             </div>
-        </div>
-    </div>
-
-    <!-- Tercera Fila: Operación, Importe, Obs -->
-    <div class="row mb-3">
-        <div class="col-md-3">
-            <label class="font-weight-bold mb-2">
-                <i class="fas fa-exchange-alt mr-1"></i>Operación:
-            </label>
-            <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
-                <label class="btn btn-outline-success active" style="flex: 1;">
-                    <input type="radio" name="operationMethod" id="cash-input" value="E" checked>
-                    <i class="fas fa-arrow-down mr-1"></i>INGRESO
+            <div class="col-md-5">
+                <label for="id-disbursement-current-balance" class="font-weight-bold small text-muted">
+                    <i class="fas fa-wallet mr-1"></i>Saldo Actual (S/)
                 </label>
-                <label class="btn btn-outline-danger" style="flex: 1;">
-                    <input type="radio" name="operationMethod" id="cash-output" value="S">
-                    <i class="fas fa-arrow-up mr-1"></i>EGRESO
+                <input type="text" class="form-control form-control-sm bg-light text-right font-weight-bold" 
+                       id="id-disbursement-current-balance" name="current-balance" readonly value="0.00" 
+                       style="font-size: 1rem; border-color: #e3f2fd;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección: Datos del Movimiento -->
+    <div class="disbursement-section mb-4">
+        <div class="section-header py-2 px-3 mb-3 rounded" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+            <span class="font-weight-bold small text-uppercase">
+                <i class="fas fa-edit mr-2"></i>Datos del Movimiento
+            </span>
+        </div>
+        <div class="row">
+            <div class="col-md-3 mb-3 mb-md-0">
+                <label for="id-operation-date" class="font-weight-bold small text-muted">
+                    <i class="fas fa-calendar mr-1"></i>Fecha
                 </label>
+                <input type="date" class="form-control form-control-sm border" id="id-operation-date" name="operation-date"
+                       value="{{ formatdate }}" required style="border-color: #bbdefb !important;">
+                <div class="invalid-feedback">Seleccione una fecha.</div>
+            </div>
+            <div class="col-md-6 mb-3 mb-md-0">
+                <label for="id-disbursement-description" class="font-weight-bold small text-muted">
+                    <i class="fas fa-align-left mr-1"></i>Concepto
+                </label>
+                <input type="text" class="form-control form-control-sm text-uppercase border" id="id-disbursement-description"
+                       maxlength="200" name="disbursement-description" required placeholder="Ingrese el concepto"
+                       style="border-color: #bbdefb !important;">
+                <div class="invalid-feedback">Ingrese un concepto.</div>
+            </div>
+            <div class="col-md-3 mb-3 mb-md-0">
+                <label for="client_id" class="font-weight-bold small text-muted">
+                    <i class="fas fa-user mr-1"></i>Cliente / Responsable
+                </label>
+                <select class="form-control form-control-sm border" id="client_id" name="client-id" style="border-color: #bbdefb !important;">
+                    <option value="0" selected>NINGUNO</option>
+                    {% for c in client_set %}
+                        <option value="{{ c.id }}">{{ c.names }}</option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
-        <div class="col-md-3">
-            <label for="id-disbursement-total" class="font-weight-bold">
-                <i class="fas fa-money-bill-wave mr-1"></i>Importe:
-            </label>
-            <input type="text" class="form-control decimal text-right font-weight-bold" 
-                   id="id-disbursement-total" name="disbursement-total" required 
-                   placeholder="0.00" style="font-size: 1.1rem;">
-            <div class="invalid-feedback">
-                Por favor ingrese un importe válido.
+        <div class="row mt-2">
+            <div class="col-12">
+                <label for="id-observation" class="font-weight-bold small text-muted">
+                    <i class="fas fa-comment-alt mr-1"></i>Observaciones (opcional)
+                </label>
+                <input type="text" class="form-control form-control-sm border" id="id-observation" name="observation" 
+                       maxlength="200" placeholder="Observaciones adicionales" style="border-color: #bbdefb !important;">
             </div>
-        </div>
-        <div class="col-md-3">
-            <label for="id_subtotal" class="font-weight-bold">Subtotal:</label>
-            <input type="text" class="form-control decimal text-right bg-light" id="id_subtotal"
-                   value="0.00" name="subtotal" readonly>
-        </div>
-        <div class="col-md-3">
-            <label for="igv" class="font-weight-bold">IGV:</label>
-            <input type="text" class="form-control decimal text-right bg-light" id="igv"
-                   value="0.00" name="igv" readonly>
         </div>
     </div>
 
-    <!-- Cuarta Fila: Observaciones -->
-    <div class="row mb-3">
-        <div class="col-md-12">
-            <label for="id-observation" class="font-weight-bold">
-                <i class="fas fa-comment-alt mr-1"></i>Obs:
-            </label>
-            <input type="text" class="form-control" id="id-observation" name="observation" 
-                   maxlength="200" placeholder="Observaciones (opcional)">
+    <!-- Sección: Comprobante -->
+    <div class="disbursement-section mb-4">
+        <div class="section-header py-2 px-3 mb-3 rounded" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+            <span class="font-weight-bold small text-uppercase">
+                <i class="fas fa-file-invoice mr-2"></i>Comprobante
+            </span>
+        </div>
+        <div class="row align-items-end">
+            <div class="col-md-4 mb-3 mb-md-0">
+                <label for="id-document-type" class="font-weight-bold small text-muted">
+                    <i class="fas fa-file-invoice mr-1"></i>Tipo
+                </label>
+                <select class="form-control form-control-sm border" id="id-document-type" name="document-type" style="border-color: #bbdefb !important;">
+                    <option value="O" selected>OTRO</option>
+                    <option value="F">FACTURA</option>
+                    <option value="B">BOLETA DE VENTA</option>
+                    <option value="T">TICKET</option>
+                    <option value="V">VALE</option>
+                </select>
+            </div>
+            <div class="col-md-2 mb-3 mb-md-0">
+                <label for="id-serial" class="font-weight-bold small text-muted">Serie</label>
+                <input type="text" class="form-control form-control-sm border text-center" id="id-serial" name="serial" 
+                       maxlength="5" placeholder="0000" value="0000" style="border-color: #bbdefb !important;">
+            </div>
+            <div class="col-md-2 mb-3 mb-md-0">
+                <label for="id-number" class="font-weight-bold small text-muted">Número</label>
+                <input type="text" class="form-control form-control-sm border text-center" id="id-number" name="number" 
+                       placeholder="0" value="0" style="border-color: #bbdefb !important;">
+            </div>
+            <div class="col-md-4 mb-3 mb-md-0">
+                <div class="custom-control custom-checkbox p-3 rounded" style="background-color: #f0f8fc; border: 1px solid #bbdefb;">
+                    <input type="checkbox" class="custom-control-input" id="invoice-input">
+                    <label class="custom-control-label font-weight-bold small" for="invoice-input" style="color: #1565c0;">
+                        <i class="fas fa-receipt mr-1"></i>Con Factura (incluye IGV)
+                    </label>
+                </div>
+            </div>
         </div>
     </div>
 
-    <hr class="my-4">
+    <!-- Sección: Operación e Importe -->
+    <div class="disbursement-section mb-4">
+        <div class="section-header py-2 px-3 mb-3 rounded" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+            <span class="font-weight-bold small text-uppercase">
+                <i class="fas fa-exchange-alt mr-2"></i>Operación e Importe
+            </span>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3 mb-md-0">
+                <label class="font-weight-bold small text-muted mb-2 d-block">
+                    <i class="fas fa-exchange-alt mr-1"></i>Tipo de Operación
+                </label>
+                <div class="btn-group btn-group-toggle w-100 border-2" role="group" data-toggle="buttons" style="border-color: #bbdefb !important; border-radius: 12px; overflow: hidden;">
+                    <label class="btn btn-outline-success border-0 py-2 font-weight-bold active" style="border-radius: 0;">
+                        <input type="radio" name="operationMethod" id="cash-input" value="E" checked>
+                        <i class="fas fa-arrow-down mr-2"></i>INGRESO
+                    </label>
+                    <label class="btn btn-outline-danger border-0 py-2 font-weight-bold" style="border-radius: 0;">
+                        <input type="radio" name="operationMethod" id="cash-output" value="S">
+                        <i class="fas fa-arrow-up mr-2"></i>EGRESO
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3 mb-md-0">
+                <label for="id-disbursement-total" class="font-weight-bold small text-muted">
+                    <i class="fas fa-money-bill-wave mr-1"></i>Importe Total (S/)
+                </label>
+                <input type="text" class="form-control form-control-lg decimal text-right font-weight-bold border" 
+                       id="id-disbursement-total" name="disbursement-total" required placeholder="0.00" 
+                       style="font-size: 1.25rem; border-color: #1e3a5f !important;">
+                <div class="invalid-feedback">Ingrese un importe válido.</div>
+            </div>
+            <div class="col-md-2 mb-3 mb-md-0">
+                <label for="id_subtotal" class="font-weight-bold small text-muted">Subtotal</label>
+                <input type="text" class="form-control form-control-sm decimal text-right bg-light" id="id_subtotal"
+                       value="0.00" name="subtotal" readonly style="border-color: #e3f2fd;">
+            </div>
+            <div class="col-md-2 mb-3 mb-md-0">
+                <label for="igv" class="font-weight-bold small text-muted">IGV</label>
+                <input type="text" class="form-control form-control-sm decimal text-right bg-light" id="igv"
+                       value="0.00" name="igv" readonly style="border-color: #e3f2fd;">
+            </div>
+        </div>
+    </div>
 
-    <!-- Botones de acción -->
-    <div class="row">
+    <!-- Botón Guardar -->
+    <div class="row mt-4 pt-3" style="border-top: 1px solid #bbdefb;">
         <div class="col-12 text-right">
-            <button class="btn btn-primary btn-lg shadow-sm" type="submit" id="btn-disbursement-operation-save">
-                <i class="fas fa-save mr-2"></i>Guardar
+            <button class="btn btn-primary btn-lg shadow-sm border-2 btn-sales-rounded px-4" type="submit" id="btn-disbursement-operation-save">
+                <i class="fas fa-save mr-2"></i>Guardar Movimiento
             </button>
         </div>
     </div>

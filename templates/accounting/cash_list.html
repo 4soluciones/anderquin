@@ -5,12 +5,12 @@
 {% endblock title %}
 
 {% block body %}
-    <div class="container-fluid">
+    <div class="container-fluid py-2 roboto-condensed-regular" style="background-color: #e8f4f8; min-height: 100vh;">
         <!-- Header Section -->
         <div class="row mt-4 mb-4">
             <div class="col-12">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body">
+                <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 15px;">
+                    <div class="card-body border-bottom py-2 py-md-3" style="background-color: #f0f8fc;">
                         <div class="row align-items-center">
                             <div class="col-md-6">
                                 <h4 class="mb-0 text-primary">
@@ -19,11 +19,11 @@
                                 <p class="text-muted mb-0 mt-1">Gestión de movimientos diarios de caja</p>
                             </div>
                             <div class="col-md-6 text-right">
-                                <button type="button" class="btn btn-success btn-lg shadow-sm" data-toggle="modal"
+                                <button type="button" class="btn btn-success btn-lg shadow-sm border-2 btn-sales-rounded" data-toggle="modal"
                                         data-target="#modal-account">
                                     <i class="fas fa-box-open mr-2"></i>Aperturar Caja
                                 </button>
-                                <button type="button" class="btn btn-primary btn-lg shadow-sm ml-2" data-toggle="modal"
+                                <button type="button" class="btn btn-primary btn-lg shadow-sm border-2 btn-sales-rounded ml-2" data-toggle="modal"
                                         data-target="#modal-disbursement" id="btn-new-movement">
                                     <i class="fas fa-plus-circle mr-2"></i>Nuevo Movimiento
                                 </button>
@@ -37,8 +37,8 @@
         <!-- Search Section -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body">
+                <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 15px;">
+                    <div class="card-body py-2 py-md-3" style="background-color: #f0f8fc;">
                         <form class="form-inline" id="search-form" method="POST">
                             {% csrf_token %}
                             <div class="form-group mr-3">
@@ -55,7 +55,7 @@
                                 <input type="date" class="form-control" id="id-start-date" name="start-date"
                                        value="{{ formatdate }}" required>
                             </div>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary border-2 btn-sales-rounded">
                                 <i class="fas fa-search mr-2" id="btn-search"></i>Buscar
                             </button>
                         </form>
@@ -65,21 +65,42 @@
         </div>
 
         <!-- Grid Section -->
-        <div id="account-grid-list">
-            {% include "accounting/cash_grid_list.html" %}
+        <div class="card border-0 shadow-lg overflow-hidden mb-4" style="border-radius: 15px; background-color: #e3f2fd;">
+            <div class="card-body p-0 p-md-3">
+                <div id="account-grid-list">
+                    {% include "accounting/cash_grid_list.html" %}
+                </div>
+            </div>
         </div>
     </div>
+
+    <style>
+        .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
+            border-color: #1e3a5f;
+        }
+        .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-danger, .btn-outline-secondary {
+            border-width: 2px;
+        }
+        .btn-sales-rounded {
+            border-radius: 12px !important;
+        }
+        #cash-flow-table td,
+        #cash-flow-table th {
+            border-color: #bbdefb !important;
+        }
+    </style>
 
     <!-- Modal Apertura de Caja -->
     <div class="modal fade" id="modal-account" tabindex="-1" role="dialog" aria-labelledby="modalAccountLabel"
          aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modalAccountLabel">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                <div class="modal-header border-0" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+                    <h5 class="modal-title font-weight-bold roboto-condensed-regular" id="modalAccountLabel">
                         <i class="fas fa-box-open mr-2"></i>Aperturar Caja
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" style="color: #0d47a1;" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -94,12 +115,12 @@
     <div class="modal fade" id="modal-disbursement" tabindex="-1" role="dialog" aria-labelledby="modalDisbursementLabel"
          aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="modalDisbursementLabel">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+                <div class="modal-header border-0" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
+                    <h5 class="modal-title font-weight-bold roboto-condensed-regular" id="modalDisbursementLabel">
                         <i class="fas fa-exchange-alt mr-2"></i>Nuevo Movimiento
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" style="color: #0d47a1;" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -199,7 +220,7 @@
                             </div>
                         </div>
                         <div class="form-group mb-0">
-                            <button type="submit" class="btn btn-warning btn-block btn-lg">
+                            <button type="submit" class="btn btn-warning btn-block btn-lg border-2 btn-sales-rounded">
                                 <i class="fas fa-save mr-2"></i>Guardar Cambios
                             </button>
                         </div>
@@ -231,7 +252,7 @@
                             <textarea class="form-control" id="cancel-reason" name="reason" rows="3" required></textarea>
                         </div>
                         <div class="form-group mb-0">
-                            <button type="submit" class="btn btn-danger btn-block">
+                            <button type="submit" class="btn btn-danger btn-block border-2 btn-sales-rounded">
                                 <i class="fas fa-ban mr-2"></i>Confirmar Anulación
                             </button>
                         </div>
