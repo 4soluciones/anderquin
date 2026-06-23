@@ -1,18 +1,18 @@
 {% if cash_flow_set %}
     {% with first_flow=cash_flow_set.first %}
-    <div class="card shadow-sm border-0">
+    <div class="card border-0 shadow-lg overflow-hidden roboto-condensed-regular" style="border-radius: 12px; background-color: #fff;">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-bordered mb-0" id="cash-flow-table">
                     <thead>
                         <tr>
-                            <th class="text-center align-middle bg-primary text-white" style="width: 100px;">
+                            <th class="text-center align-middle text-white" style="width: 100px; background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
                                 <strong>Acción</strong>
                             </th>
-                            <th class="text-center align-middle bg-primary text-white">
+                            <th class="text-center align-middle text-white" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
                                 <strong>Concepto</strong>
                             </th>
-                            <th class="text-center align-middle bg-primary text-white" colspan="2" style="width: 250px;">
+                            <th class="text-center align-middle text-white" colspan="2" style="width: 250px; background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
                                 <strong>Soles</strong>
                             </th>
                         </tr>
@@ -92,7 +92,7 @@
                         </tr>
                         
                         <!-- Fila de Saldo Final -->
-                        <tr class="bg-primary text-white">
+                        <tr class="text-white" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); color: #0d47a1;">
                             <td class="align-middle text-right font-weight-bold" colspan="2">
                                 SALDO FINAL:
                             </td>
@@ -110,7 +110,7 @@
                         date="{{ first_flow.transaction_date|date:'Y-m-d' }}"
                         pk="{{ first_flow.pk }}"
                         type="button"
-                        class="btn btn-lg {% if first_flow.return_status %}btn-danger{% else %}btn-success{% endif %} cash-update shadow-sm">
+                        class="btn btn-lg border-2 btn-sales-rounded {% if first_flow.return_status %}btn-danger{% else %}btn-success{% endif %} cash-update shadow-sm">
                     {% if first_flow.return_status %}
                         <i class="fas fa-door-closed mr-2"></i>Caja Cerrada
                     {% else %}
@@ -122,7 +122,10 @@
     </div>
     {% endwith %}
 {% else %}
-    <div class="card shadow-sm border-0">
+    <div class="card border-0 shadow-lg text-center roboto-condensed-regular p-4" style="background-color: #fff; border-radius: 12px;">
+        <div class="card-header font-weight-bold border-0 py-2" style="background: linear-gradient(180deg, #bbe0f5 0%, #90caf9 100%); border-radius: 12px 12px 0 0;">
+            <span style="color: #0d47a1;">Sin movimientos</span>
+        </div>
         <div class="card-body text-center py-5">
             <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
             <h5 class="text-muted">No hay movimientos registrados</h5>
