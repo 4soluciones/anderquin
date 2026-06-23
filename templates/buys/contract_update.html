@@ -312,30 +312,31 @@
                                                                     </select>
                                                                 </td>
                                                                 <td class="item-unit-add-update align-middle text-center">
-                                                                    <select {% if c.contractdetailpurchase_set.last %}disabled{% endif %}
+                                                                    <select {% if c.contractdetailpurchase_set.last %}disabled data-keep-disabled="true"{% endif %}
                                                                             class="form-control form-control-sm unit-add-update"
                                                                             data-product-id="{{ cd.product.id }}"
                                                                             data-unit-id="{% if cd.unit %}{{ cd.unit.id }}{% else %}0{% endif %}">
-                                                                        <option value="0">Cargando...</option>
+                                                                        {% if cd.unit %}
+                                                                            <option value="{{ cd.unit.id }}" selected>{{ cd.unit.name }}</option>
+                                                                        {% else %}
+                                                                            <option value="0">Cargando...</option>
+                                                                        {% endif %}
                                                                     </select>
                                                                 </td>
                                                                 <td class="item-quantity-add-update align-middle text-center">
                                                                     <input type="text"
-                                                                           {% if c.contractdetailpurchase_set.last %}disabled{% endif %}
                                                                            class="form-control text-right quantity-add-update"
                                                                            autocomplete="off"
                                                                            value="{{ cd.quantity|replace_round }}">
                                                                 </td>
                                                                 <td class="item-price-unit-add-update align-middle text-center">
                                                                     <input type="text"
-                                                                           {% if c.contractdetailpurchase_set.last %}disabled{% endif %}
                                                                            class="form-control text-right price-unit-add-update"
                                                                            value="{{ cd.price_unit|replace_round }}"
                                                                            autocomplete="off">
                                                                 </td>
                                                                 <td class="item-amount-add-update align-middle text-center">
                                                                     <input type="text"
-                                                                           {% if c.contractdetailpurchase_set.last %}disabled{% endif %}
                                                                            class="form-control text-right amount-add-update"
                                                                            value="{{ cd.amount|replace_round }}"
                                                                            placeholder="0.00" autocomplete="off" readonly>
@@ -542,6 +543,8 @@
             return;
         }
 
+        let keepDisabled = $(unitSelectElement).attr('data-keep-disabled') === 'true';
+
         $.ajax({
             url: '/buys/get_units_product/',
             type: 'GET',
@@ -554,7 +557,6 @@
                 
                 for (let i = 0; i < units.length; i++) {
                     let unit = units[i];
-                    // Buscar UND para usarlo por defecto si no hay unidad seleccionada
                     if (unit.fields.name === 'UND' || unit.fields.name === 'und') {
                         undUnitId = unit.pk;
                     }
@@ -562,16 +564,16 @@
                     options += '<option value="' + unit.pk + '" ' + selected + '>' + unit.fields.name + '</option>';
                 }
                 
-                $(unitSelectElement).html(options).prop('disabled', false);
+                $(unitSelectElement).html(options).prop('disabled', keepDisabled);
                 
-                // Si no hay unidad seleccionada o se fuerza UND, usar UND por defecto
-                if ((!selectedUnitId || selectedUnitId === '0' || forceUnd) && undUnitId) {
+                if (selectedUnitId && selectedUnitId !== '0') {
+                    $(unitSelectElement).val(selectedUnitId);
+                } else if (forceUnd && undUnitId) {
                     $(unitSelectElement).val(undUnitId);
-                } else if (!selectedUnitId || selectedUnitId === '0') {
-                    // Si no existe UND, usar la primera unidad disponible
-                    if (units.length > 0) {
-                        $(unitSelectElement).val(units[0].pk);
-                    }
+                } else if (undUnitId) {
+                    $(unitSelectElement).val(undUnitId);
+                } else if (units.length > 0) {
+                    $(unitSelectElement).val(units[0].pk);
                 }
                 
                 if (callback) callback(options);
@@ -583,6 +585,19 @@
             }
         });
     }
+
+    window.initContractUpdateUnits = function () {
+        $('.dates-quotas-update .unit-add-update').each(function () {
+            let $select = $(this);
+            let productId = $select.attr('data-product-id');
+            let unitId = $select.attr('data-unit-id');
+            if (productId && productId !== '0') {
+                let finalUnitId = (unitId && unitId !== '0' && unitId !== '') ? unitId : null;
+                let forceUnd = !finalUnitId;
+                loadUnitsForProductUpdate(productId, $select, finalUnitId, null, forceUnd);
+            }
+        });
+    };
 
     function addProductHeaderUpdate() {
         let _products = '{% for p in product_set %}' + '<option value="{{ p.id }}">{{ p.name }}</option>' +
@@ -954,73 +969,6 @@
         }
     });
 
-    // Cargar unidades cuando se carga el modal
-    $(document).ready(function() {
-        $('.dates-quotas-update .unit-add-update').each(function() {
-            let $select = $(this);
-            let productId = $select.attr('data-product-id');
-            let unitId = $select.attr('data-unit-id');
-            if (productId && productId !== '0') {
-                // Si no hay unidad (unitId es 0 o null), forzar UND por defecto
-                let finalUnitId = (unitId && unitId !== '0' && unitId !== '') ? unitId : null;
-                let forceUnd = (!finalUnitId || finalUnitId === '0' || finalUnitId === '');
-                // Forzar búsqueda de UND cuando no hay unidad en fechas de entrega
-                loadUnitsForProductUpdate(productId, $select, finalUnitId, null, forceUnd);
-            }
-        });
-    });
-
-    $('#contract-update-form').submit(function (event) {
-        event.preventDefault();
-        let detailsUpdate = [];
-        //let itemUpdateObj = {};
-        $('.main-dates-update').each(function () {
-            let nro_quota = $(this).find("div.item-number-update input.number-quota-update").val()
-            let detailsObj = {
-                "contract_detail": $(this).find("div.item-number-update input.contract_detail").val(),
-                "nro_quota": nro_quota,
-                "date_quota": $(this).find("div.item-date-quota-update input.date-quota-update").val(),
-                "type": $(this).attr("type"),
-                "items": []
-            }
-            $(`tbody#details-table-date-update-${nro_quota} tr`).each(function () {
-                let itemUpdateObj = {
-                    "contract_detail_item": $(this).find("td.item-number-update input.contract-detail-item").val(),
-                    "product": $(this).find("td.item-product-add-update select.product-add-update").val(),
-                    "unit": $(this).find("td.item-unit-add-update select.unit-add-update").val(),
-                    "quantity": $(this).find("td.item-quantity-add-update input.quantity-add-update").val(),
-                    "price_unit": $(this).find("td.item-price-unit-add-update input.price-unit-add-update").val(),
-                }
-                detailsObj.items.push(itemUpdateObj)
-            });
-            detailsUpdate.push(detailsObj);
-        });
-        let data = new FormData($('#contract-update-form').get(0));
-        data.append('detail_update', JSON.stringify(detailsUpdate));
-        $('#btn-update-contract').attr('disabled', true);
-        console.log(detailsUpdate)
-        $.ajax({
-            url: $(this).attr('action'),
-            type: $(this).attr('method'),
-            async: true,
-            data: data,
-            cache: false,
-            processData: false,
-            contentType: false,
-            headers: {"X-CSRFToken": '{{ csrf_token }}'},
-            success: function (response) {
-                if (response.success) {
-                    toastr.success(response.message);
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
-                }
-            },
-            error: function (response) {
-                toastr.error(response.message, "Guardado Fallido");
-            }
-        });
-    });
-
+    window.initContractUpdateUnits();
 
 </script>

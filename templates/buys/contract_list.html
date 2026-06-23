@@ -220,6 +220,24 @@
                 success: function (response) {
                     $('#modal-contract-update').html(response.form);
                     $('#modal-contract-update').modal('show');
+                    if (typeof window.initContractUpdateUnits === 'function') {
+                        window.initContractUpdateUnits();
+                    } else {
+                        $('#modal-contract-update .dates-quotas-update .unit-add-update').each(function () {
+                            let $select = $(this);
+                            let productId = $select.attr('data-product-id');
+                            let unitId = $select.attr('data-unit-id');
+                            if (productId && productId !== '0') {
+                                let finalUnitId = (unitId && unitId !== '0' && unitId !== '') ? unitId : null;
+                                let keepDisabled = $select.attr('data-keep-disabled') === 'true';
+                                loadUnitsForProduct(productId, $select, finalUnitId, function () {
+                                    if (keepDisabled) {
+                                        $select.prop('disabled', true);
+                                    }
+                                });
+                            }
+                        });
+                    }
                 },
                 fail: function (response) {
                     toastr.error('Error en la peticion', '¡Mensaje!');
@@ -551,6 +569,63 @@
             $('#product_add-id').val('0');
         });
 
+
+        $(document).on('submit', '#contract-update-form', function (event) {
+            event.preventDefault();
+            let detailsUpdate = [];
+            $('.main-dates-update').each(function () {
+                let nro_quota = $(this).find("div.item-number-update input.number-quota-update").val();
+                let detailsObj = {
+                    "contract_detail": $(this).find("div.item-number-update input.contract_detail").val(),
+                    "nro_quota": nro_quota,
+                    "date_quota": $(this).find("div.item-date-quota-update input.date-quota-update").first().val(),
+                    "type": $(this).attr("type"),
+                    "items": []
+                };
+                $(`tbody#details-table-date-update-${nro_quota} tr`).each(function () {
+                    detailsObj.items.push({
+                        "contract_detail_item": $(this).find("td.item-number-update input.contract-detail-item").val(),
+                        "product": $(this).find("td.item-product-add-update select.product-add-update").val(),
+                        "unit": $(this).find("td.item-unit-add-update select.unit-add-update").val(),
+                        "quantity": $(this).find("td.item-quantity-add-update input.quantity-add-update").val(),
+                        "price_unit": $(this).find("td.item-price-unit-add-update input.price-unit-add-update").val(),
+                    });
+                });
+                detailsUpdate.push(detailsObj);
+            });
+            let data = new FormData(this);
+            data.append('detail_update', JSON.stringify(detailsUpdate));
+            $('#btn-update-contract').attr('disabled', true);
+            $.ajax({
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                async: true,
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                headers: {"X-CSRFToken": '{{ csrf_token }}'},
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        toastr.error(response.message || 'Error al actualizar', 'Guardado Fallido');
+                        $('#btn-update-contract').removeAttr('disabled');
+                    }
+                },
+                error: function (xhr) {
+                    let message = 'Guardado Fallido';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    toastr.error(message, 'Guardado Fallido');
+                    $('#btn-update-contract').removeAttr('disabled');
+                }
+            });
+        });
 
         function saveContract() {
             let _number_contract = $('#number_contract').val();

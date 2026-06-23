@@ -1808,14 +1808,27 @@ def check_oc_update(request):
 @csrf_exempt
 def save_update_contract(request):
     if request.method == 'POST':
+        detail_raw = request.POST.get('detail_update', '')
+        try:
+            detail_update = json.loads(detail_raw) if detail_raw else []
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Datos de detalle inválidos. Recargue la página e intente nuevamente.'
+            }, status=HTTPStatus.BAD_REQUEST)
+
+        if not detail_update:
+            return JsonResponse({
+                'success': False,
+                'message': 'No se recibieron fechas de entrega para actualizar.'
+            }, status=HTTPStatus.BAD_REQUEST)
+
         _contract = request.POST.get('contract', '')
         _number_contract = request.POST.get('number_contract_update', '')
         _register_date = request.POST.get('register_date_update', '')
         _client = request.POST.get('client', '')
         _observation = request.POST.get('observations_update', '')
-        # _nro_date = request.POST.get('nro-dates', '')
         _user = request.POST.get('user_update', '')
-        detail_update = json.loads(request.POST.get('detail_update', ''))
 
         user_obj = User.objects.get(id=int(_user))
         subsidiary_obj = get_subsidiary_by_user(user_obj)
@@ -1831,12 +1844,8 @@ def save_update_contract(request):
         contract_update_obj.save()
 
         with transaction.atomic():
-            # contract_detail_to_delete = ContractDetail.objects.filter(contract=contract_update_obj)
-            # if contract_detail_to_delete.exists():
-            #     contract_detail_item_to_delete = ContractDetailItem.objects.filter(
-            #         contract_detail__in=contract_detail_to_delete)
-            #     contract_detail_item_to_delete.delete()
-            #     contract_detail_to_delete.delete()
+            def parse_decimal_value(value):
+                return decimal.Decimal(str(value).replace(',', ''))
 
             for d in detail_update:
                 type_detail = str(d['type'])
@@ -1852,8 +1861,8 @@ def save_update_contract(request):
                     for i in d['items']:
                         product = i['product']
                         unit = i.get('unit', None)
-                        quantity = i['quantity']
-                        price_unit = decimal.Decimal(i['price_unit'])
+                        quantity = parse_decimal_value(i['quantity'])
+                        price_unit = parse_decimal_value(i['price_unit'])
                         contract_detail_item = i['contract_detail_item']
                         contract_detail_item_obj = ContractDetailItem.objects.get(id=int(contract_detail_item))
                         product_obj = Product.objects.get(id=int(product))
@@ -1866,6 +1875,19 @@ def save_update_contract(request):
                         contract_detail_item_obj.price_unit = price_unit
                         contract_detail_item_obj.contract_detail = contract_detail_obj
                         contract_detail_item_obj.save()
+                elif type_detail == 'B':
+                    contract_detail = int(d['contract_detail'])
+                    for i in d['items']:
+                        quantity = parse_decimal_value(i['quantity'])
+                        price_unit = parse_decimal_value(i['price_unit'])
+                        contract_detail_item = i['contract_detail_item']
+                        contract_detail_item_obj = ContractDetailItem.objects.get(
+                            id=int(contract_detail_item),
+                            contract_detail_id=contract_detail
+                        )
+                        contract_detail_item_obj.quantity = quantity
+                        contract_detail_item_obj.price_unit = price_unit
+                        contract_detail_item_obj.save(update_fields=['quantity', 'price_unit'])
                 elif type_detail == 'N':
                     new_contract_detail_obj = ContractDetail(
                         contract=contract_update_obj,
@@ -1876,8 +1898,8 @@ def save_update_contract(request):
                     for i in d['items']:
                         product = i['product']
                         unit = i.get('unit', None)
-                        quantity = i['quantity']
-                        price_unit = decimal.Decimal(i['price_unit'])
+                        quantity = parse_decimal_value(i['quantity'])
+                        price_unit = parse_decimal_value(i['price_unit'])
                         product_obj = Product.objects.get(id=int(product))
                         unit_obj = None
                         if unit and unit != '0':
