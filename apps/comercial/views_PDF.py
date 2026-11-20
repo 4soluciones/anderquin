@@ -594,9 +594,26 @@ def print_programming_guide(request, pk=None, guide=None):
     w = A5[0] - ml - mr  # Ancho disponible
     h = A5[1] - mt - mb  # Alto disponible
 
-    # Obtener objeto programming y guide
-    programming_obj = Programming.objects.get(id=pk)
-    guide_obj = Guide.objects.filter(programming=programming_obj, id=guide).first()
+    # Los modelos Programming/Route fueron retirados; hoy la programación se
+    # representa con Picking. Se mantienen alias para no reescribir la plantilla.
+    programming_obj = Picking.objects.filter(id=pk).first()
+    if programming_obj is None:
+        return HttpResponse('La programación solicitada no existe.', status=404)
+    programming_obj.truck = programming_obj.vehicle
+
+    guide_obj = Guide.objects.filter(id=guide).first()
+    if guide_obj is None:
+        return HttpResponse('La guía solicitada no existe.', status=404)
+    guide_obj.code = guide_obj.correlative
+    guide_obj.minimal_cost = ''
+
+    class _Place:
+        def __init__(self, name):
+            self.name = name
+
+    _subsidiary = guide_obj.subsidiary or programming_obj.subsidiary
+    programming_obj.get_origin = lambda: _Place(_subsidiary.name if _subsidiary else '-')
+    programming_obj.get_destiny = lambda: _Place(guide_obj.destiny or '-')
 
     # Estilos
     styles = getSampleStyleSheet()
@@ -703,7 +720,7 @@ def print_programming_guide(request, pk=None, guide=None):
          Paragraph(programming_obj.arrival_date.strftime("%d.%m.%Y") if programming_obj.arrival_date else '',
                    styles['Left']),
          Paragraph('Costo minimo S/', styles['Left_subtitle']),
-         Paragraph(str(guide_obj.minimal_cost) if guide_obj.minimal_cost else '', styles['Left']),
+         Paragraph(str(getattr(guide_obj, 'minimal_cost', 0)) if getattr(guide_obj, 'minimal_cost', 0) else '', styles['Left']),
          Paragraph('NOMBRE O RAZON SOCIAL DEL DESTINATARIO', styles['Left_subtitle']),
          Paragraph('', styles['Left'])],
         [Paragraph('Número de RUC:', styles['Left_subtitle']),
@@ -774,8 +791,9 @@ def print_programming_guide(request, pk=None, guide=None):
             Paragraph(str(detail.id), styles['Left']),
             Paragraph(detail.product.name if detail.product else '', styles['Left']),
             Paragraph(str(detail.quantity), styles['Right']),
-            Paragraph(detail.unit_measure.description if detail.unit_measure else '', styles['Left']),
-            Paragraph(str(detail.weight), styles['Right']),
+            Paragraph(detail.unit.description if detail.unit and detail.unit.description else
+                      (detail.unit.name if detail.unit else ''), styles['Left']),
+            Paragraph(str(getattr(detail, 'weight', '')), styles['Right']),
             Paragraph('', styles['Left'])
         ]
         detail_rows.append(detail_data)
@@ -827,230 +845,6 @@ def print_programming_guide(request, pk=None, guide=None):
 
     return response
 
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70, mi + 0 + 39 + 3, unit_measure1)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70 + 70, mi + 0 + 39 + 3, weight1)
-
-    item2 = ''
-    description2 = ''
-    quantity2 = ''
-    unit_measure2 = ''
-    weight2 = ''
-    if guide_obj.guidedetail_set.count() > 1:
-        item2 = str(guide_obj.guidedetail_set.all()[1].id)
-        description2 = str(guide_obj.guidedetail_set.all()[1].product.name)
-        quantity2 = str(guide_obj.guidedetail_set.all()[1].quantity)
-        unit_measure2 = str(guide_obj.guidedetail_set.all()[1].unit_measure.description)
-        weight2 = str(guide_obj.guidedetail_set.all()[1].weight)
-
-    canvas.drawString(ml + 6 + 15, mi + 0 + 29 + 3, item2)
-    canvas.drawString(ml + 6 + 100 + 50, mi + 0 + 29 + 3, description2)
-    canvas.drawString(ml + 6 + 0 + 50 + 280, mi + 0 + 29 + 3, quantity2)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70, mi + 0 + 29 + 3, unit_measure2)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70 + 70, mi + 0 + 29 + 3, weight2)
-
-    item3 = ''
-    description3 = ''
-    quantity3 = ''
-    unit_measure3 = ''
-    weight3 = ''
-    if guide_obj.guidedetail_set.count() > 2:
-        item3 = str(guide_obj.guidedetail_set.all()[2].id)
-        description3 = str(guide_obj.guidedetail_set.all()[2].product.name)
-        quantity3 = str(guide_obj.guidedetail_set.all()[2].quantity)
-        unit_measure3 = str(guide_obj.guidedetail_set.all()[2].unit_measure.description)
-        weight3 = str(guide_obj.guidedetail_set.all()[2].weight)
-
-    canvas.drawString(ml + 6 + 15, mi + 0 + 19 + 3, item3)
-    canvas.drawString(ml + 6 + 100 + 50, mi + 0 + 19 + 3, description3)
-    canvas.drawString(ml + 6 + 0 + 50 + 280, mi + 0 + 19 + 3, quantity3)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70, mi + 0 + 19 + 3, unit_measure3)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70 + 70, mi + 0 + 19 + 3, weight3)
-
-    item4 = ''
-    description4 = ''
-    quantity4 = ''
-    unit_measure4 = ''
-    weight4 = ''
-    if guide_obj.guidedetail_set.count() > 3:
-        item4 = str(guide_obj.guidedetail_set.all()[3].id)
-        description4 = str(guide_obj.guidedetail_set.all()[3].product.name)
-        quantity4 = str(guide_obj.guidedetail_set.all()[3].quantity)
-        unit_measure4 = str(guide_obj.guidedetail_set.all()[3].unit_measure.description)
-        weight4 = str(guide_obj.guidedetail_set.all()[3].weight)
-
-    canvas.drawString(ml + 6 + 15, mi + 0 + 9 + 3, item4)
-    canvas.drawString(ml + 6 + 100 + 50, mi + 0 + 9 + 3, description4)
-    canvas.drawString(ml + 6 + 0 + 50 + 280, mi + 0 + 9 + 3, quantity4)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70, mi + 0 + 9 + 3, unit_measure4)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70 + 70, mi + 0 + 9 + 3, weight4)
-
-    item5 = ''
-    description5 = ''
-    quantity5 = ''
-    unit_measure5 = ''
-    weight5 = ''
-
-    if guide_obj.guidedetail_set.count() > 4:
-        item5 = str(guide_obj.guidedetail_set.all()[4].id)
-        description5 = str(guide_obj.guidedetail_set.all()[4].product.name)
-        quantity5 = str(guide_obj.guidedetail_set.all()[4].quantity)
-        unit_measure5 = str(guide_obj.guidedetail_set.all()[4].unit_measure.description)
-        weight5 = str(guide_obj.guidedetail_set.all()[4].weight)
-
-    canvas.drawString(ml + 6 + 15, mi + 0 - 1 + 3, item5)
-    canvas.drawString(ml + 6 + 100 + 50, mi + 0 - 1 + 3, description5)
-    canvas.drawString(ml + 6 + 0 + 50 + 280, mi + 0 - 1 + 3, quantity5)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70, mi + 0 - 1 + 3, unit_measure5)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70 + 70, mi + 0 - 1 + 3, weight5)
-
-    item6 = ''
-    description6 = ''
-    quantity6 = ''
-    unit_measure6 = ''
-    weight6 = ''
-
-    if guide_obj.guidedetail_set.count() > 5:
-        item6 = str(guide_obj.guidedetail_set.all()[5].id)
-        description6 = str(guide_obj.guidedetail_set.all()[5].product.name)
-        quantity6 = str(guide_obj.guidedetail_set.all()[5].quantity)
-        unit_measure6 = str(guide_obj.guidedetail_set.all()[5].unit_measure.description)
-        weight6 = str(guide_obj.guidedetail_set.all()[5].weight)
-
-    canvas.drawString(ml + 6 + 15, mi + 0 - 11 + 3, item6)
-    canvas.drawString(ml + 6 + 100 + 50, mi + 0 - 11 + 3, description6)
-    canvas.drawString(ml + 6 + 0 + 50 + 280, mi + 0 - 11 + 3, quantity6)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70, mi + 0 - 11 + 3, unit_measure6)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70 + 70, mi + 0 - 11 + 3, weight6)
-
-    item7 = ''
-    description7 = ''
-    quantity7 = ''
-    unit_measure7 = ''
-    weight7 = ''
-
-    if guide_obj.guidedetail_set.count() > 6:
-        item7 = str(guide_obj.guidedetail_set.all()[6].id)
-        description7 = str(guide_obj.guidedetail_set.all()[6].product.name)
-        quantity7 = str(guide_obj.guidedetail_set.all()[6].quantity)
-        unit_measure7 = str(guide_obj.guidedetail_set.all()[6].unit_measure.description)
-        weight7 = str(guide_obj.guidedetail_set.all()[6].weight)
-
-    canvas.drawString(ml + 6 + 15, mi + 0 - 21 + 3, item7)
-    canvas.drawString(ml + 6 + 100 + 50, mi + 0 - 21 + 3, description7)
-    canvas.drawString(ml + 6 + 0 + 50 + 280, mi + 0 - 21 + 3, quantity7)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70, mi + 0 - 21 + 3, unit_measure7)
-    canvas.drawString(ml + 6 + 0 + 50 + 280 + 70 + 70, mi + 0 - 21 + 3, weight7)
-
-    canvas.drawString(ml + 100 + 3 + 6, mi + 0 - 70 + 6 + 20, 'MOTIVO DEL')
-    canvas.drawString(ml + 100 + 3 + 6, mi + 0 - 70 + 6 + 10, 'TRASLADO')
-
-    canvas.drawString(ml + 100 + 3 + 6 + 60, mi + 0 - 73 + 6 + 28, 'Venta')
-    canvas.drawString(ml + 100 + 3 + 6 + 60, mi + 0 - 72 + 6 + 13, 'Venta sujeta a')
-
-    canvas.acroForm.checkbox(
-        name='CB0',
-        checked=False,
-        x=ml + 100 + 3 + 6 + 120, y=mi + 0 - 71 + 6 + 25,
-        size=7,
-        borderWidth=1,
-        borderColor=black,
-        fillColor=white,
-        textColor=black,
-        forceBorder=False)
-    canvas.acroForm.checkbox(
-        name='CB02',
-        checked=False,
-        x=ml + 100 + 3 + 6 + 120, y=mi + 0 - 71 + 6 + 10,
-        size=7,
-        borderWidth=1,
-        borderColor=black,
-        fillColor=white,
-        textColor=black,
-        forceBorder=False)
-
-    canvas.drawString(ml + 100 + 3 + 6 + 140, mi + 0 - 73 + 6 + 28, 'Consignación')
-    canvas.drawString(ml + 100 + 3 + 6 + 140, mi + 0 - 73 + 6 + 13, 'Devolución')
-
-    canvas.acroForm.checkbox(
-        name='CB04',
-        checked=False,
-        x=ml + 100 + 3 + 6 + 230, y=mi + 0 - 71 + 6 + 25,
-        size=7,
-        borderWidth=1,
-        borderColor=black,
-        fillColor=white,
-        textColor=black,
-        forceBorder=False)
-    canvas.acroForm.checkbox(
-        name='CB05',
-        checked=False,
-        x=ml + 100 + 3 + 6 + 230, y=mi + 0 - 71 + 6 + 10,
-        size=7,
-        borderWidth=1,
-        borderColor=black,
-        fillColor=white,
-        textColor=black,
-        forceBorder=False)
-
-    canvas.drawString(ml + 100 + 3 + 6 + 250, mi + 0 - 73 + 6 + 28, 'Para transformación')
-    canvas.drawString(ml + 100 + 3 + 6 + 250, mi + 0 - 73 + 6 + 13, 'Entre establecimientos')
-
-    canvas.acroForm.checkbox(
-        name='CB03',
-        checked=False,
-        x=ml + 100 + 3 + 6 + 335, y=mi + 0 - 71 + 6 + 25,
-        size=7,
-        borderWidth=1,
-        borderColor=black,
-        fillColor=white,
-        textColor=black,
-        forceBorder=False)
-
-    canvas.acroForm.checkbox(
-        name='CB07',
-        checked=False,
-        x=ml + 100 + 3 + 6 + 335, y=mi + 0 - 71 + 6 + 10,
-        size=7,
-        borderWidth=1,
-        borderColor=black,
-        fillColor=white,
-        textColor=black,
-        forceBorder=False)
-    canvas.drawString(ml + 100 + 3 + 6 + 350, mi + 0 - 73 + 6 + 28, 'Zona primaria')
-    canvas.drawString(ml + 100 + 3 + 6 + 350, mi + 0 - 73 + 6 + 13, 'Compra')
-
-    canvas.acroForm.checkbox(
-        name='CB8',
-        checked=False,
-        x=ml + 100 + 3 + 6 + 410, y=mi + 0 - 71 + 6 + 25,
-        size=7,
-        borderWidth=1,
-        borderColor=black,
-        fillColor=white,
-        textColor=black,
-        forceBorder=False)
-    canvas.acroForm.checkbox(
-        name='CB06',
-        checked=False,
-        x=ml + 100 + 3 + 6 + 410, y=mi + 0 - 71 + 6 + 10,
-        size=7,
-        borderWidth=1,
-        borderColor=black,
-        fillColor=white,
-        textColor=black,
-        forceBorder=False)
-
-    canvas.showPage()
-    canvas.save()
-    r = HttpResponse(content_type='application/pdf')
-    r['Content-Disposition'] = 'attachment; filename="owners_and_vehicles_update.pdf"'
-    r['Content-Disposition'] = 'attachment; filename="guia_de_remision[{} - {}].pdf"'.format(
-        guide_obj.serial, guide_obj.code)
-    r.write(buff.getvalue())
-    buff.close()
-    return r
-
-
 def get_input_note(self, pk=None):
     # Register Fonts
     # BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -1061,14 +855,21 @@ def get_input_note(self, pk=None):
     details = []
     colspan_headings = ('ARTÍCULOS', '', '', '', '', 'VALORES', '')
     headings = ('Id', 'Codigo', 'Descrición', 'Cant.', 'U. Med.', 'Unitario', 'Total')
-    all_details = [(g.id, g.product.id, g.product.name, g.quantity, g.unit_measure.name,
+    all_details = [(g.id, g.product.id, g.product.name, g.quantity, g.unit.name,
                     g.product.calculate_minimum_unit(), g.product.calculate_minimum_unit() * g.quantity)
                    for g in GuideDetail.objects.filter(guide__id=pk)]
     guide_obj = Guide.objects.get(id=pk)
+    # Alias de compatibilidad: el modelo vigente usa `serial`/`correlative`.
+    guide_obj.get_serial = lambda: guide_obj.serial or ''
+    guide_obj.code = guide_obj.correlative or ''
+    guide_obj.motive_description = (
+        guide_obj.guide_motive.description.upper()
+        if guide_obj.guide_motive and guide_obj.guide_motive.description else '-'
+    )
 
     footer1 = ('NOTA:', '', 'INGRESO DE BIENES', '', '', '', '')
-    footer2 = ('SON:', '', numero_a_moneda(guide_obj.minimal_cost),
-               '', '', 'TOTAL S/', str(guide_obj.minimal_cost))
+    footer2 = ('SON:', '', numero_a_moneda(getattr(guide_obj, 'minimal_cost', 0)),
+               '', '', 'TOTAL S/', str(getattr(guide_obj, 'minimal_cost', 0)))
     # t = Table([colspan_headings] + [headings] + all_details + [footer1] + [footer2])
     t = Table([colspan_headings] + [headings] + all_details + [footer1] + [footer2],
               colWidths=[0.5 * inch, 0.8 * inch, 1.6 * inch, 0.8 * inch, 0.8 * inch, 0.8 * inch, 0.8 * inch])
@@ -1164,6 +965,12 @@ class InputGetContext(Flowable):
 
     def draw(self):
         guide_obj = Guide.objects.get(id=self.pk)
+        guide_obj.get_serial = lambda: guide_obj.serial or ''
+        guide_obj.code = guide_obj.correlative or ''
+        guide_obj.motive_description = (
+            guide_obj.guide_motive.description.upper()
+            if guide_obj.guide_motive and guide_obj.guide_motive.description else '-'
+        )
         canvas = self.canv  # El atributo que permite dibujar en canvas
         canvas.saveState()
         canvas.setLineWidth(1)
@@ -1178,11 +985,13 @@ class InputGetContext(Flowable):
         canvas.setFillColor(black)
         # canvas.setFont('Helvetica', 8)
         canvas.setFont('Helvetica-Bold', 8)
-        destiny = guide_obj.route_set.get(type='D')
-        canvas.drawString(-12 + 15, 5 + 45, 'PROCEDENCIA: ' + guide_obj.subsidiary.name.upper())
-        canvas.drawString(-12 + 15, 5 + 30, 'DESTINO: ' + destiny.subsidiary_store.name.upper())
+        origin_text = guide_obj.subsidiary.name.upper() if guide_obj.subsidiary else '-'
+        destiny_text = (guide_obj.subsidiary_store.name.upper() if guide_obj.subsidiary_store
+                        else (guide_obj.destiny or '-'))
+        canvas.drawString(-12 + 15, 5 + 45, 'PROCEDENCIA: ' + origin_text)
+        canvas.drawString(-12 + 15, 5 + 30, 'DESTINO: ' + destiny_text)
         canvas.drawString(-12 + 15, 5 + 15, 'SEGÚN: ' + guide_obj.get_serial() +
-                          '-' + guide_obj.code + '-' + guide_obj.guide_motive.description.upper())
+                          '-' + guide_obj.code + '-' + guide_obj.motive_description)
         canvas.drawString(-12 + 347, 90 + 30 + 2, 'Nro ' + str(guide_obj.id))
 
         canvas.drawString(-12 + 347 + 5, 90 + 15 + 2, 'Día')
@@ -1206,14 +1015,21 @@ def get_output_note(self, pk=None):
     details = []
     colspan_headings = ('ARTÍCULOS', '', '', '', '', 'VALORES', '')
     headings = ('Id', 'Codigo', 'Descrición', 'Cant.', 'U. Med.', 'Unitario', 'Total')
-    all_details = [(g.id, g.product.id, g.product.name, g.quantity, g.unit_measure.name,
+    all_details = [(g.id, g.product.id, g.product.name, g.quantity, g.unit.name,
                     g.product.calculate_minimum_unit(), g.product.calculate_minimum_unit() * g.quantity)
                    for g in GuideDetail.objects.filter(guide__id=pk)]
     guide_obj = Guide.objects.get(id=pk)
+    # Alias de compatibilidad: el modelo vigente usa `serial`/`correlative`.
+    guide_obj.get_serial = lambda: guide_obj.serial or ''
+    guide_obj.code = guide_obj.correlative or ''
+    guide_obj.motive_description = (
+        guide_obj.guide_motive.description.upper()
+        if guide_obj.guide_motive and guide_obj.guide_motive.description else '-'
+    )
 
     footer1 = ('NOTA:', '', 'INGRESO DE BIENES', '', '', '', '')
     footer2 = (
-        'SON:', '', numero_a_moneda(guide_obj.minimal_cost), '', '', 'TOTAL S/', str(guide_obj.minimal_cost))
+        'SON:', '', numero_a_moneda(getattr(guide_obj, 'minimal_cost', 0)), '', '', 'TOTAL S/', str(getattr(guide_obj, 'minimal_cost', 0)))
     # t = Table([colspan_headings] + [headings] + all_details + [footer1] + [footer2])
     t = Table([colspan_headings] + [headings] + all_details + [footer1] + [footer2],
               colWidths=[0.5 * inch, 0.8 * inch, 1.6 * inch, 0.8 * inch, 0.8 * inch, 0.8 * inch, 0.8 * inch])
@@ -1310,6 +1126,12 @@ class OutputGetContext(Flowable):
 
     def draw(self):
         guide_obj = Guide.objects.get(id=self.pk)
+        guide_obj.get_serial = lambda: guide_obj.serial or ''
+        guide_obj.code = guide_obj.correlative or ''
+        guide_obj.motive_description = (
+            guide_obj.guide_motive.description.upper()
+            if guide_obj.guide_motive and guide_obj.guide_motive.description else '-'
+        )
         canvas = self.canv  # El atributo que permite dibujar en canvas
         canvas.saveState()
         canvas.setLineWidth(1)
@@ -1324,20 +1146,15 @@ class OutputGetContext(Flowable):
         canvas.setFillColor(black)
         # canvas.setFont('Helvetica', 8)
         canvas.setFont('Helvetica-Bold', 8)
-        origin = guide_obj.route_set.get(type='O')
-        subsidiary_destiny = '-'
-        subsidiary_store_destiny = '-'
-        destiny_set = guide_obj.route_set.filter(type='D')
-        if destiny_set.count() > 0:
-            subsidiary_destiny = destiny_set.last().subsidiary_store.subsidiary.name.upper()
-            subsidiary_store_destiny = destiny_set.last().subsidiary_store.name.upper()
+        origin_subsidiary = guide_obj.subsidiary.name.upper() if guide_obj.subsidiary else '-'
+        origin_store = guide_obj.subsidiary_store.name.upper() if guide_obj.subsidiary_store else '-'
+        destiny_text = guide_obj.destiny.upper() if guide_obj.destiny else '-'
 
         canvas.drawString(-12 + 15, 5 + 45, 'PROCEDENCIA/SALIDA: ' +
-                          origin.subsidiary_store.subsidiary.name.upper() + ' - ' + origin.subsidiary_store.name.upper())
-        canvas.drawString(-12 + 15, 5 + 30, 'DESTINO: ' +
-                          subsidiary_destiny + ' - ' + subsidiary_store_destiny)
+                          origin_subsidiary + ' - ' + origin_store)
+        canvas.drawString(-12 + 15, 5 + 30, 'DESTINO: ' + destiny_text)
         canvas.drawString(-12 + 15, 5 + 15, 'SEGÚN: ' + guide_obj.get_serial() +
-                          '-' + guide_obj.code + '-' + guide_obj.guide_motive.description.upper())
+                          '-' + guide_obj.code + '-' + guide_obj.motive_description)
 
         canvas.drawString(-12 + 347, 90 + 30 + 2, 'Nro ' + str(guide_obj.id))
 
@@ -1806,7 +1623,7 @@ def guide(request, pk=None):
     client_document_number = guide_obj.contract_detail.contract.client.clienttype_set.last().document_number
     client_obj = guide_obj.client
     client_address = ClientAddress.objects.filter(client=client_obj, type_address='P').last()
-    # client_address = guide_obj.contract_detail.contract.client.clientaddress_set.last().address
+    client_address_text = client_address.address if client_address else '-'
 
     date = utc_to_local(guide_obj.date_issue)
     date_transfer = utc_to_local(guide_obj.transfer_date)
@@ -1880,7 +1697,7 @@ def guide(request, pk=None):
           'Doc. Referencia', '')] +
         [('Destinatario', ': ' + client, '', '', 'Doc. Identidad',
           ': ' + client_type_document + ' ' + client_document_number)] +
-        [('Dirección', ': ' + client_address.address, '', '', '', '')] +
+        [('Dirección', ': ' + client_address_text, '', '', '', '')] +
         [('Ref. Llegada', '', '', '', '', '')],
         colWidths=[w * 15 / 100, w * 10 / 100, w * 20 / 100, w * 20 / 100, w * 17 / 100, w * 18 / 100],
         rowHeights=[inch * 0.18, inch * 0.15, inch * 0.15, inch * 0.18])
@@ -1914,7 +1731,7 @@ def guide(request, pk=None):
             [('Fecha Inicio traslado', ': ' + date_transfer.strftime("%d/%m/%Y"), 'Observaciones', '')] +
             [(Paragraph('Fecha Entrega bienes al transportista', styles["narrow_b_normal_justify"]),
               ': ' + date_transfer.strftime("%d/%m/%Y"), '')] +
-            [('Motivo de traslado: ', ': ' + guide_obj.guide_motive.description.upper(), '', '', '', '',
+            [('Motivo de traslado: ', ': ' + (guide_obj.guide_motive.description.upper() if guide_obj.guide_motive and guide_obj.guide_motive.description else '-'), '', '', '', '',
               'Modalidad Traslado', ': ' + 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
             [('Transportista: ', ': ' + guide_obj.carrier.name.upper(), '', '', '', '', 'RUC',
               ': ' + guide_obj.carrier.ruc)] +
@@ -1934,7 +1751,7 @@ def guide(request, pk=None):
             [('Fecha Inicio traslado', ': ' + date_transfer.strftime("%d/%m/%Y"), 'Observaciones', '')] +
             [(Paragraph('Fecha Entrega bienes al transportista', styles["narrow_b_normal_justify"]),
               ': ' + date_transfer.strftime("%d/%m/%Y"), '')] +
-            [('Motivo de traslado: ', ': ' + guide_obj.guide_motive.description.upper(), '', '', '', '',
+            [('Motivo de traslado: ', ': ' + (guide_obj.guide_motive.description.upper() if guide_obj.guide_motive and guide_obj.guide_motive.description else '-'), '', '', '', '',
               'Modalidad Traslado', ': ' + 'TRANSPORTE ' + guide_obj.get_modality_transport_display())] +
             [('Transportista: ', ': ' + guide_obj.carrier.name.upper(), '', '', 'CIMTC', guide_obj.register_mtc, 'RUC',
               ': ' + guide_obj.carrier.ruc)],

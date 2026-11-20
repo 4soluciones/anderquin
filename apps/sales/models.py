@@ -300,6 +300,11 @@ class Requirement(models.Model):
     approval_date = models.DateField('Fecha de aprobación', null=True, blank=True)
     delivery_date = models.DateField('Fecha de entrega', null=True, blank=True)
     user = models.ForeignKey(User, verbose_name='Usuario', on_delete=models.CASCADE)
+    subsidiary = models.ForeignKey('hrm.Subsidiary', verbose_name='Sucursal', on_delete=models.SET_NULL,
+                                   null=True, blank=True)
+    purchase_order = models.ForeignKey('buys.Purchase', verbose_name='Orden de compra generada',
+                                       on_delete=models.SET_NULL, null=True, blank=True,
+                                       related_name='requirements')
 
     def __str__(self):
         return str(self.id) + " - " + str(self.status)
@@ -472,14 +477,14 @@ class Order(models.Model):
 
     def total_repay_loan(self):
         response = 0
-        order_detail_set = OrderDetail.objects.filter(order__id=self.pk, order__type__in=['R', 'V'])
+        order_detail_set = OrderDetail.objects.filter(order__id=self.pk, order__order_type='V')
         for d in order_detail_set:
             response = response + d.repay_loan()
         return response
 
     def total_remaining_repay_loan(self):
         response = 0
-        order_detail_set = OrderDetail.objects.filter(order__id=self.pk, order__type__in=['R', 'V'])
+        order_detail_set = OrderDetail.objects.filter(order__id=self.pk, order__order_type='V')
         for d in order_detail_set:
             if d.unit.name == 'G' or d.unit.name == 'GBC':
                 response = response + (d.multiply() - d.repay_loan())

@@ -19,12 +19,61 @@ from datetime import datetime
 from django.db import DatabaseError, IntegrityError
 import json
 from django.core import serializers
-from django.db.models import Min, Sum, F, Prefetch, Subquery, OuterRef, Value, Q, Exists
+from django.db.models import Min, Sum, F, Prefetch, Subquery, OuterRef, Value, Q, Exists, DecimalField
 from django.views.decorators.clickjacking import xframe_options_exempt
 
 
 class Home(TemplateView):
     template_name = 'accounting/home.html'
+
+    def get_context_data(self, **kwargs):
+        from django.contrib.auth.models import User as AuthUser
+        from django.utils import timezone
+        from decimal import Decimal
+
+        context = super().get_context_data(**kwargs)
+        user_obj = AuthUser.objects.filter(pk=self.request.user.pk).first()
+        subsidiary_obj = None
+        if user_obj:
+            try:
+                subsidiary_obj = get_subsidiary_by_user(user_obj)
+            except Exception:
+                subsidiary_obj = None
+
+        purchase_qs = Purchase.objects.filter(status__in=['S', 'A'])
+        if subsidiary_obj:
+            purchase_qs = purchase_qs.filter(subsidiary=subsidiary_obj)
+
+        pending_purchase_qs = purchase_qs.filter(status='S', bill_number__isnull=False)
+        purchases_total = PurchaseDetail.objects.filter(
+            purchase__in=pending_purchase_qs
+        ).aggregate(total=Coalesce(Sum(F('quantity') * F('price_unit')), Value(0), output_field=DecimalField(max_digits=30, decimal_places=2)))['total'] or Decimal('0')
+
+        cash_qs = Cash.objects.all()
+        if subsidiary_obj:
+            cash_qs = cash_qs.filter(subsidiary=subsidiary_obj)
+        cash_balance = Decimal('0')
+        for cash_obj in cash_qs:
+            try:
+                cash_balance += Decimal(cash_obj.current_balance() or 0)
+            except Exception:
+                cash_balance += Decimal(cash_obj.initial or 0)
+
+        context.update({
+            'subsidiary_obj': subsidiary_obj,
+            'purchase_count': purchase_qs.count(),
+            'purchase_pending_count': purchase_qs.filter(status='S').count(),
+            'purchase_warehouse_count': purchase_qs.filter(status='A').count(),
+            'purchases_pending_total': purchases_total,
+            'bills_pending_count': Bill.objects.filter(status='S').count(),
+            'credit_notes_count': CreditNote.objects.filter(status='E').count(),
+            'cash_count': cash_qs.count(),
+            'bank_count': cash_qs.filter(accounting_account__code__startswith='104').count(),
+            'cash_balance': cash_balance,
+            'recent_purchases': purchase_qs.select_related('supplier').order_by('-id')[:8],
+            'today': timezone.localdate(),
+        })
+        return context
 
 
 @xframe_options_exempt

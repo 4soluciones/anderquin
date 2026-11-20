@@ -6,7 +6,6 @@ from apps.accounting.views_PDF import print_pdf_bill_finances, print_pdf_purchas
 urlpatterns = [
     path('', login_required(Home.as_view()), name='home'),
     path('get_purchases_list/', login_required(get_purchases_list), name='get_purchases_list'),
-    path('get_dict_purchases/', login_required(get_dict_purchases), name='get_dict_purchases'),
     path('get_purchases_by_date/', login_required(get_purchases_by_date), name='get_purchases_by_date'),
     path('get_purchases_paid_by_date/', login_required(get_purchases_paid_by_date), name='get_purchases_paid_by_date'),
     path('new_opening_balance/', login_required(new_opening_balance), name='new_opening_balance'),

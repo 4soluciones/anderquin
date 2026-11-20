@@ -7,55 +7,41 @@
     <!-- <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"> -->
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>{% block title %}ANDERQUIN {% endblock title %}</title>
+    <title>{% block title %}ANDERQUIN ERP{% endblock title %}</title>
 
     <link rel="icon" href="{% static 'assets/icons/images_mYC_1.ico' %}" type="image/ico"/>
 
-    <!-- Normalize V8.0.1 -->
-    <!-- <link rel="stylesheet" href="{% static 'css/normalize.css' %}"> -->
-
     <!-- Bootstrap V4.3 -->
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-    {#<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">#}
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
-
 
     <!-- Simple javascript toast notifications -->
     <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet">
-    <!-- Bootstrap Material Design V4.0 -->
-    <!-- <link rel="stylesheet" href="{% static 'css/bootstrap-material-design.min.css' %}"> -->
 
     <!-- Font Awesome V5.9.0 -->
     <link rel="stylesheet" href="{% static 'css/all.css' %}">
 
-    <!-- Sweet Alerts V8.13.0 CSS file -->
+    <!-- Sweet Alerts -->
     <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}">
-
-    <!-- Sweet Alert V8.13.0 JS file-->
     <script src="{% static 'js/sweetalert2.min.js' %}"></script>
 
-    <!-- jQuery Custom Content Scroller V3.1.5 -->
+    <!-- Scroller, jQuery UI y DataTables -->
     <link rel="stylesheet" href="{% static 'css/jquery.mCustomScrollbar.css' %}">
-
-    <!-- jQuery UI CSS -->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-
-    <!-- DataTables CSS -->
     <link rel="stylesheet" href="{% static 'assets/datatables/datatables.min.css' %}">
     <link href="//cdn.datatables.net/buttons/1.6.5/css/buttons.dataTables.min.css" rel="stylesheet">
-    <!-- General Styles -->
+
+    <!-- Estilos generales -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
-    <!-- ERP Sidebar Styles -->
+    <!-- ERP Sidebar + tema unificado -->
     <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/erp_theme.css' %}?v=7">
     <link rel="stylesheet" href="{% static 'css/loader.css' %}">
 
-    <!-- Select2 - customizable select box -->
+    <!-- Select2 -->
     <link rel="stylesheet" href="{% static 'css/select2.min.css' %}">
-    <!-- select2-bootstrap4-theme -->
     <link rel="stylesheet" href="{% static 'css/select2-bootstrap4.css' %}">
-    <!-- DataTables Select CSS <link href="css/addons/datatables-select2.min.css" rel="stylesheet">-->
-
     <link rel="stylesheet" href="{% static 'css/sweetalert.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-duallistbox.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/select2-bootstrap4.min.css' %}">
@@ -151,15 +137,194 @@
 
         <!-- Contenido principal -->
         <main class="erp-main-content">
+            {% if messages %}
+                <div class="erp-messages mb-3">
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show mb-2" role="alert">
+                            <i class="fas fa-info-circle mr-2"></i>{{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
             {% block body %}
-                <div class="container-fluid">
-                    <div class="row justify-content-center align-items-center" style="min-height: 60vh;">
-                        <div class="col text-center">
-                            <img src="{% static 'assets/avatar/logo_anderquin_new.png' %}" class="img-fluid" alt="Logo Anderquin" style="max-width: 450px; opacity: 0.95;"/>
-                            <p class="mt-4 text-muted" style="font-size: 1.1rem;">Bienvenido al Sistema ERP</p>
+            <div class="erp-page roboto-condensed-regular">
+                <div class="erp-dashboard-hero">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h1>Hola, {{ user.worker_set.last.employee.names|default:user.username|title }}</h1>
+                            <p>Este es el resumen operativo de Anderquin ERP para {% if current_subsidiary %}{{ current_subsidiary.name }}{% else %}todas las sucursales{% endif %} · {{ today|date:"d/m/Y" }}</p>
+                        </div>
+                        <div class="col-lg-4 text-lg-right mt-3 mt-lg-0">
+                            <a href="{% url 'sales:sales_list' %}" class="btn btn-light font-weight-bold btn-sales-rounded mr-1">
+                                <i class="fas fa-plus-circle mr-1"></i> Nueva venta
+                            </a>
+                            <a href="{% url 'buys:buy_list' %}" class="btn btn-outline-light font-weight-bold btn-sales-rounded">
+                                <i class="fas fa-shopping-cart mr-1"></i> Nueva O/C
+                            </a>
                         </div>
                     </div>
                 </div>
+
+                <div class="erp-kpi-grid">
+                    <div class="erp-kpi">
+                        <span class="erp-kpi-label">Ventas del mes</span>
+                        <span class="erp-kpi-value">S/ {{ month_sales|floatformat:2 }}</span>
+                        <span class="erp-kpi-meta">{{ month_orders }} ventas · {{ month_quotes }} cotizaciones</span>
+                        <i class="fas fa-chart-line erp-kpi-icon"></i>
+                    </div>
+                    <div class="erp-kpi">
+                        <span class="erp-kpi-label">Ventas acumuladas</span>
+                        <span class="erp-kpi-value">S/ {{ total_sales|floatformat:2 }}</span>
+                        <span class="erp-kpi-meta">Histórico de ventas registradas</span>
+                        <i class="fas fa-hand-holding-usd erp-kpi-icon"></i>
+                    </div>
+                    <div class="erp-kpi">
+                        <span class="erp-kpi-label">Cuentas por cobrar</span>
+                        <span class="erp-kpi-value">S/ {{ receivable|floatformat:2 }}</span>
+                        <span class="erp-kpi-meta">Saldo pendiente de clientes</span>
+                        <i class="fas fa-file-invoice-dollar erp-kpi-icon"></i>
+                    </div>
+                    <div class="erp-kpi">
+                        <span class="erp-kpi-label">Compras</span>
+                        <span class="erp-kpi-value">S/ {{ purchases_total|floatformat:2 }}</span>
+                        <span class="erp-kpi-meta">{{ pending_purchases }} pendientes · {{ warehouse_purchases }} en almacén</span>
+                        <i class="fas fa-shopping-basket erp-kpi-icon"></i>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-8 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header d-flex align-items-center justify-content-between">
+                                <span><i class="fas fa-chart-bar mr-2"></i>Ventas de los últimos 6 meses</span>
+                                <a href="{% url 'sales:sales_report_professional' %}" class="btn btn-sm btn-light font-weight-bold">
+                                    Ver reporte <i class="fas fa-arrow-right ml-1"></i>
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <div class="erp-mini-chart">
+                                    {% for bar in chart_bars %}
+                                        <div class="erp-mini-bar" title="{{ bar.label }}: S/ {{ bar.value|floatformat:2 }}">
+                                            <div class="erp-mini-bar-fill" style="height: {{ bar.height|floatformat:0 }}%;"></div>
+                                            <span class="erp-mini-bar-label">{{ bar.label }}</span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header"><i class="fas fa-bolt mr-2"></i>Accesos rápidos</div>
+                            <div class="card-body">
+                                <div class="erp-quick-grid">
+                                    <a class="erp-quick-link" href="{% url 'sales:sales_list' %}"><i class="fas fa-cash-register"></i> Ventas</a>
+                                    <a class="erp-quick-link" href="{% url 'buys:buy_list' %}"><i class="fas fa-shopping-cart"></i> Compras</a>
+                                    <a class="erp-quick-link" href="{% url 'comercial:new_guide' %}"><i class="fas fa-dolly"></i> Guías</a>
+                                    <a class="erp-quick-link" href="{% url 'sales:kardex' %}"><i class="fas fa-boxes"></i> Kardex</a>
+                                    <a class="erp-quick-link" href="{% url 'buys:requirement_list' %}"><i class="fas fa-clipboard-list"></i> Requerimientos</a>
+                                    <a class="erp-quick-link" href="{% url 'accounting:get_purchase_list_finances' %}"><i class="fas fa-wallet"></i> Finanzas</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header d-flex align-items-center justify-content-between">
+                                <span><i class="fas fa-shopping-bag mr-2"></i>Últimas ventas</span>
+                                <a href="{% url 'sales:order_list' %}" class="btn btn-sm btn-light font-weight-bold">Ver más</a>
+                            </div>
+                            <div class="card-body p-0">
+                                {% if recent_orders %}
+                                    <ul class="erp-list px-3">
+                                        {% for order in recent_orders %}
+                                            <li>
+                                                <div class="text-truncate">
+                                                    <div class="font-weight-bold">{{ order.client.names|default:"Cliente varios"|truncatechars:30 }}</div>
+                                                    <small class="text-muted">{{ order.serial|default:"-" }}-{{ order.correlative|default:order.id }} · {{ order.create_at|date:"d/m/Y"|default:"-" }}</small>
+                                                </div>
+                                                <span class="erp-badge erp-badge-success">S/ {{ order.total|floatformat:2 }}</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <div class="erp-empty"><i class="fas fa-receipt d-block"></i>Sin ventas recientes</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header d-flex align-items-center justify-content-between">
+                                <span><i class="fas fa-truck-loading mr-2"></i>Compras recientes</span>
+                                <a href="{% url 'buys:buy_order_list' %}" class="btn btn-sm btn-light font-weight-bold">Ver más</a>
+                            </div>
+                            <div class="card-body p-0">
+                                {% if recent_purchases %}
+                                    <ul class="erp-list px-3">
+                                        {% for purchase in recent_purchases %}
+                                            <li>
+                                                <div class="text-truncate">
+                                                    <div class="font-weight-bold">{{ purchase.supplier.name|default:"Proveedor"|truncatechars:28 }}</div>
+                                                    <small class="text-muted">{{ purchase.bill_number|default:purchase.id }} · {{ purchase.purchase_date|date:"d/m/Y"|default:"-" }}</small>
+                                                </div>
+                                                <span class="erp-badge {% if purchase.status == 'A' %}erp-badge-success{% else %}erp-badge-warning{% endif %}">
+                                                    {{ purchase.get_status_display }}
+                                                </span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <div class="erp-empty"><i class="fas fa-inbox d-block"></i>Sin compras recientes</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header d-flex align-items-center justify-content-between">
+                                <span><i class="fas fa-exclamation-triangle mr-2"></i>Stock bajo</span>
+                                <a href="{% url 'sales:stock_product_all' %}" class="btn btn-sm btn-light font-weight-bold">Ver stock</a>
+                            </div>
+                            <div class="card-body p-0">
+                                {% if low_stock %}
+                                    <ul class="erp-list px-3">
+                                        {% for ps in low_stock %}
+                                            <li>
+                                                <div class="text-truncate">
+                                                    <div class="font-weight-bold">{{ ps.product.name|truncatechars:30 }}</div>
+                                                    <small class="text-muted">{{ ps.subsidiary_store.name|default:"Almacén" }}</small>
+                                                </div>
+                                                <span class="erp-badge erp-badge-danger">{{ ps.stock|floatformat:0 }}</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <div class="erp-empty"><i class="fas fa-check-circle d-block"></i>Sin alertas de stock</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body d-flex flex-wrap align-items-center justify-content-between">
+                        <div class="mb-2 mb-md-0">
+                            <i class="fas fa-clipboard-list text-primary mr-2"></i>
+                            <strong>{{ requirements_pending }}</strong> requerimientos de compra pendientes de atención.
+                        </div>
+                        <a href="{% url 'buys:requirement_list' %}" class="btn btn-outline-primary btn-sales-rounded font-weight-bold">
+                            Gestionar requerimientos <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
             {% endblock body %}
         </main>
     </div>
@@ -189,79 +354,39 @@
 <!--=============================================
 =            Include JavaScript files           =
 ==============================================-->
-<!-- jQuery V3.4.1 -->
 <script src="{% static 'js/jquery-3.4.1.min.js' %}"></script>
-
-<!-- jQuery UI -->
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-
-<!-- popper -->
 <script src="{% static 'js/popper.min.js' %}"></script>
-
-<!-- Bootstrap V4.3 -->
 <script src="{% static 'js/bootstrap.min.js' %}"></script>
-
-{#<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>#}
-
 <script src="https://cdn.jsdelivr.net/npm/tableexport.jquery.plugin@1.10.21/tableExport.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tableexport.jquery.plugin@1.10.21/libs/jsPDF/jspdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tableexport.jquery.plugin@1.10.21/libs/jsPDF-AutoTable/jspdf.plugin.autotable.js"></script>
-
 <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
 <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/extensions/print/bootstrap-table-print.min.js"></script>
 <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/extensions/export/bootstrap-table-export.min.js"></script>
-
-<!-- jQuery Custom Content Scroller V3.1.5 -->
 <script src="{% static 'js/jquery.mCustomScrollbar.concat.min.js' %}"></script>
-
-<!-- Bootstrap Material Design V4.0 -->
-<!-- <script src="{% static 'js/bootstrap-material-design.min.js' %}" ></script> -->
-<!-- <script>$(document).ready(function() { $('body').bootstrapMaterialDesign(); });</script> -->
-
-<!-- Simple javascript toast notifications -->
 <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-
 <script src="{% static 'js/main.js' %}"></script>
 <script src="{% static 'js/sidebar.js' %}"></script>
-
-<!-- DataTables JS -->
 <script src="{% static 'assets/datatables/datatables.min.js' %}"></script>
 <script src="{% static 'assets/datatables/datatables.language.js' %}"></script>
-<!-- DataTables Select JS <script src="js/addons/datatables-select2.min.js" type="text/javascript"></script>-->
 <script src="//cdn.datatables.net/buttons/1.6.5/js/dataTables.buttons.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
 <script src="//cdn.datatables.net/buttons/1.6.5/js/buttons.html5.min.js"></script>
 <script src="//cdn.datatables.net/buttons/1.6.5/js/buttons.print.min.js"></script>
-
-<!-- Select2 - customizable select box -->
 <script src="{% static 'js/select2.min.js' %}"></script>
 <script src="{% static 'js/select2.full.min.js' %}"></script>
-
-<!-- Chained - select depend -->
 <script src="{% static 'js/jquery.chained.min.js' %}"></script>
-
-<!-- ISOTOPE CDN -->
-{#<script src="https://unpkg.com/isotope-layout@3/dist/isotope.pkgd.min.js"></script>#}
-
 <script src="{% static 'js/isotope.pkgd.min.js' %}"></script>
-<!-- TABLE2EXCEL CDN -->
-
 <script src="{% static 'js/jquery.table2excel.min.js' %}"></script>
-
-<!-- GRIDVIEW SCROLL - Freeze column and fixed header in Table or GridView -->
 <script src="{% static 'js/gridviewscroll.js' %}"></script>
-
 <script src="{% static 'js/sweetalert-dev.js' %}"></script>
-<!-- Graphs -->
 <script src="{% static 'js/canvasjs.min.js' %}"></script>
 <script src="{% static 'js/jquery.bootstrap-duallistbox.min.js' %}"></script>
-
 <script src="{% static 'js/autocomplete.js' %}"></script>
-
-<script src="https://cdnjs.com/libraries/Chart.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf.min.js"></script>
 
 <script>
@@ -274,11 +399,6 @@ $(document).ready(function() {
         var subsidiaryName = $btn.data('subsidiary-name');
         if (!workerId || !subsidiaryId) return;
         if ($btn.hasClass('active')) return;
-        var $form = $('<form>').attr({ method: 'POST', action: '{% url "hrm:update_worker_establishment" %}' });
-        $form.append($('<input>').attr({ type: 'hidden', name: 'csrfmiddlewaretoken', value: '{{ csrf_token }}' }));
-        $form.append($('<input>').attr({ type: 'hidden', name: 'worker', value: workerId }));
-        $form.append($('<input>').attr({ type: 'hidden', name: 'subsidiary', value: subsidiaryId }));
-        $('body').append($form);
         $.ajax({
             url: '{% url "hrm:update_worker_establishment" %}',
             type: 'POST',
@@ -291,7 +411,6 @@ $(document).ready(function() {
                 toastr.error(xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error al cambiar sucursal', '¡Error!');
             }
         });
-        $form.remove();
     });
 });
 </script>

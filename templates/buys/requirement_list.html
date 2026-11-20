@@ -1,0 +1,139 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}Requerimientos de compra | Anderquin ERP{% endblock title %}
+
+{% block body %}
+<div class="erp-page roboto-condensed-regular">
+    <div class="erp-page-head">
+        <div>
+            <h1 class="erp-page-title"><i class="fas fa-clipboard-list mr-2"></i>Requerimientos de compra</h1>
+            <p class="erp-page-subtitle">Solicitudes internas que inician el ciclo de compras y se convierten en órdenes de compra.</p>
+        </div>
+        <div class="erp-page-actions">
+            <a href="{% url 'buys:requirement_create' %}" class="btn btn-primary btn-sales-rounded">
+                <i class="fas fa-plus mr-1"></i> Nuevo requerimiento
+            </a>
+        </div>
+    </div>
+
+    <div class="erp-kpi-grid">
+        <div class="erp-kpi">
+            <span class="erp-kpi-label">Pendientes</span>
+            <span class="erp-kpi-value">{{ pending_count }}</span>
+            <span class="erp-kpi-meta">Requerimientos en proceso</span>
+            <i class="fas fa-hourglass-half erp-kpi-icon"></i>
+        </div>
+        <div class="erp-kpi">
+            <span class="erp-kpi-label">Sede</span>
+            <span class="erp-kpi-value" style="font-size: 1.05rem;">{{ subsidiary.name|default:"Todas" }}</span>
+            <span class="erp-kpi-meta">Contexto de la solicitud</span>
+            <i class="fas fa-store erp-kpi-icon"></i>
+        </div>
+        <div class="erp-kpi">
+            <span class="erp-kpi-label">Total registrados</span>
+            <span class="erp-kpi-value">{{ requirements|length }}</span>
+            <span class="erp-kpi-meta">Según los filtros aplicados</span>
+            <i class="fas fa-file-alt erp-kpi-icon"></i>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap">
+            <span><i class="fas fa-filter mr-2"></i>Filtros de búsqueda</span>
+        </div>
+        <div class="card-body">
+            <form method="get" class="erp-filter-box">
+                <div class="form-row align-items-end">
+                    <div class="col-md-4 mb-2">
+                        <label for="q">Producto</label>
+                        <input type="text" class="form-control" id="q" name="q" value="{{ search }}" placeholder="Buscar por producto">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label for="status">Estado</label>
+                        <select class="form-control" id="status" name="status">
+                            <option value="">Todos los estados</option>
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label for="type">Tipo</label>
+                        <select class="form-control" id="type" name="type">
+                            <option value="">Todos los tipos</option>
+                            {% for value, label in type_choices %}
+                                <option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <button type="submit" class="btn btn-primary btn-block btn-sales-rounded">
+                            <i class="fas fa-search mr-1"></i> Buscar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="fas fa-list mr-2"></i>Listado de requerimientos</div>
+        <div class="card-body p-0">
+            {% if requirements %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead>
+                        <tr>
+                            <th>N°</th>
+                            <th>Fecha solicitud</th>
+                            <th>Tipo</th>
+                            <th>Sucursal</th>
+                            <th>Solicitante</th>
+                            <th class="text-center">Productos</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-right">Acciones</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in requirements %}
+                            <tr>
+                                <td class="font-weight-bold">#{{ item.obj.id }}</td>
+                                <td>{{ item.obj.creation_date|date:"d/m/Y"|default:"-" }}</td>
+                                <td>{{ item.obj.get_type_display }}</td>
+                                <td>{{ item.obj.subsidiary.name|default:"-" }}</td>
+                                <td>{{ item.obj.user.username }}</td>
+                                <td class="text-center">{{ item.detail_count }}</td>
+                                <td class="text-center">{{ item.total_quantity }}</td>
+                                <td class="text-center">
+                                    <span class="erp-badge {{ item.status_style }}">{{ item.status_label }}</span>
+                                    {% if item.obj.purchase_order_id %}
+                                        <div class="mt-1"><small class="text-muted">O/C: {{ item.obj.purchase_order.bill_number }}</small></div>
+                                    {% endif %}
+                                </td>
+                                <td class="text-right">
+                                    <a href="{% url 'buys:requirement_detail' item.obj.id %}" class="btn btn-sm btn-outline-primary btn-sales-rounded" title="Ver detalle">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if item.obj.status == '2' and not item.obj.purchase_order_id %}
+                                        <a href="{% url 'buys:requirement_convert' item.obj.id %}" class="btn btn-sm btn-success btn-sales-rounded" title="Generar orden de compra">
+                                            <i class="fas fa-file-invoice"></i>
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="erp-empty">
+                    <i class="fas fa-clipboard-list d-block"></i>
+                    No hay requerimientos que coincidan con los filtros.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock body %}

@@ -1,0 +1,127 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}Requerimiento #{{ requirement.id }} | Anderquin ERP{% endblock title %}
+
+{% block body %}
+<div class="erp-page roboto-condensed-regular">
+    <div class="erp-page-head">
+        <div>
+            <h1 class="erp-page-title"><i class="fas fa-clipboard-check mr-2"></i>Requerimiento #{{ requirement.id }}</h1>
+            <p class="erp-page-subtitle">Solicitud de {{ requirement.get_type_display|lower }} registrada por {{ requirement.user.username }} el {{ requirement.creation_date|date:"d/m/Y"|default:"-" }}.</p>
+        </div>
+        <div class="erp-page-actions">
+            <a href="{% url 'buys:requirement_list' %}" class="btn btn-outline-primary btn-sales-rounded">
+                <i class="fas fa-arrow-left mr-1"></i> Volver al listado
+            </a>
+            {% if can_convert %}
+                <a href="{% url 'buys:requirement_convert' requirement.id %}" class="btn btn-success btn-sales-rounded">
+                    <i class="fas fa-file-invoice mr-1"></i> Generar orden de compra
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="erp-kpi-grid">
+        <div class="erp-kpi">
+            <span class="erp-kpi-label">Estado</span>
+            <span class="erp-kpi-value" style="font-size: 1.05rem;">{{ requirement.get_status_display }}</span>
+            <span class="erp-kpi-meta">Seguimiento de aprobación</span>
+            <i class="fas fa-info-circle erp-kpi-icon"></i>
+        </div>
+        <div class="erp-kpi">
+            <span class="erp-kpi-label">Sucursal</span>
+            <span class="erp-kpi-value" style="font-size: 1.05rem;">{{ requirement.subsidiary.name|default:"-" }}</span>
+            <span class="erp-kpi-meta">Origen de la solicitud</span>
+            <i class="fas fa-store erp-kpi-icon"></i>
+        </div>
+        <div class="erp-kpi">
+            <span class="erp-kpi-label">Cantidad total</span>
+            <span class="erp-kpi-value">{{ total_quantity }}</span>
+            <span class="erp-kpi-meta">{{ details|length }} productos solicitados</span>
+            <i class="fas fa-boxes erp-kpi-icon"></i>
+        </div>
+        <div class="erp-kpi">
+            <span class="erp-kpi-label">Orden de compra</span>
+            <span class="erp-kpi-value" style="font-size: 1.05rem;">{{ requirement.purchase_order.bill_number|default:"Pendiente" }}</span>
+            <span class="erp-kpi-meta">{{ requirement.purchase_order.supplier.name|default:"Sin proveedor asignado" }}</span>
+            <i class="fas fa-file-invoice erp-kpi-icon"></i>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="fas fa-info-circle mr-2"></i>Información del requerimiento</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-md-3 mb-2"><strong>Fecha de solicitud:</strong><br>{{ requirement.creation_date|date:"d/m/Y"|default:"-" }}</div>
+                <div class="col-md-3 mb-2"><strong>Fecha de aprobación:</strong><br>{{ requirement.approval_date|date:"d/m/Y"|default:"-" }}</div>
+                <div class="col-md-3 mb-2"><strong>Fecha de entrega:</strong><br>{{ requirement.delivery_date|date:"d/m/Y"|default:"-" }}</div>
+                <div class="col-md-3 mb-2"><strong>Tipo:</strong><br>{{ requirement.get_type_display }}</div>
+            </div>
+            {% if requirement.purchase_order_id %}
+                <div class="erp-divider"></div>
+                <p class="mb-0">
+                    <i class="fas fa-link mr-1"></i>
+                    Este requerimiento originó la orden de compra
+                    <a href="{% url 'buys:buy_order_list' %}">{{ requirement.purchase_order.bill_number }}</a>.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap">
+            <span><i class="fas fa-list-alt mr-2"></i>Productos solicitados</span>
+            {% if can_approve or can_cancel %}
+                <form method="post" class="d-flex flex-wrap">
+                    {% csrf_token %}
+                    {% if can_approve %}
+                        <button type="submit" name="action" value="approve" class="btn btn-sm btn-success btn-sales-rounded mr-1 mb-1">
+                            <i class="fas fa-check mr-1"></i> Aprobar
+                        </button>
+                        <button type="submit" name="action" value="observe" class="btn btn-sm btn-warning btn-sales-rounded mr-1 mb-1">
+                            <i class="fas fa-comment mr-1"></i> Observar
+                        </button>
+                    {% endif %}
+                    {% if can_cancel %}
+                        <button type="submit" name="action" value="cancel" class="btn btn-sm btn-outline-danger btn-sales-rounded mb-1"
+                                onclick="return confirm('¿Está seguro de anular este requerimiento?');">
+                            <i class="fas fa-ban mr-1"></i> Anular
+                        </button>
+                    {% endif %}
+                </form>
+            {% endif %}
+        </div>
+        <div class="card-body p-0">
+            {% if details %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Unidad</th>
+                            <th class="text-center">Cantidad</th>
+                            <th>Comentario</th>
+                            <th class="text-center">Condición</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for detail in details %}
+                            <tr>
+                                <td class="font-weight-bold">{{ detail.product.name }}</td>
+                                <td>{{ detail.unit.name }}</td>
+                                <td class="text-center">{{ detail.quantity }}</td>
+                                <td>{{ detail.commentary|default:"-" }}</td>
+                                <td class="text-center"><span class="erp-badge">{{ detail.get_condition_display }}</span></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="erp-empty"><i class="fas fa-inbox d-block"></i>Este requerimiento no tiene productos registrados.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock body %}

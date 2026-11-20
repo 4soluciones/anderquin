@@ -426,7 +426,7 @@ class StaffInTraining(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.employee
+        return str(self.employee) if getattr(self, 'employee_id', None) else f'{self.__class__.__name__} #{self.pk}'
 
     class Meta:
         verbose_name = 'Persona en formación'
@@ -444,7 +444,7 @@ class ThirdPartyPersonnel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.employee
+        return str(self.employee) if getattr(self, 'employee_id', None) else f'{self.__class__.__name__} #{self.pk}'
 
     class Meta:
         verbose_name = 'Persona de tercero'
@@ -547,7 +547,7 @@ class Period(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.employee
+        return str(self.employee) if getattr(self, 'employee_id', None) else f'{self.__class__.__name__} #{self.pk}'
 
     class Meta:
         verbose_name = 'Datos de período'
@@ -630,7 +630,7 @@ class StudiesCompleted(models.Model):
     senior_year = models.CharField(max_length=4, null=True, blank=True)
 
     def __str__(self):
-        return self.employee
+        return str(self.employee) if getattr(self, 'employee_id', None) else f'{self.__class__.__name__} #{self.pk}'
 
     class Meta:
         verbose_name = 'Datos de estudio concluido'
@@ -657,7 +657,7 @@ class PaymentAccountData(models.Model):
     account_number_where_the_remuneration_is_paid = models.CharField(max_length=14, null=True, blank=True)
 
     def __str__(self):
-        return self.description
+        return self.account_number_where_the_remuneration_is_paid or f'Cuenta de abono #{self.pk}'
 
     class Meta:
         verbose_name = 'Dato de cuenta de abono'

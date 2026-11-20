@@ -40,8 +40,8 @@ def repay_loan(loan_payment_set=None):
 
     for lp in loan_payment_set:
 
-        if lp.quantity == 0:
-            response += lp.price
+        # Los campos `quantity`/`price` fueron reemplazados por `pay`.
+        response += lp.pay
 
     return response
 
@@ -50,7 +50,7 @@ def return_loan(loan_payment_set=None):
     response = 0
 
     for lp in loan_payment_set:
-        response += lp.quantity
+        response += getattr(lp, 'quantity', 0)
 
     return response
 
@@ -75,11 +75,11 @@ def total_repay_loan_with_vouchers(order_detail_set=None):
 def repay_loan_with_vouchers(loan_payment_set=None):
     response = 0
     for lp in loan_payment_set:
-        if lp.price > 0:
+        if lp.pay > 0:
             transaction_payment_set = lp.transactionpayment_set.all()
             for t in transaction_payment_set:
                 if t.type == 'F':
-                    response = response + t.number_of_vouchers
+                    response = response + getattr(t, 'number_of_vouchers', t.payment)
     return response
 
 
@@ -104,7 +104,7 @@ def total_remaining_repay_loan_ball(order_detail_set=None):
 def repay_loan_ball(loan_payment_set=None):
     response = 0
     for lp in loan_payment_set:
-        response = response + (lp.quantity * (lp.price + lp.discount))
+        response = response + lp.pay
     return response
 
 
@@ -144,11 +144,11 @@ def get_cash_flow(order=None, transactionpayment=None):
 # queries
 def get_orders_for_status_account(subsidiary_obj=None):
     client_set = Client.objects.filter(
-        order__isnull=False, order__subsidiary=subsidiary_obj, order__type__in=['V', 'R']
+        order__isnull=False, order__subsidiary=subsidiary_obj, order__order_type='V'
     ).values('id', 'names').annotate(max=Max('id'))
 
     order_set = Order.objects.filter(
-        subsidiary=subsidiary_obj, type__in=['V', 'R'],
+        subsidiary=subsidiary_obj, order_type='V',
         client__id__in=[c['id'] for c in client_set]
     ).select_related('client').annotate(
         total_remaining_return_loan=Coalesce(

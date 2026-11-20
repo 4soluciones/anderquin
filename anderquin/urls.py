@@ -30,9 +30,7 @@ from apps.users.views import Login, logoutUser
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('dishes/', include(('apps.dishes.urls', 'dishes'))),
-    path('api/v1/', include(('apps.apidishes.urls', 'apidishes'))),
-    path('vetstore/', include(('apps.vetstore.urls', 'vetstore'))),
+    #path('vetstore/', include(('apps.vetstore.urls', 'vetstore'))),
     path('hrm/', include(('apps.hrm.urls', 'hrm'))),
     path('comercial/', include(('apps.comercial.urls', 'comercial'))),
     path('sales/', include(('apps.sales.urls', 'sales'))),

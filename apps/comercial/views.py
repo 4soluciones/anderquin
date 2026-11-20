@@ -1,6 +1,6 @@
 import decimal
 from http import HTTPStatus
-from django.db.models import Q, Max, F, Prefetch, OuterRef, Subquery, Value, IntegerField, Sum
+from django.db.models import Q, Max, F, Prefetch, OuterRef, Subquery, Value, IntegerField, DecimalField, Sum
 from django.db.models.functions import Coalesce, Cast
 from django.shortcuts import render
 from django.views.generic import View, TemplateView, UpdateView, CreateView
@@ -580,9 +580,13 @@ def input_workflow_from_output(request):
     # Outputs: 1, 3, 6, 7
     # Transfers: 4
     a = [4]
-    guides_set = Guide.objects.filter(route__type='D',
-                                      route__subsidiary_store__subsidiary=subsidiary_obj,
-                                      guide_motive__type='S', guide_motive__id__in=a)
+    # El antiguo modelo Route fue retirado junto con el módulo de reparto.
+    # La sede del destino ahora se obtiene directamente de la guía.
+    guides_set = Guide.objects.filter(guide_motive__type='S', guide_motive__id__in=a)
+    if subsidiary_obj is not None:
+        guides_set = guides_set.filter(
+            Q(subsidiary_store__subsidiary=subsidiary_obj) | Q(subsidiary=subsidiary_obj)
+        )
     if request.method == 'GET':
         guides_set = guides_set.filter(created_at__date=date_now)
     elif request.method == 'POST':
@@ -844,7 +848,13 @@ def transfer_receive_list(request):
     transfers = Transfer.objects.filter(
         destination_store__subsidiary=subsidiary_obj,
         status='E',
-    ).select_related('origin_store', 'destination_store', 'guide_motive', 'user').prefetch_related('details', 'details__product', 'details__batch', 'details__unit').annotate(total_transfer=Coalesce(Sum('details__total'), 0)).order_by('-sent_at')
+    ).select_related('origin_store', 'destination_store', 'guide_motive', 'user').prefetch_related('details', 'details__product', 'details__batch', 'details__unit').annotate(
+        total_transfer=Coalesce(
+            Sum('details__total'),
+            Value(0),
+            output_field=DecimalField(max_digits=30, decimal_places=6),
+        )
+    ).order_by('-sent_at')
     return render(request, 'comercial/transfer_receive_list.html', {
         'transfers': transfers,
     })
@@ -1122,10 +1132,11 @@ def largest_among(num1, num2, num3):
 def get_order_detail_by_client(request):
     if request.method == 'GET':
         client_id = request.GET.get('client_id', '')
-        # distribution_mobil_id = int(request.GET.get('pk', ''))
-        # distribution_mobil_obj = DistributionMobil.objects.get(id=distribution_mobil_id)
+        if not client_id:
+            return JsonResponse({'message': 'Cliente no proporcionado.'}, status=HTTPStatus.BAD_REQUEST)
         client_obj = Client.objects.get(pk=int(client_id))
-        order_set = Order.objects.filter(client=client_obj).filter(Q(type='R') | Q(type='V')).order_by('id')
+        # El campo histórico `type` fue reemplazado por `order_type`/`sale_type`.
+        order_set = Order.objects.filter(client=client_obj, order_type='V').order_by('id')
 
         return JsonResponse({
             'grid': get_dict_orders_details(order_set, client_obj),
@@ -1170,6 +1181,51 @@ def get_output_distributions(request):
             return render(request, 'comercial/report_quantity_output_distribution.html', {
                 'date_now': date_now,
             })
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def guide_by_programming(request):
+    """Guías asociadas a una programación (Picking) para la grilla lateral."""
+    if request.method == 'GET':
+        programming_id = request.GET.get('programming', '')
+        guide_obj = None
+        if programming_id:
+            picking_obj = Picking.objects.filter(id=int(programming_id)).first()
+            if picking_obj is not None:
+                guide_obj = Guide.objects.filter(
+                    subsidiary=picking_obj.subsidiary,
+                    date_issue__date=picking_obj.departure_date,
+                ).first()
+        tpl = loader.get_template('comercial/guide_detail_list.html')
+        return JsonResponse({'grid': tpl.render({'guide': guide_obj}, request)}, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def programmings_by_date(request):
+    """Listado de programaciones (Picking) entre dos fechas."""
+    if request.method == 'GET':
+        start_date = request.GET.get('start_date', '')
+        end_date = request.GET.get('end_date', '')
+        programmings = Picking.objects.all()
+        if start_date and end_date:
+            programmings = programmings.filter(departure_date__range=(start_date, end_date))
+        tpl = loader.get_template('comercial/guide_detail_programming_list.html')
+        return JsonResponse({
+            'grid': tpl.render({'programmings': programmings, 'date': start_date}, request),
+        }, status=HTTPStatus.OK)
+    return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
+
+
+def distribution_mobil_save(request):
+    """Endpoint heredado del módulo de reparto incompleto.
+
+    Los modelos DistributionMobil/DistributionDetail fueron retirados, por lo
+    que no se persiste nada; se responde con un mensaje explícito para no dejar
+    peticiones 404 en la interfaz.
+    """
+    return JsonResponse({
+        'message': 'El módulo de reparto móvil aún no está disponible; no se registró la salida.',
+    }, status=HTTPStatus.OK)
 
 
 def modal_new_carrier(request):
@@ -1593,10 +1649,17 @@ def save_new_address_origin(request):
 
 def get_guide_by_contract(request):
     if request.method == 'GET':
-        selected_data = json.loads(request.GET.get('selectedData', '[]'))
+        selected_data = json.loads(request.GET.get('selectedData', '{}') or '{}')
         selected_data_list = []
+        if not isinstance(selected_data, dict):
+            selected_data = {}
 
         for product_id, data in selected_data.items():
+            contract_details = ContractDetail.objects.filter(
+                id__in=data.get('contractDetailIDs', [])
+            )
+            if not contract_details.exists():
+                continue
             product_obj = Product.objects.get(id=product_id)
             units = []
 
@@ -1609,8 +1672,6 @@ def get_guide_by_contract(request):
                 }
                 units.append(unit_data)
 
-            contract_detail_ids = data['contractDetailIDs']
-            contract_details = ContractDetail.objects.filter(id__in=contract_detail_ids)
             contract_obj = contract_details.first().contract
             contract_data = []
             for c in contract_details:
@@ -1649,7 +1710,7 @@ def get_guide_by_contract(request):
                 'product_id': product_id,
                 'product_name': product_obj.name,
                 'product_weight': product_obj.weight,
-                'quantity': data['quantity'],
+                'quantity': data.get('quantity', 0),
                 # 'contract_detail': contract_detail_ids,
                 'contract_id': contract_obj.id,
                 'contract_number': contract_obj.contract_number,
@@ -1824,6 +1885,8 @@ def modal_picking_create(request):
         carrier_id = request.GET.get('carrierID', '')
         driver_id = request.GET.get('driverID', '')
         store_id = request.GET.get('storeID', '')
+        if not store_id:
+            return JsonResponse({'message': 'Almacén no proporcionado.'}, status=HTTPStatus.BAD_REQUEST)
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
         formattime = my_date.strftime("%H:%M:%S")

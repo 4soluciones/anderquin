@@ -1,0 +1,123 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}Convertir requerimiento en O/C | Anderquin ERP{% endblock title %}
+
+{% block body %}
+<div class="erp-page roboto-condensed-regular">
+    <div class="erp-page-head">
+        <div>
+            <h1 class="erp-page-title"><i class="fas fa-exchange-alt mr-2"></i>Generar orden de compra</h1>
+            <p class="erp-page-subtitle">Requerimiento #{{ requirement.id }} · {{ requirement.get_type_display }} · {{ requirement.subsidiary.name|default:"Sin sucursal" }}</p>
+        </div>
+        <div class="erp-page-actions">
+            <a href="{% url 'buys:requirement_detail' requirement.id %}" class="btn btn-outline-primary btn-sales-rounded">
+                <i class="fas fa-arrow-left mr-1"></i> Volver al requerimiento
+            </a>
+        </div>
+    </div>
+
+    <form method="post" id="convert-form">
+        {% csrf_token %}
+        <div class="card">
+            <div class="card-header"><i class="fas fa-user-tie mr-2"></i>Datos del proveedor</div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="col-md-8 mb-3">
+                        <label for="supplier">Proveedor</label>
+                        <select name="supplier" id="supplier" class="form-control" required>
+                            <option value="">- Seleccione proveedor -</option>
+                            {% for supplier in suppliers %}
+                                <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="delivery_date">Fecha de entrega</label>
+                        <input type="text" class="form-control" value="{{ requirement.delivery_date|date:'d/m/Y'|default:'Según requerimiento' }}" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-12 mb-1">
+                        <label for="observation">Observación de la orden</label>
+                        <textarea name="observation" id="observation" class="form-control" rows="2" placeholder="Datos adicionales para el proveedor (opcional)"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><i class="fas fa-list-alt mr-2"></i>Detalle a cotizar / comprar</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Unidad</th>
+                            <th class="text-center">Cantidad</th>
+                            <th style="width: 180px">Precio unitario</th>
+                            <th class="text-right">Subtotal</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for detail in details %}
+                            <tr>
+                                <td class="font-weight-bold">{{ detail.product.name }}</td>
+                                <td>{{ detail.unit.name }}</td>
+                                <td class="text-center">{{ detail.quantity }}</td>
+                                <td>
+                                    <input type="number" class="form-control js-price" step="0.01" min="0"
+                                           name="price_{{ detail.id }}" id="price_{{ detail.id }}"
+                                           value="{{ detail.suggested_price|default:0|floatformat:2 }}">
+                                </td>
+                                <td class="text-right js-subtotal" data-quantity="{{ detail.quantity }}" data-price-field="price_{{ detail.id }}">0.00</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+                        <tr class="font-weight-bold">
+                            <td colspan="4" class="text-right">Total</td>
+                            <td class="text-right" id="convert-total">0.00</td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between flex-wrap">
+                <a href="{% url 'buys:requirement_detail' requirement.id %}" class="btn btn-outline-secondary btn-sales-rounded">
+                    <i class="fas fa-times mr-1"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-success btn-sales-rounded">
+                    <i class="fas fa-file-invoice mr-1"></i> Generar orden de compra
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    function recalc() {
+        let total = 0;
+        document.querySelectorAll('.js-subtotal').forEach(function (cell) {
+            const price = parseFloat(document.getElementById(cell.dataset.priceField).value) || 0;
+            const subtotal = price * Number(cell.dataset.quantity);
+            cell.textContent = subtotal.toFixed(2);
+            total += subtotal;
+        });
+        document.getElementById('convert-total').textContent = total.toFixed(2);
+    }
+    document.querySelectorAll('.js-price').forEach(function (input) {
+        input.addEventListener('input', recalc);
+    });
+    document.getElementById('convert-form').addEventListener('submit', function (event) {
+        if (!document.getElementById('supplier').value) {
+            event.preventDefault();
+            alert('Seleccione un proveedor antes de generar la orden de compra.');
+        }
+    });
+    recalc();
+})();
+</script>
+{% endblock body %}

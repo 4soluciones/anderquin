@@ -1,0 +1,166 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}Nuevo requerimiento | Anderquin ERP{% endblock title %}
+
+{% block body %}
+<div class="erp-page roboto-condensed-regular">
+    <div class="erp-page-head">
+        <div>
+            <h1 class="erp-page-title"><i class="fas fa-plus-circle mr-2"></i>Nuevo requerimiento de compra</h1>
+            <p class="erp-page-subtitle">Registre la necesidad interna de mercadería o insumos antes de emitir una orden de compra.</p>
+        </div>
+        <div class="erp-page-actions">
+            <a href="{% url 'buys:requirement_list' %}" class="btn btn-outline-primary btn-sales-rounded">
+                <i class="fas fa-arrow-left mr-1"></i> Volver al listado
+            </a>
+        </div>
+    </div>
+
+    <form method="post" id="requirement-form">
+        {% csrf_token %}
+        <div class="card">
+            <div class="card-header"><i class="fas fa-clipboard mr-2"></i>Datos generales</div>
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="col-md-3 mb-3">
+                        <label for="type">Tipo de requerimiento</label>
+                        <select name="type" id="type" class="form-control" required>
+                            {% for value, label in type_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="creation_date">Fecha de solicitud</label>
+                        <input type="date" name="creation_date" id="creation_date" class="form-control" value="{{ today|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="delivery_date">Fecha requerida de entrega</label>
+                        <input type="date" name="delivery_date" id="delivery_date" class="form-control">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="subsidiary_display">Sucursal solicitante</label>
+                        <input type="text" id="subsidiary_display" class="form-control" value="{{ subsidiary.name|default:'Sin sucursal asignada' }}" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-12 mb-1">
+                        <label for="commentary">Comentario general</label>
+                        <textarea name="commentary" id="commentary" class="form-control" rows="2" placeholder="Motivo o indicaciones generales (opcional)"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between flex-wrap">
+                <span><i class="fas fa-list-alt mr-2"></i>Productos solicitados</span>
+                <button type="button" class="btn btn-sm btn-light font-weight-bold" id="add-detail">
+                    <i class="fas fa-plus mr-1"></i> Agregar producto
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width: 42%">Producto</th>
+                            <th style="width: 20%">Unidad</th>
+                            <th style="width: 15%">Cantidad</th>
+                            <th>Comentario</th>
+                            <th class="text-center" style="width: 60px">Quitar</th>
+                        </tr>
+                        </thead>
+                        <tbody id="detail-rows"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-right">
+                <button type="submit" class="btn btn-success btn-sales-rounded">
+                    <i class="fas fa-save mr-1"></i> Guardar requerimiento
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    const presentations = [
+        {% for pd in product_details %}
+            {product: {{ pd.product_id }}, unit: {{ pd.unit_id }}, name: "{{ pd.unit.name|escapejs }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const products = [
+        {% for product in products %}
+            {id: {{ product.id }}, name: "{{ product.name|escapejs }}", code: "{{ product.code|default:''|escapejs }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const rows = document.getElementById('detail-rows');
+
+    function productOptions(selected) {
+        let html = '<option value="">- Seleccione producto -</option>';
+        products.forEach(function (p) {
+            const label = p.code ? p.code + ' - ' + p.name : p.name;
+            html += '<option value="' + p.id + '"' + (String(selected) === String(p.id) ? ' selected' : '') + '>' + label + '</option>';
+        });
+        return html;
+    }
+
+    function unitOptions(productId, selected) {
+        let html = '<option value="">- Seleccione unidad -</option>';
+        presentations.filter(function (p) {
+            return String(p.product) === String(productId);
+        }).forEach(function (p) {
+            html += '<option value="' + p.unit + '"' + (String(selected) === String(p.unit) ? ' selected' : '') + '>' + p.name + '</option>';
+        });
+        return html;
+    }
+
+    function addRow(productId, unitId, quantity, commentary) {
+        const tr = document.createElement('tr');
+        tr.className = 'detail-row';
+        tr.innerHTML =
+            '<td><select name="product[]" class="form-control js-product" required>' + productOptions(productId) + '</select></td>' +
+            '<td><select name="unit[]" class="form-control js-unit" required>' + unitOptions(productId, unitId) + '</select></td>' +
+            '<td><input type="number" name="quantity[]" class="form-control js-quantity" min="1" step="1" value="' + (quantity || 1) + '" required></td>' +
+            '<td><input type="text" name="commentary_detail[]" class="form-control" maxlength="200" value="' + (commentary || '').replace(/"/g, '&quot;') + '"></td>' +
+            '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger js-remove" title="Quitar"><i class="fas fa-trash"></i></button></td>';
+        rows.appendChild(tr);
+
+        const productSelect = tr.querySelector('.js-product');
+        const unitSelect = tr.querySelector('.js-unit');
+        productSelect.addEventListener('change', function () {
+            unitSelect.innerHTML = unitOptions(this.value, '');
+        });
+        tr.querySelector('.js-remove').addEventListener('click', function () {
+            if (rows.children.length > 1) {
+                tr.remove();
+            }
+        });
+    }
+
+    document.getElementById('add-detail').addEventListener('click', function () {
+        addRow('', '', 1, '');
+    });
+
+    document.getElementById('requirement-form').addEventListener('submit', function (event) {
+        let valid = false;
+        rows.querySelectorAll('.detail-row').forEach(function (row) {
+            if (row.querySelector('.js-product').value && row.querySelector('.js-unit').value && Number(row.querySelector('.js-quantity').value) > 0) {
+                valid = true;
+            }
+        });
+        if (!valid) {
+            event.preventDefault();
+            alert('Debe agregar al menos un producto con unidad y cantidad mayor a cero.');
+        }
+    });
+
+    addRow('', '', 1, '');
+})();
+</script>
+{% endblock body %}

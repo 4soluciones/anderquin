@@ -1,6 +1,9 @@
 from django.urls import path
 from django.contrib.auth.decorators import login_required
 from apps.buys.views import *
+from apps.buys.requirement_views import (
+    requirement_list, requirement_create, requirement_detail, requirement_convert,
+)
 
 from apps.buys.views_PDF import print_pdf
 
@@ -31,6 +34,12 @@ urlpatterns = [
     path('get_purchases_by_provider_category/', get_purchases_by_provider_category,
          name='get_purchases_by_provider_category'),
     path('print_pdf_purchase_order/<int:pk>/', print_pdf, name='print_pdf_purchase_order'),
+
+    # REQUERIMIENTOS DE COMPRA
+    path('requirements/', login_required(requirement_list), name='requirement_list'),
+    path('requirements/create/', login_required(requirement_create), name='requirement_create'),
+    path('requirements/<int:pk>/', login_required(requirement_detail), name='requirement_detail'),
+    path('requirements/<int:pk>/convert/', login_required(requirement_convert), name='requirement_convert'),
 
     # ORDER BUYS
     path('buy_list/', get_buy_list, name='buy_list'),

@@ -145,7 +145,7 @@ def save_purchase(request):
                 delivery_address = address_provider_obj.address
                 city = address_provider_obj.district.description
 
-        elif check_client_reference == '1':
+        elif check_client_reference == '1' and client_address_reference:
             client_address_referencer_set = ClientAddress.objects.filter(id=int(client_address_reference))
             delivery_choice = 'CR'
             if client_address_referencer_set.exists():
@@ -999,10 +999,17 @@ def get_buy_list(request, contract_detail=None):
 
 def get_buys_by_contract(request):
     if request.method == 'GET':
-        selected_data = json.loads(request.GET.get('selectedData', '[]'))
+        selected_data = json.loads(request.GET.get('selectedData', '{}') or '{}')
         selected_data_list = []
+        if not isinstance(selected_data, dict):
+            selected_data = {}
 
         for product_id, data in selected_data.items():
+            contract_details = ContractDetail.objects.filter(
+                id__in=data.get('contractDetailIDs', [])
+            )
+            if not contract_details.exists():
+                continue
             product_obj = Product.objects.get(id=product_id)
             units = []
 
@@ -1015,8 +1022,6 @@ def get_buys_by_contract(request):
                 }
                 units.append(unit_data)
 
-            contract_detail_ids = data['contractDetailIDs']
-            contract_details = ContractDetail.objects.filter(id__in=contract_detail_ids)
             contract_obj = contract_details.first().contract
             contract_data = []
             for c in contract_details:
@@ -1052,7 +1057,7 @@ def get_buys_by_contract(request):
             item = {
                 'product_id': product_id,
                 'product_name': product_obj.name,
-                'quantity': data['quantity'],
+                'quantity': data.get('quantity', 0),
                 # 'contract_detail': contract_detail_ids,
                 'contract_id': contract_obj.id,
                 'contract_number': contract_obj.contract_number,
@@ -1552,13 +1557,15 @@ def contract_list(request):
     if request.method == 'GET':
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
-        years = (
+        years = list(
             Contract.objects
+            .exclude(register_date__isnull=True)
             .annotate(year=ExtractYear('register_date'))
             .values_list('year', flat=True)
             .distinct()
             .order_by('year')
         )
+        years = [year for year in years if year is not None]
 
         last_year = max(years) if years else None
         contract_set = Contract.objects.filter(register_date__year=last_year).order_by('id')
@@ -1599,7 +1606,7 @@ def get_contract_data(contract_set):
         item_contract = {
             'id': c.id,
             'contract_number': c.contract_number,
-            'client': c.client.names,
+            'client': c.client.names if c.client else 'Cliente no definido',
             'register_date': c.register_date,
             'status': c.get_status_display(),
             'observation': c.observation,
@@ -1848,9 +1855,9 @@ def save_update_contract(request):
                 return decimal.Decimal(str(value).replace(',', ''))
 
             for d in detail_update:
-                type_detail = str(d['type'])
-                nro_quota = str(d['nro_quota'])
-                date_quota = str(d['date_quota'])
+                type_detail = str(d.get('type', 'E'))
+                nro_quota = str(d.get('nro_quota', ''))
+                date_quota = str(d.get('date_quota', ''))
 
                 if type_detail == 'E':
                     contract_detail = int(d['contract_detail'])
@@ -2138,7 +2145,7 @@ def save_update_purchase(request):
                 delivery_address = address_provider_obj.address
                 city = address_provider_obj.district.description
 
-        elif check_client_reference == '1':
+        elif check_client_reference == '1' and client_address_reference:
             client_address_referencer_set = ClientAddress.objects.filter(id=int(client_address_reference))
             delivery_choice = 'CR'
             if client_address_referencer_set.exists():
@@ -2631,7 +2638,7 @@ def report_contracts(request):
             item_contract = {
                 'id': c.id,
                 'contract_number': c.contract_number,
-                'client': c.client.names,
+                'client': c.client.names if c.client else 'Cliente no definido',
                 'cod_siaf': cod_siaf,
                 'register_date': c.register_date,
                 'status': c.get_status_display(),
@@ -2669,12 +2676,12 @@ def report_contracts(request):
                     guide = guide_obj.id
                     guide_serial = guide_obj.serial
                     guide_correlative = guide_obj.correlative
-                    guide_number = guide_serial + '-' + guide_correlative
+                    guide_number = '-'.join(str(x) for x in (guide_serial, guide_correlative) if x) or None
                     guide_created = guide_obj.created_at
                     guide_created_datetime = datetime.combine(guide_created, datetime.min.time())
                     days_difference_two = (guide_created_datetime - my_date).days
                 else:
-                    c_datetime = datetime.combine(d.date, datetime.min.time())
+                    c_datetime = datetime.combine(d.date, datetime.min.time()) if d.date else my_date
                     days_difference = (c_datetime - my_date).days
                     # register_datetime = local_tz.localize(datetime.combine(d.date, datetime.min.time()))
                     # days_difference = (register_datetime - guide_obj.created_at).days
@@ -2723,9 +2730,9 @@ def report_contracts(request):
                 for e in d.contractdetailitem_set.all():
                     item = {
                         'id': e.id,
-                        'product_id': e.product.id,
+                        'product_id': e.product.id if e.product else None,
                         'quantity': e.quantity,
-                        'product_name': e.product.name
+                        'product_name': e.product.name if e.product else 'Producto no definido'
                     }
                     item_detail.get('contract_detail_item').append(item)
                 item_contract.get('contract_detail').append(item_detail)

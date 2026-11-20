@@ -1,0 +1,143 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}Panel Financiero | Anderquin ERP{% endblock title %}
+
+{% block body %}
+<div class="erp-page roboto-condensed-regular">
+    <div class="erp-dashboard-hero">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1><i class="fas fa-wallet mr-2"></i>Panel Financiero</h1>
+                <p>Control de compras, caja, bancos, cuentas por pagar y obligaciones tributarias.</p>
+            </div>
+            <div class="col-lg-4 text-lg-right mt-3 mt-lg-0">
+                <span class="erp-badge erp-badge-success">
+                    <i class="fas fa-calendar-day mr-1"></i>{{ today|date:"d/m/Y" }}
+                </span>
+                {% if subsidiary_obj %}
+                    <span class="erp-badge ml-2" style="background: rgba(255,255,255,.18); color:#fff;">
+                        <i class="fas fa-store mr-1"></i>{{ subsidiary_obj.name }}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="erp-kpi-grid">
+        <div class="erp-kpi">
+            <span class="erp-kpi-label">Compras registradas</span>
+            <span class="erp-kpi-value">{{ purchase_count }}</span>
+            <span class="erp-kpi-meta">{{ purchase_warehouse_count }} ingresadas a almacén</span>
+            <i class="fas fa-shopping-cart erp-kpi-icon"></i>
+        </div>
+        <div class="erp-kpi">
+            <span class="erp-kpi-label">Compras por ingresar</span>
+            <span class="erp-kpi-value">{{ purchase_pending_count }}</span>
+            <span class="erp-kpi-meta">Órdenes pendientes de almacén</span>
+            <i class="fas fa-truck-loading erp-kpi-icon"></i>
+        </div>
+        <div class="erp-kpi">
+            <span class="erp-kpi-label">Cuentas por pagar</span>
+            <span class="erp-kpi-value">S/ {{ purchases_pending_total|floatformat:2 }}</span>
+            <span class="erp-kpi-meta">{{ bills_pending_count }} facturas sin almacén</span>
+            <i class="fas fa-file-invoice-dollar erp-kpi-icon"></i>
+        </div>
+        <div class="erp-kpi">
+            <span class="erp-kpi-label">Saldo en caja y bancos</span>
+            <span class="erp-kpi-value">S/ {{ cash_balance|floatformat:2 }}</span>
+            <span class="erp-kpi-meta">{{ cash_count }} cajas · {{ bank_count }} cuentas bancarias</span>
+            <i class="fas fa-coins erp-kpi-icon"></i>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7 mb-3">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <span><i class="fas fa-clock mr-2"></i>Compras recientes</span>
+                    <a href="{% url 'accounting:get_purchase_list_finances' %}" class="btn btn-sm btn-light font-weight-bold">
+                        Ver todas <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_purchases %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Orden</th>
+                                    <th>Proveedor</th>
+                                    <th>Fecha</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-right">Acción</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for purchase in recent_purchases %}
+                                    <tr>
+                                        <td class="font-weight-bold">{{ purchase.bill_number|default:purchase.id }}</td>
+                                        <td>{{ purchase.supplier.name|default:"-"|truncatechars:34 }}</td>
+                                        <td>{{ purchase.purchase_date|date:"d/m/Y"|default:"-" }}</td>
+                                        <td class="text-center">
+                                            <span class="erp-badge {% if purchase.status == 'A' %}erp-badge-success{% else %}erp-badge-warning{% endif %}">
+                                                {{ purchase.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="text-right">
+                                            <a class="btn btn-sm btn-outline-primary btn-sales-rounded"
+                                               href="{% url 'accounting:get_purchase_list_finances' %}">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="erp-empty">
+                            <i class="fas fa-inbox d-block"></i>
+                            No hay compras registradas para esta sucursal.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5 mb-3">
+            <div class="card h-100">
+                <div class="card-header"><i class="fas fa-bolt mr-2"></i>Accesos rápidos</div>
+                <div class="card-body">
+                    <div class="erp-quick-grid">
+                        <a class="erp-quick-link" href="{% url 'accounting:get_purchase_list_finances' %}">
+                            <i class="fas fa-file-invoice-dollar"></i> Gestión de compras
+                        </a>
+                        <a class="erp-quick-link" href="{% url 'accounting:get_cash_control_list' %}">
+                            <i class="fas fa-cash-register"></i> Control de caja
+                        </a>
+                        <a class="erp-quick-link" href="{% url 'accounting:get_bank_control_list' %}">
+                            <i class="fas fa-university"></i> Cuentas bancarias
+                        </a>
+                        <a class="erp-quick-link" href="{% url 'accounting:get_account_list' %}">
+                            <i class="fas fa-sitemap"></i> Cuadro de cuentas
+                        </a>
+                        <a class="erp-quick-link" href="{% url 'accounting:credit_note_list' %}">
+                            <i class="fas fa-undo-alt"></i> Notas de crédito
+                        </a>
+                        <a class="erp-quick-link" href="{% url 'accounting:report_tributary' %}">
+                            <i class="fas fa-percentage"></i> Reporte tributario
+                        </a>
+                        <a class="erp-quick-link" href="{% url 'sales:accounts_receivable_report' %}">
+                            <i class="fas fa-hand-holding-usd"></i> Cuentas por cobrar
+                        </a>
+                        <a class="erp-quick-link" href="{% url 'buys:report_purchases_all' %}">
+                            <i class="fas fa-chart-pie"></i> Reporte de compras
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}

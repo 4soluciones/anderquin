@@ -43,10 +43,18 @@
                     <li class="erp-submenu-header">Productos</li>
                     <li><a href="{% url 'sales:product_list' %}"><i class="fas fa-list"></i> Listado de Productos</a></li>
                     <li><a href="{% url 'sales:kardex' %}"><i class="fas fa-boxes"></i> Kardex de Productos</a></li>
+                    <li><a href="{% url 'sales:stock_product' %}"><i class="fas fa-warehouse"></i> Stock por producto</a></li>
+                    <li><a href="{% url 'sales:stock_product_all' %}"><i class="fas fa-clipboard-list"></i> Stock general</a></li>
                     <li><a href="{% url 'sales:price_management' %}"><i class="fas fa-dollar-sign"></i> Gestión de Precios</a></li>
                     <li class="erp-submenu-header">Guías de Remisión</li>
                     <li><a href="{% url 'comercial:new_guide' %}"><i class="fas fa-dolly"></i> Emisión de Guías</a></li>
                     <li><a href="{% url 'comercial:guide_list' %}"><i class="fas fa-list"></i> Listado de Guías</a></li>
+                    <li><a href="{% url 'comercial:guide_detail_list' %}"><i class="fas fa-calendar-check"></i> Programación de Guías</a></li>
+                    <li class="erp-submenu-header">Reparto y transporte</li>
+                    <li><a href="{% url 'comercial:distribution_movil_list' %}"><i class="fas fa-motorcycle"></i> Reparto móvil</a></li>
+                    <li><a href="{% url 'comercial:list_output_distribution' %}"><i class="fas fa-truck"></i> Salidas de reparto</a></li>
+                    <li><a href="{% url 'comercial:report_guide_by_plate' %}"><i class="fas fa-id-card"></i> Guías por placa</a></li>
+                    <li><a href="{% url 'comercial:towing_list' %}"><i class="fas fa-dolly-flatbed"></i> Grúas / Remolques</a></li>
                     <li><a href="{% url 'comercial:truck_list' %}"><i class="fas fa-truck"></i> Listado de Vehículos</a></li>
                     <li><a href="{% url 'comercial:get_store' %}"><i class="fas fa-warehouse"></i> Almacenes</a></li>
                     <li class="erp-submenu-header">Transferencias entre almacenes</li>
@@ -81,6 +89,9 @@
                     <i class="fas fa-chevron-right erp-nav-arrow"></i>
                 </a>
                 <ul class="erp-nav-submenu" id="submenu-compras">
+                    <li class="erp-submenu-header">Requerimientos internos</li>
+                    <li><a href="{% url 'buys:requirement_list' %}"><i class="fas fa-clipboard-list"></i> Listado de Requerimientos</a></li>
+                    <li><a href="{% url 'buys:requirement_create' %}"><i class="fas fa-plus"></i> Nuevo Requerimiento</a></li>
                     <li class="erp-submenu-header">Órdenes de Compra</li>
                     <li><a href="{% url 'buys:buy_list' %}"><i class="fas fa-file"></i> Nueva Orden de Compra</a></li>
                     <li><a href="{% url 'buys:buy_order_list' %}"><i class="fas fa-tasks"></i> Lista de Órdenes de Compra</a></li>
@@ -106,8 +117,12 @@
                 </a>
                 <ul class="erp-nav-submenu" id="submenu-ventas">
                     <li><a href="{% url 'sales:sales_list' %}"><i class="fas fa-hand-holding-usd"></i> Nueva Venta</a></li>
+                    <li><a href="{% url 'sales:order_list' %}"><i class="fas fa-list"></i> Listado de Pedidos</a></li>
                     <li><a href="{% url 'sales:sales_report_professional' %}"><i class="fas fa-chart-line"></i> Reporte de Ventas</a></li>
                     <li><a href="{% url 'sales:credit_note_order_list' %}"><i class="fas fa-file-invoice-dollar"></i> Notas de Crédito de Ventas</a></li>
+                    <li class="erp-submenu-header">Cobranzas</li>
+                    <li><a href="{% url 'sales:accounts_receivable_report' %}"><i class="fas fa-file-invoice-dollar"></i> Cuentas por Cobrar</a></li>
+                    <li><a href="{% url 'sales:report_payments_by_client' %}"><i class="fas fa-receipt"></i> Pagos de Clientes</a></li>
                     <li class="erp-submenu-divider"></li>
                     <li><a href="{% url 'sales:client_list' %}"><i class="fas fa-user-friends"></i> Listado de Clientes</a></li>
                 </ul>
@@ -134,6 +149,7 @@
                     <i class="fas fa-chevron-right erp-nav-arrow"></i>
                 </a>
                 <ul class="erp-nav-submenu" id="submenu-finanzas">
+                    <li><a href="{% url 'accounting:home' %}"><i class="fas fa-tachometer-alt"></i> Panel Financiero</a></li>
                     <li><a href="{% url 'accounting:get_cash_control_list' %}"><i class="fas fa-cash-register"></i> Control de caja</a></li>
                     <li><a href="{% url 'accounting:get_bank_control_list' %}"><i class="fas fa-wallet"></i> Control de cuentas bancarias</a></li>
                     <li><a href="{% url 'accounting:get_account_list' %}"><i class="fas fa-file-invoice-dollar"></i> Cuadro de cuentas</a></li>
@@ -151,8 +167,31 @@
                     <i class="fas fa-chevron-right erp-nav-arrow"></i>
                 </a>
                 <ul class="erp-nav-submenu" id="submenu-reportes">
+                    <li><a href="{% url 'sales:sales_report_professional' %}"><i class="fas fa-chart-line"></i> Reporte de ventas</a></li>
                     <li><a href="{% url 'buys:report_purchases_all' %}"><i class="fas fa-chart-pie"></i> Reporte de compras Totales</a></li>
                     <li><a href="{% url 'buys:report_purchases_by_supplier' %}"><i class="fas fa-users"></i> Reporte de Compras por Proveedor</a></li>
+                    <li><a href="{% url 'buys:report_purchases_by_subsidiary' %}"><i class="fas fa-store"></i> Compras por Sucursal</a></li>
+                    <li><a href="{% url 'buys:report_administrative_purchases' %}"><i class="fas fa-paperclip"></i> Compras Administrativas</a></li>
+                    <li><a href="{% url 'buys:contracts_detail' %}"><i class="fas fa-calendar-alt"></i> Contratos y Entregas</a></li>
+                    <li><a href="{% url 'sales:get_sales_quotation_by_subsidiary' %}"><i class="fas fa-file-invoice"></i> Cotizaciones</a></li>
+                    <li><a href="{% url 'sales:stock_product_all' %}"><i class="fas fa-boxes"></i> Stock general</a></li>
+                    <li><a href="{% url 'accounting:get_cash_report' %}"><i class="fas fa-cash-register"></i> Flujo de caja</a></li>
+                </ul>
+            </li>
+
+            <!-- Configuración -->
+            <li class="erp-nav-item erp-nav-has-submenu">
+                <a href="#" class="erp-nav-link" data-submenu="configuracion">
+                    <i class="fas fa-cogs erp-nav-icon"></i>
+                    <span class="erp-nav-text">Configuración</span>
+                    <i class="fas fa-chevron-right erp-nav-arrow"></i>
+                </a>
+                <ul class="erp-nav-submenu" id="submenu-configuracion">
+                    <li><a href="{% url 'hrm:profile' %}"><i class="fas fa-user"></i> Mi perfil</a></li>
+                    <li><a href="{% url 'hrm:settings_password' %}"><i class="fas fa-key"></i> Cambiar contraseña</a></li>
+                    <li><a href="{% url 'hrm:get_subsidiary' %}"><i class="fas fa-building"></i> Sucursales</a></li>
+                    <li><a href="{% url 'accounting:get_account_list' %}"><i class="fas fa-book"></i> Plan de cuentas</a></li>
+                    <li><a href="{% url 'sales:price_type_list' %}"><i class="fas fa-tags"></i> Tipos de precio</a></li>
                 </ul>
             </li>
         </ul>

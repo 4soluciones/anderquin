@@ -79,7 +79,6 @@ urlpatterns = [
     # check payment
     path('check_loan_payment/', login_required(check_loan_payment), name='check_loan_payment'),
 
-    path('test/', login_required(test), name='test'),
     path('pdf_get_orders_for_status_account/', login_required(pdf_get_orders_for_status_account), name='pdf_get_orders_for_status_account'),
 
     # purchase_report_by_category

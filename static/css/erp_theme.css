@@ -1,0 +1,773 @@
+/* ============================================================
+   ANDERQUIN ERP - Tema visual unificado
+   Se carga después de style.css y sidebar.css para homogeneizar
+   todas las pantallas que extienden home.html.
+   ============================================================ */
+
+:root {
+    --erp-page-bg: #e8f4f8;
+    --erp-surface: #ffffff;
+    --erp-primary: #1565c0;
+    --erp-primary-dark: #0d47a1;
+    --erp-primary-soft: #e3f2fd;
+    --erp-border: #bbdefb;
+    --erp-text: #1e293b;
+    --erp-muted: #5b6673;
+    --erp-radius: 15px;
+    --erp-radius-sm: 10px;
+    --erp-shadow: 0 10px 30px rgba(13, 71, 161, 0.10);
+    --erp-shadow-sm: 0 4px 14px rgba(13, 71, 161, 0.08);
+    --erp-gradient: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+    --erp-gradient-blue: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+}
+
+body {
+    color: var(--erp-text);
+    font-family: "Roboto Condensed", "Open Sans", Arial, sans-serif;
+}
+
+.roboto-condensed-regular,
+.erp-main-content {
+    font-family: "Roboto Condensed", "Open Sans", Arial, sans-serif;
+}
+
+/* ---------- Lienzo de página ---------- */
+.erp-main-content {
+    background: var(--erp-page-bg) !important;
+    padding: 1.5rem;
+}
+
+.erp-main-content > .container,
+.erp-main-content > .container-fluid {
+    background: transparent;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.erp-page {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.erp-page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.erp-page-title {
+    margin: 0;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #0d47a1;
+    letter-spacing: 0.01em;
+}
+
+.erp-page-subtitle {
+    margin: 0.2rem 0 0;
+    color: var(--erp-muted);
+    font-size: 0.9rem;
+}
+
+.erp-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* ---------- Tarjetas ---------- */
+.erp-main-content .card {
+    border: 0;
+    border-radius: var(--erp-radius);
+    box-shadow: var(--erp-shadow-sm);
+    background: var(--erp-surface);
+    overflow: hidden;
+}
+
+.erp-main-content .card + .card {
+    margin-top: 1.15rem;
+}
+
+/* Encabezados cuyo fondo define el tema (sin background inline). */
+.erp-main-content .card > .card-header:not(.bg-white):not(.erp-card-header-light):not(.bg-transparent):not(.bg-light):not([style*="background"]) {
+    background: var(--erp-gradient);
+    color: #fff;
+    border: 0;
+    padding: 0.95rem 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.erp-main-content .card > .card-header:not(.bg-white):not(.erp-card-header-light):not(.bg-transparent):not(.bg-light):not([style*="background"]) h1,
+.erp-main-content .card > .card-header:not(.bg-white):not(.erp-card-header-light):not(.bg-transparent):not(.bg-light):not([style*="background"]) h2,
+.erp-main-content .card > .card-header:not(.bg-white):not(.erp-card-header-light):not(.bg-transparent):not(.bg-light):not([style*="background"]) h3,
+.erp-main-content .card > .card-header:not(.bg-white):not(.erp-card-header-light):not(.bg-transparent):not(.bg-light):not([style*="background"]) h4,
+.erp-main-content .card > .card-header:not(.bg-white):not(.erp-card-header-light):not(.bg-transparent):not(.bg-light):not([style*="background"]) h5,
+.erp-main-content .card > .card-header:not(.bg-white):not(.erp-card-header-light):not(.bg-transparent):not(.bg-light):not([style*="background"]) h6,
+.erp-main-content .card > .card-header:not(.bg-white):not(.erp-card-header-light):not(.bg-transparent):not(.bg-light):not([style*="background"]) label,
+.erp-main-content .card > .card-header:not(.bg-white):not(.erp-card-header-light):not(.bg-transparent):not(.bg-light):not([style*="background"]) .col-form-label {
+    color: #fff !important;
+    margin-bottom: 0;
+    font-weight: 700;
+}
+
+.erp-main-content .card > .card-header.bg-white,
+.erp-main-content .card > .card-header.bg-light,
+.erp-main-content .card > .card-header.erp-card-header-light {
+    background: #f8fbff;
+    border-bottom: 1px solid var(--erp-border);
+    color: #334155;
+    font-weight: 700;
+    padding: 0.95rem 1.25rem;
+}
+
+/* En encabezados degradados oscuros, las utilidades oscuras pasan a blanco.
+   No se fuerza el color de todos los descendientes: eso rompía botones
+   claros y títulos con color inline sobre degradados claros. */
+.erp-main-content .card > .card-header:not(.bg-white):not(.bg-light):not(.erp-card-header-light):not(.bg-transparent):not([style*="background"]) .text-dark,
+.erp-main-content .card > .card-header:not(.bg-white):not(.bg-light):not(.erp-card-header-light):not(.bg-transparent):not([style*="background"]) .text-muted,
+.erp-main-content .card > .card-header:not(.bg-white):not(.bg-light):not(.erp-card-header-light):not(.bg-transparent):not([style*="background"]) .text-secondary,
+.erp-main-content .card > .card-header:not(.bg-white):not(.bg-light):not(.erp-card-header-light):not(.bg-transparent):not([style*="background"]) .text-body {
+    color: #fff !important;
+}
+
+.erp-main-content .card-body {
+    padding: 1.15rem 1.25rem;
+}
+
+.erp-main-content .card-footer {
+    background: #f8fbff;
+    border-top: 1px solid var(--erp-border);
+}
+
+/* Encabezado de tarjeta personalizado */
+.erp-card-header {
+    background: var(--erp-gradient) !important;
+    color: #fff !important;
+    border: 0 !important;
+    padding: 1rem 1.25rem !important;
+    border-radius: var(--erp-radius) var(--erp-radius) 0 0 !important;
+}
+
+.erp-card-header h1,
+.erp-card-header h2,
+.erp-card-header h3,
+.erp-card-header h4,
+.erp-card-header h5,
+.erp-card-header h6,
+.erp-card-header label,
+.erp-card-header span {
+    color: #fff !important;
+    margin-bottom: 0;
+}
+
+.erp-card-header-blue {
+    background: var(--erp-gradient-blue) !important;
+}
+
+/* ---------- Formularios ---------- */
+.erp-main-content .form-control,
+.erp-main-content .custom-select,
+.erp-main-content select.form-control,
+.erp-main-content textarea.form-control {
+    border: 1px solid var(--erp-border);
+    border-radius: var(--erp-radius-sm);
+    min-height: 38px;
+    color: var(--erp-text);
+    background-color: #fff;
+}
+
+.erp-main-content .form-control:focus,
+.erp-main-content .custom-select:focus {
+    border-color: var(--erp-primary);
+    box-shadow: 0 0 0 0.2rem rgba(21, 101, 192, 0.15);
+}
+
+.erp-main-content label,
+.erp-main-content .col-form-label {
+    font-weight: 600;
+    color: #334155;
+}
+
+.erp-main-content .input-group-text {
+    border-color: var(--erp-border);
+    border-radius: var(--erp-radius-sm);
+    background: #f8fbff;
+}
+
+/* ---------- Botones ---------- */
+.erp-main-content .btn,
+.erp-page .btn {
+    border-radius: var(--erp-radius-sm);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    border-width: 2px;
+}
+
+.erp-main-content .btn-primary,
+.erp-page .btn-primary {
+    background: var(--erp-gradient-blue);
+    border-color: var(--erp-primary-dark);
+}
+
+.erp-main-content .btn-success,
+.erp-page .btn-success {
+    background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+    border-color: #1b5e20;
+}
+
+.erp-main-content .btn-info,
+.erp-page .btn-info {
+    background: linear-gradient(135deg, #0277bd 0%, #01579b 100%);
+    border-color: #01579b;
+}
+
+.erp-main-content .btn-warning,
+.erp-page .btn-warning {
+    color: #3e2723;
+}
+
+.btn-sales-rounded {
+    border-radius: 12px !important;
+}
+
+/* Botones outline: los colores Bootstrap originales no llegan a 4.5:1
+   sobre los fondos claros del ERP. Se usan variantes más oscuras. */
+.erp-main-content .btn-outline-primary,
+.erp-page .btn-outline-primary {
+    color: #0d47a1;
+    border-color: #0d47a1;
+}
+
+.erp-main-content .btn-outline-info,
+.erp-page .btn-outline-info {
+    color: #01579b;
+    border-color: #01579b;
+}
+
+.erp-main-content .btn-outline-success,
+.erp-page .btn-outline-success {
+    color: #1b5e20;
+    border-color: #1b5e20;
+}
+
+.erp-main-content .btn-outline-danger,
+.erp-page .btn-outline-danger {
+    color: #b71c1c;
+    border-color: #b71c1c;
+}
+
+.erp-main-content .btn-outline-warning,
+.erp-page .btn-outline-warning {
+    color: #7a6000;
+    border-color: #7a6000;
+}
+
+.erp-main-content .btn-outline-secondary,
+.erp-page .btn-outline-secondary {
+    color: #495057;
+    border-color: #495057;
+}
+
+/* Texto secundario legible sobre #e8f4f8, #f8fbff y blanco. */
+.erp-main-content .text-muted,
+.erp-main-content .text-secondary,
+.erp-page .text-muted,
+.erp-page .text-secondary {
+    color: var(--erp-muted) !important;
+}
+
+.erp-main-content .badge-primary { background: #0d47a1; }
+.erp-main-content .badge-info { background: #01579b; }
+.erp-main-content .badge-success { background: #1b5e20; }
+.erp-main-content .badge-danger { background: #b71c1c; }
+/* Solo cuando el verde oscuro es el FONDO; si es el color de texto sobre
+   un fondo claro (#e8f5e9), debe conservarse oscuro. */
+.badge[style*="background-color: #2e7d32"],
+.badge[style*="background:#2e7d32"],
+.badge[style*="46, 125, 50"] {
+    color: #fff !important;
+}
+
+/* Utilidades de color de Bootstrap: se oscurecen para cumplir WCAG AA
+   sobre los fondos claros del ERP. */
+.erp-main-content .text-primary,
+.erp-page .text-primary,
+.modal .text-primary { color: #0d47a1 !important; }
+
+.erp-main-content .text-info,
+.erp-page .text-info,
+.modal .text-info { color: #01579b !important; }
+
+.erp-main-content .text-success,
+.erp-page .text-success,
+.modal .text-success { color: #1b5e20 !important; }
+
+.erp-main-content .text-warning,
+.erp-page .text-warning,
+.modal .text-warning { color: #7a6000 !important; }
+
+.erp-main-content .text-danger,
+.erp-page .text-danger,
+.modal .text-danger { color: #b71c1c !important; }
+
+.erp-main-content .alert-light,
+.erp-page .alert-light { color: #5b6673 !important; }
+
+/* Botones con color inline verde claro. */
+.erp-main-content .btn[style*="#009600"],
+.erp-page .btn[style*="#009600"] {
+    background: #1b5e20 !important;
+    border-color: #1b5e20 !important;
+    color: #fff !important;
+}
+
+/* Encabezados de tabla con fondo azul/verde definido en plantillas. */
+.erp-main-content .table-admin thead th,
+.erp-main-content thead th[style*="#3e6787"] {
+    color: #fff !important;
+}
+
+.erp-main-content thead th[style*="#518d86"],
+.erp-main-content .table-admin thead th:nth-child(5) {
+    background: #2f6b63 !important;
+    color: #fff !important;
+}
+
+/* Modales con encabezado oscuro: título y cierre en blanco. */
+.modal-header[style*="#1565c0"],
+.modal-header[style*="#0d47a1"],
+.modal-header[style*="#1e3a5f"],
+.modal-header[style*="#2d5a87"],
+.modal-header[style*="#045ebf"],
+.modal-header[style*="#3e6787"],
+.modal-header[style*="21,99,181"],
+.modal-header[style*="21, 99, 181"],
+.modal-header[style*="#667eea"],
+.modal-header[style*="#764ba2"],
+.modal-header[style*="#17a2b8"],
+.modal-header[style*="#117a8b"],
+.modal-header[style*="#28a745"],
+.modal-header[style*="#1e7e34"],
+.modal-header[style*="153,45,48"] {
+    color: #fff !important;
+}
+
+.modal-header[style*="#1565c0"] .modal-title,
+.modal-header[style*="#0d47a1"] .modal-title,
+.modal-header[style*="#1e3a5f"] .modal-title,
+.modal-header[style*="#2d5a87"] .modal-title,
+.modal-header[style*="#045ebf"] .modal-title,
+.modal-header[style*="#3e6787"] .modal-title,
+.modal-header[style*="21,99,181"] .modal-title,
+.modal-header[style*="21, 99, 181"] .modal-title,
+.modal-header[style*="#667eea"] .modal-title,
+.modal-header[style*="#764ba2"] .modal-title,
+.modal-header[style*="#17a2b8"] .modal-title,
+.modal-header[style*="#117a8b"] .modal-title,
+.modal-header[style*="#28a745"] .modal-title,
+.modal-header[style*="#1e7e34"] .modal-title,
+.modal-header[style*="153,45,48"] .modal-title,
+.modal-header[style*="#1565c0"] .close,
+.modal-header[style*="#0d47a1"] .close,
+.modal-header[style*="#1e3a5f"] .close,
+.modal-header[style*="#2d5a87"] .close,
+.modal-header[style*="#045ebf"] .close,
+.modal-header[style*="#3e6787"] .close,
+.modal-header[style*="21,99,181"] .close,
+.modal-header[style*="21, 99, 181"] .close,
+.modal-header[style*="#667eea"] .close,
+.modal-header[style*="#764ba2"] .close,
+.modal-header[style*="#17a2b8"] .close,
+.modal-header[style*="#117a8b"] .close,
+.modal-header[style*="#28a745"] .close,
+.modal-header[style*="#1e7e34"] .close,
+.modal-header[style*="153,45,48"] .close {
+    color: #fff !important;
+    opacity: 0.9;
+}
+
+/* Degradados de modal que no alcanzaban 4.5:1 con texto blanco. */
+.modal-header[style*="#28a745"],
+.modal-header[style*="#1e7e34"] {
+    background: linear-gradient(135deg, #1b5e20 0%, #0d3d13 100%) !important;
+}
+
+.modal-header[style*="#17a2b8"],
+.modal-header[style*="#117a8b"] {
+    background: linear-gradient(135deg, #01579b 0%, #003c6e 100%) !important;
+}
+
+.modal-header[style*="#667eea"],
+.modal-header[style*="#764ba2"] {
+    background: linear-gradient(135deg, #0d47a1 0%, #1e3a5f 100%) !important;
+}
+
+/* ---------- Tablas ---------- */
+.erp-main-content .table {
+    color: var(--erp-text);
+    margin-bottom: 0;
+}
+
+.erp-main-content .table thead th {
+    background: #e3f2fd;
+    color: #0d47a1;
+    border-color: var(--erp-border);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    vertical-align: middle;
+}
+
+.erp-main-content .table td,
+.erp-main-content .table th {
+    border-color: #dbeafe;
+    vertical-align: middle;
+}
+
+.erp-main-content .table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f8fbff;
+}
+
+.erp-main-content .table-hover tbody tr:hover {
+    background-color: #eaf4ff;
+}
+
+.erp-main-content .dataTables_wrapper .dataTables_filter input,
+.erp-main-content .dataTables_wrapper .dataTables_length select {
+    border: 1px solid var(--erp-border);
+    border-radius: 8px;
+    padding: 0.2rem 0.5rem;
+}
+
+/* ---------- Navegación interna ---------- */
+.erp-main-content .nav-pills .nav-link {
+    border-radius: 10px;
+    color: #0d47a1;
+    font-weight: 700;
+}
+
+.erp-main-content .nav-pills .nav-link.active {
+    background: var(--erp-gradient-blue);
+    color: #fff;
+}
+
+.erp-main-content .breadcrumb {
+    background: transparent;
+    padding: 0;
+}
+
+/* ---------- KPI / Dashboard ---------- */
+.erp-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.erp-kpi {
+    position: relative;
+    background: #fff;
+    border-radius: var(--erp-radius);
+    padding: 1.1rem 1.2rem;
+    box-shadow: var(--erp-shadow-sm);
+    overflow: hidden;
+    min-height: 118px;
+}
+
+.erp-kpi::after {
+    content: "";
+    position: absolute;
+    right: -22px;
+    top: -22px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: rgba(21, 101, 192, 0.08);
+}
+
+.erp-kpi-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--erp-muted);
+    margin-bottom: 0.35rem;
+}
+
+.erp-kpi-value {
+    display: block;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #0d47a1;
+    line-height: 1.15;
+}
+
+.erp-kpi-meta {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    color: var(--erp-muted);
+}
+
+.erp-kpi-icon {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    font-size: 1.6rem;
+    color: rgba(21, 101, 192, 0.18);
+}
+
+.erp-dashboard-hero {
+    background: linear-gradient(120deg, #0d47a1 0%, #0f5bb0 55%, #1565c0 100%);
+    border-radius: var(--erp-radius);
+    color: #fff;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--erp-shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.erp-dashboard-hero::after {
+    content: "";
+    position: absolute;
+    right: -40px;
+    top: -80px;
+    width: 260px;
+    height: 260px;
+    border: 28px solid rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+}
+
+.erp-dashboard-hero h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    color: #fff;
+}
+
+.erp-dashboard-hero p {
+    margin-bottom: 0;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.erp-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.75rem;
+}
+
+.erp-quick-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--erp-border);
+    border-radius: var(--erp-radius-sm);
+    color: #0d47a1;
+    background: #f8fbff;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.erp-quick-link:hover {
+    background: #e3f2fd;
+    color: #0d47a1;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: var(--erp-shadow-sm);
+}
+
+.erp-quick-link i {
+    width: 22px;
+    text-align: center;
+    font-size: 1.05rem;
+}
+
+.erp-mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.65rem;
+    height: 180px;
+    padding: 0.5rem 0.25rem 0;
+}
+
+.erp-mini-bar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.erp-mini-bar-fill {
+    width: 100%;
+    max-width: 42px;
+    border-radius: 8px 8px 3px 3px;
+    background: linear-gradient(180deg, #42a5f5 0%, #1565c0 100%);
+    min-height: 4px;
+    transition: height 0.4s ease;
+}
+
+.erp-mini-bar-label {
+    font-size: 0.7rem;
+    color: var(--erp-muted);
+    white-space: nowrap;
+}
+
+.erp-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.erp-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid #eef5fb;
+}
+
+.erp-list li:last-child {
+    border-bottom: 0;
+}
+
+.erp-empty {
+    text-align: center;
+    color: var(--erp-muted);
+    padding: 2.25rem 1rem;
+}
+
+.erp-empty i {
+    color: #90caf9;
+    font-size: 2.2rem;
+    margin-bottom: 0.75rem;
+}
+
+.erp-badge {
+    display: inline-block;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    background: #e3f2fd;
+    color: #0d47a1;
+}
+
+.erp-badge-success { background: #e8f5e9; color: #1b5e20; }
+.erp-badge-warning { background: #fff8e1; color: #8d6e00; }
+.erp-badge-danger  { background: #ffebee; color: #b71c1c; }
+
+/* ---------- Utilidades ---------- */
+.erp-filter-box {
+    background: #f8fbff;
+    border: 1px solid var(--erp-border);
+    border-radius: var(--erp-radius-sm);
+    padding: 0.9rem 1rem;
+}
+
+.erp-divider {
+    height: 1px;
+    background: var(--erp-border);
+    margin: 1rem 0;
+}
+
+/* ---------- Ajustes finales de contraste ---------- */
+/* Utilidades globales: algunas pantallas y fragmentos AJAX están fuera de
+   .erp-main-content, por lo que la corrección debe aplicar también aquí. */
+.text-primary { color: #0d47a1 !important; }
+.text-info { color: #01579b !important; }
+.text-success { color: #1b5e20 !important; }
+.text-warning { color: #7a6000 !important; }
+.text-danger { color: #b71c1c !important; }
+.text-muted,
+.text-secondary,
+.change-money { color: #5b6673 !important; }
+.text-white-50 { color: rgba(255, 255, 255, 0.8) !important; }
+
+.erp-main-content .nav-link:not([style*="color"]) { color: #0d47a1 !important; }
+.erp-main-content .custom-pills .nav-link.active { color: #fff !important; }
+
+/* Botones outline dentro de encabezados degradados oscuros. */
+.erp-main-content .card > .card-header:not(.bg-white):not(.bg-light):not(.erp-card-header-light):not(.bg-transparent):not([style*="background"]) .btn-outline-primary,
+.erp-main-content .card > .card-header:not(.bg-white):not(.bg-light):not(.erp-card-header-light):not(.bg-transparent):not([style*="background"]) .btn-outline-info,
+.erp-main-content .card > .card-header:not(.bg-white):not(.bg-light):not(.erp-card-header-light):not(.bg-transparent):not([style*="background"]) .btn-outline-success,
+.erp-main-content .card > .card-header:not(.bg-white):not(.bg-light):not(.erp-card-header-light):not(.bg-transparent):not([style*="background"]) .btn-outline-danger,
+.erp-main-content .card > .card-header:not(.bg-white):not(.bg-light):not(.erp-card-header-light):not(.bg-transparent):not([style*="background"]) .btn-outline-warning,
+.erp-main-content .card > .card-header:not(.bg-white):not(.bg-light):not(.erp-card-header-light):not(.bg-transparent):not([style*="background"]) .btn-outline-secondary {
+    color: #fff !important;
+    border-color: #fff !important;
+}
+
+/* Encabezado verde inline con texto claro. */
+.erp-main-content .card-header[style*="#19800f"],
+.erp-main-content .card-header[style*="#19800f"] h1,
+.erp-main-content .card-header[style*="#19800f"] h2,
+.erp-main-content .card-header[style*="#19800f"] h3,
+.erp-main-content .card-header[style*="#19800f"] h4,
+.erp-main-content .card-header[style*="#19800f"] h5,
+.erp-main-content .card-header[style*="#19800f"] h6,
+.erp-main-content .card-header[style*="#19800f"] label {
+    color: #fff !important;
+}
+
+/* Encabezados de tabla con verde intermedio definido por plantilla. */
+.erp-main-content .report-table thead th:nth-child(5),
+.erp-main-content .table-admin thead th:nth-child(5) {
+    background: #2f6b63 !important;
+    color: #fff !important;
+}
+
+/* Botón verde inline en reportes. */
+.erp-main-content .btn[style*="#00960f"],
+.erp-main-content .btn[style*="#009600"],
+.erp-main-content .btn[style*="0,150,15"],
+.erp-page .btn[style*="#00960f"],
+.erp-page .btn[style*="#009600"],
+.erp-page .btn[style*="0,150,15"] {
+    background: #1b5e20 !important;
+    border-color: #1b5e20 !important;
+    color: #fff !important;
+}
+
+/* Encabezado marrón con texto blanco (#a46d43 no llega a 4.5:1). */
+.erp-main-content .card-header[style*="#a46d43"] {
+    background: #8a5937 !important;
+    color: #fff !important;
+}
+
+/* Texto azul inline sobre degradado claro. */
+.erp-main-content small[style*="#1565c0"],
+.erp-main-content a[style*="#007bff"],
+.erp-main-content a:not([class]) {
+    color: #0d47a1 !important;
+}
+
+@media (max-width: 767.98px) {
+    .erp-main-content {
+        padding: 1rem 0.75rem;
+    }
+
+    .erp-page-title {
+        font-size: 1.3rem;
+    }
+
+    .erp-dashboard-hero {
+        padding: 1.2rem;
+    }
+}

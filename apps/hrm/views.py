@@ -27,29 +27,112 @@ from django.core.cache import cache
 
 
 class Home(TemplateView):
+    """Dashboard principal del ERP con indicadores del proceso comercial."""
+
     template_name = 'home.html'
 
     def get_context_data(self, **kwargs):
-        # subsidiary = Subsidiary.objects.filter(establishment__worker_user=user_obj)
-        # sicuani_order_set = Order.objects.filter(type='V', subsidiary_store__subsidiary__id=1).annotate(Sum('total'))
-        # cusco_order_set = Order.objects.filter(type='V', subsidiary_store__subsidiary__id=2).annotate(Sum('total'))
-        # vilcanota_order_set = Order.objects.filter(type='V', subsidiary_store__subsidiary__id=4).annotate(Sum('total'))
-        # puerto_order_set = Order.objects.filter(type='V', subsidiary_store__subsidiary__id=3).annotate(Sum('total'))
-        text = '12345678.'
-        my_date = datetime.now()
-        password = make_password(text)
-        context = {
-            # 'dist_10bg_set': get_distribution_10kg(),
-            # 'dist_5bg_set': get_distribution_5kg(),
-            # 'dist_15bg_set': get_distribution_15kg(),
-            # 'dist_45bg_set': get_distribution_45kg(),
-            'subsidiary_set': Subsidiary.objects.filter(is_address=False)
-            # 'sicuani_order_set': sicuani_order_set,
-            # 'cusco_order_set': cusco_order_set,
-            # 'vilcanota_order_set': vilcanota_order_set,
-            # 'puerto_order_set': puerto_order_set,
-            #'sales_vs_expenses': get_sales_vs_expenses(),
-        }
+        from decimal import Decimal
+        from django.db.models import DecimalField, Value
+        from django.db.models.functions import TruncMonth
+        from django.utils import timezone
+        from apps.buys.models import Purchase, PurchaseDetail
+        from apps.sales.models import Requirement
+
+        context = super().get_context_data(**kwargs)
+        today = timezone.localdate()
+        current_subsidiary = None
+        try:
+            current_subsidiary = get_subsidiary_by_user(self.request.user)
+        except Exception:
+            current_subsidiary = None
+
+        order_qs = Order.objects.filter(order_type='V').exclude(status='A')
+        if current_subsidiary:
+            order_qs = order_qs.filter(subsidiary=current_subsidiary)
+
+        purchase_qs = Purchase.objects.filter(status__in=['S', 'A'])
+        if current_subsidiary:
+            purchase_qs = purchase_qs.filter(subsidiary=current_subsidiary)
+
+        month_sales = order_qs.filter(
+            create_at__year=today.year, create_at__month=today.month
+        ).aggregate(total=Coalesce(Sum('total'), Value(0), output_field=DecimalField(max_digits=14, decimal_places=2)))['total'] or Decimal('0')
+        total_sales = order_qs.aggregate(
+            total=Coalesce(Sum('total'), Value(0), output_field=DecimalField(max_digits=14, decimal_places=2))
+        )['total'] or Decimal('0')
+        month_orders = order_qs.filter(create_at__year=today.year, create_at__month=today.month).count()
+        month_quotes = Order.objects.filter(
+            order_type='T', create_at__year=today.year, create_at__month=today.month
+        ).count()
+
+        totals = order_qs.aggregate(
+            total=Coalesce(Sum('total'), Value(0), output_field=DecimalField(max_digits=14, decimal_places=2)),
+            paid=Coalesce(Sum('total_payed'), Value(0), output_field=DecimalField(max_digits=14, decimal_places=2)),
+        )
+        receivable = (totals['total'] or Decimal('0')) - (totals['paid'] or Decimal('0'))
+
+        purchases_total = PurchaseDetail.objects.filter(
+            purchase__in=purchase_qs
+        ).aggregate(
+            total=Coalesce(
+                Sum(F('quantity') * F('price_unit')),
+                Value(0),
+                output_field=DecimalField(max_digits=16, decimal_places=2),
+            )
+        )['total'] or Decimal('0')
+
+        low_stock_qs = ProductStore.objects.filter(stock__lte=5).select_related(
+            'product', 'subsidiary_store__subsidiary'
+        )
+        if current_subsidiary:
+            low_stock_qs = low_stock_qs.filter(subsidiary_store__subsidiary=current_subsidiary)
+
+        requirements_qs = Requirement.objects.exclude(status__in=['3', '6'])
+        if current_subsidiary:
+            requirements_qs = requirements_qs.filter(subsidiary=current_subsidiary)
+
+        # Ventas de los últimos seis meses para el gráfico del dashboard.
+        chart_qs = order_qs.filter(create_at__isnull=False).annotate(month=TruncMonth('create_at')).values('month').annotate(
+            total=Sum('total')
+        ).order_by('month')
+        chart_map = {item['month'].strftime('%Y-%m'): float(item['total'] or 0) for item in chart_qs if item['month']}
+        chart_labels, chart_values = [], []
+        year, month = today.year, today.month
+        for offset in range(5, -1, -1):
+            m = month - offset
+            y = year
+            while m <= 0:
+                m += 12
+                y -= 1
+            key = f'{y:04d}-{m:02d}'
+            chart_labels.append(['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'][m - 1])
+            chart_values.append(chart_map.get(key, 0))
+        chart_max = max(chart_values) if chart_values else 0
+        chart_bars = [
+            {'label': label, 'value': value, 'height': (value / chart_max * 100) if chart_max else 0}
+            for label, value in zip(chart_labels, chart_values)
+        ]
+
+        context.update({
+            'subsidiary_set': Subsidiary.objects.filter(is_address=False).order_by('id', 'serial'),
+            'current_subsidiary': current_subsidiary,
+            'today': today,
+            'month_sales': month_sales,
+            'total_sales': total_sales,
+            'month_orders': month_orders,
+            'month_quotes': month_quotes,
+            'receivable': receivable,
+            'purchases_total': purchases_total,
+            'pending_purchases': purchase_qs.filter(status='S').count(),
+            'warehouse_purchases': purchase_qs.filter(status='A').count(),
+            'low_stock': low_stock_qs.order_by('stock')[:6],
+            'low_stock_count': low_stock_qs.count(),
+            'requirements_pending': requirements_qs.count(),
+            'recent_orders': order_qs.select_related('client').order_by('-id')[:7],
+            'recent_purchases': purchase_qs.select_related('supplier').order_by('-id')[:7],
+            'chart_bars': chart_bars,
+        })
         return context
 
     def get(self, request, *args, **kwargs):
@@ -57,124 +140,43 @@ class Home(TemplateView):
 
 
 def get_sales_vs_expenses(subsidiary_obj=None, start_date=None, end_date=None):
-    cash_flow_set = get_cash_flow_expenses(subsidiary_obj=subsidiary_obj, start_date=start_date, end_date=end_date)
-    order_set = get_sales_distributions(subsidiary_obj=subsidiary_obj, start_date=start_date, end_date=end_date)
+    """Compara ventas y gastos por canal de venta.
 
-    truck_dict = {}
+    La implementación anterior agrupaba por ``distribution_mobil``, un modelo
+    que fue retirado del proyecto junto con el módulo de reparto incompleto.
+    Se conserva la estructura de salida (``i_sales``, ``i_expenses``, ``pk``,
+    ``name``) pero agrupando por el campo vigente ``Order.sale_type``.
+    """
+    result = {}
+    for key, label in Order.SALE_TYPE_CHOICES:
+        result[key] = {
+            'i_sales': '0.0',
+            'i_expenses': '0.0',
+            'pk': key,
+            'name': label,
+        }
 
-    for o in order_set:
-        _search_value = o['distribution_mobil__truck__pk']
-        if o['total__sum'] > 0:
-            truck_dict[_search_value] = {
-                'i_sales': str(float(round(o['total__sum'], 2))), 'i_expenses': 0, 'pk': _search_value,
-                'name': o['distribution_mobil__truck__license_plate']
-            }
-
-    for c in cash_flow_set:
-        _search_value = c['order__distribution_mobil__truck__pk']
-        if _search_value in truck_dict.keys():
-            _truck = truck_dict[_search_value]
-            _expenses = _truck.get('i_expenses')
-            if c['total__sum'] > 0:
-                truck_dict[_search_value]['i_expenses'] = str(float(round(c['total__sum'], 2)))
-        else:
-            if c['total__sum'] > 0:
-                truck_dict[_search_value] = {
-                    'i_sales': 0, 'i_expenses': str(float(round(c['total__sum'], 2))), 'pk': _search_value,
-                    'name': c['order__distribution_mobil__truck__license_plate']
-                }
-    return truck_dict
-
-
-def get_cash_flow_expenses(subsidiary_obj=None, start_date=None, end_date=None):
-    my_date = datetime.now()
-    cash_flow_set = CashFlow.objects.filter(
-        order__distribution_mobil__date_distribution__range=(start_date, end_date),
-        #order__subsidiary_store__subsidiary_id=subsidiary_obj.id,
-        #order__distribution_mobil__date_distribution__year=my_date.year,
-        type='S'
-    )
-
+    orders = Order.objects.filter(order_type='V')
+    if start_date and end_date:
+        orders = orders.filter(create_at__date__range=(start_date, end_date))
     if subsidiary_obj is not None:
-        cash_flow_set = cash_flow_set.filter(order__distribution_mobil__truck__subsidiary_id=subsidiary_obj.id)
-    
-    cash_flow_set = cash_flow_set.values(
-        'order__distribution_mobil__truck__pk',
-        'order__distribution_mobil__truck__license_plate',
-    ).annotate(Sum('total'))
-    return cash_flow_set
+        orders = orders.filter(subsidiary=subsidiary_obj)
+    for row in orders.values('sale_type').annotate(total=Sum('total')):
+        key = row['sale_type']
+        if key in result and row['total']:
+            result[key]['i_sales'] = str(float(round(row['total'], 2)))
 
-
-def get_sales_distributions(subsidiary_obj=None, start_date=None, end_date=None):
-    my_date = datetime.now()
-    order_set = Order.objects.filter(
-        distribution_mobil__date_distribution__range=(start_date, end_date),
-        #subsidiary_store__subsidiary_id=subsidiary_obj.id
-        #distribution_mobil__date_distribution__year=my_date.year
-    )
+    expenses = CashFlow.objects.filter(type='S', order__isnull=False)
+    if start_date and end_date:
+        expenses = expenses.filter(transaction_date__date__range=(start_date, end_date))
     if subsidiary_obj is not None:
-        order_set = order_set.filter(distribution_mobil__truck__subsidiary_id=subsidiary_obj.id)
+        expenses = expenses.filter(order__subsidiary=subsidiary_obj)
+    for row in expenses.values('order__sale_type').annotate(total=Sum('total')):
+        key = row['order__sale_type']
+        if key in result and row['total']:
+            result[key]['i_expenses'] = str(float(round(row['total'], 2)))
 
-    order_set = order_set.values(
-        'distribution_mobil__truck__pk',
-        'distribution_mobil__truck__license_plate',
-    ).annotate(Sum('total'))
-    return order_set
-
-
-def get_distribution_10kg():
-    my_date = datetime.now()
-    dist_10bg_set = DistributionDetail.objects.filter(
-        product__id=1,
-        unit__name='BG',
-        distribution_mobil__date_distribution__year=my_date.year
-    ).values(
-        'unit__name',
-        'distribution_mobil__date_distribution'
-    ).annotate(Sum('quantity')).order_by('distribution_mobil__date_distribution')
-    return dist_10bg_set
-
-
-def get_distribution_5kg():
-    my_date = datetime.now()
-    formatdate = my_date.strftime("%Y-%m-%d")
-    dist_5bg_set = DistributionDetail.objects.filter(
-        product__id=2,
-        unit__name='BG',
-        distribution_mobil__date_distribution__year=my_date.year
-    ).values(
-        'unit__name',
-        'distribution_mobil__date_distribution'
-    ).annotate(Sum('quantity')).order_by('distribution_mobil__date_distribution')
-    return dist_5bg_set
-
-
-def get_distribution_15kg():
-    my_date = datetime.now()
-    formatdate = my_date.strftime("%Y-%m-%d")
-    dist_15bg_set = DistributionDetail.objects.filter(
-        product__id=12,
-        unit__name='BG',
-        distribution_mobil__date_distribution__year=my_date.year
-    ).values(
-        'unit__name',
-        'distribution_mobil__date_distribution'
-    ).annotate(Sum('quantity')).order_by('distribution_mobil__date_distribution')
-    return dist_15bg_set
-
-
-def get_distribution_45kg():
-    my_date = datetime.now()
-    formatdate = my_date.strftime("%Y-%m-%d")
-    dist_45bg_set = DistributionDetail.objects.filter(
-        product__id=3,
-        unit__name='BG',
-        distribution_mobil__date_distribution__year=my_date.year
-    ).values(
-        'unit__name',
-        'distribution_mobil__date_distribution'
-    ).annotate(Sum('quantity')).order_by('distribution_mobil__date_distribution')
-    return dist_45bg_set
+    return result
 
 
 # FUNCION PARA RECUPERAR EL USUARIO DE UNA SUCURSAL

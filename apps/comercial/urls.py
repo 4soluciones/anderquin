@@ -50,6 +50,9 @@ urlpatterns = [
 
     path('get_order_detail_by_client/', get_order_detail_by_client,
          name='get_order_detail_by_client'),
+    path('guide_by_programming/', login_required(guide_by_programming), name='guide_by_programming'),
+    path('programmings_by_date/', login_required(programmings_by_date), name='programmings_by_date'),
+    path('distribution_mobil_save/', login_required(distribution_mobil_save), name='distribution_mobil_save'),
 
     path('get_units_by_products_distribution_mobil/', get_units_by_products_distribution_mobil,
          name='get_units_by_products_distribution_mobil'),

@@ -1016,11 +1016,6 @@ def update_product_detail(request):
 def get_rate_product(request):
     if request.method == 'GET':
         id_product = request.GET.get('product', '')
-        id_distribution = request.GET.get('distribution')
-        distribution_obj = None
-        if id_distribution != '0':
-            distribution_obj = DistributionMobil.objects.get(pk=int(id_distribution))
-
         product_obj = Product.objects.get(id=int(id_product))
         product_details = ProductDetail.objects.filter(product=product_obj)
         subsidiaries_stores = SubsidiaryStore.objects.filter(stores__product=product_obj)
@@ -1043,7 +1038,6 @@ def get_rate_product(request):
             'subsidiaries_stores': subsidiaries_stores,
             'product_stores': product_stores,
             'product_details': product_details,
-            'distribution_obj': distribution_obj,
         })
 
         return JsonResponse({
@@ -1155,7 +1149,7 @@ def save_order(request):
                         order_detail_obj.save()
                         if _type_document == 'F':
                             type_document = '01'
-                        elif _type_payment == 'B':
+                        elif _type_document == 'B':
                             type_document = '03'
                         else:
                             type_document = '00'
@@ -1303,8 +1297,8 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
     order_obj.type_document = _type_document
     order_obj.save()
 
-    # Venta Almacén (VA): la salida ya se registró en kardex y batch al momento de la venta.
-    # Solo actualizar datos de la orden y detalles, sin volver a registrar kardex.
+    # Venta Almacén (VA): sus detalles se crean anticipadamente, pero la salida
+    # de stock y el kardex se registran aquí, igual que en las demás ventas.
     is_warehouse_sale = order_obj.sale_type == 'VA'
 
     for d in detail:
@@ -1316,13 +1310,14 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
             detail_obj.commentary = detail_obj.product.name + ' - ' + detail_obj.product.product_brand.name
             detail_obj.save()
 
-            if not is_warehouse_sale:
+            # Toda venta con almacén asociado (incluida VA) debe impactar stock/kardex.
+            if detail_obj.product_store_id:
                 quantity_minimum_unit = calculate_minimum_unit(detail_obj.quantity_sold, detail_obj.unit,
                                                                detail_obj.product)
                 product_store_obj = detail_obj.product_store
                 if _type_document == 'F':
                     type_document = '01'
-                elif _type_payment == 'B':
+                elif _type_document == 'B':
                     type_document = '03'
                 else:
                     type_document = '00'
@@ -1402,7 +1397,7 @@ def save_order_with_order_id(order_id, client_obj, _serial_text, user_obj, _sum_
 
             if _type_document == 'F':
                 type_document = '01'
-            elif _type_payment == 'B':
+            elif _type_document == 'B':
                 type_document = '03'
             else:
                 type_document = '00'
@@ -2042,7 +2037,7 @@ def get_dict_orders(client_obj=None, start_date=None, end_date=None):
                 new.get('order_detail_set').append(order_detail)
                 # new['rowspan'] = new['rowspan'] + rowspan
 
-                if d.unit.name == 'G' and o.distribution_mobil:
+                if d.unit.name == 'G' and o.sale_type == 'VR':
                     order_detail['has_spending'] = True
                 else:
                     order_detail['has_spending'] = False
@@ -2282,17 +2277,16 @@ def new_loan_payment(request):
                         cashflow_obj.save()
 
                         loan_payment_obj = LoanPayment(
-                            price=payment,
-                            quantity=quantity,
-                            product=detail_obj.product,
+                            pay=payment,
                             order_detail=detail_obj,
+                            order=detail_obj.order,
+                            type='V',
                             operation_date=_operation_date
                         )
                         loan_payment_obj.save()
 
                         transaction_payment_obj = TransactionPayment(
                             payment=payment,
-                            number_of_vouchers=number_of_vouchers,
                             type=transaction_payment_type,
                             operation_code=code_operation,
                             loan_payment=loan_payment_obj
@@ -2329,17 +2323,16 @@ def new_loan_payment(request):
                         cashflow_obj.save()
 
                         loan_payment_obj = LoanPayment(
-                            price=payment,
-                            quantity=quantity,
-                            product=detail_obj.product,
+                            pay=payment,
                             order_detail=detail_obj,
+                            order=detail_obj.order,
+                            type='V',
                             operation_date=_operation_date
                         )
                         loan_payment_obj.save()
 
                         transaction_payment_obj = TransactionPayment(
                             payment=payment,
-                            number_of_vouchers=number_of_vouchers,
                             type=transaction_payment_type,
                             operation_code=code_operation,
                             loan_payment=loan_payment_obj
@@ -2407,64 +2400,39 @@ def get_stock_product_store(request):
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
     subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj)
-    truck_set = Truck.objects.filter(subsidiary=subsidiary_obj, drive_type='R')
     product_set = Product.objects.all()
     # dic_stock = ['num':valor]
     dic_stock = {}
+    stock_totals = {
+        'iron_5': 0, 'iron_10': 0, 'iron_15': 0, 'iron_45': 0,
+        'balloon_5': 0, 'balloon_10': 0, 'balloon_15': 0, 'balloon_45': 0,
+    }
+    code_to_total = {
+        'F-5': 'iron_5', 'F5': 'iron_5',
+        'F-10': 'iron_10', 'F10': 'iron_10',
+        'F-15': 'iron_15', 'F15': 'iron_15',
+        'F-45': 'iron_45', 'F45': 'iron_45',
+        'B-5': 'balloon_5', 'B5': 'balloon_5',
+        'B-10': 'balloon_10', 'B10': 'balloon_10',
+        'B-15': 'balloon_15', 'B15': 'balloon_15',
+        'B-45': 'balloon_45', 'B45': 'balloon_45',
+    }
     for p in product_set.all():
         stock_ = ProductStore.objects.filter(product__id=p.id,
                                              subsidiary_store__subsidiary=subsidiary_obj).aggregate(
             Sum('stock'))
-        # row = {
-        #     p.id: stock_['stock__sum'],
-        # }s
-        dic_stock[p.id] = stock_['stock__sum']
+        stock_value = stock_['stock__sum'] or 0
+        dic_stock[p.id] = stock_value
+        product_code = (p.code or '').upper().replace(' ', '')
+        total_key = code_to_total.get(product_code)
+        if total_key:
+            stock_totals[total_key] += stock_value
         # dic_stock.append(row)
         # dic_stock[p.id] = {'id': p.id, 'name': p.name, 'stock': stock_['stock__sum']}
-    distribution_dictionary = []
-    tid = {"B5": 0, "B10": 0, "B15": 0, "B45": 0}
-    for t in truck_set.all():
-        truck_obj = Truck.objects.get(id=int(t.id))
-        distribution_list = DistributionMobil.objects.filter(status='F', truck=truck_obj,
-                                                             subsidiary=subsidiary_obj).aggregate(Max('id'))
-
-        if distribution_list['id__max'] is not None:
-            distribution_mobil_obj = DistributionMobil.objects.get(id=int(distribution_list['id__max']))
-            new = {
-                'id_m': distribution_mobil_obj.id,
-                'truck': distribution_mobil_obj.truck.license_plate,
-                'pilot': distribution_mobil_obj.pilot.full_name(),
-                'distribution': [],
-            }
-            details_list = DistributionDetail.objects.filter(status='C', distribution_mobil=distribution_mobil_obj)
-            if details_list.exists():
-                for dt_dist in details_list.all():
-                    details_mobil = {
-                        'id_d': dt_dist.id,
-                        'product': dt_dist.product.name,
-                        'unit': dt_dist.unit.description,
-                        'quantity': dt_dist.quantity,
-                    }
-                    new.get('distribution').append(details_mobil)
-                    if dt_dist.product.code == 'B-10' or dt_dist.product.code == 'F-10':
-                        tid['B10'] = tid['B10'] + dt_dist.quantity
-                    else:
-                        if dt_dist.product.code == 'B-5' or dt_dist.product.code == 'F-5':
-                            tid['B5'] = tid['B5'] + dt_dist.quantity
-                        else:
-                            if dt_dist.product.code == 'B-15' or dt_dist.product.code == 'F-15':
-                                tid['B15'] = tid['B15'] + dt_dist.quantity
-                            else:
-                                if dt_dist.product.code == 'B-45' or dt_dist.product.code == 'F-45':
-                                    tid['B45'] = tid['B45'] + dt_dist.quantity
-
-                distribution_dictionary.append(new)
 
     return render(request, 'sales/report_stock_product_subsidiary.html', {
         'subsidiary_store_set': subsidiary_store_obj,
-        'dictionary': distribution_dictionary,
-        'dic_stock': dic_stock,
-        'tid': tid,
+        'stock_totals': stock_totals,
     })
 
 
@@ -2529,7 +2497,6 @@ def save_loan_payment_in_cash_flow(
 
 def get_stock_product_store_all(request):
     dictionary_total = []
-    dictionary_loan_payment = []
     stock_v = 0
     stock_i = 0
     stock_m = 0
@@ -2572,11 +2539,11 @@ def get_stock_product_store_all(request):
             stock_o = _stock_o['stock__sum']
         total_order_detail = OrderDetail.objects.filter(product__id=p.id, status='V', unit_id=4).aggregate(
             Sum('quantity_sold'))
-        payment_p = LoanPayment.objects.filter(product__id=p.id, type='V').aggregate(Sum('quantity'))
-        if payment_p['quantity__sum'] is not None and total_order_detail['quantity_sold__sum'] is not None:
-            total_payment_b = payment_p['quantity__sum']
-            total_detail_b = total_order_detail['quantity_sold__sum']
-        new = {
+        total_detail_b = total_order_detail['quantity_sold__sum'] or 0
+        returned_detail = CreditNoteOrderDetail.objects.filter(product__id=p.id).aggregate(Sum('quantity'))
+        returned_quantity = returned_detail['quantity__sum'] or 0
+        total_b = max(decimal.Decimal(total_detail_b) - decimal.Decimal(returned_quantity), decimal.Decimal(0))
+        item = {
             'product_name': p.name,
             'quantity': _count,
             'stock_v': stock_v,
@@ -2585,64 +2552,35 @@ def get_stock_product_store_all(request):
             'stock_r': stock_r,
             'stock_g': stock_g,
             'stock_o': stock_o,
-            'total_b': total_detail_b - total_payment_b,
+            'total_b': total_b,
         }
-        dictionary_total.append(new)
+        dictionary_total.append(item)
 
-    user_id = request.user.id
-    user_obj = User.objects.get(id=user_id)
-    subsidiary_obj = get_subsidiary_by_user(user_obj)
-    truck_set = Truck.objects.filter(drive_type='R')
-    product_set = Product.objects.all()
-    dic_stock = {}
-    for p in product_set.all():
-        stock_ = ProductStore.objects.filter(product__id=p.id).aggregate(
-            Sum('stock'))
-        dic_stock[p.id] = stock_['stock__sum']
-    distribution_dictionary = []
-    tid = {"B5": 0, "B10": 0, "B15": 0, "B45": 0}
-    for t in truck_set.all():
-        truck_obj = Truck.objects.get(id=int(t.id))
-        distribution_list = DistributionMobil.objects.filter(status='F', truck=truck_obj).aggregate(Max('id'))
-
-        if distribution_list['id__max'] is not None:
-            distribution_mobil_obj = DistributionMobil.objects.get(id=int(distribution_list['id__max']))
-            new = {
-                'id_m': distribution_mobil_obj.id,
-                'truck': distribution_mobil_obj.truck.license_plate,
-                'pilot': distribution_mobil_obj.pilot.full_name(),
-                'distribution': [],
-            }
-            details_list = DistributionDetail.objects.filter(status='C', distribution_mobil=distribution_mobil_obj)
-            if details_list.exists():
-                for dt_dist in details_list.all():
-                    details_mobil = {
-                        'id_d': dt_dist.id,
-                        'product': dt_dist.product.name,
-                        'unit': dt_dist.unit.description,
-                        'quantity': dt_dist.quantity,
-                    }
-                    new.get('distribution').append(details_mobil)
-                    if dt_dist.product.code == 'B-10' or dt_dist.product.code == 'F-10':
-                        tid['B10'] = tid['B10'] + dt_dist.quantity
-                    else:
-                        if dt_dist.product.code == 'B-5' or dt_dist.product.code == 'F-5':
-                            tid['B5'] = tid['B5'] + dt_dist.quantity
-                        else:
-                            if dt_dist.product.code == 'B-15' or dt_dist.product.code == 'F-15':
-                                tid['B15'] = tid['B15'] + dt_dist.quantity
-                            else:
-                                if dt_dist.product.code == 'B-45' or dt_dist.product.code == 'F-45':
-                                    tid['B45'] = tid['B45'] + dt_dist.quantity
-
-                distribution_dictionary.append(new)
+    stock_totals = {
+        'iron_5': 0, 'iron_10': 0, 'iron_15': 0, 'iron_45': 0,
+        'balloon_5': 0, 'balloon_10': 0, 'balloon_15': 0, 'balloon_45': 0,
+    }
+    code_to_total = {
+        'F-5': 'iron_5', 'F5': 'iron_5',
+        'F-10': 'iron_10', 'F10': 'iron_10',
+        'F-15': 'iron_15', 'F15': 'iron_15',
+        'F-45': 'iron_45', 'F45': 'iron_45',
+        'B-5': 'balloon_5', 'B5': 'balloon_5',
+        'B-10': 'balloon_10', 'B10': 'balloon_10',
+        'B-15': 'balloon_15', 'B15': 'balloon_15',
+        'B-45': 'balloon_45', 'B45': 'balloon_45',
+    }
+    for product in Product.objects.all():
+        stock_ = ProductStore.objects.filter(product__id=product.id).aggregate(Sum('stock'))
+        stock_value = stock_['stock__sum'] or 0
+        product_code = (product.code or '').upper().replace(' ', '')
+        total_key = code_to_total.get(product_code)
+        if total_key:
+            stock_totals[total_key] += stock_value
 
     return render(request, 'sales/report_stock_product_all.html', {
-        'dictionary': distribution_dictionary,
-        'dictionary_loan_payment': dictionary_loan_payment,
         'dictionary_total': dictionary_total,
-        'dic_stock': dic_stock,
-        'tid': tid,
+        'stock_totals': stock_totals,
     })
 
 
@@ -2685,7 +2623,7 @@ def get_report_sales_subsidiary(request):
             for s in subsidiary_set:
                 t = Order.objects.filter(
                     subsidiary_id=s.id,
-                    create_at__date__range=(date_initial, date_final), type__in=['V', 'R']
+                    create_at__date__range=(date_initial, date_final), order_type='V'
                 ).aggregate(r=Coalesce(Sum('total'), 0))
                 sales_dict = {
                     v1: s.name,
@@ -2711,7 +2649,7 @@ def get_report_sales_subsidiary(request):
                 subsidiary_sales = []
                 order_set = Order.objects.filter(
                     subsidiary_id=s.id,
-                    create_at__range=(date_initial, date_final), type__in=['V', 'R']
+                    create_at__date__range=(date_initial, date_final), order_type='V'
                 ).values('create_at').annotate(totales=Sum('total'))
                 for vt in order_set:
                     sales_t = {
@@ -2837,7 +2775,7 @@ def get_report_sales_subsidiary(request):
                 distribution_mobil_set = LoanPayment.objects.filter(
                     operation_date__range=[date_initial, date_final],
                     order_detail__order__subsidiary_id=s.id
-                ).aggregate(r=Coalesce(Sum('quantity'), 0))
+                ).aggregate(r=Coalesce(Sum('pay'), 0))
                 recovered_dict = {
                     'label': s.name,
                     'y': float(distribution_mobil_set['r'])
@@ -2846,8 +2784,9 @@ def get_report_sales_subsidiary(request):
 
                 # borrowed
                 order_detail_set = OrderDetail.objects.filter(
-                    order__distribution_mobil__date_distribution__range=[date_initial, date_final],
+                    order__create_at__date__range=[date_initial, date_final],
                     order__subsidiary_id=s.id,
+                    order__order_type='V',
                     unit__name='B'
                 ).aggregate(r=Coalesce(Sum('quantity_sold'), 0))
                 borrowed_dict = {
@@ -2894,7 +2833,7 @@ def get_report_sales_subsidiary(request):
             # VENTAS POR DISTRITO
             district_ = ''
             for d in Order.objects.filter(create_at__date__range=(date_initial, date_final),
-                                          type__in=['V', 'R']).values(
+                                          order_type='V').values(
                 'client__clientaddress__district__description').annotate(totales=Sum(F('total'))):
                 if d['client__clientaddress__district__description'] is None:
                     district_ = 'OTROS'
@@ -2938,8 +2877,8 @@ def get_report_sales_subsidiary(request):
 
 def get_order_sales(pk, date_initial, date_final):
     order_set = Order.objects.filter(subsidiary_id=pk,
-                                     create_at__range=(
-                                         date_initial, date_final), type__in=['V', 'R']).values('create_at').annotate(
+                                     create_at__date__range=(
+                                         date_initial, date_final), order_type='V').values('create_at').annotate(
         totales=Sum('total'))
     return order_set
 
@@ -2954,8 +2893,8 @@ def get_cash_payment(pk, date_initial, date_final):
 
 def get_order_sales_total(pk, date_initial, date_final):
     totales = Order.objects.filter(subsidiary_id=pk,
-                                   create_at__range=(
-                                       date_initial, date_final), type__in=['V', 'R']).aggregate(Sum('total'))
+                                   create_at__date__range=(
+                                       date_initial, date_final), order_type='V').aggregate(Sum('total'))
     return totales['total__sum']
 
 
@@ -2987,7 +2926,7 @@ def report_payments_by_client(request):
         client_dict = []
 
         client_set = Client.objects.filter(
-            order__isnull=False, order__subsidiary=subsidiary_obj, order__type__in=['V', 'R']
+            order__isnull=False, order__subsidiary=subsidiary_obj, order__order_type='V'
         ).distinct('id').values('id', 'names')
 
         # loan_payments_group_set = LoanPayment.objects.filter(
@@ -3000,7 +2939,7 @@ def report_payments_by_client(request):
 
             loan_payments_group = LoanPayment.objects.filter(
                 operation_date__range=[start_date, end_date],
-                order_detail__order__client__id=c['id']).values('operation_date').annotate(sum=Sum('price'))
+                order_detail__order__client__id=c['id']).values('operation_date').annotate(sum=Sum('pay'))
             loan_payment_group = []
 
             order_dict = {}
@@ -3010,7 +2949,7 @@ def report_payments_by_client(request):
                 loan_payments_set = LoanPayment.objects.filter(
                     operation_date=lpg['operation_date'],
                     order_detail__order__client__id=c['id']).values(
-                    'operation_date', 'id', 'order_detail__order__id', 'order_detail__id', 'price', 'is_check'
+                    'operation_date', 'id', 'order_detail__order__id', 'order_detail__id', 'pay'
                 )
                 has_check = False
                 rows = 0
@@ -3019,9 +2958,6 @@ def report_payments_by_client(request):
                 loan_payment_dict = []
 
                 for lp in loan_payments_set:
-
-                    if lp['is_check']:
-                        has_check = True
 
                     lps.append(lp['id'])
 
@@ -3033,7 +2969,7 @@ def report_payments_by_client(request):
 
                     order_obj = Order.objects.filter(
                         pk=lp['order_detail__order__id']
-                    ).values('id', 'truck__license_plate', 'create_at').first()
+                    ).values('id', 'subsidiary__name', 'create_at').first()
 
                     total_order = get_total_order(order_obj['id'])
 
@@ -3045,11 +2981,11 @@ def report_payments_by_client(request):
                         _occurrences = _order.get('occurrences')
                         _accumulated = _order.get('accumulated')
                         order_dict[_search_value]['occurrences'] = _occurrences + 1
-                        order_dict[_search_value]['accumulated'] = _accumulated + lp['price']
-                        price_accumulated = _accumulated + lp['price']
+                        order_dict[_search_value]['accumulated'] = _accumulated + lp['pay']
+                        price_accumulated = _accumulated + lp['pay']
                     else:
-                        order_dict[_search_value] = {'occurrences': 0, 'accumulated': lp['price'], }
-                        price_accumulated = lp['price']
+                        order_dict[_search_value] = {'occurrences': 0, 'accumulated': lp['pay'], }
+                        price_accumulated = lp['pay']
 
                     order_detail_set = OrderDetail.objects.filter(
                         order__id=lp['order_detail__order__id']
@@ -3076,7 +3012,7 @@ def report_payments_by_client(request):
 
                     item_loan = {
                         'id': lp['id'],
-                        'price': lp['price'],
+                        'price': lp['pay'],
                         'transaction': transaction_payments_set,
                         'transaction_count': transaction_count,
                         'sum_subtotal': sum_subtotal,
@@ -3152,11 +3088,8 @@ def check_loan_payment(request):
         lps = str(request.GET.get('lps', '')).replace('[', '').replace(']', '')
         operation = bool(request.GET.get('operation', ''))
         array_lps = lps.split(", ")
-        map_object = map(int, array_lps)
-        list_of_integers = list(map_object)
-
-        LoanPayment.objects.filter(id__in=list_of_integers).update(is_check=operation)
-
+        # El campo `is_check` fue retirado del modelo LoanPayment; el endpoint
+        # se conserva por compatibilidad con el front-end legacy.
         return JsonResponse({
             'message': 'ok',
         })
@@ -3169,7 +3102,7 @@ def sum_quantity_by_order_detail(month=None, product_id=None):
         order__subsidiary__id__in=subsidiaries,
         order__create_at__month=month,
         order__create_at__year=my_date.year,
-        order__type__in=['R', 'V'],
+        order__order_type='V',
         product__id=product_id
     ).filter(~Q(unit__name='B')).annotate(
         sum=Sum('quantity_sold')
@@ -3260,35 +3193,6 @@ def purchase_report_by_category(request):
         return JsonResponse({
             'grid': tpl.render(context, request),
         }, status=HTTPStatus.OK)
-
-
-def test(request):
-    if request.method == 'GET':
-        client_id = 'T'
-        start_date = '2021-05-01'
-        end_date = '2021-08-02'
-
-        purchase_set = Purchase.objects.filter(
-            subsidiary=1, purchase_date__range=[start_date, end_date],
-        ).prefetch_related(
-            Prefetch(
-                'purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')
-            )
-        ).select_related('supplier', 'truck').annotate(
-            sum_total=Subquery(
-                PurchaseDetail.objects.filter(purchase_id=OuterRef('id')).annotate(
-                    return_sum_total=Sum(F('quantity') * F('price_unit'))).values('return_sum_total')[:1]
-            )
-        )
-
-        tpl = loader.get_template('buys/report_purchases_all_grid.html')
-        context = ({
-            'purchase_set': purchase_set
-        })
-
-        return render(request, 'sales/test.html', {
-            'grid': tpl.render(context, request),
-        })
 
 
 def quotation_list(request):
@@ -3933,21 +3837,13 @@ def get_sales_quotation_by_subsidiary(request):
                 orders = orders.filter(create_at__date=start_date)
             else:
                 orders = orders.filter(create_at__date__range=[start_date, end_date])
-            if orders:
-                return JsonResponse({
-                    'grid': get_dict_order_quotation(orders),
-                }, status=HTTPStatus.OK)
-            else:
-                data = {'error': "No hay operaciones registradas"}
-                response = JsonResponse(data)
-                response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-                return response
+            # Un rango sin cotizaciones no es un error: se devuelve la grilla vacía.
+            return JsonResponse({
+                'grid': get_dict_order_quotation(orders),
+            }, status=HTTPStatus.OK)
 
-        else:
-            data = {'error': "No hay sucursal"}
-            response = JsonResponse(data)
-            response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-            return response
+        return JsonResponse({'grid': '', 'message': 'No hay sucursal asignada al usuario.'},
+                            status=HTTPStatus.OK)
 
 
 def get_dict_order_quotation(order_set):
@@ -4475,6 +4371,9 @@ def get_name_business(request):
     if request.method == 'GET':
         nro_document = request.GET.get('nro_document', '')
         type_document = request.GET.get('type', '')
+        if not nro_document or type_document not in ('00', '01', '06'):
+            return JsonResponse({'message': 'Parámetros de búsqueda inválidos.'},
+                                status=HTTPStatus.BAD_REQUEST)
         result = ''
         address = ''
         client_obj_search = Client.objects.filter(clienttype__document_number=nro_document)
@@ -4579,6 +4478,9 @@ def get_name_business(request):
                     )
                     client_address_obj.save()
 
+        if client_obj is None:
+            return JsonResponse({'message': 'No se pudo obtener los datos del cliente.'},
+                                status=HTTPStatus.BAD_REQUEST)
         return JsonResponse({'client_id': client_obj.id, 'result': result, 'address': address},
                             status=HTTPStatus.OK)
     return JsonResponse({'message': 'Error de peticion.'}, status=HTTPStatus.BAD_REQUEST)
@@ -4599,7 +4501,7 @@ def get_purchases_bills(request):
                 'order_number': b.order_number,
                 'serial': b.serial,
                 'correlative': b.correlative,
-                'supplier_name': b.supplier.name,
+                'supplier_name': b.supplier.name if b.supplier else 'Sin proveedor',
                 'delivery_address': b.delivery_address,
                 'bill_base_total': b.bill_base_total,
                 'bill_igv_total': b.bill_igv_total,
@@ -4612,9 +4514,9 @@ def get_purchases_bills(request):
             for d in b.billdetail_set.filter(status_quantity='C'):
                 item_detail = {
                     'id': d.id,
-                    'product': d.product.name,
+                    'product': d.product.name if d.product else 'Producto no definido',
                     'quantity': str(round(d.quantity, 2)),
-                    'unit': d.unit.description,
+                    'unit': d.unit.description if d.unit else '-',
                     'price_unit': str(round(d.price_unit, 4))
                 }
                 item_bill.get('bill_detail').append(item_detail)
@@ -5345,7 +5247,7 @@ def get_bills_in_warehouse(request):
                 'order_number': b.order_number,
                 'serial': b.serial,
                 'correlative': b.correlative,
-                'supplier_name': b.supplier.name,
+                'supplier_name': b.supplier.name if b.supplier else 'Sin proveedor',
                 'delivery_address': b.delivery_address,
                 'bill_base_total': b.bill_base_total,
                 'bill_igv_total': b.bill_igv_total,
@@ -6739,7 +6641,7 @@ def get_order_by_correlative(request):
         user_id = request.user.id
         user_obj = User.objects.get(id=user_id)
         subsidiary_obj = get_subsidiary_by_user(user_obj)
-        order_set = Order.objects.filter(subsidiary_store__subsidiary=subsidiary_obj, correlative=int(correlative),
+        order_set = Order.objects.filter(subsidiary=subsidiary_obj, correlative=int(correlative),
                                          order_type='T')
         if order_set.exists():
             order_obj = order_set.last()
@@ -6939,28 +6841,6 @@ def price_type_delete(request):
             }, status=HTTPStatus.BAD_REQUEST)
 
     return JsonResponse({'message': 'Error de petición.'}, status=HTTPStatus.BAD_REQUEST)
-
-
-class ProductPriceList(View):
-    model = ProductPrice
-    form_class = FormProductPrice
-    template_name = 'sales/product_price_list.html'
-
-    def get_queryset(self):
-        return self.model.objects.select_related('price_type', 'product_detail__product',
-                                                 'product_detail__unit').all().order_by('price_type__type',
-                                                                                        'product_detail__product__name')
-
-    def get_context_data(self, **kwargs):
-        contexto = {}
-        contexto['product_prices'] = self.get_queryset()
-        contexto['form'] = self.form_class
-        contexto['price_types'] = PriceType.objects.filter(is_enabled=True)
-        contexto['product_details'] = ProductDetail.objects.filter(is_enabled=True).select_related('product', 'unit')
-        return contexto
-
-    def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context_data())
 
 
 def product_price_save(request):
