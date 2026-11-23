@@ -10,7 +10,7 @@ from http import HTTPStatus
 
 from django.contrib.auth.models import User
 from django.core import serializers
-from django.db.models import Q, Sum, F, Prefetch, Subquery, OuterRef, Max
+from django.db.models import Q, Sum, F, Prefetch, Subquery, OuterRef, Max, Count
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.template import loader
@@ -655,66 +655,52 @@ def report_purchases_all(request):
     user_id = request.user.id
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
-    truck_set = Truck.objects.all().order_by('license_plate')
-    truck_set2 = Purchase.objects.filter(subsidiary=subsidiary_obj)
     if request.method == 'GET':
         mydate = datetime.now()
         formatdate = mydate.strftime("%Y-%m-%d")
+        start_date = mydate.replace(day=1).strftime("%Y-%m-%d")
 
         return render(request, 'buys/report_purchases_all.html', {
             'formatdate': formatdate,
-            'truck_set': truck_set,
-            'truck_set2': truck_set2,
+            'start_date': start_date,
         })
 
     elif request.method == 'POST':
         start_date = str(request.POST.get('start-date'))
         end_date = str(request.POST.get('end-date'))
         type_document = str(request.POST.get('type-document'))
-        purchase_set = ''
-        subsidiaries = [1, 2, 3, 4, 6]
 
+        # El campo type_bill fue reemplazado por bill_status. "FACTURAS"
+        # equivale a compras con factura (bill_status='C').
+        purchase_set = Purchase.objects.filter(
+            purchase_date__range=[start_date, end_date],
+            status__in=['S', 'A'],
+        )
+        if subsidiary_obj is not None:
+            purchase_set = purchase_set.filter(subsidiary=subsidiary_obj)
         if type_document == 'F':
-            purchase_set = Purchase.objects.filter(
-                subsidiary__id__in=subsidiaries, purchase_date__range=[start_date, end_date],
-                status__in=['S', 'A'], type_bill='F'
-            ).select_related('subsidiary').prefetch_related(
-                Prefetch(
-                    'purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')
-                )
-            ).select_related('supplier', 'truck').annotate(
-                sum_total=Subquery(
-                    PurchaseDetail.objects.filter(purchase_id=OuterRef('id')).annotate(
-                        return_sum_total=Sum(F('quantity') * F('price_unit'))).values('return_sum_total')[:1]
-                )
-            ).order_by('purchase_date')
+            purchase_set = purchase_set.filter(bill_status='C')
 
-        elif type_document == 'T':
-            purchase_set = Purchase.objects.filter(
-                subsidiary__id__in=subsidiaries, purchase_date__range=[start_date, end_date],
-                status__in=['S', 'A']
-            ).select_related('subsidiary').prefetch_related(
-                Prefetch(
-                    'purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')
-                )
-            ).select_related('supplier', 'truck').annotate(
-                sum_total=Subquery(
-                    PurchaseDetail.objects.filter(purchase_id=OuterRef('id')).annotate(
-                        return_sum_total=Sum(F('quantity') * F('price_unit'))).values('return_sum_total')[:1]
-                )
-            ).order_by('purchase_date')
+        purchase_set = purchase_set.select_related('subsidiary', 'supplier').prefetch_related(
+            Prefetch(
+                'purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')
+            )
+        ).annotate(
+            sum_total=Subquery(
+                PurchaseDetail.objects.filter(purchase_id=OuterRef('id')).annotate(
+                    return_sum_total=Sum(F('quantity') * F('price_unit'))).values('return_sum_total')[:1]
+            )
+        ).order_by('purchase_date', 'id')
 
         context = get_all_purchases(purchase_set=purchase_set)
 
         purchase_dict = context.get('purchase_set')
         sum_all_total = context.get('sum_all_total')
         base_amount = context.get('base_amount')
-        truck_dict = context.get('truck_dict')
         igv = context.get('igv')
 
         tpl = loader.get_template('buys/report_purchases_all_grid.html')
         context = ({
-            'truck_dict': truck_dict,
             'purchase_set': purchase_dict,
             'sum_all_total': sum_all_total,
             'base_amount': base_amount,
@@ -728,48 +714,49 @@ def report_purchases_all(request):
 def get_all_purchases(purchase_set):
     sum_all_total = 0
     purchase_dict = []
-    truck_dict = {}
 
     for p in purchase_set.all():
 
-        license_plate = ''
-        if p.truck is not None:
-            license_plate = p.truck.license_plate
-            truck_dict[p.truck.id] = license_plate
+        total = float(p.sum_total or 0)
+        base_amount = total / float(1.18)
+        igv = total - base_amount
 
-        base_amount = float(p.sum_total) / float(1.18)
-        igv = float(p.sum_total) - float(base_amount)
-        item_purchase = {
-            'id': p.id,
-            'supplier': p.supplier.name,
-            'purchase_date': p.purchase_date,
-            'type_bill': p.get_type_bill_display(),
-            'bill_number': p.bill_number,
-            'status': p.get_status_display(),
-            'truck': license_plate,
-            'purchase_detail_set': [],
-            'purchase_detail_count': p.purchasedetail_set.count(),
-            'base_amount': round(float(base_amount), 2),
-            'igv': round(float(igv), 2),
-            'sum_total': round(float(p.sum_total), 2),
-            'subtotal': 0,
-            'subsidiary': p.subsidiary.name
-        }
-        sum_all_total += p.sum_total
+        product_details = []
         subtotal = 0
         for pd in p.purchasedetail_set.all():
-            item_purchases_detail = {
-                'id': pd.product.name,
-                'product': pd.product.name,
-                'quantity': str(pd.quantity),
-                'unit': pd.unit.name,
-                'price_unit': round(float(pd.price_unit), 2),
-            }
-            subtotal += pd.quantity * pd.price_unit
+            price_unit = float(pd.price_unit or 0)
+            quantity = float(pd.quantity or 0)
+            product_details.append({
+                'id': pd.product.name if pd.product else '-',
+                'product': pd.product.name if pd.product else '-',
+                'quantity': str(quantity),
+                'unit': pd.unit.name if pd.unit else '-',
+                'price_unit': round(price_unit, 2),
+            })
+            subtotal += quantity * price_unit
 
-            item_purchase.get('purchase_detail_set').append(item_purchases_detail)
-        item_purchase['subtotal'] = round(float(subtotal), 2)
+        # Una compra sin detalle debe ocupar una fila válida en la tabla.
+        if not product_details:
+            product_details.append({
+                'id': '-', 'product': '-', 'quantity': '-', 'unit': '-', 'price_unit': '-',
+            })
 
+        item_purchase = {
+            'id': p.id,
+            'supplier': p.supplier.name if p.supplier else '-',
+            'purchase_date': p.purchase_date,
+            'bill_status': p.get_bill_status_display(),
+            'bill_number': p.bill_number or '-',
+            'status': p.get_status_display(),
+            'purchase_detail_set': product_details,
+            'purchase_detail_count': len(product_details),
+            'base_amount': round(base_amount, 2),
+            'igv': round(igv, 2),
+            'sum_total': round(total, 2),
+            'subtotal': round(subtotal, 2),
+            'subsidiary': p.subsidiary.name if p.subsidiary else '-',
+        }
+        sum_all_total += total
         purchase_dict.append(item_purchase)
 
     base_amount = float(sum_all_total) / 1.18
@@ -777,10 +764,9 @@ def get_all_purchases(purchase_set):
 
     context = ({
         'purchase_set': purchase_dict,
-        'truck_dict': truck_dict,
-        'sum_all_total': '{:,}'.format(round(float(sum_all_total), 2)),
-        'base_amount': '{:,}'.format(round(float(base_amount), 2)),
-        'igv': '{:,}'.format(round(float(igv), 2)),
+        'sum_all_total': '{:,.2f}'.format(sum_all_total),
+        'base_amount': '{:,.2f}'.format(base_amount),
+        'igv': '{:,.2f}'.format(igv),
     })
 
     return context
@@ -794,69 +780,77 @@ def report_purchases_by_supplier(request):
     if request.method == 'GET':
         mydate = datetime.now()
         formatdate = mydate.strftime("%Y-%m-%d")
+        start_date = mydate.replace(day=1).strftime("%Y-%m-%d")
 
         return render(request, 'buys/report_purchases_by_supplier.html', {
             'formatdate': formatdate,
+            'start_date': start_date,
         })
     elif request.method == 'POST':
         start_date = str(request.POST.get('start-date'))
         end_date = str(request.POST.get('end-date'))
-        purchase_dict = []
-        sum_total = 0
 
-        purchase_detail_set = PurchaseDetail.objects.filter(
-            purchase__status='A', purchase__purchase_date__range=[start_date, end_date]).values(
+        def format_period_date(value):
+            try:
+                return datetime.strptime(value, '%Y-%m-%d').strftime('%d/%m/%Y')
+            except (TypeError, ValueError):
+                return value or '-'
+
+        purchase_set = PurchaseDetail.objects.filter(
+            purchase__status='A',
+            purchase__purchase_date__range=[start_date, end_date],
+            purchase__supplier__isnull=False,
+        )
+        if subsidiary_obj is not None:
+            purchase_set = purchase_set.filter(purchase__subsidiary=subsidiary_obj)
+
+        sector_labels = dict(Supplier._meta.get_field('sector').choices)
+        purchase_detail_set = purchase_set.values(
+            'purchase__supplier__id',
             'purchase__supplier__name',
             'purchase__supplier__business_name',
             'purchase__supplier__sector',
-            'purchase__supplier__id').exclude(purchase__supplier__id__in=[1, 363, 364, 369]).annotate(
-            total=Sum(F('price_unit') * F('quantity'))).order_by('-total')
+        ).annotate(
+            total=Sum(F('price_unit') * F('quantity')),
+            purchase_count=Count('purchase__id', distinct=True),
+            last_purchase=Max('purchase__purchase_date'),
+        ).order_by('-total')
 
+        raw_rows = []
+        sum_total = decimal.Decimal('0')
+        purchase_count = 0
         for p in purchase_detail_set:
-            supplier_id = p['purchase__supplier__id']
-            supplier_name = p['purchase__supplier__name']
-            business_name = p['purchase__supplier__business_name']
-
-            sector_dict = {
-                'N': 'NO ESPECIFICA',
-                'L': 'NO LLANTAS',
-                'P': 'PINTURA',
-                'PR': 'PRECINTO',
-                'R': 'REPUESTO',
-                'C': 'COMBUSTIBLE',
-                'G': 'GLP',
-                'S': 'SEGUROS',
-                'SU': 'SUNAT',
-                'LU': 'LUBRICANTES',
-                'LA': 'LAVADO',
-                'M': 'MANTENIMIENTO',
-                'PE': 'PEAJES',
-                'O': 'OTROS',
-            }
-
-            # x = np.where(ar-r == 4)
-
-            # print(x)
-            # print(sector_dict)
-            # print(sector_dict['N'])
-
-            category_name = sector_dict[p['purchase__supplier__sector']]
-            total = round(decimal.Decimal(p['total']), 2)
-            item_purchase = {
-                'supplier_id': supplier_id,
+            total = round(decimal.Decimal(p['total'] or 0), 2)
+            supplier_name = p['purchase__supplier__name'] or p['purchase__supplier__business_name'] or '-'
+            business_name = p['purchase__supplier__business_name'] or supplier_name
+            sector = p['purchase__supplier__sector']
+            last_purchase = p['last_purchase']
+            raw_rows.append({
+                'supplier_id': p['purchase__supplier__id'],
                 'supplier_name': supplier_name,
                 'business_name': business_name,
-                'category_name': category_name,
-                'total': '{:,}'.format(total)
-            }
-            purchase_dict.append(item_purchase)
-
+                'category_name': sector_labels.get(sector, sector or 'NO ESPECIFICA'),
+                'purchase_count': p['purchase_count'] or 0,
+                'last_purchase': last_purchase.strftime('%d/%m/%Y') if last_purchase else '-',
+                'total_value': total,
+            })
             sum_total += total
+            purchase_count += p['purchase_count'] or 0
+
+        for row in raw_rows:
+            share = (row['total_value'] / sum_total * 100) if sum_total else decimal.Decimal('0')
+            row['total'] = '{:,}'.format(row['total_value'])
+            row['share'] = '{:.1f}%'.format(float(share))
 
         tpl = loader.get_template('buys/report_purchases_by_supplier_grid.html')
         context = ({
-            'purchase_dict': purchase_dict,
-            'sum_total': '{:,}'.format(round(decimal.Decimal(sum_total), 2)),
+            'purchase_dict': raw_rows,
+            'sum_total': '{:,}'.format(round(sum_total, 2)),
+            'supplier_count': len(raw_rows),
+            'purchase_count': purchase_count,
+            'start_date': format_period_date(start_date),
+            'end_date': format_period_date(end_date),
+            'subsidiary_name': subsidiary_obj.name if subsidiary_obj else 'TODAS LAS SUCURSALES',
         })
         return JsonResponse({
             'grid': tpl.render(context, request),
@@ -1329,9 +1323,11 @@ def report_purchases_by_subsidiary(request):
         user_obj = User.objects.get(id=user_id)
         my_date = datetime.now()
         formatdate = my_date.strftime("%Y-%m-%d")
+        start_date = my_date.replace(day=1).strftime("%Y-%m-%d")
 
         return render(request, 'buys/report_purchases_by_subsidiary.html', {
             'formatdate': formatdate,
+            'start_date': start_date,
         })
 
     elif request.method == 'POST':
@@ -1388,6 +1384,7 @@ def report_purchases_by_subsidiary(request):
         tpl = loader.get_template('buys/report_purchases_by_subsidiary_grid.html')
         context = ({
             'purchase_dict': purchase_dict,
+            'has_purchases': any(item['purchases'] for item in purchase_dict),
         })
         return JsonResponse({
             'grid': tpl.render(context, request),

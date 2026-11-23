@@ -1,74 +1,66 @@
 {% extends 'home.html' %}
 
-{% block title %}
-    Anderquin ERP | Estado de cuentas
-{% endblock title %}
+{% block title %}Reporte de compras por sucursal | Anderquin ERP{% endblock title %}
 
 {% block body %}
-    <div class="container-fluid">
-        <div class="card-header text-left mt-2 mb-1 p-1 bg-light">
-            <div class="form-inline mt-1 mb-1 p-0">
-                <table>
-                    <tr>
-                        <form class="form-inline" id="search-form" method="POST">
-                            {% csrf_token %}
-                            <td class="pl-2 pr-2 text-dark">Fecha inicial</td>
-                            <td class="pl-2 pr-2">
-                                <input type="date"
-                                       class="form-control"
-                                       id="id_date_initial"
-                                       name="id_date_initial"
-                                       value="{{ formatdate }}" required>
-                            </td>
-                            <td class="pl-2 pr-2 text-dark">Fecha final</td>
-                            <td class="pl-2 pr-2">
-                                <input type="date"
-                                       class="form-control"
-                                       id="id_date_final" name="id_date_final"
-                                       value="{{ formatdate }}" required>
-                            </td>
-                            <td class="pl-2 pr-2">
-                                <button type="submit" id="search-form"
-                                        class="btn btn-primary btn-block"><i class="fas fa-search-dollar"></i> MOSTRAR
-                                </button>
-                            </td>
-                        </form>
-                    </tr>
-                </table>
-            </div>
-        </div>
-        <div class="table-responsive" id="tbl-purchases">
 
+    <div class="erp-page-head roboto-condensed-regular">
+        <div>
+            <h1 class="erp-page-title"><i class="fas fa-building mr-2"></i>Reporte de compras por sucursal</h1>
+            <p class="erp-page-subtitle">Detalle de órdenes de compra y productos entregados por sede.</p>
         </div>
     </div>
 
+    <div class="container-fluid pt-2">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-filter mr-2"></i>Parámetros del reporte
+            </div>
+            <div class="card-body">
+                <form class="form-inline" id="search-form" method="POST">
+                    {% csrf_token %}
+                    <label class="my-1 mr-2" for="id_date_initial">Fecha inicial</label>
+                    <input type="date" class="form-control my-1 mr-sm-2 btn-sales-rounded"
+                           id="id_date_initial"
+                           name="id_date_initial"
+                           value="{{ start_date }}"
+                           required>
+
+                    <label class="my-1 ml-2 mr-2" for="id_date_final">Fecha final</label>
+                    <input type="date" class="form-control my-1 mr-sm-2 btn-sales-rounded"
+                           id="id_date_final"
+                           name="id_date_final"
+                           value="{{ formatdate }}"
+                           required>
+
+                    <button type="submit" class="btn btn-blue my-1 ml-2 btn-sales-rounded" id="btn-search">
+                        <i class="fas fa-search-dollar mr-1"></i> Generar reporte
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body" id="tbl-purchases">
+                <div class="erp-report-empty">
+                    <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                    <p>Selecciona un periodo y genera el reporte para ver el detalle por sucursal.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock body %}
 
 {% block extrajs %}
+
     <script type="text/javascript">
-
-        loader = '<div class="container">' +
-            '<div class="row">' +
-            '<div class="col-md-12">' +
-            '<div class="loader">' +
-            '<p>Cargando...</p>' +
-            '<div class="loader-inner"></div>' +
-            '<div class="loader-inner"></div>' +
-            '<div class="loader-inner"></div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
-
 
         $('#search-form').submit(function (event) {
             event.preventDefault();
             let data = new FormData($('#search-form').get(0));
 
             $('#btn-search').attr("disabled", "true");
-            $('#tbl-purchases').empty();
-            $('#tbl-purchases').html(loader);
 
             $.ajax({
                 url: '/buys/report_purchases_by_subsidiary/',
@@ -79,20 +71,18 @@
                 contentType: false,
                 success: function (response, textStatus, xhr) {
                     if (xhr.status === 200) {
-                        toastr.success(response['message'], '¡Bien hecho!');
                         $('#tbl-purchases').html(response.grid);
                     }
                 },
                 error: function (jqXhr, textStatus, xhr) {
-                    if (jqXhr.status === 500) {
-                        toastr.error(jqXhr.responseJSON.error, '¡Error!');
-                    }
+                    toastr.error('No se pudo generar el reporte.', 'Error');
+                },
+                complete: function () {
+                    $('#btn-search').removeAttr("disabled");
                 }
             });
-            $('#btn-search').removeAttr("disabled", "false");
-
         });
 
-
     </script>
+
 {% endblock extrajs %}

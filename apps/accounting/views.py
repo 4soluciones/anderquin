@@ -2081,7 +2081,7 @@ def report_tributary(request):
                     else:
                         purchase_set = Purchase.objects.filter(
                             subsidiary__id__in=subsidiaries, purchase_date__month=i, purchase_date__year=year,
-                            status__in=['S', 'A'], type_bill='F'
+                            status__in=['S', 'A'], bill_status='C'
                         ).select_related('subsidiary').prefetch_related(
                             Prefetch(
                                 'purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')
@@ -2148,7 +2148,7 @@ def report_tributary(request):
                 else:
                     purchase_set = Purchase.objects.filter(
                         subsidiary__id__in=subsidiaries, purchase_date__month=i, purchase_date__year=year,
-                        status__in=['S', 'A'], type_bill='F'
+                        status__in=['S', 'A'], bill_status='C'
                     ).select_related('subsidiary').prefetch_related(
                         Prefetch(
                             'purchasedetail_set', queryset=PurchaseDetail.objects.select_related('unit', 'product')

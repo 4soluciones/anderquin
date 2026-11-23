@@ -1,54 +1,63 @@
 {% extends 'home.html' %}
 
-{% block title %}
-    Anderquin ERP | Reporte de Compras por Proveedor
-{% endblock title %}
+{% block title %}Reporte de compras por proveedor | Anderquin ERP{% endblock title %}
 
 {% block body %}
 
-    <div class="container-fluid pt-3">
-        <div class="card">
-
-            <div class="card-header">
-                <label class="col-form-label col-form-label-lg">Reporte de Compras por Proveedor</label>
-            </div>
-
-            <div class="card-body">
-
-                <form class="form-inline" id="search-form" method="POST">
-                    {% csrf_token %}
-                    <label class="my-1 mr-2" for="id-start-date">Fecha Inicial</label>
-                    <input type="date" class="form-control my-1 mr-sm-2"
-                           id="id-start-date"
-                           name="start-date"
-                           value="{{ formatdate }}">
-
-                    <label class="my-1 mr-2" for="id-end-date">Fecha final</label>
-                    <input type="date" class="form-control my-1 mr-sm-2"
-                           id="id-end-date"
-                           name="end-date"
-                           value="{{ formatdate }}">
-                    <button type="submit" class="btn btn-blue my-1 ml-2" id="btn-search">
-                        <i class="fas fa-search-dollar"></i> Buscar
-                    </button>
-
-                </form>
-
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-body table-responsive" id="tbl-purchases"></div>
+    <div class="erp-page-head roboto-condensed-regular">
+        <div>
+            <h1 class="erp-page-title"><i class="fas fa-handshake mr-2"></i>Reporte de compras por proveedor</h1>
+            <p class="erp-page-subtitle">Ranking de proveedores por importe comprado, número de compras y participación.</p>
         </div>
     </div>
 
+    <div class="container-fluid pt-2">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-filter mr-2"></i>Parámetros del reporte
+            </div>
+            <div class="card-body">
+                <form class="form-inline" id="search-form" method="POST">
+                    {% csrf_token %}
+                    <label class="my-1 mr-2" for="id-start-date">Fecha inicial</label>
+                    <input type="date" class="form-control my-1 mr-sm-2 btn-sales-rounded"
+                           id="id-start-date"
+                           name="start-date"
+                           value="{{ start_date }}"
+                           required>
+
+                    <label class="my-1 ml-2 mr-2" for="id-end-date">Fecha final</label>
+                    <input type="date" class="form-control my-1 mr-sm-2 btn-sales-rounded"
+                           id="id-end-date"
+                           name="end-date"
+                           value="{{ formatdate }}"
+                           required>
+
+                    <button type="submit" class="btn btn-blue my-1 ml-2 btn-sales-rounded" id="btn-search">
+                        <i class="fas fa-search-dollar mr-1"></i> Generar reporte
+                    </button>
+                    <button type="button" class="btn btn-success my-1 ml-2 btn-sales-rounded" id="printReportExcel">
+                        <i class="far fa-file-excel mr-1"></i> Exportar a Excel
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body" id="tbl-purchases">
+                <div class="erp-report-empty">
+                    <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                    <p>Selecciona un periodo y genera el reporte para ver el detalle por proveedor.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock body %}
 
 {% block extrajs %}
 
     <script type="text/javascript">
-
 
         $('#search-form').submit(function (event) {
             event.preventDefault();
@@ -65,17 +74,26 @@
                 contentType: false,
                 success: function (response, textStatus, xhr) {
                     if (xhr.status === 200) {
-                        toastr.success(response['message'], '¡Bien hecho!');
                         $('#tbl-purchases').html(response.grid);
                     }
                 },
                 error: function (jqXhr, textStatus, xhr) {
-                    if (jqXhr.status === 500) {
-                        toastr.error(jqXhr.responseJSON.error, '¡Inconcebible!');
-                    }
+                    toastr.error('No se pudo generar el reporte.', 'Error');
+                },
+                complete: function () {
+                    $('#btn-search').removeAttr("disabled");
                 }
             });
-            $('#btn-search').removeAttr("disabled", "false");
+        });
+
+        $(function () {
+            $('#printReportExcel').click(function () {
+                if ($("#report-purchases-supplier").length) {
+                    $("#report-purchases-supplier").table2excel({filename: "Compras_por_proveedor.xls"});
+                } else {
+                    toastr.warning('Primero genera el reporte.');
+                }
+            });
         });
 
     </script>

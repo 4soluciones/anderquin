@@ -1,96 +1,67 @@
-<table class="table table-bordered" id="report-payments">
-    <thead>
-    <tr class="text-white bg-dark text-uppercase text-center">
-
-        <td class="col-form-label col-form-label-lg">ID</td>
-        <td class="col-form-label col-form-label-lg">SUCURSAL</td>
-        <td class="col-form-label col-form-label-lg">PROVEEDOR</td>
-        <td class="col-form-label col-form-label-lg">FECHA</td>
-        <td class="col-form-label col-form-label-lg" style="width: 5px">TIPO DE COMPROBANTE</td>
-        <td class="col-form-label col-form-label-lg" style="width: 5px">NUMERO DE COMPROBANTE</td>
-        {#        <td class="col-form-label col-form-label-lg">ESTADO</td>#}
-        <td class="col-form-label col-form-label-lg">
-            <select id="truck" class="form-control-lg bg-dark text-white border-0">
-                <option selected value="0">PLACA</option>
-                {% for key, value in truck_dict.items %}
-                    <option value="{{ key }}">{{ value }}</option>
-                {% endfor %}
-            </select>
-
-        </td>
-        <td class="col-form-label col-form-label-lg">SUBTOTAL</td>
-        <td class="col-form-label col-form-label-lg">IGV</td>
-        <td class="col-form-label col-form-label-lg" style="width: 15px">TOTAL</td>
-        <td class="col-form-label col-form-label-lg">PRODUCTO</td>
-        {#        <td class="col-form-label col-form-label-lg">UNIDAD</td>#}
-        <td class="col-form-label col-form-label-lg">CANTIDAD</td>
-        <td class="col-form-label col-form-label-lg">PRECIO</td>
-
-    </tr>
-    </thead>
-    <tbody id="tbl-items">
-    {% for p in purchase_set %}
-        <tr code="{{ p.truck }}">
-            <td class="col-form-label col-form-label-lg align-middle text-center"
-                rowspan="{{ p.purchase_detail_count }}">{{ p.id }}</td>
-            <td class="col-form-label col-form-label-lg align-middle text-center"
-                rowspan="{{ p.purchase_detail_count }}">{{ p.subsidiary }}</td>
-            <td class="col-form-label col-form-label-lg align-middle text-center"
-                rowspan="{{ p.purchase_detail_count }}">{{ p.supplier }}</td>
-            <td class="col-form-label col-form-label-lg align-middle text-center"
-                rowspan="{{ p.purchase_detail_count }}">{{ p.purchase_date|date:"d-m-Y" }}</td>
-            <td class="col-form-label col-form-label-lg align-middle text-center"
-                rowspan="{{ p.purchase_detail_count }}">{{ p.type_bill }}</td>
-            <td class="col-form-label col-form-label-lg align-middle text-center text-uppercase"
-                rowspan="{{ p.purchase_detail_count }}">{{ p.bill_number }}</td>
-            {#        <td class="col-form-label col-form-label-lg align-middle text-center" rowspan="{{ p.purchase_detail_count }}">{{ p.status }}</td>#}
-            <td class="col-form-label col-form-label-lg align-middle text-center"
-                rowspan="{{ p.purchase_detail_count }}">{{ p.truck }}</td>
-            <td class="col-form-label col-form-label-lg align-middle text-center"
-                rowspan="{{ p.purchase_detail_count }}">{{ p.base_amount|safe }}</td>
-            <td class="col-form-label col-form-label-lg align-middle text-center"
-                rowspan="{{ p.purchase_detail_count }}">{{ p.igv|safe }}</td>
-            <td class="col-form-label col-form-label-lg align-middle text-center"
-                rowspan="{{ p.purchase_detail_count }}">{{ p.subtotal|safe }}</td>
-            {% for pd in p.purchase_detail_set %}
-                {% if not forloop.first %}
-                    <tr code="{{ p.truck }}">
-                {% endif %}
-            <td class="col-form-label col-form-label-lg align-middle text-center">{{ pd.product }}</td>
-            {#            <td class="col-form-label col-form-label-lg align-middle text-center">{{ pd.unit }}</td>#}
-            <td class="col-form-label col-form-label-lg align-middle text-center">{{ pd.quantity|floatformat:0 }}</td>
-            <td class="col-form-label col-form-label-lg align-middle text-center">{{ pd.price_unit|safe }}</td>
+<div class="erp-report-wrapper roboto-condensed-regular">
+    <div class="table-responsive">
+        <table class="table table-bordered erp-all-purchases-table" id="report-payments">
+            <thead>
+            <tr>
+                <th class="text-center">ID</th>
+                <th>Sucursal</th>
+                <th>Proveedor</th>
+                <th>Fecha</th>
+                <th>Estado factura</th>
+                <th>N° comprobante</th>
+                <th class="text-right">Subtotal</th>
+                <th class="text-right">IGV</th>
+                <th class="text-right">Total</th>
+                <th>Producto</th>
+                <th class="text-center">Cantidad</th>
+                <th class="text-right">Precio</th>
             </tr>
+            </thead>
+            <tbody>
+            {% for p in purchase_set %}
+                {% for pd in p.purchase_detail_set %}
+                    <tr>
+                        {% if forloop.first %}
+                            <td class="text-center align-middle" rowspan="{{ p.purchase_detail_count }}">{{ p.id }}</td>
+                            <td class="align-middle" rowspan="{{ p.purchase_detail_count }}">{{ p.subsidiary }}</td>
+                            <td class="align-middle" rowspan="{{ p.purchase_detail_count }}">{{ p.supplier }}</td>
+                            <td class="text-center align-middle" rowspan="{{ p.purchase_detail_count }}">{{ p.purchase_date|date:"d-m-Y" }}</td>
+                            <td class="text-center align-middle" rowspan="{{ p.purchase_detail_count }}">{{ p.bill_status }}</td>
+                            <td class="text-center align-middle text-uppercase" rowspan="{{ p.purchase_detail_count }}">{{ p.bill_number }}</td>
+                            <td class="text-right align-middle" rowspan="{{ p.purchase_detail_count }}">{{ p.base_amount|floatformat:2 }}</td>
+                            <td class="text-right align-middle" rowspan="{{ p.purchase_detail_count }}">{{ p.igv|floatformat:2 }}</td>
+                            <td class="text-right align-middle font-weight-bold" rowspan="{{ p.purchase_detail_count }}">{{ p.subtotal|floatformat:2 }}</td>
+                        {% endif %}
+                        <td>{{ pd.product }}</td>
+                        <td class="text-center">{{ pd.quantity|floatformat:0 }}</td>
+                        <td class="text-right">{{ pd.price_unit|floatformat:2 }}</td>
+                    </tr>
+                {% endfor %}
+            {% empty %}
+                <tr>
+                    <td colspan="12" class="text-center erp-report-no-data py-4">
+                        No hay compras en el periodo seleccionado.
+                    </td>
+                </tr>
             {% endfor %}
-    {% endfor %}
-    </tbody>
-    <tfoot class="font-weight-bold">
-    <tr class="bg-light text-uppercase" id="sum">
-        <td class="col-form-label col-form-label-lg align-middle text-right" colspan="7">Suma filtro de placa:</td>
-        <td class="col-form-label col-form-label-lg align-middle text-center" colspan="1">-</td>
-        <td class="col-form-label col-form-label-lg align-middle text-left" colspan="5"></td>
-    </tr>
-    <tr class="bg-success text-uppercase">
-        <td class="col-form-label col-form-label-lg align-middle text-right" colspan="7">Monto base:</td>
-        <td class="col-form-label col-form-label-lg align-middle text-left" colspan="1">S/ {{ base_amount|safe }}</td>
-        <td class="col-form-label col-form-label-lg align-middle text-left" colspan="5"></td>
-    </tr>
-    <tr class="bg-success text-uppercase">
-        <td class="col-form-label col-form-label-lg align-middle text-right" colspan="7">IGV(18%):</td>
-        <td class="col-form-label col-form-label-lg align-middle text-left" colspan="1">S/ {{ igv|safe }}</td>
-        <td class="col-form-label col-form-label-lg align-middle text-left" colspan="5"></td>
-    </tr>
-    <tr class="bg-success text-uppercase">
-        <td class="col-form-label col-form-label-lg align-middle text-right" colspan="7">Monto Total:</td>
-        <td class="col-form-label col-form-label-lg align-middle text-left" colspan="1">S/ {{ sum_all_total|safe }}</td>
-        <td class="col-form-label col-form-label-lg align-middle text-left" colspan="5"></td>
-    </tr>
-    </tfoot>
-</table>
-
-<script type="text/javascript">
-    filter();
-    {#ready();#}
-
-</script>
-
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="6" class="text-right">Monto base</td>
+                <td class="text-right erp-report-amount">S/ {{ base_amount }}</td>
+                <td colspan="5"></td>
+            </tr>
+            <tr>
+                <td colspan="6" class="text-right">IGV (18%)</td>
+                <td class="text-right erp-report-amount">S/ {{ igv }}</td>
+                <td colspan="5"></td>
+            </tr>
+            <tr>
+                <td colspan="6" class="text-right">Monto total</td>
+                <td class="text-right erp-report-amount">S/ {{ sum_all_total }}</td>
+                <td colspan="5"></td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>

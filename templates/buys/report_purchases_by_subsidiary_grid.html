@@ -1,43 +1,79 @@
-{% for d in purchase_dict %}
-    <div class="card">
-        <div class="card-body text-center p-2">
-            <h3>{{ d.name }}</h3>
-        </div>
-    </div>
-    <table class="table table-bordered table-sm" id="report-salary">
-        <thead>
-        <tr class="text-white bg-dark text-uppercase text-center">
-            <td class="col-form-label" style="width: 20%">Cliente</td>
-            <td class="col-form-label" style="width: 8%">OC/COMPRA</td>
-            <td class="col-form-label" style="width: 8%">FECHA OC</td>
-            <td class="col-form-label" style="width: 24%">LUGAR DE ENTREGA</td>
-            <td class="col-form-label" style="width: 15%">OBSERV.</td>
-            <td class="col-form-label" style="width: 5%">CANT./CJS</td>
-            <td class="col-form-label" style="width: 20%">PRODUCTO</td>
-        </tr>
-        </thead>
-        <tbody id="tbl-items">
-        {% for p in d.purchases %}
-            <tr class="text-center">
-                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.client_reference }}</td>
-                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.oc_number }}</td>
-                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.date|date:'d/m/Y' }}</td>
-                {#                    <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.client_reference }}</td>#}
-                {#                    <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.observations }}</td>#}
-                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.address|default:'-' }}</td>
-                <td class="align-middle text-center" rowspan="{{ p.rowspan }}">{{ p.observations|upper }}</td>
-                {% for pd in p.purchase_detail %}
-                    <td class="align-middle text-center font-weight-bold">{{ pd.quantity|safe }}</td>
-                    <td class="align-middle text-center">{{ pd.product }}</td>
-                    </tr>
-                {% endfor %}
+<div class="erp-report-wrapper roboto-condensed-regular">
 
-            </tr>
-        {% endfor %}
-        <tr class="text-center">
-            <td class="align-middle text-right bg-light font-weight-bold" colspan="5">TOTAL:</td>
-            <td class="align-middle text-center bg-light font-weight-bold" colspan="1">{{ d.quantity_total }}</td>
-        </tr>
-        </tbody>
-    </table>
-{% endfor %}
+    {% for d in purchase_dict %}
+        {% if d.purchases %}
+        <section class="erp-subsidiary-block">
+            <div class="erp-subsidiary-title">
+                <span><i class="fas fa-building mr-2"></i>{{ d.name }}</span>
+                <small>{{ d.purchases|length }} compras · {{ d.quantity_total|floatformat:0 }} unidades</small>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered erp-subsidiary-table">
+                    <thead>
+                    <tr>
+                        <th style="width: 18%;">Cliente</th>
+                        <th style="width: 9%;">OC / Compra</th>
+                        <th style="width: 9%;">Fecha OC</th>
+                        <th style="width: 23%;">Lugar de entrega</th>
+                        <th style="width: 16%;">Observaciones</th>
+                        <th class="text-center" style="width: 6%;">Cant.</th>
+                        <th style="width: 19%;">Producto</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for p in d.purchases %}
+                        {% for pd in p.purchase_detail %}
+                            <tr>
+                                {% if forloop.first %}
+                                    <td rowspan="{{ p.rowspan|default:1 }}" class="align-middle">{{ p.client_reference|default:'-' }}</td>
+                                    <td rowspan="{{ p.rowspan|default:1 }}" class="align-middle text-center">{{ p.oc_number|default:'-' }}</td>
+                                    <td rowspan="{{ p.rowspan|default:1 }}" class="align-middle text-center">{{ p.date|date:'d/m/Y' }}</td>
+                                    <td rowspan="{{ p.rowspan|default:1 }}" class="align-middle">{{ p.address|default:'-' }}</td>
+                                    <td rowspan="{{ p.rowspan|default:1 }}" class="align-middle">{{ p.observations|default:'-'|upper }}</td>
+                                {% endif %}
+                                <td class="text-center font-weight-bold">{{ pd.quantity|floatformat:0 }}</td>
+                                <td>{{ pd.product }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td rowspan="{{ p.rowspan|default:1 }}" class="align-middle">{{ p.client_reference|default:'-' }}</td>
+                                <td rowspan="{{ p.rowspan|default:1 }}" class="align-middle text-center">{{ p.oc_number|default:'-' }}</td>
+                                <td rowspan="{{ p.rowspan|default:1 }}" class="align-middle text-center">{{ p.date|date:'d/m/Y' }}</td>
+                                <td rowspan="{{ p.rowspan|default:1 }}" class="align-middle">{{ p.address|default:'-' }}</td>
+                                <td rowspan="{{ p.rowspan|default:1 }}" class="align-middle">{{ p.observations|default:'-'|upper }}</td>
+                                <td colspan="2" class="text-center text-muted">Sin productos</td>
+                            </tr>
+                        {% endfor %}
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-3">Sin compras en el periodo seleccionado.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colspan="5" class="text-right">Total {{ d.name }}</td>
+                        <td class="text-center font-weight-bold">{{ d.quantity_total|floatformat:0 }}</td>
+                        <td></td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+    {% empty %}
+        <div class="erp-report-empty">
+            <i class="fas fa-building fa-2x mb-2"></i>
+            <p>No hay sucursales registradas.</p>
+        </div>
+    {% endfor %}
+
+    {% if not has_purchases %}
+        <div class="erp-report-empty">
+            <i class="fas fa-search fa-2x mb-2"></i>
+            <p>No hay compras en el periodo seleccionado.</p>
+        </div>
+    {% endif %}
+
+</div>

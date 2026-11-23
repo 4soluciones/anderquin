@@ -1,25 +1,73 @@
-<table class="table table-bordered" id="report-payments">
-    <thead>
-    <tr class="text-white bg-dark text-uppercase">
-        <td class="col-form-label col-form-label-lg w-25">NOMBRE PROVEEDOR</td>
-        <td class="col-form-label col-form-label-lg w-25">NOMBRE COMERCIAL</td>
-        <td class="col-form-label col-form-label-lg w-25">SECTOR</td>
-        <td class="col-form-label col-form-label-lg text-center w-50">TOTAL</td>
-    </tr>
-    </thead>
-    <tbody>
-    {% for p in purchase_dict %}
-        <tr class="tbl-row" pk="{{ p.supplier_id }}">
-        <td class="col-form-label col-form-label-lg align-middle text-left">{{ p.supplier_name }}</td>
-        <td class="col-form-label col-form-label-lg align-middle text-left">{{ p.business_name }}</td>
-        <td class="col-form-label col-form-label-lg align-middle text-left">{{ p.category_name }}</td>
-        <td class="col-form-label col-form-label-lg align-middle text-center">S/ {{ p.total }}</td>
-    {% endfor %}
-    </tbody>
-    <tfoot>
-    <tr class="bg-success">
-        <td class="col-form-label col-form-label-lg align-middle text-right" colspan="3">Monto total:</td>
-        <td class="col-form-label col-form-label-lg align-middle text-center">S/ {{ sum_total }}</td>
-    </tr>
-    </tfoot>
-</table>
+<div class="erp-report-wrapper roboto-condensed-regular">
+
+    <div class="erp-report-meta">
+        <div>
+            <span class="erp-report-meta-label">Sucursal</span>
+            <strong>{{ subsidiary_name }}</strong>
+        </div>
+        <div>
+            <span class="erp-report-meta-label">Periodo</span>
+            <strong>{{ start_date }} — {{ end_date }}</strong>
+        </div>
+    </div>
+
+    <div class="erp-report-summary">
+        <div class="erp-report-kpi">
+            <span>Inversión total</span>
+            <strong>S/ {{ sum_total }}</strong>
+        </div>
+        <div class="erp-report-kpi">
+            <span>Proveedores</span>
+            <strong>{{ supplier_count }}</strong>
+        </div>
+        <div class="erp-report-kpi">
+            <span>Compras</span>
+            <strong>{{ purchase_count }}</strong>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table erp-report-table" id="report-purchases-supplier">
+            <thead>
+            <tr>
+                <th class="text-center" style="width: 5%;">#</th>
+                <th style="width: 24%;">Proveedor</th>
+                <th style="width: 24%;">Razón social</th>
+                <th style="width: 13%;">Sector</th>
+                <th class="text-center" style="width: 9%;">Compras</th>
+                <th class="text-center" style="width: 11%;">Última compra</th>
+                <th class="text-right" style="width: 9%;">Total</th>
+                <th class="text-center" style="width: 5%;">Part.</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for p in purchase_dict %}
+                <tr>
+                    <td class="text-center erp-report-rank">{{ forloop.counter|stringformat:"02d" }}</td>
+                    <td class="font-weight-bold">{{ p.supplier_name }}</td>
+                    <td>{{ p.business_name }}</td>
+                    <td>{{ p.category_name }}</td>
+                    <td class="text-center">{{ p.purchase_count }}</td>
+                    <td class="text-center">{{ p.last_purchase }}</td>
+                    <td class="text-right erp-report-amount">S/ {{ p.total }}</td>
+                    <td class="text-center erp-report-share">{{ p.share }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center erp-report-no-data py-4">
+                        No hay compras aprobadas en el periodo seleccionado.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="6" class="text-right">Total general</td>
+                <td class="text-right erp-report-amount">S/ {{ sum_total }}</td>
+                <td class="text-center">100%</td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+
+</div>
