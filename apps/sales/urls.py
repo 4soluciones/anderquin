@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from apps.sales.views import *
 from apps.sales.views_SUNAT import query_dni
 from apps.sales.views_PDF import product_print, account_order_list_pdf, \
-    pdf_get_orders_for_status_account, print_quotation, print_order_bill, print_sales_report_professional
+    print_quotation, print_order_bill, print_sales_report_professional
 
 urlpatterns = [
     path('product_list/', login_required(ProductList.as_view()), name='product_list'),
@@ -79,7 +79,6 @@ urlpatterns = [
     # check payment
     path('check_loan_payment/', login_required(check_loan_payment), name='check_loan_payment'),
 
-    path('pdf_get_orders_for_status_account/', login_required(pdf_get_orders_for_status_account), name='pdf_get_orders_for_status_account'),
 
     # purchase_report_by_category
     path('purchase_report_by_category/', login_required(purchase_report_by_category), name='purchase_report_by_category'),

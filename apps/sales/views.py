@@ -2400,39 +2400,9 @@ def get_stock_product_store(request):
     user_obj = User.objects.get(id=user_id)
     subsidiary_obj = get_subsidiary_by_user(user_obj)
     subsidiary_store_obj = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj)
-    product_set = Product.objects.all()
-    # dic_stock = ['num':valor]
-    dic_stock = {}
-    stock_totals = {
-        'iron_5': 0, 'iron_10': 0, 'iron_15': 0, 'iron_45': 0,
-        'balloon_5': 0, 'balloon_10': 0, 'balloon_15': 0, 'balloon_45': 0,
-    }
-    code_to_total = {
-        'F-5': 'iron_5', 'F5': 'iron_5',
-        'F-10': 'iron_10', 'F10': 'iron_10',
-        'F-15': 'iron_15', 'F15': 'iron_15',
-        'F-45': 'iron_45', 'F45': 'iron_45',
-        'B-5': 'balloon_5', 'B5': 'balloon_5',
-        'B-10': 'balloon_10', 'B10': 'balloon_10',
-        'B-15': 'balloon_15', 'B15': 'balloon_15',
-        'B-45': 'balloon_45', 'B45': 'balloon_45',
-    }
-    for p in product_set.all():
-        stock_ = ProductStore.objects.filter(product__id=p.id,
-                                             subsidiary_store__subsidiary=subsidiary_obj).aggregate(
-            Sum('stock'))
-        stock_value = stock_['stock__sum'] or 0
-        dic_stock[p.id] = stock_value
-        product_code = (p.code or '').upper().replace(' ', '')
-        total_key = code_to_total.get(product_code)
-        if total_key:
-            stock_totals[total_key] += stock_value
-        # dic_stock.append(row)
-        # dic_stock[p.id] = {'id': p.id, 'name': p.name, 'stock': stock_['stock__sum']}
 
     return render(request, 'sales/report_stock_product_subsidiary.html', {
         'subsidiary_store_set': subsidiary_store_obj,
-        'stock_totals': stock_totals,
     })
 
 
@@ -2537,12 +2507,6 @@ def get_stock_product_store_all(request):
             stock_o = 0
         else:
             stock_o = _stock_o['stock__sum']
-        total_order_detail = OrderDetail.objects.filter(product__id=p.id, status='V', unit_id=4).aggregate(
-            Sum('quantity_sold'))
-        total_detail_b = total_order_detail['quantity_sold__sum'] or 0
-        returned_detail = CreditNoteOrderDetail.objects.filter(product__id=p.id).aggregate(Sum('quantity'))
-        returned_quantity = returned_detail['quantity__sum'] or 0
-        total_b = max(decimal.Decimal(total_detail_b) - decimal.Decimal(returned_quantity), decimal.Decimal(0))
         item = {
             'product_name': p.name,
             'quantity': _count,
@@ -2552,35 +2516,11 @@ def get_stock_product_store_all(request):
             'stock_r': stock_r,
             'stock_g': stock_g,
             'stock_o': stock_o,
-            'total_b': total_b,
         }
         dictionary_total.append(item)
 
-    stock_totals = {
-        'iron_5': 0, 'iron_10': 0, 'iron_15': 0, 'iron_45': 0,
-        'balloon_5': 0, 'balloon_10': 0, 'balloon_15': 0, 'balloon_45': 0,
-    }
-    code_to_total = {
-        'F-5': 'iron_5', 'F5': 'iron_5',
-        'F-10': 'iron_10', 'F10': 'iron_10',
-        'F-15': 'iron_15', 'F15': 'iron_15',
-        'F-45': 'iron_45', 'F45': 'iron_45',
-        'B-5': 'balloon_5', 'B5': 'balloon_5',
-        'B-10': 'balloon_10', 'B10': 'balloon_10',
-        'B-15': 'balloon_15', 'B15': 'balloon_15',
-        'B-45': 'balloon_45', 'B45': 'balloon_45',
-    }
-    for product in Product.objects.all():
-        stock_ = ProductStore.objects.filter(product__id=product.id).aggregate(Sum('stock'))
-        stock_value = stock_['stock__sum'] or 0
-        product_code = (product.code or '').upper().replace(' ', '')
-        total_key = code_to_total.get(product_code)
-        if total_key:
-            stock_totals[total_key] += stock_value
-
     return render(request, 'sales/report_stock_product_all.html', {
         'dictionary_total': dictionary_total,
-        'stock_totals': stock_totals,
     })
 
 
@@ -4487,795 +4427,657 @@ def get_name_business(request):
 
 
 def get_purchases_bills(request):
-    if request.method == 'GET':
-        bill_set = Bill.objects.filter(status='S').order_by('-id')
-        bill_dict = []
-        for b in bill_set:
-            rowspan = b.billdetail_set.count()
-            if b.billdetail_set.count() == 0:
-                rowspan = 1
-            item_bill = {
-                'id': b.id,
-                'register_date': b.register_date,
-                'expiration_date': b.expiration_date,
-                'order_number': b.order_number,
-                'serial': b.serial,
-                'correlative': b.correlative,
-                'supplier_name': b.supplier.name if b.supplier else 'Sin proveedor',
-                'delivery_address': b.delivery_address,
-                'bill_base_total': b.bill_base_total,
-                'bill_igv_total': b.bill_igv_total,
-                'bill_total_total': b.bill_total_total,
-                'sum_quantity_invoice': b.sum_quantity_invoice(),
-                'sum_quantity_purchased': b.sum_quantity_purchased(),
-                'bill_detail': [],
-                'row_count': rowspan
-            }
-            for d in b.billdetail_set.filter(status_quantity='C'):
-                item_detail = {
-                    'id': d.id,
-                    'product': d.product.name if d.product else 'Producto no definido',
-                    'quantity': str(round(d.quantity, 2)),
-                    'unit': d.unit.description if d.unit else '-',
-                    'price_unit': str(round(d.price_unit, 4))
-                }
-                item_bill.get('bill_detail').append(item_detail)
-            bill_dict.append(item_bill)
-
-        return render(request, 'sales/logistic_list.html', {
-            'bill_dict': bill_dict,
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Método no permitido.'}, status=HTTPStatus.METHOD_NOT_ALLOWED)
+    bill_set = Bill.objects.filter(status='S').select_related('supplier').order_by('-id')
+    bill_dict = []
+    for b in bill_set:
+        detail_count = b.billdetail_set.count()
+        rowspan = detail_count if detail_count > 0 else 1
+        bill_dict.append({
+            'id': b.id,
+            'register_date': b.register_date,
+            'expiration_date': b.expiration_date,
+            'order_number': b.order_number,
+            'serial': b.serial,
+            'correlative': b.correlative,
+            'supplier_name': b.supplier.name if b.supplier else 'Sin proveedor',
+            'delivery_address': b.delivery_address,
+            'bill_base_total': b.bill_base_total,
+            'bill_igv_total': b.bill_igv_total,
+            'bill_total_total': b.bill_total_total,
+            'rowspan': rowspan,
+            'in_warehouse': False,
         })
-    return JsonResponse({'message': 'Error de peticion'}, status=HTTPStatus.BAD_REQUEST)
-
+    return render(request, 'sales/logistic_list.html', {
+        'bill_dict': bill_dict,
+    })
 
 def assign_to_warehouse(request):
-    if request.method == 'GET':
-        pk = request.GET.get('pk', '')
-        my_date = datetime.now()
-        formatdate = my_date.strftime("%Y-%m-%d")
-        subsidiary_stores = SubsidiaryStore.objects.filter(category='V')
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Método no permitido.'}, status=HTTPStatus.METHOD_NOT_ALLOWED)
+    bill_id = request.GET.get('pk', '')
+    try:
+        bill_id_int = int(bill_id)
+    except (TypeError, ValueError):
+        return JsonResponse({'error': 'Factura inválida.', 'detalle': 'Identificador de factura no válido.'}, status=HTTPStatus.BAD_REQUEST)
+    try:
+        bill_obj = Bill.objects.select_related('supplier').get(id=bill_id_int)
+    except Bill.DoesNotExist:
+        return JsonResponse({'error': 'Factura no encontrada.', 'detalle': 'La factura indicada no existe.'}, status=HTTPStatus.NOT_FOUND)
+    if bill_obj.status != 'S':
+        return JsonResponse({'error': 'Operación no permitida.', 'detalle': 'Solo se pueden ingresar facturas con estado SIN ALMACÉN.'}, status=HTTPStatus.BAD_REQUEST)
 
-        bill_obj = Bill.objects.get(id=int(pk))
-        bill_details_set = BillDetail.objects.filter(bill=bill_obj, status_quantity='C')
-        unit_description = ''
+    user_id = request.user.id
+    user_obj = User.objects.get(id=user_id)
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+    if subsidiary_obj is None:
+        return JsonResponse({'error': 'Sin sucursal.', 'detalle': 'El usuario no tiene una sucursal asignada.'}, status=HTTPStatus.BAD_REQUEST)
 
-        details_dict = []
+    subsidiary_store_set = SubsidiaryStore.objects.filter(subsidiary=subsidiary_obj, category__in=['V', 'I']).order_by('name')
+    if not subsidiary_store_set.exists():
+        return JsonResponse({'error': 'Sin almacenes.', 'detalle': 'No hay almacenes de venta/insumo disponibles para la sede.'}, status=HTTPStatus.BAD_REQUEST)
 
-        for bd in bill_details_set:
-            product_detail_get = ProductDetail.objects.filter(unit=bd.unit, product=bd.product).last()
-            quantity_minimum = product_detail_get.quantity_minimum
-            quantity_in_units = bd.quantity * quantity_minimum
+    bill_detail_set = BillDetail.objects.filter(bill=bill_obj, status_quantity='C').select_related('product', 'unit')
+    if not bill_detail_set.exists():
+        return JsonResponse({'error': 'Sin detalles.', 'detalle': 'La factura no tiene detalles comprados pendientes de ingreso.'}, status=HTTPStatus.BAD_REQUEST)
 
-            unit_description = bd.unit.description
-            item = {
-                'id': bd.id,
-                'product_id': bd.product.id,
-                'product_name': bd.product.name,
-                'quantity': str(round(bd.quantity, 0)),
-                'quantity_in_units': str(
-                    quantity_in_units.quantize(decimal.Decimal('0'), rounding=decimal.ROUND_HALF_UP)),
-                'quantity_minimum': str(quantity_minimum),
-                'unit_id': bd.unit.id,
-                'unit_name': bd.unit.name,
-                'unit_description': bd.unit.description,
-                'price_unit': str(round(bd.price_unit, 6)),
-                'amount': bd.amount(),
-                'units_sold': []
-            }
-            for u in ProductDetail.objects.filter(product_id=bd.product.id).all():
-                item_units = {
-                    'id': u.id,
-                    'unit_id': u.unit.id,
-                    'unit_name': u.unit.name,
-                    'unit_description': u.unit.description,
-                    'quantity_minimum': round(u.quantity_minimum, 0),
-                    'price_purchase': str(round(u.price_purchase, 6))
-                }
-                item.get('units_sold').append(item_units)
-            details_dict.append(item)
-
-        t = loader.get_template('sales/assignment_detail_bill.html')
-        c = ({
-            'formatdate': formatdate,
-            'unit_name': unit_description,
-            'subsidiary_stores': subsidiary_stores,
-            'detail_bill': details_dict,
-            'bill_obj': bill_obj,
+    detail_dict = []
+    for b in bill_detail_set:
+        product_obj_detail = b.product.productdetail_set.filter(unit=b.unit).first() or b.product.productdetail_set.last()
+        if product_obj_detail is None:
+            return JsonResponse({'error': 'Producto sin presentación.', 'detalle': f'El producto "{b.product.name}" no tiene presentación/unidad configurada.'}, status=HTTPStatus.BAD_REQUEST)
+        detail_dict.append({
+            'id': b.id,
+            'product_id': b.product.id,
+            'product_name': b.product.name,
+            'unit_id': b.unit.id,
+            'unit_name': b.unit.name,
+            'unit_description': b.unit.description,
+            'quantity_in_units': b.quantity,
+            'quantity_minimum': product_obj_detail.quantity_minimum,
+            'price_unit': b.price_unit,
         })
-        return JsonResponse({
-            'success': True,
-            'form': t.render(c, request),
-        })
+
+    my_date = datetime.now()
+    formatdate = my_date.strftime("%Y-%m-%d")
+    t = loader.get_template('sales/assignment_detail_bill.html')
+    c = ({
+        'detail_dict': detail_dict,
+        'bill_obj': bill_obj,
+        'formatdate': formatdate,
+        'subsidiary_store_set': subsidiary_store_set,
+    })
+    return JsonResponse({
+        'success': True,
+        'form': t.render(c, request),
+    }, status=HTTPStatus.OK)
 
 
 @transaction.atomic
 def save_detail_to_warehouse(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido. Use POST.'}, status=HTTPStatus.METHOD_NOT_ALLOWED)
+
+    user_id = request.user.id
+    user_obj = User.objects.get(id=user_id)
+    subsidiary_obj = get_subsidiary_by_user(user_obj)
+    if subsidiary_obj is None:
+        return JsonResponse({'error': 'El usuario no tiene una sucursal asignada.'}, status=HTTPStatus.BAD_REQUEST)
+
+    details_raw = request.POST.get('details')
+    if not details_raw:
+        return JsonResponse({'error': 'No se recibieron datos de ingreso.'}, status=HTTPStatus.BAD_REQUEST)
+
     try:
-        if request.method == 'GET':
-            purchase_request = request.GET.get('details', '')
-            data_purchase = json.loads(purchase_request)
+        data_purchase = json.loads(details_raw)
+    except (TypeError, ValueError):
+        return JsonResponse({'error': 'Formato de datos inválido.'}, status=HTTPStatus.BAD_REQUEST)
 
-            assign_date = str(data_purchase["AssignDate"])
-            bill_id = int(data_purchase["Bill"])
-            bill_obj = Bill.objects.get(id=int(bill_id))
-            guide_number = data_purchase["GuideNumber"]
-            store = data_purchase["Store"]
+    # Datos generales
+    try:
+        bill_id = int(data_purchase.get('Bill'))
+        store_id = int(data_purchase.get('Store'))
+    except (TypeError, ValueError):
+        return JsonResponse({'error': 'Factura o almacén inválido.'}, status=HTTPStatus.BAD_REQUEST)
 
-            user_id = request.user.id
-            user_obj = User.objects.get(id=user_id)
-            subsidiary_obj = get_subsidiary_by_user(user_obj)
-            subsidiary_store_obj = SubsidiaryStore.objects.get(id=int(store))
-            unit_und_obj = Unit.objects.get(name='UND')
+    assign_date = str(data_purchase.get('AssignDate') or '').strip()
+    guide_number = str(data_purchase.get('GuideNumber') or '').strip()
+    if not assign_date:
+        return JsonResponse({'error': 'La fecha de ingreso es obligatoria.'}, status=HTTPStatus.BAD_REQUEST)
 
-            # Obtener purchase relacionado
-            bill_purchase_set = BillPurchase.objects.filter(bill=bill_obj).first()
-            purchase_obj = bill_purchase_set.purchase if bill_purchase_set else None
+    try:
+        bill_obj = Bill.objects.select_for_update().get(id=bill_id)
+    except Bill.DoesNotExist:
+        return JsonResponse({'error': 'La factura indicada no existe.'}, status=HTTPStatus.NOT_FOUND)
+    if bill_obj.status != 'S':
+        return JsonResponse({'error': 'La factura ya fue procesada o no está disponible para ingreso.'}, status=HTTPStatus.BAD_REQUEST)
 
-            # Resumen para devolver
-            summary_data = {
-                'products': [],
-                'credit_notes': [],
-                'orders': []
+    try:
+        subsidiary_store_obj = SubsidiaryStore.objects.get(id=store_id, subsidiary=subsidiary_obj, category__in=['V', 'I'])
+    except SubsidiaryStore.DoesNotExist:
+        return JsonResponse({'error': 'El almacén seleccionado no es válido para su sede.'}, status=HTTPStatus.BAD_REQUEST)
+
+    details = data_purchase.get('Details') or []
+    if not isinstance(details, list) or len(details) == 0:
+        return JsonResponse({'error': 'No hay detalles para procesar.'}, status=HTTPStatus.BAD_REQUEST)
+
+    try:
+        unit_und_obj = Unit.objects.get(name='UND')
+    except Unit.DoesNotExist:
+        return JsonResponse({'error': 'No existe la unidad UND en el sistema.'}, status=HTTPStatus.BAD_REQUEST)
+
+    bill_purchase_set = BillPurchase.objects.filter(bill=bill_obj).select_related('purchase').first()
+    purchase_obj = bill_purchase_set.purchase if bill_purchase_set else None
+
+    summary_data = {'products': [], 'credit_notes': [], 'orders': []}
+
+    try:
+        for d in details:
+            try:
+                product_id = int(d.get('Product'))
+                unit_id = int(d.get('UnitPurchase'))
+                purchase_detail_id = int(d.get('PurchaseDetail'))
+            except (TypeError, ValueError):
+                return JsonResponse({'error': 'Detalle con datos inválidos.'}, status=HTTPStatus.BAD_REQUEST)
+
+            try:
+                product_obj = Product.objects.get(id=product_id)
+                unit_obj = Unit.objects.get(id=unit_id)
+                purchase_detail_obj = PurchaseDetail.objects.get(id=purchase_detail_id)
+            except (Product.DoesNotExist, Unit.DoesNotExist, PurchaseDetail.DoesNotExist):
+                return JsonResponse({'error': 'Producto, unidad o detalle de compra no encontrado.'}, status=HTTPStatus.BAD_REQUEST)
+
+            detail_product_obj = ProductDetail.objects.filter(product=product_obj, unit=unit_obj).first()
+            if detail_product_obj is None:
+                return JsonResponse({'error': f'El producto {product_obj.name} no tiene presentación {unit_obj.name}.'}, status=HTTPStatus.BAD_REQUEST)
+            unit_min_product = decimal.Decimal(detail_product_obj.quantity_minimum or 0)
+            if unit_min_product <= 0:
+                return JsonResponse({'error': f'La presentación {unit_obj.name} del producto {product_obj.name} tiene cantidad mínima inválida.'}, status=HTTPStatus.BAD_REQUEST)
+
+            try:
+                quantity_purchased_und = decimal.Decimal(str(d.get('QuantityPurchased', 0) or 0))
+                sum_quantity_entered_total_in_units = decimal.Decimal(str(d.get('SumQuantityEnteredTotalInUnits', 0) or 0))
+                sum_quantity_returned_total_in_units = decimal.Decimal(str(d.get('SumQuantityReturnedTotalInUnits', 0) or 0))
+                sum_quantity_sold_total_in_units = decimal.Decimal(str(d.get('SumQuantitySoldTotalInUnits', 0) or 0))
+            except Exception:
+                return JsonResponse({'error': f'Cantidades inválidas para el producto {product_obj.name}.'}, status=HTTPStatus.BAD_REQUEST)
+
+            for qn, qv in [('ingresada', sum_quantity_entered_total_in_units), ('devuelta', sum_quantity_returned_total_in_units), ('vendida', sum_quantity_sold_total_in_units)]:
+                if qv < 0:
+                    return JsonResponse({'error': f'La cantidad {qn} no puede ser negativa para {product_obj.name}.'}, status=HTTPStatus.BAD_REQUEST)
+            if quantity_purchased_und <= 0:
+                return JsonResponse({'error': f'Cantidad comprada inválida para {product_obj.name}.'}, status=HTTPStatus.BAD_REQUEST)
+
+            total_accounted = sum_quantity_entered_total_in_units + sum_quantity_returned_total_in_units + sum_quantity_sold_total_in_units
+            if total_accounted != quantity_purchased_und:
+                return JsonResponse({'error': f'Las cantidades ingresadas/devueltas/vendidas deben sumar exactamente la cantidad comprada para {product_obj.name}.'}, status=HTTPStatus.BAD_REQUEST)
+
+            batches = d.get('Batch') or []
+            if not isinstance(batches, list) or len(batches) == 0:
+                return JsonResponse({'error': f'Debe registrar al menos un lote para {product_obj.name}.'}, status=HTTPStatus.BAD_REQUEST)
+
+            seen_batch_numbers = set()
+            for b in batches:
+                bn = str(b.get('batchNumber') or '').strip()
+                try:
+                    ep = decimal.Decimal(str(b.get('EnteredQuantityPrincipal', 0) or 0))
+                    eu = decimal.Decimal(str(b.get('EnteredQuantityUnits', 0) or 0))
+                    rp = decimal.Decimal(str(b.get('ReturnedQuantityPrincipal', 0) or 0))
+                    ru = decimal.Decimal(str(b.get('ReturnedQuantityUnits', 0) or 0))
+                    sp = decimal.Decimal(str(b.get('SoldQuantityPrincipal', 0) or 0))
+                    su = decimal.Decimal(str(b.get('SoldQuantityUnit', 0) or 0))
+                except Exception:
+                    return JsonResponse({'error': f'Cantidades de lote inválidas para {product_obj.name}.'}, status=HTTPStatus.BAD_REQUEST)
+                if min(ep, eu, rp, ru, sp, su) < 0:
+                    return JsonResponse({'error': f'Las cantidades de lote no pueden ser negativas para {product_obj.name}.'}, status=HTTPStatus.BAD_REQUEST)
+                has_qty = (ep + eu + rp + ru + sp + su) > 0
+                if has_qty:
+                    if not bn:
+                        return JsonResponse({'error': f'Todo lote con cantidades debe tener número de lote en {product_obj.name}.'}, status=HTTPStatus.BAD_REQUEST)
+                    bn_key = bn.lower()
+                    if bn_key in seen_batch_numbers:
+                        return JsonResponse({'error': f'El número de lote "{bn}" está duplicado en {product_obj.name}.'}, status=HTTPStatus.BAD_REQUEST)
+                    seen_batch_numbers.add(bn_key)
+                    if not str(b.get('batchExpiration') or '').strip():
+                        return JsonResponse({'error': f'El lote "{bn}" de {product_obj.name} debe tener fecha de vencimiento.'}, status=HTTPStatus.BAD_REQUEST)
+
+            if unit_obj.name == 'UND':
+                quantity_purchased_display = f"{quantity_purchased_und:.0f} {unit_obj.description or unit_obj.name}"
+            else:
+                quantity_purchased_display = f"{(quantity_purchased_und / unit_min_product):.2f} {unit_obj.description or unit_obj.name}"
+
+            product_summary = {
+                'product_name': product_obj.name,
+                'product_id': product_id,
+                'quantity_purchased': quantity_purchased_display,
+                'batches': []
             }
 
-            for d in data_purchase['Details']:
-                product_id = int(d['Product'])
-                product_obj = Product.objects.get(id=product_id)
-                unit_id = int(d['UnitPurchase'])
-                unit_obj = Unit.objects.get(id=unit_id)
+            sum_quantity_total_arrival_in_units = sum_quantity_entered_total_in_units + sum_quantity_sold_total_in_units
+            if sum_quantity_total_arrival_in_units > quantity_purchased_und:
+                return JsonResponse({'error': f'La cantidad llegada al almacén supera lo comprado para {product_obj.name}.'}, status=HTTPStatus.BAD_REQUEST)
 
-                unit_min_product = ProductDetail.objects.get(product=product_obj, unit=unit_obj).quantity_minimum
-                price_purchase = decimal.Decimal(d['PricePurchase'])
-                price_purchase_unit = (price_purchase / unit_min_product) / decimal.Decimal(1.18)
+            if purchase_obj is not None:
+                bill_obj.store_destiny = subsidiary_store_obj
+                bill_obj.guide_number = guide_number
+                bill_obj.assign_date = assign_date
+                bill_obj.save()
 
-                # Obtener o crear ProductStore
-                try:
-                    product_store_obj = ProductStore.objects.get(product=product_obj,
-                                                                 subsidiary_store=subsidiary_store_obj)
-                except ProductStore.DoesNotExist:
-                    product_store_obj = ProductStore.objects.create(product=product_obj,
-                                                                    subsidiary_store=subsidiary_store_obj,
-                                                                    stock=0)
+                product_store_obj = ProductStore.objects.filter(product=product_obj, subsidiary_store=subsidiary_store_obj).last()
+                if product_store_obj is None:
+                    product_store_obj = ProductStore.objects.create(
+                        product=product_obj,
+                        subsidiary_store=subsidiary_store_obj,
+                        stock=0
+                    )
 
-                # Calcular totales
-                sum_quantity_entered_principal = decimal.Decimal(d['SumQuantityEnteredPrincipal'])
-                sum_quantity_entered_units = decimal.Decimal(d['SumQuantityEnteredUnits'])
-                sum_quantity_entered_total_in_units = (sum_quantity_entered_principal * unit_min_product) + sum_quantity_entered_units
-                sum_quantity_entered_in_purchase_unit = sum_quantity_entered_principal + (sum_quantity_entered_units / unit_min_product)
+                current_stock = product_store_obj.stock or decimal.Decimal('0')
+                kardex_set = Kardex.objects.filter(product_store=product_store_obj)
+                kardex_last = kardex_set.last() if kardex_set.exists() else None
+                remaining_quantity_kardex = kardex_last.remaining_quantity if kardex_last else current_stock
+                remaining_price_kardex = kardex_last.remaining_price if kardex_last else decimal.Decimal('0')
 
-                sum_quantity_returned_principal = decimal.Decimal(d.get('SumQuantityReturnedPrincipal', 0) or 0)
-                sum_quantity_returned_units = decimal.Decimal(d.get('SumQuantityReturnedUnits', 0) or 0)
-                sum_quantity_returned_total_in_units = (sum_quantity_returned_principal * unit_min_product) + sum_quantity_returned_units
-                sum_quantity_returned_in_purchase_unit = sum_quantity_returned_principal + (sum_quantity_returned_units / unit_min_product)
+                for b in batches:
+                    batch_number = str(b.get('batchNumber') or '').strip()
+                    expiration_date = b.get('batchExpiration')
+                    entered_quantity_units_principal = decimal.Decimal(str(b.get('EnteredQuantityPrincipal', 0) or 0)) * unit_min_product
+                    entered_quantity_units = decimal.Decimal(str(b.get('EnteredQuantityUnits', 0) or 0))
+                    total_entered = entered_quantity_units_principal + entered_quantity_units
 
-                sum_quantity_sold_principal = decimal.Decimal(d.get('SumQuantitySoldPrincipal', 0) or 0)
-                sum_quantity_sold_units = decimal.Decimal(d.get('SumQuantitySoldUnits', 0) or 0)
-                sum_quantity_sold_total_in_units = (sum_quantity_sold_principal * unit_min_product) + sum_quantity_sold_units
-                sum_quantity_sold_in_purchase_unit = sum_quantity_sold_principal + (sum_quantity_sold_units / unit_min_product)
+                    sold_quantity_principal = decimal.Decimal(str(b.get('SoldQuantityPrincipal', 0) or 0))
+                    sold_quantity_units = decimal.Decimal(str(b.get('SoldQuantityUnit', 0) or 0))
+                    sold_quantity_total_in_units = sold_quantity_principal * unit_min_product + sold_quantity_units
 
-                # Cantidad comprada para el resumen
-                quantity_purchased_und = decimal.Decimal(d.get('QuantityPurchased', 0) or 0)
-                if unit_obj.name == 'UND':
-                    quantity_purchased_display = f"{quantity_purchased_und:.0f} {unit_obj.description}"
-                else:
-                    qty_in_purchase_unit = quantity_purchased_und / unit_min_product
-                    quantity_purchased_display = f"{qty_in_purchase_unit:.2f} {unit_obj.description}"
+                    returned_quantity_principal = decimal.Decimal(str(b.get('ReturnedQuantityPrincipal', 0) or 0)) * unit_min_product
+                    returned_quantity_units = decimal.Decimal(str(b.get('ReturnedQuantityUnits', 0) or 0))
+                    total_returned = returned_quantity_principal + returned_quantity_units
 
-                # Datos del producto para el resumen
-                product_summary = {
-                    'product_name': product_obj.name,
-                    'product_id': product_id,
-                    'quantity_purchased': quantity_purchased_display,
-                    'batches': []
-                }
+                    if (total_entered + total_returned + sold_quantity_total_in_units) <= 0:
+                        continue
 
-                # Total que llega al almacén = ingresada + vendida (la vendida también llega, solo que se vende de inmediato)
-                sum_quantity_total_arrival_in_units = sum_quantity_entered_total_in_units + sum_quantity_sold_total_in_units
+                    # Conflicto de lote con otro producto en mismo almacén
+                    conflict = Batch.objects.filter(
+                        batch_number__iexact=batch_number,
+                        product_store__subsidiary_store=subsidiary_store_obj
+                    ).exclude(product_store__product=product_obj).exists()
+                    if conflict:
+                        return JsonResponse({'error': f'El lote "{batch_number}" ya existe para otro producto en el almacén seleccionado.'}, status=HTTPStatus.BAD_REQUEST)
 
-                # ----------------------------------- SIEMPRE REGISTRAR ENTRADA EN KARDEX --------------------------------------------------
-                # El kardex debe registrar el TOTAL que llega (ingresada + vendida), no solo la ingresada
-                if sum_quantity_total_arrival_in_units > 0:
-                    # Crear BillDetail para ingresada: uno por cada tipo de unidad usada (cj y/o und)
-                    detail_entered_obj = None  # Primer BillDetail para vincular kardex y batches
-                    if sum_quantity_entered_principal > 0:
-                        detail_principal = BillDetail.objects.create(
-                            quantity=sum_quantity_entered_principal,
-                            unit=unit_obj,
-                            price_unit=price_purchase,
-                            product=product_obj,
-                            status_quantity='I',
-                            bill=bill_obj
-                        )
-                        if detail_entered_obj is None:
-                            detail_entered_obj = detail_principal
-                    if sum_quantity_entered_units > 0:
-                        detail_units = BillDetail.objects.create(
-                            quantity=sum_quantity_entered_units,
-                            unit=unit_und_obj,
-                            price_unit=price_purchase,
-                            product=product_obj,
-                            status_quantity='I',
-                            bill=bill_obj
-                        )
-                        if detail_entered_obj is None:
-                            detail_entered_obj = detail_units
+                    existing_batch = Batch.objects.filter(
+                        batch_number__iexact=batch_number,
+                        product_store__product=product_obj,
+                        product_store__subsidiary_store=subsidiary_store_obj
+                    ).first()
 
-                    # Registrar en kardex (entrada) - total que llega incluyendo vendida
-                    has_kardex = Kardex.objects.filter(product_store_id=product_store_obj.id).exists()
-                    if not has_kardex:
-                        new_total_stock = product_store_obj.stock + sum_quantity_total_arrival_in_units
-                        product_store_obj.stock = new_total_stock
-                        product_store_obj.save()
-                        kardex_obj = kardex_initial(
-                            product_store_obj,
-                            new_total_stock,
-                            price_purchase_unit,
-                            bill_detail_obj=detail_entered_obj
-                        )
+                    batch_summary = {
+                        'batch_number': batch_number,
+                        'entered_quantity': float(total_entered),
+                        'returned_quantity': float(total_returned),
+                        'sold_quantity': float(sold_quantity_total_in_units),
+                        'expiration_date': expiration_date,
+                        'order_id': None
+                    }
+
+                    kardex_obj = Kardex.objects.create(
+                        operation='E',
+                        quantity=total_entered,
+                        product_store=product_store_obj,
+                        type_operation='02',
+                        type_document='01',
+                        price_unit=purchase_detail_obj.price_unit,
+                        remaining_quantity=remaining_quantity_kardex + total_entered - sold_quantity_total_in_units,
+                        remaining_price=remaining_price_kardex,
+                        remaining_price_total=(remaining_quantity_kardex + total_entered - sold_quantity_total_in_units) * remaining_price_kardex
+                    )
+
+                    if existing_batch:
+                        existing_batch.remaining_quantity = (existing_batch.remaining_quantity or decimal.Decimal('0')) + total_entered - sold_quantity_total_in_units
+                        existing_batch.save(update_fields=['remaining_quantity'])
+                        batch_obj = existing_batch
                     else:
-                        total_cost = sum_quantity_total_arrival_in_units * price_purchase_unit
-                        kardex_obj = kardex_input(
-                            product_store_obj.id,
-                            sum_quantity_total_arrival_in_units,
-                            total_cost,
-                            type_document='01',
-                            type_operation='02',
-                            bill_detail_obj=detail_entered_obj
+                        batch_obj = Batch.objects.create(
+                            batch_number=batch_number,
+                            expiration_date=expiration_date,
+                            product_store=product_store_obj,
+                            quantity=total_entered,
+                            remaining_quantity=total_entered - sold_quantity_total_in_units,
+                            kardex=kardex_obj
                         )
 
-                    # Procesar cada batch
-                    for b in d.get('Batch', []):
-                        batch_number = b.get('batchNumber', '')
-                        batch_expiration = b.get('batchExpiration', '')
-                        entered_quantity_principal = decimal.Decimal(b.get('EnteredQuantityPrincipal', 0) or 0)
-                        entered_quantity_units = decimal.Decimal(b.get('EnteredQuantityUnits', 0) or 0)
-                        entered_quantity_total_in_units = (entered_quantity_principal * unit_min_product) + entered_quantity_units
+                    if total_entered > 0:
+                        detail_bill_obj = BillDetail.objects.create(
+                            bill=bill_obj,
+                            product=product_obj,
+                            quantity=total_entered,
+                            unit=unit_und_obj,
+                            status_quantity='I',
+                            price_unit=purchase_detail_obj.price_unit / unit_min_product,
+                        )
+                        BillDetailBatch.objects.create(
+                            batch_number=batch_number,
+                            batch_expiration_date=expiration_date,
+                            product=product_obj,
+                            quantity=total_entered,
+                            unit=unit_und_obj,
+                            bill_detail=detail_bill_obj,
+                        )
 
-                        if entered_quantity_total_in_units > 0 and batch_number:
-                            # Crear Batch
-                            batch_set = Batch.objects.filter(batch_number=str(batch_number), product_store=product_store_obj)
-                            batch_quantity_remaining = batch_set.last().remaining_quantity if batch_set.exists() else 0
+                    # Ventas
+                    if sold_quantity_total_in_units > 0:
+                        total = round(float(sold_quantity_total_in_units * (purchase_detail_obj.price_unit / unit_min_product)), 2)
+                        client = Client.objects.filter(id=19).first()
+                        bill_type = 'F' if bill_obj.serial and str(bill_obj.serial).startswith('F') else 'T'
+                        client_obj = bill_obj.supplier.client if hasattr(bill_obj.supplier, 'client') else None
+                        order_obj = Order.objects.create(
+                            client=client_obj if client_obj else client,
+                            user=user_obj,
+                            total=total,
+                            subsidiary=subsidiary_obj,
+                            type_document=bill_type,
+                            status='C',
+                            status_pay='C',
+                            create_at=datetime.now(),
+                            order_type='V',
+                        )
+                        detail_sold_obj = BillDetail.objects.create(
+                            bill=bill_obj,
+                            product=product_obj,
+                            quantity=sold_quantity_total_in_units,
+                            unit=unit_und_obj,
+                            status_quantity='V',
+                            price_unit=purchase_detail_obj.price_unit / unit_min_product,
+                        )
+                        OrderDetail.objects.create(
+                            order=order_obj,
+                            status='V',
+                            quantity_sold=sold_quantity_total_in_units,
+                            product=product_obj,
+                            unit=unit_und_obj,
+                            price_unit=purchase_detail_obj.price_unit / unit_min_product,
+                        )
+                        Kardex.objects.create(
+                            operation='S',
+                            quantity=sold_quantity_total_in_units,
+                            product_store=product_store_obj,
+                            type_operation='01',
+                            type_document='00',
+                            price_unit=purchase_detail_obj.price_unit,
+                            remaining_quantity=remaining_quantity_kardex + total_entered - sold_quantity_total_in_units,
+                            remaining_price=remaining_price_kardex,
+                            remaining_price_total=(remaining_quantity_kardex + total_entered - sold_quantity_total_in_units) * remaining_price_kardex
+                        )
+                        BillDetailBatch.objects.create(
+                            batch_number=batch_number,
+                            batch_expiration_date=expiration_date,
+                            product=product_obj,
+                            quantity=sold_quantity_total_in_units,
+                            unit=unit_und_obj,
+                            bill_detail=detail_sold_obj,
+                            order=order_obj
+                        )
+                        batch_summary['sold_quantity'] = float(sold_quantity_total_in_units)
+                        batch_summary['order_id'] = order_obj.id
+                        summary_data['orders'].append({
+                            'id': order_obj.id,
+                            'serial': order_obj.serial,
+                            'correlative': order_obj.correlative,
+                            'product': product_obj.name
+                        })
 
-                            batch_obj = Batch.objects.create(
-                                expiration_date=batch_expiration,
-                                batch_number=batch_number,
-                                kardex=kardex_obj,
-                                quantity=entered_quantity_total_in_units,
-                                remaining_quantity=entered_quantity_total_in_units + batch_quantity_remaining,
-                                product_store=product_store_obj
-                            )
-
-                            # Crear BillDetailBatch
-                            BillDetailBatch.objects.create(
-                                batch_number=batch_number,
-                                batch_expiration_date=batch_expiration,
+                    # Devoluciones
+                    if total_returned > 0:
+                        credit_note_obj = CreditNote.objects.create(
+                            bill=bill_obj,
+                            issue_date=datetime.now().date(),
+                            status='E'
+                        )
+                        detail_returned_obj = BillDetail.objects.create(
+                            bill=bill_obj,
+                            product=product_obj,
+                            quantity=total_returned,
+                            unit=unit_und_obj,
+                            status_quantity='D',
+                            price_unit=purchase_detail_obj.price_unit / unit_min_product,
+                        )
+                        price_purchase = purchase_detail_obj.price_unit
+                        price_purchase_unit = price_purchase / unit_min_product
+                        if unit_obj.name != 'UND' and returned_quantity_principal > 0:
+                            returned_total_principal = returned_quantity_principal * price_purchase
+                            CreditNoteDetail.objects.create(
+                                credit_note=credit_note_obj,
                                 product=product_obj,
-                                quantity=entered_quantity_total_in_units,
-                                unit=unit_und_obj,
-                                bill_detail=detail_entered_obj
+                                quantity=returned_quantity_principal,
+                                unit=unit_obj,
+                                price_unit=price_purchase,
+                                total=returned_total_principal,
+                                code=product_obj.code or '',
+                                description=product_obj.name
                             )
+                        if returned_quantity_units > 0:
+                            returned_total_units = returned_quantity_units * price_purchase_unit
+                            CreditNoteDetail.objects.create(
+                                credit_note=credit_note_obj,
+                                product=product_obj,
+                                quantity=returned_quantity_units,
+                                unit=unit_und_obj,
+                                price_unit=price_purchase_unit,
+                                total=returned_total_units,
+                                code=product_obj.code or '',
+                                description=product_obj.name
+                            )
+                        summary_data['credit_notes'].append({
+                            'id': credit_note_obj.id,
+                            'product': product_obj.name,
+                            'quantity': float(total_returned),
+                            'unit': unit_und_obj.name
+                        })
+                        BillDetailBatch.objects.create(
+                            batch_number=batch_number,
+                            batch_expiration_date=expiration_date,
+                            product=product_obj,
+                            quantity=total_returned,
+                            unit=unit_und_obj,
+                            bill_detail=detail_returned_obj,
+                        )
 
-                            # Datos del lote para el resumen
-                            batch_summary = {
-                                'batch_number': batch_number,
-                                'batch_expiration': batch_expiration,
-                                'entered_quantity': float(entered_quantity_total_in_units),
-                                'returned_quantity': 0,
-                                'sold_quantity': 0,
-                                'credit_note_id': None,
-                                'order_id': None
-                            }
-
-                            # ----------------------------------- DEVOLUCIÓN: CREAR CREDIT NOTE PRIMERO, LUEGO KARDEX OUTPUT --------------------------------------------------
-                            returned_quantity_principal = decimal.Decimal(b.get('ReturnedQuantityPrincipal', 0) or 0)
-                            returned_quantity_units = decimal.Decimal(b.get('ReturnedQuantityUnits', 0) or 0)
-                            returned_quantity_total_in_units = (returned_quantity_principal * unit_min_product) + returned_quantity_units
-
-                            if returned_quantity_total_in_units > 0:
-                                # Validar que existe batch con cantidad suficiente
-                                if batch_obj.remaining_quantity < returned_quantity_total_in_units:
-                                    return JsonResponse({
-                                        'error': f'No hay suficiente cantidad en el lote {batch_number} para devolver {returned_quantity_total_in_units} unidades del producto {product_obj.name}. Cantidad disponible: {batch_obj.remaining_quantity}',
-                                    }, status=HTTPStatus.BAD_REQUEST)
-
-                                # Crear BillDetail para devolución: uno por cada tipo de unidad (cj y/o und)
-                                detail_returned_obj = None
-                                if returned_quantity_principal > 0:
-                                    detail_returned_obj = BillDetail.objects.create(
-                                        quantity=returned_quantity_principal,
-                                        unit=unit_obj,
-                                        price_unit=price_purchase,
-                                        product=product_obj,
-                                        status_quantity='D',
-                                        bill=bill_obj
-                                    )
-                                if returned_quantity_units > 0:
-                                    detail_units = BillDetail.objects.create(
-                                        quantity=returned_quantity_units,
-                                        unit=unit_und_obj,
-                                        price_unit=price_purchase,
-                                        product=product_obj,
-                                        status_quantity='D',
-                                        bill=bill_obj
-                                    )
-                                    if detail_returned_obj is None:
-                                        detail_returned_obj = detail_units
-
-                                # Crear CreditNote y CreditNoteDetail PRIMERO
-                                credit_note_obj = CreditNote.objects.create(
-                                    credit_note_serial='PENDIENTE_NC',
-                                    credit_note_number='000000',
-                                    issue_date=datetime.now().date(),
-                                    bill=bill_obj,
-                                    purchase=purchase_obj,
-                                    status='P',
-                                    motive=f'Devolución de mercadería - Lote: {batch_number}'
-                                )
-
-                                # Crear CreditNoteDetail: uno por cada tipo de unidad (cj y/o und)
-                                credit_note_detail_obj = None
-                                if returned_quantity_principal > 0:
-                                    returned_total_principal = returned_quantity_principal * unit_min_product * price_purchase_unit
-                                    credit_note_detail_obj = CreditNoteDetail.objects.create(
-                                        credit_note=credit_note_obj,
-                                        product=product_obj,
-                                        quantity=returned_quantity_principal,
-                                        unit=unit_obj,
-                                        price_unit=price_purchase,
-                                        total=returned_total_principal,
-                                        code=product_obj.code or '',
-                                        description=product_obj.name
-                                    )
-                                if returned_quantity_units > 0:
-                                    returned_total_units = returned_quantity_units * price_purchase_unit
-                                    cnd_units = CreditNoteDetail.objects.create(
-                                        credit_note=credit_note_obj,
-                                        product=product_obj,
-                                        quantity=returned_quantity_units,
-                                        unit=unit_und_obj,
-                                        price_unit=price_purchase / unit_min_product,
-                                        total=returned_total_units,
-                                        code=product_obj.code or '',
-                                        description=product_obj.name
-                                    )
-                                    if credit_note_detail_obj is None:
-                                        credit_note_detail_obj = cnd_units
-
-                                # Registrar salida en kardex DESPUÉS de crear CreditNoteDetail
-                                kardex_ouput(
-                                    product_store_obj.id,
-                                    returned_quantity_total_in_units,
-                                    type_document='07',  # NOTA DE CREDITO
-                                    type_operation='06',  # DEVOLUCION ENTREGADA
-                                    credit_note_detail_obj=credit_note_detail_obj,
-                                    batch_obj=batch_obj
-                                )
-
-                                # Actualizar batch_obj después de la devolución
-                                batch_obj.refresh_from_db()
-                                # Obtener el batch más reciente después de kardex_ouput
-                                current_batch = Batch.objects.filter(
-                                    batch_number=str(batch_number),
-                                    product_store=product_store_obj
-                                ).order_by('-id').first()
-                                batch_obj = current_batch if current_batch else batch_obj
-
-                                # Crear BillDetailBatch para devolución
-                                BillDetailBatch.objects.create(
-                                    batch_number=batch_number,
-                                    batch_expiration_date=batch_expiration,
-                                    product=product_obj,
-                                    quantity=returned_quantity_total_in_units,
-                                    unit=unit_und_obj,
-                                    bill_detail=detail_returned_obj
-                                )
-
-                                batch_summary['returned_quantity'] = float(returned_quantity_total_in_units)
-                                batch_summary['credit_note_id'] = credit_note_obj.id
-                                summary_data['credit_notes'].append({
-                                    'id': credit_note_obj.id,
-                                    'serial': credit_note_obj.credit_note_serial,
-                                    'number': credit_note_obj.credit_note_number,
-                                    'product': product_obj.name
-                                })
-
-                            # ----------------------------------- VENTA: CREAR ORDER PRIMERO, LUEGO KARDEX OUTPUT --------------------------------------------------
-                            sold_quantity_principal = decimal.Decimal(b.get('SoldQuantityPrincipal', 0) or 0)
-                            sold_quantity_units = decimal.Decimal(b.get('SoldQuantityUnit', 0) or 0)
-                            sold_quantity_total_in_units = (sold_quantity_principal * unit_min_product) + sold_quantity_units
-
-                            if sold_quantity_total_in_units > 0:
-                                # Obtener el batch más reciente (después de devolución si hubo)
-                                current_batch = Batch.objects.filter(
-                                    batch_number=str(batch_number),
-                                    product_store=product_store_obj
-                                ).order_by('-id').first()
-
-                                if not current_batch:
-                                    return JsonResponse({
-                                        'error': f'No se encontró el lote {batch_number} para el producto {product_obj.name}',
-                                    }, status=HTTPStatus.BAD_REQUEST)
-
-                                if current_batch.remaining_quantity < sold_quantity_total_in_units:
-                                    return JsonResponse({
-                                        'error': f'No hay suficiente cantidad en el lote {batch_number} para vender {sold_quantity_total_in_units} unidades del producto {product_obj.name}. Cantidad disponible: {current_batch.remaining_quantity}',
-                                    }, status=HTTPStatus.BAD_REQUEST)
-
-                                # Crear BillDetail para venta: uno por cada tipo de unidad (cj y/o und)
-                                detail_sold_obj = None
-                                if sold_quantity_principal > 0:
-                                    detail_sold_obj = BillDetail.objects.create(
-                                        quantity=sold_quantity_principal,
-                                        unit=unit_obj,
-                                        price_unit=price_purchase,
-                                        product=product_obj,
-                                        status_quantity='V',
-                                        bill=bill_obj
-                                    )
-                                if sold_quantity_units > 0:
-                                    detail_units = BillDetail.objects.create(
-                                        quantity=sold_quantity_units,
-                                        unit=unit_und_obj,
-                                        price_unit=price_purchase,
-                                        product=product_obj,
-                                        status_quantity='V',
-                                        bill=bill_obj
-                                    )
-                                    if detail_sold_obj is None:
-                                        detail_sold_obj = detail_units
-
-                                # Crear Order y OrderDetail PRIMERO (uno por cada tipo de unidad para la venta)
-                                create_date = utc_to_local(datetime.now())
-                                order_obj = Order.objects.create(
-                                    order_type='V',
-                                    status='P',
-                                    sale_type='VA',
-                                    subsidiary=subsidiary_obj,
-                                    create_at=create_date,
-                                    user=user_obj,
-                                    correlative='000000',
-                                    serial='PENDIENTE_CE'
-                                )
-
-                                order_detail_obj = None
-                                order_total = decimal.Decimal('0')
-                                if sold_quantity_principal > 0:
-                                    product_detail_sale = ProductDetail.objects.filter(product=product_obj, unit=unit_obj).first()
-                                    price_sale = product_detail_sale.price_sale if product_detail_sale else price_purchase
-                                    od_principal = OrderDetail.objects.create(
-                                        order=order_obj,
-                                        product=product_obj,
-                                        quantity_sold=sold_quantity_principal,
-                                        unit=unit_obj,
-                                        price_unit=price_sale,
-                                        status='P',
-                                        product_store=product_store_obj,
-                                        commentary=f'Venta desde almacén - Lote: {batch_number}'
-                                    )
-                                    order_detail_obj = od_principal
-                                    order_total += od_principal.multiply()
-                                if sold_quantity_units > 0:
-                                    product_detail_sale = ProductDetail.objects.filter(product=product_obj, unit=unit_und_obj).first()
-                                    if product_detail_sale:
-                                        price_sale = product_detail_sale.price_sale
-                                    else:
-                                        pd_principal = ProductDetail.objects.filter(product=product_obj, unit=unit_obj).first()
-                                        price_sale = (pd_principal.price_sale / unit_min_product) if pd_principal else price_purchase / unit_min_product
-                                    od_units = OrderDetail.objects.create(
-                                        order=order_obj,
-                                        product=product_obj,
-                                        quantity_sold=sold_quantity_units,
-                                        unit=unit_und_obj,
-                                        price_unit=price_sale,
-                                        status='P',
-                                        product_store=product_store_obj,
-                                        commentary=f'Venta desde almacén - Lote: {batch_number}'
-                                    )
-                                    if order_detail_obj is None:
-                                        order_detail_obj = od_units
-                                    order_total += od_units.multiply()
-
-                                order_obj.total = order_total
-                                order_obj.save()
-
-                                # Registrar salida en kardex DESPUÉS de crear OrderDetail
-                                kardex_ouput(
-                                    product_store_obj.id,
-                                    sold_quantity_total_in_units,
-                                    type_document='00',  # OTROS
-                                    type_operation='01',  # VENTA
-                                    order_detail_obj=order_detail_obj,
-                                    batch_obj=current_batch
-                                )
-
-                                # Crear BillDetailBatch para venta (vinculado al primer BillDetail de venta)
-                                BillDetailBatch.objects.create(
-                                    batch_number=batch_number,
-                                    batch_expiration_date=batch_expiration,
-                                    product=product_obj,
-                                    quantity=sold_quantity_total_in_units,
-                                    unit=unit_und_obj,
-                                    bill_detail=detail_sold_obj,
-                                    order=order_obj
-                                )
-
-                                batch_summary['sold_quantity'] = float(sold_quantity_total_in_units)
-                                batch_summary['order_id'] = order_obj.id
-                                summary_data['orders'].append({
-                                    'id': order_obj.id,
-                                    'serial': order_obj.serial,
-                                    'correlative': order_obj.correlative,
-                                    'product': product_obj.name
-                                })
-
-                            product_summary['batches'].append(batch_summary)
+                    product_summary['batches'].append(batch_summary)
+                    # actualizar remanentes para siguiente lote del mismo producto
+                    remaining_quantity_kardex = remaining_quantity_kardex + total_entered - sold_quantity_total_in_units
 
                 if product_summary['batches']:
                     summary_data['products'].append(product_summary)
 
-            # Actualizar bill_obj después de procesar todos los detalles
-            bill_obj.guide_number = guide_number
-            bill_obj.assign_date = assign_date
-            bill_obj.store_destiny = subsidiary_store_obj
-            bill_obj.status = 'E'
-            bill_obj.save()
+            # Actualizar stock del producto
+            product_store_obj = ProductStore.objects.filter(product=product_obj, subsidiary_store=subsidiary_store_obj).last()
+            if product_store_obj:
+                product_store_obj.stock = (product_store_obj.stock or decimal.Decimal('0')) + sum_quantity_entered_total_in_units - sum_quantity_sold_total_in_units
+                product_store_obj.save(update_fields=['stock'])
 
-            # Actualizar purchases relacionadas
-            bill_purchase_set = BillPurchase.objects.filter(bill=bill_obj)
-            for bp in bill_purchase_set:
-                purchase_obj = bp.purchase
-                purchase_obj.status = 'A'
-                purchase_obj.save()
-
-            # Formatear fechas para el resumen
-            from datetime import datetime as dt
-            try:
-                assign_date_formatted = dt.strptime(assign_date, '%Y-%m-%d').strftime('%d/%m/%Y')
-            except:
-                assign_date_formatted = assign_date
-            
-            # Formatear fechas de lotes en el resumen
-            for product in summary_data['products']:
-                for batch in product['batches']:
-                    if batch.get('batch_expiration'):
-                        try:
-                            batch['batch_expiration'] = dt.strptime(batch['batch_expiration'], '%Y-%m-%d').strftime('%d/%m/%Y')
-                        except:
-                            pass
-
-            # Renderizar template de resumen
-            t = loader.get_template('sales/assignment_summary.html')
-            c = {
-                'summary_data': summary_data,
-                'bill_obj': bill_obj,
-                'assign_date': assign_date_formatted,
-                'guide_number': guide_number,
-                'store_name': subsidiary_store_obj.name,
-                'subsidiary_name': subsidiary_store_obj.subsidiary.name if subsidiary_store_obj.subsidiary else ''
-            }
-
-            return JsonResponse({
-                'message': 'Productos Registrados Correctamente',
-                'success': True,
-                'summary_html': t.render(c, request)
-            }, status=HTTPStatus.OK)
-    except Exception as e:
-        import traceback
-        error_message = f"Contacte con sistema para corregir el sgt error: {str(e)}"
-        error_traceback = traceback.format_exc()
-        print(f"Error en save_detail_to_warehouse: {error_traceback}")
-
-        return JsonResponse({
-            'error': error_message,
-            'detail': str(e)
-        }, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-
-def get_details_by_bill(request):
-    if request.method == 'GET':
-        bill_id = request.GET.get('bill_id', '')
-        bill_obj = Bill.objects.get(pk=int(bill_id))
-        details_bill = BillDetail.objects.filter(bill=bill_obj)
-
-        # Pre-calcular unidad de referencia por producto
-        unit_reference_cache = {}
-        
-        # Primero, determinar la unidad de referencia para cada producto
-        for d in details_bill:
-            cache_key_product = f"{d.product.id}"
-            if cache_key_product not in unit_reference_cache:
-                bill_detail_comprado = BillDetail.objects.filter(
-                    bill=bill_obj, 
-                    product=d.product, 
-                    status_quantity='C'
-                ).first()
-                
-                if not bill_detail_comprado:
-                    unit_reference = d.unit
-                else:
-                    unit_reference = bill_detail_comprado.unit
-                
-                unit_reference_cache[cache_key_product] = unit_reference
-        
-        # Agrupar BillDetails por (producto, status_quantity) para mostrar una fila por grupo
-        from itertools import groupby
-        from operator import attrgetter
-
-        def get_group_key(bd):
-            return (bd.product_id, bd.status_quantity)
-
-        details_bill_sorted = sorted(details_bill, key=get_group_key)
-        grouped_details = {}
-        for key, group in groupby(details_bill_sorted, key=get_group_key):
-            grouped_details[key] = list(group)
-
-        details_dict = []
-        for (product_id, status_quantity), group_details in grouped_details.items():
-            d = group_details[0]  # Primer detalle del grupo para datos base
-
-            store = ''
-            credit_number = ''
-            bill_applied = 'Sin Aplicar'
-
-            if d.kardex_set.all():
-                store = d.kardex_set.last().product_store.subsidiary_store.name
-
-            credit_note_set = CreditNote.objects.filter(bill_note=d.bill)
-            if credit_note_set.exists():
-                credit_note_obj = credit_note_set.last()
-                credit_number = f"{credit_note_obj.credit_note_serial}-{credit_note_obj.credit_note_number}"
-                if credit_note_obj.bill is not None:
-                    bill_applied = credit_note_obj.bill
-
-            # Construir quantity_display combinado: "37 CJ + 45 UND" cuando hay múltiples unidades
-            quantity_parts = []
-            quantity_und_display = decimal.Decimal('0')
-            unit_reference = unit_reference_cache.get(f"{d.product.id}", d.unit)
-            for bd in group_details:
-                qty_min = decimal.Decimal('1')
+        # Vincular compras relacionadas
+        purchase_detail_set = PurchaseDetail.objects.filter(purchase__billpurchase__bill=bill_obj)
+        if purchase_detail_set.exists():
+            for p in purchase_detail_set:
+                purchase = p.purchase
+                purchase.status = 'A'
+                purchase.save(update_fields=['status'])
+                purchase_detail = PurchaseDetail.objects.filter(purchase=purchase)
+                for pd in purchase_detail:
+                    pd.status = 'A'
+                    pd.save(update_fields=['status'])
                 try:
-                    pd = ProductDetail.objects.get(product=bd.product, unit=bd.unit)
-                    qty_min = pd.quantity_minimum
-                except ProductDetail.DoesNotExist:
+                    bill_purchase_obj = BillPurchase.objects.get(purchase_detail=p, bill=bill_obj)
+                    if bill_purchase_obj.quantity_invoice >= bill_purchase_obj.quantity_purchased:
+                        p.status = 'A'
+                        p.save(update_fields=['status'])
+                except BillPurchase.DoesNotExist:
                     pass
-                qty_und = bd.quantity * qty_min
-                quantity_und_display += qty_und
-                quantity_parts.append(f"{round(bd.quantity, 2)} {bd.unit.description}")
-            quantity_display = " + ".join(quantity_parts) if len(quantity_parts) > 1 else quantity_parts[0] if quantity_parts else "0"
-            show_conversion_und = (unit_reference.name != 'UND') and quantity_und_display > 0
 
-            # Recolectar details_batch de todos los detalles del grupo (evitar duplicados por batch_number)
-            details_batch_seen = set()
-            all_details_batch = []
-            for bd in group_details:
-                for b in bd.billdetailbatch_set.all():
-                    if b.batch_number not in details_batch_seen:
-                        details_batch_seen.add(b.batch_number)
-                        order_number = ''
-                        order_number_bill = ''
-                        if b.order:
-                            order_number = b.order.id
-                            if b.order.serial is not None:
-                                order_number_bill = b.order.serial + '-' + b.order.correlative
-                        batch_qty_min = decimal.Decimal('1')
-                        try:
-                            bpd = ProductDetail.objects.get(product=b.product, unit=b.unit)
-                            batch_qty_min = bpd.quantity_minimum
-                        except ProductDetail.DoesNotExist:
-                            pass
-                        batch_quantity_und = b.quantity * batch_qty_min
-                        all_details_batch.append({
-                            'id': b.id,
-                            'batch_number': b.batch_number,
-                            'batch_expiration': b.batch_expiration_date,
-                            'batch_quantity': b.quantity,
-                            'batch_unit': b.unit.description,
-                            'batch_quantity_und': batch_quantity_und,
-                            'order_number': order_number,
-                            'order_number_bill': order_number_bill,
-                        })
+        bill_obj.status = 'E'
+        bill_obj.store_destiny = subsidiary_store_obj
+        bill_obj.assign_date = assign_date
+        bill_obj.guide_number = guide_number
+        bill_obj.save(update_fields=['status', 'store_destiny', 'assign_date', 'guide_number'])
 
-            rowspan = max(1, len(all_details_batch))
-
-            # Para status C y display: quantity en unidad de referencia
-            unit_min_ref = decimal.Decimal('1')
-            try:
-                pd_ref = ProductDetail.objects.get(product=d.product, unit=unit_reference)
-                unit_min_ref = pd_ref.quantity_minimum
-            except ProductDetail.DoesNotExist:
-                pass
-            quantity_in_ref_unit = quantity_und_display / unit_min_ref if unit_reference.name != 'UND' else quantity_und_display
-
-            item = {
-                'id': d.id,
-                'product': d.product.name,
-                'quantity': quantity_in_ref_unit,
-                'unit': unit_reference.description,
-                'price_unit': d.price_unit,
-                'status_quantity': d.status_quantity,
-                'status_display': d.get_status_quantity_display(),
-                'store': store,
-                'batch_number': '',
-                'batch_expiration': '',
-                'credit_note': credit_number,
-                'bill_applied': bill_applied,
-                'rowspan': rowspan,
-                'details_batch': all_details_batch,
-                'quantity_display': quantity_display,
-                'quantity_und_display': quantity_und_display,
-                'unit_reference': unit_reference.description,
-                'show_conversion_und': show_conversion_und,
-            }
-            details_dict.append(item)
-
-        # Primer lote y vencimiento para el header (dato compartido)
-        first_batch_lote = ''
-        first_batch_venc = None
-        for item in details_dict:
-            for b in item.get('details_batch', []):
-                if b.get('batch_number'):
-                    first_batch_lote = b['batch_number']
-                    first_batch_venc = b.get('batch_expiration')
-                    break
-            if first_batch_lote:
-                break
-
-        t = loader.get_template('sales/details_bill.html')
-        c = ({
-            'details_dict': details_dict,
+        from django.template.loader import render_to_string
+        summary_html = render_to_string('sales/bill_warehouse_summary.html', {
             'bill_obj': bill_obj,
-            'first_batch_lote': first_batch_lote,
-            'first_batch_venc': first_batch_venc,
-        })
+            'summary_data': summary_data,
+            'store_name': subsidiary_store_obj.name,
+            'guide_number': guide_number,
+            'assign_date': assign_date
+        }, request=request)
+
         return JsonResponse({
-            'grid': t.render(c, request),
+            'success': True,
+            'message': 'Se asignaron los productos correctamente.',
+            'summary_html': summary_html
         }, status=HTTPStatus.OK)
 
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': 'Ocurrió un error al guardar el ingreso.', 'detalle': str(e)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+def get_details_by_bill(request):
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Método no permitido.'}, status=HTTPStatus.METHOD_NOT_ALLOWED)
+    bill_id = request.GET.get('bill_id', '')
+    try:
+        bill_id_int = int(bill_id)
+    except (TypeError, ValueError):
+        return JsonResponse({'error': 'Factura inválida.'}, status=HTTPStatus.BAD_REQUEST)
+    try:
+        bill_obj = Bill.objects.select_related('store_destiny', 'supplier').get(pk=bill_id_int)
+    except Bill.DoesNotExist:
+        return JsonResponse({'error': 'Factura no encontrada.'}, status=HTTPStatus.NOT_FOUND)
+
+    details_bill = BillDetail.objects.filter(bill=bill_obj).select_related('product', 'unit')
+    unit_reference_cache = {}
+    for d in details_bill:
+        cache_key_product = f"{d.product.id}"
+        if cache_key_product not in unit_reference_cache:
+            bill_detail_comprado = BillDetail.objects.filter(
+                bill=bill_obj, product=d.product, status_quantity='C'
+            ).select_related('unit').first()
+            if not bill_detail_comprado:
+                unit_reference = d.unit
+            else:
+                unit_comprada = bill_detail_comprado.unit
+                quantity_minimum_comprada = d.product.productdetail_set.filter(unit=unit_comprada).values_list(
+                    'quantity_minimum', flat=True).first()
+                if quantity_minimum_comprada is None:
+                    unit_reference = unit_comprada
+                else:
+                    unit_reference = d.product.productdetail_set.filter(
+                        quantity_minimum__gt=quantity_minimum_comprada
+                    ).exclude(unit__name='UND').order_by('quantity_minimum').first()
+                    if not unit_reference:
+                        unit_reference = unit_comprada
+                    else:
+                        unit_reference = unit_reference.unit
+            unit_reference_cache[cache_key_product] = unit_reference
+
+    details_dict = []
+    for d in details_bill:
+        unit_reference = unit_reference_cache[f"{d.product.id}"]
+        quantity_minimum_ref = d.product.productdetail_set.filter(unit=unit_reference).values_list(
+            'quantity_minimum', flat=True).first()
+        if quantity_minimum_ref is None or quantity_minimum_ref == 0:
+            total_quantity_reference = 0
+        else:
+            total_quantity_reference = d.quantity / quantity_minimum_ref
+
+        credit_note_details = []
+        quantity_credit_note = 0
+        if d.status_quantity == 'D':
+            credit_note_details = CreditNoteDetail.objects.filter(
+                product=d.product, credit_note__bill=bill_obj
+            ).select_related('unit')
+            quantity_credit_note = credit_note_details.aggregate(total=Sum('quantity'))['total'] or 0
+
+        order_detail = None
+        if d.status_quantity == 'V':
+            bill_detail_batch = BillDetailBatch.objects.filter(bill_detail=d).first()
+            if bill_detail_batch and bill_detail_batch.order_id:
+                order_detail = Order.objects.filter(id=bill_detail_batch.order_id).first()
+
+        product_id = d.product.id
+        cache_key = f"{product_id}_{d.status_quantity}"
+        quantity_current = 0
+        quantity_current_und = 0
+        if cache_key not in unit_reference_cache:
+            if d.status_quantity == 'C':
+                quantity_current = BillDetail.objects.filter(
+                    bill=bill_obj, status_quantity='C', product=d.product
+                ).aggregate(total=Sum('quantity'))['total'] or 0
+            elif d.status_quantity == 'I':
+                quantity_current = BillDetail.objects.filter(
+                    bill=bill_obj, status_quantity='I', product=d.product
+                ).aggregate(total=Sum('quantity'))['total'] or 0
+            elif d.status_quantity == 'D':
+                quantity_current = quantity_credit_note
+            elif d.status_quantity == 'V':
+                quantity_current = BillDetailBatch.objects.filter(
+                    bill_detail=d, bill_detail__status_quantity='V', product=d.product
+                ).aggregate(total=Sum('quantity'))['total'] or 0
+            quantity_current_und = quantity_current
+            if quantity_minimum_ref and quantity_minimum_ref != 0:
+                quantity_current = quantity_current / quantity_minimum_ref
+            unit_reference_cache[cache_key] = {'quantity': quantity_current, 'quantity_und': quantity_current_und}
+        else:
+            quantity_current = unit_reference_cache[cache_key]['quantity']
+            quantity_current_und = unit_reference_cache[cache_key]['quantity_und']
+
+        details_dict.append({
+            'id': d.id,
+            'product_name': d.product.name,
+            'quantity': d.quantity,
+            'unit_name': d.unit.name,
+            'unit_description': d.unit.description,
+            'price_unit': d.price_unit,
+            'total': d.amount(),
+            'status_quantity': d.status_quantity,
+            'status_quantity_display': d.get_status_quantity_display(),
+            'credit_note_details': credit_note_details,
+            'quantity_credit_note': quantity_credit_note,
+            'order_detail': order_detail,
+            'total_quantity_reference': total_quantity_reference,
+            'quantity_minimum_ref': quantity_minimum_ref,
+            'quantity_current': quantity_current,
+            'quantity_current_und': quantity_current_und,
+        })
+
+    t = loader.get_template('sales/details_bill.html')
+    c = ({'details_dict': details_dict, 'bill_obj': bill_obj})
+    return JsonResponse({'success': True, 'grid': t.render(c, request)}, status=HTTPStatus.OK)
 
 def get_bills_in_warehouse(request):
-    if request.method == 'GET':
-        bill_set = Bill.objects.filter(status='E').order_by('-id')
-        bill_dict = []
-        for b in bill_set:
-            rowspan = b.billdetail_set.count()
-            if b.billdetail_set.count() == 0:
-                rowspan = 1
-            item_bill = {
-                'id': b.id,
-                'register_date': b.register_date,
-                'expiration_date': b.expiration_date,
-                'order_number': b.order_number,
-                'serial': b.serial,
-                'correlative': b.correlative,
-                'supplier_name': b.supplier.name if b.supplier else 'Sin proveedor',
-                'delivery_address': b.delivery_address,
-                'bill_base_total': b.bill_base_total,
-                'bill_igv_total': b.bill_igv_total,
-                'bill_total_total': b.bill_total_total,
-                'sum_quantity_invoice': b.sum_quantity_invoice(),
-                'sum_quantity_purchased': b.sum_quantity_purchased(),
-                'status_store': b.status,
-                'status_store_text': b.get_status_display(),
-                'refund': b.get_quantity_refund(),
-                # 'bill_detail': [],
-                'row_count': rowspan
-            }
-            # for d in b.billdetail_set.filter(status_quantity='C'):
-            #     item_detail = {
-            #         'id': d.id,
-            #         'product': d.product.name,
-            #         'quantity': str(round(d.quantity, 2)),
-            #         'unit': d.unit.description,
-            #         'price_unit': str(round(d.price_unit, 4))
-            #     }
-            #     item_bill.get('bill_detail').append(item_detail)
-            bill_dict.append(item_bill)
-
-        return render(request, 'sales/logistic_bill_warehouse.html', {
-            'bill_dict': bill_dict,
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Método no permitido.'}, status=HTTPStatus.METHOD_NOT_ALLOWED)
+    bill_set = Bill.objects.filter(status='E').select_related('supplier').order_by('-id')
+    bill_dict = []
+    for b in bill_set:
+        detail_count = b.billdetail_set.count()
+        rowspan = detail_count if detail_count > 0 else 1
+        bill_dict.append({
+            'id': b.id,
+            'register_date': b.register_date,
+            'expiration_date': b.expiration_date,
+            'order_number': b.order_number,
+            'serial': b.serial,
+            'correlative': b.correlative,
+            'supplier_name': b.supplier.name if b.supplier else 'Sin proveedor',
+            'delivery_address': b.delivery_address,
+            'bill_base_total': b.bill_base_total,
+            'bill_igv_total': b.bill_igv_total,
+            'bill_total_total': b.bill_total_total,
+            'rowspan': rowspan,
+            'refund': b.get_quantity_refund(),
+            'status_store': b.status,
+            'status_store_text': b.get_status_display(),
         })
-    return JsonResponse({'message': 'Error de peticion'}, status=HTTPStatus.BAD_REQUEST)
-
+    return render(request, 'sales/logistic_bill_warehouse.html', {'bill_dict': bill_dict})
 
 def credit_note_order_list(request):
     if request.method == 'GET':
@@ -5961,34 +5763,30 @@ def modal_batch(request):
 def check_batch_number(request):
     """
     Verifica si el número de lote ya existe en la BD para un producto en un almacén.
-    No pueden haber dos lotes con el mismo número para el mismo producto en el mismo almacén.
     Returns: flag=True si el lote ya existe (duplicado), flag=False si no existe (válido).
     """
-    if request.method == 'GET':
-        flag = False
-        number_batch = str(request.GET.get('number_batch', '')).strip()
-        subsidiary_store = request.GET.get('subsidiary_store', '')
-        product_id = request.GET.get('product_id', '')
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Método no permitido.'}, status=HTTPStatus.METHOD_NOT_ALLOWED)
 
-        if number_batch and subsidiary_store and product_id:
-            try:
-                subsidiary_store_id = int(subsidiary_store)
-                product_id_int = int(product_id)
-                # Filtrar por: mismo número de lote, mismo producto y mismo almacén
-                batch_set = Batch.objects.filter(
-                    batch_number=number_batch,
-                    product_store__subsidiary_store_id=subsidiary_store_id,
-                    product_store__product_id=product_id_int
-                )
-                if batch_set.exists():
-                    flag = True
-            except (ValueError, TypeError):
-                pass
+    number_batch = str(request.GET.get('number_batch', '')).strip()
+    subsidiary_store = request.GET.get('subsidiary_store', '')
+    product_id = request.GET.get('product_id', '')
 
-        return JsonResponse({
-            'flag': flag
-        }, status=HTTPStatus.OK)
+    if not number_batch or not subsidiary_store or not product_id:
+        return JsonResponse({'flag': True, 'error': 'Debe indicar lote, almacén y producto para validar.'}, status=HTTPStatus.BAD_REQUEST)
 
+    try:
+        subsidiary_store_id = int(subsidiary_store)
+        product_id_int = int(product_id)
+    except (TypeError, ValueError):
+        return JsonResponse({'flag': True, 'error': 'Parámetros inválidos para validar el lote.'}, status=HTTPStatus.BAD_REQUEST)
+
+    batch_exists = Batch.objects.filter(
+        batch_number__iexact=number_batch,
+        product_store__subsidiary_store_id=subsidiary_store_id,
+        product_store__product_id=product_id_int
+    ).exists()
+    return JsonResponse({'flag': batch_exists}, status=HTTPStatus.OK)
 
 def sales_report_professional(request):
     """

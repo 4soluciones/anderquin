@@ -431,32 +431,29 @@
 
 
         console.log(details_bill);
+        $('#assignment-changes').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i>Guardando...');
         $.ajax({
             url: '/sales/save_detail_to_warehouse/',
             async: true,
-            dataType: 'json', // for response
-            type: 'GET',
+            dataType: 'json',
+            type: 'POST',
             data: {'details': JSON.stringify(details_bill)},
-            contentType: 'application/json;charset=UTF-8',
             headers: {"X-CSRFToken": '{{ csrf_token }}'},
             success: function (response, textStatus, xhr) {
                 if (xhr.status === 200 && response.success && response.summary_html) {
-                    toastr.success(response.message, '¡Operación Exitosa!');
-                    // Ocultar tabla de despacho de cantidades y datos generales
+                    toastr.success(response.message || 'Ingreso guardado correctamente.', '¡Operación Exitosa!');
                     $('.card:has(.card-body:has(#products-table))').hide();
                     $('.card:has(.card-body:has(#store))').hide();
                     $('.alert.alert-light').hide();
-                    // Mostrar resumen
                     $('.modal-body').prepend(response.summary_html);
-                    // Deshabilitar botón de guardar
                     $('#assignment-changes').prop('disabled', true).html('<i class="fas fa-check mr-1"></i>Guardado');
-                    // Cambiar botón cerrar
                     $('#close-modal').html('<i class="fas fa-times mr-1"></i>Cerrar');
                 } else if (xhr.status === 200) {
-                    toastr.success(response.message, '¡Operación Exitosa!');
-                    setTimeout(() => {
-                        location.reload();
-                    }, 500);
+                    toastr.success(response.message || 'Ingreso guardado correctamente.', '¡Operación Exitosa!');
+                    setTimeout(() => { location.reload(); }, 500);
+                } else {
+                    $('#assignment-changes').prop('disabled', false).html('<i class="fas fa-save mr-1"></i>Guardar ingreso');
+                    toastr.error(response.error || response.message || 'No se pudo guardar el ingreso.', '¡ERROR!');
                 }
             },
             error: function (jqXhr, textStatus, xhr) {
@@ -464,6 +461,7 @@
                 if (jqXhr.responseJSON) {
                     msg = jqXhr.responseJSON.error || jqXhr.responseJSON.detalle || msg;
                 }
+                $('#assignment-changes').prop('disabled', false).html('<i class="fas fa-save mr-1"></i>Guardar ingreso');
                 toastr.error(msg, '¡ERROR!');
             }
         });

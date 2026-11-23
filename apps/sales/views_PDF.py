@@ -32,7 +32,6 @@ from .format_dates import utc_to_local
 from django.db.models import Sum, Max, Min, Sum, Q, Value as V, F, Prefetch
 import io
 import pdfkit
-from apps.sales.funtions import get_orders_for_status_account
 
 # Register Fonts
 # PAGE_HEIGHT = defaultPageSize[1]
@@ -184,44 +183,6 @@ def create_pdf(header=None, body=None, footer=None, title=None, cols=None):
     response.write(buff.getvalue())
     buff.close()
     return response
-
-
-def pdf_get_orders_for_status_account(request):
-    header = [(
-        'N°'.upper(),
-        'Cliente'.upper(),
-        'Pago Faltante (Efectivo)'.upper(),
-        'Cantidad Faltante (Fierros)'.upper(),
-    )]
-
-    user_id = request.user.id
-    user_obj = User.objects.get(id=user_id)
-    subsidiary_obj = get_subsidiary_by_user(user_obj)
-    d = get_orders_for_status_account(subsidiary_obj=subsidiary_obj)
-    summary_sum_total_remaining_repay_loan = d['summary_sum_total_remaining_repay_loan']
-    summary_sum_total_remaining_return_loan = d['summary_sum_total_remaining_return_loan']
-    client_dict = d['client_dict']
-    body = []
-    for k, c in client_dict.items():
-        body.append(
-            (
-                c['client_id'],
-                c['client_names'],
-                round(c['sum_total_remaining_repay_loan'], 2),
-                round(c['sum_total_remaining_return_loan']),
-            )
-        )
-    title = 'ESTADO DE CUENTAS DE {}'.format(str(subsidiary_obj.name).upper())
-
-    labeled = [
-
-        ['TOTAL PAGO FALTANTE: ', str(round(summary_sum_total_remaining_repay_loan, 2)), '', ''],
-        ['TOTAL CANTIDAD FALTANTE:', str(round(summary_sum_total_remaining_return_loan, 0)), '', ''],
-
-    ]
-    footer = Table(labeled)
-
-    return create_pdf(header=header, body=body, footer=footer, title=title, cols=4)
 
 
 logo = "static/assets/avatar/logo-anderquin-original.png"

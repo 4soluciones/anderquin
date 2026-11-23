@@ -1565,9 +1565,7 @@ def add_cash_flow_to_dictionary(cf):
                 'multiply': d.multiply,
                 'return_loan': d.return_loan(),
                 'repay_loan': d.repay_loan(),
-                'repay_loan_ball': d.repay_loan_ball(),
                 'repay_loan_with_vouchers': d.repay_loan_with_vouchers(),
-                'ball_changes': d.ball_changes(),
             }
             order_set.get('order_detail_set').append(order_detail)
         body.get('order_set').append(order_set)

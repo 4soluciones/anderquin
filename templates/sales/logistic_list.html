@@ -143,9 +143,18 @@
                 type: 'GET',
                 data: {'bill_id': bill_id},
                 success: function (response) {
-                    _table.html(response.grid);
-                    _table.parent('tr').slideDown("fast");
+                    if (response.success && response.grid) {
+                        _table.html(response.grid);
+                        _table.parent('tr').slideDown("fast");
+                    } else {
+                        toastr.error(response.error || 'No se pudo cargar el detalle.', '¡ERROR!');
+                    }
                 },
+                error: function (jqXhr) {
+                    let msg = 'No se pudo cargar el detalle.';
+                    if (jqXhr.responseJSON) { msg = jqXhr.responseJSON.error || jqXhr.responseJSON.detalle || msg; }
+                    toastr.error(msg, '¡ERROR!');
+                }
             });
         }
 
